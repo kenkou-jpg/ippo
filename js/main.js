@@ -13,8 +13,8 @@
      PROFILE_NAME: プロフィールに表示する名前
   ============================================ */
   const SITE_CONFIG = {
-    BLOG_URL: 'BLOG_URL_HERE',   // 例: 'https://your-blog.com'
-    PROFILE_NAME: 'お名前をここに入力', // 例: '田中 花子'
+    BLOG_URL: 'BLOG_URL_HERE',   // 例: 'https://kenkou-kiroku.com'
+    PROFILE_NAME: 'SUMI', // 例: '田中 花子'
   };
 
   /* ============================================
