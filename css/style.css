@@ -1241,20 +1241,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .profile-avatar {
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
   border-radius: 50%;
-  background: linear-gradient(135deg,
-    var(--color-pink-light) 0%,
-    var(--color-bg-air) 100%
-  );
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-accent);
-  font-style: italic;
-  color: var(--color-plum);
-  opacity: 0.50;
+
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   border: 2px solid var(--color-border);
