@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ブログ一覧 — kenkou kiroku</title>
+  <meta name="description" content="卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症・チャクラ・食事療法・プチ断食に関する記事一覧。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    /* Blog-specific minimal overrides */
+    .blog-hero {
+      padding: 140px 0 64px;
+      background-color: var(--color-white);
+      border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .blog-hero-inner {
+      max-width: 680px;
+    }
+
+    .blog-hero-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--color-plum);
+      margin-bottom: var(--space-4);
+      font-weight: 400;
+    }
+
+    .blog-hero-desc {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      line-height: 2.0;
+    }
+
+    /* Category Filter */
+    .cat-filter {
+      background-color: var(--color-white);
+      border-bottom: 1px solid var(--color-border-light);
+      position: sticky;
+      top: 80px;
+      z-index: 50;
+    }
+
+    .cat-filter-inner {
+      display: flex;
+      gap: var(--space-1);
+      overflow-x: auto;
+      padding: var(--space-4) 0;
+      scrollbar-width: none;
+    }
+
+    .cat-filter-inner::-webkit-scrollbar {
+      display: none;
+    }
+
+    .cat-btn {
+      flex-shrink: 0;
+      font-family: var(--font-sans);
+      font-size: var(--text-xs);
+      font-weight: 300;
+      letter-spacing: 0.08em;
+      color: var(--color-text-muted);
+      background: none;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-full);
+      padding: 0.4rem 1rem;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .cat-btn:hover,
+    .cat-btn.active {
+      background-color: var(--color-teal);
+      color: var(--color-white);
+      border-color: var(--color-teal);
+    }
+
+    /* Article List - Minimal */
+    .blog-main {
+      padding: var(--space-16) 0 var(--space-section);
+      background-color: var(--color-bg);
+    }
+
+    .blog-layout {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 var(--space-8);
+    }
+
+    .article-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .article-list-item {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: var(--space-6);
+      padding: var(--space-7) 0;
+      border-bottom: 1px solid var(--color-border-light);
+      transition: all var(--transition);
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .article-list-item:first-child {
+      border-top: 1px solid var(--color-border-light);
+    }
+
+    .article-list-item:hover .list-title {
+      color: var(--color-teal);
+    }
+
+    .list-thumb {
+      aspect-ratio: 3 / 2;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg,
+        var(--color-bg-sub) 0%,
+        var(--color-pink-light) 50%,
+        var(--color-bg-air) 100%
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .list-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .list-body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .list-cat {
+      font-size: var(--text-xs);
+      letter-spacing: 0.10em;
+      color: var(--color-teal);
+      font-weight: 300;
+    }
+
+    .list-title {
+      font-family: var(--font-serif);
+      font-size: var(--text-md);
+      color: var(--color-plum);
+      line-height: 1.65;
+      font-weight: 400;
+      transition: color var(--transition);
+    }
+
+    .list-excerpt {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      line-height: 1.85;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .list-meta {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* Pagination */
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-2);
+      margin-top: var(--space-12);
+    }
+
+    .page-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--color-border);
+      background: none;
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      font-family: var(--font-sans);
+    }
+
+    .page-btn:hover,
+    .page-btn.current {
+      background-color: var(--color-teal);
+      border-color: var(--color-teal);
+      color: var(--color-white);
+    }
+
+    /* Light CTA at bottom */
+    .blog-cta {
+      background-color: var(--color-white);
+      border-top: 1px solid var(--color-border-light);
+      padding: var(--space-16) 0;
+      text-align: center;
+    }
+
+    .blog-cta-inner {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .blog-cta-inner p {
+      font-size: var(--text-sm);
+      color: var(--color-text-light);
+      line-height: 2.0;
+      margin-bottom: var(--space-6);
+    }
+
+    @media (max-width: 600px) {
+      .article-list-item {
+        grid-template-columns: 100px 1fr;
+        gap: var(--space-4);
+      }
+
+      .list-excerpt {
+        display: none;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .article-list-item {
+        grid-template-columns: 1fr;
+      }
+
+      .list-thumb {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="site-header" id="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="site-logo">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="20" cy="20" r="18" stroke="#6C4A67" stroke-width="1" fill="none" opacity="0.4"/>
+          <path d="M20 8 Q24 14 20 20 Q16 14 20 8" fill="#E63FA8" opacity="0.35"/>
+          <path d="M32 20 Q26 24 20 20 Q26 16 32 20" fill="#27B7B3" opacity="0.35"/>
+          <path d="M20 32 Q16 26 20 20 Q24 26 20 32" fill="#E63FA8" opacity="0.28"/>
+          <path d="M8 20 Q14 16 20 20 Q14 24 8 20" fill="#27B7B3" opacity="0.28"/>
+          <path d="M13 13 Q17 17 20 20" stroke="#6C4A67" stroke-width="0.8" fill="none" opacity="0.5"/>
+          <path d="M27 13 Q23 17 20 20" stroke="#6C4A67" stroke-width="0.8" fill="none" opacity="0.5"/>
+          <circle cx="20" cy="20" r="2.5" fill="#D8B56A" opacity="0.7"/>
+        </svg>
+        <div class="logo-text">
+          <span class="logo-name">kenkou kiroku</span>
+          <span class="logo-sub">wellness record</span>
+        </div>
+      </a>
+
+      <nav class="site-nav" aria-label="メインナビゲーション">
+        <a href="index.html#concept" class="nav-link">コンセプト</a>
+        <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="nav-link" style="color: var(--color-teal);">ブログ</a>
+        <a href="index.html#concerns" class="nav-link">お悩み別</a>
+        <a href="app.html" class="nav-link">アプリ</a>
+        <a href="index.html#profile" class="nav-link">プロフィール</a>
+        <a href="index.html#gift" class="btn btn-secondary header-cta">無料ガイドを受け取る</a>
+      </nav>
+
+      <button class="hamburger" id="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="index.html#concept" class="mobile-nav-link">コンセプト</a>
+    <a href="BLOG_URL_HERE" class="mobile-nav-link">ブログ</a>
+    <a href="index.html#concerns" class="mobile-nav-link">お悩み別</a>
+    <a href="app.html" class="mobile-nav-link">アプリ</a>
+    <a href="index.html#profile" class="mobile-nav-link">プロフィール</a>
+    <a href="index.html#gift" class="btn btn-primary" style="margin-top: 1rem; justify-content: center;">無料ガイドを受け取る</a>
+  </nav>
+
+  <main>
+
+    <!-- Blog Hero -->
+    <section class="blog-hero" aria-labelledby="blog-title">
+      <div class="container">
+        <div class="blog-hero-inner">
+          <span class="section-en">Journal</span>
+          <h1 class="blog-hero-title" id="blog-title">
+            からだと意識を整える記録
+          </h1>
+          <p class="blog-hero-desc">
+            卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症など、女性特有の不調に向き合う方へ。<br>
+            チャクラ・食事療法・プチ断食をテーマにした記事をお届けします。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Filter -->
+    <div class="cat-filter" role="navigation" aria-label="カテゴリフィルター">
+      <div class="container">
+        <div class="cat-filter-inner">
+          <button class="cat-btn active" data-cat="all">すべて</button>
+          <button class="cat-btn" data-cat="ovarian">卵巣嚢腫</button>
+          <button class="cat-btn" data-cat="pcos">PCOS</button>
+          <button class="cat-btn" data-cat="endo">子宮内膜症</button>
+          <a href="https://kenkou-kiroku.com/tag/myoma/" class="concern-card" target="_blank" rel="noopener noreferrer">
+  <div class="concern-dot"></div>
+  <div class="concern-text">
+    <h4>子宮筋腫</h4>
+    <p>食事・冷え対策・からだの観察</p>
+  </div>
+</a>
+
+          <button class="cat-btn" data-cat="chakra">チャクラ</button>
+          <button class="cat-btn" data-cat="food">食事療法</button>
+          <button class="cat-btn" data-cat="fasting">プチ断食</button>
+          <button class="cat-btn" data-cat="emotion">感情と身体</button>
+          <button class="cat-btn" data-cat="selfcare">セルフケア</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Article List -->
+    <section class="blog-main" aria-label="記事一覧">
+      <div class="blog-layout">
+        <div class="article-list" role="list">
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="ovarian food" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-closeup.jpg" alt="卵巣嚢腫と食事" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">卵巣嚢腫 × 食事療法</div>
+              <h2 class="list-title">卵巣嚢腫と食事の関係。何を食べると、からだは喜ぶ？</h2>
+              <p class="list-excerpt">
+                卵巣嚢腫と診断されたとき、まず気になるのが「食事をどう変えれば良いのか」ではないでしょうか。
+                抗炎症作用のある食材、ホルモンバランスを整える食べ方について丁寧に解説します。
+              </p>
+              <div class="list-meta">2025.06.15</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="chakra" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-light.jpg" alt="チャクラ" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">チャクラ調律</div>
+              <h2 class="list-title">骨盤まわりの重さは、第2チャクラからのサインかもしれない</h2>
+              <p class="list-excerpt">
+                スワディスターナ（第2チャクラ）は、創造性・感情・女性性・骨盤まわりのエネルギーに
+                関わるとされます。日常の感覚と照らし合わせて観察する方法を紹介します。
+              </p>
+              <div class="list-meta">2025.06.08</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="fasting" role="listitem">
+            <div class="list-thumb">
+              <img src="images/hero-bougainvillea.jpg" alt="プチ断食" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 50%;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">プチ断食</div>
+              <h2 class="list-title">16時間プチ断食の始め方。女性の身体に合わせたやさしい方法</h2>
+              <p class="list-excerpt">
+                「断食」というと大変そうですが、16時間の食事間隔を作るだけのやさしい方法です。
+                女性ホルモンへの影響や、無理なく続けるコツを詳しくお伝えします。
+              </p>
+              <div class="list-meta">2025.06.01</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="pcos hormone" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-arch.jpg" alt="PCOS" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">PCOS × ホルモンバランス</div>
+              <h2 class="list-title">PCOSと診断されたら知っておきたい、日常でできること</h2>
+              <p class="list-excerpt">
+                多嚢胞性卵巣症候群（PCOS）は月経不順、不妊、代謝への影響など長期的な課題を抱えます。
+                食事・運動・ストレスケアでできることを整理します。
+              </p>
+              <div class="list-meta">2025.05.25</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="emotion selfcare" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-closeup.jpg" alt="感情と身体" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">感情と身体</div>
+              <h2 class="list-title">感情の流れが滞るとき、からだに何が起きているのか</h2>
+              <p class="list-excerpt">
+                不安、低気分、疲労感は、からだのシグナルと連動していることがあります。
+                自律神経、ホルモン、感情記録のつながりを観察する方法を紹介。
+              </p>
+              <div class="list-meta">2025.05.18</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="food" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-light.jpg" alt="食事療法" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">食事療法</div>
+              <h2 class="list-title">冷えと卵巣。温める食事がからだの流れを変える理由</h2>
+              <p class="list-excerpt">
+                冷えはからだの循環を滞らせ、卵巣周辺の血流にも影響するとされます。
+                温める食材の選び方と、毎日の食事に取り入れる工夫をお伝えします。
+              </p>
+              <div class="list-meta">2025.05.10</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="endo selfcare" role="listitem">
+            <div class="list-thumb">
+              <img src="images/hero-bougainvillea.jpg" alt="子宮内膜症" loading="lazy" style="width:100%;height:100%;object-fit:cover;object-position:center 40%;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">子宮内膜症 × セルフケア</div>
+              <h2 class="list-title">子宮内膜症と疲労。「見えない辛さ」と向き合うセルフケア</h2>
+              <p class="list-excerpt">
+                子宮内膜症は痛みだけでなく、慢性的な疲労や気分の落ち込みを伴うことがあります。
+                NHSも指摘するこれらの症状と、日常での向き合い方を考えます。
+              </p>
+              <div class="list-meta">2025.05.03</div>
+            </div>
+          </a>
+
+          <a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer" class="article-list-item" data-cat="fasting food" role="listitem">
+            <div class="list-thumb">
+              <img src="images/bougainvillea-arch.jpg" alt="断食と食事" loading="lazy" style="width:100%;height:100%;object-fit:cover;">
+            </div>
+            <div class="list-body">
+              <div class="list-cat">プチ断食 × 食事療法</div>
+              <h2 class="list-title">断食明けに食べたい、からだが喜ぶやさしい食事のレシピ</h2>
+              <p class="list-excerpt">
+                断食後は消化器官に優しい食事が大切です。胃腸をいたわりながら栄養を取り入れる
+                レシピと、断食後の食べ方のポイントを紹介します。
+              </p>
+              <div class="list-meta">2025.04.26</div>
+            </div>
+          </a>
+
+        </div>
+
+        <!-- Pagination -->
+        <nav class="pagination" aria-label="ページネーション">
+          <button class="page-btn current" aria-label="1ページ目（現在）" aria-current="page">1</button>
+          <button class="page-btn" aria-label="2ページ目">2</button>
+          <button class="page-btn" aria-label="3ページ目">3</button>
+          <button class="page-btn" aria-label="次のページ">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </nav>
+      </div>
+    </section>
+
+    <!-- Light CTA -->
+    <section class="blog-cta" aria-labelledby="blog-cta-title">
+      <div class="container">
+        <div class="blog-cta-inner">
+          <span class="section-en">Free Gift</span>
+          <h2 class="section-title" id="blog-cta-title" style="font-size: 1.5rem; margin-bottom: 1rem;">
+            7日間リセットガイドを無料で受け取る
+          </h2>
+          <p>
+            毎日5分から始められる体調・食事・感情の記録ガイド。
+            読んだ記事の実践をサポートします。
+          </p>
+          <a href="index.html#gift" class="btn btn-primary">無料ガイドをダウンロードする</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="site-logo">
+            <svg width="32" height="32" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+              <circle cx="20" cy="20" r="18" stroke="rgba(255,255,255,0.35)" stroke-width="1" fill="none"/>
+              <path d="M20 8 Q24 14 20 20 Q16 14 20 8" fill="#E63FA8" opacity="0.45"/>
+              <path d="M32 20 Q26 24 20 20 Q26 16 32 20" fill="#27B7B3" opacity="0.45"/>
+              <path d="M20 32 Q16 26 20 20 Q24 26 20 32" fill="#E63FA8" opacity="0.35"/>
+              <path d="M8 20 Q14 16 20 20 Q14 24 8 20" fill="#27B7B3" opacity="0.35"/>
+              <circle cx="20" cy="20" r="2.5" fill="#D8B56A" opacity="0.8"/>
+            </svg>
+            <div class="logo-text">
+              <span class="logo-name">kenkou kiroku</span>
+              <span class="logo-sub">wellness record</span>
+            </div>
+          </div>
+          <p class="footer-tagline">からだを整えることは、意識を澄ませること。</p>
+        </div>
+        <div>
+          <div class="footer-nav-title">Contents</div>
+          <ul class="footer-nav-list">
+            <li><a href="index.html">ホーム</a></li>
+            <li><a href="BLOG_URL_HERE" target="_blank" rel="noopener noreferrer">ブログ一覧</a></li>
+            <li><a href="index.html#gift">無料ガイド</a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="footer-nav-title">About</div>
+          <ul class="footer-nav-list">
+            <li><a href="index.html#profile">プロフィール</a></li>
+            <li><a href="app.html">アプリ紹介</a></li>
+            <li><a href="#">お問い合わせ</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2025 kenkou kiroku. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="#">プライバシーポリシー</a>
+          <a href="#">免責事項</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    // Category filter
+    const catBtns = document.querySelectorAll('.cat-btn');
+    const listItems = document.querySelectorAll('.article-list-item');
+
+    catBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        catBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        const cat = btn.dataset.cat;
+        listItems.forEach(item => {
+          if (cat === 'all' || item.dataset.cat.includes(cat)) {
+            item.style.display = 'grid';
+          } else {
+            item.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>

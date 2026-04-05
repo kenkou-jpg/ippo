@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#FBF7F2">
+  <title>kenkou kiroku — からだの記録アプリ</title>
+  <meta name="description" content="卵巣・女性のからだを食と意識で整える、蓄積型健康記録アプリ。チャクラ・食事療法・プチ断食・感情を記録して、あなただけのパターンを発見する。">
+  <link rel="stylesheet" href="css/app-main.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ============================================================
+     APP SHELL
+     ============================================================ -->
+<div id="app-shell">
+
+  <!-- ══════════════════════════════════
+       SCREEN: WELCOME (オンボーディング)
+       ══════════════════════════════════ -->
+  <section id="screen-welcome" class="app-screen active" aria-label="ようこそ">
+    <!-- 装飾 -->
+    <div class="welcome-deco welcome-deco-1" aria-hidden="true"></div>
+    <div class="welcome-deco welcome-deco-2" aria-hidden="true"></div>
+    <div class="welcome-deco welcome-deco-3" aria-hidden="true"></div>
+
+    <!-- スライドコンテナ -->
+    <div class="welcome-slides" id="welcomeSlides">
+
+      <!-- Slide 0: ブランドイントロ -->
+      <div class="welcome-slide active" data-slide="0">
+        <div class="welcome-petal-group" aria-hidden="true">
+          <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="petalPink" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#F2A8D8" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#E63FA8" stop-opacity="0.5"/>
+              </radialGradient>
+              <radialGradient id="petalTeal" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#7DD4D1" stop-opacity="0.9"/>
+                <stop offset="100%" stop-color="#27B7B3" stop-opacity="0.5"/>
+              </radialGradient>
+            </defs>
+            <!-- 花びら 上 -->
+            <ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink)" transform="rotate(0 70 70)"/>
+            <!-- 花びら 右 -->
+            <ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink)" transform="rotate(72 70 70)"/>
+            <!-- 花びら 右下 -->
+            <ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalTeal)" transform="rotate(144 70 70)"/>
+            <!-- 花びら 左下 -->
+            <ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalTeal)" transform="rotate(216 70 70)"/>
+            <!-- 花びら 左 -->
+            <ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink)" transform="rotate(288 70 70)"/>
+            <!-- 中心 -->
+            <circle cx="70" cy="70" r="14" fill="white" opacity="0.9"/>
+            <circle cx="70" cy="70" r="9" fill="url(#petalPink)" opacity="0.6"/>
+          </svg>
+        </div>
+        <p class="welcome-tag">kenkou kiroku</p>
+        <h1 class="welcome-title">からだを整えることは、<br>意識を澄ませること。</h1>
+        <p class="welcome-desc">卵巣・女性のからだのために。<br>食事・チャクラ・プチ断食・感情を毎日記録して、<br>あなただけのパターンを発見しましょう。</p>
+      </div>
+
+      <!-- Slide 1: 蓄積の価値 -->
+      <div class="welcome-slide" data-slide="1">
+        <div class="welcome-petal-group" aria-hidden="true" style="opacity:0.4;"><svg viewBox="0 0 140 140" fill="none"><ellipse cx="70" cy="35" rx="14" ry="28" fill="#E63FA8" opacity="0.3" transform="rotate(0 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#27B7B3" opacity="0.3" transform="rotate(72 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#E63FA8" opacity="0.3" transform="rotate(144 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#27B7B3" opacity="0.3" transform="rotate(216 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#E63FA8" opacity="0.3" transform="rotate(288 70 70)"/><circle cx="70" cy="70" r="12" fill="white" opacity="0.8"/></svg></div>
+        <p class="welcome-tag">accumulation</p>
+        <h2 class="welcome-title">記録が積み重なるほど、<br>見えてくるものがある。</h2>
+        <p class="welcome-desc">1日の記録はとても小さな一歩。<br>でも30日、90日と続くと、<br>あなたのからだのリズムが<br>浮かび上がってきます。</p>
+      </div>
+
+      <!-- Slide 2: 機能紹介 -->
+      <div class="welcome-slide" data-slide="2">
+        <div class="welcome-petal-group" aria-hidden="true" style="opacity:0.4;"><svg viewBox="0 0 140 140" fill="none"><ellipse cx="70" cy="35" rx="14" ry="28" fill="#27B7B3" opacity="0.3" transform="rotate(0 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#E63FA8" opacity="0.3" transform="rotate(72 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#27B7B3" opacity="0.3" transform="rotate(144 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#E63FA8" opacity="0.3" transform="rotate(216 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="#27B7B3" opacity="0.3" transform="rotate(288 70 70)"/><circle cx="70" cy="70" r="12" fill="white" opacity="0.8"/></svg></div>
+        <p class="welcome-tag">features</p>
+        <h2 class="welcome-title">4つの視点で<br>からだを観察する</h2>
+        <div style="text-align:left; max-width:280px; margin:0 auto;">
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid rgba(108,74,103,0.08);">
+            <div style="width:3px; height:32px; background:linear-gradient(180deg,#E63FA8,#F2A8D8); border-radius:2px; flex-shrink:0;"></div>
+            <div><strong style="font-size:0.875rem; color:#3D2E3A; display:block; margin-bottom:2px;">チャクラチェック</strong><span style="font-size:0.8125rem; color:#A090A0;">骨盤まわりの感覚を観察</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid rgba(108,74,103,0.08);">
+            <div style="width:3px; height:32px; background:linear-gradient(180deg,#27B7B3,#7DD4D1); border-radius:2px; flex-shrink:0;"></div>
+            <div><strong style="font-size:0.875rem; color:#3D2E3A; display:block; margin-bottom:2px;">食事療法</strong><span style="font-size:0.8125rem; color:#A090A0;">からだが喜ぶ食事を記録</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; padding-bottom:18px; border-bottom:1px solid rgba(108,74,103,0.08);">
+            <div style="width:3px; height:32px; background:linear-gradient(180deg,#C9A44A,#F5D020); border-radius:2px; flex-shrink:0;"></div>
+            <div><strong style="font-size:0.875rem; color:#3D2E3A; display:block; margin-bottom:2px;">プチ断食</strong><span style="font-size:0.8125rem; color:#A090A0;">ファスティング時間を可視化</span></div>
+          </div>
+          <div style="display:flex; align-items:center; gap:16px;">
+            <div style="width:3px; height:32px; background:linear-gradient(180deg,#6C4A67,#C8AAC4); border-radius:2px; flex-shrink:0;"></div>
+            <div><strong style="font-size:0.875rem; color:#3D2E3A; display:block; margin-bottom:2px;">感情メモ</strong><span style="font-size:0.8125rem; color:#A090A0;">心の状態も大切な記録</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slide 3: 名前入力 -->
+      <div class="welcome-slide" data-slide="3">
+        <div class="welcome-petal-group" aria-hidden="true"><svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg"><defs><radialGradient id="petalPink2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F2A8D8" stop-opacity="0.9"/><stop offset="100%" stop-color="#E63FA8" stop-opacity="0.5"/></radialGradient><radialGradient id="petalTeal2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7DD4D1" stop-opacity="0.9"/><stop offset="100%" stop-color="#27B7B3" stop-opacity="0.5"/></radialGradient></defs><ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink2)" transform="rotate(0 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink2)" transform="rotate(72 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalTeal2)" transform="rotate(144 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalTeal2)" transform="rotate(216 70 70)"/><ellipse cx="70" cy="35" rx="14" ry="28" fill="url(#petalPink2)" transform="rotate(288 70 70)"/><circle cx="70" cy="70" r="14" fill="white" opacity="0.9"/><circle cx="70" cy="70" r="9" fill="url(#petalPink2)" opacity="0.6"/></svg></div>
+        <p class="welcome-tag">let's begin</p>
+        <h2 class="welcome-title" style="margin-bottom:2rem;">あなたのお名前を<br>教えてください</h2>
+        <div style="width:100%; max-width:280px; margin:0 auto;">
+          <input type="text" id="welcomeNameInput" class="form-input" placeholder="例：はなこ、Hanako…"
+                 style="text-align:center; font-size:1.0625rem; margin-bottom:1rem;"
+                 maxlength="20">
+          <p style="font-size:0.8125rem; color:#A090A0; text-align:center; line-height:1.7;">
+            記録のたびにお名前でお呼びします。<br>後から変更もできます。
+          </p>
+        </div>
+      </div>
+
+    </div><!-- /welcome-slides -->
+
+    <!-- ドット -->
+    <div class="welcome-dots" id="welcomeDots" aria-hidden="true">
+      <div class="welcome-dot active"></div>
+      <div class="welcome-dot"></div>
+      <div class="welcome-dot"></div>
+      <div class="welcome-dot"></div>
+    </div>
+
+    <!-- アクションボタン -->
+    <div class="welcome-actions" id="welcomeActions">
+      <button class="btn btn-primary btn-lg btn-full" id="welcomeNextBtn">
+        はじめる
+      </button>
+      <button class="btn btn-ghost btn-sm" id="welcomeSkipBtn" style="display:none;">
+        スキップ
+      </button>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SCREEN: HOME
+       ══════════════════════════════════ -->
+  <section id="screen-home" class="app-screen" aria-label="ホーム">
+
+    <!-- ヘッダー -->
+    <header class="app-header" id="homeHeader">
+      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <div class="app-header-actions">
+        <button class="btn-icon" id="homeCalendarBtn" aria-label="カレンダー" title="記録履歴">cal</button>
+        <button class="btn-icon" id="homeNotifBtn" aria-label="お知らせ" title="通知">—</button>
+      </div>
+    </header>
+
+    <!-- スクロールコンテンツ -->
+    <div class="app-content" id="homeContent">
+
+      <!-- グリーティング -->
+      <div class="home-greeting" id="homeGreeting">
+        <p class="home-greeting-date" id="homeDateDisplay"><!-- JS inject --></p>
+        <p class="home-greeting-time-msg" id="homeTimeMsg"><!-- JS inject --></p>
+        <h2 class="home-greeting-name" id="homeGreetingText"><!-- JS inject --></h2>
+        <p class="home-greeting-msg" id="homeGreetingMsg"><!-- JS inject --></p>
+      </div>
+
+      <!-- 季節の声かけカード -->
+      <div class="season-quote-card" id="seasonQuoteCard">
+        <p class="season-quote-label">today's message</p>
+        <p class="season-quote-text" id="seasonQuoteText"><!-- JS inject --></p>
+        <p class="season-quote-sub" id="seasonQuoteSub"><!-- JS inject --></p>
+      </div>
+
+      <!-- マイルストーン（条件付き表示） -->
+      <div class="milestone-banner" id="milestoneBanner" style="display:none;">
+        <div class="milestone-icon" id="milestoneIcon" style="font-size:1.5rem; font-family:var(--font-accent); color:var(--gold);">*</div>
+        <div>
+          <p class="milestone-text-label">milestone</p>
+          <p class="milestone-text-main" id="milestoneText"><!-- JS inject --></p>
+          <p class="milestone-text-sub" id="milestoneSub"><!-- JS inject --></p>
+        </div>
+      </div>
+
+      <!-- 統計行 -->
+      <div class="home-stats-row">
+        <div class="home-stat-card">
+          <div class="home-stat-number" id="statStreak">0</div>
+          <div class="home-stat-label">連続<br>記録日</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-number teal" id="statTotal">0</div>
+          <div class="home-stat-label">総記録<br>日数</div>
+        </div>
+        <div class="home-stat-card">
+          <div class="home-stat-number gold" id="statFasting">—</div>
+          <div class="home-stat-label">今週の<br>断食累計</div>
+        </div>
+      </div>
+
+      <!-- 週間カレンダー -->
+      <div class="home-week-section">
+        <p class="home-week-title">this week</p>
+        <div class="week-calendar" id="weekCalendar">
+          <!-- JS inject -->
+        </div>
+      </div>
+
+      <!-- 今日の記録サマリー -->
+      <div class="home-today-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-3);">
+          <h3 class="app-section-title">今日の記録</h3>
+          <button class="btn btn-sm btn-outline" id="homeRecordBtn">記録する</button>
+        </div>
+        <div class="home-today-card" id="todayCard">
+          <!-- 未記録 or 記録済みは JS inject -->
+          <div id="todayEmptyState" class="app-card-padded" style="text-align:center; padding: 2rem 1.25rem;">
+            <p style="font-family:var(--font-serif); font-size:0.9375rem; color:var(--text-secondary); margin-bottom:0.5rem;">今日はまだ記録がありません</p>
+            <p style="font-size:0.8125rem; color:var(--text-muted);">からだの声を、少しだけ聴いてみましょう。</p>
+          </div>
+          <div id="todayRecordedState" style="display:none;">
+            <div class="home-today-log-rows" id="todayLogRows">
+              <!-- JS inject -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- クイック記録ボタン -->
+      <div class="home-quick-record">
+        <button class="btn btn-primary btn-lg btn-full" id="quickRecordBtn">
+          今日を記録する
+        </button>
+      </div>
+
+      <!-- チャクラ診断テスト誘導 -->
+      <div id="chakraTestBanner" style="margin: 0 var(--sp-5) var(--sp-4); padding: var(--sp-5); background: linear-gradient(135deg, var(--pink-pale), var(--teal-pale)); border-radius: var(--radius-lg); border: 1px solid var(--border-light);">
+        <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--pink); letter-spacing: 0.10em; margin-bottom: var(--sp-2);">chakra diagnosis</p>
+        <p style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--sp-1);" id="chakraTestBannerTitle">あなたのチャクラ体質を診断する</p>
+        <p style="font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: var(--sp-4); line-height: 1.7;" id="chakraTestBannerDesc">8問・約2分で完了。あなたに合った食事法をご提案します。</p>
+        <a href="chakra-test.html" class="btn btn-primary btn-sm" style="display:inline-block; text-decoration:none;">診断テストを受ける →</a>
+      </div>
+
+      <!-- ブログ誘導 -->
+      <div style="margin: 0 var(--sp-5) var(--sp-6); padding: var(--sp-5); background: var(--app-bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); text-align: center;">
+        <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--text-muted); letter-spacing: 0.10em; margin-bottom: var(--sp-2);">wellness blog</p>
+        <p style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--sp-3);">食・チャクラ・断食の記事を読む</p>
+        <a href="index.html" class="btn btn-outline btn-sm">kenkou kiroku ブログへ →</a>
+      </div>
+
+    </div><!-- /app-content -->
+  </section>
+
+  <!-- ══════════════════════════════════
+       SCREEN: RECORD
+       ══════════════════════════════════ -->
+  <section id="screen-record" class="app-screen" aria-label="記録する">
+
+    <!-- ヘッダー -->
+    <header class="app-header" id="recordHeader">
+      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <div class="app-header-actions">
+        <button class="btn-icon" id="recordSaveBtn" aria-label="保存" title="記録を保存" style="font-size:0.6875rem; letter-spacing:0.05em; font-family:var(--font-sans);">save</button>
+      </div>
+    </header>
+
+    <div class="app-content">
+
+      <!-- ヘッダーセクション -->
+      <div class="record-header-section">
+        <p class="record-header-date" id="recordDateDisplay"><!-- JS inject --></p>
+        <h2 class="record-header-title">今日のからだと対話する</h2>
+        <p class="record-header-subtitle">感じたことをそのまま、ていねいに記録しましょう。</p>
+      </div>
+
+      <!-- タブ -->
+      <div class="record-tabs" role="tablist">
+        <button class="record-tab active" role="tab" data-tab="chakra">チャクラ</button>
+        <button class="record-tab" role="tab" data-tab="food">食事</button>
+        <button class="record-tab" role="tab" data-tab="fasting">断食</button>
+        <button class="record-tab" role="tab" data-tab="emotion">感情</button>
+      </div>
+
+      <!-- ── チャクラパネル ── -->
+      <div class="record-panel active" id="panel-chakra" role="tabpanel">
+        <h3 class="chakra-section-title">骨盤まわりのエネルギーを観察する</h3>
+        <p class="chakra-section-sub">
+          第1・第2チャクラは女性の生殖器官と深く関わっています。<br>
+          今日の感覚に近いものを選んでください。
+        </p>
+
+        <!-- チャクラ選択 -->
+        <div class="chakra-selector" id="chakraSelector">
+          <div class="chakra-item" data-chakra="root" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #E63FA8, #C02E8E);"></div>
+            <div class="chakra-item-name">第1チャクラ</div>
+            <div class="chakra-item-area">骨盤底・安心感</div>
+          </div>
+          <div class="chakra-item" data-chakra="sacral" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #FF9A4A, #E67A2A);"></div>
+            <div class="chakra-item-name">第2チャクラ</div>
+            <div class="chakra-item-area">子宮・創造性</div>
+          </div>
+          <div class="chakra-item" data-chakra="solar" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #F5D020, #C9A44A);"></div>
+            <div class="chakra-item-name">第3チャクラ</div>
+            <div class="chakra-item-area">腹部・自己肯定</div>
+          </div>
+          <div class="chakra-item" data-chakra="heart" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #6BCB6B, #27A827);"></div>
+            <div class="chakra-item-name">第4チャクラ</div>
+            <div class="chakra-item-area">胸・愛と受容</div>
+          </div>
+          <div class="chakra-item" data-chakra="throat" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #27B7B3, #1E9490);"></div>
+            <div class="chakra-item-name">第5チャクラ</div>
+            <div class="chakra-item-area">喉・表現・声</div>
+          </div>
+          <div class="chakra-item" data-chakra="third_eye" tabindex="0">
+            <div class="chakra-item-color" style="background: linear-gradient(135deg, #6C4A67, #4A2C60);"></div>
+            <div class="chakra-item-name">第6チャクラ</div>
+            <div class="chakra-item-area">眉間・直感・洞察</div>
+          </div>
+        </div>
+
+        <!-- 選択チャクラの詳細説明（JS inject） -->
+        <div id="chakraDetail" style="display:none; padding: var(--sp-4); background: var(--pink-pale); border-radius: var(--radius-md); margin-bottom: var(--sp-5); border-left: 3px solid var(--pink);">
+          <p id="chakraDetailText" style="font-size:0.875rem; color:var(--text-secondary); line-height:1.8;"></p>
+        </div>
+
+        <!-- 強さ・感覚 -->
+        <div class="form-group" id="chakraIntensityGroup" style="display:none;">
+          <label class="form-label">このチャクラの状態は？</label>
+          <div class="intensity-row" id="chakraIntensityRow">
+            <button class="intensity-btn" data-val="blocked">詰まり感</button>
+            <button class="intensity-btn" data-val="heavy">重さ</button>
+            <button class="intensity-btn" data-val="flow">流れている</button>
+            <button class="intensity-btn" data-val="vibrant">活性的</button>
+          </div>
+        </div>
+
+        <!-- スコア -->
+        <div class="range-group" id="chakraScoreGroup" style="display:none;">
+          <label class="form-label">からだの感覚レベル（1〜10）</label>
+          <div class="range-value-display" id="chakraScoreDisplay">5</div>
+          <input type="range" id="chakraScore" min="1" max="10" value="5" step="1">
+          <div class="range-labels">
+            <span>詰まり・重い</span>
+            <span>澄んで活性</span>
+          </div>
+        </div>
+
+        <!-- メモ -->
+        <div class="form-group" id="chakraNoteGroup" style="display:none;">
+          <label class="form-label">気づいたこと、からだの声</label>
+          <textarea id="chakraNote" class="form-textarea" placeholder="骨盤まわりに重さを感じた。生理前かな…など、気づきを自由に書いてください。" rows="3"></textarea>
+        </div>
+
+        <!-- 症状タグ -->
+        <div class="form-group">
+          <label class="form-label">今日の症状・気になること（複数OK）</label>
+          <div class="chip-group" id="symptomChips">
+            <div class="chip" data-val="pain">下腹部痛</div>
+            <div class="chip" data-val="heaviness">骨盤の重さ</div>
+            <div class="chip" data-val="myoma">子宮筋腫</div>
+            <div class="chip" data-val="bloating">お腹の張り</div>
+            <div class="chip" data-val="fatigue">疲れやすい</div>
+            <div class="chip" data-val="cold">冷え</div>
+            <div class="chip" data-val="period">生理中</div>
+            <div class="chip" data-val="period_before">生理前</div>
+            <div class="chip" data-val="period_after">生理後</div>
+            <div class="chip" data-val="none">特になし</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 食事パネル ── -->
+      <div class="record-panel" id="panel-food" role="tabpanel">
+        <h3 class="chakra-section-title">食事を記録する</h3>
+        <p class="chakra-section-sub">からだが喜ぶ食材・整える食事を意識するだけで、<br>ホルモンバランスが整いやすくなります。</p>
+
+        <!-- 食事タイム選択 -->
+        <div class="form-group">
+          <label class="form-label">いつの食事？</label>
+          <div class="food-time-row" id="foodTimeSelector">
+            <div class="food-time-card" data-time="morning">
+              <span class="food-time-label">朝</span>
+            </div>
+            <div class="food-time-card" data-time="noon">
+              <span class="food-time-label">昼</span>
+            </div>
+            <div class="food-time-card" data-time="evening">
+              <span class="food-time-label">夕</span>
+            </div>
+            <div class="food-time-card" data-time="snack">
+              <span class="food-time-label">間食</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 食事内容 -->
+        <div class="form-group">
+          <label class="form-label">食べたもの・飲み物</label>
+          <textarea id="foodContent" class="form-textarea" placeholder="例：玄米と根菜の味噌汁、豆腐サラダ、白湯…" rows="3"></textarea>
+        </div>
+
+        <!-- 食後の体感 -->
+        <div class="form-group">
+          <label class="form-label">食後の体感（複数OK）</label>
+          <div class="body-feel-chips" id="bodyFeelChips">
+            <div class="body-feel-chip" data-val="warm">からだが温まった</div>
+            <div class="body-feel-chip" data-val="light">胃が軽い</div>
+            <div class="body-feel-chip" data-val="heavy">胃が重い</div>
+            <div class="body-feel-chip" data-val="bloat">お腹が張る</div>
+            <div class="body-feel-chip" data-val="energy">エネルギーが出た</div>
+            <div class="body-feel-chip" data-val="sleepy">眠くなった</div>
+            <div class="body-feel-chip" data-val="clear">すっきりした</div>
+            <div class="body-feel-chip" data-val="satisfied">満足感</div>
+          </div>
+        </div>
+
+        <!-- 食材チェック -->
+        <div class="form-group">
+          <label class="form-label">意識した食材・食習慣（複数OK）</label>
+          <div class="chip-group" id="foodIngredientChips">
+            <div class="chip chip-teal" data-val="root_veg">根菜類</div>
+            <div class="chip chip-teal" data-val="fermented">発酵食品</div>
+            <div class="chip chip-teal" data-val="warmfood">温かいもの</div>
+            <div class="chip chip-teal" data-val="nosugar">砂糖控え</div>
+            <div class="chip chip-teal" data-val="nogluten">グルテンフリー</div>
+            <div class="chip chip-teal" data-val="omega3">EPA/DHA・亜麻仁</div>
+            <div class="chip chip-teal" data-val="vitamin_d">ビタミンD</div>
+            <div class="chip chip-teal" data-val="iron">鉄分</div>
+            <div class="chip chip-teal" data-val="water">水2L以上</div>
+          </div>
+        </div>
+
+        <!-- 食事スコア -->
+        <div class="range-group">
+          <label class="form-label">今日の食事の質（主観評価）</label>
+          <div class="range-value-display" id="foodScoreDisplay">5</div>
+          <input type="range" id="foodScore" min="1" max="10" value="5" step="1">
+          <div class="range-labels">
+            <span>整えられなかった</span>
+            <span>完璧に整えた</span>
+          </div>
+        </div>
+
+        <!-- メモ -->
+        <div class="form-group">
+          <label class="form-label">食事メモ・気づき</label>
+          <textarea id="foodNote" class="form-textarea" placeholder="例：根菜をたくさん食べたら骨盤が温かく感じた。夕食後にお腹が張ったので小麦粉が原因かも…" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- ── 体調メモセクション（食事パネルの直下、常時表示） ── -->
+      <div class="condition-memo-section" id="conditionMemoSection">
+        <h3 class="condition-memo-title">今日の体調</h3>
+        <p class="condition-memo-sub">からだの状態を5段階で記録しましょう。<br>続けると、自分のパターンが見えてきます。</p>
+
+        <!-- 5段階評価 -->
+        <div class="condition-scale-row" id="conditionScaleRow">
+          <!-- 1: つらい -->
+          <button class="condition-scale-btn" data-scale="1" aria-label="1 つらい">
+            <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke="#bbb" stroke-width="1.5" fill="#f5f5f5"/>
+              <circle cx="10" cy="12" r="1.5" fill="#999"/>
+              <circle cx="18" cy="12" r="1.5" fill="#999"/>
+              <path d="M9 19 Q14 15.5 19 19" stroke="#999" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="condition-scale-num">1</span>
+            <span>つらい</span>
+          </button>
+          <!-- 2: 少し重い -->
+          <button class="condition-scale-btn" data-scale="2" aria-label="2 少し重い">
+            <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke="#c5b8a8" stroke-width="1.5" fill="#faf7f3"/>
+              <circle cx="10" cy="12" r="1.5" fill="#999"/>
+              <circle cx="18" cy="12" r="1.5" fill="#999"/>
+              <path d="M10 18.5 h8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span class="condition-scale-num">2</span>
+            <span>少し重い</span>
+          </button>
+          <!-- 3: ふつう -->
+          <button class="condition-scale-btn" data-scale="3" aria-label="3 ふつう">
+            <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke="#a8c5c3" stroke-width="1.5" fill="#f0f7f7"/>
+              <circle cx="10" cy="12" r="1.5" fill="#7DB8B4"/>
+              <circle cx="18" cy="12" r="1.5" fill="#7DB8B4"/>
+              <path d="M10 18 Q14 19.5 18 18" stroke="#7DB8B4" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="condition-scale-num">3</span>
+            <span>ふつう</span>
+          </button>
+          <!-- 4: まあまあ良い -->
+          <button class="condition-scale-btn" data-scale="4" aria-label="4 まあまあ良い">
+            <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke="#7DB8B4" stroke-width="1.5" fill="#e6f4f3"/>
+              <circle cx="10" cy="12" r="1.5" fill="#5a9e9a"/>
+              <circle cx="18" cy="12" r="1.5" fill="#5a9e9a"/>
+              <path d="M9 17 Q14 21 19 17" stroke="#5a9e9a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="condition-scale-num">4</span>
+            <span>まあまあ</span>
+          </button>
+          <!-- 5: とても良い -->
+          <button class="condition-scale-btn" data-scale="5" aria-label="5 とても良い">
+            <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+              <circle cx="14" cy="14" r="12" stroke="#5a9e9a" stroke-width="1.5" fill="#d4eeed"/>
+              <circle cx="10" cy="11.5" r="2" fill="#3a7d7a"/>
+              <circle cx="18" cy="11.5" r="2" fill="#3a7d7a"/>
+              <path d="M8.5 16.5 Q14 22 19.5 16.5" stroke="#3a7d7a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span class="condition-scale-num">5</span>
+            <span>とても良い</span>
+          </button>
+        </div>
+
+        <!-- 自由記述 -->
+        <textarea
+          id="conditionMemoText"
+          class="form-textarea"
+          placeholder="からだの感覚を自由にメモしてください。骨盤まわりの重さ、温かさ、気分など何でも。"
+          rows="3"
+          maxlength="200"
+        ></textarea>
+
+        <!-- 保存ボタン -->
+        <button class="condition-save-btn" id="conditionSaveBtn">今日の体調を記録する</button>
+      </div>
+
+      <!-- ── 断食タイマー（常時表示） ── -->
+      <div class="fasting-live-section" id="fastingLiveSection">
+        <h3 class="condition-memo-title">断食タイマー</h3>
+        <p class="condition-memo-sub">今日の断食時間をリアルタイムで計測します。</p>
+
+        <!-- プリセット -->
+        <div class="fasting-live-presets" id="fastingLivePresets">
+          <button class="fasting-live-preset-btn" data-hours="12">12h</button>
+          <button class="fasting-live-preset-btn selected" data-hours="14">14h</button>
+          <button class="fasting-live-preset-btn" data-hours="16">16h</button>
+        </div>
+
+        <!-- 円形プログレスバー -->
+        <div class="fasting-live-ring-wrap">
+          <svg viewBox="0 0 200 200" width="200" height="200" aria-hidden="true">
+            <circle class="fasting-live-track" cx="100" cy="100" r="88"/>
+            <circle class="fasting-live-fill" id="fastingLiveRingFill" cx="100" cy="100" r="88"
+                    stroke-dasharray="552.92" stroke-dashoffset="552.92"/>
+          </svg>
+          <div class="fasting-live-center">
+            <div class="fasting-live-time" id="fastingLiveTime">00:00:00</div>
+            <div class="fasting-live-label" id="fastingLiveLabel">断食スタートを押してください</div>
+          </div>
+        </div>
+
+        <!-- メッセージ -->
+        <p class="fasting-live-msg" id="fastingLiveMsg"></p>
+
+        <!-- ボタン -->
+        <div class="fasting-live-btns">
+          <button class="fasting-live-start-btn" id="fastingLiveStartBtn">断食を始める</button>
+          <button class="fasting-live-stop-btn" id="fastingLiveStopBtn" style="display:none;">断食を終了する</button>
+        </div>
+
+        <!-- Premium限定カード：断食カレンダー -->
+        <div class="report-lock-card" style="margin: var(--sp-5) 0 0;">
+          <div class="report-lock-inner">
+            <p class="report-lock-en">Fasting Calendar</p>
+            <p class="report-lock-title">断食カレンダー</p>
+            <p class="report-lock-desc">過去の断食記録をカレンダーで振り返ります。継続日数・達成率が一目でわかります。</p>
+            <div style="height:44px; background:rgba(125,184,180,0.12); border-radius:8px; margin-top:10px;"></div>
+          </div>
+          <div class="report-lock-overlay">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+            </svg>
+            <span class="chart-lock-text">断食カレンダー</span>
+            <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+          </div>
+        </div>
+
+        <!-- Premium限定カード：生理周期連動モード -->
+        <div class="report-lock-card" style="margin: var(--sp-3) 0 0;">
+          <div class="report-lock-inner">
+            <p class="report-lock-en">Cycle Sync Mode</p>
+            <p class="report-lock-title">生理周期連動モード</p>
+            <p class="report-lock-desc">周期に合わせて断食時間を自動提案。「今日は黄体期なので12hでOK」など、からだに寄り添った断食をサポートします。</p>
+            <div style="height:44px; background:rgba(230,63,168,0.08); border-radius:8px; margin-top:10px;"></div>
+          </div>
+          <div class="report-lock-overlay">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+            </svg>
+            <span class="chart-lock-text">生理周期連動モード</span>
+            <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 断食パネル ── -->
+      <div class="record-panel" id="panel-fasting" role="tabpanel">
+        <h3 class="chakra-section-title">プチ断食を記録する</h3>
+        <p class="chakra-section-sub">16時間断食など、からだのオートファジーを促す<br>プチ断食の時間を記録しましょう。</p>
+
+        <!-- タイマー表示 -->
+        <div class="fasting-timer">
+          <div class="fasting-ring-wrap">
+            <svg viewBox="0 0 160 160">
+              <defs>
+                <linearGradient id="fastingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#C9A44A"/>
+                  <stop offset="100%" stop-color="#F5D020"/>
+                </linearGradient>
+              </defs>
+              <circle class="fasting-ring-track" cx="80" cy="80" r="65"/>
+              <circle class="fasting-ring-fill" id="fastingRingFill" cx="80" cy="80" r="65"
+                      stroke-dasharray="408.41" stroke-dashoffset="408.41"/>
+            </svg>
+            <div class="fasting-ring-center">
+              <div class="fasting-time-display" id="fastingDisplayTime">0h 0m</div>
+              <div class="fasting-time-label" id="fastingDisplayLabel">断食時間</div>
+            </div>
+          </div>
+          <p class="fasting-status" id="fastingStatus">今日の断食を記録してください</p>
+        </div>
+
+        <!-- 目標時間選択 -->
+        <div class="form-group">
+          <label class="form-label" style="text-align:center;">目標断食時間</label>
+          <div class="fasting-goal-select" id="fastingGoalSelect">
+            <button class="fasting-goal-btn" data-hours="12">12h</button>
+            <button class="fasting-goal-btn selected" data-hours="14">14h</button>
+            <button class="fasting-goal-btn" data-hours="16">16h</button>
+            <button class="fasting-goal-btn" data-hours="18">18h</button>
+          </div>
+        </div>
+
+        <!-- 断食時間入力 -->
+        <div style="padding: 0 var(--sp-5); display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-4); margin-bottom: var(--sp-5);">
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">食事開始時刻</label>
+            <input type="time" id="fastingStartTime" class="form-input" value="20:00">
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">食事終了時刻</label>
+            <input type="time" id="fastingEndTime" class="form-input" value="12:00">
+          </div>
+        </div>
+
+        <!-- 断食中の体感 -->
+        <div class="form-group" style="padding: 0 0;">
+          <label class="form-label">断食中・終了後の体感（複数OK）</label>
+          <div class="chip-group" id="fastingFeelChips">
+            <div class="chip" data-val="clear_mind">頭がすっきり</div>
+            <div class="chip" data-val="light_body">からだが軽い</div>
+            <div class="chip" data-val="hunger">空腹感が強い</div>
+            <div class="chip" data-val="headache">頭痛</div>
+            <div class="chip" data-val="fatigue">だるい</div>
+            <div class="chip" data-val="calm">穏やか</div>
+            <div class="chip" data-val="achieved">達成感</div>
+            <div class="chip" data-val="difficult">難しかった</div>
+          </div>
+        </div>
+
+        <!-- スコア -->
+        <div class="range-group" style="margin-top: var(--sp-5);">
+          <label class="form-label">今日の断食の達成感</label>
+          <div class="range-value-display" id="fastingScoreDisplay">5</div>
+          <input type="range" id="fastingScore" min="1" max="10" value="5" step="1">
+          <div class="range-labels">
+            <span>難しかった</span>
+            <span>完璧に達成</span>
+          </div>
+        </div>
+
+        <!-- メモ -->
+        <div class="form-group">
+          <label class="form-label">断食メモ・気づき</label>
+          <textarea id="fastingNote" class="form-textarea" placeholder="例：16時間達成！空腹感よりも頭の明晰さを感じた。骨盤まわりが軽くなった気がする…" rows="3"></textarea>
+        </div>
+      </div>
+
+      <!-- ── 感情パネル ── -->
+      <div class="record-panel" id="panel-emotion" role="tabpanel">
+        <h3 class="chakra-section-title">今日の心の状態を記録する</h3>
+        <p class="chakra-section-sub">感情は、ホルモンバランスやからだの状態と<br>深くつながっています。正直に記録してみましょう。</p>
+
+        <!-- 感情セレクター -->
+        <div class="form-group">
+          <label class="form-label">今の気持ちに近いのは？</label>
+          <div class="emotion-selector" id="emotionSelector">
+            <div class="emotion-item" data-emotion="peaceful">
+              <span class="emotion-label">穏やか<br>平和</span>
+            </div>
+            <div class="emotion-item" data-emotion="happy">
+              <span class="emotion-label">うれしい<br>満たされ</span>
+            </div>
+            <div class="emotion-item" data-emotion="tired">
+              <span class="emotion-label">疲れ<br>重さ</span>
+            </div>
+            <div class="emotion-item" data-emotion="anxious">
+              <span class="emotion-label">不安<br>緊張</span>
+            </div>
+            <div class="emotion-item" data-emotion="irritated">
+              <span class="emotion-label">イライラ<br>焦り</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ウェルネス感覚 -->
+        <div class="range-group">
+          <label class="form-label">今日の全体的なウェルネス感</label>
+          <div class="range-value-display" id="wellnessScoreDisplay">5</div>
+          <input type="range" id="wellnessScore" min="1" max="10" value="5" step="1">
+          <div class="range-labels">
+            <span>とても辛い</span>
+            <span>最高に整っている</span>
+          </div>
+        </div>
+
+        <!-- からだの感覚レベル -->
+        <div class="range-group">
+          <label class="form-label">からだの感覚レベル</label>
+          <div class="range-value-display" id="energyScoreDisplay">5</div>
+          <input type="range" id="energyScore" min="1" max="10" value="5" step="1">
+          <div class="range-labels">
+            <span>ぐったり</span>
+            <span>感覚が整っている</span>
+          </div>
+        </div>
+
+        <!-- 今日の出来事 -->
+        <div class="form-group">
+          <label class="form-label">今日の出来事・心に残ったこと</label>
+          <textarea id="emotionNote" class="form-textarea" placeholder="例：少し疲れたけど、温かいスープを飲んで穏やかな気持ちになれた。骨盤まわりが軽くなった日は感情も安定している気がする…" rows="4"></textarea>
+        </div>
+
+        <!-- 感謝の一言 -->
+        <div class="form-group">
+          <label class="form-label">今日のからだへの感謝を一言</label>
+          <input type="text" id="gratitudeNote" class="form-input" placeholder="例：今日も動いてくれてありがとう" maxlength="60">
+        </div>
+      </div>
+
+      <!-- 保存ボタン -->
+      <div style="padding: var(--sp-5); padding-top: 0;">
+        <button class="btn btn-primary btn-lg btn-full" id="saveRecordBtn">
+          記録を保存する
+        </button>
+        <p style="text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:var(--sp-3);">
+          保存するとホームに反映されます
+        </p>
+      </div>
+
+    </div><!-- /app-content -->
+  </section>
+
+  <!-- ══════════════════════════════════
+       SCREEN: INSIGHT
+       ══════════════════════════════════ -->
+  <section id="screen-insight" class="app-screen" aria-label="インサイト">
+
+    <header class="app-header" id="insightHeader">
+      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <div class="app-header-actions">
+        <button class="btn-icon" aria-label="エクスポート" title="データをエクスポート" style="font-size:0.6875rem; letter-spacing:0.05em; font-family:var(--font-sans);">exp</button>
+      </div>
+    </header>
+
+    <div class="app-content">
+
+      <!-- ヒーロー -->
+      <div class="insight-hero">
+        <p class="insight-hero-tag">your body's story</p>
+        <h2 class="insight-hero-title">蓄積された記録が語ること</h2>
+        <p class="insight-hero-desc" id="insightHeroDesc">記録を続けるほど、あなただけのパターンが見えてきます。</p>
+      </div>
+
+      <!-- 期間タブ -->
+      <div class="insight-period-tabs">
+        <button class="insight-period-tab active" data-period="7">7日</button>
+        <button class="insight-period-tab" data-period="30">30日</button>
+        <button class="insight-period-tab" data-period="90">90日</button>
+      </div>
+
+      <!-- AIメッセージ / 季節の声かけ -->
+      <div class="insight-ai-message" id="insightAIMessage">
+        <p class="insight-ai-tag">from your records</p>
+        <p class="insight-ai-text" id="insightAIText">記録が積み重なると、ここにあなただけのパターンメッセージが届きます。</p>
+        <p class="insight-ai-sub" id="insightAISub"></p>
+      </div>
+
+      <!-- 統計サマリー -->
+      <div class="insight-summary-grid" id="insightSummaryGrid">
+        <div class="insight-summary-card">
+          <div class="insight-summary-label">記録日数</div>
+          <div class="insight-summary-value" id="insightTotalDays">0</div>
+          <div class="insight-summary-trend" id="insightTotalTrend"></div>
+        </div>
+        <div class="insight-summary-card">
+          <div class="insight-summary-label">最長連続日数</div>
+          <div class="insight-summary-value" id="insightMaxStreak">0</div>
+          <div class="insight-summary-trend"></div>
+        </div>
+        <div class="insight-summary-card">
+          <div class="insight-summary-label">平均食事スコア</div>
+          <div class="insight-summary-value" id="insightAvgFood">—</div>
+          <div class="insight-summary-trend" id="insightFoodTrend"></div>
+        </div>
+        <div class="insight-summary-card">
+          <div class="insight-summary-label">平均ウェルネス</div>
+          <div class="insight-summary-value" id="insightAvgWellness">—</div>
+          <div class="insight-summary-trend" id="insightWellnessTrend"></div>
+        </div>
+      </div>
+
+      <!-- ウェルネス推移グラフ -->
+      <div class="insight-chart-section">
+        <p class="insight-chart-title">ウェルネス・エネルギー推移 <span style="font-size:0.65rem;color:var(--text-muted);">(直近3日)</span></p>
+        <div class="chart-lock-wrap">
+          <div class="insight-chart-wrap" style="height: 200px;">
+            <canvas id="wellnessChart"></canvas>
+          </div>
+          <div class="chart-blur-overlay" id="wellnessLockOverlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+            </svg>
+            <span class="chart-lock-text">全期間のグラフを見る</span>
+            <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 食事スコアグラフ -->
+      <div class="insight-chart-section" style="padding-top:0">
+        <p class="insight-chart-title">食事の質 推移 <span style="font-size:0.65rem;color:var(--text-muted);">(直近3日)</span></p>
+        <div class="chart-lock-wrap">
+          <div class="insight-chart-wrap" style="height: 160px;">
+            <canvas id="foodChart"></canvas>
+          </div>
+          <div class="chart-blur-overlay" id="foodLockOverlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+            </svg>
+            <span class="chart-lock-text">全期間のグラフを見る</span>
+            <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- チャクラ別記録頻度 -->
+      <div class="insight-chart-section" style="padding-top:0">
+        <p class="insight-chart-title">チャクラ別 記録頻度 <span style="font-size:0.65rem;color:var(--text-muted);">(直近3日)</span></p>
+        <div class="chart-lock-wrap">
+          <div class="insight-chart-wrap" style="height: 200px;">
+            <canvas id="chakraChart"></canvas>
+          </div>
+          <div class="chart-blur-overlay" id="chakraLockOverlay">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+              <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+            </svg>
+            <span class="chart-lock-text">全期間のグラフを見る</span>
+            <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 週間・月間レポート ロックカード -->
+      <div class="report-lock-card">
+        <div class="report-lock-inner">
+          <p class="report-lock-en">Weekly Report</p>
+          <p class="report-lock-title">あなたの1週間の記録</p>
+          <p class="report-lock-desc">体調・食事・チャクラ・断食の傾向を自動でまとめます。先週との変化も一目でわかります。</p>
+          <div style="height:48px; background:rgba(125,184,180,0.15); border-radius:8px; margin-top:12px;"></div>
+        </div>
+        <div class="report-lock-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+          </svg>
+          <span class="chart-lock-text">週間レポート</span>
+          <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+        </div>
+      </div>
+
+      <div class="report-lock-card" style="margin-top: var(--sp-3);">
+        <div class="report-lock-inner">
+          <p class="report-lock-en">Monthly Report</p>
+          <p class="report-lock-title">1ヶ月のからだの変化</p>
+          <p class="report-lock-desc">長期的な傾向と、あなたに合った整え方を提案します。月経周期との相関も表示されます。</p>
+          <div style="height:48px; background:rgba(230,63,168,0.10); border-radius:8px; margin-top:12px;"></div>
+        </div>
+        <div class="report-lock-overlay">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect x="3" y="11" width="18" height="11" rx="2" stroke="#C9A96E" stroke-width="1.8"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#C9A96E" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="16" r="1.5" fill="#C9A96E"/>
+          </svg>
+          <span class="chart-lock-text">月間レポート</span>
+          <button class="chart-unlock-btn premium-trigger">Premiumで解放する</button>
+        </div>
+      </div>
+
+      <!-- パターン分析カード -->
+      <div class="insight-patterns-section" id="insightPatterns">
+        <h3 class="app-section-title" style="margin-bottom: var(--sp-4);">発見されたパターン</h3>
+        <div id="insightPatternCards">
+          <div class="insight-pattern-card">
+            <div class="insight-pattern-head">
+              <span class="insight-pattern-title">記録を続けてみましょう</span>
+            </div>
+            <p class="insight-pattern-text">7日以上記録すると、食事・チャクラ・感情のパターンが自動で分析されます。毎日少しずつ、からだの声を聴き続けましょう。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium 予告バナー -->
+      <div style="margin: var(--sp-5) var(--sp-5) 0; padding: var(--sp-5); background: linear-gradient(135deg, #F4EFF4, #EAF7F7); border-radius: var(--radius-lg); border: 1px solid var(--border-light); text-align:center;">
+        <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--plum); letter-spacing: 0.12em; margin-bottom: var(--sp-3);">coming soon — premium</p>
+        <p style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); line-height: 1.8; margin-bottom: var(--sp-3);">
+          30日・90日の詳細分析、<br>
+          月経周期との相関グラフ、<br>
+          パーソナルレポートが届きます。
+        </p>
+        <div style="display: flex; flex-direction: column; gap: var(--sp-2); text-align:left; max-width: 280px; margin: 0 auto var(--sp-4);">
+          <div style="display:flex; align-items:center; gap: var(--sp-2); font-size:0.8125rem; color:var(--text-secondary);">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--plum); flex-shrink:0;"></div>
+            30日・90日・180日の長期トレンド分析
+          </div>
+          <div style="display:flex; align-items:center; gap: var(--sp-2); font-size:0.8125rem; color:var(--text-secondary);">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--teal); flex-shrink:0;"></div>
+            食事×ウェルネス×断食の相関分析
+          </div>
+          <div style="display:flex; align-items:center; gap: var(--sp-2); font-size:0.8125rem; color:var(--text-secondary);">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--pink); flex-shrink:0;"></div>
+            月経周期・ホルモンリズムとの連動記録
+          </div>
+          <div style="display:flex; align-items:center; gap: var(--sp-2); font-size:0.8125rem; color:var(--text-secondary);">
+            <div style="width:6px; height:6px; border-radius:50%; background:var(--gold); flex-shrink:0;"></div>
+            毎月のパーソナルウェルネスレポート
+          </div>
+        </div>
+        <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.7;">
+          記録を続けていただいた方に、<br>優先してご案内します。
+        </p>
+      </div>
+
+      <!-- 蓄積へのメッセージ -->
+      <div style="margin: 0 var(--sp-5) var(--sp-8); padding: var(--sp-6); background: linear-gradient(135deg, #FBF7F2, #EAF7F7); border-radius: var(--radius-xl); text-align:center; border: 1px solid var(--border-light);">
+        <p style="font-family: var(--font-accent); font-size: 0.75rem; color: var(--text-muted); letter-spacing:0.10em; margin-bottom: var(--sp-3);">a letter to you</p>
+        <p style="font-family: var(--font-serif); font-size: 1rem; color: var(--text-primary); line-height: 1.9; margin-bottom: var(--sp-3);" id="accumulationMsg">
+          記録を積み重ねるたびに、<br>あなたのからだが少しずつ見えてくる。<br>それがこのアプリの、いちばん大切な価値です。
+        </p>
+        <p style="font-size: 0.8125rem; color: var(--text-muted);" id="accumulationSubMsg"></p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SCREEN: SETTINGS
+       ══════════════════════════════════ -->
+  <section id="screen-settings" class="app-screen" aria-label="設定">
+
+    <header class="app-header">
+      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+    </header>
+
+    <div class="app-content">
+
+      <!-- プロフィール -->
+      <div class="settings-profile-section">
+        <div class="settings-avatar" id="settingsAvatar" aria-label="プロフィール画像">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="6" stroke="#E63FA8" stroke-width="1.5"/><path d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#27B7B3" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        <p class="settings-name" id="settingsName"><!-- JS inject --></p>
+        <p class="settings-since" id="settingsSince"><!-- JS inject --></p>
+      </div>
+
+      <!-- プロフィール設定 -->
+      <div class="settings-section">
+        <p class="settings-section-title">プロフィール</p>
+        <div class="settings-list">
+          <div class="settings-row" id="settingNameRow">
+            <div class="settings-row-left">
+              <span class="settings-row-label">お名前</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="settings-row-value" id="settingNameValue"><!-- JS inject --></span>
+              <span class="settings-row-arrow">›</span>
+            </div>
+          </div>
+          <div class="settings-row" id="settingConditionRow">
+            <div class="settings-row-left">
+              <span class="settings-row-label">気になる症状</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="settings-row-value" id="settingConditionValue">設定する</span>
+              <span class="settings-row-arrow">›</span>
+            </div>
+          </div>
+          <div class="settings-row" id="settingFastingGoalRow">
+            <div class="settings-row-left">
+              <span class="settings-row-label">断食目標時間</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="settings-row-value" id="settingFastingGoalValue">14h</span>
+              <span class="settings-row-arrow">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 記録設定 -->
+      <div class="settings-section" style="padding-top:0">
+        <p class="settings-section-title">記録</p>
+        <div class="settings-list">
+          <div class="settings-row" style="cursor:default;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">リマインダー通知</span>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="reminderToggle">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+          <div class="settings-row" id="historyRow">
+            <div class="settings-row-left">
+              <span class="settings-row-label">記録履歴を見る</span>
+            </div>
+            <span class="settings-row-arrow">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- データ管理 -->
+      <div class="settings-section" style="padding-top:0">
+        <p class="settings-section-title">データ管理</p>
+        <div class="settings-list">
+          <div class="settings-row" id="exportDataRow">
+            <div class="settings-row-left">
+              <span class="settings-row-label">データをエクスポート</span>
+            </div>
+            <span class="settings-row-arrow">›</span>
+          </div>
+          <div class="settings-row" id="deleteDataRow" style="color: #E63FA8;">
+            <div class="settings-row-left">
+              <span class="settings-row-label" style="color: #E63FA8;">すべての記録を削除</span>
+            </div>
+            <span class="settings-row-arrow" style="color: #E63FA8;">›</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 現在の機能一覧＋ロードマップ -->
+      <div class="settings-section" style="padding-top:0">
+        <p class="settings-section-title">現在できること</p>
+        <div style="background: var(--app-bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); overflow: hidden; box-shadow: var(--shadow-xs);">
+          <div style="padding: var(--sp-5); border-bottom: 1px solid var(--border-light);">
+            <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--teal); letter-spacing: 0.10em; margin-bottom: var(--sp-4);">released</p>
+            <div style="display: flex; flex-direction: column; gap: var(--sp-3);">
+              <div style="display: flex; align-items: flex-start; gap: var(--sp-3);">
+                <div style="width: 3px; height: 100%; min-height: 32px; background: linear-gradient(180deg, #E63FA8, #F2A8D8); border-radius: 2px; flex-shrink: 0; margin-top: 2px;"></div>
+                <div><p style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">チャクラ観察</p><p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">6チャクラから選択・からだの感覚スコア・症状記録</p></div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: var(--sp-3);">
+                <div style="width: 3px; min-height: 32px; background: linear-gradient(180deg, #27B7B3, #7DD4D1); border-radius: 2px; flex-shrink: 0; margin-top: 2px;"></div>
+                <div><p style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">食事療法の記録</p><p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">食事内容・食後体感・食材チェック・スコア管理</p></div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: var(--sp-3);">
+                <div style="width: 3px; min-height: 32px; background: linear-gradient(180deg, #C9A44A, #F5D020); border-radius: 2px; flex-shrink: 0; margin-top: 2px;"></div>
+                <div><p style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">プチ断食トラッキング</p><p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">ビジュアルタイマー・時間自動計算・体感記録</p></div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: var(--sp-3);">
+                <div style="width: 3px; min-height: 32px; background: linear-gradient(180deg, #6C4A67, #C8AAC4); border-radius: 2px; flex-shrink: 0; margin-top: 2px;"></div>
+                <div><p style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">感情・ウェルネス記録</p><p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">感情選択・スコア・感謝メモ</p></div>
+              </div>
+              <div style="display: flex; align-items: flex-start; gap: var(--sp-3);">
+                <div style="width: 3px; min-height: 32px; background: linear-gradient(180deg, #8A7387, #C8AAC4); border-radius: 2px; flex-shrink: 0; margin-top: 2px;"></div>
+                <div><p style="font-size: 0.875rem; font-weight: 500; color: var(--text-primary); margin-bottom: 2px;">インサイト・蓄積分析</p><p style="font-size: 0.75rem; color: var(--text-muted); line-height: 1.6;">グラフ・パターン発見・季節メッセージ・マイルストーン</p></div>
+              </div>
+            </div>
+          </div>
+          <div style="padding: var(--sp-5);">
+            <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--text-muted); letter-spacing: 0.10em; margin-bottom: var(--sp-4);">shaped by your voice</p>
+            <p style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); line-height: 1.8; margin-bottom: var(--sp-4);">次に何を作るかは、<br>みなさんのフィードバックで決めます。</p>
+            <div style="display: flex; flex-direction: column; gap: var(--sp-2);">
+              <p style="font-size: 0.8125rem; color: var(--text-muted); line-height: 1.7;">候補：基礎体温の記録 / 月経周期トラッカー / 食材データベース / リアルタイム断食タイマー / 月次レポート</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- フィードバックボタン -->
+      <div class="settings-feedback-btn" id="settingsFeedbackBtn" role="button" tabindex="0" aria-label="フィードバックを送る">
+        <span class="settings-feedback-emoji" style="font-family:var(--font-accent); font-size:0.75rem; letter-spacing:0.15em; color:var(--pink);">message</span>
+        <p class="settings-feedback-title">感想・ご意見を送る</p>
+        <p class="settings-feedback-sub">あなたの声がアプリをより良くします</p>
+      </div>
+
+      <!-- アプリ情報 -->
+      <div class="settings-section" style="padding-top:0">
+        <p class="settings-section-title">kenkou kiroku について</p>
+        <div class="settings-list">
+          <div class="settings-row" style="cursor:default;">
+            <div class="settings-row-left">
+              <span class="settings-row-label">このアプリについて</span>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <span class="settings-row-label">ブログ記事を読む</span>
+            </div>
+            <a href="index.html" style="color: var(--teal); font-size: 0.8125rem; text-decoration:none;">開く →</a>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: var(--sp-6); padding-bottom: var(--sp-4);">
+          <p style="font-family: var(--font-accent); font-size: 0.75rem; color: var(--text-muted); letter-spacing: 0.10em;">kenkou kiroku</p>
+          <p style="font-size: 0.6875rem; color: var(--text-muted); margin-top: 4px;">wellness record app</p>
+          <p style="font-size: 0.6875rem; color: var(--border); margin-top: 4px;">v1.0.0</p>
+          <p style="font-size: 0.6875rem; color: var(--text-muted); margin-top: var(--sp-3); line-height: 1.7;">
+            このアプリは医療アドバイスを提供するものではありません。<br>
+            卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       BOTTOM NAVIGATION
+       ══════════════════════════════════ -->
+  <nav class="app-nav" id="appNav" aria-label="メインナビゲーション" style="display:none;">
+    <button class="nav-item active" data-screen="home" aria-label="ホーム">
+      <span class="nav-icon nav-icon-text">home</span>
+      <span class="nav-label">ホーム</span>
+    </button>
+    <button class="nav-item" data-screen="insight" aria-label="インサイト">
+      <span class="nav-icon nav-icon-text">insight</span>
+      <span class="nav-label">インサイト</span>
+    </button>
+    <button class="nav-item nav-record" data-screen="record" aria-label="記録する">
+      <div class="nav-record-ring">
+        <span class="nav-record-cross" aria-hidden="true"></span>
+      </div>
+      <span class="nav-label">記録</span>
+    </button>
+    <button class="nav-item" data-screen="settings" aria-label="設定">
+      <span class="nav-icon nav-icon-text">menu</span>
+      <span class="nav-label">設定</span>
+    </button>
+  </nav>
+
+  <!-- Toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- ══════════════════════════════════
+       PREMIUM MODAL
+       ══════════════════════════════════ -->
+  <div class="premium-modal-overlay" id="premiumModalOverlay" role="dialog" aria-modal="true" aria-label="Premium案内">
+    <div class="premium-modal-card" id="premiumModalCard">
+      <img src="images/logo-kenkou-kiroku.png" alt="kenkou kiroku" class="premium-modal-logo" onerror="this.style.display='none'">
+      <h2 class="premium-modal-title">Premium<br>まもなく公開</h2>
+      <p class="premium-modal-desc">
+        からだの変化をもっと深く見つめるための<br>
+        Premium機能を準備中です。<br>
+        公開時にいち早くお知らせします。
+      </p>
+      <a href="https://lin.ee/YOUR_LINE_ID" class="premium-modal-line-btn" target="_blank" rel="noopener">
+        LINEで通知を受け取る
+      </a>
+      <a href="#" class="premium-modal-close" id="premiumModalClose">あとで</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       FEEDBACK MODAL
+       ══════════════════════════════════ -->
+  <div class="feedback-overlay" id="feedbackOverlay" role="dialog" aria-modal="true" aria-label="フィードバック">
+    <div class="feedback-modal" id="feedbackModal">
+
+      <!-- 閉じるボタン -->
+      <button class="feedback-close-btn" id="feedbackCloseBtn" aria-label="閉じる">✕</button>
+
+      <!-- ドラッグバー -->
+      <div class="feedback-drag-bar" aria-hidden="true"></div>
+
+      <!-- 送信フォーム（Formspree） -->
+      <form id="feedbackForm" action="https://formspree.io/f/xjgpelwv" method="POST" novalidate>
+        <!-- hidden fields -->
+        <input type="hidden" name="_subject" value="kenkou kiroku フィードバック">
+        <input type="hidden" name="trigger_type" id="fbTriggerType" value="">
+        <input type="hidden" name="record_count" id="fbRecordCount" value="">
+        <input type="hidden" name="streak_days" id="fbStreakDays" value="">
+        <input type="hidden" name="rating" id="fbRating" value="">
+        <input type="hidden" name="reason" id="fbReason" value="">
+
+        <!-- ヘッダー -->
+        <div class="feedback-header" id="feedbackHeader">
+          <p class="feedback-trigger-label" id="feedbackTriggerLabel">feedback</p>
+          <h2 class="feedback-title" id="feedbackTitle">少しだけ聞かせてください</h2>
+          <p class="feedback-subtitle" id="feedbackSubtitle">あなたの声がアプリをより良くします。<br>30秒で完了します。</p>
+        </div>
+
+        <!-- プログレスドット -->
+        <div class="feedback-progress" id="feedbackProgress">
+          <div class="feedback-progress-dot active"></div>
+          <div class="feedback-progress-dot"></div>
+          <div class="feedback-progress-dot"></div>
+        </div>
+
+        <!-- ── STEP 1: 評価 ── -->
+        <div class="feedback-step active" id="fbStep1">
+          <p class="feedback-question" id="fbQuestion1">このアプリを使ってみて、どう感じていますか？</p>
+          <div class="feedback-rating-row" id="fbRatingRow">
+            <button type="button" class="feedback-rating-btn" data-rating="1" data-label="難しい">
+              <span style="font-family:var(--font-accent); font-size:1.125rem; line-height:1;">1</span><span class="feedback-rating-label">難しい</span>
+            </button>
+            <button type="button" class="feedback-rating-btn" data-rating="2" data-label="いまいち">
+              <span style="font-family:var(--font-accent); font-size:1.125rem; line-height:1;">2</span><span class="feedback-rating-label">いまいち</span>
+            </button>
+            <button type="button" class="feedback-rating-btn" data-rating="3" data-label="ふつう">
+              <span style="font-family:var(--font-accent); font-size:1.125rem; line-height:1;">3</span><span class="feedback-rating-label">ふつう</span>
+            </button>
+            <button type="button" class="feedback-rating-btn" data-rating="4" data-label="良い">
+              <span style="font-family:var(--font-accent); font-size:1.125rem; line-height:1;">4</span><span class="feedback-rating-label">良い</span>
+            </button>
+            <button type="button" class="feedback-rating-btn" data-rating="5" data-label="最高">
+              <span style="font-family:var(--font-accent); font-size:1.125rem; line-height:1;">5</span><span class="feedback-rating-label">最高</span>
+            </button>
+          </div>
+          <div class="feedback-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="fbStep1Next" disabled>次へ →</button>
+          </div>
+        </div>
+
+        <!-- ── STEP 2: 理由・詳細 ── -->
+        <div class="feedback-step" id="fbStep2">
+          <p class="feedback-question" id="fbQuestion2">特に感じたことを選んでください（複数OK）</p>
+          <div class="feedback-chip-group" id="fbReasonChips">
+            <!-- JS inject by trigger type -->
+          </div>
+          <div class="feedback-actions">
+            <button type="button" class="btn btn-outline btn-sm" id="fbStep2Next">次へ →</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="fbStep2Back">← 戻る</button>
+          </div>
+        </div>
+
+        <!-- ── STEP 3: 自由記述 ── -->
+        <div class="feedback-step" id="fbStep3">
+          <p class="feedback-question" id="fbQuestion3">もし良ければ、もう少し詳しく教えてください</p>
+          <textarea
+            class="feedback-textarea"
+            name="message"
+            id="fbMessage"
+            placeholder="例：断食タイマーがわかりやすかったです。チャクラの説明がもう少しあると嬉しいです…"
+            rows="4"
+          ></textarea>
+          <div class="feedback-actions">
+            <button type="submit" class="btn btn-primary btn-full" id="fbSubmitBtn">送信する</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="fbStep3Back">← 戻る</button>
+          </div>
+        </div>
+
+      </form><!-- /feedbackForm -->
+
+      <!-- 送信完了 -->
+      <div class="feedback-complete" id="feedbackComplete">
+        <p style="font-family:var(--font-accent); font-size:0.75rem; color:var(--pink); letter-spacing:0.15em; margin-bottom: 0.75rem;">thank you</p>
+        <h3 class="feedback-complete-title">ありがとうございます</h3>
+        <p class="feedback-complete-msg">
+          あなたの声が届きました。<br>
+          いただいたご意見を大切に、<br>
+          アプリをより良くしていきます。
+        </p>
+        <button class="btn btn-outline btn-sm" id="feedbackCompleteClose" style="margin-top: 1.5rem;">閉じる</button>
+      </div>
+
+    </div><!-- /feedback-modal -->
+  </div><!-- /feedback-overlay -->
+
+  <!-- グラデーション定義（SVG hidden） -->
+  <svg width="0" height="0" style="position:absolute">
+    <defs>
+      <linearGradient id="streakGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#E63FA8"/>
+        <stop offset="100%" stop-color="#27B7B3"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+</div><!-- /app-shell -->
+
+<!-- スクリプト -->
+<script src="js/kk-app.js"></script>
+</body>
+</html>

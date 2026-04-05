@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#FBF7F2">
+  <title>チャクラ体質診断 — kenkou kiroku</title>
+  <meta name="description" content="8つの質問であなたのチャクラ体質タイプを診断。あなたに合った食事法・セルフケアをご提案します。">
+  <link rel="stylesheet" href="css/app-main.css">
+  <style>
+    /* ============================================================
+       CHAKRA TEST — Page Styles
+       ============================================================ */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--app-bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Header ── */
+    .test-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(251,247,242,0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-light);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .test-header-logo {
+      font-family: var(--font-accent);
+      font-size: 0.8125rem;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+    .test-header-logo span { color: var(--pink); }
+    .test-back-btn {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-family: var(--font-sans);
+    }
+
+    /* ── Progress ── */
+    .test-progress-wrap {
+      padding: 12px 20px 0;
+    }
+    .test-progress-bar-outer {
+      height: 3px;
+      background: var(--border-light);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .test-progress-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, var(--pink), var(--teal));
+      border-radius: 2px;
+      transition: width 0.4s ease;
+    }
+    .test-progress-label {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      font-family: var(--font-accent);
+      letter-spacing: 0.08em;
+      margin-top: 6px;
+    }
+
+    /* ── Screens ── */
+    .test-screen {
+      display: none;
+      min-height: calc(100vh - 56px);
+      animation: fadeIn 0.35s ease;
+    }
+    .test-screen.active { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Intro Screen ── */
+    .intro-wrap {
+      padding: 48px 24px 40px;
+      text-align: center;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .intro-petal {
+      width: 100px;
+      height: 100px;
+      margin: 0 auto 28px;
+    }
+    .intro-tag {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      letter-spacing: 0.14em;
+      color: var(--pink);
+      margin-bottom: 12px;
+    }
+    .intro-title {
+      font-family: var(--font-serif);
+      font-size: 1.5rem;
+      color: var(--text-primary);
+      line-height: 1.6;
+      margin-bottom: 16px;
+    }
+    .intro-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.9;
+      margin-bottom: 32px;
+    }
+    .intro-info-row {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
+    .intro-info-item {
+      text-align: center;
+    }
+    .intro-info-num {
+      font-family: var(--font-accent);
+      font-size: 1.5rem;
+      color: var(--pink);
+      display: block;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .intro-info-label {
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+    }
+    .btn-start {
+      display: block;
+      width: 100%;
+      max-width: 280px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--pink), var(--teal));
+      color: white;
+      border: none;
+      border-radius: 32px;
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 20px rgba(230,63,168,0.25);
+      transition: all 0.3s ease;
+    }
+    .btn-start:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(230,63,168,0.32);
+    }
+
+    /* ── Question Screen ── */
+    .question-wrap {
+      padding: 32px 24px 100px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .question-num {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      letter-spacing: 0.10em;
+      margin-bottom: 12px;
+    }
+    .question-text {
+      font-family: var(--font-serif);
+      font-size: 1.125rem;
+      color: var(--text-primary);
+      line-height: 1.75;
+      margin-bottom: 28px;
+    }
+    .question-sub {
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      margin-top: -20px;
+      margin-bottom: 28px;
+      line-height: 1.7;
+    }
+    .choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .choice-btn {
+      width: 100%;
+      text-align: left;
+      padding: 16px 20px;
+      background: var(--app-bg-card);
+      border: 1.5px solid var(--border-light);
+      border-radius: 14px;
+      font-family: var(--font-serif);
+      font-size: 0.9375rem;
+      color: var(--text-primary);
+      cursor: pointer;
+      line-height: 1.65;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .choice-btn::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--border-light);
+      transition: background 0.25s ease;
+    }
+    .choice-btn:hover {
+      border-color: var(--pink-soft);
+      background: var(--pink-pale);
+    }
+    .choice-btn:hover::before { background: var(--pink); }
+    .choice-btn.selected {
+      border-color: var(--pink);
+      background: var(--pink-pale);
+      box-shadow: 0 0 0 3px rgba(230,63,168,0.10);
+    }
+    .choice-btn.selected::before { background: var(--pink); }
+    .choice-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 4px;
+      font-family: var(--font-sans);
+    }
+
+    /* ── Nav buttons ── */
+    .question-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      padding: 16px 24px 32px;
+      background: linear-gradient(to top, var(--app-bg) 70%, transparent);
+      display: flex;
+      gap: 12px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .btn-next {
+      flex: 1;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, var(--pink), #C02E8E);
+      color: white;
+      border: none;
+      border-radius: 28px;
+      font-family: var(--font-serif);
+      font-size: 0.9375rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 16px rgba(230,63,168,0.28);
+    }
+    .btn-next:disabled {
+      background: var(--border);
+      box-shadow: none;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+    .btn-next:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(230,63,168,0.35);
+    }
+    .btn-prev {
+      padding: 15px 20px;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 28px;
+      font-family: var(--font-sans);
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .btn-prev:hover { border-color: var(--text-muted); color: var(--text-secondary); }
+
+    /* ── Loading ── */
+    .loading-wrap {
+      padding: 80px 24px;
+      text-align: center;
+    }
+    .loading-petal {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 24px;
+      animation: rotatePetal 2s linear infinite;
+    }
+    @keyframes rotatePetal {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .loading-text {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: var(--text-secondary);
+      line-height: 1.9;
+    }
+
+    /* ── Result Screen ── */
+    .result-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 60px;
+    }
+    .result-hero {
+      padding: 40px 24px 32px;
+      text-align: center;
+      background: linear-gradient(160deg, var(--pink-pale) 0%, var(--teal-pale) 100%);
+      border-bottom: 1px solid var(--border-light);
+    }
+    .result-tag {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      letter-spacing: 0.14em;
+      color: var(--pink);
+      margin-bottom: 8px;
+    }
+    .result-type-name {
+      font-family: var(--font-serif);
+      font-size: 1.625rem;
+      color: var(--text-primary);
+      line-height: 1.5;
+      margin-bottom: 8px;
+    }
+    .result-chakra-badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: var(--font-accent);
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+    .result-desc {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      line-height: 1.9;
+      text-align: left;
+      max-width: 360px;
+      margin: 0 auto;
+    }
+
+    .result-section {
+      padding: 24px 24px 0;
+    }
+    .result-section-title {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      letter-spacing: 0.12em;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-light);
+    }
+
+    /* 症状タグ */
+    .result-symptom-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .result-symptom-tag {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      background: var(--pink-pale);
+      border: 1px solid var(--pink-light);
+      color: var(--pink);
+    }
+
+    /* 食事アドバイス */
+    .food-advice-card {
+      background: var(--app-bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .food-advice-head {
+      padding: 12px 16px;
+      background: var(--teal-pale);
+      border-bottom: 1px solid var(--teal-light);
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--teal-dark);
+      font-family: var(--font-serif);
+    }
+    .food-advice-body {
+      padding: 14px 16px;
+    }
+    .food-advice-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 10px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .food-advice-item:last-child { margin-bottom: 0; }
+    .food-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--teal);
+      flex-shrink: 0;
+      margin-top: 8px;
+    }
+
+    /* セルフケア */
+    .selfcare-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .selfcare-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--app-bg-card);
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.65;
+    }
+    .selfcare-num {
+      font-family: var(--font-accent);
+      font-size: 0.75rem;
+      color: var(--pink);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* スコアバー */
+    .chakra-score-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .chakra-score-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .chakra-score-label {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .chakra-score-bar-wrap {
+      flex: 1;
+      height: 6px;
+      background: var(--border-light);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .chakra-score-bar {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 1s ease 0.3s;
+    }
+    .chakra-score-val {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      color: var(--text-muted);
+      width: 28px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* CTA */
+    .result-cta {
+      margin: 24px 24px 0;
+      padding: 28px 24px;
+      background: linear-gradient(135deg, var(--pink-pale), var(--teal-pale));
+      border: 1px solid var(--border-light);
+      border-radius: 18px;
+      text-align: center;
+    }
+    .result-cta-tag {
+      font-family: var(--font-accent);
+      font-size: 0.6875rem;
+      color: var(--teal);
+      letter-spacing: 0.12em;
+      margin-bottom: 10px;
+    }
+    .result-cta-title {
+      font-family: var(--font-serif);
+      font-size: 1.0625rem;
+      color: var(--text-primary);
+      line-height: 1.65;
+      margin-bottom: 8px;
+    }
+    .result-cta-desc {
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+      line-height: 1.75;
+      margin-bottom: 20px;
+    }
+    .btn-save {
+      display: block;
+      width: 100%;
+      padding: 15px 24px;
+      background: linear-gradient(135deg, var(--pink), var(--teal));
+      color: white;
+      border: none;
+      border-radius: 28px;
+      font-family: var(--font-serif);
+      font-size: 0.9375rem;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 18px rgba(230,63,168,0.22);
+      transition: all 0.3s ease;
+      margin-bottom: 10px;
+      text-decoration: none;
+    }
+    .btn-save:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(230,63,168,0.30);
+    }
+    .btn-app {
+      display: block;
+      width: 100%;
+      padding: 13px 24px;
+      background: none;
+      border: 1.5px solid var(--teal);
+      border-radius: 28px;
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      color: var(--teal-dark);
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: all 0.25s ease;
+      text-decoration: none;
+      text-align: center;
+    }
+    .btn-app:hover { background: var(--teal-pale); }
+
+    /* LINE CTA */
+    .line-cta {
+      margin: 16px 24px 0;
+      padding: 22px 20px;
+      background: #06C755;
+      border-radius: 16px;
+      text-align: center;
+    }
+    .line-cta-label {
+      font-size: 0.6875rem;
+      color: rgba(255,255,255,0.80);
+      letter-spacing: 0.10em;
+      margin-bottom: 8px;
+    }
+    .line-cta-title {
+      font-family: var(--font-serif);
+      font-size: 1rem;
+      color: #fff;
+      line-height: 1.55;
+      margin-bottom: 14px;
+    }
+    .btn-line {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: #fff;
+      color: #06C755;
+      border-radius: 28px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-decoration: none;
+      transition: all 0.25s ease;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.14);
+    }
+    .btn-line:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.18); }
+    .line-cta-sub {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.75);
+      margin-top: 10px;
+    }
+
+    .result-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      padding: 20px 24px 0;
+      line-height: 1.7;
+    }
+
+    /* Saved badge */
+    .saved-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 14px;
+      background: var(--teal-pale);
+      border: 1px solid var(--teal-light);
+      border-radius: 20px;
+      font-size: 0.75rem;
+      color: var(--teal-dark);
+      margin-bottom: 10px;
+    }
+    .saved-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--teal);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<header class="test-header">
+  <a href="kk-app.html" class="test-back-btn" style="text-decoration:none;">← アプリへ</a>
+  <span class="test-header-logo">kenkou <span>kiroku</span></span>
+  <span style="width:60px;"></span>
+</header>
+
+<!-- プログレスバー（質問中のみ表示） -->
+<div class="test-progress-wrap" id="progressWrap" style="display:none;">
+  <div class="test-progress-bar-outer">
+    <div class="test-progress-bar-inner" id="progressBar" style="width:0%"></div>
+  </div>
+  <p class="test-progress-label" id="progressLabel">question 1 / 8</p>
+</div>
+
+<!-- ============================================================
+     SCREEN: INTRO
+     ============================================================ -->
+<div class="test-screen active" id="screen-intro">
+  <div class="intro-wrap">
+    <!-- 花びらSVG -->
+    <div class="intro-petal">
+      <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="ig1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#F2A8D8" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#E63FA8" stop-opacity="0.5"/>
+          </radialGradient>
+          <radialGradient id="ig2" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#7DD4D1" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#27B7B3" stop-opacity="0.5"/>
+          </radialGradient>
+          <radialGradient id="ig3" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#F0DFB8" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#D8B56A" stop-opacity="0.5"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig1)" transform="rotate(0 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig2)" transform="rotate(51.4 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig1)" transform="rotate(102.8 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig3)" transform="rotate(154.3 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig2)" transform="rotate(205.7 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig1)" transform="rotate(257.1 60 60)"/>
+        <ellipse cx="60" cy="24" rx="11" ry="22" fill="url(#ig3)" transform="rotate(308.6 60 60)"/>
+        <circle cx="60" cy="60" r="12" fill="white" opacity="0.9"/>
+        <circle cx="60" cy="60" r="7" fill="url(#ig1)" opacity="0.5"/>
+      </svg>
+    </div>
+
+    <p class="intro-tag">chakra diagnosis</p>
+    <h1 class="intro-title">あなたのからだは<br>どのタイプ？</h1>
+    <p class="intro-desc">
+      8つの質問に答えるだけで、<br>
+      あなたのチャクラ体質タイプを診断します。<br>
+      タイプに合った食事法・セルフケアを<br>
+      お届けします。
+    </p>
+
+    <div class="intro-info-row">
+      <div class="intro-info-item">
+        <span class="intro-info-num">8</span>
+        <span class="intro-info-label">問の質問</span>
+      </div>
+      <div class="intro-info-item">
+        <span class="intro-info-num">2</span>
+        <span class="intro-info-label">分で完了</span>
+      </div>
+      <div class="intro-info-item">
+        <span class="intro-info-num">7</span>
+        <span class="intro-info-label">体質タイプ</span>
+      </div>
+    </div>
+
+    <button class="btn-start" id="startBtn">診断をはじめる</button>
+
+    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:20px; line-height:1.7;">
+      登録不要・無料でご利用いただけます。<br>
+      結果はアプリに保存できます。
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: QUESTION
+     ============================================================ -->
+<div class="test-screen" id="screen-question">
+  <div class="question-wrap">
+    <p class="question-num" id="questionNum">question 1</p>
+    <h2 class="question-text" id="questionText"></h2>
+    <p class="question-sub" id="questionSub" style="display:none;"></p>
+    <div class="choices-list" id="choicesList"></div>
+  </div>
+
+  <div class="question-nav" style="position:fixed; bottom:0; left:0; right:0; padding:16px 24px 32px; background:linear-gradient(to top, var(--app-bg) 70%, transparent);">
+    <button class="btn-prev" id="prevBtn" style="display:none;">← 前へ</button>
+    <button class="btn-next" id="nextBtn" disabled>次へ →</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: LOADING
+     ============================================================ -->
+<div class="test-screen" id="screen-loading">
+  <div class="loading-wrap">
+    <div class="loading-petal">
+      <svg viewBox="0 0 80 80" fill="none">
+        <defs>
+          <radialGradient id="lg1" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#F2A8D8"/>
+            <stop offset="100%" stop-color="#E63FA8" stop-opacity="0.4"/>
+          </radialGradient>
+          <radialGradient id="lg2" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#7DD4D1"/>
+            <stop offset="100%" stop-color="#27B7B3" stop-opacity="0.4"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="40" cy="12" rx="7" ry="14" fill="url(#lg1)" transform="rotate(0 40 40)"/>
+        <ellipse cx="40" cy="12" rx="7" ry="14" fill="url(#lg2)" transform="rotate(72 40 40)"/>
+        <ellipse cx="40" cy="12" rx="7" ry="14" fill="url(#lg1)" transform="rotate(144 40 40)"/>
+        <ellipse cx="40" cy="12" rx="7" ry="14" fill="url(#lg2)" transform="rotate(216 40 40)"/>
+        <ellipse cx="40" cy="12" rx="7" ry="14" fill="url(#lg1)" transform="rotate(288 40 40)"/>
+        <circle cx="40" cy="40" r="8" fill="white" opacity="0.9"/>
+      </svg>
+    </div>
+    <p class="loading-text">
+      あなたのチャクラを<br>分析しています…
+    </p>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: RESULT
+     ============================================================ -->
+<div class="test-screen" id="screen-result">
+  <div class="result-wrap">
+
+    <!-- ヒーロー -->
+    <div class="result-hero" id="resultHero">
+      <p class="result-tag">your chakra type</p>
+      <h2 class="result-type-name" id="resultTypeName">—</h2>
+      <div class="result-chakra-badge" id="resultBadge">—</div>
+      <p class="result-desc" id="resultDesc">—</p>
+    </div>
+
+    <!-- 関連する不調 -->
+    <div class="result-section">
+      <p class="result-section-title">関連しやすい不調・症状</p>
+      <div class="result-symptom-tags" id="resultSymptoms"></div>
+    </div>
+
+    <!-- チャクラスコア -->
+    <div class="result-section" style="margin-top:20px;">
+      <p class="result-section-title">あなたのチャクラスコア</p>
+      <div class="chakra-score-list" id="chakraScoreList"></div>
+    </div>
+
+    <!-- 食事アドバイス -->
+    <div class="result-section" style="margin-top:20px;">
+      <p class="result-section-title">あなたに合った食事法</p>
+      <div id="foodAdviceArea"></div>
+    </div>
+
+    <!-- セルフケア -->
+    <div class="result-section" style="margin-top:20px;">
+      <p class="result-section-title">おすすめセルフケア</p>
+      <div class="selfcare-list" id="selfcareList"></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="result-cta">
+      <p class="result-cta-tag">next step</p>
+      <h3 class="result-cta-title">診断結果をアプリに保存して<br>毎日の記録に活かしましょう</h3>
+      <p class="result-cta-desc">
+        あなたのタイプに合わせた記録ができます。<br>
+        記録が積み重なるほど、からだのパターンが<br>見えてきます。
+      </p>
+      <button class="btn-save" id="saveToAppBtn">アプリに結果を保存する</button>
+      <a href="kk-app.html" class="btn-app" id="goAppBtn">アプリを開く →</a>
+    </div>
+
+    <!-- LINE CTA -->
+    <div class="line-cta">
+      <p class="line-cta-label">LINE 公式アカウント</p>
+      <p class="line-cta-title">結果をLINEに保存して<br>食事チップを受け取る</p>
+      <a href="https://lin.ee/YOUR_LINE_ID" class="btn-line" target="_blank" rel="noopener">
+        <svg width="22" height="22" viewBox="0 0 40 40" fill="none" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#06C755"/><path d="M20 8C12.268 8 6 13.373 6 20c0 5.97 5.065 10.963 11.91 11.826.464.1 1.096.305 1.256.7.144.358.094.92.046 1.282l-.203 1.219c-.062.358-.286 1.4 1.227.764 1.513-.637 8.166-4.808 11.14-8.232C33.124 25.17 34 22.67 34 20c0-6.627-6.268-12-14-12z" fill="white"/><path d="M16.5 17.5h-1a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V18a.5.5 0 0 0-.5-.5zm8 0h-1a.5.5 0 0 0-.5.5v3l-2.5-3.2a.5.5 0 0 0-.4-.2h-1a.5.5 0 0 0-.5.5v5a.5.5 0 0 0 .5.5h1a.5.5 0 0 0 .5-.5V20l2.5 3.2a.5.5 0 0 0 .4.2h1a.5.5 0 0 0 .5-.5V18a.5.5 0 0 0-.5-.5zm-5-1.5h-3a.5.5 0 0 0-.5.5v.5a.5.5 0 0 0 .5.5H18v.5h-1.5a.5.5 0 0 0-.5.5v.5a.5.5 0 0 0 .5.5H18v.5h-1.5a.5.5 0 0 0-.5.5v.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5V16.5a.5.5 0 0 0-.5-.5z" fill="#06C755"/></svg>
+        LINEに登録する（無料）
+      </a>
+      <p class="line-cta-sub">登録するだけで、タイプ別「7日間食事ガイド（PDF）」をプレゼント</p>
+    </div>
+
+    <p class="result-note">
+      このアプリは医療アドバイスを提供するものではありません。<br>
+      気になる症状は婦人科・専門医へご相談ください。
+    </p>
+
+  </div>
+</div>
+
+<!-- ============================================================
+     JavaScript
+     ============================================================ -->
+<script>
+'use strict';
+
+// ────────────────────────────────────────────────────────────
+// 質問定義（8問）
+// ────────────────────────────────────────────────────────────
+const QUESTIONS = [
+  {
+    id: 1,
+    text: '今、からだで最も気になっている場所はどこですか？',
+    sub: '直感で選んでください。',
+    choices: [
+      { label: 'A', text: '骨盤・腰まわり・足の冷えや重さ', scores: { root: 3, sacral: 1 } },
+      { label: 'B', text: '子宮・卵巣まわり・生理の不調', scores: { sacral: 3, root: 1 } },
+      { label: 'C', text: 'お腹・胃腸・消化の不調', scores: { solar: 3 } },
+      { label: 'D', text: '胸・心臓まわり・息苦しさ', scores: { heart: 3 } },
+      { label: 'E', text: '喉・肩・首まわりのこり・緊張', scores: { throat: 3 } },
+      { label: 'F', text: '頭痛・目の疲れ・眠れない', scores: { thirdeye: 3 } },
+      { label: 'G', text: '全身の疲れ・感情の波・何となくすっきりしない', scores: { crown: 3 } },
+    ],
+  },
+  {
+    id: 2,
+    text: '感情面で、最近よく感じることはありますか？',
+    choices: [
+      { label: 'A', text: '不安感・落ち着けない・将来への心配', scores: { root: 3, crown: 1 } },
+      { label: 'B', text: 'ホルモンの波に乗った感情の揺れ・悲しみ', scores: { sacral: 3 } },
+      { label: 'C', text: '自分への批判・「できない」という焦り', scores: { solar: 3 } },
+      { label: 'D', text: '孤独感・人間関係の疲れ・愛されたい', scores: { heart: 3 } },
+      { label: 'E', text: '言いたいことが言えない・我慢している', scores: { throat: 3 } },
+      { label: 'F', text: '考えすぎ・ぐるぐると思考が止まらない', scores: { thirdeye: 3 } },
+      { label: 'G', text: '全体的に感情が乱れやすい・ストレスが抜けない', scores: { crown: 3 } },
+    ],
+  },
+  {
+    id: 3,
+    text: '生理・ホルモンについて、気になることはありますか？',
+    sub: '「特にない」方はGを選んでください。',
+    choices: [
+      { label: 'A', text: '生理痛が強い・経血量が多い・生理不順', scores: { sacral: 3, root: 1 } },
+      { label: 'B', text: 'PMSがひどい・生理前の気分の波が激しい', scores: { sacral: 2, crown: 2 } },
+      { label: 'C', text: '子宮筋腫・卵巣嚢腫・子宮内膜症と診断されたことがある', scores: { sacral: 3, root: 2 } },
+      { label: 'D', text: '無月経・生理がこない・更年期に近い症状', scores: { root: 2, sacral: 2 } },
+      { label: 'E', text: '婦人科には行ったことがないが、なんとなく不調', scores: { sacral: 1, root: 1, crown: 1 } },
+      { label: 'F', text: '生理は特に問題ないが、ホルモンバランスが乱れている気がする', scores: { crown: 2, thirdeye: 1 } },
+      { label: 'G', text: '特に気になることはない', scores: { crown: 1 } },
+    ],
+  },
+  {
+    id: 4,
+    text: '食事の傾向として、当てはまるものはどれですか？',
+    choices: [
+      { label: 'A', text: '冷たいもの・生ものが多い・からだが冷えやすい', scores: { root: 3 } },
+      { label: 'B', text: '甘いもの・小麦が多い・食後にお腹が張る', scores: { sacral: 2, solar: 2 } },
+      { label: 'C', text: '食べすぎてしまう・または食欲がわかない', scores: { solar: 3 } },
+      { label: 'D', text: '食事を抜いてしまうことが多い・不規則', scores: { root: 2, heart: 1 } },
+      { label: 'E', text: '辛いもの・刺激物・アルコールが多い', scores: { throat: 2, solar: 1 } },
+      { label: 'F', text: 'カフェインが多い・眠れないほど頭が活性化している', scores: { thirdeye: 2, crown: 1 } },
+      { label: 'G', text: 'バランスよく食べているが、なんとなく体調が優れない', scores: { crown: 2 } },
+    ],
+  },
+  {
+    id: 5,
+    text: '睡眠について、最も近いものを選んでください。',
+    choices: [
+      { label: 'A', text: 'なかなか眠れない・眠りが浅い', scores: { thirdeye: 2, crown: 2 } },
+      { label: 'B', text: '寝ても疲れがとれない・朝が辛い', scores: { root: 2, crown: 2 } },
+      { label: 'C', text: '生理前後に特に眠れない・眠りすぎる', scores: { sacral: 3 } },
+      { label: 'D', text: '考えごとが多くて眠れない', scores: { thirdeye: 3 } },
+      { label: 'E', text: '感情が揺れた日は眠れない', scores: { heart: 2, crown: 2 } },
+      { label: 'F', text: '肩・首こりがひどくて眠れない', scores: { throat: 3 } },
+      { label: 'G', text: '特に問題ない', scores: { root: 1 } },
+    ],
+  },
+  {
+    id: 6,
+    text: '人間関係・コミュニケーションについて、当てはまるものは？',
+    choices: [
+      { label: 'A', text: '人といると疲れる・人間関係に消耗している', scores: { heart: 2, crown: 2 } },
+      { label: 'B', text: '自分の意見を言えない・NOが言えない', scores: { throat: 3 } },
+      { label: 'C', text: '人に合わせすぎてしまう・自分を後回しにする', scores: { heart: 3 } },
+      { label: 'D', text: '孤独を感じている・つながりたいが怖い', scores: { root: 2, heart: 2 } },
+      { label: 'E', text: '感情が爆発してしまうことがある', scores: { sacral: 2, crown: 2 } },
+      { label: 'F', text: '頭でわかっているが行動できない', scores: { thirdeye: 2, solar: 2 } },
+      { label: 'G', text: '特に問題ない', scores: { root: 1 } },
+    ],
+  },
+  {
+    id: 7,
+    text: 'セルフケアへの取り組みとして、今のあなたに近いものは？',
+    choices: [
+      { label: 'A', text: 'からだを温めること・冷え対策をしたい', scores: { root: 3 } },
+      { label: 'B', text: '骨盤まわりのケア・ホルモンバランスを整えたい', scores: { sacral: 3 } },
+      { label: 'C', text: '腸活・消化を良くしたい', scores: { solar: 3 } },
+      { label: 'D', text: '感情を安定させたい・自分を愛したい', scores: { heart: 3 } },
+      { label: 'E', text: '自分の気持ちを表現できるようになりたい', scores: { throat: 3 } },
+      { label: 'F', text: '睡眠の質を上げたい・頭を休ませたい', scores: { thirdeye: 3 } },
+      { label: 'G', text: 'ストレスを根本から解消したい・全身を整えたい', scores: { crown: 3 } },
+    ],
+  },
+  {
+    id: 8,
+    text: 'このアプリを使って、一番叶えたいことは何ですか？',
+    choices: [
+      { label: 'A', text: '冷えや疲れを解消して、からだの基盤を作りたい', scores: { root: 3 } },
+      { label: 'B', text: '生理・卵巣・子宮のトラブルを改善したい', scores: { sacral: 3 } },
+      { label: 'C', text: '消化を整えて、体型・肌・腸を改善したい', scores: { solar: 3 } },
+      { label: 'D', text: '感情を安定させて、毎日を穏やかに過ごしたい', scores: { heart: 3 } },
+      { label: 'E', text: '自分らしく表現できる、軽やかなからだになりたい', scores: { throat: 3 } },
+      { label: 'F', text: '直感を磨いて、自分のからだの声を聴けるようになりたい', scores: { thirdeye: 3 } },
+      { label: 'G', text: 'ストレス・疲れ・感情の波を根本から整えたい', scores: { crown: 3 } },
+    ],
+  },
+];
+
+// ────────────────────────────────────────────────────────────
+// チャクラタイプ定義（7タイプ）
+// ────────────────────────────────────────────────────────────
+const CHAKRA_TYPES = {
+  root: {
+    name: 'グランディングタイプ',
+    chakra: '第1チャクラ（ルート）',
+    color: '#E63FA8',
+    colorLight: '#FAE8F4',
+    desc: '骨盤底・腰まわりのエネルギーが低下しやすいタイプです。冷えや疲れ、免疫の低下が起きやすく、「安心・安全」の感覚を養うことがからだの整えにつながります。温めること、グランディングが鍵です。',
+    symptoms: ['冷え性', '慢性疲労', '腰痛', '免疫低下', '足のむくみ', '不安感', '生理不順'],
+    food: {
+      title: 'からだを温める・根を張る食事',
+      items: [
+        '根菜類（ごぼう・れんこん・にんじん・大根）を毎食取り入れる',
+        '温かいスープ・味噌汁で内臓を温める',
+        '黒豆・小豆など「黒・赤」の食材で腎を養う',
+        '砂糖・生もの・冷たい飲み物を控える',
+        '白湯を1日1,000ml以上飲む',
+      ],
+    },
+    selfcare: [
+      'お腹・腰まわりをカイロや湯たんぽで温める',
+      '1日5分の足裏マッサージで地に足をつける感覚を養う',
+      '深呼吸しながら「今ここにいる」と感じる瞑想を行う',
+      '裸足で土・芝生の上を歩く（グランディング）',
+    ],
+  },
+  sacral: {
+    name: '女性性開花タイプ',
+    chakra: '第2チャクラ（サクラル）',
+    color: '#FF9A4A',
+    colorLight: '#FFF3E8',
+    desc: '子宮・卵巣と深く関わる第2チャクラが乱れやすいタイプです。生理不順・PMS・卵巣嚢腫・子宮筋腫・子宮内膜症などの婦人科症状が出やすく、女性ホルモンのバランスを整えることが最優先です。創造性と感受性を大切に。',
+    symptoms: ['生理痛', 'PMS', '卵巣嚢腫', '子宮筋腫', '子宮内膜症', 'PCOS', '生理不順', '感情の波'],
+    food: {
+      title: '女性ホルモンを整える食事',
+      items: [
+        '発酵食品（味噌・ぬか漬け・甘酒）で腸内環境を整える',
+        'ビタミンE（アーモンド・アボカド・かぼちゃ）でホルモン産生を支える',
+        '鉄分（ほうれん草・あさり・レバー）で血液を作る',
+        '小麦・砂糖・乳製品を控えてエストロゲン過多を防ぐ',
+        'EPA/DHA（青魚・亜麻仁油）で炎症を抑える',
+      ],
+    },
+    selfcare: [
+      '骨盤底筋エクササイズを毎日5分行う',
+      '下腹部を温めるホットパックを就寝前に使う',
+      '月経周期を記録して自分のリズムを知る',
+      '創造的な活動（絵・料理・書くこと）で感情を表現する',
+    ],
+  },
+  solar: {
+    name: '消化力回復タイプ',
+    chakra: '第3チャクラ（ソーラープレクサス）',
+    color: '#C9A44A',
+    colorLight: '#FDF8E8',
+    desc: 'お腹・胃腸・消化器官のエネルギーが乱れやすいタイプです。消化不良・腸の不調・食欲の波・自己肯定感の低下が起きやすく、「腸を整えること」がからだと心の両方に働きかけます。自分を信頼する力を育てましょう。',
+    symptoms: ['消化不良', '腸の不調', '胃の張り', '便秘・下痢', '食欲不振', '食べすぎ', '自己肯定感の低下'],
+    food: {
+      title: '腸と消化力を整える食事',
+      items: [
+        '発酵食品（納豆・ヨーグルト・キムチ）で腸内フローラを整える',
+        '食物繊維（玄米・オートミール・海藻）で腸を掃除する',
+        '消化酵素（大根おろし・パパイヤ・パイナップル）を取り入れる',
+        '食事は腹8分目・よく噛んでゆっくり食べる',
+        '揚げ物・加工食品・過食を控える',
+      ],
+    },
+    selfcare: [
+      'お腹（おへその周り）を時計回りに優しくマッサージする',
+      '食後30分は横にならず消化を助ける軽い散歩をする',
+      '「今日の自分はよくやった」と毎晩3つ書き出す習慣をつける',
+      '深腹式呼吸で横隔膜を動かし腸の動きを促進する',
+    ],
+  },
+  heart: {
+    name: '愛と受容タイプ',
+    chakra: '第4チャクラ（ハート）',
+    color: '#6BCB6B',
+    colorLight: '#F0FAF0',
+    desc: '心臓・胸まわりのエネルギーが乱れやすいタイプです。感情の傷・人間関係の疲れ・自己犠牲が起きやすく、まず自分自身を愛することが回復の鍵です。「与える前に、自分を満たす」ことを意識しましょう。',
+    symptoms: ['胸の緊張', '息苦しさ', '動悸', '感情の波', '孤独感', '人間関係の疲れ', '自己犠牲'],
+    food: {
+      title: '心臓と感情を安定させる食事',
+      items: [
+        'マグネシウム（ナッツ・バナナ・ほうれん草）で神経を鎮める',
+        'オメガ3脂肪酸（青魚・亜麻仁油・チアシード）で炎症を抑える',
+        '緑の野菜（ほうれん草・小松菜・ブロッコリー）を積極的に摂る',
+        'カフェイン・アルコールを控えて心臓への負担を減らす',
+        '苦み成分（ゴーヤ・春菊）で夏の心を整える（夏タイプ）',
+      ],
+    },
+    selfcare: [
+      '両手を胸に当て、深呼吸しながら「私は愛されている」と感じる',
+      '毎晩3つの「今日の感謝」を書き出す',
+      '好きな香り（ローズ・ゼラニウム）のアロマでリラックスする',
+      '信頼できる人に「ありがとう」を伝える練習をする',
+    ],
+  },
+  throat: {
+    name: '自己表現解放タイプ',
+    chakra: '第5チャクラ（スロート）',
+    color: '#27B7B3',
+    colorLight: '#EAF7F7',
+    desc: '喉・声・首まわりのエネルギーが滞りやすいタイプです。言いたいことが言えない・NOが言えない状態が続くと、肩こり・喉の違和感・甲状腺の不調につながります。「自分の声を出すこと」が解放の第一歩です。',
+    symptoms: ['肩こり', '首のこり', '喉の違和感', '甲状腺の不調', '声が出にくい', '言えない'],
+    food: {
+      title: '喉・甲状腺を養う食事',
+      items: [
+        'ヨード（海藻・昆布・わかめ）で甲状腺機能を支える',
+        'ビタミンC（パプリカ・ブロッコリー・レモン）で粘膜を守る',
+        '白い食材（大根・ゆり根・白きくらげ）で肺・喉を潤す',
+        '刺激物（辛いもの・アルコール）を控えて粘膜を保護する',
+        '温かい飲み物（白湯・ハーブティー）を意識して摂る',
+      ],
+    },
+    selfcare: [
+      '1日1回、声に出して読む・歌う・朗読するなど「声を使う」時間を作る',
+      '首まわりのストレッチをゆっくり行い緊張をほぐす',
+      '日記に「本当は何が言いたかった？」と書く',
+      '信頼できる人に「実は…」と一つ本音を話してみる',
+    ],
+  },
+  thirdeye: {
+    name: '直感・洞察覚醒タイプ',
+    chakra: '第6チャクラ（サードアイ）',
+    color: '#6C4A67',
+    colorLight: '#F4EFF4',
+    desc: '眉間・頭部・自律神経が過活動になりやすいタイプです。考えすぎ・不眠・頭痛・目の疲れが続きやすく、「頭を休ませること」が最優先です。直感と思考のバランスを取り戻すことで、からだ全体が整います。',
+    symptoms: ['頭痛', '不眠', '目の疲れ', '考えすぎ', '自律神経の乱れ', '偏頭痛', '直感の乱れ'],
+    food: {
+      title: '脳・神経・睡眠を整える食事',
+      items: [
+        'トリプトファン（バナナ・豆腐・ナッツ）でセロトニン・メラトニンを産生',
+        'マグネシウム（ダークチョコ・ナッツ・海藻）で神経を鎮静化',
+        'ビタミンB群（玄米・豆類・卵）で神経系を整える',
+        'カフェインを14時以降は控えて睡眠の質を守る',
+        '紫の食材（ブルーベリー・なす・黒米）で松果体を養う',
+      ],
+    },
+    selfcare: [
+      '就寝1時間前にスマホ・PC画面をオフにする',
+      '目を温めるアイピローや蒸しタオルで目の疲れを取る',
+      '寝る前に「今日考えたことを全部紙に書き出す」ブレインダンプを行う',
+      '朝起きたら5分間、何も考えずに白湯を飲む「静かな時間」を持つ',
+    ],
+  },
+  crown: {
+    name: '全身統合・感情調和タイプ',
+    chakra: '第7チャクラ（クラウン）',
+    color: '#9B7EC8',
+    colorLight: '#F2EEF9',
+    desc: '全身のエネルギーバランスが乱れやすく、ストレス・感情の波・ホルモン全体への影響が出やすいタイプです。特定の部位というよりも「自律神経全体の乱れ」として表れます。根本的なライフスタイルの見直しが最も効果的です。',
+    symptoms: ['全身疲労', '感情の不安定', 'ホルモンバランス崩壊', '自律神経の乱れ', '燃え尽き感', '無気力'],
+    food: {
+      title: '自律神経・ホルモン全体を整える食事',
+      items: [
+        '加工食品・添加物を徹底的に減らしてからだの負荷を下げる',
+        '腸活（発酵食品＋食物繊維）で幸せホルモン・セロトニンの産生を促す',
+        '良質な脂質（オリーブオイル・アボカド・ナッツ）でホルモン材料を補給',
+        '毎食タンパク質を意識して摂り、筋肉とホルモンの材料を確保する',
+        '砂糖・小麦・乳製品を1週間控えて体の変化を観察する',
+      ],
+    },
+    selfcare: [
+      '朝の10分間、日光を浴びながら深呼吸するルーティンを作る',
+      '週1回「完全休息日」を設け、予定を入れない日を作る',
+      '瞑想・ヨガ・森林浴など「副交感神経を優位にする時間」を週3回以上持つ',
+      'kenkou kiroku アプリで毎日の食事・断食・感情を記録して、自分のパターンを見つける',
+    ],
+  },
+};
+
+const CHAKRA_LABELS = {
+  root: '第1（ルート）',
+  sacral: '第2（サクラル）',
+  solar: '第3（ソーラー）',
+  heart: '第4（ハート）',
+  throat: '第5（スロート）',
+  thirdeye: '第6（サードアイ）',
+  crown: '第7（クラウン）',
+};
+
+const CHAKRA_COLORS = {
+  root:      '#E63FA8',
+  sacral:    '#FF9A4A',
+  solar:     '#C9A44A',
+  heart:     '#6BCB6B',
+  throat:    '#27B7B3',
+  thirdeye:  '#6C4A67',
+  crown:     '#9B7EC8',
+};
+
+// ────────────────────────────────────────────────────────────
+// State
+// ────────────────────────────────────────────────────────────
+const state = {
+  currentQuestion: 0,
+  answers: [],            // 各質問の選択インデックス
+  scores: {
+    root: 0, sacral: 0, solar: 0,
+    heart: 0, throat: 0, thirdeye: 0, crown: 0,
+  },
+  resultType: null,
+};
+
+// ────────────────────────────────────────────────────────────
+// DOM helpers
+// ────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function showScreen(id) {
+  document.querySelectorAll('.test-screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + id).classList.add('active');
+}
+
+// ────────────────────────────────────────────────────────────
+// Progress bar
+// ────────────────────────────────────────────────────────────
+function updateProgress(qIndex) {
+  const pct = Math.round((qIndex / QUESTIONS.length) * 100);
+  $('progressBar').style.width = pct + '%';
+  $('progressLabel').textContent = `question ${qIndex + 1} / ${QUESTIONS.length}`;
+}
+
+// ────────────────────────────────────────────────────────────
+// Question rendering
+// ────────────────────────────────────────────────────────────
+function renderQuestion(index) {
+  const q = QUESTIONS[index];
+  $('questionNum').textContent = `question ${index + 1}`;
+  $('questionText').textContent = q.text;
+
+  const subEl = $('questionSub');
+  if (q.sub) {
+    subEl.textContent = q.sub;
+    subEl.style.display = 'block';
+  } else {
+    subEl.style.display = 'none';
+  }
+
+  const list = $('choicesList');
+  list.innerHTML = q.choices.map((c, i) => `
+    <button class="choice-btn${state.answers[index] === i ? ' selected' : ''}"
+            data-index="${i}" type="button">
+      <span class="choice-label">${c.label}</span>
+      ${c.text}
+    </button>
+  `).join('');
+
+  // 選択イベント
+  list.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      list.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.answers[index] = parseInt(btn.dataset.index);
+      $('nextBtn').disabled = false;
+    });
+  });
+
+  // ナビ
+  $('nextBtn').disabled = (state.answers[index] === undefined);
+  $('prevBtn').style.display = index > 0 ? 'block' : 'none';
+  $('nextBtn').textContent = index === QUESTIONS.length - 1 ? '結果を見る' : '次へ →';
+
+  updateProgress(index);
+}
+
+// ────────────────────────────────────────────────────────────
+// Score calculation
+// ────────────────────────────────────────────────────────────
+function calcScores() {
+  const scores = { root: 0, sacral: 0, solar: 0, heart: 0, throat: 0, thirdeye: 0, crown: 0 };
+  state.answers.forEach((ansIdx, qIdx) => {
+    const chosen = QUESTIONS[qIdx].choices[ansIdx];
+    if (!chosen) return;
+    Object.entries(chosen.scores).forEach(([key, val]) => {
+      if (scores[key] !== undefined) scores[key] += val;
+    });
+  });
+  state.scores = scores;
+  // 最高スコアのタイプを返す
+  return Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+}
+
+// ────────────────────────────────────────────────────────────
+// Result rendering
+// ────────────────────────────────────────────────────────────
+function renderResult(typeKey) {
+  const type = CHAKRA_TYPES[typeKey];
+  state.resultType = typeKey;
+
+  // ヒーロー
+  $('resultTypeName').textContent = type.name;
+
+  const badge = $('resultBadge');
+  badge.textContent = type.chakra;
+  badge.style.background = type.colorLight;
+  badge.style.color = type.color;
+  badge.style.border = `1px solid ${type.color}33`;
+
+  $('resultDesc').textContent = type.desc;
+
+  // 症状タグ
+  $('resultSymptoms').innerHTML = type.symptoms.map(s =>
+    `<span class="result-symptom-tag" style="background:${type.colorLight}; border-color:${type.color}33; color:${type.color};">${s}</span>`
+  ).join('');
+
+  // チャクラスコアバー
+  const maxScore = Math.max(...Object.values(state.scores)) || 1;
+  $('chakraScoreList').innerHTML = Object.entries(state.scores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, val]) => `
+      <div class="chakra-score-row">
+        <span class="chakra-score-label">${CHAKRA_LABELS[key]}</span>
+        <div class="chakra-score-bar-wrap">
+          <div class="chakra-score-bar" style="width:${Math.round((val/maxScore)*100)}%; background:${CHAKRA_COLORS[key]};"></div>
+        </div>
+        <span class="chakra-score-val">${val}pt</span>
+      </div>
+    `).join('');
+
+  // 食事アドバイス
+  $('foodAdviceArea').innerHTML = `
+    <div class="food-advice-card">
+      <div class="food-advice-head">${type.food.title}</div>
+      <div class="food-advice-body">
+        ${type.food.items.map(item => `
+          <div class="food-advice-item">
+            <div class="food-dot" style="background:${type.color};"></div>
+            <span>${item}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // セルフケア
+  $('selfcareList').innerHTML = type.selfcare.map((item, i) => `
+    <div class="selfcare-item">
+      <span class="selfcare-num" style="color:${type.color};">${String(i+1).padStart(2,'0')}</span>
+      <span>${item}</span>
+    </div>
+  `).join('');
+}
+
+// ────────────────────────────────────────────────────────────
+// Save to app
+// ────────────────────────────────────────────────────────────
+function saveResultToApp() {
+  try {
+    localStorage.setItem('kk_chakra_test_type',   state.resultType);
+    localStorage.setItem('kk_chakra_test_date',   new Date().toISOString().slice(0,10));
+    localStorage.setItem('kk_chakra_test_scores', JSON.stringify(state.scores));
+
+    const btn = $('saveToAppBtn');
+    btn.textContent = '保存しました';
+    btn.style.background = 'linear-gradient(135deg, var(--teal), #1E9490)';
+    btn.disabled = true;
+
+    // 保存済みバッジを表示
+    const badge = document.createElement('div');
+    badge.className = 'saved-badge';
+    badge.innerHTML = '<div class="saved-dot"></div>アプリに保存済み';
+    btn.parentNode.insertBefore(badge, btn);
+
+  } catch(e) {
+    alert('保存に失敗しました。アプリを再度お試しください。');
+  }
+}
+
+// ────────────────────────────────────────────────────────────
+// Event listeners
+// ────────────────────────────────────────────────────────────
+$('startBtn').addEventListener('click', () => {
+  showScreen('question');
+  $('progressWrap').style.display = 'block';
+  renderQuestion(0);
+});
+
+$('nextBtn').addEventListener('click', () => {
+  const current = state.currentQuestion;
+  if (current < QUESTIONS.length - 1) {
+    state.currentQuestion++;
+    renderQuestion(state.currentQuestion);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    // 最後の質問 → ローディング → 結果
+    showScreen('loading');
+    $('progressWrap').style.display = 'none';
+    setTimeout(() => {
+      const topType = calcScores();
+      renderResult(topType);
+      showScreen('result');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 2000);
+  }
+});
+
+$('prevBtn').addEventListener('click', () => {
+  if (state.currentQuestion > 0) {
+    state.currentQuestion--;
+    renderQuestion(state.currentQuestion);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+});
+
+$('saveToAppBtn').addEventListener('click', saveResultToApp);
+
+// ────────────────────────────────────────────────────────────
+// 既存の保存済み結果を確認
+// ────────────────────────────────────────────────────────────
+(function checkExistingSave() {
+  const saved = localStorage.getItem('kk_chakra_test_type');
+  if (saved && CHAKRA_TYPES[saved]) {
+    const date = localStorage.getItem('kk_chakra_test_date') || '';
+    const introDesc = document.querySelector('.intro-desc');
+    if (introDesc) {
+      introDesc.innerHTML = `
+        8つの質問に答えるだけで、<br>
+        あなたのチャクラ体質タイプを診断します。<br>
+        タイプに合った食事法・セルフケアを<br>
+        お届けします。
+        <br><br>
+        <span style="font-size:0.8125rem; color:var(--teal); display:block; margin-top:4px;">
+          前回の診断：${CHAKRA_TYPES[saved].name}（${date}）
+        </span>
+      `;
+    }
+  }
+})();
+</script>
+
+</body>
+</html>

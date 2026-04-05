@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="チャクラ診断結果に基づく30日間食事療法ガイド。卵巣・女性ホルモンを整える食事法を、あなたの体質タイプに合わせてお届けします。">
+  <title>30日間 食事療法ガイド — kenkou kiroku</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ─── CSS Variables ─── */
+    :root {
+      --pink:       #E63FA8;
+      --pink-light: #FBE9F4;
+      --teal:       #27B7B3;
+      --teal-light: #E5F7F7;
+      --gold:       #D8B56A;
+      --gold-light: #FBF5E6;
+      --ink:        #1A1A2E;
+      --muted:      #6B7385;
+      --border:     rgba(0,0,0,0.08);
+      --bg:         #FBF7F2;
+      --white:      #FFFFFF;
+
+      --serif: 'Noto Serif JP', Georgia, serif;
+      --sans:  'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+
+      --max-w: 720px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.8;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Utilities ─── */
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 1.25rem;
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      background: linear-gradient(160deg, #1A1A2E 0%, #2D1B4E 50%, #1A2E2D 100%);
+      padding: 4rem 1.25rem 3.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 30%, rgba(230,63,168,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 60% at 80% 70%, rgba(39,183,179,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-inner { position: relative; z-index: 1; max-width: var(--max-w); margin: 0 auto; }
+
+    .hero-eyebrow {
+      display: inline-block;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      border: 1px solid rgba(39,183,179,0.40);
+      padding: 0.3rem 1rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero-title {
+      font-family: var(--serif);
+      font-size: clamp(1.6rem, 5vw, 2.5rem);
+      color: #fff;
+      line-height: 1.45;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+    .hero-title em { color: var(--gold); font-style: normal; }
+
+    .hero-sub {
+      font-size: 0.9rem;
+      color: rgba(255,255,255,0.70);
+      line-height: 1.9;
+      margin-bottom: 2rem;
+    }
+
+    .price-block {
+      display: inline-block;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 16px;
+      padding: 1.25rem 2rem;
+      margin-bottom: 2rem;
+    }
+    .price-was {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.50);
+      text-decoration: line-through;
+      margin-bottom: 0.2rem;
+    }
+    .price-now {
+      font-family: var(--serif);
+      font-size: 2.25rem;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    .price-note {
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.55);
+      margin-top: 0.3rem;
+    }
+
+    .btn-buy {
+      display: inline-block;
+      padding: 1rem 3rem;
+      background: linear-gradient(135deg, var(--pink), #B0249B);
+      color: #fff;
+      border-radius: 40px;
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      box-shadow: 0 6px 24px rgba(230,63,168,0.35);
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-buy:hover { transform: translateY(-3px); box-shadow: 0 10px 32px rgba(230,63,168,0.42); }
+
+    .hero-guarantee {
+      margin-top: 1rem;
+      font-size: 0.76rem;
+      color: rgba(255,255,255,0.50);
+    }
+
+    /* ─── Sections ─── */
+    .section { padding: 4rem 0; }
+    .section-alt { background: var(--white); }
+
+    .label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--teal);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+    .heading {
+      font-family: var(--serif);
+      font-size: clamp(1.25rem, 3vw, 1.75rem);
+      color: var(--ink);
+      line-height: 1.55;
+      margin-bottom: 0.75rem;
+    }
+    .deco-line {
+      width: 36px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--pink), var(--teal));
+      border-radius: 2px;
+      margin: 0.75rem auto 1.5rem;
+    }
+    .body-text {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.9;
+    }
+
+    /* ─── Problem section ─── */
+    .problem-list {
+      list-style: none;
+      margin: 1.5rem 0;
+    }
+    .problem-list li {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      color: var(--ink);
+    }
+    .problem-list li:last-child { border-bottom: none; }
+    .problem-mark {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--pink-light);
+      border: 1.5px solid var(--pink);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ─── What you get ─── */
+    .get-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+    @media (max-width: 480px) { .get-grid { grid-template-columns: 1fr; } }
+
+    .get-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.25rem;
+    }
+    .get-card-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.10em;
+      color: var(--teal);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+    .get-card-title {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+    .get-card-desc {
+      font-size: 0.8rem;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* ─── 30-day plan ─── */
+    .plan-phases {
+      margin: 1.5rem 0;
+    }
+    .phase-item {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .phase-num {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--pink), var(--teal));
+      color: #fff;
+      font-family: var(--serif);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-weight: 600;
+    }
+    .phase-body { padding-top: 4px; }
+    .phase-title {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      color: var(--ink);
+      margin-bottom: 0.25rem;
+    }
+    .phase-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    /* ─── Testimonials ─── */
+    .testimonial-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      margin: 1.5rem 0;
+    }
+    .testimonial {
+      background: var(--bg);
+      border-left: 3px solid var(--pink);
+      border-radius: 0 12px 12px 0;
+      padding: 1.1rem 1.25rem;
+    }
+    .testimonial-text {
+      font-size: 0.875rem;
+      color: var(--ink);
+      line-height: 1.8;
+      margin-bottom: 0.5rem;
+    }
+    .testimonial-meta {
+      font-size: 0.72rem;
+      color: var(--muted);
+    }
+
+    /* ─── Chakra type match ─── */
+    .type-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .type-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem;
+      background: var(--white);
+      text-align: center;
+    }
+    .type-bar {
+      height: 4px;
+      border-radius: 2px;
+      margin-bottom: 0.75rem;
+    }
+    .type-name {
+      font-family: var(--serif);
+      font-size: 0.85rem;
+      color: var(--ink);
+      margin-bottom: 0.3rem;
+    }
+    .type-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.6; }
+
+    /* ─── FAQ ─── */
+    .faq-list { margin: 1.5rem 0; }
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+    details:last-child { border-bottom: none; }
+    summary {
+      font-family: var(--serif);
+      font-size: 0.9rem;
+      color: var(--ink);
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
+    summary::-webkit-details-marker { display: none; }
+    summary::after {
+      content: '+';
+      font-size: 1.2rem;
+      color: var(--pink);
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+    details[open] summary::after { transform: rotate(45deg); }
+    .faq-answer {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.85;
+      margin-top: 0.75rem;
+      padding-left: 0.5rem;
+    }
+
+    /* ─── CTA Bottom ─── */
+    .cta-section {
+      background: linear-gradient(160deg, #1A1A2E, #2D1B4E);
+      padding: 4rem 1.25rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 40%, rgba(230,63,168,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-inner { position: relative; z-index: 1; max-width: 560px; margin: 0 auto; }
+    .cta-title {
+      font-family: var(--serif);
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      color: #fff;
+      line-height: 1.55;
+      margin-bottom: 1rem;
+    }
+    .cta-sub {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 2rem;
+      line-height: 1.8;
+    }
+
+    /* ─── Sticky buy bar (mobile) ─── */
+    .sticky-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(26,26,46,0.96);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      z-index: 900;
+      border-top: 1px solid rgba(255,255,255,0.08);
+    }
+    .sticky-price {
+      font-family: var(--serif);
+      font-size: 1.3rem;
+      color: var(--gold);
+      font-weight: 600;
+    }
+    .sticky-price small {
+      display: block;
+      font-size: 0.68rem;
+      color: rgba(255,255,255,0.50);
+      font-family: var(--sans);
+      font-weight: 400;
+    }
+    .sticky-btn {
+      flex-shrink: 0;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--pink), #B0249B);
+      color: #fff;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      font-family: var(--serif);
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(230,63,168,0.30);
+      transition: all 0.25s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .sticky-btn:hover { transform: translateY(-1px); }
+
+    /* ─── Nav ─── */
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 800;
+      background: rgba(251,247,242,0.92);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo {
+      font-family: var(--serif);
+      font-size: 0.875rem;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .nav-back {
+      font-size: 0.8rem;
+      color: var(--teal);
+      text-decoration: none;
+    }
+
+    /* ─── Guarantee badge ─── */
+    .guarantee-box {
+      background: var(--white);
+      border: 2px solid var(--gold);
+      border-radius: 16px;
+      padding: 1.5rem;
+      text-align: center;
+      margin: 2rem 0;
+    }
+    .guarantee-title {
+      font-family: var(--serif);
+      font-size: 1rem;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+    }
+    .guarantee-desc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    /* ─── Footer ─── */
+    .guide-footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.50);
+      text-align: center;
+      padding: 2rem 1.25rem 5rem;
+      font-size: 0.75rem;
+      line-height: 1.8;
+    }
+    .guide-footer a { color: rgba(255,255,255,0.55); text-decoration: none; }
+
+    /* spacer for sticky bar */
+    .sticky-spacer { height: 72px; }
+  </style>
+</head>
+<body>
+
+<!-- Top Navigation -->
+<nav class="top-nav" aria-label="ページナビゲーション">
+  <a href="index.html" class="nav-logo">kenkou kiroku</a>
+  <a href="app.html" class="nav-back">← アプリへ戻る</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-eyebrow">Digital Guide — 買い切り</span>
+
+    <h1 class="hero-title">
+      チャクラ診断から始める<br>
+      <em>30日間 食事療法ガイド</em>
+    </h1>
+
+    <p class="hero-sub">
+      あなたの体質タイプに合わせた食事法で、<br>
+      卵巣・子宮・女性ホルモンを、内側から整える30日間。<br>
+      難しい知識は不要。毎日のごはんから始めます。
+    </p>
+
+    <div class="price-block">
+      <p class="price-was">通常価格 ¥3,980</p>
+      <div class="price-now">¥1,480</div>
+      <p class="price-note">期間限定 早割価格 ／ 買い切り（PDF）</p>
+    </div>
+
+    <br>
+    <a href="#buy" class="btn-buy">いますぐガイドを手に入れる</a>
+    <p class="hero-guarantee">7日間返金保証つき ／ ダウンロード後すぐ読める</p>
+  </div>
+</section>
+
+<!-- Problem -->
+<section class="section">
+  <div class="container" style="text-align: center;">
+    <span class="label">こんな悩みはありませんか</span>
+    <h2 class="heading">食事に気を遣っているのに、<br>なぜかからだが整わない</h2>
+    <div class="deco-line"></div>
+    <ul class="problem-list" style="text-align: left; max-width: 520px; margin-left: auto; margin-right: auto;">
+      <li><span class="problem-mark"></span>生理前のだるさ・むくみ・イライラが毎月ある</li>
+      <li><span class="problem-mark"></span>卵巣嚢腫・子宮筋腫と診断されて食事を気にしているが何をすればいいか分からない</li>
+      <li><span class="problem-mark"></span>「体に良い食事」は調べたが、自分の体質に合っているか不安</li>
+      <li><span class="problem-mark"></span>ダイエットやファスティングを試したが、からだが疲弊した</li>
+      <li><span class="problem-mark"></span>病院に行くほどではないが、毎日のコンディションが低い</li>
+      <li><span class="problem-mark"></span>何を食べても「なんとなく重い」感覚が続いている</li>
+    </ul>
+    <p class="body-text" style="margin-top: 1.5rem;">
+      この「なんとなく」に、チャクラ視点の食事法は答えを持っています。<br>
+      カロリーや栄養素ではなく、<strong style="color: var(--ink);">「からだの声」を基準にした食事の選び方</strong>です。
+    </p>
+  </div>
+</section>
+
+<!-- What you get -->
+<section class="section section-alt">
+  <div class="container" style="text-align: center;">
+    <span class="label">ガイドの内容</span>
+    <h2 class="heading">30日間で得られること</h2>
+    <div class="deco-line"></div>
+
+    <div class="get-grid" style="text-align: left;">
+      <div class="get-card">
+        <div class="get-card-label">Chapter 1</div>
+        <div class="get-card-title">チャクラと食事の基本理論</div>
+        <div class="get-card-desc">7つのチャクラと食材の対応表。第2チャクラ（子宮・卵巣）を中心にした食事の考え方を解説。</div>
+      </div>
+      <div class="get-card">
+        <div class="get-card-label">Chapter 2</div>
+        <div class="get-card-title">体質タイプ別 食材ガイド</div>
+        <div class="get-card-desc">診断結果の7タイプに対応した推奨食材リスト・避けたい食材リスト。スーパーで選べる具体的な食品名つき。</div>
+      </div>
+      <div class="get-card">
+        <div class="get-card-label">Chapter 3</div>
+        <div class="get-card-title">30日間 実践プログラム</div>
+        <div class="get-card-desc">Week 1〜4に分けた段階的な食事改善ステップ。毎日の「ひとつだけ変える」習慣設計。</div>
+      </div>
+      <div class="get-card">
+        <div class="get-card-label">Chapter 4</div>
+        <div class="get-card-title">女性ホルモンに寄り添う食事法</div>
+        <div class="get-card-desc">卵巣嚢腫・子宮筋腫・PCOS・子宮内膜症に対応した食事アドバイス。エストロゲン過剰を防ぐ食材選び。</div>
+      </div>
+      <div class="get-card">
+        <div class="get-card-label">Chapter 5</div>
+        <div class="get-card-title">プチ断食 × 食事法の組み合わせ</div>
+        <div class="get-card-desc">14〜16時間断食との組み合わせ方。断食明けの最初の食事で差がつく選び方。</div>
+      </div>
+      <div class="get-card">
+        <div class="get-card-label">特典</div>
+        <div class="get-card-title">7日間 実践チェックリスト</div>
+        <div class="get-card-desc">毎日の食事記録を始めるためのシンプルなチェックリスト。kenkou kiroku アプリとの連携方法つき。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 30-day plan -->
+<section class="section">
+  <div class="container" style="text-align: center;">
+    <span class="label">30-Day Program</span>
+    <h2 class="heading">4週間のステップで<br>からだを整える</h2>
+    <div class="deco-line"></div>
+
+    <div class="plan-phases" style="text-align: left; max-width: 540px; margin: 0 auto;">
+      <div class="phase-item">
+        <div class="phase-num">W1</div>
+        <div class="phase-body">
+          <div class="phase-title">リセット期（1〜7日目）</div>
+          <div class="phase-desc">まず炎症を引き起こしやすい食材を整理。チャクラタイプ別の「やめるひとつ」から始めます。からだへの負担を減らしながら、消化を整える。</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">W2</div>
+        <div class="phase-body">
+          <div class="phase-title">チャージ期（8〜14日目）</div>
+          <div class="phase-desc">体質に合った食材を積極的に取り入れ、ホルモンバランスをサポート。卵巣・子宮に必要な栄養素を意識した食卓設計。</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">W3</div>
+        <div class="phase-body">
+          <div class="phase-title">定着期（15〜21日目）</div>
+          <div class="phase-desc">食後の体感を記録しながら、自分だけの「合う食事パターン」を発見。プチ断食との組み合わせも取り入れます。</div>
+        </div>
+      </div>
+      <div class="phase-item">
+        <div class="phase-num">W4</div>
+        <div class="phase-body">
+          <div class="phase-title">自走期（22〜30日目）</div>
+          <div class="phase-desc">30日の記録を振り返り、からだの変化を確認。次の30日へ向けた自分だけの食事プランを設計します。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Chakra type match -->
+<section class="section section-alt">
+  <div class="container" style="text-align: center;">
+    <span class="label">全7タイプ対応</span>
+    <h2 class="heading">あなたのチャクラタイプに<br>合わせた食事法をお届け</h2>
+    <div class="deco-line"></div>
+    <p class="body-text" style="margin-bottom: 1.5rem;">
+      診断テストで判定された7タイプのどれにも対応しています。<br>
+      「自分のタイプが分からない」という方は先に無料診断をどうぞ。
+    </p>
+
+    <div class="type-grid">
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#C0392B,#E74C3C);"></div>
+        <div class="type-name">グランディング型</div>
+        <div class="type-desc">第1チャクラ<br>冷え・免疫</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#E67E22,#F39C12);"></div>
+        <div class="type-name">フェミニン開花型</div>
+        <div class="type-desc">第2チャクラ<br>子宮・卵巣</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#F1C40F,#F39C12);"></div>
+        <div class="type-name">消化回復型</div>
+        <div class="type-desc">第3チャクラ<br>胃腸・代謝</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#27AE60,#2ECC71);"></div>
+        <div class="type-name">愛と受容型</div>
+        <div class="type-desc">第4チャクラ<br>感情・心</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#2980B9,#3498DB);"></div>
+        <div class="type-name">自己表現解放型</div>
+        <div class="type-desc">第5チャクラ<br>喉・肩</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,#8E44AD,#9B59B6);"></div>
+        <div class="type-name">直感覚醒型</div>
+        <div class="type-desc">第6チャクラ<br>自律神経</div>
+      </div>
+      <div class="type-card">
+        <div class="type-bar" style="background: linear-gradient(90deg,var(--pink),var(--teal));"></div>
+        <div class="type-name">全体統合型</div>
+        <div class="type-desc">第7チャクラ<br>ホルモン統合</div>
+      </div>
+    </div>
+
+    <a href="chakra-test.html" style="display: inline-block; margin-top: 1.5rem; font-size: 0.875rem; color: var(--teal); text-decoration: underline; text-underline-offset: 3px;">診断をまだ受けていない方は こちら →</a>
+  </div>
+</section>
+
+<!-- Author note -->
+<section class="section">
+  <div class="container">
+    <div style="background: var(--white); border: 1px solid var(--border); border-radius: 18px; padding: 2rem; max-width: 560px; margin: 0 auto;">
+      <span class="label">Author Note</span>
+      <h2 class="heading" style="font-size: 1.15rem; margin-bottom: 0.75rem;">このガイドを作った理由</h2>
+      <div class="deco-line" style="margin-left: 0;"></div>
+      <p class="body-text">
+        私自身、卵巣嚢腫と診断されてから「食事で何かできることがあるはず」と思い、チャクラと食事療法を組み合わせた独自のメソッドを実践してきました。
+      </p>
+      <p class="body-text" style="margin-top: 0.75rem;">
+        このガイドは医学的なエビデンスではなく、私自身の体験と東洋医学・栄養学の知見を組み合わせたものです。「正解の食事」ではなく、<strong style="color: var(--ink);">あなたのからだが答えを知っている</strong>ということを、記録を通じて発見するきっかけになれば嬉しいです。
+      </p>
+      <p style="margin-top: 1rem; font-size: 0.78rem; color: var(--muted); font-style: italic;">— kenkou kiroku 管理人</p>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section section-alt">
+  <div class="container" style="text-align: center;">
+    <span class="label">Voice</span>
+    <h2 class="heading">読者の声</h2>
+    <div class="deco-line"></div>
+
+    <div class="testimonial-list" style="max-width: 560px; margin: 0 auto; text-align: left;">
+      <div class="testimonial">
+        <p class="testimonial-text">「チャクラタイプで食材が変わるという考え方が新鮮でした。自分は第2タイプで、根菜や発酵食品を増やしたら生理前の浮腫みが以前より楽になりました。」</p>
+        <p class="testimonial-meta">30代 / 卵巣嚢腫経過観察中</p>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-text">「食事記録と一緒に使うことで、自分が何を食べたときに調子がいいか分かってきました。30日続けたら体質が変わった感覚があります。」</p>
+        <p class="testimonial-meta">20代 / PCOS</p>
+      </div>
+      <div class="testimonial">
+        <p class="testimonial-text">「子宮筋腫と向き合う中で、食事から変えたいと思っていました。具体的な食材名が書いてあるので、スーパーですぐ実践できました。」</p>
+        <p class="testimonial-meta">40代 / 子宮筋腫</p>
+      </div>
+    </div>
+    <p style="margin-top: 1rem; font-size: 0.72rem; color: var(--muted);">※ 個人の感想です。効果を保証するものではありません。</p>
+  </div>
+</section>
+
+<!-- Guarantee -->
+<section class="section">
+  <div class="container">
+    <div class="guarantee-box" style="max-width: 520px; margin: 0 auto;">
+      <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--gold-light); border: 2px solid var(--gold); margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#D8B56A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div class="guarantee-title">7日間 返金保証</div>
+      <p class="guarantee-desc">
+        ご購入から7日以内にお申し出いただければ、全額返金いたします。<br>
+        「思っていた内容と違う」と感じた場合はお気軽にご連絡ください。<br>
+        安心してお試しください。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section section-alt">
+  <div class="container">
+    <div style="text-align: center; margin-bottom: 1.5rem;">
+      <span class="label">FAQ</span>
+      <h2 class="heading">よくある質問</h2>
+      <div class="deco-line"></div>
+    </div>
+    <div class="faq-list" style="max-width: 580px; margin: 0 auto;">
+      <details>
+        <summary>チャクラ診断を受けていなくても読めますか？</summary>
+        <p class="faq-answer">はい。ガイド内に7タイプの特徴チェックリストが含まれています。ただし、先に無料のチャクラ診断を受けていただくと、より自分に合った章を読み進めやすくなります。</p>
+      </details>
+      <details>
+        <summary>医学的に根拠がある内容ですか？</summary>
+        <p class="faq-answer">このガイドは東洋医学・栄養学・著者の実体験をベースにしたセルフケア情報です。医学的治療の代替ではありません。疾患の治療は必ず担当医の指示に従ってください。</p>
+      </details>
+      <details>
+        <summary>購入後すぐにダウンロードできますか？</summary>
+        <p class="faq-answer">はい。お支払い完了後、ダウンロードリンクをメールでお送りします。スマートフォン・PC どちらでもすぐにご覧いただけます（PDF形式）。</p>
+      </details>
+      <details>
+        <summary>アプリなしでも使えますか？</summary>
+        <p class="faq-answer">はい。ガイドはPDF単体で完結しています。ただし、kenkou kiroku アプリ（無料）と併用することで、毎日の記録がより続けやすくなります。</p>
+      </details>
+      <details>
+        <summary>価格はいつまで¥1,480ですか？</summary>
+        <p class="faq-answer">早割価格は予告なく終了します。次の価格改定は¥2,480を予定しています。</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Bottom -->
+<section class="cta-section" id="buy">
+  <div class="cta-inner">
+    <h2 class="cta-title">
+      からだを整える30日間を<br>今日から始めましょう
+    </h2>
+    <p class="cta-sub">
+      チャクラ診断 → ガイド実践 → アプリ記録の流れで、<br>
+      あなただけの「整い」のパターンが見えてきます。
+    </p>
+
+    <div class="price-block" style="background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14);">
+      <p class="price-was">通常価格 ¥3,980</p>
+      <div class="price-now">¥1,480</div>
+      <p class="price-note">期間限定 早割価格 ／ 買い切り（PDF）</p>
+    </div>
+    <br>
+
+    <!-- Purchase options: choose your payment method. Update href values to your payment links. -->
+    <a href="https://buy.stripe.com/YOUR_LINK" class="btn-buy" target="_blank" rel="noopener">
+      ガイドを購入する（¥1,480）
+    </a>
+
+    <p style="margin-top: 1rem; font-size: 0.75rem; color: rgba(255,255,255,0.45);">
+      クレジットカード / PayPay / LINE Pay 対応 ／ 7日間返金保証
+    </p>
+
+    <!-- LINE alternative -->
+    <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.10);">
+      <p style="font-size: 0.8rem; color: rgba(255,255,255,0.55); margin-bottom: 1rem;">LINE公式からの購入も受け付けています</p>
+      <a href="https://lin.ee/YOUR_LINE_ID" class="btn-buy" style="background: #06C755; box-shadow: 0 6px 24px rgba(6,199,85,0.30);" target="_blank" rel="noopener">
+        LINEで購入する
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="sticky-spacer"></div>
+
+<!-- Footer -->
+<footer class="guide-footer">
+  <p>kenkou kiroku ／ 女性の不調に特化したセルフレコードアプリ</p>
+  <p style="margin-top: 0.5rem;">
+    <a href="app.html">アプリへ</a> ／
+    <a href="chakra-test.html">無料チャクラ診断</a> ／
+    <a href="index.html">ブログ</a>
+  </p>
+  <p style="margin-top: 0.75rem;">© 2025 kenkou kiroku. All rights reserved.</p>
+  <p style="margin-top: 0.5rem;">本ガイドは医療アドバイスではありません。</p>
+</footer>
+
+<!-- Sticky buy bar -->
+<div class="sticky-bar" aria-label="購入バー">
+  <div class="sticky-price">
+    ¥1,480
+    <small>早割 ／ 通常¥3,980</small>
+  </div>
+  <a href="#buy" class="sticky-btn">いますぐ購入</a>
+</div>
+
+<script>
+  // Sticky bar: hide on desktop
+  function checkStickyVisibility() {
+    const bar = document.querySelector('.sticky-bar');
+    if (!bar) return;
+    // Always show on mobile, conditionally hide on desktop if hero CTA is visible
+    const heroBtn = document.querySelector('.hero .btn-buy');
+    if (!heroBtn) return;
+    const rect = heroBtn.getBoundingClientRect();
+    const heroVisible = rect.bottom > 0 && rect.top < window.innerHeight;
+    bar.style.opacity = heroVisible ? '0' : '1';
+    bar.style.pointerEvents = heroVisible ? 'none' : 'auto';
+  }
+  window.addEventListener('scroll', checkStickyVisibility, { passive: true });
+  checkStickyVisibility();
+</script>
+
+</body>
+</html>
