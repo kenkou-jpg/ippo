@@ -1261,6 +1261,7 @@ input[type="range"]::-webkit-slider-thumb:hover {
 .record-panel {
   display: none;
   padding: var(--sp-5);
+  position: relative; /* ロックオーバーレイの基準点 */
 }
 .record-panel.active {
   display: block;
@@ -3176,16 +3177,17 @@ button:active,
 /* ── セクションロックオーバーレイ ── */
 .reg-lock-overlay {
   position: absolute;
-  inset: 0;
+  inset: -8px; /* パディング分を含めて完全に覆う */
   z-index: 100;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border-radius: inherit;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px;
+  min-height: 160px; /* パネルが小さくてもオーバーレイが見える */
 }
 
 .reg-lock-inner {
