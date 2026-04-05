@@ -20,15 +20,16 @@
       overflow: hidden;
     }
 
-    .app-hero::before {
+       .app-hero::before {
       content: '';
       position: absolute;
       inset: 0;
-      background:
-        radial-gradient(ellipse at 20% 60%, rgba(39, 183, 179, 0.18) 0%, transparent 50%),
-        radial-gradient(ellipse at 75% 30%, rgba(230, 63, 168, 0.12) 0%, transparent 45%),
-        radial-gradient(ellipse at 50% 80%, rgba(216, 181, 106, 0.08) 0%, transparent 40%);
+      background-image: url('images/app-flower.jpg');
+      background-size: cover;
+      background-position: right center;
+      opacity: 0.55;
     }
+
 
     .app-hero-grid {
       position: relative;
