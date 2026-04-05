@@ -2616,3 +2616,609 @@ input[type="range"]::-webkit-slider-thumb:hover {
     margin-top: 0;
   }
 }
+
+/* ============================================
+   DESIGN IMPROVEMENT v2
+   全体デザイン改善
+   ============================================ */
+
+/* ── 【1】全体カードスタイル統一 ── */
+.record-panel,
+.condition-memo-section,
+.insight-summary-card,
+.report-lock-card,
+.chakra-item,
+.home-stat-card,
+.season-quote-card {
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8e4de;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: all 0.2s ease;
+}
+
+.record-panel { margin-bottom: 24px; }
+
+/* 見出し統一 */
+.section-title,
+.record-panel-title,
+.home-section-label,
+.insight-hero-title {
+  font-weight: 600;
+  color: #2d3a2e;
+}
+
+/* 本文統一 */
+.form-label,
+.record-panel p,
+.home-greeting-msg {
+  font-weight: 400;
+  color: #555;
+}
+
+/* 補足テキスト統一 */
+.form-hint,
+.chakra-note,
+.record-panel-sub {
+  color: #999;
+}
+
+/* ── 【2】ホーム画面改善 ── */
+.home-greeting {
+  background: linear-gradient(135deg, #f7f5f0 0%, #eaf7f7 100%);
+  border-radius: 12px;
+  border: 1px solid #e8e4de;
+  margin-bottom: 24px;
+}
+
+.home-stat-card .stat-value,
+.home-stat-card .stat-number {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2d3a2e;
+}
+
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+/* 今日を記録するボタン */
+.home-record-btn,
+#homeRecordBtn {
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a) !important;
+  color: #fff !important;
+  border-radius: 25px !important;
+  padding: 14px !important;
+  font-size: 1rem !important;
+  box-shadow: 0 4px 12px rgba(125,184,180,0.3) !important;
+  border: none !important;
+  transition: all 0.2s ease !important;
+}
+.home-record-btn:hover,
+#homeRecordBtn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 18px rgba(125,184,180,0.4) !important;
+}
+
+/* チャクラ診断バナー */
+.chakra-test-banner,
+.home-chakra-banner {
+  border-left: 4px solid #C7879E;
+  border-radius: 0 12px 12px 0;
+  background: #fff;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+/* ── 【3】記録画面改善 ── */
+
+/* タブ */
+.record-tab {
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-size: 0.8125rem;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  background: transparent;
+  color: #888;
+}
+.record-tab.active {
+  background: #7DB8B4;
+  color: #fff;
+}
+
+/* チャクラ選択カード */
+.chakra-item {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.chakra-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* チップ（タグ）ボタン */
+.chip,
+.body-feel-chip,
+.symptom-chip,
+.fasting-feel-chip {
+  border-radius: 20px !important;
+  transition: all 0.2s ease !important;
+  border: 1px solid #e8e4de !important;
+  background: #f5f3ef !important;
+  color: #666 !important;
+  cursor: pointer;
+}
+.chip.selected,
+.chip.active,
+.body-feel-chip.selected,
+.symptom-chip.selected,
+.fasting-feel-chip.selected {
+  background: #7DB8B4 !important;
+  color: #fff !important;
+  border-color: #7DB8B4 !important;
+}
+
+/* テキストエリア */
+textarea,
+.record-textarea {
+  border-radius: 10px !important;
+  border: 1.5px solid #e8e4de !important;
+  transition: border-color 0.2s ease !important;
+}
+textarea:focus,
+.record-textarea:focus {
+  border-color: #7DB8B4 !important;
+  outline: none !important;
+}
+
+/* スライダー */
+input[type="range"] {
+  accent-color: #7DB8B4;
+}
+
+/* 体調メモセクション */
+.condition-memo-section {
+  background: #f7f5f0 !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  border-top: 3px solid #7DB8B4 !important;
+  margin-bottom: 24px;
+}
+
+/* ── 【4】断食タイマー改善 ── */
+
+/* 円形プログレス */
+.fasting-timer-svg circle.fasting-progress-track,
+#fastingTrack {
+  stroke: #e8e4de;
+  stroke-width: 8;
+}
+.fasting-timer-svg circle.fasting-progress-bar,
+#fastingProgress {
+  stroke: #7DB8B4;
+  stroke-width: 8;
+}
+
+/* タイマー中央時間 */
+.fasting-timer-display,
+#fastingTimerDisplay {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  color: #2d3a2e !important;
+}
+
+/* プリセットボタン */
+.fasting-preset-btn {
+  border-radius: 25px;
+  transition: all 0.2s ease;
+  border: 1.5px solid #e8e4de;
+  background: #f5f3ef;
+  color: #666;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+.fasting-preset-btn.active,
+.fasting-preset-btn.selected {
+  background: #7DB8B4;
+  color: #fff;
+  border-color: #7DB8B4;
+}
+
+/* 開始/終了ボタン */
+.fasting-start-btn,
+.fasting-stop-btn,
+#fastingStartBtn,
+#fastingStopBtn {
+  border-radius: 25px !important;
+  padding: 14px 32px !important;
+  transition: all 0.2s ease !important;
+}
+.fasting-start-btn,
+#fastingStartBtn {
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+/* ── 【5】インサイト画面改善 ── */
+
+.insight-hero {
+  background: linear-gradient(135deg, #2d3a2e, #3d4e3e) !important;
+  color: #fff !important;
+  border-radius: 16px !important;
+  padding: 32px !important;
+  margin-bottom: 24px;
+}
+.insight-hero-tag,
+.insight-hero-title,
+.insight-hero-desc {
+  color: #fff !important;
+}
+
+.insight-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.insight-summary-card .stat-value,
+.insight-summary-card .summary-value {
+  font-size: 1.75rem !important;
+  color: #7DB8B4 !important;
+  font-weight: 700;
+}
+
+.insight-chart-wrap {
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  border: 1px solid #e8e4de;
+}
+
+/* ロックオーバーレイ強化 */
+.chart-lock-overlay,
+.chart-blur-overlay {
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  background: rgba(255,255,255,0.85) !important;
+}
+
+/* ── 【6】ナビゲーションバー改善 ── */
+
+.app-nav {
+  background: #fff !important;
+  border-top: 1px solid #e8e4de !important;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04) !important;
+}
+
+.nav-item.active {
+  color: #7DB8B4 !important;
+}
+.nav-item.active::before {
+  background: #7DB8B4 !important;
+}
+
+.nav-record-ring {
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a) !important;
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  transform: translateY(-12px) !important;
+  box-shadow: 0 4px 16px rgba(125,184,180,0.4) !important;
+}
+
+/* ── 【7】設定画面改善 ── */
+
+.settings-profile-section {
+  text-align: center;
+}
+
+.settings-avatar {
+  border: 3px solid #e8e4de !important;
+}
+
+.settings-row {
+  padding: 16px !important;
+  border-bottom: 1px solid #f0ede8 !important;
+}
+
+/* トグルスイッチ */
+input[type="checkbox"].toggle,
+.reminder-toggle:checked {
+  accent-color: #7DB8B4;
+}
+
+/* ── 【8】モーダル改善 ── */
+
+.premium-modal-overlay,
+.feedback-overlay {
+  background: rgba(0,0,0,0.4) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+}
+
+.premium-modal-card,
+.feedback-modal {
+  border-radius: 16px !important;
+  padding: 32px !important;
+  max-width: 340px !important;
+}
+
+.premium-modal-line-btn {
+  background: #06C755 !important;
+  border-radius: 25px !important;
+}
+.premium-modal-line-btn:hover {
+  background: #05b34c !important;
+}
+
+/* ── 【9】オンボーディング改善 ── */
+
+.welcome-slide {
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.welcome-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: #ddd;
+  transition: all 0.3s ease;
+}
+.welcome-dot.active {
+  background: #7DB8B4;
+  width: 24px;
+}
+
+.welcome-next-btn,
+#welcomeNextBtn,
+.onboarding-btn {
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a) !important;
+  border-radius: 25px !important;
+  font-size: 1rem !important;
+  color: #fff !important;
+  border: none !important;
+  padding: 14px 32px !important;
+  transition: all 0.2s ease !important;
+}
+
+/* ── 【10】アニメーション改善 ── */
+
+/* カードホバー */
+.record-panel:hover,
+.insight-summary-card:hover,
+.home-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+
+/* タブ切り替えフェード */
+.app-screen {
+  animation: screenFadeIn 0.3s ease both;
+}
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ボタンタップ */
+button:active,
+.btn:active {
+  transform: scale(0.97) !important;
+  transition: transform 0.1s ease !important;
+}
+
+/* トースト通知 */
+#toast {
+  animation: toastSlideUp 0.3s ease both;
+}
+@keyframes toastSlideUp {
+  from { opacity: 0; transform: translateY(16px) translateX(-50%); }
+  to   { opacity: 1; transform: translateY(0) translateX(-50%); }
+}
+
+/* 記録保存チェックマーク */
+@keyframes checkAppear {
+  0%   { opacity: 0; transform: scale(0.5); }
+  60%  { transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.save-check {
+  animation: checkAppear 0.5s ease both;
+}
+
+/* ============================================
+   登録モーダル & ロックオーバーレイ
+   ============================================ */
+
+/* ── 登録モーダル オーバーレイ ── */
+.reg-modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 9000;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.reg-modal-overlay.open {
+  display: flex;
+}
+
+/* ── 登録モーダル カード ── */
+.reg-modal-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 28px 28px;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+  animation: regModalIn 0.35s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes regModalIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ── ロゴ ── */
+.reg-modal-logo {
+  height: 44px;
+  width: auto;
+  margin: 0 auto 12px;
+  display: block;
+}
+
+/* ── タグ・タイトル・説明 ── */
+.reg-modal-tag {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #7DB8B4;
+  margin: 0 0 8px;
+  font-family: var(--font-sans, sans-serif);
+}
+.reg-modal-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #2d3a2e;
+  line-height: 1.5;
+  margin: 0 0 12px;
+  font-family: var(--font-serif, serif);
+}
+.reg-modal-desc {
+  font-size: 0.8125rem;
+  color: #666;
+  line-height: 1.75;
+  margin: 0 0 24px;
+}
+
+/* ── LINEボタン ── */
+.reg-modal-line-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: #06C755;
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 14px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+.reg-modal-line-btn:hover {
+  background: #05b34c;
+}
+.reg-modal-line-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── メール登録ボタン ── */
+.reg-modal-email-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 14px 20px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 16px;
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+.reg-modal-email-btn:hover {
+  opacity: 0.9;
+}
+.reg-modal-email-btn:active {
+  transform: scale(0.97);
+}
+
+/* ── お試しテキスト & あとでリンク ── */
+.reg-modal-trial-text {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0 0 8px;
+  line-height: 1.6;
+}
+.reg-modal-later {
+  background: none;
+  border: none;
+  color: #aaa;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 8px;
+  transition: color 0.2s ease;
+}
+.reg-modal-later:hover {
+  color: #666;
+}
+
+/* ── セクションロックオーバーレイ ── */
+.reg-lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.reg-lock-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.reg-lock-text {
+  font-size: 0.875rem;
+  color: #2d3a2e;
+  line-height: 1.6;
+  font-weight: 500;
+  margin: 0;
+}
+
+.reg-lock-btn {
+  background: linear-gradient(135deg, #7DB8B4, #5a9e9a);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 28px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(125, 184, 180, 0.3);
+  transition: opacity 0.2s ease, transform 0.1s ease;
+}
+.reg-lock-btn:hover {
+  opacity: 0.9;
+}
+.reg-lock-btn:active {
+  transform: scale(0.97);
+}
