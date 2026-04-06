@@ -9,8 +9,632 @@
   <title>kenkou kiroku — からだの記録アプリ</title>
   <meta name="description" content="卵巣・女性のからだを食と意識で整える、蓄積型健康記録アプリ。チャクラ・食事療法・プチ断食・感情を記録して、あなただけのパターンを発見する。">
   <link rel="stylesheet" href="css/app-main.css">
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-title" content="kenkou kiroku">
   <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* =====================================================
+       マイクロアニメーション & UI強化
+       ===================================================== */
+
+    /* タップフィードバック：全ボタン */
+    .btn, .btn-icon, .chip, .chakra-item, .emotion-item,
+    .fasting-goal-btn, .record-tab, .settings-row,
+    .feedback-rating-btn, .welcome-next-btn {
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+    }
+    .btn:active, .chip:active, .chakra-item:active,
+    .emotion-item:active, .fasting-goal-btn:active,
+    .record-tab:active, .settings-row:active,
+    .feedback-rating-btn:active {
+      transform: scale(0.95);
+      opacity: 0.85;
+    }
+    .btn-primary:active { box-shadow: 0 0 0 3px rgba(230,63,168,0.18); }
+
+    /* 画面遷移アニメーション */
+    .app-screen {
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .app-screen.screen-enter {
+      opacity: 0;
+      transform: translateX(18px);
+    }
+    .app-screen.screen-enter-active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    .app-screen.screen-exit {
+      opacity: 0;
+      transform: translateX(-18px);
+    }
+
+    /* =====================================================
+       ウィザード記録UI（1画面1質問）
+       ===================================================== */
+    #record-wizard {
+      position: fixed;
+      inset: 0;
+      background: #FBF7F2;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+    #record-wizard.wizard-open {
+      transform: translateY(0);
+    }
+    .wizard-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      padding-top: max(16px, env(safe-area-inset-top));
+    }
+    .wizard-close-btn {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: rgba(108,74,103,0.08);
+      border: none;
+      font-size: 1.125rem;
+      color: #6C4A67;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+    .wizard-close-btn:active { background: rgba(108,74,103,0.18); }
+
+    /* プログレスバー */
+    .wizard-progress-bar {
+      height: 3px;
+      background: rgba(230,63,168,0.12);
+      margin: 0 20px 4px;
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .wizard-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #E63FA8, #27B7B3);
+      border-radius: 2px;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .wizard-step-label {
+      text-align: center;
+      font-size: 0.6875rem;
+      color: #A090A0;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    /* ステップコンテンツ */
+    .wizard-steps-wrap {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .wizard-step {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      padding: 8px 24px 24px;
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.28s ease, transform 0.28s ease;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .wizard-step.step-active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+    .wizard-step.step-exit {
+      opacity: 0;
+      transform: translateX(-40px);
+    }
+
+    /* ステップ内コンテンツ */
+    .wizard-question {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1.1875rem;
+      color: #3D2E3A;
+      text-align: center;
+      line-height: 1.75;
+      margin-bottom: 8px;
+      margin-top: 8px;
+    }
+    .wizard-sub {
+      font-size: 0.8125rem;
+      color: #A090A0;
+      text-align: center;
+      line-height: 1.7;
+      margin-bottom: 28px;
+    }
+
+    /* 5段階タップ選択 */
+    .wizard-scale-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .wizard-scale-btn {
+      flex: 1;
+      max-width: 56px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      border: 1.5px solid rgba(108,74,103,0.18);
+      background: white;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.125rem;
+      color: #6C4A67;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .wizard-scale-btn.selected {
+      background: linear-gradient(135deg, #E63FA8, #C02E8E);
+      border-color: transparent;
+      color: white;
+      transform: scale(1.12);
+      box-shadow: 0 4px 16px rgba(230,63,168,0.35);
+    }
+    .wizard-scale-btn:active { transform: scale(0.92); }
+    .wizard-scale-labels {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      font-size: 0.6875rem;
+      color: #A090A0;
+      margin-top: -16px;
+      margin-bottom: 24px;
+      padding: 0 4px;
+    }
+
+    /* タップ選択チップ（大きめ） */
+    .wizard-chip-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .wizard-chip {
+      padding: 10px 18px;
+      border-radius: 24px;
+      border: 1.5px solid rgba(108,74,103,0.18);
+      background: white;
+      font-size: 0.875rem;
+      color: #6C4A67;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-family: 'Noto Serif JP', serif;
+    }
+    .wizard-chip.selected {
+      background: linear-gradient(135deg, rgba(230,63,168,0.1), rgba(39,183,179,0.1));
+      border-color: #E63FA8;
+      color: #C02E8E;
+      font-weight: 600;
+    }
+    .wizard-chip:active { transform: scale(0.95); }
+
+    /* チャクラ選択（ウィザード用・大きめ） */
+    .wizard-chakra-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .wizard-chakra-card {
+      padding: 14px 12px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(108,74,103,0.12);
+      background: white;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .wizard-chakra-card.selected {
+      border-color: transparent;
+      transform: scale(1.02);
+      box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+    }
+    .wizard-chakra-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .wizard-chakra-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: #3D2E3A;
+      display: block;
+    }
+    .wizard-chakra-area {
+      font-size: 0.6875rem;
+      color: #A090A0;
+      display: block;
+    }
+    .wizard-chakra-card:active { transform: scale(0.97); }
+
+    /* 感情選択（大きめカード） */
+    .wizard-emotion-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 24px;
+    }
+    .wizard-emotion-card {
+      padding: 16px 8px;
+      border-radius: 14px;
+      border: 1.5px solid rgba(108,74,103,0.12);
+      background: white;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      text-align: center;
+    }
+    .wizard-emotion-card .emotion-icon {
+      font-size: 1.75rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .wizard-emotion-card .emotion-name {
+      font-size: 0.75rem;
+      color: #6C4A67;
+      line-height: 1.4;
+    }
+    .wizard-emotion-card.selected {
+      background: linear-gradient(135deg, rgba(230,63,168,0.08), rgba(39,183,179,0.08));
+      border-color: #E63FA8;
+      transform: scale(1.04);
+      box-shadow: 0 4px 16px rgba(230,63,168,0.2);
+    }
+    .wizard-emotion-card:active { transform: scale(0.95); }
+
+    /* テキスト入力（ウィザード用） */
+    .wizard-textarea {
+      width: 100%;
+      border: 1.5px solid rgba(108,74,103,0.18);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 0.9375rem;
+      font-family: 'Noto Serif JP', serif;
+      color: #3D2E3A;
+      background: white;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+    }
+    .wizard-textarea:focus { border-color: #E63FA8; }
+
+    /* スキップテキスト */
+    .wizard-skip {
+      font-size: 0.8125rem;
+      color: #B0A0B0;
+      text-align: center;
+      cursor: pointer;
+      padding: 8px;
+      margin-top: 4px;
+    }
+
+    /* ウィザード下部ボタン */
+    .wizard-footer {
+      padding: 16px 24px;
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .wizard-back-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(108,74,103,0.18);
+      background: white;
+      font-size: 1.125rem;
+      color: #6C4A67;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.15s;
+    }
+    .wizard-back-btn:active { transform: scale(0.92); background: rgba(108,74,103,0.06); }
+    .wizard-next-btn {
+      flex: 1;
+      height: 52px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #E63FA8, #C02E8E);
+      border: none;
+      color: white;
+      font-size: 1rem;
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      box-shadow: 0 4px 18px rgba(230,63,168,0.3);
+    }
+    .wizard-next-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(230,63,168,0.2); }
+    .wizard-next-btn.btn-teal {
+      background: linear-gradient(135deg, #27B7B3, #1A8F8C);
+      box-shadow: 0 4px 18px rgba(39,183,179,0.3);
+    }
+
+    /* =====================================================
+       完了アニメーション
+       ===================================================== */
+    #wizard-complete {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, #FBF7F2, #EAF7F7);
+      z-index: 210;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    #wizard-complete.complete-show {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .complete-checkmark {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E63FA8, #27B7B3);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      transform: scale(0);
+      transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    #wizard-complete.complete-show .complete-checkmark {
+      transform: scale(1);
+    }
+    .complete-checkmark svg { width: 40px; height: 40px; }
+    .complete-title {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 1.25rem;
+      color: #3D2E3A;
+      margin-bottom: 8px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.4s ease 0.25s;
+    }
+    .complete-sub {
+      font-size: 0.875rem;
+      color: #A090A0;
+      line-height: 1.7;
+      text-align: center;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.4s ease 0.35s;
+    }
+    #wizard-complete.complete-show .complete-title,
+    #wizard-complete.complete-show .complete-sub {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* 花びら紙吹雪 */
+    .confetti-petal {
+      position: absolute;
+      width: 8px; height: 12px;
+      border-radius: 50% 50% 50% 0;
+      opacity: 0;
+      animation: petalFall 1.2s ease-out forwards;
+    }
+    @keyframes petalFall {
+      0%   { opacity: 1; transform: translateY(-20px) rotate(0deg); }
+      100% { opacity: 0; transform: translateY(120px) rotate(360deg); }
+    }
+
+    /* =====================================================
+       ホーム画面：今日の記録ボタン（大きく目立つ）
+       ===================================================== */
+    .home-record-fab {
+      position: fixed;
+      bottom: calc(72px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      white-space: nowrap;
+    }
+    .home-record-fab-btn {
+      height: 52px;
+      padding: 0 32px;
+      border-radius: 26px;
+      background: linear-gradient(135deg, #E63FA8, #C02E8E);
+      border: none;
+      color: white;
+      font-size: 0.9375rem;
+      font-family: 'Noto Serif JP', serif;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 24px rgba(230,63,168,0.4);
+      display: flex; align-items: center; gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .home-record-fab-btn:active {
+      transform: scale(0.96);
+      box-shadow: 0 3px 12px rgba(230,63,168,0.3);
+    }
+    .fab-pulse {
+      width: 8px; height: 8px;
+      background: white;
+      border-radius: 50%;
+      animation: fabPulse 2s ease-in-out infinite;
+    }
+    @keyframes fabPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    /* 今日記録済みの場合はFABの色を変える */
+    .home-record-fab-btn.recorded {
+      background: linear-gradient(135deg, #27B7B3, #1A8F8C);
+      box-shadow: 0 6px 24px rgba(39,183,179,0.35);
+    }
+
+    /* =====================================================
+       PWAインストールバナー
+       ===================================================== */
+    #pwa-banner {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: white;
+      border-top: 1px solid rgba(108,74,103,0.1);
+      padding: 14px 20px;
+      padding-bottom: max(14px, env(safe-area-inset-bottom));
+      z-index: 300;
+      display: none;
+      align-items: center;
+      gap: 12px;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+    }
+    #pwa-banner.pwa-show { display: flex; }
+    .pwa-icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #E63FA8, #27B7B3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .pwa-text { flex: 1; }
+    .pwa-text strong { font-size: 0.875rem; color: #3D2E3A; display: block; }
+    .pwa-text span { font-size: 0.75rem; color: #A090A0; }
+    .pwa-install-btn {
+      padding: 8px 16px;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #E63FA8, #C02E8E);
+      border: none;
+      color: white;
+      font-size: 0.8125rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .pwa-dismiss-btn {
+      background: none; border: none;
+      font-size: 1.25rem; color: #B0A0B0;
+      cursor: pointer; padding: 4px;
+    }
+
+    /* =====================================================
+       パーソナライゼーション：時間帯グリーティング強化
+       ===================================================== */
+    .greeting-streak-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: linear-gradient(135deg, rgba(230,63,168,0.1), rgba(39,183,179,0.1));
+      border: 1px solid rgba(230,63,168,0.2);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: #C02E8E;
+      margin-bottom: 12px;
+      font-family: 'Cormorant Garamond', serif;
+      letter-spacing: 0.05em;
+    }
+    .streak-fire { font-size: 0.875rem; }
+
+    /* =====================================================
+       週間カレンダー：花アイコン強化
+       ===================================================== */
+    .week-day-flower { font-size:1.125rem; transition:transform 0.2s ease; }
+    .week-day-flower.recorded { animation:flowerPop 0.3s ease; }
+    @keyframes flowerPop { 0%{transform:scale(0)} 70%{transform:scale(1.2)} 100%{transform:scale(1)} }
+
+    /* =====================================================
+       チャクラビジュアル（体シルエット）
+       ===================================================== */
+    .chakra-body-visual { position:relative; width:180px; margin:0 auto 16px; }
+    .chakra-body-visual svg { width:100%; height:auto; }
+    .chakra-glow-point { cursor:pointer; transition:all 0.2s ease; }
+    .chakra-glow-point circle.outer { animation:chakraPulse 2.5s ease-in-out infinite; }
+    .chakra-glow-point.active circle.outer { animation:chakraPulseActive 1.5s ease-in-out infinite; }
+    .chakra-glow-point.active circle.inner { filter:drop-shadow(0 0 5px rgba(255,255,255,0.8)); }
+    @keyframes chakraPulse { 0%,100%{opacity:0.2} 50%{opacity:0.4} }
+    @keyframes chakraPulseActive { 0%,100%{opacity:0.4} 50%{opacity:0.7} }
+
+    /* チャクラリスト */
+    .chakra-visual-list { display:flex; flex-direction:column; gap:8px; width:100%; margin-bottom:16px; }
+    .chakra-visual-item {
+      display:flex; align-items:center; gap:12px; padding:11px 14px;
+      border-radius:12px; border:1.5px solid rgba(108,74,103,0.1);
+      background:white; cursor:pointer; transition:all 0.18s ease;
+    }
+    .chakra-visual-item.selected { border-color:transparent; box-shadow:0 3px 14px rgba(0,0,0,0.1); transform:translateX(3px); }
+    .chakra-visual-item:active { transform:scale(0.98); }
+    .chakra-visual-dot { width:16px; height:16px; border-radius:50%; flex-shrink:0; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+    .chakra-visual-info { flex:1; }
+    .chakra-visual-name { font-size:0.875rem; font-weight:600; color:#3D2E3A; display:block; }
+    .chakra-visual-area { font-size:0.75rem; color:#A090A0; }
+    .chakra-visual-check {
+      width:20px; height:20px; border-radius:50%; border:1.5px solid rgba(108,74,103,0.2);
+      display:flex; align-items:center; justify-content:center; font-size:0.7rem; color:white; flex-shrink:0;
+    }
+    .chakra-visual-item.selected .chakra-visual-check { border-color:transparent; }
+
+    /* =====================================================
+       Premiumロックオーバーレイ（ウィザード内）
+       ===================================================== */
+    .wizard-step-lock {
+      position:absolute; inset:0;
+      background:rgba(251,247,242,0.94);
+      backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+      z-index:10; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      padding:24px 28px; text-align:center;
+    }
+    .wizard-lock-icon {
+      width:52px; height:52px; border-radius:50%;
+      background:linear-gradient(135deg,#C9A44A,#F5D020);
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:14px; box-shadow:0 4px 16px rgba(201,164,74,0.35);
+    }
+    .wizard-lock-badge {
+      display:inline-block; background:linear-gradient(135deg,#C9A44A,#E8C870);
+      color:white; font-size:0.6875rem; font-family:'Cormorant Garamond',serif;
+      letter-spacing:0.12em; padding:3px 10px; border-radius:12px; margin-bottom:10px;
+    }
+    .wizard-lock-title { font-family:'Noto Serif JP',serif; font-size:1rem; color:#3D2E3A; margin-bottom:8px; line-height:1.65; }
+    .wizard-lock-desc { font-size:0.8125rem; color:#A090A0; line-height:1.7; margin-bottom:18px; }
+    .wizard-lock-features { display:flex; flex-direction:column; gap:7px; width:100%; max-width:240px; margin-bottom:20px; text-align:left; }
+    .wizard-lock-feature { display:flex; align-items:center; gap:8px; font-size:0.8125rem; color:#6C4A67; }
+    .wizard-lock-feature-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+    .wizard-lock-btn {
+      width:100%; max-width:260px; height:48px; border-radius:24px;
+      background:linear-gradient(135deg,#C9A44A,#E8C870); border:none; color:white;
+      font-size:0.9375rem; font-family:'Noto Serif JP',serif; font-weight:600; cursor:pointer;
+      box-shadow:0 4px 16px rgba(201,164,74,0.35); transition:all 0.18s ease; margin-bottom:10px;
+    }
+    .wizard-lock-btn:active { transform:scale(0.97); }
+    .wizard-lock-skip { font-size:0.8125rem; color:#B0A0B0; cursor:pointer; padding:6px; }
+  </style>
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32.png">
+  <link rel="apple-touch-icon" href="images/icon-192.png">
+  <meta property="og:title" content="kenkou kiroku — からだの記録アプリ">
+  <meta property="og:description" content="卵巣・女性のからだを食と意識で整える、蓄積型健康記録アプリ">
+  <meta property="og:image" content="https://kenkou-jpg.github.io/kenkou-kiroku/images/og-image.jpg">
+  <meta property="og:url" content="https://kenkou-jpg.github.io/kenkou-kiroku/kk-app.html">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
 </head>
 <body>
 
@@ -239,7 +863,7 @@
       <div style="margin: 0 var(--sp-5) var(--sp-6); padding: var(--sp-5); background: var(--app-bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border-light); text-align: center;">
         <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--text-muted); letter-spacing: 0.10em; margin-bottom: var(--sp-2);">wellness blog</p>
         <p style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--sp-3);">食・チャクラ・断食の記事を読む</p>
-        <a href="index.html" class="btn btn-outline btn-sm">kenkou kiroku ブログへ →</a>
+        <a href="https://kenkou-kiroku.com" class="btn btn-outline btn-sm">kenkou kiroku ブログへ →</a>
       </div>
 
     </div><!-- /app-content -->
@@ -978,7 +1602,7 @@
       <!-- プロフィール -->
       <div class="settings-profile-section">
         <div class="settings-avatar" id="settingsAvatar" aria-label="プロフィール画像">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none"><circle cx="16" cy="12" r="6" stroke="#E63FA8" stroke-width="1.5"/><path d="M4 28c0-6.627 5.373-12 12-12s12 5.373 12 12" stroke="#27B7B3" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <img src="images/profile-photo.png" alt="sumi" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">
         </div>
         <p class="settings-name" id="settingsName"><!-- JS inject --></p>
         <p class="settings-since" id="settingsSince"><!-- JS inject --></p>
@@ -1118,7 +1742,7 @@
             <div class="settings-row-left">
               <span class="settings-row-label">ブログ記事を読む</span>
             </div>
-            <a href="index.html" style="color: var(--teal); font-size: 0.8125rem; text-decoration:none;">開く →</a>
+            <a href="https://kenkou-kiroku.com" style="color: var(--teal); font-size: 0.8125rem; text-decoration:none;">開く →</a>
           </div>
         </div>
         <div style="text-align: center; margin-top: var(--sp-6); padding-bottom: var(--sp-4);">
@@ -1163,21 +1787,73 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <!-- ══════════════════════════════════
-       PREMIUM MODAL
+       【層2】登録モーダル (#reg-modal)
        ══════════════════════════════════ -->
-  <div class="premium-modal-overlay" id="premiumModalOverlay" role="dialog" aria-modal="true" aria-label="Premium案内">
-    <div class="premium-modal-card" id="premiumModalCard">
-      <img src="images/logo-kenkou-kiroku.png" alt="kenkou kiroku" class="premium-modal-logo" onerror="this.style.display='none'">
-      <h2 class="premium-modal-title">Premium<br>まもなく公開</h2>
-      <p class="premium-modal-desc">
-        からだの変化をもっと深く見つめるための<br>
-        Premium機能を準備中です。<br>
-        公開時にいち早くお知らせします。
-      </p>
-      <a href="https://lin.ee/YOUR_LINE_ID" class="premium-modal-line-btn" target="_blank" rel="noopener">
-        LINEで通知を受け取る
+  <div id="reg-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.45); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:20px; padding:32px 24px; max-width:340px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.18); position:relative;">
+      <!-- 閉じる -->
+      <button onclick="closeRegModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.25rem;color:#B0A0B0;cursor:pointer;">✕</button>
+      <!-- ロゴ -->
+      <img src="images/logo-kenkou-kiroku.png" alt="kenkou kiroku"
+           style="width:48px;height:48px;border-radius:50%;object-fit:cover;margin-bottom:16px;border:2px solid #F2EAF0;"
+           onerror="this.style.display='none'">
+      <!-- タイトル -->
+      <p style="font-family:'Cormorant Garamond',serif;font-size:0.6875rem;color:#E63FA8;letter-spacing:0.12em;margin-bottom:8px;">無料登録</p>
+      <h2 style="font-family:'Noto Serif JP',serif;font-size:1.0625rem;color:#3D2E3A;line-height:1.65;margin-bottom:8px;">すべての無料機能を使うには<br>かんたん登録してください</h2>
+      <p style="font-size:0.8125rem;color:#A090A0;line-height:1.7;margin-bottom:24px;">食事・断食・感情の記録、グラフ、週間カレンダーなどが使えます。</p>
+      <!-- LINEボタン -->
+      <a href="https://page.line.me/384xpfml" target="_blank" rel="noopener"
+         onclick="setTimeout(completeRegistration, 1500)"
+         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:48px;background:#06C755;color:white;border-radius:25px;text-decoration:none;font-size:0.9375rem;font-weight:600;margin-bottom:12px;box-shadow:0 4px 14px rgba(6,199,85,0.35);transition:opacity 0.15s;"
+         onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect width="22" height="22" rx="6" fill="white" opacity="0.2"/><path d="M11 4C7.13 4 4 6.8 4 10.25c0 2.08 1.1 3.93 2.82 5.13L6.3 17.5l2.2-1.1c.77.2 1.61.35 2.5.35 3.87 0 7-2.8 7-6.5S14.87 4 11 4z" fill="white"/></svg>
+        LINEで登録する（おすすめ）
       </a>
-      <a href="#" class="premium-modal-close" id="premiumModalClose">あとで</a>
+      <!-- メールボタン -->
+      <button onclick="registerByEmail()"
+         style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:44px;background:linear-gradient(135deg,#E63FA8,#C02E8E);color:white;border:none;border-radius:22px;font-size:0.9rem;font-weight:600;cursor:pointer;margin-bottom:16px;box-shadow:0 4px 14px rgba(230,63,168,0.3);">
+        <svg width="18" height="14" viewBox="0 0 18 14" fill="none"><rect x="0.5" y="0.5" width="17" height="13" rx="2" stroke="white" stroke-opacity="0.8"/><path d="M1 1l8 7 8-7" stroke="white" stroke-opacity="0.8"/></svg>
+        メールアドレスで登録する
+      </button>
+      <!-- 注記 -->
+      <p style="font-size:0.75rem;color:#B0A0B0;margin-bottom:12px;">※無料です。1分で完了します</p>
+      <!-- あとで -->
+      <a href="#" onclick="closeRegModal();return false;" style="font-size:0.8125rem;color:#C0B0C0;text-decoration:none;">あとで →</a>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════
+       【層3】Premiumモーダル (#premium-modal)
+       ══════════════════════════════════ -->
+  <div id="premium-modal" style="display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); align-items:center; justify-content:center; padding:20px;">
+    <div style="background:white; border-radius:20px; padding:32px 24px; max-width:340px; width:100%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,0.2); position:relative;">
+      <button onclick="closePremiumModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;font-size:1.25rem;color:#B0A0B0;cursor:pointer;">✕</button>
+      <!-- 金色見出し -->
+      <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#C9A44A,#F5D020);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;box-shadow:0 4px 16px rgba(201,164,74,0.4);">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="11" width="18" height="11" rx="2" stroke="white" stroke-width="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="12" cy="16" r="1.5" fill="white"/>
+        </svg>
+      </div>
+      <p style="font-size:0.6875rem;letter-spacing:0.15em;color:#C9A44A;font-family:'Cormorant Garamond',serif;margin-bottom:6px;">PREMIUM</p>
+      <h2 style="font-family:'Noto Serif JP',serif;font-size:1.0625rem;background:linear-gradient(135deg,#C9A44A,#8B6914);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;line-height:1.5;">Premium — すべての機能を解放</h2>
+      <p style="font-size:1rem;font-weight:700;color:#3D2E3A;margin-bottom:16px;">月額500円（税込）</p>
+      <!-- 特典リスト -->
+      <div style="text-align:left;margin:0 auto 20px;max-width:260px;display:flex;flex-direction:column;gap:9px;">
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#6C4A67;"><span style="color:#27B7B3;font-weight:700;">✓</span>全期間のグラフ・トレンド分析</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#6C4A67;"><span style="color:#E63FA8;font-weight:700;">✓</span>週間・月間レポート自動生成</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#6C4A67;"><span style="color:#C9A44A;font-weight:700;">✓</span>月経周期・ホルモンリズム連動</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#6C4A67;"><span style="color:#7C4DFF;font-weight:700;">✓</span>断食カレンダー・長期ログ</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:0.8125rem;color:#6C4A67;"><span style="color:#6C4A67;font-weight:700;">✓</span>パターン分析・パーソナル提案</div>
+      </div>
+      <!-- LINEボタン -->
+      <a href="https://page.line.me/384xpfml" target="_blank" rel="noopener"
+         style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:48px;background:linear-gradient(135deg,#C9A44A,#E8C870);color:white;border-radius:25px;text-decoration:none;font-size:0.9375rem;font-weight:600;margin-bottom:10px;box-shadow:0 4px 14px rgba(201,164,74,0.4);">
+        LINEで先行登録する（無料）
+      </a>
+      <p style="font-size:0.75rem;color:#B0A0B0;line-height:1.65;margin-bottom:12px;">※現在は先行登録受付中です。<br>正式リリース時にご案内します。</p>
+      <a href="#" onclick="closePremiumModal();return false;" style="font-size:0.8125rem;color:#C0B0C0;text-decoration:none;">あとで →</a>
     </div>
   </div>
 
@@ -1299,7 +1975,597 @@
 
 </div><!-- /app-shell -->
 
+<!-- =====================================================
+     記録ウィザード（1画面1質問）
+     ===================================================== -->
+<div id="record-wizard" role="dialog" aria-modal="true" aria-label="今日の記録">
+
+  <!-- ヘッダー -->
+  <div class="wizard-header">
+    <button class="wizard-close-btn" id="wizardCloseBtn" aria-label="閉じる">✕</button>
+    <span style="font-family:'Cormorant Garamond',serif; font-size:0.8125rem; color:#A090A0; letter-spacing:0.1em;">kenkou kiroku</span>
+    <div style="width:36px;"></div>
+  </div>
+
+  <!-- プログレス -->
+  <div class="wizard-progress-bar">
+    <div class="wizard-progress-fill" id="wizardProgressFill" style="width:0%"></div>
+  </div>
+  <p class="wizard-step-label" id="wizardStepLabel">1 / 6</p>
+
+  <!-- ステップ群 -->
+  <div class="wizard-steps-wrap" id="wizardStepsWrap">
+
+    <!-- Step 1: 体調スコア -->
+    <div class="wizard-step step-active" data-step="1">
+      <p class="wizard-question">今日のからだの調子は<br>どうですか？</p>
+      <p class="wizard-sub">今の感覚に一番近いものをタップ</p>
+      <div class="wizard-scale-row" id="wBodyScaleRow">
+        <button class="wizard-scale-btn" data-val="1">1</button>
+        <button class="wizard-scale-btn" data-val="2">2</button>
+        <button class="wizard-scale-btn" data-val="3">3</button>
+        <button class="wizard-scale-btn" data-val="4">4</button>
+        <button class="wizard-scale-btn" data-val="5">5</button>
+      </div>
+      <div class="wizard-scale-labels">
+        <span>つらい</span><span>とても良い</span>
+      </div>
+    </div>
+
+    <!-- Step 2: チャクラ選択（ビジュアル強化） -->
+    <div class="wizard-step" data-step="2">
+      <p class="wizard-question">骨盤まわりの<br>感覚はどうですか？</p>
+      <p class="wizard-sub">今日意識しているチャクラを選んでください</p>
+
+      <!-- 体シルエット＋チャクラ発光ビジュアル -->
+      <div class="chakra-body-visual">
+        <svg viewBox="0 0 120 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="60" cy="26" rx="15" ry="17" fill="#F2EAF0" stroke="#D4C4D0" stroke-width="1"/>
+          <path d="M45 43 Q32 56 30 94 Q28 122 34 136 L86 136 Q92 122 90 94 Q88 56 75 43 Z" fill="#F2EAF0" stroke="#D4C4D0" stroke-width="1"/>
+          <path d="M34 136 Q30 172 32 205 L52 205 L55 155 L65 155 L68 205 L88 205 Q90 172 86 136 Z" fill="#F2EAF0" stroke="#D4C4D0" stroke-width="1"/>
+          <path d="M45 43 Q22 52 18 84 Q16 102 24 112 L34 103 Q28 90 32 74 Z" fill="#F2EAF0" stroke="#D4C4D0" stroke-width="1"/>
+          <path d="M75 43 Q98 52 102 84 Q104 102 96 112 L86 103 Q92 90 88 74 Z" fill="#F2EAF0" stroke="#D4C4D0" stroke-width="1"/>
+          <!-- 第6チャクラ（眉間） -->
+          <g class="chakra-glow-point" data-chakra="third_eye" id="bodyChakra6">
+            <circle class="outer" cx="60" cy="22" r="9" fill="#7C4DFF" opacity="0.2"/>
+            <circle class="inner" cx="60" cy="22" r="5" fill="#7C4DFF" opacity="0.85"/>
+          </g>
+          <!-- 第5チャクラ（喉） -->
+          <g class="chakra-glow-point" data-chakra="throat" id="bodyChakra5">
+            <circle class="outer" cx="60" cy="44" r="9" fill="#27B7B3" opacity="0.2"/>
+            <circle class="inner" cx="60" cy="44" r="5" fill="#27B7B3" opacity="0.85"/>
+          </g>
+          <!-- 第4チャクラ（胸） -->
+          <g class="chakra-glow-point" data-chakra="heart" id="bodyChakra4">
+            <circle class="outer" cx="60" cy="67" r="10" fill="#4CAF50" opacity="0.2"/>
+            <circle class="inner" cx="60" cy="67" r="6" fill="#4CAF50" opacity="0.85"/>
+          </g>
+          <!-- 第3チャクラ（腹） -->
+          <g class="chakra-glow-point" data-chakra="solar" id="bodyChakra3">
+            <circle class="outer" cx="60" cy="88" r="10" fill="#F5D020" opacity="0.2"/>
+            <circle class="inner" cx="60" cy="88" r="6" fill="#F5D020" opacity="0.85"/>
+          </g>
+          <!-- 第2チャクラ（子宮） ★ -->
+          <g class="chakra-glow-point" data-chakra="sacral" id="bodyChakra2">
+            <circle class="outer" cx="60" cy="110" r="14" fill="#FF9A4A" opacity="0.3"/>
+            <circle class="inner" cx="60" cy="110" r="8" fill="#FF9A4A" opacity="0.9"/>
+          </g>
+          <!-- 第1チャクラ（骨盤底） -->
+          <g class="chakra-glow-point" data-chakra="root" id="bodyChakra1">
+            <circle class="outer" cx="60" cy="132" r="11" fill="#E63FA8" opacity="0.2"/>
+            <circle class="inner" cx="60" cy="132" r="7" fill="#E63FA8" opacity="0.85"/>
+          </g>
+          <!-- ラベル -->
+          <text x="78" y="25" font-size="7" fill="#A090A0" font-family="serif">第6</text>
+          <text x="78" y="47" font-size="7" fill="#A090A0" font-family="serif">第5</text>
+          <text x="78" y="70" font-size="7" fill="#A090A0" font-family="serif">第4</text>
+          <text x="78" y="91" font-size="7" fill="#A090A0" font-family="serif">第3</text>
+          <text x="78" y="113" font-size="7" fill="#FF9A4A" font-family="serif" font-weight="bold">第2 ★</text>
+          <text x="78" y="135" font-size="7" fill="#A090A0" font-family="serif">第1</text>
+        </svg>
+      </div>
+
+      <!-- チャクラリスト -->
+      <div class="chakra-visual-list" id="wChakraGrid">
+        <div class="chakra-visual-item" data-chakra="sacral">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#FF9A4A,#E67A2A)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第2チャクラ ★</span>
+            <span class="chakra-visual-area">子宮・卵巣・創造性 — 最も重要</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#FF9A4A,#E67A2A)">✓</div>
+        </div>
+        <div class="chakra-visual-item" data-chakra="root">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#E63FA8,#C02E8E)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第1チャクラ</span>
+            <span class="chakra-visual-area">骨盤底・安心感・安定</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#E63FA8,#C02E8E)">✓</div>
+        </div>
+        <div class="chakra-visual-item" data-chakra="solar">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#F5D020,#C9A44A)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第3チャクラ</span>
+            <span class="chakra-visual-area">腹部・自己肯定・消化</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#F5D020,#C9A44A)">✓</div>
+        </div>
+        <div class="chakra-visual-item" data-chakra="heart">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#4CAF50,#2E7D32)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第4チャクラ</span>
+            <span class="chakra-visual-area">胸・愛と受容・感情</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#4CAF50,#2E7D32)">✓</div>
+        </div>
+        <div class="chakra-visual-item" data-chakra="throat">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#27B7B3,#1A8F8C)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第5チャクラ</span>
+            <span class="chakra-visual-area">喉・表現・声</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#27B7B3,#1A8F8C)">✓</div>
+        </div>
+        <div class="chakra-visual-item" data-chakra="third_eye">
+          <div class="chakra-visual-dot" style="background:linear-gradient(135deg,#7C4DFF,#5C35CC)"></div>
+          <div class="chakra-visual-info">
+            <span class="chakra-visual-name">第6チャクラ</span>
+            <span class="chakra-visual-area">眉間・直感・洞察</span>
+          </div>
+          <div class="chakra-visual-check" style="background:linear-gradient(135deg,#7C4DFF,#5C35CC)">✓</div>
+        </div>
+      </div>
+      <p class="wizard-skip" id="wChakraSkip">スキップ →</p>
+    </div>
+
+    <!-- Step 3: 食事（無料登録ユーザーに開放） -->
+    <div class="wizard-step" data-step="3">
+      <p class="wizard-question">今日の食事の質は<br>どうでしたか？</p>
+      <p class="wizard-sub">からだが喜ぶ食事ができましたか？</p>
+      <div class="wizard-scale-row" id="wFoodScaleRow">
+        <button class="wizard-scale-btn" data-val="1">1</button>
+        <button class="wizard-scale-btn" data-val="2">2</button>
+        <button class="wizard-scale-btn" data-val="3">3</button>
+        <button class="wizard-scale-btn" data-val="4">4</button>
+        <button class="wizard-scale-btn" data-val="5">5</button>
+      </div>
+      <div class="wizard-scale-labels"><span>整えられなかった</span><span>完璧に整えた</span></div>
+      <p style="font-family:'Noto Serif JP',serif;font-size:0.875rem;color:#6C4A67;margin-bottom:10px;align-self:flex-start;">意識した食材（複数OK）</p>
+      <div class="wizard-chip-group" id="wFoodChips">
+        <div class="wizard-chip" data-val="root_veg">根菜類</div>
+        <div class="wizard-chip" data-val="fermented">発酵食品</div>
+        <div class="wizard-chip" data-val="warm">温かいもの</div>
+        <div class="wizard-chip" data-val="no_sugar">砂糖控え</div>
+        <div class="wizard-chip" data-val="omega3">EPA/DHA</div>
+        <div class="wizard-chip" data-val="iron">鉄分</div>
+        <div class="wizard-chip" data-val="vitD">ビタミンD</div>
+        <div class="wizard-chip" data-val="water">水2L以上</div>
+      </div>
+    </div>
+
+    <!-- Step 4: 断食（無料登録ユーザーに開放） -->
+    <div class="wizard-step" data-step="4">
+      <p class="wizard-question">今日の断食時間は<br>どのくらいでしたか？</p>
+      <p class="wizard-sub">食事と食事の間があいた時間を選んでください</p>
+      <div class="wizard-chip-group" id="wFastingChips">
+        <div class="wizard-chip" data-val="0">記録しない</div>
+        <div class="wizard-chip" data-val="12">12時間</div>
+        <div class="wizard-chip" data-val="14">14時間</div>
+        <div class="wizard-chip" data-val="16">16時間</div>
+        <div class="wizard-chip" data-val="18">18時間以上</div>
+      </div>
+      <p class="wizard-skip" id="wFastingSkip">スキップ →</p>
+    </div>
+
+    <!-- Step 5: 感情（無料登録ユーザーに開放） -->
+    <div class="wizard-step" data-step="5">
+      <p class="wizard-question">今の気持ちに<br>近いのは？</p>
+      <p class="wizard-sub">正直な感覚をタップしてください</p>
+      <div class="wizard-emotion-grid" id="wEmotionGrid">
+        <div class="wizard-emotion-card" data-emotion="peaceful"><span class="emotion-icon">🌸</span><span class="emotion-name">穏やか<br>平和</span></div>
+        <div class="wizard-emotion-card" data-emotion="happy"><span class="emotion-icon">✨</span><span class="emotion-name">うれしい<br>満たされ</span></div>
+        <div class="wizard-emotion-card" data-emotion="tired"><span class="emotion-icon">🌙</span><span class="emotion-name">疲れ<br>重さ</span></div>
+        <div class="wizard-emotion-card" data-emotion="anxious"><span class="emotion-icon">🌊</span><span class="emotion-name">不安<br>緊張</span></div>
+        <div class="wizard-emotion-card" data-emotion="irritated"><span class="emotion-icon">🔥</span><span class="emotion-name">イライラ<br>焦り</span></div>
+        <div class="wizard-emotion-card" data-emotion="neutral"><span class="emotion-icon">☁️</span><span class="emotion-name">ふつう<br>普通</span></div>
+      </div>
+    </div>
+
+    <!-- Step 6: 一言メモ -->
+    <div class="wizard-step" data-step="6">
+      <p class="wizard-question">からだへの<br>一言メモ（任意）</p>
+      <p class="wizard-sub">今日感じたことを自由に</p>
+      <textarea class="wizard-textarea" id="wMemoText" rows="4"
+        placeholder="例：骨盤まわりが少し重かった。温かいスープを飲んだら楽になった…"></textarea>
+      <p class="wizard-skip" id="wMemoSkip">スキップして保存 →</p>
+    </div>
+
+  </div><!-- /wizard-steps-wrap -->
+
+  <!-- フッターボタン -->
+  <div class="wizard-footer">
+    <button class="wizard-back-btn" id="wizardBackBtn" aria-label="前へ" style="visibility:hidden">←</button>
+    <button class="wizard-next-btn" id="wizardNextBtn">次へ</button>
+  </div>
+
+</div><!-- /record-wizard -->
+
+<!-- =====================================================
+     記録完了アニメーション
+     ===================================================== -->
+<div id="wizard-complete">
+  <div class="complete-checkmark">
+    <svg viewBox="0 0 40 40" fill="none">
+      <path d="M8 20 L16 28 L32 12" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+  <p class="complete-title" id="completeTitle">記録できました 🌸</p>
+  <p class="complete-sub" id="completeSub">今日もからだの声を<br>聴いてくれてありがとう。</p>
+</div>
+
+<!-- =====================================================
+     FABボタン（ホーム画面）
+     ===================================================== -->
+<div class="home-record-fab" id="homeRecordFab">
+  <button class="home-record-fab-btn" id="fabRecordBtn">
+    <div class="fab-pulse" id="fabPulse"></div>
+    今日を記録する
+  </button>
+</div>
+
+<!-- =====================================================
+     PWAインストールバナー
+     ===================================================== -->
+<div id="pwa-banner">
+  <div class="pwa-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L13.5 8.5L20 7L15.5 12L20 17L13.5 15.5L12 22L10.5 15.5L4 17L8.5 12L4 7L10.5 8.5L12 2Z" fill="white" opacity="0.9"/>
+    </svg>
+  </div>
+  <div class="pwa-text">
+    <strong>ホーム画面に追加</strong>
+    <span>アプリとして使えます</span>
+  </div>
+  <button class="pwa-install-btn" id="pwaInstallBtn">追加する</button>
+  <button class="pwa-dismiss-btn" id="pwaDismissBtn">✕</button>
+</div>
+
+<!-- Service Worker登録 -->
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/kenkou-kiroku/sw.js")
+        .then(reg => console.log("SW registered:", reg.scope))
+        .catch(err => console.log("SW error:", err));
+    });
+  }
+</script>
 <!-- スクリプト -->
 <script src="js/kk-app.js"></script>
+<script>
+/* =====================================================
+   kenkou kiroku — 3層制御 + ウィザード v3
+   ===================================================== */
+(function() {
+  'use strict';
+
+  const LINE_URL = 'https://page.line.me/384xpfml';
+  const TOTAL_STEPS = 6;
+  let currentStep = 1;
+
+  const wizardData = {
+    bodyScore: null, chakra: null, foodScore: null,
+    foodItems: [], fastingHours: null, emotion: null, memo: ''
+  };
+
+  /* ── 登録状態 ── */
+  function isRegistered() { return localStorage.getItem('kk_registered') === 'true'; }
+  function isPremium()    { return localStorage.getItem('kk_premium') === 'true'; }
+
+  /* ── 登録モーダル ── */
+  window.openRegModal = function() {
+    const m = document.getElementById('reg-modal');
+    if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  };
+  window.closeRegModal = function() {
+    const m = document.getElementById('reg-modal');
+    if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+  };
+  window.completeRegistration = function() {
+    localStorage.setItem('kk_registered', 'true');
+    closeRegModal();
+    const lock = document.getElementById('insightRegLock');
+    if (lock) lock.style.display = 'none';
+    showToast('登録完了！すべての無料機能が使えます 🌸');
+  };
+  window.registerByEmail = function() {
+    const email = prompt('メールアドレスを入力してください');
+    if (email && email.includes('@')) {
+      localStorage.setItem('kk_registered', 'true');
+      localStorage.setItem('kk_email', email);
+      closeRegModal();
+      const lock = document.getElementById('insightRegLock');
+      if (lock) lock.style.display = 'none';
+      showToast('登録完了！すべての無料機能が使えます 🌸');
+    }
+  };
+
+  /* ── Premiumモーダル ── */
+  window.openPremiumModal = function() {
+    const m = document.getElementById('premium-modal');
+    if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+  };
+  window.closePremiumModal = function() {
+    const m = document.getElementById('premium-modal');
+    if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+  };
+
+  /* ── Toast ── */
+  function showToast(msg) {
+    let t = document.getElementById('kk-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'kk-toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('toast-show');
+    setTimeout(() => t.classList.remove('toast-show'), 3000);
+  }
+
+  /* ── インサイトロック注入 ── */
+  function injectInsightLock() {
+    if (isRegistered()) return;
+    const screen = document.getElementById('screen-insight');
+    if (!screen || document.getElementById('insightRegLock')) return;
+    const lock = document.createElement('div');
+    lock.id = 'insightRegLock';
+    lock.style.cssText = 'position:absolute;inset:0;background:rgba(251,247,242,0.93);backdrop-filter:blur(8px);z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;';
+    lock.innerHTML = '<div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#E63FA8,#C02E8E);display:flex;align-items:center;justify-content:center;margin-bottom:14px;box-shadow:0 4px 16px rgba(230,63,168,0.35);"><svg width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\"><rect x=\"3\" y=\"11\" width=\"18\" height=\"11\" rx=\"2\" stroke=\"white\" stroke-width=\"2\"/><path d=\"M7 11V7a5 5 0 0 1 10 0v4\" stroke=\"white\" stroke-width=\"2\" stroke-linecap=\"round\"/><circle cx=\"12\" cy=\"16\" r=\"1.5\" fill=\"white\"/></svg></div><p style=\"font-family:'Cormorant Garamond',serif;font-size:0.6875rem;color:#E63FA8;letter-spacing:0.12em;margin-bottom:8px;\">無料登録で解放</p><h3 style=\"font-family:'Noto Serif JP',serif;font-size:1.0625rem;color:#3D2E3A;margin-bottom:8px;line-height:1.65;\">記録の蓄積を見るには<br>かんたん登録してください</h3><p style=\"font-size:0.8125rem;color:#A090A0;line-height:1.7;margin-bottom:22px;\">グラフ・週間カレンダー・体調パターンが<br>すべて無料で使えます。</p><button onclick=\"openRegModal()\" style=\"width:100%;max-width:260px;height:48px;border-radius:24px;background:linear-gradient(135deg,#E63FA8,#C02E8E);border:none;color:white;font-size:0.9375rem;font-family:'Noto Serif JP',serif;font-weight:600;cursor:pointer;box-shadow:0 4px 16px rgba(230,63,168,0.3)\">無料で登録する</button>';
+    screen.style.position = 'relative';
+    screen.appendChild(lock);
+  }
+
+  /* ── ウィザード ── */
+  const wizard   = document.getElementById('record-wizard');
+  const complete = document.getElementById('wizard-complete');
+  const progressFill = document.getElementById('wizardProgressFill');
+  const stepLabel    = document.getElementById('wizardStepLabel');
+  const nextBtn  = document.getElementById('wizardNextBtn');
+  const backBtn  = document.getElementById('wizardBackBtn');
+
+  function openWizard() {
+    currentStep = 1;
+    Object.assign(wizardData, { bodyScore:null, chakra:null, foodScore:null, foodItems:[], fastingHours:null, emotion:null, memo:'' });
+    document.querySelectorAll('.wizard-step').forEach(s => s.classList.remove('step-active','step-exit'));
+    document.querySelectorAll('.wizard-scale-btn,.wizard-chip,.chakra-visual-item,.wizard-emotion-card').forEach(el => el.classList.remove('selected'));
+    goToStep(1);
+    wizard.classList.add('wizard-open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeWizard() { wizard.classList.remove('wizard-open'); document.body.style.overflow = ''; }
+
+  function goToStep(step) {
+    if (!isRegistered() && step >= 2) { closeWizard(); openRegModal(); return; }
+    document.querySelectorAll('.wizard-step').forEach(s => {
+      const n = parseInt(s.dataset.step);
+      s.classList.remove('step-active','step-exit');
+      if (n === step) s.classList.add('step-active');
+      else if (n < step) s.classList.add('step-exit');
+    });
+    currentStep = step;
+    const pct = ((step-1)/(TOTAL_STEPS-1))*100;
+    progressFill.style.width = pct + '%';
+    stepLabel.textContent = step + ' / ' + TOTAL_STEPS;
+    backBtn.style.visibility = step > 1 ? 'visible' : 'hidden';
+    const isLast = step === TOTAL_STEPS;
+    nextBtn.textContent = isLast ? '記録を保存する' : '次へ';
+    nextBtn.className = 'wizard-next-btn' + (isLast ? ' btn-teal' : '');
+  }
+
+  nextBtn.addEventListener('click', () => { if (currentStep < TOTAL_STEPS) goToStep(currentStep+1); else saveWizardRecord(); });
+  backBtn.addEventListener('click', () => { if (currentStep > 1) goToStep(currentStep-1); });
+  document.getElementById('wizardCloseBtn').addEventListener('click', closeWizard);
+
+  /* Step1 */
+  document.querySelectorAll('#wBodyScaleRow .wizard-scale-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#wBodyScaleRow .wizard-scale-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected'); wizardData.bodyScore = parseInt(this.dataset.val);
+      setTimeout(() => goToStep(2), 320);
+    });
+  });
+
+  /* Step2 チャクラ */
+  document.querySelectorAll('#wChakraGrid .chakra-visual-item').forEach(card => {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('#wChakraGrid .chakra-visual-item').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected'); wizardData.chakra = this.dataset.chakra;
+      const map = {root:'bodyChakra1',sacral:'bodyChakra2',solar:'bodyChakra3',heart:'bodyChakra4',throat:'bodyChakra5',third_eye:'bodyChakra6'};
+      document.querySelectorAll('.chakra-glow-point').forEach(p => p.classList.remove('active'));
+      const el = document.getElementById(map[this.dataset.chakra]); if (el) el.classList.add('active');
+      setTimeout(() => goToStep(3), 350);
+    });
+  });
+  document.querySelectorAll('.chakra-glow-point').forEach(pt => {
+    pt.addEventListener('click', function() {
+      const item = document.querySelector('#wChakraGrid .chakra-visual-item[data-chakra="'+this.dataset.chakra+'"]');
+      if (item) item.click();
+    });
+  });
+  document.getElementById('wChakraSkip').addEventListener('click', () => goToStep(3));
+
+  /* Step3 食事 */
+  document.querySelectorAll('#wFoodScaleRow .wizard-scale-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#wFoodScaleRow .wizard-scale-btn').forEach(b => b.classList.remove('selected'));
+      this.classList.add('selected'); wizardData.foodScore = parseInt(this.dataset.val);
+    });
+  });
+  document.querySelectorAll('#wFoodChips .wizard-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      this.classList.toggle('selected');
+      const val = this.dataset.val, idx = wizardData.foodItems.indexOf(val);
+      if (idx === -1) wizardData.foodItems.push(val); else wizardData.foodItems.splice(idx,1);
+    });
+  });
+
+  /* Step4 断食 */
+  document.querySelectorAll('#wFastingChips .wizard-chip').forEach(chip => {
+    chip.addEventListener('click', function() {
+      document.querySelectorAll('#wFastingChips .wizard-chip').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected'); wizardData.fastingHours = this.dataset.val;
+      setTimeout(() => goToStep(5), 320);
+    });
+  });
+  document.getElementById('wFastingSkip').addEventListener('click', () => goToStep(5));
+
+  /* Step5 感情 */
+  document.querySelectorAll('#wEmotionGrid .wizard-emotion-card').forEach(card => {
+    card.addEventListener('click', function() {
+      document.querySelectorAll('#wEmotionGrid .wizard-emotion-card').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected'); wizardData.emotion = this.dataset.emotion;
+      setTimeout(() => goToStep(6), 320);
+    });
+  });
+
+  /* Step6 メモ */
+  document.getElementById('wMemoText').addEventListener('input', function() { wizardData.memo = this.value; });
+  document.getElementById('wMemoSkip').addEventListener('click', saveWizardRecord);
+
+  /* 保存 */
+  function saveWizardRecord() {
+    closeWizard();
+    if (!isRegistered()) return;
+    const today = new Date().toISOString().split('T')[0];
+    try {
+      const ex = JSON.parse(localStorage.getItem('kkRecords') || '{}');
+      ex[today] = { ...wizardData, savedAt: new Date().toISOString() };
+      localStorage.setItem('kkRecords', JSON.stringify(ex));
+    } catch(e) {}
+    showCompleteAnimation(); updateFabState();
+  }
+
+  function showCompleteAnimation() {
+    const name = localStorage.getItem('kkUserName') || '';
+    const streak = getStreak();
+    document.getElementById('completeTitle').textContent = (name ? name+'さん、' : '')+'記録できました 🌸';
+    document.getElementById('completeSub').textContent = streak > 1 ? streak+'日連続記録中✨\n今日もからだの声を聴いてくれてありがとう。' : '今日もからだの声を\n聴いてくれてありがとう。';
+    complete.classList.add('complete-show');
+    spawnPetals();
+    setTimeout(() => complete.classList.remove('complete-show'), 2800);
+  }
+
+  function spawnPetals() {
+    const colors = ['#E63FA8','#F2A8D8','#27B7B3','#7DD4D1','#F5D020'];
+    for (let i = 0; i < 18; i++) {
+      const p = document.createElement('div'); p.className = 'confetti-petal';
+      p.style.cssText = ['left:'+(15+Math.random()*70)+'%','top:'+(20+Math.random()*30)+'%','background:'+colors[Math.floor(Math.random()*colors.length)],'animation-delay:'+(Math.random()*0.6)+'s','animation-duration:'+(0.9+Math.random()*0.6)+'s','transform:rotate('+(Math.random()*360)+'deg)'].join(';');
+      complete.appendChild(p); setTimeout(() => p.remove(), 2000);
+    }
+  }
+
+  function updateFabState() {
+    const today = new Date().toISOString().split('T')[0];
+    const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
+    const fabBtn = document.getElementById('fabRecordBtn'); if (!fabBtn) return;
+    if (records[today]) { fabBtn.classList.add('recorded'); fabBtn.innerHTML = '<span>✓</span> 今日の記録済み'; }
+    else { fabBtn.classList.remove('recorded'); fabBtn.innerHTML = '<div class="fab-pulse"></div>今日を記録する'; }
+  }
+
+  function getStreak() {
+    try {
+      const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
+      let streak = 0, d = new Date(); d.setHours(0,0,0,0);
+      for (let i = 0; i < 365; i++) {
+        const key = d.toISOString().split('T')[0];
+        if (records[key]) { streak++; d.setDate(d.getDate()-1); } else if (i===0) { d.setDate(d.getDate()-1); } else break;
+      }
+      return streak;
+    } catch(e) { return 0; }
+  }
+
+  /* バインド */
+  function bindAll() {
+    ['homeRecordBtn','quickRecordBtn','fabRecordBtn'].forEach(id => {
+      const el = document.getElementById(id); if (el) { el.onclick = null; el.addEventListener('click', openWizard); }
+    });
+    document.querySelectorAll('[data-screen="record"]').forEach(el => { el.onclick = null; el.addEventListener('click', openWizard); });
+    // インサイトガード
+    document.querySelectorAll('[data-screen="insight"]').forEach(btn => {
+      btn.addEventListener('click', function(e) { if (!isRegistered()) { e.stopImmediatePropagation(); openRegModal(); } }, true);
+    });
+    // Premiumトリガー
+    document.querySelectorAll('.premium-trigger').forEach(btn => { btn.addEventListener('click', openPremiumModal); });
+  }
+
+  /* FAB表示 */
+  function updateFabVisibility() {
+    const fab = document.getElementById('homeRecordFab'); if (!fab) return;
+    const active = document.querySelector('.app-screen.active');
+    fab.style.display = (active && active.id === 'screen-home') ? 'block' : 'none';
+  }
+
+  /* 画面遷移 */
+  document.querySelectorAll('[data-screen]').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const target = this.dataset.screen; if (!target || target === 'record') return;
+      const cur = document.querySelector('.app-screen.active'), next = document.getElementById('screen-'+target);
+      if (!next || cur === next) return;
+      if (cur) cur.classList.add('screen-exit');
+      setTimeout(() => {
+        if (cur) cur.classList.remove('active','screen-exit');
+        next.classList.add('active','screen-enter');
+        requestAnimationFrame(() => next.classList.add('screen-enter-active'));
+        setTimeout(() => next.classList.remove('screen-enter','screen-enter-active'), 300);
+        updateFabVisibility();
+      }, 180);
+    });
+  });
+
+  /* PWA */
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault(); deferredPrompt = e;
+    if (!localStorage.getItem('kkPwaDismissed')) setTimeout(() => { const b = document.getElementById('pwa-banner'); if (b) b.classList.add('pwa-show'); }, 4000);
+  });
+  const pwaI = document.getElementById('pwaInstallBtn'); if (pwaI) pwaI.addEventListener('click', () => { document.getElementById('pwa-banner').classList.remove('pwa-show'); if (deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } });
+  const pwaD = document.getElementById('pwaDismissBtn'); if (pwaD) pwaD.addEventListener('click', () => { document.getElementById('pwa-banner').classList.remove('pwa-show'); localStorage.setItem('kkPwaDismissed','1'); });
+
+  /* PC */
+  function applyPcLayout() {
+    if (window.innerWidth >= 768) document.body.style.background = '#E8E4DE';
+  }
+
+  /* 初期化 */
+  function init() {
+    applyPcLayout();
+    bindAll();
+    injectInsightLock();
+    updateFabState();
+    updateFabVisibility();
+    if (isPremium()) document.querySelectorAll('.chart-blur-overlay,.report-lock-overlay').forEach(el => el.style.display = 'none');
+    setTimeout(bindAll, 600);
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+})();
+</script>
+<style>
+  /* PC対応 */
+  .app-shell { max-width:430px; margin:0 auto; min-height:100vh; position:relative; background:#FBF7F2; box-shadow:0 0 30px rgba(0,0,0,0.08); }
+  @media (min-width:768px) {
+    body { background:#E8E4DE; }
+    .app-shell { border-left:1px solid #ddd8d2; border-right:1px solid #ddd8d2; }
+    #record-wizard { max-width:430px; left:50%; right:auto; transform:translateX(-50%) translateY(100%); }
+    #record-wizard.wizard-open { transform:translateX(-50%) translateY(0); }
+    #wizard-complete, .home-record-fab, #pwa-banner { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
+    #reg-modal > div, #premium-modal > div { margin:auto; }
+  }
+  /* Toast */
+  #kk-toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#3D2E3A; color:white; padding:10px 22px; border-radius:22px; font-size:0.875rem; opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:600; white-space:nowrap; max-width:90vw; text-align:center; }
+  #kk-toast.toast-show { opacity:1; }
+</style>
+
 </body>
 </html>
