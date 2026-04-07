@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>kenkou kiroku App — 卵巣・女性の不調に特化したセルフレコードアプリ</title>
-  <meta name="description" content="チャクラ視点の体調記録・食事療法・プチ断食トラッキングを一つに。卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症など女性特有の不調に向き合うアプリ、準備中。">
+  <meta name="description" content="チャクラ視点の体調記録・食事療法・プチ断食トラッキングを一つに。卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症など女性特有の不調に向き合うアプリ。">
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <style>
@@ -14,14 +14,12 @@
       min-height: 92vh;
       display: flex;
       align-items: center;
-     background: linear-gradient(160deg, var(--color-plum) 0%, #4A2E56 50%, #2D4860 100%);
-
-
+      background: linear-gradient(160deg, var(--color-plum) 0%, #4A2E56 50%, #2D4860 100%);
       position: relative;
       overflow: hidden;
     }
 
-       .app-hero::before {
+    .app-hero::before {
       content: '';
       position: absolute;
       inset: 0;
@@ -30,7 +28,6 @@
       background-position: right center;
       opacity: 0.55;
     }
-
 
     .app-hero-grid {
       position: relative;
@@ -235,84 +232,7 @@
     }
 
     .feature-list {
-      margin-top: var(--space-4);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-2);
-    }
-
-    .feature-list li {
-      font-size: var(--text-xs);
-      color: var(--color-text-muted);
-      display: flex;
-      gap: var(--space-2);
-      align-items: flex-start;
-    }
-
-    .feature-list li::before {
-      content: '—';
-      color: var(--color-teal);
-      flex-shrink: 0;
-    }
-
-    /* Diseases focus section */
-    .diseases-section {
-      background-color: var(--color-white);
-      padding: var(--space-section) 0;
-    }
-
-    .diseases-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: var(--space-6);
-    }
-
-    .disease-card {
-      border-radius: var(--radius-lg);
-      padding: var(--space-8);
-      border: 1px solid var(--color-border);
-      transition: all var(--transition);
-    }
-
-    .disease-card:hover {
-      border-color: var(--color-teal);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .disease-icon {
-      font-size: 1.8rem;
-      margin-bottom: var(--space-4);
-      display: block;
-    }
-
-    .disease-name {
-      font-family: var(--font-serif);
-      font-size: var(--text-lg);
-      color: var(--color-plum);
-      margin-bottom: var(--space-3);
-      font-weight: 400;
-    }
-
-    .disease-desc {
-      font-size: var(--text-sm);
-      color: var(--color-text-light);
-      line-height: 2.0;
-    }
-
-    .disease-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: var(--space-2);
-      margin-top: var(--space-4);
-    }
-
-    .disease-tag {
-      font-size: var(--text-xs);
-      color: var(--color-teal-dark);
-      background-color: var(--color-bg-air);
-      border-radius: var(--radius-full);
-      padding: 0.2rem 0.7rem;
-      letter-spacing: 0.05em;
+      display: none;
     }
 
     /* Roadmap */
@@ -392,9 +312,7 @@
 
     /* Preregister */
     .prereg-section {
-     background: linear-gradient(160deg, var(--color-plum) 0%, #4A2E56 50%, #2D4860 100%);
-
-
+      background: linear-gradient(160deg, var(--color-plum) 0%, #4A2E56 50%, #2D4860 100%);
       padding: var(--space-section) 0;
       text-align: center;
       position: relative;
@@ -437,30 +355,6 @@
       justify-content: center;
     }
 
-    .prereg-input {
-      flex: 1;
-      min-width: 260px;
-      max-width: 360px;
-      padding: 0.9rem 1.5rem;
-      border-radius: var(--radius-full);
-      border: 1.5px solid rgba(255, 255, 255, 0.20);
-      background: rgba(255, 255, 255, 0.10);
-      color: var(--color-white);
-      font-size: var(--text-sm);
-      font-family: var(--font-sans);
-      letter-spacing: 0.04em;
-      outline: none;
-      transition: border-color var(--transition);
-    }
-
-    .prereg-input::placeholder {
-      color: rgba(255, 255, 255, 0.45);
-    }
-
-    .prereg-input:focus {
-      border-color: var(--color-teal);
-    }
-
     .prereg-note {
       margin-top: var(--space-5);
       font-size: var(--text-xs);
@@ -483,10 +377,6 @@
       .phone-sm:last-child {
         display: none;
       }
-
-      .diseases-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     @media (max-width: 640px) {
@@ -506,16 +396,15 @@
   <header class="site-header" id="site-header">
     <div class="header-inner">
       <a href="index.html" class="site-logo">
-       <img src="images/logo-nav.png (1)" alt="kenkou kiroku" style="height:80px;width:auto;">
+        <img src="images/logo-nav.png (1)" alt="kenkou kiroku" style="height:80px;width:auto;">
       </a>
 
-      <nav class="site-nav">
+      <nav class="site-nav" aria-label="メインナビゲーション">
         <a href="index.html#concept" class="nav-link">コンセプト</a>
         <a href="https://kenkou-kiroku.com" class="nav-link">ブログ</a>
-        <a href="index.html#concerns" class="nav-link">お悩み別</a>
         <a href="app.html" class="nav-link" style="color: var(--color-teal);">アプリ</a>
         <a href="index.html#profile" class="nav-link">プロフィール</a>
-        <a href="#prereg" class="btn btn-secondary header-cta">事前登録する</a>
+        <a href="https://page.line.me/384xpfml" class="btn btn-primary header-cta">無料ガイドを受け取る</a>
       </nav>
 
       <button class="hamburger" id="hamburger-btn" aria-label="メニューを開く" aria-expanded="false">
@@ -524,43 +413,35 @@
     </div>
   </header>
 
-  <nav class="mobile-nav" id="mobile-nav">
+  <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション">
     <a href="index.html#concept" class="mobile-nav-link">コンセプト</a>
     <a href="https://kenkou-kiroku.com" class="mobile-nav-link">ブログ</a>
-    <a href="index.html#concerns" class="mobile-nav-link">お悩み別</a>
     <a href="app.html" class="mobile-nav-link">アプリ</a>
     <a href="index.html#profile" class="mobile-nav-link">プロフィール</a>
-    <a href="#prereg" class="btn btn-primary" style="margin-top: 1rem; justify-content: center;">事前登録する</a>
+    <a href="https://page.line.me/384xpfml" class="btn btn-primary" style="margin-top: 1rem; justify-content: center;">無料ガイドを受け取る</a>
   </nav>
 
   <main>
 
-    <!-- App Hero -->
+    <!-- Section 1: App Hero -->
     <section class="app-hero" aria-labelledby="app-hero-title">
       <div class="container">
         <div class="app-hero-grid">
           <div class="app-hero-content">
-            <div class="hero-badge">
-              <span>App Release</span>
-            </div>
-
             <h1 class="app-hero-title" id="app-hero-title">
               記録が、<em>整い</em>になる。<br>
               kenkou kiroku App
             </h1>
 
             <p class="app-hero-desc">
-              卵巣嚢腫・PCOS・子宮内膜症・子宮筋腫など、<br>
               女性特有の不調に特化した<br>
               チャクラ視点のセルフレコードアプリ。<br>
-              体調・食事・感情・断食をひとつにまとめて、<br>
-              あなたの内側の流れを静かに見つめます。
+              体調・食事・感情・断食をひとつに。
             </p>
 
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 0.5rem;">
-              <a href="kk-app.html" class="btn btn-primary" style="flex: 1 1 auto; min-width: 180px; text-align: center; justify-content: center;">アプリを開く（無料）</a>
-              <a href="#features" class="btn" style="flex: 1 1 auto; min-width: 180px; text-align: center; justify-content: center; background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.20); color: rgba(255,255,255,0.80);">機能を見る</a>
-              <a href="chakra-test.html" class="btn" style="flex: 1 1 auto; min-width: 180px; text-align: center; justify-content: center; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.30); color: rgba(255,255,255,0.95);">無料チャクラ診断 →</a>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+              <a href="kk-app.html" class="btn btn-primary">アプリを開く（無料）</a>
+              <a href="chakra-test.html" class="btn" style="background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.30); color: rgba(255,255,255,0.95);">無料チャクラ診断 →</a>
             </div>
           </div>
 
@@ -636,191 +517,60 @@
       </div>
     </section>
 
-    <!-- Disease Focus -->
-    <section class="diseases-section" aria-labelledby="diseases-title">
-      <div class="container">
-        <div class="section-header">
-          <span class="section-en">Specialized For</span>
-          <h2 class="section-title" id="diseases-title">女性特有の不調に、特化して寄り添う</h2>
-          <div class="deco-line"></div>
-          <p class="section-desc">
-            このアプリは「すべての健康」を対象にしていません。<br>
-            卵巣・女性ホルモン・骨盤まわりの不調に向き合う方に向けて、特化した設計をしています。
-          </p>
-        </div>
-
-        <div class="diseases-grid">
-          <div class="disease-card">
-            <h3 class="disease-name">卵巣嚢腫</h3>
-            <p class="disease-desc">
-              骨盤まわりの違和感、痛みの波、月経周期との関係。
-              日々の変動を記録し、自分のパターンを把握します。
-            </p>
-            <div class="disease-tags">
-              <span class="disease-tag">痛み記録</span>
-              <span class="disease-tag">体感ログ</span>
-              <span class="disease-tag">周期トラッキング</span>
-            </div>
-          </div>
-
-          <div class="disease-card">
-            <h3 class="disease-name">PCOS・多嚢胞性卵巣</h3>
-            <p class="disease-desc">
-              月経不順、ホルモン変動、血糖・代謝への影響。
-              食事・運動・感情とのつながりを長期で観察します。
-            </p>
-            <div class="disease-tags">
-              <span class="disease-tag">月経記録</span>
-              <span class="disease-tag">食事療法</span>
-              <span class="disease-tag">ホルモン観察</span>
-            </div>
-          </div>
-
-          <div class="disease-card">
-            <h3 class="disease-name">子宮内膜症</h3>
-            <p class="disease-desc">
-              慢性的な痛み、疲労、低気分など「見えない辛さ」を
-              言語化・記録することで、自己理解と伴走の土台をつくります。
-            </p>
-            <div class="disease-tags">
-              <span class="disease-tag">疲労記録</span>
-              <span class="disease-tag">感情ログ</span>
-              <span class="disease-tag">痛みの波</span>
-            </div>
-          </div>
-
-          <div class="disease-card">
-            <h3 class="disease-name">子宮筋腫</h3>
-            <p class="disease-desc">
-              経血量の増加、下腹部の重圧感、たびたびの疲労。
-              食事とホルモンバランスの記録から、自分のリズムを把握します。
-            </p>
-            <div class="disease-tags">
-              <span class="disease-tag">経血量記録</span>
-              <span class="disease-tag">食事療法</span>
-              <span class="disease-tag">疲労ログ</span>
-            </div>
-          </div>
-
-        </div>
-
-        <p class="text-center text-muted" style="margin-top: 2rem; font-size: var(--text-sm);">
-          ※ このアプリは医療機器・医療アドバイスではありません。受診・治療の代替にはなりません。
-        </p>
-      </div>
-    </section>
-
-    <!-- Features -->
+    <!-- Section 2: Features -->
     <section class="features-section" id="features" aria-labelledby="features-title">
       <div class="container">
         <div class="section-header">
-          <span class="section-en">Features</span>
           <h2 class="section-title" id="features-title">3つの軸で、内側の流れを整える</h2>
-          <div class="deco-line"></div>
         </div>
 
         <div class="features-grid">
 
           <div class="feature-card chakra">
-            <div class="feature-icon-badge pink" aria-hidden="true"></div>
             <div class="feature-en">Chakra & Body</div>
             <h3 class="feature-title">チャクラ体調チェック</h3>
             <p class="feature-desc">
-              骨盤まわりの感覚・感情・エネルギー状態を
-              チャクラという感覚軸で記録。難しいスピリチュアル知識は不要。
-              日常の言葉で「今日のからだ」を見つめます。
+              骨盤まわりの感覚・感情・エネルギー状態を<br>
+              チャクラという感覚軸で記録します。
             </p>
-            <ul class="feature-list">
-              <li>第2チャクラ（骨盤・感情・めぐり）を中心に観察</li>
-              <li>感情ログ × 体感記録の連携</li>
-              <li>月経周期との対応確認</li>
-              <li>簡易呼吸ガイド・セルフチェック</li>
-            </ul>
           </div>
 
           <div class="feature-card food">
-            <div class="feature-icon-badge gold" aria-hidden="true"></div>
             <div class="feature-en">Food Therapy</div>
             <h3 class="feature-title">食事療法サポート</h3>
             <p class="feature-desc">
-              カロリー管理ではなく、「食後のからだの声」を記録する食事ログ。
+              カロリー管理ではなく、食後のからだの声を記録。<br>
               卵巣・ホルモンに寄り添う食材ガイドつき。
-              整える食事を、毎日の習慣に。
             </p>
-            <ul class="feature-list">
-              <li>食後の体感記録（温かい・重い・軽いなど）</li>
-              <li>ホルモンケア食材リスト</li>
-              <li>抗炎症・温め食材のガイド</li>
-              <li>食事 × 体調の週次サマリー</li>
-            </ul>
           </div>
 
           <div class="feature-card fasting">
-            <div class="feature-icon-badge teal" aria-hidden="true"></div>
             <div class="feature-en">Mini Fasting</div>
             <h3 class="feature-title">プチ断食トラッキング</h3>
             <p class="feature-desc">
-              12〜16時間断食などのやさしいプチ断食を
-              記録・サポート。女性ホルモンへの影響も踏まえた
-              無理のない断食習慣を後押しします。
+              12〜16時間のやさしいプチ断食を記録・サポート。<br>
+              女性ホルモンへの影響も踏まえた設計。
             </p>
-            <ul class="feature-list">
-              <li>断食時間タイマー（12h / 14h / 16h選択）</li>
-              <li>断食中の気分・体感メモ</li>
-              <li>断食明けの食事アドバイス</li>
-              <li>月次断食ログと傾向グラフ</li>
-            </ul>
           </div>
 
           <div class="feature-card insight">
-            <div class="feature-icon-badge plum" aria-hidden="true"></div>
             <div class="feature-en">Weekly Insight</div>
             <h3 class="feature-title">振り返りと気づき</h3>
             <p class="feature-desc">
-              記録が積み重なると、自分だけのパターンが見えてきます。
-              体調・食事・断食・感情の傾向を可視化し、
-              内側の流れを静かに理解していきます。
+              体調・食事・断食・感情の傾向を可視化し、<br>
+              あなただけのパターンを見つけます。
             </p>
-            <ul class="feature-list">
-              <li>週次 / 月次サマリーレポート</li>
-              <li>体調と食事の相関グラフ</li>
-              <li>継続記録カレンダー</li>
-              <li>気づきメモの一覧・検索</li>
-            </ul>
           </div>
 
         </div>
       </div>
     </section>
 
-    <!-- Chakra Test CTA -->
-    <section class="section" style="background: linear-gradient(135deg, #FBF7F2 0%, #F3EBF5 100%); padding: var(--space-12) 0; border-top: 1px solid rgba(230,63,168,0.10);">
-      <div class="container">
-        <div style="max-width: 640px; margin: 0 auto; text-align: center;">
-          <span style="display: inline-block; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-teal); font-weight: 600; margin-bottom: 1rem;">Chakra Diagnostic</span>
-          <h2 style="font-family: var(--font-serif); font-size: clamp(1.4rem, 3vw, 2rem); color: var(--color-ink); margin-bottom: 1rem; line-height: 1.5;">あなたのからだは、どのタイプ？</h2>
-          <p style="color: var(--color-muted); font-size: var(--text-base); line-height: 1.8; margin-bottom: 0.75rem;">
-            8つの質問に答えるだけで、<strong style="color: var(--color-ink);">7つのチャクラタイプ</strong>から<br>
-            あなたに合った体質と食事法が見つかります。
-          </p>
-          <p style="color: var(--color-muted); font-size: var(--text-sm); margin-bottom: 2rem;">
-            所要時間：約2分 ／ 完全無料
-          </p>
-          <a href="chakra-test.html" class="btn btn-primary" style="font-size: 1rem; padding: 0.9rem 2.5rem;">
-            無料チャクラ診断をはじめる
-          </a>
-          <p style="margin-top: 1rem; font-size: 0.75rem; color: var(--color-muted);">診断後、あなたに合った食事法をご提案します</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- App Now Available -->
+    <!-- Section 3: Roadmap (App Now Available) -->
     <section class="roadmap-section" aria-labelledby="app-available-title">
       <div class="container">
         <div class="section-header">
-          <span class="section-en">Now Available</span>
           <h2 class="section-title" id="app-available-title">アプリ公開中</h2>
-          <div class="deco-line"></div>
         </div>
 
         <div class="roadmap-list">
@@ -837,9 +587,9 @@
             <div class="roadmap-dot active" aria-label="公開済み">✓</div>
             <div class="roadmap-content">
               <div class="roadmap-status live">Live — 無料公開中</div>
-             <h4>kenkou kiroku アプリ</h4>
-<p>チャクラ観察・食事療法記録・プチ断食トラッキング・感情記録・インサイトグラフ。すべて無料でご利用いただけます。</p>
-<a href="kk-app.html" style="display:inline-block; margin-top:0.75rem; color:var(--color-teal); font-size:0.875rem; font-weight:600; text-decoration:none;">アプリを開く →</a>
+              <h4>kenkou kiroku アプリ</h4>
+              <p>チャクラ観察・食事療法記録・プチ断食トラッキング・感情記録・インサイトグラフ。すべて無料でご利用いただけます。</p>
+              <a href="kk-app.html" style="display:inline-block; margin-top:0.75rem; color:var(--color-teal); font-size:0.875rem; font-weight:600; text-decoration:none;">アプリを開く →</a>
             </div>
           </div>
 
@@ -855,83 +605,77 @@
       </div>
     </section>
 
-    <!-- Pre-registration -->
+    <!-- Section 4: LINE Registration CTA -->
     <section class="prereg-section" id="prereg" aria-labelledby="prereg-title">
       <div class="container">
         <div class="prereg-inner">
-          <span class="section-en">Pre-Registration</span>
           <h2 class="section-title" id="prereg-title">
             あなたの"整える日々"を、一緒に始めませんか？
           </h2>
-          <div class="deco-line"></div>
-          <p class="section-desc">
-            LINEで登録するだけ。新機能やPremiumの先行案内をお届けします。
-          </p>
 
           <div class="prereg-form" style="margin-top:2rem; display:flex; flex-direction:column; align-items:center; gap:0.75rem;">
-  <a href="https://page.line.me/384xpfml" target="_blank" rel="noopener noreferrer"
-     style="display:inline-block; background:#06C755; color:#fff; padding:14px 40px; border-radius:25px; text-decoration:none; font-size:1rem; font-weight:600; min-width:280px; text-align:center; box-shadow:0 4px 14px rgba(6,199,85,0.35);">
-    LINEで無料登録する
-  </a>
-</div>
-
+            <a href="https://page.line.me/384xpfml" target="_blank" rel="noopener noreferrer"
+               style="display:inline-block; background:#06C755; color:#fff; padding:12px 32px; border-radius:25px; text-decoration:none; font-size:0.9rem; font-weight:600; min-width:280px; text-align:center;">
+              LINEで無料登録する
+            </a>
+          </div>
 
           <p class="prereg-note">
-            ご登録は無料です。通知は月2〜3回。いつでも解除できます。
+            ご登録は無料です。いつでも解除できます。
           </p>
         </div>
-      </div>
-    </section>
-
-    <!-- Back to blog CTA -->
-    <section class="section" style="background-color: var(--color-white); padding: var(--space-12) 0; text-align: center;">
-      <div class="container">
-        <p class="section-desc" style="margin-bottom: 1.5rem;">
-          アプリ公開まで、ブログで知識を深めておきましょう。
-        </p>
-        <a href="https://kenkou-kiroku.com" class="btn btn-secondary">
-          ブログ記事を読む
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7h8M7 3l4 4-4 4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </a>
       </div>
     </section>
 
   </main>
 
   <!-- Footer -->
-  <footer class="site-footer" role="contentinfo">
+  <footer class="site-footer" id="footer" role="contentinfo">
     <div class="container">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <div class="site-logo">
-          <img src="images/logo-nav.png (1)" alt="kenkou kiroku" style="height:48px;width:auto;">
-          </div>
-          <p class="footer-tagline">からだを整えることは、意識を澄ませること。</p>
-        </div>
-        <div>
-          <div class="footer-nav-title">Contents</div>
-          <ul class="footer-nav-list">
-            <li><a href="index.html">ホーム</a></li>
-            <li><a href="https://kenkou-kiroku.com">ブログ一覧</a></li>
-            <li><a href="index.html#gift">無料ガイド</a></li>
-          </ul>
-        </div>
-        <div>
-          <div class="footer-nav-title">App</div>
-          <ul class="footer-nav-list">
-            <li><a href="#features">機能紹介</a></li>
-            <li><a href="#roadmap">ロードマップ</a></li>
-            <li><a href="#prereg">事前登録</a></li>
-          </ul>
-        </div>
+      <!-- Footer Navigation -->
+      <div class="footer-nav">
+        <a href="index.html">コンセプト</a>
+        <a href="https://kenkou-kiroku.com">ブログ</a>
+        <a href="app.html">アプリ</a>
+        <a href="index.html#profile">プロフィール</a>
       </div>
-      <div class="footer-bottom">
-        <p class="footer-copy">© 2025–2026 kenkou kiroku. All rights reserved.</p>
-        <div class="footer-legal">
-          <a href="#">プライバシーポリシー</a>
-          <a href="#">免責事項</a>
-        </div>
+
+      <!-- Disclaimer Section -->
+      <div class="footer-disclaimer">
+        <h3>医療情報に関する免責事項</h3>
+        <p>
+          本サイトに掲載されている情報は、医学的なアドバイスではありません。
+          卵巣嚢腫、PCOS、子宮筋腫、子宮内膜症などの診断や治療については、
+          必ず医師に相談してください。
+        </p>
+        <p>
+          チャクラについて：本サイトで紹介するチャクラの概念は、
+          スピリチュアルな視点から身体と感情の関係を観察するためのフレームワークです。
+          医学的な根拠を持つものではありません。
+        </p>
+        <p>
+          プチ断食について：断食は個人差があり、すべての人に適切ではありません。
+          特に妊娠中、授乳中、または医学的な治療を受けている場合は、
+          医師に相談してから始めてください。
+        </p>
+      </div>
+
+      <!-- Footer Links -->
+      <div class="footer-links">
+        <a href="privacy.html" class="footer-link">プライバシーポリシー</a>
+        <a href="disclaimer.html" class="footer-link">免責事項</a>
+        <a href="contact.html" class="footer-link">お問い合わせ</a>
+      </div>
+
+      <!-- Copyright -->
+      <div class="footer-copyright">
+        <p>&copy; 2025–2026 kenkou kiroku. All rights reserved.</p>
       </div>
     </div>
   </footer>
 
+  <!-- Scripts -->
+  <script src="js/main.js"></script>
+
+</body>
+</html>

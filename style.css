@@ -647,20 +647,51 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-nav {
   display: flex;
-  justify-content: center;
   gap: var(--space-8);
   margin-bottom: var(--space-12);
   flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  padding-top: var(--space-6);
+}
+
+.footer-nav::before {
+  content: 'Menu';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: var(--text-xs);
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.60);
+  text-transform: uppercase;
 }
 
 .footer-nav a {
-  font-size: var(--text-sm);
-  color: var(--color-text-light);
-  transition: color var(--transition);
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.85);
+  transition: all var(--transition);
+  text-decoration: none;
+  position: relative;
+}
+
+.footer-nav a::after {
+  content: '｜';
+  margin: 0 var(--space-4);
+  color: rgba(255, 255, 255, 0.30);
+}
+
+.footer-nav a:last-child::after {
+  content: '';
+  margin: 0;
 }
 
 .footer-nav a:hover {
-  color: var(--color-pink);
+  color: var(--color-teal-light);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 
 .footer-disclaimer {
