@@ -454,11 +454,12 @@
        ===================================================== */
     .home-record-fab {
       position: fixed;
-      bottom: calc(72px + env(safe-area-inset-bottom));
+      bottom: calc(68px + env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 100;
       white-space: nowrap;
+      pointer-events: auto;
     }
     .home-record-fab-btn {
       height: 52px;
@@ -2307,7 +2308,7 @@
 <!-- =====================================================
      FABボタン（ホーム画面）
      ===================================================== -->
-<div class="home-record-fab" id="homeRecordFab">
+<div class="home-record-fab" id="homeRecordFab" style="display:none;">
   <button class="home-record-fab-btn ripple-btn" id="fabRecordBtn">
     今日を記録する
   </button>
@@ -2709,7 +2710,10 @@
   function updateFabVisibility() {
     const fab = document.getElementById('homeRecordFab'); if (!fab) return;
     const active = document.querySelector('.app-screen.active');
-    fab.style.display = (active && active.id === 'screen-home') ? 'block' : 'none';
+    const isHome = active && active.id === 'screen-home';
+    fab.style.display = isHome ? 'block' : 'none';
+    // ウェルカム画面・ウィザード中はポインターイベントも無効化
+    fab.style.pointerEvents = isHome ? 'auto' : 'none';
   }
 
   /* 画面遷移（改善4: 方向付き + 改善2: バウンス） */
@@ -2826,7 +2830,9 @@
     .app-shell { border-left:1px solid #ddd8d2; border-right:1px solid #ddd8d2; }
     #record-wizard { max-width:430px; left:50%; right:auto; transform:translateX(-50%) translateY(100%); }
     #record-wizard.wizard-open { transform:translateX(-50%) translateY(0); }
-    #wizard-complete, .home-record-fab, #pwa-banner { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
+    #wizard-complete { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
+    .home-record-fab { max-width:430px; }
+    #pwa-banner { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
     #reg-modal > div, #premium-modal > div { margin:auto; }
   }
   /* Toast */
