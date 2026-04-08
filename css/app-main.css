@@ -861,13 +861,13 @@ width:100% !important;
   margin-bottom: var(--sp-5);
   letter-spacing: 0.02em;
 }
-.welcome-desc {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
-  line-height: 1.9;
-  max-width: 100%; /* ここを書き換え */
+.welcome-desc{
+ font-size:0.9375rem;
+   color:var(--text-secondary);
+    line-height:1.9;
+   width:100%!important;
+   max-width:100%!important;
 }
-
 .welcome-dots {
   display: flex;
   justify-content: center;
