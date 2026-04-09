@@ -6,12 +6,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#FBF7F2">
-  <title>kenkou kiroku — からだの記録アプリ</title>
-  <meta name="description" content="卵巣・女性のからだを食と意識で整える、蓄積型健康記録アプリ。チャクラ・食事療法・プチ断食・感情を記録して、あなただけのパターンを発見する。">
+  <title>ippo - からだを見つめ直すセルフレコードアプリ</title>
+  <meta name="description" content="ippo App は、チャクラ・食事療法・プチ断食・感情の4つの視点から、女性のからだを記録するセルフケアアプリです。">
   <link rel="stylesheet" href="css/app-main.css">
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
-  <meta name="apple-mobile-web-app-title" content="kenkou kiroku">
+  <meta name="apple-mobile-web-app-title" content="ippo">
   <!-- Phosphor Icons -->
   <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/light/style.css">
   <!-- Lottie Player -->
@@ -754,8 +754,8 @@
             <circle cx="70" cy="70" r="9" fill="url(#petalPink)" opacity="0.6"/>
           </svg>
         </div>
-        <p class="welcome-tag">kenkou kiroku</p>
-        <h1 class="welcome-title">からだを整えることは、<br>意識を澄ませること。</h1>
+        <p class="welcome-tag">ippo</p>
+        <h1 class="welcome-title">からだに還る、<br>一歩</h1>
         <p class="welcome-desc">卵巣・女性のからだのために。<br>食事・チャクラ・プチ断食・感情を毎日記録して、<br>あなただけのパターンを発見しましょう。</p>
       </div>
 
@@ -835,7 +835,9 @@
 
     <!-- ヘッダー -->
     <header class="app-header" id="homeHeader">
-      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <a class="app-header-logo" href="#">
+        <span class="logo-i">i</span>ppo
+      </a>
       <div class="app-header-actions">
         <button class="btn-icon" id="homeCalendarBtn" aria-label="カレンダー" title="記録履歴">cal</button>
         <button class="btn-icon" id="homeNotifBtn" aria-label="お知らせ" title="通知">—</button>
@@ -921,6 +923,12 @@
         </button>
       </div>
 
+      <!-- sumiメッセージ -->
+      <div id="sumiMessage" class="app-card app-card-padded" style="margin:0 var(--sp-5) var(--sp-5); display:none;">
+        <div class="app-section-sub">a letter to you</div>
+        <p id="sumiMessageText" style="font-family:var(--font-serif); font-size:0.9375rem; color:var(--text-primary); line-height:2; margin-top:var(--sp-3);"></p>
+      </div>
+
       <!-- チャクラ診断テスト誘導 -->
       <div id="chakraTestBanner" style="margin: 0 var(--sp-5) var(--sp-4); padding: var(--sp-5); background: linear-gradient(135deg, var(--pink-pale), var(--teal-pale)); border-radius: var(--radius-lg); border: 1px solid var(--border-light);">
         <p style="font-family: var(--font-accent); font-size: 0.6875rem; color: var(--pink); letter-spacing: 0.10em; margin-bottom: var(--sp-2);">chakra diagnosis</p>
@@ -946,7 +954,9 @@
 
     <!-- ヘッダー -->
     <header class="app-header" id="recordHeader">
-      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <a class="app-header-logo" href="#">
+        <span class="logo-i">i</span>ppo
+      </a>
       <div class="app-header-actions">
         <button class="btn-icon" id="recordSaveBtn" aria-label="保存" title="記録を保存" style="font-size:0.6875rem; letter-spacing:0.05em; font-family:var(--font-sans);">save</button>
       </div>
@@ -964,6 +974,7 @@
       <!-- タブ -->
       <div class="record-tabs" role="tablist">
         <button class="record-tab active" role="tab" data-tab="chakra">チャクラ</button>
+        <button class="record-tab" role="tab" data-tab="rhythm">リズム</button>
         <button class="record-tab" role="tab" data-tab="food">食事</button>
         <button class="record-tab" role="tab" data-tab="fasting">断食</button>
         <button class="record-tab" role="tab" data-tab="emotion">感情</button>
@@ -1059,6 +1070,49 @@
             <div class="chip" data-val="period_after">生理後</div>
             <div class="chip" data-val="none">特になし</div>
           </div>
+        </div>
+      </div>
+
+      <!-- リズムパネル -->
+      <div class="record-panel" id="panel-rhythm" role="tabpanel">
+        <h3 class="chakra-section-title">基礎体温と月経周期を記録する</h3>
+        <p class="chakra-section-sub">からだのリズムを観察することで、ホルモンバランスの変化が見えてきます。</p>
+
+        <!-- 基礎体温 -->
+        <div class="form-group">
+          <label class="form-label">基礎体温</label>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="number" id="basalTemp" class="form-input" placeholder="36.5" min="35" max="38" step="0.1" style="flex: 1;">
+            <span style="font-size: 0.9375rem; color: var(--text-primary);">℃</span>
+          </div>
+        </div>
+
+        <!-- 月経周期 -->
+        <div class="form-group">
+          <label class="form-label">月経周期の状態</label>
+          <div class="chip-group" id="menstrualCycleChips">
+            <div class="chip" data-val="menstruating">生理中</div>
+            <div class="chip" data-val="pre-ovulation">卵胞期</div>
+            <div class="chip" data-val="ovulation">排卵期</div>
+            <div class="chip" data-val="luteal">黄体期</div>
+            <div class="chip" data-val="unknown">不明</div>
+          </div>
+        </div>
+
+        <!-- 月経量 -->
+        <div class="form-group" id="menstrualFlowGroup" style="display: none;">
+          <label class="form-label">月経量</label>
+          <div class="chip-group" id="menstrualFlowChips">
+            <div class="chip" data-val="light">少ない</div>
+            <div class="chip" data-val="normal">普通</div>
+            <div class="chip" data-val="heavy">多い</div>
+          </div>
+        </div>
+
+        <!-- リズムメモ -->
+        <div class="form-group">
+          <label class="form-label">リズムについてのメモ</label>
+          <textarea id="rhythmNote" class="form-textarea" placeholder="例：今月は周期が短かった。ストレスが影響しているのかも。" rows="3"></textarea>
         </div>
       </div>
 
@@ -1423,6 +1477,15 @@
           </div>
         </div>
 
+        <!-- ジャーナル区切り線 -->
+        <div style="margin: var(--sp-8) 0; border-top: 1px solid var(--border-light);"></div>
+
+        <!-- ジャーナルセクション -->
+        <div style="margin-bottom: var(--sp-6);">
+          <h4 style="font-family: var(--font-serif); font-size: 0.9375rem; color: var(--text-primary); margin-bottom: var(--sp-3); font-weight: 400;">Journal</h4>
+          <p style="font-size: 0.8125rem; color: var(--text-muted); line-height: 1.6; margin-bottom: var(--sp-4);">からだとこころの対話を、自由に書き留めましょう。</p>
+        </div>
+
         <!-- 今日の出来事 -->
         <div class="form-group">
           <label class="form-label">今日の出来事・心に残ったこと</label>
@@ -1455,7 +1518,9 @@
   <section id="screen-insight" class="app-screen" aria-label="インサイト">
 
     <header class="app-header" id="insightHeader">
-      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <a class="app-header-logo" href="#">
+        <span class="logo-i">i</span>ppo
+      </a>
       <div class="app-header-actions">
         <button class="btn-icon" aria-label="エクスポート" title="データをエクスポート" style="font-size:0.6875rem; letter-spacing:0.05em; font-family:var(--font-sans);">exp</button>
       </div>
@@ -1480,8 +1545,10 @@
 
       <!-- ヒーロー -->
       <div class="insight-hero">
-        <p class="insight-hero-tag">your body's story</p>
-        <h2 class="insight-hero-title">蓄積された記録が語ること</h2>
+        <div style="position:absolute;top:-60px;right:-40px;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(230,63,168,0.10) 0%,transparent 70%);pointer-events:none;"></div>
+        <div style="position:absolute;top:80px;left:-30px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(39,183,179,0.08) 0%,transparent 70%);pointer-events:none;"></div>
+        <div class="app-section-sub">your body's story</div>
+        <h2 class="insight-hero-main">蓯積された記録が語ること</h2>
         <p class="insight-hero-desc" id="insightHeroDesc">記録を続けるほど、あなただけのパターンが見えてきます。</p>
       </div>
 
@@ -1617,6 +1684,12 @@
         </div>
       </div>
 
+      <!-- アンロックカードセクション -->
+      <div id="unlockCardsContainer" style="display:none;">
+        <h3 class="app-section-title" style="margin-bottom: var(--sp-4); margin-top: var(--sp-6);">記録日数で解放される機能</h3>
+        <div id="unlockCards"></div>
+      </div>
+
       <!-- パターン分析カード -->
       <div class="insight-patterns-section" id="insightPatterns">
         <h3 class="app-section-title" style="margin-bottom: var(--sp-4);">発見されたパターン</h3>
@@ -1679,7 +1752,9 @@
   <section id="screen-settings" class="app-screen" aria-label="設定">
 
     <header class="app-header">
-      <span class="app-header-logo">kenkou <span>kiroku</span></span>
+      <a class="app-header-logo" href="#">
+        <span class="logo-i">i</span>ppo
+      </a>
     </header>
 
     <div class="app-content">

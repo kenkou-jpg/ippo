@@ -306,12 +306,13 @@ body {
 
 .app-header-logo {
   font-family: var(--font-accent);
-  font-size: 1.125rem;
+  font-size: 1.25rem;
+  font-weight: 500;
   color: var(--text-primary);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   text-decoration: none;
 }
-.app-header-logo span {
+.app-header-logo .logo-i {
   color: var(--pink);
 }
 
@@ -786,10 +787,17 @@ input[type="range"]::-webkit-slider-thumb:hover {
   height: 100vh;
   overflow: hidden;
   position: relative;
+width:100% !important;
 }
 .welcome-slide {
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -800,7 +808,10 @@ input[type="range"]::-webkit-slider-thumb:hover {
   transform: translateX(30px);
   transition: all var(--duration-slow) var(--ease-out);
   pointer-events: none;
+  word-break: normal;
+  white-space: normal;
 }
+
 .welcome-slide.active {
   opacity: 1;
   transform: translateX(0);
@@ -851,13 +862,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
   margin-bottom: var(--sp-5);
   letter-spacing: 0.02em;
 }
-.welcome-desc {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
-  line-height: 1.9;
-  max-width: 320px;
+.welcome-desc{
+ font-size:0.9375rem;
+ color:var(--text-secondary);
+ line-height:1.9;
+ width:100vw !important;
+ max-width:100% !important;
+ display: block !important;
 }
-
 .welcome-dots {
   display: flex;
   justify-content: center;
@@ -3247,3 +3259,242 @@ button:active,
     border-right: 1px solid #e8e4de;
   }
 }
+.welcome-slides, 
+.welcome-slide, 
+.welcome-desc {
+  width: 100% !important;
+  max-width: 1000px !important; /* PCでの理想的な幅 */
+}
+.welcome-slides, 
+.welcome-slide, 
+.welcome-desc {
+  width: 100vw !important;        /* 画面の横幅いっぱいに強制 */
+  max-width: 100% !important;     /* 制限を解除 */
+  min-width: 100% !important;     /* 24pxなどの極小化を防止 */
+  left: 0 !important;             /* 左端に固定 */
+  transform: none !important;     /* JSによる画面外への追い出しを無効化 */
+  display: flex !important;       /* レイアウト構造を維持 */
+  align-items: center !important;  /* 中央寄せ */
+  justify-content: center !important;
+}
+.welcome-desc {
+  padding: 0 10% !important;      /* 左右に適度な余白を作る */
+  white-space: normal !important; /* 折り返しを正常にする */
+  word-break: normal !important;
+}
+#welcomeNextBtn {
+  width: 90% !important;
+  max-width: 350px !important;    /* ボタンが横に伸びすぎないように制限 */
+  margin: 20px auto !important;
+  display: block !important;
+  position: relative !important;
+  pointer-events: auto !important; /* クリック可能にする */
+}
+
+
+/* ════════════════════════════════════════════
+   F1-4: MILESTONE DISPLAY ENHANCEMENT
+   ════════════════════════════════════════════ */
+.milestone-banner.show {
+  animation: milestoneReveal 0.8s var(--ease-out) both;
+}
+
+@keyframes milestoneReveal {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  60% { transform: translateY(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ════════════════════════════════════════════
+   D-5: RECORD SCREEN SPACING & BREATHING
+   ════════════════════════════════════════════ */
+.record-panel.active {
+  display: block;
+  padding: var(--sp-6) var(--sp-5) var(--sp-8);
+  animation: screenFadeIn var(--duration-normal) var(--ease-out) both;
+}
+
+@keyframes screenFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+.form-group {
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-6) var(--sp-5) var(--sp-5);
+}
+
+.chakra-section-sub {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-bottom: var(--sp-8);
+  line-height: 1.9;
+}
+
+.range-group {
+  margin-bottom: var(--sp-8);
+  padding: var(--sp-4) 0;
+}
+
+/* ════════════════════════════════════════════
+   D-6: INSIGHT SCREEN VISUAL ENHANCEMENT
+   ════════════════════════════════════════════ */
+.insight-hero {
+  padding: var(--sp-8) var(--sp-5) var(--sp-6);
+  background: linear-gradient(160deg, rgba(250, 232, 244, 0.4) 0%, rgba(234, 247, 247, 0.4) 100%);
+  border-bottom: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+}
+
+.insight-hero::before {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230, 63, 168, 0.10) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.insight-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -80px;
+  left: -30px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(39, 183, 179, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.insight-hero-main {
+  font-family: var(--font-serif);
+  font-size: 1.125rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  line-height: 1.7;
+  margin-bottom: var(--sp-3);
+  position: relative;
+  z-index: 1;
+}
+
+.insight-hero-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+  position: relative;
+  z-index: 1;
+}
+
+.unlock-card {
+  border: 1px solid var(--border-light);
+  background: var(--app-bg-card);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+
+.unlock-card.unlocked {
+  border-color: rgba(230, 63, 168, 0.15);
+  background: linear-gradient(135deg, rgba(250, 232, 244, 0.3) 0%, rgba(255, 255, 255, 0.8) 100%);
+  box-shadow: 0 2px 12px rgba(230, 63, 168, 0.08);
+}
+
+.unlock-card.unlocked:hover {
+  box-shadow: 0 4px 20px rgba(230, 63, 168, 0.12);
+  transform: translateY(-2px);
+}
+
+/* ════════════════════════════════════════════
+   D-7: HOME SCREEN WARMTH ENHANCEMENT
+   ════════════════════════════════════════════ */
+.season-quote-card {
+  background: linear-gradient(135deg, #F8F1F0 0%, #F0EDE3 100%);
+  border: 1px solid rgba(201, 164, 74, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.season-quote-card::before {
+  content: '';
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 164, 74, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.season-quote-card::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -30px;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201, 164, 74, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.season-quote-label {
+  font-family: var(--font-accent);
+  font-size: 0.6875rem;
+  color: var(--gold);
+  letter-spacing: 0.10em;
+  margin-bottom: var(--sp-2);
+  position: relative;
+  z-index: 1;
+}
+
+.season-quote-text {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--text-primary);
+  line-height: 2;
+  margin-bottom: var(--sp-3);
+  position: relative;
+  z-index: 1;
+}
+
+.season-quote-sub {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  position: relative;
+  z-index: 1;
+}
+
+#sumiMessage {
+  background: linear-gradient(135deg, rgba(250, 232, 244, 0.2) 0%, rgba(234, 247, 247, 0.2) 100%);
+  border: 1px solid rgba(230, 63, 168, 0.1);
+  position: relative;
+  overflow: hidden;
+  animation: sumiMessageSlideIn var(--duration-slow) var(--ease-out) both;
+}
+
+#sumiMessage::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(230, 63, 168, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+@keyframes sumiMessageSlideIn {
+  0% { opacity: 0; transform: translateY(10px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+#sumiMessageText {
+  position: relative;
+  z-index: 1;
+}
+
