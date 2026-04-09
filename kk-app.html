@@ -2784,8 +2784,6 @@
       const direction = nextIdx >= curIdx ? 'forward' : 'back';
 
       // インサイトガード（未登録）
-      if (target === 'insight' && !isRegistered()) { openRegModal(); return; }
-
       // タブバウンスアニメーション再トリガー
       const icon = this.querySelector('.ph-light');
       if (icon) {
