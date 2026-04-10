@@ -1,11 +1,11 @@
 {
-  "name": "kenkou kiroku — からだの記録アプリ",
-  "short_name": "kenkou kiroku",
-  "description": "卵巣・女性のからだを食と意識で整える記録アプリ",
+  "name": "ippo — からだに還る、一歩",
+  "short_name": "ippo",
+  "description": "チャクラ・食事・断食・感情・基礎体温を記録して、からだのパターンを発見するウェルネスアプリ",
   "start_url": "/kenkou-kiroku/kk-app.html",
   "scope": "/kenkou-kiroku/",
   "display": "standalone",
-  "background_color": "#FBF7F2",
+  "background_color": "#FFFFFF",
   "theme_color": "#E63FA8",
   "orientation": "portrait",
   "icons": [
