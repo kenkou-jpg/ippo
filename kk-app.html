@@ -2767,6 +2767,56 @@ document.querySelectorAll('.record-tab').forEach(function(tab) {
       } catch(e) { console.error('Save error:', e); }
     });
   }
+  /* ────────────────────────────────
+     設定画面のボタン
+  ──────────────────────────────── */
+  var deleteRow = document.getElementById('deleteDataRow');
+  if (deleteRow) {
+    deleteRow.addEventListener('click', function() {
+      var confirmed = confirm('⚠️ すべての記録を削除します。この操作は元に戻せません。本当によろしいですか？');
+      if (!confirmed) return;
+      localStorage.removeItem('kk_records');
+      showToast('すべての記録を削除しました');
+      setTimeout(function(){ updateHome(); }, 300);
+    });
+  }
+
+  var exportRow = document.getElementById('exportDataRow');
+  if (exportRow) {
+    exportRow.addEventListener('click', function() {
+      try {
+        var records = JSON.parse(localStorage.getItem('kk_records') || '[]');
+        if (records.length === 0) { showToast('エクスポートする記録がありません'); return; }
+        var headers = Object.keys(records[0]);
+        var csv = headers.join(',') + '\n' + records.map(function(r) {
+          return headers.map(function(h) {
+            var v = r[h];
+            if (Array.isArray(v)) v = v.join(';');
+            return '"' + (v != null ? String(v).replace(/"/g, '""') : '') + '"';
+          }).join(',');
+        }).join('\n');
+        var blob = new Blob([csv], { type: 'text/csv' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ippo-' + new Date().toISOString().split('T')[0] + '.csv';
+        a.click();
+        showToast('CSVをダウンロードしました');
+      } catch(e) { showToast('エクスポートに失敗しました'); }
+    });
+  }
+
+  var nameRow = document.getElementById('settingNameRow');
+  if (nameRow) {
+    nameRow.addEventListener('click', function() {
+      var current = localStorage.getItem('kkUserName') || '';
+      var newName = prompt('お名前を入力してください', current);
+      if (newName !== null && newName.trim()) {
+        localStorage.setItem('kkUserName', newName.trim());
+        showToast('お名前を更新しました');
+        updateHome();
+      }
+    });
+  }
 
 });
 </script>
