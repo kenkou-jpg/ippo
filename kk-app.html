@@ -2345,6 +2345,21 @@ document.addEventListener('DOMContentLoaded', function() {
       if (todayRec) { fabBtn.classList.add('recorded'); fabBtn.innerHTML = '✓ 今日の記録済み'; }
       else { fabBtn.classList.remove('recorded'); fabBtn.textContent = '今日を記録する'; }
     }
+
+    // チャクラ診断結果をバナーに反映
+    var CHAKRA_TYPE_NAMES = { root:"グランディングタイプ", sacral:"女性性開花タイプ", solar:"消化力回復タイプ", heart:"愛と共感タイプ", throat:"表現・声タイプ", third_eye:"直感・洞察タイプ" };
+    var savedType = localStorage.getItem("kk_chakra_test_type");
+    var savedDate = localStorage.getItem("kk_chakra_test_date");
+    var bannerTitle = document.getElementById("chakraTestBannerTitle");
+    var bannerDesc  = document.getElementById("chakraTestBannerDesc");
+    var banner      = document.getElementById("chakraTestBanner");
+    if (savedType && CHAKRA_TYPE_NAMES[savedType] && bannerTitle && bannerDesc) {
+      bannerTitle.textContent = "あなたは「" + CHAKRA_TYPE_NAMES[savedType] + "」";
+      bannerDesc.innerHTML = "診断日：" + (savedDate || "—") + "<br>タイプに合った食事法・セルフケアを続けましょう。";
+      var bannerBtn = banner ? banner.querySelector("a") : null;
+      if (bannerBtn) bannerBtn.textContent = "結果を再確認する →";
+    }
+  }
   }
 
   // ホーム画面表示のたびに更新
