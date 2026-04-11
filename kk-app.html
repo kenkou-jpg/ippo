@@ -2257,7 +2257,7 @@ function checkInsightEmpty() {
   /* ─────────────────────────────────────
      改善4: 方向付き画面遷移
   ───────────────────────────────────── */
-  const TAB_ORDER = ['home', 'insight', 'record', 'settings'];
+    const TAB_ORDER = ['home', 'insight', 'record', 'settings'];
   function showScreen(screenId, direction) {
     const cur = document.querySelector('.app-screen.active');
     const next = document.getElementById('screen-' + screenId);
@@ -2276,9 +2276,9 @@ function checkInsightEmpty() {
     if (screenId === 'home') {
       setTimeout(() => {
         const streak = getStreak();
-        const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
+        const records = JSON.parse(localStorage.getItem('kk_records') || '[]');
         animateCount(document.getElementById('statStreak'), streak, 700);
-        animateCount(document.getElementById('statTotal'), Object.keys(records).length, 700);
+        animateCount(document.getElementById('statTotal'), records.length, 700);
       }, 200);
     }
     if (screenId === 'settings') {
