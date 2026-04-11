@@ -2644,9 +2644,9 @@ function saveWizardRecord() {
     // ホーム初期表示時にカウントアップ
     setTimeout(() => {
       const streak = getStreak();
-      const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
-      animateCount(document.getElementById('statStreak'), streak, 800);
-      animateCount(document.getElementById('statTotal'), Object.keys(records).length, 800);
+    const records = JSON.parse(localStorage.getItem('kk_records') || '[]');
+animateCount(document.getElementById('statStreak'), streak, 800);
+animateCount(document.getElementById('statTotal'), records.length, 800);
     }, 500);
     setTimeout(bindAll, 600);
 
