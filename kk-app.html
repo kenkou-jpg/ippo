@@ -2478,11 +2478,12 @@ function saveWizardRecord() {
     }
   }
 
-  function updateFabState() {
+ function updateFabState() {
     const today = new Date().toISOString().split('T')[0];
-    const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
+    const records = JSON.parse(localStorage.getItem('kk_records') || '[]');
     const fabBtn = document.getElementById('fabRecordBtn'); if (!fabBtn) return;
-    if (records[today]) { fabBtn.classList.add('recorded'); fabBtn.innerHTML = '✓ 今日の記録済み'; }
+    const hasToday = records.some(r => r.record_date === today);
+    if (hasToday) { fabBtn.classList.add('recorded'); fabBtn.innerHTML = '✓ 今日の記録済み'; }
     else { fabBtn.classList.remove('recorded'); fabBtn.textContent = '今日を記録する'; }
   }
 
