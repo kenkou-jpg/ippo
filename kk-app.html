@@ -3109,29 +3109,107 @@ function saveWizardRecord() {
     return streak;
   } catch(e) { return 0; }
 }
- /* バインド */
+/* バインド */
   function bindAll() {
     ['homeRecordBtn','quickRecordBtn','fabRecordBtn'].forEach(id => {
       const el = document.getElementById(id);
       if (el) {
         el.onclick = null;
         el.addEventListener('click', () => {
-          document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-          const rec = document.getElementById('screen-record');
-          if (rec) rec.classList.add('active');
-          updateFabVisibility();
+          openRecordScreen();
         });
       }
     });
     document.querySelectorAll('[data-screen="record"]').forEach(el => {
       el.onclick = null;
       el.addEventListener('click', () => {
-        document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
-        const rec = document.getElementById('screen-record');
-        if (rec) rec.classList.add('active');
-        updateFabVisibility();
+        openRecordScreen();
       });
     });
+  }
+
+  /* 記録画面を開く（チャクラタブ＋データ自動入力） */
+  function openRecordScreen() {
+    // 画面切替
+    document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+    const rec = document.getElementById('screen-record');
+    if (rec) rec.classList.add('active');
+
+    // チャクラタブをアクティブに
+    document.querySelectorAll('.record-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.record-panel').forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+    var firstTab = document.querySelector('.record-tab[data-tab="chakra"]');
+    var firstPanel = document.getElementById('panel-chakra');
+    if (firstTab) firstTab.classList.add('active');
+    if (firstPanel) { firstPanel.classList.add('active'); firstPanel.style.display = ''; }
+
+    // 保存済みデータがあれば各フィールドに入力
+    loadRecordToFields();
+
+    updateFabVisibility();
+  }
+
+  /* 今日の記録を各フィールドに自動入力 */
+  function loadRecordToFields() {
+    var todayStr = new Date().toISOString().split('T')[0];
+    var records = JSON.parse(localStorage.getItem('kk_records') || '[]');
+    var rec = records.find(function(r) { return r.record_date === todayStr; });
+    if (!rec) return;
+
+    // チャクラ
+    if (rec.chakra) {
+      document.querySelectorAll('#chakraSelector .chakra-item, .chakra-item').forEach(function(el) {
+        el.classList.remove('selected');
+        if (el.dataset.chakra === rec.chakra) el.classList.add('selected');
+      });
+    }
+
+    // 体調スコア
+    if (rec.wellness_score) {
+      document.querySelectorAll('.condition-btn').forEach(function(btn) {
+        btn.classList.remove('active');
+        if (parseInt(btn.dataset.score) === Math.round(rec.wellness_score / 2)) btn.classList.add('active');
+      });
+    }
+
+    // 断食時間
+    if (rec.fasting_hours) {
+      var fh = document.getElementById('fastingHoursInput') || document.getElementById('fastingStartTime');
+      if (fh) fh.value = rec.fasting_hours;
+    }
+
+    // 断食スコア
+    if (rec.fasting_score) {
+      var fs = document.getElementById('fastingScore');
+      var fsd = document.getElementById('fastingScoreDisplay');
+      if (fs) { fs.value = rec.fasting_score; if (fsd) fsd.textContent = rec.fasting_score; }
+    }
+
+    // 感情
+    if (rec.emotion) {
+      document.querySelectorAll('#emotionSelector .emotion-item').forEach(function(el) {
+        el.classList.remove('selected');
+        if (el.dataset.emotion === rec.emotion) el.classList.add('selected');
+      });
+    }
+
+    // 感情メモ
+    if (rec.emotion_notes) {
+      var en = document.getElementById('emotionJournal') || document.getElementById('emotionNote');
+      if (en) en.value = rec.emotion_notes;
+    }
+
+    // 食事メモ
+    if (rec.food_note) {
+      var fn = document.getElementById('foodNote');
+      if (fn) fn.value = rec.food_note;
+    }
+
+    // 断食メモ
+    if (rec.fasting_note) {
+      var ftn = document.getElementById('fastingNote');
+      if (ftn) ftn.value = rec.fasting_note;
+    }
   }
 
   /* FAB表示 */
