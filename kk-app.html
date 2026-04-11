@@ -2496,10 +2496,26 @@
   /* バインド */
   function bindAll() {
     ['homeRecordBtn','quickRecordBtn','fabRecordBtn'].forEach(id => {
-      const el = document.getElementById(id); if (el) { el.onclick = null; el.addEventListener('click', openWizard); }
+      const el = document.getElementById(id);
+      if (el) {
+        el.onclick = null;
+        el.addEventListener('click', () => {
+          document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+          const rec = document.getElementById('screen-record');
+          if (rec) rec.classList.add('active');
+          updateFabVisibility();
+        });
+      }
     });
-    document.querySelectorAll('[data-screen="record"]').forEach(el => { el.onclick = null; el.addEventListener('click', openWizard); });
-    // インサイトガード: showScreen()内で対応
+    document.querySelectorAll('[data-screen="record"]').forEach(el => {
+      el.onclick = null;
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.app-screen').forEach(s => s.classList.remove('active'));
+        const rec = document.getElementById('screen-record');
+        if (rec) rec.classList.add('active');
+        updateFabVisibility();
+      });
+    });
   }
 
   /* FAB表示 */
@@ -2665,39 +2681,6 @@
     background: #FBF7F2;
     box-shadow: 0 0 30px rgba(0,0,0,0.08);
   }
-  .wizard-steps-wrap {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.wizard-steps-wrap::-webkit-scrollbar {
-  display: none !important;
-}
-.wizard-step {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-.wizard-step::-webkit-scrollbar {
-  display: none !important;
-}
-#record-wizard.wizard-open {
-  background: #FBF7F2 !important;
-  width: 100% !important;
-  max-width: 430px !important;
-}
-@media (min-width: 768px) {
-  #record-wizard.wizard-open {
-    left: 50% !important;
-    right: auto !important;
-    transform: translateX(-50%) translateY(0) !important;
-  }
-  #record-wizard.wizard-open::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: -1;
-  }
-}
   .app-screen {
     flex: 1;
     overflow-y: auto !important;
