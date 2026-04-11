@@ -2242,16 +2242,17 @@
   /* ─────────────────────────────────────
      改善8: EmptyState制御
   ───────────────────────────────────── */
-  function checkInsightEmpty() {
+function checkInsightEmpty() {
     try {
-      const records = JSON.parse(localStorage.getItem('kkRecords') || '{}');
-      const hasData = Object.keys(records).length > 0;
+      const records = JSON.parse(localStorage.getItem('kk_records') || '[]');
+      const hasData = records.length > 0;
       const empty = document.getElementById('emptyInsight');
       const hero = document.querySelector('#screen-insight .insight-hero');
       if (empty) empty.style.display = hasData ? 'none' : 'block';
       if (hero) hero.style.display = hasData ? '' : 'none';
     } catch(e) {}
   }
+
 
   /* ─────────────────────────────────────
      改善4: 方向付き画面遷移
