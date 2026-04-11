@@ -2546,15 +2546,16 @@ document.addEventListener('DOMContentLoaded', function() {
   /* ────────────────────────────────
      記録タブ切り替え
   ──────────────────────────────── */
-  document.querySelectorAll('.record-tab').forEach(function(tab) {
+document.querySelectorAll('.record-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
       document.querySelectorAll('.record-tab').forEach(function(t){ t.classList.remove('active'); });
       tab.classList.add('active');
-      document.querySelectorAll('.record-panel').forEach(function(p){ p.classList.remove('active'); });
+      document.querySelectorAll('.record-panel').forEach(function(p){ p.classList.remove('active'); p.style.display = 'none'; });
       var panel = document.getElementById('panel-' + tab.dataset.tab);
-      if (panel) panel.classList.add('active');
+      if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
     });
   });
+
 
   /* ────────────────────────────────
      各パネルのUI
