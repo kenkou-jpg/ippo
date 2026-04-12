@@ -2177,6 +2177,90 @@
     });
   }
 </script>
+
+<style>
+  /* =============================================
+     修正1: スクロール修正
+     ============================================= */
+  html, body { height: 100%; overflow: hidden; }
+  #app-shell {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    background: #FBF7F2;
+    box-shadow: 0 0 30px rgba(0,0,0,0.08);
+  }
+  .app-screen {
+    flex: 1;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    display: none;
+    flex-direction: column;
+    height: calc(100vh - 120px);
+  }
+  .app-screen.active { display: flex; }
+  .app-content {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 80px;
+  }
+
+  /* ★ A-4強化: ウェルカム画面PC崩壊防止 */
+  #screen-welcome {
+    max-width: 430px !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
+  .welcome-slides {
+    max-width: 430px !important;
+    overflow: hidden !important;
+  }
+  .welcome-slide {
+    word-break: normal !important;
+    white-space: normal !important;
+    max-width: 430px !important;
+  }
+  .welcome-title {
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+  }
+  .welcome-desc {
+    word-break: normal !important;
+    white-space: normal !important;
+  }
+  .welcome-actions {
+    max-width: 430px !important;
+  }
+
+  /* PC表示 */
+  @media (min-width: 768px) {
+    body { background: #E8E4DE; }
+    #app-shell {
+      max-width: 430px;
+      margin: 0 auto;
+      box-shadow: 0 0 40px rgba(0,0,0,0.08);
+      border-left: 1px solid #ddd8d2;
+      border-right: 1px solid #ddd8d2;
+    }
+    #screen-welcome {
+      max-width: 430px !important;
+      margin: 0 auto !important;
+    }
+    #record-wizard { max-width:430px; left:50%; right:auto; transform:translateX(-50%) translateY(100%); }
+    #record-wizard.wizard-open { transform:translateX(-50%) translateY(0); }
+    #wizard-complete, .home-record-fab, #pwa-banner { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
+  }
+
+  /* Toast */
+  #kk-toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#3D2E3A; color:white; padding:10px 22px; border-radius:22px; font-size:0.875rem; opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:600; white-space:nowrap; max-width:90vw; text-align:center; }
+  #kk-toast.toast-show { opacity:1; }
+</style>
+
 <!-- スクリプト -->
 <script>
 /* =====================================================
@@ -2991,88 +3075,5 @@
 
 })();
 </script>
-<style>
-  /* =============================================
-     修正1: スクロール修正
-     ============================================= */
-  html, body { height: 100%; overflow: hidden; }
-  #app-shell {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    max-width: 430px;
-    margin: 0 auto;
-    position: relative;
-    background: #FBF7F2;
-    box-shadow: 0 0 30px rgba(0,0,0,0.08);
-  }
-  .app-screen {
-    flex: 1;
-    overflow-y: auto !important;
-    -webkit-overflow-scrolling: touch !important;
-    display: none;
-    flex-direction: column;
-    height: calc(100vh - 120px);
-  }
-  .app-screen.active { display: flex; }
-  .app-content {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 80px;
-  }
-
-  /* ★ A-4強化: ウェルカム画面PC崩壊防止 */
-  #screen-welcome {
-    max-width: 430px !important;
-    margin: 0 auto !important;
-    width: 100% !important;
-  }
-  .welcome-slides {
-    max-width: 430px !important;
-    overflow: hidden !important;
-  }
-  .welcome-slide {
-    word-break: normal !important;
-    white-space: normal !important;
-    max-width: 430px !important;
-  }
-  .welcome-title {
-    word-break: keep-all !important;
-    overflow-wrap: break-word !important;
-    white-space: normal !important;
-  }
-  .welcome-desc {
-    word-break: normal !important;
-    white-space: normal !important;
-  }
-  .welcome-actions {
-    max-width: 430px !important;
-  }
-
-  /* PC表示 */
-  @media (min-width: 768px) {
-    body { background: #E8E4DE; }
-    #app-shell {
-      max-width: 430px;
-      margin: 0 auto;
-      box-shadow: 0 0 40px rgba(0,0,0,0.08);
-      border-left: 1px solid #ddd8d2;
-      border-right: 1px solid #ddd8d2;
-    }
-    #screen-welcome {
-      max-width: 430px !important;
-      margin: 0 auto !important;
-    }
-    #record-wizard { max-width:430px; left:50%; right:auto; transform:translateX(-50%) translateY(100%); }
-    #record-wizard.wizard-open { transform:translateX(-50%) translateY(0); }
-    #wizard-complete, .home-record-fab, #pwa-banner { max-width:430px; left:50%; transform:translateX(-50%); right:auto; }
-  }
-
-  /* Toast */
-  #kk-toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:#3D2E3A; color:white; padding:10px 22px; border-radius:22px; font-size:0.875rem; opacity:0; pointer-events:none; transition:opacity 0.3s; z-index:600; white-space:nowrap; max-width:90vw; text-align:center; }
-  #kk-toast.toast-show { opacity:1; }
-</style>
-
 </body>
 </html>
