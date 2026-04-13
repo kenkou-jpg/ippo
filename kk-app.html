@@ -2385,7 +2385,13 @@
     });
   });
   document.getElementById('wChakraSkip').addEventListener('click', () => goToStep(3));
-
+ /* タブ UI - チャクラ選択 */  ← ここから追加
+  document.querySelectorAll('#chakraSelector .chakra-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('#chakraSelector .chakra-item').forEach(c => c.classList.remove('selected'));
+      this.classList.add('selected');
+    });
+  });
   /* Step3 食事 */
   document.querySelectorAll('#wFoodScaleRow .wizard-scale-btn').forEach(btn => {
     btn.addEventListener('click', function() {
