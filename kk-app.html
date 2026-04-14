@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="theme-color" content="#FBF7F2">
   <title>ippo - からだを見つめ直すセルフレコードアプリ</title>
@@ -67,12 +67,10 @@
       display: flex;
       flex-direction: column;
       transform: translateY(100%);
-      pointer-events: none;
       transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
     }
     #record-wizard.wizard-open {
       transform: translateY(0);
-      pointer-events: auto;
     }
     .wizard-header {
       display: flex;
@@ -2168,9 +2166,9 @@
 
 <!-- Service Worker登録 -->
 <script>
-  if ("serviceWorker" in navigator) {
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
     window.addEventListener("load", () => {
-      navigator.serviceWorker.register("/kenkou-kiroku/sw.js")
+      navigator.serviceWorker.register(new URL("sw.js", location.href).pathname)
         .then(reg => console.log("SW registered:", reg.scope))
         .catch(err => console.log("SW error:", err));
     });
@@ -2542,6 +2540,43 @@
           activePanel.style.display = 'block';
           activePanel.classList.add('active');
         }
+      });
+    });
+
+    // チャクラ選択（通常レコード画面）
+    document.querySelectorAll('#chakraSelector .chakra-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('#chakraSelector .chakra-item').forEach(i => i.classList.remove('selected'));
+        this.classList.add('selected');
+
+        const key = this.dataset.chakra;
+        const detail = document.getElementById('chakraDetail');
+        const detailText = document.getElementById('chakraDetailText');
+        const msgMap = {
+          root: '骨盤底からグランディング。安心感・安定感に関わるチャクラです。',
+          sacral: '女性の生殖器官と深く関わる感覚の座。骨盤まわりの重さ・温かさを観察しましょう。',
+          solar: '胃・腸・腹部を司るチャクラ。自己肯定感・意志力と関わります。',
+          heart: '感情を受け入れる感覚の座。自分へのやさしさとつながるチャクラです。',
+          throat: '自己表現・コミュニケーション・声のチャクラです。',
+          third_eye: '直感・洞察力・内なる知恵のチャクラです。'
+        };
+
+        if (detail && detailText) {
+          detailText.textContent = msgMap[key] || '今日のからだの感覚を自由に観察してみましょう。';
+          detail.style.display = 'block';
+        }
+        ['chakraIntensityGroup', 'chakraScoreGroup', 'chakraNoteGroup'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.style.display = 'block';
+        });
+      });
+    });
+
+    // 強度ボタン選択
+    document.querySelectorAll('#chakraIntensityRow .intensity-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#chakraIntensityRow .intensity-btn').forEach(b => b.classList.remove('selected'));
+        this.classList.add('selected');
       });
     });
   }
