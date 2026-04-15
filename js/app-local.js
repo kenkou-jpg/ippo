@@ -685,7 +685,7 @@ function initSettings() {
     });
   }
 
-  var deleteRow = $('#deleteDataRow');
+   var deleteRow = $('#deleteDataRow');
   if (deleteRow) {
     deleteRow.addEventListener('click', function() {
       if (!confirm('すべての記録を削除します。この操作は元に戻せません。本当によろしいですか？')) return;
@@ -693,7 +693,33 @@ function initSettings() {
       showToast('すべての記録を削除しました');
     });
   }
-}
+
+  // フィードバックボタン
+  var feedbackBtn = $('#settingsFeedbackBtn');
+  if (feedbackBtn) {
+    feedbackBtn.addEventListener('click', function() {
+      var overlay = $('#feedbackOverlay');
+      if (overlay) overlay.classList.add('feedback-show');
+    });
+  }
+
+  // フィードバック閉じる
+  var fbCloseBtn = $('#feedbackCloseBtn');
+  if (fbCloseBtn) {
+    fbCloseBtn.addEventListener('click', function() {
+      var overlay = $('#feedbackOverlay');
+      if (overlay) overlay.classList.remove('feedback-show');
+    });
+  }
+  var fbCompleteClose = $('#feedbackCompleteClose');
+  if (fbCompleteClose) {
+    fbCompleteClose.addEventListener('click', function() {
+      var overlay = $('#feedbackOverlay');
+      if (overlay) overlay.classList.remove('feedback-show');
+    });
+  }
+}  // ← これが initSettings() の閉じカッコ
+
 
 /* ══════════════════════════════════════════════
    全イベントバインド
