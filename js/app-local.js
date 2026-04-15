@@ -718,6 +718,17 @@ function initSettings() {
       if (overlay) overlay.classList.remove('feedback-show');
     });
   }
+    // 「このアプリについて」
+
+  $$('.settings-row').forEach(function(row) {
+    var label = row.querySelector('.settings-row-label');
+    if (label && label.textContent.trim() === 'このアプリについて') {
+      row.style.cursor = 'pointer';
+      row.addEventListener('click', function() {
+        alert('ippo v1.0.0\n\nからだに還る、一歩。\n卵巣・女性のからだのために、食事・チャクラ・プチ断食・感情を毎日記録するセルフケアアプリです。\n\n※医療アドバイスを提供するものではありません。');
+      });
+    }
+  });
 }  // ← これが initSettings() の閉じカッコ
 
 
