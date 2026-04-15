@@ -383,17 +383,7 @@ function buildRecordFromUI() {
 function handleSave() {
   var rec = buildRecordFromUI();
   saveRecordLocal(rec);
-  var complete = $('#wizard-complete');
-  if (complete) {
-    complete.classList.add('complete-show');
-    setTimeout(function() {
-      complete.classList.remove('complete-show');
-      showScreen('home');
-    }, 2500);
-  } else {
-    showToast('記録を保存しました');
-    showScreen('home');
-  }
+  showToast('記録を保存しました 🌸');
 }
 
 function updateFastingDisplay() {
@@ -617,10 +607,15 @@ function setElText(sel, text) { var el = $(sel); if (el) el.textContent = text; 
 function renderSettings() {
   var name = lsGet('userName', 'あなた');
   var since = lsGet('startedAt', '');
+  var conditions = lsGet('conditions', '');
+  var fastGoal = lsGet('fastingGoal', '14');
   setElText('#settingsName', name + 'さん');
   setElText('#settingsSince', since ? since + ' から利用中' : '');
   setElText('#settingNameValue', name);
+  setElText('#settingConditionValue', conditions || '設定する');
+  setElText('#settingFastingGoalValue', fastGoal + 'h');
 }
+
 
 function initSettings() {
   var nameRow = $('#settingNameRow');
@@ -699,7 +694,10 @@ function initSettings() {
   if (feedbackBtn) {
     feedbackBtn.addEventListener('click', function() {
       var overlay = $('#feedbackOverlay');
-      if (overlay) overlay.classList.add('feedback-show');
+      if (overlay) {
+        overlay.style.display = 'flex';
+        overlay.classList.add('feedback-show');
+      }
     });
   }
 
@@ -708,16 +706,39 @@ function initSettings() {
   if (fbCloseBtn) {
     fbCloseBtn.addEventListener('click', function() {
       var overlay = $('#feedbackOverlay');
-      if (overlay) overlay.classList.remove('feedback-show');
+      if (overlay) {
+        overlay.classList.remove('feedback-show');
+        overlay.style.display = 'none';
+      }
     });
   }
   var fbCompleteClose = $('#feedbackCompleteClose');
   if (fbCompleteClose) {
     fbCompleteClose.addEventListener('click', function() {
       var overlay = $('#feedbackOverlay');
-      if (overlay) overlay.classList.remove('feedback-show');
+      if (overlay) {
+        overlay.classList.remove('feedback-show');
+        overlay.style.display = 'none';
+      }
     });
   }
+   
+  // 記録履歴を見る
+  var historyRow = $('#historyRow');
+  if (historyRow) {
+    historyRow.addEventListener('click', function() {
+      var records = getAllRecords();
+      if (records.length === 0) { showToast('まだ記録がありません'); return; }
+      var sorted = records.slice().sort(function(a, b) { return b.record_date < a.record_date ? -1 : 1; });
+      var list = sorted.slice(0, 30).map(function(r) {
+        var chakra = r.chakra || '—';
+        var emo = r.emotion || '—';
+        return r.record_date + '  チャクラ:' + chakra + '  感情:' + emo;
+      }).join('\n');
+      alert('直近の記録履歴（最大30件）\n\n' + list);
+    });
+  }
+
     // 「このアプリについて」
 
   $$('.settings-row').forEach(function(row) {
