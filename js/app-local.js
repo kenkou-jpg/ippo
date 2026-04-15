@@ -738,6 +738,21 @@ $$('.feedback-rating-btn').forEach(function(btn) {
 var fbS1 = $('#fbStep1Next');
 if (fbS1) {
   fbS1.addEventListener('click', function() {
+    // 選択肢を生成
+    var chips = $('#fbReasonChips');
+    if (chips && chips.children.length === 0) {
+      var reasons = ['操作がわかりやすい','デザインが好き','記録が続けやすい','機能が足りない','動作が重い','使い方がわからない','チャクラが面白い','断食管理が便利','もっと分析がほしい'];
+      reasons.forEach(function(r) {
+        var chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'chip';
+        chip.textContent = r;
+        chip.addEventListener('click', function() {
+          chip.classList.toggle('selected');
+        });
+        chips.appendChild(chip);
+      });
+    }
 
     $$('.feedback-step').forEach(function(s) { s.classList.remove('active'); });
     var step2 = $$('.feedback-step')[1];
