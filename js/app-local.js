@@ -1,3 +1,19 @@
+/* ── Chart.js ダークテーマ設定 ── */
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.color = 'rgba(232,228,240,0.55)';
+  Chart.defaults.borderColor = 'rgba(255,255,255,0.08)';
+
+  Chart.register({
+    id: 'darkBackground',
+    beforeDraw: function(chart) {
+      var ctx = chart.ctx;
+      ctx.save();
+      ctx.fillStyle = 'rgba(11,16,37,0.95)';
+      ctx.fillRect(0, 0, chart.width, chart.height);
+      ctx.restore();
+    }
+  });
+}
 /* ============================================================
    ippo App — Local Storage Version
    GitHub Pages 用（バックエンド不要）
