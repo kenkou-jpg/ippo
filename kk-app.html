@@ -2968,6 +2968,143 @@
 [class*="ring-fill"] {
   stroke: url(#fastingGrad) !important;
 }
+/* ── ホーム画面の挨拶カード ── */
+.home-greeting-card,
+.home-greeting,
+#screen-home .app-card,
+#screen-home [style*="background"] {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+.home-greeting-date {
+  color: rgba(232,228,240,0.45) !important;
+}
+.home-greeting-name {
+  color: #c9a8ff !important;
+}
+.home-greeting-msg {
+  color: rgba(232,228,240,0.75) !important;
+}
+.home-greeting-time-msg {
+  color: #b07fff !important;
+}
+
+/* ── 記録画面：HTMLにインラインstyleで白背景が指定されている要素 ── */
+#screen-record div[style],
+#screen-record section[style],
+.record-panel div[style] {
+  background-color: transparent !important;
+}
+
+/* 今日の体調カード — HTMLに直接書かれたcard-teal */
+.record-panel .app-card.card-teal,
+.record-panel .app-card.card-pink,
+.record-panel .app-card.card-gold,
+.record-panel .app-card.card-plum,
+.record-panel > .app-card,
+#panel-chakra .app-card,
+#panel-food .app-card,
+#panel-fasting .app-card,
+#panel-emotion .app-card,
+#panel-rhythm .app-card,
+[id*="panel"] .app-card {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+/* 体調5段階 — 顔アイコンの行全体 */
+.condition-row,
+.condition-scale,
+[class*="condition-scale"],
+[class*="condition-row"] {
+  background: transparent !important;
+}
+
+/* 断食タイマーの全体ラッパー */
+#panel-fasting > *,
+#panel-fasting .app-card,
+#panel-fasting .app-card-padded,
+#panel-fasting div[style] {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+#panel-fasting .app-card .app-card {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 断食タイマー円の背景 */
+.fasting-visual,
+.fasting-visual-wrap,
+[class*="fasting-visual"],
+[class*="timer-circle"],
+[class*="timer-wrap"] {
+  background: transparent !important;
+}
+
+/* 断食タイマーのSVG円の色 */
+#panel-fasting svg circle[stroke] {
+  stroke: rgba(255,255,255,0.08);
+}
+#panel-fasting svg circle[stroke-dasharray] {
+  stroke: #5af0d0;
+}
+
+/* 断食開始ボタン */
+#panel-fasting .btn-primary,
+#panel-fasting .btn-teal,
+.fasting-start-btn,
+.fasting-toggle-btn {
+  background: linear-gradient(135deg, #5af0d0, #3dd4b0) !important;
+  color: #06080f !important;
+  box-shadow: 0 4px 16px rgba(90,240,208,0.35) !important;
+}
+
+/* 断食タイマーの時間表示 */
+#panel-fasting .fasting-time,
+#panel-fasting [class*="timer-text"],
+#panel-fasting [class*="timer-display"],
+#panel-fasting [style*="font-size"] {
+  color: #e8e4f0 !important;
+}
+#panel-fasting [class*="timer-sub"],
+#panel-fasting [class*="timer-label"] {
+  color: rgba(232,228,240,0.45) !important;
+}
+
+/* ── インサイト画面のヘッダーカード ── */
+#screen-insight [style*="linear-gradient"],
+#screen-insight .insight-header,
+.insight-hero {
+  background: rgba(255,255,255,0.045) !important;
+}
+
+/* ── 全画面共通：残りの白カード完全上書き ── */
+.app-card,
+.app-card-padded {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* グラデーションカード全上書き */
+.card-pink {
+  background: linear-gradient(135deg, rgba(176,127,255,0.10), rgba(176,127,255,0.04)) !important;
+  border-color: rgba(176,127,255,0.25) !important;
+}
+.card-teal {
+  background: linear-gradient(135deg, rgba(90,240,208,0.10), rgba(90,240,208,0.04)) !important;
+  border-color: rgba(90,240,208,0.25) !important;
+}
+.card-gold {
+  background: linear-gradient(135deg, rgba(255,217,122,0.10), rgba(255,217,122,0.04)) !important;
+  border-color: rgba(255,217,122,0.20) !important;
+}
+.card-plum {
+  background: linear-gradient(135deg, rgba(176,127,255,0.08), rgba(176,127,255,0.03)) !important;
+  border-color: rgba(176,127,255,0.20) !important;
+}
 
 </style>
 <script src="js/app-local.js"></script>
