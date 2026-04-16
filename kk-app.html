@@ -1120,68 +1120,53 @@
           </div>
         </div>
 
-        <!-- 今日の体調セクション -->
+         <!-- 今日の体調セクション -->
         <div class="condition-memo-section" id="conditionMemoSection">
-          <h3 class="condition-memo-title">今日の体調</h3>
-          <p class="condition-memo-sub">からだの状態を5段階で記録しましょう。<br>続けると、自分のパターンが見えてきます。</p>
 
-          <!-- 5段階評価 -->
-          <div class="condition-scale-row" id="conditionScaleRow">
-            <!-- 1: つらい -->
-            <button class="condition-scale-btn" data-scale="1" aria-label="1 つらい">
-              <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#bbb" stroke-width="1.5" fill="#f5f5f5"/>
-                <circle cx="10" cy="12" r="1.5" fill="#999"/>
-                <circle cx="18" cy="12" r="1.5" fill="#999"/>
-                <path d="M9 19 Q14 15.5 19 19" stroke="#999" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              </svg>
-              <span class="condition-scale-num">1</span>
-              <span>つらい</span>
-            </button>
-            <!-- 2: 少し重い -->
-            <button class="condition-scale-btn" data-scale="2" aria-label="2 少し重い">
-              <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#c5b8a8" stroke-width="1.5" fill="#faf7f3"/>
-                <circle cx="10" cy="12" r="1.5" fill="#999"/>
-                <circle cx="18" cy="12" r="1.5" fill="#999"/>
-                <path d="M10 18.5 h8" stroke="#bbb" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
-              <span class="condition-scale-num">2</span>
-              <span>少し重い</span>
-            </button>
-            <!-- 3: ふつう -->
-            <button class="condition-scale-btn" data-scale="3" aria-label="3 ふつう">
-              <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#a8c5c3" stroke-width="1.5" fill="#f0f7f7"/>
-                <circle cx="10" cy="12" r="1.5" fill="#7DB8B4"/>
-                <circle cx="18" cy="12" r="1.5" fill="#7DB8B4"/>
-                <path d="M10 18 Q14 19.5 18 18" stroke="#7DB8B4" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              </svg>
-              <span class="condition-scale-num">3</span>
-              <span>ふつう</span>
-            </button>
-            <!-- 4: まあまあ良い -->
-            <button class="condition-scale-btn" data-scale="4" aria-label="4 まあまあ良い">
-              <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#7DB8B4" stroke-width="1.5" fill="#e6f4f3"/>
-                <circle cx="10" cy="12" r="1.5" fill="#5a9e9a"/>
-                <circle cx="18" cy="12" r="1.5" fill="#5a9e9a"/>
-                <path d="M9 17 Q14 21 19 17" stroke="#5a9e9a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              </svg>
-              <span class="condition-scale-num">4</span>
-              <span>まあまあ</span>
-            </button>
-            <!-- 5: とても良い -->
-            <button class="condition-scale-btn" data-scale="5" aria-label="5 とても良い">
-              <svg class="condition-scale-icon" viewBox="0 0 28 28" fill="none" aria-hidden="true">
-                <circle cx="14" cy="14" r="12" stroke="#5a9e9a" stroke-width="1.5" fill="#d4eeed"/>
-                <circle cx="10" cy="11.5" r="2" fill="#3a7d7a"/>
-                <circle cx="18" cy="11.5" r="2" fill="#3a7d7a"/>
-                <path d="M8.5 16.5 Q14 22 19.5 16.5" stroke="#3a7d7a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-              </svg>
-              <span class="condition-scale-num">5</span>
-              <span>とても良い</span>
-            </button>
+          <!-- ── 光の粒子：体調セレクター ── -->
+          <div class="app-card app-card-padded" style="margin-bottom:20px;">
+            <div class="light-condition-wrap">
+              <p class="light-condition-title">body light</p>
+              <p class="light-condition-label" id="lightCondLabel">からだの光を感じてください</p>
+              <p class="light-condition-sub" id="lightCondSub"></p>
+            </div>
+
+            <div class="light-orb-stage" id="lightOrbStage">
+              <div class="light-orb-ring"></div>
+              <canvas class="light-orb-canvas" id="lightOrbCanvas" width="180" height="180"></canvas>
+            </div>
+
+            <div class="light-level-row" id="lightLevelRow">
+              <button class="light-level-btn" data-level="1" type="button">
+                <span class="light-level-dot"></span>
+              </button>
+              <button class="light-level-btn" data-level="2" type="button">
+                <span class="light-level-dot"></span>
+              </button>
+              <button class="light-level-btn" data-level="3" type="button">
+                <span class="light-level-dot"></span>
+              </button>
+              <button class="light-level-btn" data-level="4" type="button">
+                <span class="light-level-dot"></span>
+              </button>
+              <button class="light-level-btn" data-level="5" type="button">
+                <span class="light-level-dot"></span>
+              </button>
+            </div>
+
+            <div class="light-level-labels">
+              <span>かすかな灯</span>
+              <span>満ちている</span>
+            </div>
+
+            <!-- 既存データ連動用（非表示） -->
+            <div style="display:none;">
+              <button class="condition-scale-btn" data-scale="1"></button>
+              <button class="condition-scale-btn" data-scale="2"></button>
+              <button class="condition-scale-btn" data-scale="3"></button>
+              <button class="condition-scale-btn" data-scale="4"></button>
+              <button class="condition-scale-btn" data-scale="5"></button>
+            </div>
           </div>
 
           <!-- 自由記述 -->
