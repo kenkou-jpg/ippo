@@ -3817,6 +3817,26 @@ div.condition-memo-section > *:first-child {
   orbTargetAlpha = 0.05;
   draw();
 })();
+   <!-- ── 月の満ち欠けオーバーレイ ── -->
+<div class="moon-overlay" id="moonOverlay">
+  <button class="moon-overlay-close" id="moonOverlayClose">✕</button>
+  <p class="moon-date-label" id="moonDateLabel"></p>
+  <p class="moon-phase-name" id="moonPhaseName"></p>
+  <p class="moon-phase-sub" id="moonPhaseSub"></p>
+  <div class="moon-canvas-wrap" id="moonCanvasWrap">
+    <div class="moon-halo"></div>
+    <canvas id="moonCanvas" width="180" height="180"></canvas>
+  </div>
+  <div class="moon-age-bar-wrap">
+    <div class="moon-age-bar-label"><span>新月</span><span>満月</span><span>新月</span></div>
+    <div class="moon-age-bar"><div class="moon-age-bar-fill" id="moonAgeBarFill"></div></div>
+  </div>
+  <p class="moon-age-text" id="moonAgeText"></p>
+  <div class="moon-message" id="moonMessage">
+    <div class="moon-message-icon" id="moonMsgIcon"></div>
+    <div class="moon-message-text" id="moonMsgText"></div>
+  </div>
+</div>
 </script>
 </body>
 </html>
