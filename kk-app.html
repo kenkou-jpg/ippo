@@ -3346,7 +3346,27 @@ body {
 .light-orb-stage.pulse {
   animation: lp-stage-pulse 0.8s ease-out;
 }
-
+/* ── 光の粒子：ダークテーマ化 ── */
+#conditionMemoSection .app-card,
+#conditionMemoSection .app-card-padded {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+.light-condition-wrap {
+  background: transparent;
+}
+.light-orb-stage {
+  background: transparent;
+}
+.light-level-btn {
+  border-color: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+.light-level-btn.selected {
+  background: rgba(255,255,255,0.08) !important;
+  border-color: transparent !important;
+}
 </style>
     <script src="js/app-local.js"></script>
   <!-- ① 星空 -->
