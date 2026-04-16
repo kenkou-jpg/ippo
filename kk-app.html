@@ -2772,6 +2772,68 @@
 .settings-row.danger {
   color: #ff6eb0 !important;
 }
+/* ── インサイト画面：完全ダーク化 ── */
+
+/* 全てのcanvas（グラフ）の親要素 */
+#screen-insight canvas {
+  border-radius: 12px !important;
+}
+
+/* グラフを囲むカード・div全般 */
+#screen-insight div[style*="background"],
+#screen-insight .app-card,
+#screen-insight .app-card-padded,
+#screen-insight [class*="card"],
+#screen-insight [class*="Card"] {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* from your records のグラデーションカード */
+#screen-insight div[style*="linear-gradient"] {
+  background: rgba(255,255,255,0.045) !important;
+}
+
+/* インサイト画面内の全白背景を強制上書き */
+#screen-insight .app-content > *,
+#screen-insight .app-content > * > * {
+  background-color: transparent !important;
+}
+#screen-insight .app-content {
+  background: #06080f !important;
+}
+
+/* パターンメッセージカードの白背景 */
+#insightMessage,
+#insightPatternCard,
+[id*="insight"] {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+  color: #e8e4f0 !important;
+}
+
+/* 統計カード（記録日数、最長連続日数等）のグリッド */
+#screen-insight .home-stat-card,
+#screen-insight [class*="stat"] {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* 期間切り替えタブ（7日/30日/90日） */
+.insight-period-tab,
+.insight-tab,
+#screen-insight .record-tab {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.55) !important;
+}
+.insight-period-tab.active,
+.insight-tab.active,
+#screen-insight .record-tab.active {
+  background: rgba(176,127,255,0.15) !important;
+  border-color: #b07fff !important;
+  color: #b07fff !important;
+}
 
 </style>
 <script src="js/app-local.js"></script>
