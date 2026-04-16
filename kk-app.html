@@ -3367,6 +3367,21 @@ body {
   background: rgba(255,255,255,0.08) !important;
   border-color: transparent !important;
 }
+  /* ── 光の粒子カード：強制ダーク ── */
+.condition-memo-section > div,
+.condition-memo-section > div.app-card,
+.condition-memo-section > div.app-card-padded,
+.condition-memo-section .app-card.app-card-padded,
+div.condition-memo-section > *:first-child {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.condition-memo-section .light-orb-canvas {
+  background: transparent !important;
+}
+
 </style>
     <script src="js/app-local.js"></script>
   <!-- ① 星空 -->
