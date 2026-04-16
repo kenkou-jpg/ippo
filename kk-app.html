@@ -2299,6 +2299,79 @@
   .welcome-actions {
     max-width: 430px !important;
   }
+  
+/* ── ウェルカム画面修正 ── */
+
+/* 1. 次へボタンを画面下部に固定 */
+.welcome-actions {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: 430px !important;
+  padding: 16px 24px max(24px, env(safe-area-inset-bottom)) !important;
+  background: linear-gradient(to top, rgba(6,8,15,0.95) 60%, transparent) !important;
+  z-index: 10 !important;
+}
+
+/* 2. スライドのスクロール領域を確保（ボタンと重ならない） */
+.welcome-slide {
+  padding-bottom: 160px !important;
+  overflow-y: auto !important;
+}
+
+/* 3. 花のアニメーションを明るく＆大きく */
+.welcome-petal-group {
+  opacity: 1 !important;
+  filter: brightness(1.4) saturate(1.3);
+}
+.welcome-petal-group svg {
+  width: 160px !important;
+  height: 160px !important;
+  filter: drop-shadow(0 0 20px rgba(176,127,255,0.3))
+          drop-shadow(0 0 40px rgba(90,240,208,0.15));
+}
+
+/* 花の浮遊アニメーションを強化 */
+@keyframes floatGently {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25% { transform: translateY(-10px) rotate(3deg) scale(1.03); }
+  50% { transform: translateY(-14px) rotate(-2deg) scale(1.05); }
+  75% { transform: translateY(-6px) rotate(4deg) scale(1.02); }
+}
+.welcome-petal-group svg {
+  animation: floatGently 6s ease-in-out infinite !important;
+}
+
+/* 4. 画面サイズ統一：app-shellを固定 */
+#app-shell {
+  max-width: 430px !important;
+  margin: 0 auto !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* 各画面を画面高さに固定 */
+.app-screen.active {
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* ウェルカム画面も高さ固定 */
+#screen-welcome {
+  height: 100vh !important;
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+.welcome-slides {
+  height: 100vh !important;
+  height: 100dvh !important;
+}
 
   /* PC表示 */
   @media (min-width: 768px) {
