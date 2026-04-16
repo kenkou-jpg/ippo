@@ -3508,6 +3508,7 @@ div.condition-memo-section > *:first-child {
   /* ★ 親カードの白背景を強制除去 ★ */
   var memo = document.getElementById('conditionMemoSection');
   if(memo){
+    memo.style.cssText += 'background:transparent!important;border:none!important;box-shadow:none!important;border-top:none!important;padding:0!important;';
     var cards = memo.querySelectorAll('.app-card, .app-card-padded');
     cards.forEach(function(c){
       c.style.cssText += 'background:transparent!important;border:none!important;box-shadow:none!important;';
