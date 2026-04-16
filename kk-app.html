@@ -2834,6 +2834,140 @@
   border-color: #b07fff !important;
   color: #b07fff !important;
 }
+/* ── 記録画面：残りの白い部分を完全ダーク化 ── */
+
+/* 「今日の体調」カード（card-tealのインライン背景） */
+#screen-record [style*="background"],
+#screen-record .card-teal,
+.record-panel .card-teal,
+.record-panel .card-pink,
+.record-panel .card-plum,
+.record-panel .card-gold {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* 体調5段階のスマイルボタン */
+.condition-face-btn,
+.condition-face,
+[class*="condition"] button,
+[class*="condition"] .btn {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.75) !important;
+}
+[class*="condition"] button.selected,
+[class*="condition"] .selected {
+  background: rgba(176,127,255,0.15) !important;
+  border-color: #b07fff !important;
+}
+
+/* 月経周期チップ（白背景の丸ボタン） */
+.cycle-chip,
+.menstrual-chip,
+.rhythm-chip,
+#screen-record .chip {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.75) !important;
+}
+.cycle-chip.selected,
+.menstrual-chip.selected,
+.rhythm-chip.selected,
+#screen-record .chip.selected {
+  background: rgba(176,127,255,0.15) !important;
+  border-color: #b07fff !important;
+  color: #b07fff !important;
+}
+
+/* 断食タイマーカード全体 */
+.fasting-timer-section,
+.fasting-card,
+[class*="fasting"] .app-card,
+[class*="fasting"][class*="card"],
+#screen-record .app-card {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.08) !important;
+}
+
+/* 断食タイマーの円（SVG周り） */
+.fasting-ring-wrap,
+.fasting-circle-wrap,
+[class*="fasting-timer"] {
+  background: transparent !important;
+}
+.fasting-timer-text,
+.fasting-timer-sub {
+  color: rgba(232,228,240,0.55) !important;
+}
+
+/* 断食目標ボタン（12h, 14h, 16h） */
+[class*="fasting"] .btn,
+[class*="fasting"] button,
+.fasting-goal-option {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.55) !important;
+}
+[class*="fasting"] .btn.selected,
+[class*="fasting"] button.selected,
+.fasting-goal-option.selected {
+  background: rgba(90,240,208,0.12) !important;
+  border-color: #5af0d0 !important;
+  color: #5af0d0 !important;
+}
+
+/* 断食体感チップ（白い丸ボタン） */
+[class*="fasting"] .chip,
+.fasting-feel-chip {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.75) !important;
+}
+[class*="fasting"] .chip.selected,
+.fasting-feel-chip.selected {
+  background: rgba(255,217,122,0.12) !important;
+  border-color: #ffd97a !important;
+  color: #ffd97a !important;
+}
+
+/* 食材チップ（根菜類、発酵食品等） */
+#foodIngredientChips .chip,
+.ingredient-chip {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.75) !important;
+}
+#foodIngredientChips .chip.selected,
+.ingredient-chip.selected {
+  background: rgba(90,240,208,0.12) !important;
+  border-color: #5af0d0 !important;
+  color: #5af0d0 !important;
+}
+
+/* 食後体感チップ */
+#bodyFeelChips .chip,
+#bodyFeelChips .body-feel-chip {
+  background: rgba(255,255,255,0.045) !important;
+  border-color: rgba(255,255,255,0.10) !important;
+  color: rgba(232,228,240,0.75) !important;
+}
+#bodyFeelChips .chip.selected,
+#bodyFeelChips .body-feel-chip.selected {
+  background: rgba(90,240,208,0.12) !important;
+  border-color: #5af0d0 !important;
+  color: #5af0d0 !important;
+}
+
+/* SVGの断食リング */
+.fasting-ring-track,
+[class*="ring-track"] {
+  stroke: rgba(255,255,255,0.08) !important;
+}
+.fasting-ring-fill,
+[class*="ring-fill"] {
+  stroke: url(#fastingGrad) !important;
+}
 
 </style>
 <script src="js/app-local.js"></script>
