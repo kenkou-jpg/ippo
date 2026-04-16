@@ -3409,6 +3409,163 @@ body {
   draw();
   window.addEventListener('resize', function(){ resize(); init(); });
 })();
+  <script>
+(function(){
+  /* ── 光の粒子 体調セレクター ── */
+  var LEVELS = [
+    { label:'かすかな灯',   sub:'からだが重く、霧の中にいるような感覚',     color:[120,90,160],  particles:8,  speed:0.3, glow:0.15 },
+    { label:'うっすらと光る', sub:'少しだけ、光が見えはじめている',           color:[160,140,200], particles:16, speed:0.5, glow:0.25 },
+    { label:'やわらかく灯る', sub:'穏やかに、からだが呼吸している',           color:[220,215,240], particles:28, speed:0.7, glow:0.40 },
+    { label:'澄んで輝く',   sub:'エネルギーが巡り、クリアな感覚',           color:[90,240,208],  particles:42, speed:0.9, glow:0.60 },
+    { label:'満ちている',   sub:'からだ全体が光で満たされている',            color:[255,217,122], particles:60, speed:1.2, glow:0.85 }
+  ];
+
+  var canvas = document.getElementById('lightOrbCanvas');
+  if(!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var W = 180, H = 180, cx = W/2, cy = H/2;
+  canvas.width = W; canvas.height = H;
+
+  var currentLevel = 0;
+  var targetLevel = 0;
+  var particles = [];
+  var orbAlpha = 0;
+  var orbTargetAlpha = 0;
+  var orbColor = [120,90,160];
+  var orbTargetColor = [120,90,160];
+
+  function Particle(level){
+    var L = LEVELS[level];
+    var angle = Math.random()*Math.PI*2;
+    var dist = Math.random()*50 + 10;
+    this.x = cx + Math.cos(angle)*dist;
+    this.y = cy + Math.sin(angle)*dist;
+    this.r = Math.random()*1.8+0.4;
+    this.alpha = Math.random()*0.5+0.3;
+    this.da = (Math.random()*0.015+0.005)*(Math.random()<0.5?1:-1);
+    this.angle = angle;
+    this.dist = dist;
+    this.speed = (Math.random()*0.003+0.001)*L.speed;
+    this.color = L.color;
+    this.life = 1;
+    this.decay = 0;
+  }
+
+  function spawnParticles(level){
+    var L = LEVELS[level];
+    particles = [];
+    for(var i=0;i<L.particles;i++){
+      particles.push(new Particle(level));
+    }
+  }
+
+  function lerp(a,b,t){ return a+(b-a)*t; }
+  function lerpColor(a,b,t){ return [lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)]; }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+
+    /* 中心グロー */
+    orbAlpha = lerp(orbAlpha, orbTargetAlpha, 0.03);
+    orbColor = lerpColor(orbColor, orbTargetColor, 0.03);
+    if(orbAlpha>0.01){
+      var grad = ctx.createRadialGradient(cx,cy,0,cx,cy,70);
+      grad.addColorStop(0,'rgba('+Math.round(orbColor[0])+','+Math.round(orbColor[1])+','+Math.round(orbColor[2])+','+orbAlpha+')');
+      grad.addColorStop(0.5,'rgba('+Math.round(orbColor[0])+','+Math.round(orbColor[1])+','+Math.round(orbColor[2])+','+(orbAlpha*0.3)+')');
+      grad.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,W,H);
+    }
+
+    /* パーティクル */
+    for(var i=particles.length-1;i>=0;i--){
+      var p = particles[i];
+      p.angle += p.speed;
+      p.x = cx + Math.cos(p.angle)*p.dist;
+      p.y = cy + Math.sin(p.angle)*p.dist;
+      p.alpha += p.da;
+      if(p.alpha<=0.1||p.alpha>=0.9) p.da*=-1;
+      p.alpha = Math.max(0.1,Math.min(0.9,p.alpha));
+
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+p.alpha+')';
+      ctx.fill();
+
+      /* 大きい粒子にグロー */
+      if(p.r>1.2){
+        ctx.beginPath();
+        ctx.arc(p.x,p.y,p.r*3,0,Math.PI*2);
+        ctx.fillStyle='rgba('+p.color[0]+','+p.color[1]+','+p.color[2]+','+(p.alpha*0.15)+')';
+        ctx.fill();
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+
+  /* バーストエフェクト */
+  function burst(btn, level){
+    var L = LEVELS[level];
+    var stage = document.getElementById('lightOrbStage');
+    /* ステージパルス */
+    stage.classList.remove('pulse');
+    void stage.offsetWidth;
+    stage.classList.add('pulse');
+
+    /* バースト円 */
+    var b = document.createElement('div');
+    b.className='light-burst';
+    b.style.background='radial-gradient(circle,rgba('+L.color.join(',')+',0.4),transparent 70%)';
+    stage.appendChild(b);
+    setTimeout(function(){ b.remove(); },600);
+
+    /* 浮遊パーティクル */
+    for(var i=0;i<8;i++){
+      var fp = document.createElement('div');
+      fp.className='float-particle';
+      fp.style.left = (30+Math.random()*120)+'px';
+      fp.style.top = (60+Math.random()*60)+'px';
+      fp.style.background='rgba('+L.color.join(',')+',0.7)';
+      fp.style.animationDelay=(Math.random()*0.3)+'s';
+      fp.style.animationDuration=(1.2+Math.random()*1)+'s';
+      stage.appendChild(fp);
+      (function(el){ setTimeout(function(){ el.remove(); },2500); })(fp);
+    }
+  }
+
+  /* ボタンクリック */
+  var row = document.getElementById('lightLevelRow');
+  if(row){
+    row.addEventListener('click',function(e){
+      var btn = e.target.closest('.light-level-btn');
+      if(!btn) return;
+      var level = parseInt(btn.dataset.level)-1;
+      var btns = row.querySelectorAll('.light-level-btn');
+      btns.forEach(function(b){ b.classList.remove('selected'); });
+      btn.classList.add('selected');
+
+      var L = LEVELS[level];
+      document.getElementById('lightCondLabel').textContent = L.label;
+      document.getElementById('lightCondSub').textContent = L.sub;
+
+      orbTargetAlpha = L.glow;
+      orbTargetColor = L.color;
+      spawnParticles(level);
+      burst(btn, level);
+
+      /* 既存の condition_scale と連動 */
+      var oldBtns = document.querySelectorAll('.condition-scale-btn');
+      oldBtns.forEach(function(b){ b.classList.remove('selected'); });
+      var match = document.querySelector('.condition-scale-btn[data-scale="'+(level+1)+'"]');
+      if(match) match.classList.add('selected');
+    });
+  }
+
+  /* 初期描画 */
+  spawnParticles(0);
+  orbTargetAlpha = 0.05;
+  draw();
+})();
 </script>
 </body>
 </html>
