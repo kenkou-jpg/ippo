@@ -3139,6 +3139,53 @@ body {
 }
 
 </style>
-<script src="js/app-local.js"></script>
+    <script src="js/app-local.js"></script>
+
+    <script>
+    (function(){
+      var c = document.getElementById('starfield');
+      if(!c) return;
+      c.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:0;';
+      var ctx = c.getContext('2d');
+      var stars = [];
+      var N = 160;
+      function resize(){
+        c.width  = window.innerWidth;
+        c.height = window.innerHeight;
+      }
+      function init(){
+        stars = [];
+        for(var i=0; i<N; i++){
+          stars.push({
+            x: Math.random() * c.width,
+            y: Math.random() * c.height,
+            r: Math.random() * 0.9 + 0.2,
+            a: Math.random(),
+            d: (Math.random()*0.008+0.002) * (Math.random()<0.5?1:-1),
+            h: Math.random()<0.3 ? 260 : Math.random()<0.5 ? 200 : 40
+          });
+        }
+      }
+      function draw(){
+        ctx.clearRect(0, 0, c.width, c.height);
+        for(var i=0; i<stars.length; i++){
+          var s = stars[i];
+          s.a += s.d;
+          if(s.a <= 0.05 || s.a >= 1) s.d *= -1;
+          s.a = Math.max(0.05, Math.min(1, s.a));
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+          ctx.fillStyle = 'hsla('+s.h+',80%,85%,'+s.a+')';
+          ctx.fill();
+        }
+        requestAnimationFrame(draw);
+      }
+      resize();
+      init();
+      draw();
+      window.addEventListener('resize', function(){ resize(); init(); });
+    })();
+    </script>
+</body>
 </body>
 </html>
