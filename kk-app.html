@@ -4287,5 +4287,191 @@ div.condition-memo-section > *:first-child {
   }
 })();
 </script>
+  <script>
+(function(){
+  /* ── 食事タイムライン & 断食可視化 ── */
+
+  function parseMealText(text){
+    var lines = text.split('\n');
+    var meals = [];
+    for(var i=0; i<lines.length; i++){
+      var line = lines[i].trim();
+      if(!line) continue;
+      var m = line.match(/^(\d{1,2})[:\s時](\d{0,2})\s*(.*)/);
+      if(m){
+        var h = parseInt(m[1]);
+        var min = m[2] ? parseInt(m[2]) : 0;
+        var food = m[3].trim();
+        if(h>=0 && h<=24 && food){
+          meals.push({ h:h, m:min, time: pad2(h)+':'+pad2(min), food:food, totalMin: h*60+min });
+        }
+      }
+    }
+    meals.sort(function(a,b){ return a.totalMin - b.totalMin; });
+    return meals;
+  }
+
+  function pad2(n){ return n<10?'0'+n:''+n; }
+
+  function renderTimeline(meals){
+    var wrap = document.getElementById('mealTlWrap');
+    var nodes = document.getElementById('mealTlNodes');
+    if(!wrap || !nodes) return;
+    nodes.innerHTML = '';
+    if(meals.length === 0){ wrap.classList.remove('show'); return; }
+
+    for(var i=0; i<meals.length; i++){
+      var ml = meals[i];
+      var div = document.createElement('div');
+      div.className = 'meal-tl-node';
+      div.innerHTML = '<div class="meal-tl-dot"></div>'
+        + '<div class="meal-tl-time">'+ml.time+'</div>'
+        + '<div class="meal-tl-food">'+escHtml(ml.food)+'</div>';
+      nodes.appendChild(div);
+    }
+    wrap.classList.add('show');
+  }
+
+  function renderFastingBar(meals){
+    var section = document.getElementById('mealFastingSection');
+    var bar = document.getElementById('meal24hBar');
+    var summary = document.getElementById('mealFastingSummary');
+    var badge = document.getElementById('mealFastingBadge');
+    if(!section || !bar) return;
+    if(meals.length < 1){ section.classList.remove('show'); return; }
+
+    var first = meals[0];
+    var last = meals[meals.length-1];
+    var eatStart = first.totalMin;
+    var eatEnd = last.totalMin;
+    var eatWindow = eatEnd - eatStart;
+    var fastWindow = 1440 - eatWindow;
+    var fastHours = Math.floor(fastWindow/60);
+    var fastMins = fastWindow%60;
+    var eatHours = Math.floor(eatWindow/60);
+    var eatMins = eatWindow%60;
+
+    /* 24時間バー描画 */
+    var eatLeftPct = (eatStart/1440*100).toFixed(1);
+    var eatWidthPct = (eatWindow/1440*100).toFixed(1);
+
+    bar.innerHTML = '';
+
+    /* 断食ゾーン（左：0時〜食事開始） */
+    if(eatStart > 0){
+      var fLeft = document.createElement('div');
+      fLeft.className = 'meal-24h-fasting';
+      fLeft.style.left = '0%';
+      fLeft.style.width = eatLeftPct+'%';
+      fLeft.innerHTML = '<span class="meal-24h-fasting-label">断食</span>';
+      bar.appendChild(fLeft);
+    }
+
+    /* 食事ゾーン */
+    var eatDiv = document.createElement('div');
+    eatDiv.className = 'meal-24h-eating';
+    eatDiv.style.left = eatLeftPct+'%';
+    eatDiv.style.width = eatWidthPct+'%';
+    eatDiv.innerHTML = '<span class="meal-24h-eating-label">食事 '+first.time+'〜'+last.time+'</span>';
+    bar.appendChild(eatDiv);
+
+    /* 食事ドット */
+    for(var i=0; i<meals.length; i++){
+      var dot = document.createElement('div');
+      dot.style.cssText = 'position:absolute;top:50%;width:6px;height:6px;border-radius:50%;background:#5af0d0;transform:translateY(-50%);z-index:2;box-shadow:0 0 8px rgba(90,240,208,0.5);';
+      dot.style.left = (meals[i].totalMin/1440*100).toFixed(1)+'%';
+      bar.appendChild(dot);
+    }
+
+    /* 断食ゾーン（右：食事終了〜24時） */
+    var rightFastPct = ((1440-eatEnd)/1440*100).toFixed(1);
+    if(eatEnd < 1440){
+      var fRight = document.createElement('div');
+      fRight.className = 'meal-24h-fasting';
+      fRight.style.left = ((eatEnd/1440)*100).toFixed(1)+'%';
+      fRight.style.width = rightFastPct+'%';
+      fRight.innerHTML = '<span class="meal-24h-fasting-label">断食</span>';
+      bar.appendChild(fRight);
+    }
+
+    /* サマリー */
+    summary.innerHTML = ''
+      + '<div class="meal-fasting-stat"><div class="meal-fasting-stat-num purple">'+fastHours+'h '+fastMins+'m</div><div class="meal-fasting-stat-label">断食時間</div></div>'
+      + '<div class="meal-fasting-stat"><div class="meal-fasting-stat-num teal">'+eatHours+'h '+eatMins+'m</div><div class="meal-fasting-stat-label">食事ウィンドウ</div></div>'
+      + '<div class="meal-fasting-stat"><div class="meal-fasting-stat-num gold">'+meals.length+'</div><div class="meal-fasting-stat-label">食事回数</div></div>';
+
+    /* バッジ */
+    badge.classList.remove('show','achieved','partial');
+    var goal = 14;
+    try{ var g = localStorage.getItem('kk_fastingGoal'); if(g) goal = JSON.parse(g); }catch(e){}
+    if(fastHours >= goal){
+      badge.className = 'meal-fasting-badge show achieved';
+      badge.textContent = '✦ '+goal+'時間断食 達成！おつかれさまでした ✦';
+    } else if(fastHours >= 12){
+      badge.className = 'meal-fasting-badge show partial';
+      badge.textContent = '☽ '+fastHours+'時間断食。目標まであと'+(goal-fastHours)+'時間';
+    }
+
+    section.classList.add('show');
+  }
+
+  function escHtml(s){
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  /* ボタンクリック */
+  var btn = document.getElementById('mealParseBtn');
+  if(btn){
+    btn.addEventListener('click', function(){
+      var input = document.getElementById('mealTimelineInput');
+      if(!input) return;
+      var meals = parseMealText(input.value);
+      if(meals.length === 0){
+        alert('時刻が読み取れませんでした。\n例：12:30 サラダと味噌汁');
+        return;
+      }
+      renderTimeline(meals);
+      renderFastingBar(meals);
+
+      /* 既存の記録にも保存 */
+      try{
+        var todayStr = new Date().toISOString().slice(0,10);
+        var all = JSON.parse(localStorage.getItem('kk_records')||'[]');
+        var idx = all.findIndex(function(r){ return r.record_date === todayStr; });
+        var rec = idx>=0 ? all[idx] : { record_date: todayStr };
+        rec.meal_timeline = meals;
+        rec.meal_timeline_raw = input.value;
+        if(meals.length >= 2){
+          var fastMin = 1440-(meals[meals.length-1].totalMin - meals[0].totalMin);
+          rec.fasting_hours = Math.floor(fastMin/60);
+          rec.fasting_minutes = fastMin%60;
+        }
+        if(idx>=0) all[idx]=rec; else all.push(rec);
+        localStorage.setItem('kk_records', JSON.stringify(all));
+      }catch(e){}
+    });
+  }
+
+  /* ページ読み込み時に今日のデータがあれば復元 */
+  try{
+    var todayStr = new Date().toISOString().slice(0,10);
+    var all = JSON.parse(localStorage.getItem('kk_records')||'[]');
+    var rec = all.find(function(r){ return r.record_date === todayStr; });
+    if(rec && rec.meal_timeline_raw){
+      var input = document.getElementById('mealTimelineInput');
+      if(input){
+        input.value = rec.meal_timeline_raw;
+        var meals = parseMealText(rec.meal_timeline_raw);
+        if(meals.length > 0){
+          renderTimeline(meals);
+          renderFastingBar(meals);
+        }
+      }
+    }
+  }catch(e){}
+})();
+</script>
 </body>
 </html>
