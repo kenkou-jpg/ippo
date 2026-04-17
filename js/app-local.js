@@ -1271,16 +1271,141 @@ if (document.readyState === 'loading') {
     if (pctEl) pctEl.textContent = pct + '%';
   }
 
-  // ── モーダル開閉 ──
+   // ── モーダル開閉 ──
   function openDayModal(d) {
     selectedDay = d;
-    // 月オーバーレイが存在すれば、そちらを開く
-    var moonOverlay = document.getElementById('moonOverlay');
-    if (moonOverlay && typeof window.showMoonOverlay === 'function') {
-      window.showMoonOverlay(calYear, calMonth + 1, d);
-      return;
+    var ds = dateStr(calYear, calMonth, d);
+    var done = isDone(ds);
+    var rec = getRecordForDate(ds);
+
+    var titleEl = document.getElementById('calModalTitle');
+    var dateEl = document.getElementById('calModalDate');
+    var foodsEl = document.getElementById('calModalFoods');
+    var fastEl = document.getElementById('calModalFastTime');
+    var recSection = document.getElementById('calModalRecordSection');
+    var recSummary = document.getElementById('calModalRecordSummary');
+    var doneBtn = document.getElementById('calModalDone');
+
+    if (!titleEl) return;
+
+    titleEl.textContent = done ? d + '日 ✦ 達成済み' : d + '日';
+
+    var w = new Date(calYear, calMonth, d).getDay();
+    dateEl.textContent = calYear + '年' + (calMonth + 1) + '月' + d + '日（' + WDAY_NAMES[w] + '）';
+
+    var fi = ((calMonth + d) % FOOD_SETS.length);
+    foodsEl.innerHTML = '';
+    FOOD_SETS[fi].forEach(function(f) {
+      var tag = document.createElement('div');
+      tag.className = 'lp-food-tag ' + f.t;
+      tag.textContent = f.n;
+      foodsEl.appendChild(tag);
+    });
+
+    fastEl.textContent = FAST_OPTIONS[d % FAST_OPTIONS.length];
+
+    if (rec) {
+      recSection.style.display = 'block';
+
+      var meals = [];
+      if (rec.meal_timeline && rec.meal_timeline.length) {
+        rec.meal_timeline.forEach(function(m) {
+          meals.push({ hour: m.hour || m.h, minute: m.minute || m.m, food: m.food });
+        });
+      } else if (rec.meals) {
+        var MEAL_TIMES = { morning:8, lunch:12, dinner:19, snack:15 };
+        Object.keys(rec.meals).forEach(function(key) {
+          var meal = rec.meals[key];
+          if (meal && meal.content) {
+            meals.push({ hour: MEAL_TIMES[key]||12, minute: 0, food: meal.content });
+          }
+        });
+      }
+
+      var fastH = rec.fasting_hours || 0;
+      var fastM = rec.fasting_minutes || 0;
+      var fastTotal = fastH * 60 + fastM;
+      var eatTotal = 1440 - fastTotal;
+      if (meals.length >= 2 && fastTotal === 0) {
+        var sorted = meals.slice().sort(function(a,b){ return (a.hour*60+a.minute)-(b.hour*60+b.minute); });
+        var first = sorted[0], last = sorted[sorted.length-1];
+        eatTotal = (last.hour*60+last.minute) - (first.hour*60+first.minute);
+        fastTotal = 1440 - eatTotal;
+        fastH = Math.floor(fastTotal/60);
+        fastM = fastTotal%60;
+      }
+
+      function pad2(n){ return n<10?'0'+n:''+n; }
+      function escH(s){ var d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+      var html = '';
+
+      if (meals.length > 0) {
+        html += '<div style="position:relative;width:180px;height:180px;margin:12px auto;">';
+        html += '<canvas id="modalDonutCanvas" width="180" height="180"></canvas>';
+        html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">';
+        html += '<div style="font-family:Cormorant Garamond,serif;font-size:1.3rem;font-weight:700;color:rgba(232,228,240,0.95);">' + fastH + 'h ' + fastM + 'm</div>';
+        html += '<div style="font-size:0.6rem;color:rgba(232,228,240,0.4);letter-spacing:0.08em;">FASTING</div>';
+        html += '</div></div>';
+
+        html += '<div style="display:flex;justify-content:center;gap:16px;margin:4px 0 12px;">';
+        html += '<span style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:rgba(232,228,240,0.5);"><span style="width:8px;height:8px;border-radius:50%;background:#B49AFF;display:inline-block;"></span>断食</span>';
+        html += '<span style="display:flex;align-items:center;gap:4px;font-size:0.7rem;color:rgba(232,228,240,0.5);"><span style="width:8px;height:8px;border-radius:50%;background:#5ADEDB;display:inline-block;"></span>食事</span>';
+        html += '</div>';
+
+        meals.sort(function(a,b){ return (a.hour*60+a.minute)-(b.hour*60+b.minute); });
+        meals.forEach(function(m) {
+          html += '<div style="display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);">';
+          html += '<span style="font-family:Cormorant Garamond,serif;font-size:0.85rem;color:rgba(90,240,208,0.85);min-width:44px;">' + pad2(m.hour) + ':' + pad2(m.minute) + '</span>';
+          html += '<span style="font-size:0.8125rem;color:rgba(232,228,240,0.75);">' + escH(m.food) + '</span>';
+          html += '</div>';
+        });
+
+        html += '<div style="display:flex;justify-content:center;gap:20px;margin:14px 0 4px;">';
+        html += '<div style="text-align:center;"><div style="font-family:Cormorant Garamond,serif;font-size:1rem;font-weight:700;color:#B49AFF;">' + fastH + 'h ' + fastM + 'm</div><div style="font-size:0.6rem;color:rgba(232,228,240,0.4);">断食時間</div></div>';
+        html += '<div style="text-align:center;"><div style="font-family:Cormorant Garamond,serif;font-size:1rem;font-weight:700;color:#5ADEDB;">' + Math.floor(eatTotal/60) + 'h ' + (eatTotal%60) + 'm</div><div style="font-size:0.6rem;color:rgba(232,228,240,0.4);">食事ウィンドウ</div></div>';
+        html += '<div style="text-align:center;"><div style="font-family:Cormorant Garamond,serif;font-size:1rem;font-weight:700;color:#F5D020;">' + meals.length + '</div><div style="font-size:0.6rem;color:rgba(232,228,240,0.4);">食事回数</div></div>';
+        html += '</div>';
+
+      } else {
+        var summary = '';
+        if (rec.chakra) summary += 'チャクラ: ' + rec.chakra + '\n';
+        if (rec.condition_scale) summary += '体調: ' + rec.condition_scale + '/5\n';
+        if (rec.food_content) summary += '食事: ' + rec.food_content + '\n';
+        if (rec.emotion) summary += '感情: ' + rec.emotion + '\n';
+        if (rec.fasting_hours) summary += '断食: ' + rec.fasting_hours + '時間\n';
+        html = summary || '記録あり（食事タイムラインなし）';
+      }
+
+      recSummary.innerHTML = html;
+
+      setTimeout(function(){
+        var canvas = document.getElementById('modalDonutCanvas');
+        if (!canvas || meals.length === 0) return;
+        var ctx = canvas.getContext('2d');
+        var W=180,H=180,cx=W/2,cy=H/2,outerR=75,innerR=50;
+        ctx.clearRect(0,0,W,H);
+        var startAngle=-Math.PI/2;
+        if(meals.length>0){var firstMin=meals[0].hour*60+meals[0].minute;startAngle=(firstMin/1440)*Math.PI*2-Math.PI/2;}
+        ctx.beginPath();ctx.arc(cx,cy,outerR,0,Math.PI*2);ctx.arc(cx,cy,innerR,Math.PI*2,0,true);ctx.fillStyle='rgba(124,77,255,0.25)';ctx.fill();
+        var eatAngle=(eatTotal/1440)*Math.PI*2;
+        ctx.beginPath();ctx.arc(cx,cy,outerR,startAngle,startAngle+eatAngle);ctx.arc(cx,cy,innerR,startAngle+eatAngle,startAngle,true);ctx.closePath();ctx.fillStyle='rgba(90,222,219,0.5)';ctx.fill();
+        meals.forEach(function(m){var min=m.hour*60+m.minute;var angle=(min/1440)*Math.PI*2-Math.PI/2;var dotR=(outerR+innerR)/2;var dx=cx+Math.cos(angle)*dotR;var dy=cy+Math.sin(angle)*dotR;ctx.beginPath();ctx.arc(dx,dy,4,0,Math.PI*2);ctx.fillStyle='#5AF0D0';ctx.fill();ctx.beginPath();ctx.arc(dx,dy,7,0,Math.PI*2);ctx.fillStyle='rgba(90,240,208,0.2)';ctx.fill();});
+        [0,6,12,18].forEach(function(h){var angle=(h/24)*Math.PI*2-Math.PI/2;var tx=cx+Math.cos(angle)*(outerR+11);var ty=cy+Math.sin(angle)*(outerR+11);ctx.fillStyle='rgba(232,228,240,0.3)';ctx.font='9px Cormorant Garamond,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(h+':00',tx,ty);});
+      },50);
+
+    } else {
+      recSection.style.display = 'none';
     }
-    // フォールバック：既存モーダル
+
+    if (done) {
+      doneBtn.textContent = '✦ 達成済み';
+      doneBtn.disabled = true;
+    } else {
+      doneBtn.textContent = '✦ 達成する';
+      doneBtn.disabled = false;
+    }
+
     document.getElementById('calModalOverlay').classList.add('lp-open');
   }
 
