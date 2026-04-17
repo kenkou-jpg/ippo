@@ -2258,6 +2258,71 @@
 <!-- Service Worker登録 -->
 
 <style>
+  /* ── 30日ビジョンカード ── */
+.vision-card {
+  margin: 16px 0;
+  padding: 20px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(124,77,255,0.08), rgba(90,222,219,0.06));
+  border: 1px solid rgba(124,77,255,0.12);
+  text-align: center;
+  animation: visionFadeIn 0.5s ease;
+}
+@keyframes visionFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.vision-card-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: #B49AFF;
+  margin-bottom: 8px;
+  font-family: 'Cormorant Garamond', serif;
+}
+.vision-card-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 1rem;
+  color: rgba(232,228,240,0.9);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+.vision-card-items {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+.vision-card-item {
+  text-align: center;
+}
+.vision-card-item-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 4px;
+}
+.vision-card-item-label {
+  font-size: 0.7rem;
+  color: rgba(232,228,240,0.5);
+  line-height: 1.4;
+}
+.vision-card-progress {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  margin: 8px auto 6px;
+  max-width: 200px;
+  overflow: hidden;
+}
+.vision-card-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #B49AFF, #5ADEDB);
+  transition: width 0.6s ease;
+}
+.vision-card-sub {
+  font-size: 0.7rem;
+  color: rgba(232,228,240,0.35);
+}
   /* ── ホーム：断食タイマーウィジェット ── */
 .fasting-widget {
   display: none;
@@ -5022,6 +5087,52 @@ div.condition-memo-section > *:first-child {
   // 1秒ごとに更新
   update();
   setInterval(update, 1000);
+})();
+</script>
+  <script>
+(function(){
+  /* ── 30日ビジョンカード ── */
+  var card = document.getElementById('visionCard');
+  if (!card) return;
+
+  function getRecordCount(){
+    try { return JSON.parse(localStorage.getItem('kk_records') || '[]').length; }
+    catch(e){ return 0; }
+  }
+
+  function update(){
+    var count = getRecordCount();
+    var goal = 30;
+
+    if (count >= goal) {
+      // 達成後：実績カードに切り替え
+      card.style.display = 'block';
+      document.getElementById('visionTag').textContent = '✦ ACHIEVEMENT';
+      document.getElementById('visionTitle').textContent = '30日の記録を達成しました';
+      document.getElementById('visionProgress').style.width = '100%';
+      document.getElementById('visionSub').textContent = count + '日の記録が、あなただけのパターンを描いています';
+    } else if (count > 0) {
+      // 途中：ビジョンカード表示
+      card.style.display = 'block';
+      var pct = Math.round((count / goal) * 100);
+      document.getElementById('visionProgress').style.width = pct + '%';
+      document.getElementById('visionSub').textContent = count + ' / ' + goal + '日（あと' + (goal - count) + '日）';
+    } else {
+      // 記録ゼロ：非表示
+      card.style.display = 'none';
+    }
+  }
+
+  update();
+
+  // 画面切り替え時に更新
+  var origShow = window.showScreen;
+  if (typeof origShow === 'function') {
+    window.showScreen = function(name){
+      origShow.apply(this, arguments);
+      if (name === 'home') setTimeout(update, 100);
+    };
+  }
 })();
 </script>
 </body>
