@@ -4477,93 +4477,72 @@ div.condition-memo-section > *:first-child {
       return html;
     }
 
-    // 体調カード
-    if (rec.condition_scale) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-chakra">☆</span>body light</div>';
-      html += '<div class="day-card-body">' + (LIGHT_LEVELS[rec.condition_scale] || ('レベル ' + rec.condition_scale)) + '</div>';
+    // 食事データ取得
+    var meals = [];
+    if (rec.meal_timeline && rec.meal_timeline.length) {
+      rec.meal_timeline.forEach(function(m){
+        meals.push({ hour: m.hour || m.h, minute: m.minute || m.m, food: m.food });
+      });
+    } else if (rec.meals) {
+      var MEAL_TIMES = { morning:8, lunch:12, dinner:19, snack:15 };
+      Object.keys(rec.meals).forEach(function(key){
+        var meal = rec.meals[key];
+        if (meal && meal.content) {
+          meals.push({ hour: MEAL_TIMES[key]||12, minute: 0, food: meal.content });
+        }
+      });
+    }
+
+    // 断食計算
+    var fastH = rec.fasting_hours || 0;
+    var fastM = rec.fasting_minutes || 0;
+    var fastTotal = fastH * 60 + fastM;
+    var eatTotal = 1440 - fastTotal;
+    if (meals.length >= 2 && fastTotal === 0) {
+      var sorted = meals.slice().sort(function(a,b){ return (a.hour*60+a.minute)-(b.hour*60+b.minute); });
+      var first = sorted[0], last = sorted[sorted.length-1];
+      eatTotal = (last.hour*60+last.minute) - (first.hour*60+first.minute);
+      fastTotal = 1440 - eatTotal;
+      fastH = Math.floor(fastTotal/60);
+      fastM = fastTotal%60;
+    }
+
+    // ドーナツグラフ
+    html += '<div class="day-donut-wrap">';
+    html += '<canvas id="dayDonutCanvas" width="200" height="200"></canvas>';
+    html += '<div class="day-donut-center">';
+    html += '<div class="day-donut-center-num">' + fastH + 'h ' + fastM + 'm</div>';
+    html += '<div class="day-donut-center-label">FASTING</div>';
+    html += '</div></div>';
+
+    // 凡例
+    html += '<div class="day-legend">';
+    html += '<div class="day-legend-item"><div class="day-legend-dot" style="background:#B49AFF;"></div>断食</div>';
+    html += '<div class="day-legend-item"><div class="day-legend-dot" style="background:#5ADEDB;"></div>食事</div>';
+    html += '</div>';
+
+    // 食事リスト
+    if (meals.length > 0) {
+      html += '<div class="day-meal-list">';
+      meals.sort(function(a,b){ return (a.hour*60+a.minute)-(b.hour*60+b.minute); });
+      meals.forEach(function(m){
+        html += '<div class="day-meal-item">';
+        html += '<span class="day-meal-item-time">' + pad2(m.hour) + ':' + pad2(m.minute) + '</span>';
+        html += '<span class="day-meal-item-food">' + escHtml(m.food) + '</span>';
+        html += '</div>';
+      });
       html += '</div>';
     }
 
-    // チャクラカード
-    if (rec.chakra) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-chakra">ch</span>チャクラ</div>';
-      html += '<div class="day-card-body">' + escHtml(CHAKRA_NAMES[rec.chakra] || rec.chakra);
-      if (rec.symptoms && rec.symptoms.length) html += '<br><span style="color:rgba(232,228,240,0.5);font-size:0.75rem;">' + rec.symptoms.map(escHtml).join('、') + '</span>';
-      html += '</div></div>';
-    }
+    // サマリー
+    html += '<div class="day-summary-row">';
+    html += '<div class="day-summary-stat"><div class="day-summary-num purple">' + fastH + 'h ' + fastM + 'm</div><div class="day-summary-label">断食時間</div></div>';
+    html += '<div class="day-summary-stat"><div class="day-summary-num teal">' + Math.floor(eatTotal/60) + 'h ' + (eatTotal%60) + 'm</div><div class="day-summary-label">食事ウィンドウ</div></div>';
+    html += '<div class="day-summary-stat"><div class="day-summary-num gold">' + meals.length + '</div><div class="day-summary-label">食事回数</div></div>';
+    html += '</div>';
 
-    // 食事タイムラインカード
-    if (rec.meal_timeline_raw || (rec.meals && Object.keys(rec.meals).length)) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-food">🍽</span>食事記録</div>';
-      html += '<div class="day-card-body">';
-
-      // タイムライン入力があればそれを優先
-      if (rec.meal_timeline && rec.meal_timeline.length) {
-        rec.meal_timeline.forEach(function(m){
-          html += '<div class="day-meal-row">';
-          html += '<span class="day-meal-time">' + pad2(m.hour) + ':' + pad2(m.minute) + '</span>';
-          html += '<span class="day-meal-food">' + escHtml(m.food) + '</span>';
-          html += '</div>';
-        });
-      } else if (rec.meals) {
-        // 従来の食事データ
-        Object.keys(rec.meals).forEach(function(key){
-          var meal = rec.meals[key];
-          if (meal && meal.content) {
-            html += '<div class="day-meal-row">';
-            html += '<span class="day-meal-time">' + escHtml(MEAL_LABELS[key] || key) + '</span>';
-            html += '<span class="day-meal-food">' + escHtml(meal.content) + '</span>';
-            html += '</div>';
-          }
-        });
-      }
-
-      if (rec.food_score) html += '<div style="margin-top:8px;font-size:0.75rem;color:rgba(90,240,208,0.7);">食事スコア: ' + rec.food_score + '/10</div>';
-      html += '</div></div>';
-    }
-
-    // 断食カード
-    if (rec.fasting_hours || rec.fasting_start) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-fasting">⏳</span>プチ断食</div>';
-      html += '<div class="day-card-body">';
-      if (rec.fasting_hours) {
-        var totalMin = (rec.fasting_hours||0)*60 + (rec.fasting_minutes||0);
-        var goalMin = (rec.fasting_goal_hours||14)*60;
-        var pct = Math.min(Math.round(totalMin/goalMin*100),100);
-        html += '<strong>' + rec.fasting_hours + 'h ' + (rec.fasting_minutes||0) + 'm</strong>';
-        html += ' <span style="color:rgba(255,255,255,0.4);">/ 目標 ' + (rec.fasting_goal_hours||14) + 'h</span>';
-        html += '<div class="day-fasting-bar"><div class="day-fasting-fill" style="width:' + pct + '%;"></div></div>';
-      }
-      if (rec.fasting_start && rec.fasting_end) {
-        html += '<span style="font-size:0.75rem;color:rgba(232,228,240,0.5);">' + escHtml(rec.fasting_start) + ' → ' + escHtml(rec.fasting_end) + '</span>';
-      }
-      if (rec.fasting_score) html += '<br><span style="font-size:0.75rem;color:rgba(245,208,32,0.7);">達成感: ' + rec.fasting_score + '/10</span>';
-      html += '</div></div>';
-    }
-
-    // 感情カード
-    if (rec.emotion || rec.wellness_score) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-emotion">♡</span>感情・ウェルネス</div>';
-      html += '<div class="day-card-body">';
-      if (rec.emotion) html += '<strong>' + escHtml(EMO_NAMES[rec.emotion] || rec.emotion) + '</strong><br>';
-      if (rec.wellness_score) html += 'ウェルネス: ' + rec.wellness_score + '/10';
-      if (rec.energy_score) html += ' ｜ エネルギー: ' + rec.energy_score + '/10';
-      if (rec.gratitude) html += '<br><span style="color:rgba(232,228,240,0.5);font-size:0.75rem;">感謝: ' + escHtml(rec.gratitude) + '</span>';
-      html += '</div></div>';
-    }
-
-    // ジャーナルカード
-    if (rec.emotion_notes) {
-      html += '<div class="day-card">';
-      html += '<div class="day-card-header"><span class="day-card-icon icon-journal">✎</span>ジャーナル</div>';
-      html += '<div class="day-card-body">' + escHtml(rec.emotion_notes) + '</div>';
-      html += '</div>';
-    }
+    // ドーナツ描画用データを保存
+    html += '<script>window._dayDonutData={fastTotal:' + fastTotal + ',eatTotal:' + eatTotal + ',meals:' + JSON.stringify(meals.map(function(m){return{h:m.hour,m:m.minute};})) + '};<\/script>';
 
     return html;
   }
