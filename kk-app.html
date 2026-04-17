@@ -4529,6 +4529,9 @@ div.condition-memo-section > *:first-child {
 
     showMoon(year, month, dayNum);
   });
+  
+  // グローバルに公開
+  window.showMoonOverlay = showMoon;
 
   /* ── オーバーレイ閉じる ── */
   var closeBtn = document.querySelector('#moonOverlay .moon-close, #moonCloseBtn');
