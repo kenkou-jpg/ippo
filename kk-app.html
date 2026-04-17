@@ -2267,6 +2267,39 @@
 <!-- Service Worker登録 -->
 
 <style>
+  /* ── インサイト：サンプルグラフ ── */
+.insight-sample-wrap {
+  position: relative;
+}
+.insight-sample-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(6,8,15,0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  z-index: 2;
+  padding: 16px;
+  text-align: center;
+}
+.insight-sample-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+.insight-sample-text {
+  font-size: 0.8125rem;
+  color: rgba(232,228,240,0.7);
+  line-height: 1.7;
+}
+.insight-sample-sub {
+  font-size: 0.7rem;
+  color: rgba(232,228,240,0.35);
+  margin-top: 4px;
+}
   /* ── 30日ビジョンカード ── */
 .vision-card {
   margin: 16px 0;
@@ -5140,6 +5173,97 @@ div.condition-memo-section > *:first-child {
     window.showScreen = function(name){
       origShow.apply(this, arguments);
       if (name === 'home') setTimeout(update, 100);
+    };
+  }
+})();
+</script>
+  <script>
+(function(){
+  /* ── インサイト：サンプルグラフ表示 ── */
+
+  function getRecordCount(){
+    try { return JSON.parse(localStorage.getItem('kk_records') || '[]').length; }
+    catch(e){ return 0; }
+  }
+
+  function showSampleCharts(){
+    var count = getRecordCount();
+    if (count > 0) return; // 記録があれば何もしない
+
+    var SAMPLE = {
+      labels: ['1日目','2日目','3日目','4日目','5日目','6日目','7日目'],
+      wellness: [5, 6, 5, 7, 6, 8, 7],
+      energy:   [4, 5, 6, 5, 7, 6, 8],
+      food:     [4, 5, 6, 5, 7, 6, 7],
+      chakra:   [3, 4, 2, 1, 2, 3, 1]
+    };
+
+    // サンプルグラフ描画
+    if (typeof Chart !== 'undefined') {
+      var wc = document.getElementById('wellnessChart');
+      if (wc) {
+        new Chart(wc.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: SAMPLE.labels,
+            datasets: [
+              { label: 'ウェルネス', data: SAMPLE.wellness, borderColor: 'rgba(230,63,168,0.3)', backgroundColor: 'rgba(230,63,168,0.05)', borderWidth: 1.5, tension: 0.3, fill: true, pointRadius: 2 },
+              { label: 'エネルギー', data: SAMPLE.energy, borderColor: 'rgba(39,183,179,0.3)', backgroundColor: 'rgba(39,183,179,0.05)', borderWidth: 1.5, tension: 0.3, fill: true, pointRadius: 2 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 10 } }, plugins: { legend: { display: false } } }
+        });
+        wrapWithOverlay(wc.closest('.app-card') || wc.parentElement);
+      }
+
+      var fc = document.getElementById('foodChart');
+      if (fc) {
+        new Chart(fc.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: SAMPLE.labels,
+            datasets: [
+              { label: '食事スコア', data: SAMPLE.food, borderColor: 'rgba(39,183,179,0.3)', backgroundColor: 'rgba(39,183,179,0.05)', borderWidth: 1.5, tension: 0.3, fill: true, pointRadius: 2 }
+            ]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 10 } }, plugins: { legend: { display: false } } }
+        });
+        wrapWithOverlay(fc.closest('.app-card') || fc.parentElement);
+      }
+
+      var cc = document.getElementById('chakraChart');
+      if (cc) {
+        new Chart(cc.getContext('2d'), {
+          type: 'bar',
+          data: {
+            labels: ['第1','第2','第3','第4','第5','第6'],
+            datasets: [{ label: '記録回数', data: SAMPLE.chakra, backgroundColor: ['rgba(230,63,168,0.2)','rgba(255,154,74,0.2)','rgba(245,208,32,0.2)','rgba(76,175,80,0.2)','rgba(39,183,179,0.2)','rgba(124,77,255,0.2)'], borderRadius: 8 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } } }
+        });
+        wrapWithOverlay(cc.closest('.app-card') || cc.parentElement);
+      }
+    }
+  }
+
+  function wrapWithOverlay(container){
+    if (!container) return;
+    container.style.position = 'relative';
+    container.classList.add('insight-sample-wrap');
+    var overlay = document.createElement('div');
+    overlay.className = 'insight-sample-overlay';
+    overlay.innerHTML = '<div class="insight-sample-icon">✧</div>'
+      + '<div class="insight-sample-text">あなたの記録が増えると<br>ここにパターンが現れます</div>'
+      + '<div class="insight-sample-sub">7日以上の記録で自動分析が始まります</div>';
+    container.appendChild(overlay);
+  }
+
+  // インサイト画面表示時に実行
+  var origShow = window.showScreen;
+  if (typeof origShow === 'function') {
+    window.showScreen = function(name){
+      origShow.apply(this, arguments);
+      if (name === 'insight') setTimeout(showSampleCharts, 200);
     };
   }
 })();
