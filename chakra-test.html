@@ -1293,27 +1293,6 @@ function renderResult(typeKey) {
 // ────────────────────────────────────────────────────────────
 // Save to app
 // ────────────────────────────────────────────────────────────
-function saveResultToApp() {
-  try {
-    localStorage.setItem('kk_chakra_test_type',   state.resultType);
-    localStorage.setItem('kk_chakra_test_date',   new Date().toISOString().slice(0,10));
-    localStorage.setItem('kk_chakra_test_scores', JSON.stringify(state.scores));
-
-    const btn = $('saveToAppBtn');
-    btn.textContent = '保存しました';
-    btn.style.background = 'linear-gradient(135deg, var(--teal), #1E9490)';
-    btn.disabled = true;
-
-    // 保存済みバッジを表示
-    const badge = document.createElement('div');
-    badge.className = 'saved-badge';
-    badge.innerHTML = '<div class="saved-dot"></div>アプリに保存済み';
-    btn.parentNode.insertBefore(badge, btn);
-
-  } catch(e) {
-    alert('保存に失敗しました。アプリを再度お試しください。');
-  }
-}
 
 // ────────────────────────────────────────────────────────────
 // Event listeners
@@ -1351,7 +1330,45 @@ $('prevBtn').addEventListener('click', () => {
   }
 });
 
-$('saveToAppBtn').addEventListener('click', saveResultToApp);
+document.getElementById('saveToAppBtn').addEventListener('click', function() {
+  // 診断結果を独立キーで保存（アプリから読み取れるように）
+  var result = {
+    type: topChakra,           // 例: 'sacral', 'root' など
+    scores: totalScores,       // 各チャクラのスコアオブジェクト
+    date: new Date().toISOString()
+  };
+  localStorage.setItem('ippo_chakra_result', JSON.stringify(result));
+
+  // アプリのstateにも追記（もしstateが存在すれば）
+  try {
+    var st = JSON.parse(localStorage.getItem('ippo_state'));
+    if (st && st.records) {
+      // 最新の記録にチャクラ情報を付与、なければ新規作成
+      var today = new Date().toDateString();
+      var todayRec = st.records.find(function(r) {
+        return new Date(r.date).toDateString() === today;
+      });
+      if (todayRec) {
+        todayRec.chakra = topChakra;
+      } else {
+        st.records.push({ date: new Date().toISOString(), chakra: topChakra });
+      }
+      localStorage.setItem('ippo_state', JSON.stringify(st));
+    }
+  } catch(e) {}
+
+  // ボタンを「保存済み」に変更
+  this.textContent = '✓ 保存しました';
+  this.style.background = 'var(--teal)';
+  this.disabled = true;
+
+  // 保存バッジ表示
+  var badge = document.createElement('div');
+  badge.className = 'saved-badge';
+  badge.innerHTML = '<span class="saved-dot"></span> アプリに保存済み';
+  this.parentElement.insertBefore(badge, this);
+});
+
 
 // ────────────────────────────────────────────────────────────
 // 既存の保存済み結果を確認
