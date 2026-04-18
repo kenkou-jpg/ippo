@@ -1097,36 +1097,6 @@ function updateChakraProfile(){
   body.innerHTML = html;
 }
 
-// ここから saveRecord 関数（元々あったコード）
-  if(!rec){
-    rec = { date: new Date().toISOString() };
-    state.records.push(rec);
-  }
-
-  // Merge data
-  rec.meals = { morning:morning, lunch:lunch, dinner:dinner, snack:snack };
-  rec.firstMealTime = firstTime;
-  rec.lastMealTime = lastTime;
-  rec.temperature = temp;
-  rec.symptoms = symptoms;
-  rec.menstrualCycle = cycle;
-  if(note) rec.note = note;
-
-  saveState();
-  updateStats();
-  updateHistory();
-  buildCalendar();
-
-
-  // Show success
-  var so = document.getElementById('success-overlay');
-  if(so){
-    document.getElementById('success-emoji').textContent = '🌿';
-    document.getElementById('success-title').textContent = '記録を保存しました';
-    document.getElementById('success-sub').textContent = '食事・体温・症状の記録が追加されました。\nお疲れさまです！';
-    so.classList.add('active');
-  }
-
 function updateUnlock() {
   const days = state.totalDays;
   const pct = Math.min(days / 90 * 100, 100);
