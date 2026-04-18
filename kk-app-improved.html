@@ -1993,6 +1993,7 @@ function saveRecord() {
   updateStats();
   updateUnlock();
   updateHistory();
+  buildCalendar();  // ← 追加
 
   // Success message
   const msgs = [
