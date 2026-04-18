@@ -2377,6 +2377,74 @@ function setDailyMessage() {
 var calYear, calMonth;
 (function(){ var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); })();
 
+// ===== DONUT CHART =====
+function createMealDonut(meals){
+  var slots = [
+    { key:'morning', label:'朝食', color:'#e8c49a' },
+    { key:'lunch',   label:'昼食', color:'#8aab96' },
+    { key:'dinner',  label:'夕食', color:'#c9747a' },
+    { key:'snack',   label:'間食', color:'#b8a9c9' }
+  ];
+  var filled = [];
+  var empty  = [];
+  for(var i=0;i<slots.length;i++){
+    if(meals[slots[i].key]) filled.push(slots[i]);
+    else empty.push(slots[i]);
+  }
+  var total = filled.length || 1;
+  var R = 45, C = 2 * Math.PI * R;
+  var arcs = '';
+  var offset = 0;
+  for(var j=0;j<filled.length;j++){
+    var pct = 1 / total;
+    var dash = C * pct;
+    var gap  = C - dash;
+    arcs += '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="'+filled[j].color+'" stroke-width="10" stroke-dasharray="'+dash+' '+gap+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round"/>';
+    offset += dash;
+  }
+  if(filled.length === 0){
+    arcs = '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
+  }
+  var legend = '';
+  for(var k=0;k<slots.length;k++){
+    var s = slots[k];
+    var has = !!meals[s.key];
+    legend += '<span class="dm-legend-item" style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+(has?'var(--ink)':'var(--ink-light)')+';">';
+    legend += '<span style="width:8px;height:8px;border-radius:50%;background:'+(has?s.color:'#e8ddd8')+';display:inline-block;"></span>';
+    legend += s.label+(has?' ✓':'');
+    legend += '</span>';
+  }
+
+  var html = '';
+  html += '<div class="dm-donut-wrap">';
+  html += '<svg class="dm-donut-svg" viewBox="0 0 120 120">';
+  html += arcs;
+  html += '</svg>';
+  html += '<div class="dm-donut-center">';
+  html += '<div class="dm-donut-num">'+filled.length+'/'+slots.length+'</div>';
+  html += '<div class="dm-donut-label">食事</div>';
+  html += '</div></div>';
+  html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:8px;">'+legend+'</div>';
+  return html;
+}
+
+function createScoreDonut(label, value, max, color){
+  var R = 45, C = 2 * Math.PI * R;
+  var pct = Math.min(value / max, 1);
+  var dashoffset = C - (C * pct);
+  var html = '';
+  html += '<div class="dm-donut-wrap">';
+  html += '<svg class="dm-donut-svg" viewBox="0 0 120 120">';
+  html += '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="#f0ebe6" stroke-width="8"/>';
+  html += '<circle cx="60" cy="60" r="'+R+'" fill="none" stroke="'+color+'" stroke-width="8" stroke-dasharray="'+C+'" stroke-dashoffset="'+dashoffset+'" stroke-linecap="round"/>';
+  html += '</svg>';
+  html += '<div class="dm-donut-center">';
+  html += '<div class="dm-donut-num">'+value+'</div>';
+  html += '<div class="dm-donut-label">'+label+'</div>';
+  html += '</div></div>';
+  return html;
+}
+
 function buildCalendar(){
   var label = document.getElementById('calLabel');
   var grid = document.getElementById('calGrid');
