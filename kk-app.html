@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ippo — 生理周期・卵巣ケア記録アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rose: #c9747a;
+  --rose-light: #f0d5d7;
+  --rose-pale: #fdf3f3;
+  --sage: #8aab96;
+  --sage-light: #d6e8dd;
+  --warm: #e8c49a;
+  --warm-light: #f9edd8;
+  --ink: #2c2420;
+  --ink-mid: #5a4a44;
+  --ink-light: #9a8880;
+  --cream: #faf6f2;
+  --white: #ffffff;
+  --shadow: rgba(44,36,32,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
+
+/* ===== LAYOUT ===== */
+#app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+/* ===== SCREENS ===== */
+.screen { display: none; min-height: 100vh; padding-bottom: 80px; }
+.screen.active { display: block; }
+
+/* ===== ONBOARDING ===== */
+#screen-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 32px;
+  background: linear-gradient(160deg, #fdf3f3 0%, #faf6f2 50%, #f0ebe6 100%);
+  text-align: center;
+}
+
+.welcome-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--rose);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.welcome-tagline {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+/* ===== BEFORE/AFTER CARDS ===== */
+.before-after {
+  width: 100%;
+  margin-bottom: 40px;
+}
+.ba-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.ba-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ba-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 16px 14px;
+  text-align: left;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.ba-card.after {
+  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
+  border: 1px solid var(--rose-light);
+}
+.ba-card-tag {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.ba-card.before .ba-card-tag { background: #f0ebe6; color: var(--ink-light); }
+.ba-card.after .ba-card-tag { background: var(--rose-light); color: var(--rose); }
+.ba-card-text {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink-mid);
+}
+.ba-card.after .ba-card-text { color: var(--ink); }
+.ba-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  color: var(--rose);
+  font-size: 18px;
+}
+
+.welcome-name-section { width: 100%; }
+.welcome-name-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.welcome-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--rose-light);
+  background: transparent;
+  font-size: 18px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+  padding: 10px 4px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.3s;
+  margin-bottom: 32px;
+}
+.welcome-input:focus { border-color: var(--rose); }
+.welcome-input::placeholder { color: var(--ink-light); font-size: 14px; }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.05em;
+}
+.btn-primary:hover { background: #b8666c; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,116,122,0.3); }
+
+.btn-skip {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 8px;
+}
+
+/* ===== NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(250,246,242,0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(200,180,170,0.2);
+  display: flex;
+  z-index: 100;
+  padding: 6px 0 8px;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--ink-light);
+  font-size: 9px;
+  font-family: 'Noto Sans JP', sans-serif;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  gap: 3px;
+}
+.nav-item.active { color: var(--rose); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ===== HOME ===== */
+.home-header {
+  padding: max(20px, env(safe-area-inset-top, 20px)) 24px 0;
+  background: linear-gradient(160deg, #fdf3f3 0%, var(--cream) 100%);
+}
+.home-greeting {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.home-date {
+  font-size: 12px;
+  color: var(--ink-light);
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+}
+
+/* ===== FASTING TIMER WIDGET ===== */
+.fasting-widget {
+  background: linear-gradient(135deg, #2c2420, #3d302a);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 0 24px 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.fasting-widget::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(201,116,122,0.2);
+}
+.fw-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.fw-timer {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.fw-status { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+.fw-buttons { display: flex; gap: 8px; }
+.fw-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.fw-btn.start { background: var(--rose); color: white; }
+.fw-btn.stop { background: rgba(255,255,255,0.15); color: white; }
+.fw-btn:hover { opacity: 0.85; }
+.fw-goal-pills { display: flex; gap: 6px; margin-bottom: 14px; }
+.fw-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.fw-pill.active { background: var(--rose); color: white; border-color: var(--rose); }
+
+/* ===== MILESTONE BADGE ===== */
+.milestone-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+.milestone-card {
+  flex: 1;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.mc-number {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mc-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; }
+.mc-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== UNLOCK PROGRESS ===== */
+.unlock-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.unlock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.unlock-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.unlock-days {
+  font-size: 12px;
+  color: var(--rose);
+  font-weight: 500;
+}
+.unlock-items { display: flex; flex-direction: column; gap: 10px; }
+.unlock-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.unlock-icon {
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.unlock-icon.locked { background: #f0ebe6; filter: grayscale(1); }
+.unlock-icon.unlocked { background: var(--rose-light); }
+.unlock-text { flex: 1; }
+.unlock-text-title { font-size: 13px; color: var(--ink); font-weight: 500; }
+.unlock-text-sub { font-size: 11px; color: var(--ink-light); }
+.unlock-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.unlock-badge.unlocked { background: var(--rose-light); color: var(--rose); }
+.unlock-badge.locked { background: #f0ebe6; color: var(--ink-light); }
+.progress-bar-wrap { margin: 14px 0 0; }
+.progress-bar-bg {
+  background: #f0ebe6;
+  border-radius: 10px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--rose-light), var(--rose));
+  transition: width 1s ease;
+}
+.progress-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.pb-label {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.pb-label.active { color: var(--rose); font-weight: 500; }
+
+/* ===== TODAY MESSAGE ===== */
+.today-msg {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 20px;
+  padding: 20px;
+  border-left: 3px solid var(--rose);
+}
+.tm-label { font-size: 10px; letter-spacing: 0.2em; color: var(--rose); margin-bottom: 8px; text-transform: uppercase; }
+.tm-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+/* ===== RECORD BUTTON ===== */
+.record-cta {
+  margin: 0 24px 24px;
+}
+.record-btn-main {
+  width: 100%;
+  padding: 18px;
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+.record-btn-main:hover { background: var(--rose); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,36,32,0.2); }
+
+/* ===== CHAKRA SECTION ===== */
+.section-card {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 17px;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.chakra-diagnosis-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  border: 1px solid var(--rose-light);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.chakra-diagnosis-link:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-1px); }
+.cdl-text .cdl-title { font-size: 14px; color: var(--ink); font-weight: 500; margin-bottom: 3px; }
+.cdl-text .cdl-sub { font-size: 12px; color: var(--ink-light); }
+.cdl-arrow { font-size: 20px; color: var(--rose); }
+
+/* ===== SHARE CARD ===== */
+.share-section {
+  margin: 0 24px 20px;
+}
+.share-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--white);
+  border: 1.5px solid var(--rose-light);
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: var(--rose);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: var(--rose-pale); }
+
+/* ===== INSIGHTS ===== */
+#screen-insights { padding: 52px 0 80px; }
+
+.insights-header {
+  padding: 0 24px 24px;
+}
+.insights-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.insights-sub { font-size: 13px; color: var(--ink-light); }
+
+/* ===== SAMPLE GRAPH (demo) ===== */
+.sample-graph-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.sg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.sg-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.sg-tabs { display: flex; gap: 4px; }
+.sg-tab {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-light);
+  transition: all 0.2s;
+}
+.sg-tab.active { background: var(--rose); color: white; }
+
+.demo-graph { position: relative; }
+.demo-chart-svg { width: 100%; height: 120px; }
+
+.demo-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250,246,242,0.7);
+  backdrop-filter: blur(3px);
+  border-radius: 8px;
+}
+.demo-overlay-inner { text-align: center; }
+.demo-overlay-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.demo-overlay-sub { font-size: 11px; color: var(--ink-light); }
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  margin: 0 24px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.stat-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; margin-bottom: 6px; }
+.stat-value {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== PATTERN MESSAGE ===== */
+.pattern-section {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink) 0%, #3d302a 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+}
+.ps-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+.ps-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.9;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 16px;
+}
+.ps-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 12px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ===== RECORD MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.5);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+
+.modal-header {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.modal-step-indicator {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.step-dot {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #f0ebe6;
+  transition: background 0.3s;
+}
+.step-dot.active { background: var(--rose); }
+.step-dot.done { background: var(--sage); }
+
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.modal-subtitle { font-size: 12px; color: var(--ink-light); }
+
+.modal-body { padding: 0 24px; }
+
+/* ===== SCORE SELECTOR ===== */
+.score-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.score-btn {
+  flex: 1;
+  padding: 14px 4px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--white);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.score-btn:hover { border-color: var(--rose-light); }
+.score-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.score-label { font-size: 9px; color: var(--ink-light); font-family: 'Noto Sans JP', sans-serif; margin-top: 2px; display: block; }
+
+/* ===== CHAKRA SELECTOR (simplified) ===== */
+.chakra-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.chakra-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--white);
+  border-radius: 14px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.chakra-item:hover { border-color: var(--rose-light); }
+.chakra-item.selected { border-color: var(--rose); background: var(--rose-pale); }
+.chakra-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chakra-name { font-size: 14px; color: var(--ink); flex: 1; }
+.chakra-desc { font-size: 11px; color: var(--ink-light); }
+.chakra-item.featured { border-color: var(--rose-light); background: var(--rose-pale); }
+.chakra-star { color: var(--rose); font-size: 12px; }
+
+/* ===== CHIP SELECTORS ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: var(--white);
+  border: 1.5px solid #e8ddd8;
+  font-size: 12px;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.chip:hover { border-color: var(--rose-light); }
+.chip.selected { background: var(--rose-pale); border-color: var(--rose); color: var(--rose); }
+
+/* ===== EMOTION SELECTOR ===== */
+.emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.emotion-btn {
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.emotion-btn:hover { border-color: var(--rose-light); }
+.emotion-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.emotion-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+.emotion-label { font-size: 11px; color: var(--ink-mid); line-height: 1.4; }
+
+/* ===== TEXTAREA ===== */
+.modal-textarea {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  transition: border-color 0.2s;
+  margin-bottom: 24px;
+}
+.modal-textarea:focus { border-color: var(--rose); }
+.modal-textarea::placeholder { color: var(--ink-light); }
+
+/* ===== MODAL FOOTER ===== */
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.btn-secondary {
+  flex: 1;
+  padding: 14px;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: #e8ddd8; }
+.btn-save {
+  flex: 2;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save:hover { background: #b8666c; }
+
+/* ===== SUCCESS ===== */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.6);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.success-overlay.active { display: flex; }
+.success-card {
+  background: var(--cream);
+  border-radius: 28px;
+  padding: 40px 32px;
+  text-align: center;
+  width: 85%;
+  max-width: 320px;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.success-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+.success-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.success-sub { font-size: 13px; color: var(--ink-light); line-height: 1.7; margin-bottom: 24px; }
+.success-close {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===== SETTINGS ===== */
+#screen-settings { padding: 52px 0 80px; }
+.settings-header { padding: 0 24px 24px; }
+.settings-title { font-family: 'Shippori Mincho', serif; font-size: 24px; color: var(--ink); }
+
+.settings-section { margin: 0 24px 20px; }
+.settings-section-title {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.settings-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(200,180,170,0.15);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:hover { background: var(--rose-pale); }
+.settings-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-row-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.settings-row-text { font-size: 14px; color: var(--ink); }
+.settings-row-sub { font-size: 11px; color: var(--ink-light); margin-top: 1px; }
+.settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
+.settings-chevron { font-size: 14px; }
+
+/* ===== PREMIUM SECTION ===== */
+.premium-card {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink), #3d302a);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.premium-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(201,116,122,0.15);
+}
+.pc-badge {
+  display: inline-block;
+  background: var(--rose);
+  color: white;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.pc-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.pc-features { margin-bottom: 20px; }
+.pc-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 8px;
+}
+.pc-feature-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); flex-shrink: 0; }
+.pc-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== FEEDBACK ===== */
+.feedback-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.fb-title { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--ink); margin-bottom: 6px; }
+.fb-sub { font-size: 12px; color: var(--ink-light); margin-bottom: 16px; line-height: 1.6; }
+.fb-stars { display: flex; gap: 8px; margin-bottom: 16px; }
+.fb-star {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  filter: grayscale(1) opacity(0.3);
+}
+.fb-star.active { filter: none; transform: scale(1.15); }
+.fb-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== HISTORY ===== */
+.history-list { padding: 0 24px; }
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink-light);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.history-item {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px var(--shadow);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.history-date-col {
+  text-align: center;
+  flex-shrink: 0;
+  width: 44px;
+}
+.history-date-day { font-family: 'Shippori Mincho', serif; font-size: 22px; color: var(--ink); line-height: 1; }
+.history-date-month { font-size: 10px; color: var(--ink-light); }
+.history-content { flex: 1; }
+.history-item-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; font-weight: 500; }
+.history-item-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.history-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--rose-pale);
+  color: var(--rose);
+}
+
+/* ===== ANIMATIONS ===== */
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 0; }
+
+/* ===== ADD TO HOME ===== */
+.add-home-banner {
+  margin: 0 24px 20px;
+  background: var(--sage-light);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ahb-icon { font-size: 22px; }
+.ahb-text { flex: 1; }
+.ahb-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.ahb-sub { font-size: 11px; color: var(--ink-light); }
+.ahb-btn {
+  background: var(--sage);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ===== SPACER ===== */
+.spacer-top { height: 52px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== WELCOME ===== -->
+  <div id="screen-welcome" class="fade-in">
+    <div class="welcome-logo">ippo</div>
+    <div class="welcome-tagline">生理周期・卵巣ケア<br>セルフ記録アプリ</div>
+    <div class="welcome-sub">食事・チャクラ・断食・感情を毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
+
+    <!-- Before/After Cards -->
+    <div class="before-after">
+      <div class="ba-label">30日後のあなたへ</div>
+      <div class="ba-cards">
+        <div class="ba-card before">
+          <span class="ba-card-tag">今</span>
+          <div class="ba-card-text">「なんとなく不調が続く」「パターンが分からない」</div>
+        </div>
+        <div class="ba-card after">
+          <span class="ba-card-tag">30日後 ✨</span>
+          <div class="ba-card-text">「排卵前に食欲が増す」「第2チャクラが月経前に詰まる」自分だけのリズムが見えてくる</div>
+        </div>
+      </div>
+      <div class="ba-arrow">↓</div>
+      <div style="text-align:center; font-size: 12px; color: var(--ink-light);">毎日1〜2分の記録でパターン発見</div>
+    </div>
+
+    <div class="welcome-name-section">
+      <div class="welcome-name-label">あなたのお名前を<br>教えてください</div>
+      <input class="welcome-input" id="name-input" type="text" placeholder="（例）さくら">
+      <button class="btn-primary" onclick="startApp()">はじめる →</button>
+      <button class="btn-skip" onclick="startApp()">スキップ</button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="main-app" style="display:none;">
+
+    <!-- HOME -->
+    <div id="screen-home" class="screen active">
+      <div class="home-header">
+        <div class="home-greeting" id="greeting-text">おはようございます</div>
+        <div class="home-date" id="today-date"></div>
+      </div>
+
+      <!-- Fasting Timer Widget -->
+      <div class="fasting-widget" style="margin-top: 20px;">
+        <div class="fw-label">FASTING TIMER</div>
+        <div class="fw-goal-pills">
+          <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
+          <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
+          <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
+        </div>
+        <div class="fw-timer" id="fast-timer">00:00:00</div>
+        <div class="fw-status" id="fast-status">断食スタートを押してください</div>
+        <div class="fw-buttons">
+          <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()">断食を始める</button>
+          <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;">断食を終了</button>
+        </div>
+      </div>
+
+      <!-- Milestone Row -->
+      <div class="milestone-row" style="margin-top:16px;">
+        <div class="milestone-card">
+          <div class="mc-number" id="streak-count">0</div>
+          <div class="mc-label">連続記録日</div>
+          <div class="mc-unit">日</div>
+        </div>
+        <div class="milestone-card">
+          <div class="mc-number" id="total-count">0</div>
+          <div class="mc-label">総記録日数</div>
+          <div class="mc-unit">日</div>
+        </div>
+        <div class="milestone-card">
+          <div class="mc-number" id="fast-week">—</div>
+          <div class="mc-label">今週の断食</div>
+          <div class="mc-unit">累計</div>
+        </div>
+      </div>
+
+      <!-- Unlock Progress (prominent) -->
+      <div class="unlock-section">
+        <div class="unlock-header">
+          <div class="unlock-title">🔓 記録で解放される機能</div>
+          <div class="unlock-days" id="unlock-days-label">あと7日</div>
+        </div>
+        <div class="unlock-items">
+          <div class="unlock-item">
+            <div class="unlock-icon unlocked">📊</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">基本グラフ表示</div>
+              <div class="unlock-text-sub">ウェルネス・食事・チャクラの推移</div>
+            </div>
+            <div class="unlock-badge unlocked">解放済み</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">🔍</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">パターン自動分析</div>
+              <div class="unlock-text-sub">7日記録で解放</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-7">7日〜</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">📄</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">月次PDFレポート</div>
+              <div class="unlock-text-sub">30日記録で解放（プレミアム）</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-30">30日〜</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">🤖</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">AIパターン解析コメント</div>
+              <div class="unlock-text-sub">90日記録で解放（プレミアム）</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-90">90日〜</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-bar-labels">
+            <span class="pb-label active">0日</span>
+            <span class="pb-label">7日</span>
+            <span class="pb-label">30日</span>
+            <span class="pb-label">90日</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today Message -->
+      <div class="today-msg">
+        <div class="tm-label">today's message</div>
+        <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
+      </div>
+
+      <!-- Record CTA -->
+      <div class="record-cta">
+        <button class="record-btn-main" onclick="openRecordModal()">
+          <span>🌸</span>
+          <span>今日を記録する</span>
+        </button>
+      </div>
+
+      <!-- Chakra Diagnosis -->
+      <div class="section-card">
+        <div class="section-label">chakra diagnosis</div>
+        <a class="chakra-diagnosis-link" href="https://kenkou-jpg.github.io/kenkou-kiroku/chakra-test.html">
+          <div class="cdl-text">
+            <div class="cdl-title">あなたのチャクラ体質を診断する</div>
+            <div class="cdl-sub">8問・約2分 → あなたに合った食事法をご提案</div>
+          </div>
+          <div class="cdl-arrow">→</div>
+        </a>
+      </div>
+
+      <!-- Share Button -->
+      <div class="share-section">
+        <button class="share-btn" onclick="shareApp()">
+          <span>🔗</span>
+          <span>友だちにシェアして、一緒に続ける</span>
+        </button>
+      </div>
+
+      <!-- Add to Home Banner -->
+      <div class="add-home-banner" id="add-home-banner">
+        <div class="ahb-icon">📱</div>
+        <div class="ahb-text">
+          <div class="ahb-title">ホーム画面に追加</div>
+          <div class="ahb-sub">アプリとして毎日使えます</div>
+        </div>
+        <button class="ahb-btn" onclick="addToHome()">追加する</button>
+      </div>
+
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="screen-insights" class="screen">
+      <div class="spacer-top"></div>
+      <div class="insights-header">
+        <div class="insights-title">インサイト</div>
+        <div class="insights-sub">記録が語るあなたのパターン</div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">記録日数</div>
+          <div class="stat-value" id="insight-total">0</div>
+          <div class="stat-unit">日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">最長連続</div>
+          <div class="stat-value" id="insight-streak">0</div>
+          <div class="stat-unit">日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">平均食事スコア</div>
+          <div class="stat-value" id="insight-food">—</div>
+          <div class="stat-unit">/ 10</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">平均ウェルネス</div>
+          <div class="stat-value" id="insight-wellness">—</div>
+          <div class="stat-unit">/ 5</div>
+        </div>
+      </div>
+
+      <!-- Sample Graph with demo overlay -->
+      <div class="sample-graph-section">
+        <div class="sg-header">
+          <div class="sg-title">ウェルネス推移</div>
+          <div class="sg-tabs">
+            <button class="sg-tab active" onclick="setGraphTab('7d', this)">7日</button>
+            <button class="sg-tab" onclick="setGraphTab('30d', this)">30日</button>
+            <button class="sg-tab" onclick="setGraphTab('90d', this)">90日</button>
+          </div>
+        </div>
+        <div class="demo-graph">
+          <svg class="demo-chart-svg" viewBox="0 0 300 100">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#c9747a" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#c9747a" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18" stroke="#c9747a" stroke-width="2" fill="none" opacity="0.35"/>
+            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18 L300,100 L0,100 Z" fill="url(#chartGrad)" opacity="0.3"/>
+          </svg>
+          <div class="demo-overlay" id="graph-overlay">
+            <div class="demo-overlay-inner">
+              <div class="demo-overlay-title">🔒 記録を続けるとグラフが表示されます</div>
+              <div class="demo-overlay-sub">7日間記録でパターン分析が解放</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern Message -->
+      <div class="pattern-section">
+        <div class="ps-label">YOUR PATTERN</div>
+        <div class="ps-text">記録を積み重ねるたびに、<br>あなたのからだが少しずつ見えてくる。<br>それがこのアプリの、いちばん大切な価値です。</div>
+        <div class="ps-locked" id="pattern-locked">
+          <span>🔒</span>
+          <span>7日以上記録するとパターンメッセージが届きます</span>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div style="padding: 0 24px; margin-bottom: 12px;">
+        <div class="section-label" style="margin-bottom:0">記録履歴</div>
+      </div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty">まだ記録がありません。<br>今日の記録を始めてみましょう。</div>
+      </div>
+    </div>
+
+    <!-- RECORD TAB (opens modal, stays on home) -->
+    <div id="screen-record" class="screen"></div>
+
+    <!-- SETTINGS -->
+    <div id="screen-settings" class="screen">
+      <div class="spacer-top"></div>
+      <div class="settings-header">
+        <div class="settings-title">設定</div>
+      </div>
+
+      <!-- Premium Card -->
+      <div class="premium-card">
+        <div class="pc-badge">✨ PREMIUM</div>
+        <div class="pc-title">もっと深く、からだを知る</div>
+        <div class="pc-features">
+          <div class="pc-feature"><div class="pc-feature-dot"></div>月次PDFレポート（30日〜）</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>AIパターン解析コメント（90日〜）</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>食材データベース検索</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>LINEリマインダー連携</div>
+        </div>
+        <button class="pc-btn" onclick="alert('近日公開予定です。楽しみにお待ちください！')">プレミアムを見る →</button>
+      </div>
+
+      <!-- Profile -->
+      <div class="settings-section">
+        <div class="settings-section-title">プロフィール</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f9edd8">👤</div>
+              <div>
+                <div class="settings-row-text" id="settings-name-display">名前未設定</div>
+                <div class="settings-row-sub">タップして変更</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
+              <div>
+                <div class="settings-row-text">気になる症状</div>
+                <div class="settings-row-sub">設定する</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#d6e8dd">⏱</div>
+              <div>
+                <div class="settings-row-text">断食目標時間</div>
+                <div class="settings-row-sub" id="fast-goal-display">14h</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="settings-section">
+        <div class="settings-section-title">データ</div>
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
+              <div><div class="settings-row-text">データをエクスポート</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
+              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-section">
+        <div class="fb-title">感想・フィードバック</div>
+        <div class="fb-sub">あなたの声がアプリをより良くします。<br>次の機能は皆さんのフィードバックで決めます。</div>
+        <div class="fb-stars" id="fb-stars">
+          <span class="fb-star" onclick="setRating(1)">⭐</span>
+          <span class="fb-star" onclick="setRating(2)">⭐</span>
+          <span class="fb-star" onclick="setRating(3)">⭐</span>
+          <span class="fb-star" onclick="setRating(4)">⭐</span>
+          <span class="fb-star" onclick="setRating(5)">⭐</span>
+        </div>
+        <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
+      </div>
+
+      <!-- About -->
+      <div class="settings-section">
+        <div class="settings-card">
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">ℹ️</div>
+              <div><div class="settings-row-text">ippoについて</div></div>
+            </div>
+            <div class="settings-row-right"><span>v1.0.0</span><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="window.open('https://kenkou-kiroku.com')">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">📖</div>
+              <div><div class="settings-row-text">ブログ記事を読む</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 0 24px; text-align: center;">
+        <p style="font-size: 11px; color: var(--ink-light); line-height: 1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
+      </div>
+    </div>
+
+    <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span>ホーム</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('insights', this)">
+        <span class="nav-icon">📊</span>
+        <span>インサイト</span>
+      </button>
+      <button class="nav-item" onclick="openRecordModal()">
+        <span class="nav-icon" style="font-size: 28px; margin-top: -6px;">⊕</span>
+        <span>記録</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('settings', this)">
+        <span class="nav-icon">⚙️</span>
+        <span>設定</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- ===== RECORD MODAL ===== -->
+  <div class="modal-overlay" id="record-modal" onclick="closeModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-step-indicator" id="step-indicator">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+        <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
+        <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modal-back-btn" onclick="prevStep()">← 戻る</button>
+        <button class="btn-save" id="modal-next-btn" onclick="nextStep()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUCCESS OVERLAY ===== -->
+  <div class="success-overlay" id="success-overlay">
+    <div class="success-card">
+      <span class="success-emoji">🌸</span>
+      <div class="success-title">記録できました</div>
+      <div class="success-sub" id="success-message">今日もからだの声を<br>聴いてくれてありがとう。<br>記録が積み重なるほど、<br>見えてくるものがあります。</div>
+      <button class="success-close" onclick="closeSuccess()">閉じる</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== STATE =====
+let state = {
+  name: '',
+  records: [],
+  streak: 0,
+  totalDays: 0,
+  fastingActive: false,
+  fastingStart: null,
+  fastGoal: 12,
+  fastTimer: null,
+  rating: 0,
+};
+
+// Current record being built
+let currentRecord = {};
+let currentStep = 0;
+
+const STEPS = [
+  {
+    title: '今日のからだの調子は\nどうですか？',
+    label: '1 / 5',
+    render: renderWellness
+  },
+  {
+    title: '骨盤まわりの\n感覚はどうですか？',
+    label: '2 / 5',
+    render: renderChakra
+  },
+  {
+    title: '今日の食事の質は\nどうでしたか？',
+    label: '3 / 5',
+    render: renderFood
+  },
+  {
+    title: '今日の断食時間は\nどのくらいでしたか？',
+    label: '4 / 5',
+    render: renderFasting
+  },
+  {
+    title: '今の気持ちに\n近いのは？',
+    label: '5 / 5',
+    render: renderEmotion
+  }
+];
+
+// ===== INIT =====
+function init() {
+  const saved = localStorage.getItem('ippo_state');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+  // updateDate は要素の存在チェック付きなので常に安全
+  updateDate();
+  if (state.name) {
+    // メインアプリのDOM要素が存在するときだけ更新系を呼ぶ（バグ03修正）
+    showMain();
+    if (state.fastingActive && state.fastingStart) {
+      resumeFasting();
+    }
+  }
+}
+
+function saveState() {
+  // バグ16: プライベートブラウジング・容量超過でのクラッシュを防ぐ
+  try {
+    localStorage.setItem('ippo_state', JSON.stringify(state));
+  } catch(e) {
+    console.warn('ippo: localStorage save failed', e);
+  }
+}
+
+function startApp() {
+  const nameInput = document.getElementById('name-input');
+  state.name = nameInput.value.trim() || 'あなた';
+  saveState();
+  showMain();
+}
+
+function showMain() {
+  document.getElementById('screen-welcome').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  updateGreeting();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+  document.getElementById('settings-name-display').textContent = state.name;
+  // バグ18: ホームバナー非表示フラグを復元
+  try {
+    if (localStorage.getItem('ippo_hide_add_home') === '1') {
+      const banner = document.getElementById('add-home-banner');
+      if (banner) banner.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+// ===== DATE/GREETING =====
+function updateDate() {
+  const now = new Date();
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const date = `${now.getMonth() + 1}月${now.getDate()}日（${days[now.getDay()]}）`;
+  const el = document.getElementById('today-date');
+  if (el) el.textContent = date;
+}
+
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let greeting = 'こんにちは';
+  if (hour < 10) greeting = 'おはようございます';
+  else if (hour >= 18) greeting = 'こんばんは';
+  const el = document.getElementById('greeting-text');
+  if (el) el.textContent = `${greeting}、${state.name}さん`;
+  updateDate();
+}
+
+// ===== STATS =====
+function updateStats() {
+  document.getElementById('streak-count').textContent = state.streak;
+  document.getElementById('total-count').textContent = state.totalDays;
+  document.getElementById('insight-total').textContent = state.totalDays;
+  document.getElementById('insight-streak').textContent = state.streak;
+
+  const foods = state.records.filter(r => r.foodScore).map(r => r.foodScore);
+  const wellness = state.records.filter(r => r.wellness).map(r => r.wellness);
+
+  document.getElementById('insight-food').textContent =
+    foods.length ? (foods.reduce((a,b) => a+b, 0) / foods.length).toFixed(1) : '—';
+  document.getElementById('insight-wellness').textContent =
+    wellness.length ? (wellness.reduce((a,b) => a+b, 0) / wellness.length).toFixed(1) : '—';
+}
+
+function updateUnlock() {
+  const days = state.totalDays;
+  const pct = Math.min(days / 90 * 100, 100);
+  const fill = document.getElementById('progress-fill');
+  if (fill) fill.style.width = pct + '%';
+
+  // バグ19: ラベルのactiveクラスを日数に応じて更新
+  const milestones = [0, 7, 30, 90];
+  const labels = document.querySelectorAll('.pb-label');
+  labels.forEach((lb, i) => {
+    lb.classList.toggle('active', days >= milestones[i] && (i === milestones.length - 1 || days < milestones[i + 1]));
+  });
+
+  // 解放バッジの表示更新
+  const badge7  = document.getElementById('badge-7');
+  const badge30 = document.getElementById('badge-30');
+  const badge90 = document.getElementById('badge-90');
+  if (badge7)  { badge7.textContent  = days >= 7  ? '解放済み ✓' : '7日〜';  badge7.className  = days >= 7  ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+  if (badge30) { badge30.textContent = days >= 30 ? '解放済み ✓' : '30日〜'; badge30.className = days >= 30 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+  if (badge90) { badge90.textContent = days >= 90 ? '解放済み ✓' : '90日〜'; badge90.className = days >= 90 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+
+  // アイコンのlocked/unlocked切替
+  const icons = document.querySelectorAll('.unlock-icon');
+  if (icons[1]) icons[1].className = days >= 7  ? 'unlock-icon unlocked' : 'unlock-icon locked';
+  if (icons[2]) icons[2].className = days >= 30 ? 'unlock-icon unlocked' : 'unlock-icon locked';
+  if (icons[3]) icons[3].className = days >= 90 ? 'unlock-icon unlocked' : 'unlock-icon locked';
+
+  const daysLeft = Math.max(0, 7 - days);
+  const daysEl = document.getElementById('unlock-days-label');
+  if (daysEl) {
+    if (days >= 90)     daysEl.textContent = '全機能解放 ✓';
+    else if (days >= 30) daysEl.textContent = '30日達成 ✓';
+    else if (days >= 7)  daysEl.textContent = '7日達成 ✓';
+    else                 daysEl.textContent = `あと${daysLeft}日`;
+  }
+}
+
+function updateHistory() {
+  const list = document.getElementById('history-list');
+  if (!list) return;
+  if (!state.records.length) {
+    list.innerHTML = '<div class="history-empty">まだ記録がありません。<br>今日の記録を始めてみましょう。</div>';
+    return;
+  }
+  const recent = [...state.records].reverse().slice(0, 10);
+  list.innerHTML = recent.map(r => {
+    const d = new Date(r.date);
+    const tags = [];
+    if (r.wellness) tags.push(`体調 ${r.wellness}/5`);
+    if (r.emotion) tags.push(r.emotion);
+    if (r.fasting) tags.push(`断食 ${r.fasting}h`);
+    return `<div class="history-item">
+      <div class="history-date-col">
+        <div class="history-date-day">${d.getDate()}</div>
+        <div class="history-date-month">${d.getMonth()+1}月</div>
+      </div>
+      <div class="history-content">
+        <div class="history-item-title">記録</div>
+        <div class="history-item-tags">${tags.map(t => `<span class="history-tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===== FASTING TIMER =====
+let fastInterval = null;
+
+function setFastGoal(h, el) {
+  state.fastGoal = h;
+  saveState();
+  document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleFast() {
+  if (state.fastingActive) return;
+  state.fastingActive = true;
+  state.fastingStart = Date.now();
+  saveState();
+  document.getElementById('fast-start-btn').style.display = 'none';
+  document.getElementById('fast-stop-btn').style.display = 'block';
+  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
+  startFastTimer();
+}
+
+function endFast() {
+  if (!state.fastingActive) return;
+  const elapsed = (Date.now() - state.fastingStart) / 1000 / 3600;
+  state.fastingActive = false;
+  state.fastingStart = null;
+  clearInterval(fastInterval);
+  saveState();
+  document.getElementById('fast-start-btn').style.display = 'block';
+  document.getElementById('fast-stop-btn').style.display = 'none';
+  document.getElementById('fast-timer').textContent = '00:00:00';
+  document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
+}
+
+function resumeFasting() {
+  // Restore pill active state from saved goal
+  document.querySelectorAll('.fw-pill').forEach(p => {
+    p.classList.toggle('active', parseInt(p.textContent) === state.fastGoal);
+  });
+  document.getElementById('fast-start-btn').style.display = 'none';
+  document.getElementById('fast-stop-btn').style.display = 'block';
+  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
+  startFastTimer();
+}
+
+function startFastTimer() {
+  // Always clear before starting — prevents double-run on re-render
+  if (fastInterval !== null) {
+    clearInterval(fastInterval);
+    fastInterval = null;
+  }
+  fastInterval = setInterval(() => {
+    if (!state.fastingStart) return;
+    const elapsed = Date.now() - state.fastingStart;
+    const h = Math.floor(elapsed / 3600000);
+    const m = Math.floor((elapsed % 3600000) / 60000);
+    const s = Math.floor((elapsed % 60000) / 1000);
+    const fmt = v => String(v).padStart(2, '0');
+    const timerEl = document.getElementById('fast-timer');
+    const statusEl = document.getElementById('fast-status');
+    if (!timerEl || !statusEl) { clearInterval(fastInterval); fastInterval = null; return; }
+    timerEl.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+    const goalMs = state.fastGoal * 3600000;
+    if (elapsed >= goalMs) {
+      statusEl.textContent = `🎉 ${state.fastGoal}h 達成！`;
+    } else {
+      const remaining = goalMs - elapsed;
+      const rh = Math.floor(remaining / 3600000);
+      const rm = Math.floor((remaining % 3600000) / 60000);
+      statusEl.textContent = `目標まであと ${rh}h${rm}m`;
+    }
+  }, 1000);
+}
+
+// ===== TABS =====
+function switchTab(tab, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`screen-${tab}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ===== RECORD MODAL =====
+let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき復元
+
+function openRecordModal() {
+  const activeScreen = document.querySelector('.screen.active');
+  if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
+  currentRecord = {};
+  currentStep = 0;
+  renderStep();
+  document.getElementById('record-modal').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // バグ14: フォーカスをモーダル内の最初のボタンに移動
+  requestAnimationFrame(() => {
+    const firstFocusable = document.querySelector('#record-modal .modal-sheet button, #record-modal .modal-sheet [tabindex]');
+    if (firstFocusable) firstFocusable.focus();
+  });
+}
+
+function closeModal() {
+  document.getElementById('record-modal').classList.remove('active');
+  const prevBtn = document.querySelector(`.nav-item[onclick*="'${_prevTab}'"]`);
+  switchTab(_prevTab, prevBtn);
+  // バグ14: モーダルを閉じたらナビボタンにフォーカスを戻す
+  if (prevBtn) prevBtn.focus();
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  document.getElementById('modal-title').innerHTML = step.title.replace('\n', '<br>');
+  document.getElementById('modal-step-label').textContent = step.label;
+
+  const dots = document.querySelectorAll('#step-indicator .step-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < currentStep) d.classList.add('done');
+    else if (i === currentStep) d.classList.add('active');
+  });
+
+  document.getElementById('modal-back-btn').style.display = currentStep === 0 ? 'none' : 'block';
+  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する 🌸' : '次へ →';
+
+  step.render();
+}
+
+function nextStep() {
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    renderStep();
+  } else {
+    saveRecord();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+  }
+}
+
+// ===== STEP RENDERERS =====
+function renderWellness() {
+  const scores = [
+    { v: 1, emoji: '😔', label: 'つらい' },
+    { v: 2, emoji: '😕', label: '重い' },
+    { v: 3, emoji: '😐', label: 'ふつう' },
+    { v: 4, emoji: '🙂', label: 'まあまあ' },
+    { v: 5, emoji: '😊', label: '良い' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="score-selector">
+      ${scores.map(s => `
+        <button class="score-btn ${currentRecord.wellness === s.v ? 'selected' : ''}" onclick="selectWellness(${s.v}, this)">
+          ${s.emoji}<span class="score-label">${s.label}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function selectWellness(v, el) {
+  currentRecord.wellness = v;
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function renderChakra() {
+  const chakras = [
+    { n: '第1チャクラ', d: '骨盤底・安心感', color: '#e74c3c' },
+    { n: '第2チャクラ ★', d: '子宮・卵巣・創造性', color: '#e67e22', featured: true },
+    { n: '第3チャクラ', d: '腹部・自己肯定', color: '#f1c40f' },
+    { n: '第4チャクラ', d: '胸・愛と受容', color: '#2ecc71' },
+    { n: '第5チャクラ', d: '喉・表現・声', color: '#3498db' },
+    { n: '第6チャクラ', d: '眉間・直感・洞察', color: '#9b59b6' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="chakra-simple">
+      ${chakras.map((c, i) => `
+        <div class="chakra-item ${c.featured ? 'featured' : ''} ${currentRecord.chakra === i ? 'selected' : ''}"
+             data-chakra-index="${i}" onclick="selectChakra(${i})">
+          <div class="chakra-dot" style="background:${c.color}"></div>
+          <div class="chakra-name">${c.n}</div>
+          <div class="chakra-desc">${c.d}</div>
+          ${c.featured ? '<span class="chakra-star">★</span>' : ''}
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-skip" onclick="skipChakra()" style="display:block;text-align:center;width:100%;padding:8px;color:var(--ink-light);font-size:12px;background:none;border:none;cursor:pointer;">スキップ →</button>
+  `;
+}
+
+function selectChakra(i) {
+  // バグ10: elではなくdata属性でターゲット要素を特定し、子要素クリック時のズレを防ぐ
+  currentRecord.chakra = i;
+  document.querySelectorAll('.chakra-item').forEach(b => b.classList.remove('selected'));
+  const target = document.querySelector(`.chakra-item[data-chakra-index="${i}"]`);
+  if (target) target.classList.add('selected');
+}
+
+function skipChakra() { currentRecord.chakra = null; nextStep(); }
+
+function renderFood() {
+  const foods = ['根菜類', '発酵食品', '温かいもの', '砂糖控え', 'グルテンフリー', 'EPA/DHA', 'ビタミンD', '鉄分', '水2L以上'];
+  if (!currentRecord.foodItems) currentRecord.foodItems = [];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="score-selector" style="margin-bottom:16px;">
+      ${[1,2,3,4,5,6,7,8,9,10].map(v => `
+        <button class="score-btn ${currentRecord.foodScore === v ? 'selected' : ''}" style="font-size:14px;padding:10px 2px;" onclick="selectFood(${v}, this)">
+          ${v}<span class="score-label"></span>
+        </button>
+      `).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">意識した食材（複数OK）</div>
+    <div class="chips" id="food-chips">
+      ${foods.map(f => `<div class="chip ${currentRecord.foodItems.includes(f) ? 'selected' : ''}" onclick="toggleFoodItem('${f}', this)">${f}</div>`).join('')}
+    </div>
+  `;
+}
+
+function selectFood(v, el) {
+  currentRecord.foodScore = v;
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleFoodItem(item, el) {
+  if (!currentRecord.foodItems) currentRecord.foodItems = [];
+  if (currentRecord.foodItems.includes(item)) {
+    currentRecord.foodItems = currentRecord.foodItems.filter(f => f !== item);
+    el.classList.remove('selected');
+  } else {
+    currentRecord.foodItems.push(item);
+    el.classList.add('selected');
+  }
+}
+
+function renderFasting() {
+  // バグ05: インデックスではなく実際の値で比較・保存する
+  const opts = [
+    { label: '記録しない', value: null },
+    { label: '12時間',     value: 12 },
+    { label: '14時間',     value: 14 },
+    { label: '16時間',     value: 16 },
+    { label: '18時間以上', value: 18 },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="chips" style="flex-direction:column;gap:8px;">
+      ${opts.map(o => `
+        <div class="chip ${currentRecord.fasting === o.value ? 'selected' : ''}"
+             style="padding:12px 16px;font-size:13px;border-radius:14px;"
+             onclick="selectFasting(${o.value === null ? 'null' : o.value}, this)">${o.label}</div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function selectFasting(v, el) {
+  currentRecord.fasting = v === 'null' ? null : Number(v);
+  document.querySelectorAll('.chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function renderEmotion() {
+  const emotions = [
+    { emoji: '🌸', label: '穏やか\n平和', key: '穏やか' },
+    { emoji: '✨', label: 'うれしい\n満たされ', key: 'うれしい' },
+    { emoji: '🌙', label: '疲れ\n重さ', key: '疲れ' },
+    { emoji: '🌊', label: '不安\n緊張', key: '不安' },
+    { emoji: '🔥', label: 'イライラ\n焦り', key: 'イライラ' },
+    { emoji: '☁️', label: 'ふつう', key: 'ふつう' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="emotion-grid">
+      ${emotions.map(e => `
+        <button class="emotion-btn ${currentRecord.emotion === e.key ? 'selected' : ''}" onclick="selectEmotion('${e.key}', this)">
+          <span class="emotion-emoji">${e.emoji}</span>
+          <span class="emotion-label">${e.label.replace('\n', '<br>')}</span>
+        </button>
+      `).join('')}
+    </div>
+    <textarea class="modal-textarea" id="journal-note" placeholder="今日感じたことを自由に…">${currentRecord.note || ''}</textarea>
+  `;
+}
+
+function selectEmotion(key, el) {
+  currentRecord.emotion = key;
+  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const note = document.getElementById('journal-note');
+  if (note) currentRecord.note = note.value;
+}
+
+// ===== SAVE RECORD =====
+function saveRecord() {
+  const noteEl = document.getElementById('journal-note');
+  if (noteEl) currentRecord.note = noteEl.value;
+
+  currentRecord.date = new Date().toISOString();
+
+  // Check if already recorded today (BEFORE push)
+  const today = new Date().toDateString();
+  const alreadyToday = state.records.some(r => new Date(r.date).toDateString() === today);
+
+  // Streak logic (BEFORE push, so yesterday check is not polluted by today's record)
+  if (!alreadyToday) {
+    state.totalDays++;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toDateString();
+    const hadYesterday = state.records.some(r => new Date(r.date).toDateString() === yStr);
+    if (hadYesterday || state.streak === 0) {
+      state.streak++;
+    } else if (!hadYesterday && state.streak > 0) {
+      state.streak = 1;
+    }
+  }
+
+  // Push after all checks (prevent duplicate accumulation on same day)
+  if (!alreadyToday) {
+    state.records.push(currentRecord);
+  } else {
+    // Overwrite today's record instead of appending
+    const idx = state.records.findLastIndex
+      ? state.records.findLastIndex(r => new Date(r.date).toDateString() === today)
+      : state.records.reduce((acc, r, i) => new Date(r.date).toDateString() === today ? i : acc, -1);
+    if (idx !== -1) state.records[idx] = currentRecord;
+    else state.records.push(currentRecord);
+  }
+
+  saveState();
+  closeModal();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+
+  // Success message — cycle through msgs so it never gets stuck
+  const msgs = [
+    `記録${state.totalDays}日目。<br>からだの声を聴いてくれてありがとう。`,
+    `${state.streak}日連続！<br>継続はからだへの最高のギフト。`,
+    `今日も一歩。<br>積み重ねが、あなたのパターンを見せてくれます。`,
+    `${state.streak}日続いています。<br>からだのリズムが、少しずつ見えてきます。`,
+    `記録が積み重なるほど、<br>あなただけのパターンが浮かびあがります。`,
+  ];
+  const msgIdx = (state.totalDays - 1) % msgs.length;
+  document.getElementById('success-message').innerHTML = msgs[msgIdx];
+  document.getElementById('success-overlay').classList.add('active');
+}
+
+function closeSuccess() {
+  document.getElementById('success-overlay').classList.remove('active');
+  switchTab('home', document.querySelector('.nav-item'));
+}
+
+// ===== MISC =====
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'ippo - 卵巣ケア記録アプリ',
+      text: '生理周期・卵巣ケアのセルフ記録アプリです。一緒に続けましょう！',
+      url: window.location.href
+    });
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('URLをコピーしました！友だちに送ってください 🌸');
+    });
+  }
+}
+
+function addToHome() {
+  alert('ブラウザの「ホーム画面に追加」からアプリとして追加できます。\niOS: 共有ボタン → 「ホーム画面に追加」\nAndroid: メニュー → 「ホーム画面に追加」');
+  // バグ18: フラグを保存してリロード後も非表示を維持
+  try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
+  document.getElementById('add-home-banner').style.display = 'none';
+}
+
+function setGraphTab(tab, el) {
+  document.querySelectorAll('.sg-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // バグ12: タブ切替に応じてオーバーレイとグラフタイトルを更新
+  const labelMap = { '7d': '7日間', '30d': '30日間', '90d': '90日間' };
+  const needDays = { '7d': 7, '30d': 30, '90d': 90 };
+  const required = needDays[tab] || 7;
+  const overlay = document.getElementById('graph-overlay');
+  const titleEl = document.querySelector('.sg-title');
+  if (titleEl) titleEl.textContent = `ウェルネス推移（${labelMap[tab]}）`;
+  if (overlay) {
+    if (state.totalDays >= required) {
+      overlay.style.display = 'none';
+    } else {
+      overlay.style.display = 'flex';
+      const sub = overlay.querySelector('.demo-overlay-sub');
+      if (sub) sub.textContent = `${required}日間記録すると表示されます（現在${state.totalDays}日）`;
+    }
+  }
+}
+
+function setRating(n) {
+  state.rating = n;
+  document.querySelectorAll('.fb-star').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+
+function submitFeedback() {
+  if (!state.rating) { alert('評価を選んでください'); return; }
+  alert(`ありがとうございます！${state.rating}つ星の評価が届きました 🌸`);
+  // バグ15: 送信後に評価をリセット
+  state.rating = 0;
+  document.querySelectorAll('.fb-star').forEach(s => s.classList.remove('active'));
+}
+
+function clearData() {
+  state.records    = [];
+  state.streak     = 0;
+  state.totalDays  = 0;
+  // バグ20: 断食タイマーも確実にリセット
+  state.fastingActive = false;
+  state.fastingStart  = null;
+  if (fastInterval !== null) {
+    clearInterval(fastInterval);
+    fastInterval = null;
+  }
+  // タイマーUIを初期状態に戻す
+  const timerEl  = document.getElementById('fast-timer');
+  const statusEl = document.getElementById('fast-status');
+  const startBtn = document.getElementById('fast-start-btn');
+  const stopBtn  = document.getElementById('fast-stop-btn');
+  if (timerEl)  timerEl.textContent  = '00:00:00';
+  if (statusEl) statusEl.textContent = '断食スタートを押してください';
+  if (startBtn) startBtn.style.display = 'block';
+  if (stopBtn)  stopBtn.style.display  = 'none';
+  saveState();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+}
+
+// ===== DAILY MESSAGES =====
+const messages = [
+  'からだの小さな変化に\n気づくことが、最初の一歩。',
+  '今日の記録が、\n明日の自分を助けてくれる。',
+  '無理なく、ていねいに。\nあなたのペースでいい。',
+  '子宮は第二の心。\nからだの声に耳を傾けて。',
+  '断食は修行じゃなく、\nからだへの優しい休息。',
+  '感情もからだの一部。\n正直に記録することが癒しになる。',
+];
+
+function setDailyMessage() {
+  const idx = new Date().getDate() % messages.length;
+  const el = document.getElementById('today-message');
+  // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
+  if (el) el.innerHTML = messages[idx].replaceAll('\n', '<br>');
+}
+
+// ===== START =====
+init();
+setDailyMessage();
+</script>
+</body>
+</html>
