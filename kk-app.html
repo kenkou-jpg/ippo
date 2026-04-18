@@ -1720,6 +1720,103 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
 
 <script>
+// ===== SUPABASE CLOUD SYNC =====
+var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
+
+function getDeviceId(){
+  var id = localStorage.getItem('ippo_device_id');
+  if(!id){
+    id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+    localStorage.setItem('ippo_device_id', id);
+  }
+  return id;
+}
+
+function sbFetch(path, method, body){
+  var opts = {
+    method: method || 'GET',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
+    }
+  };
+  if(body) opts.body = JSON.stringify(body);
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, opts)
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+    .catch(function(e){ console.warn('Sync error:', e); return null; });
+}
+
+// クラウドに記録を保存
+function cloudSaveRecord(rec){
+  var deviceId = getDeviceId();
+  var dateStr = new Date(rec.date).toISOString().slice(0,10);
+  return sbFetch('records', 'POST', {
+    device_id: deviceId,
+    record_date: dateStr,
+    data: rec,
+    updated_at: new Date().toISOString()
+  });
+}
+
+// クラウドから全記録を取得
+function cloudLoadRecords(){
+  var deviceId = getDeviceId();
+  return sbFetch('records?device_id=eq.' + deviceId + '&order=record_date.desc', 'GET');
+}
+
+// 全記録をクラウドに一括バックアップ
+function cloudBackupAll(){
+  var deviceId = getDeviceId();
+  var records = state.records || [];
+  if(!records.length){ console.log('No records to backup'); return Promise.resolve(); }
+  var rows = [];
+  for(var i=0;i<records.length;i++){
+    var r = records[i];
+    var dateStr = r.date ? new Date(r.date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+    rows.push({
+      device_id: deviceId,
+      record_date: dateStr,
+      data: r,
+      updated_at: new Date().toISOString()
+    });
+  }
+  return sbFetch('records', 'POST', rows).then(function(res){
+    if(res) console.log('Backup complete:', rows.length, 'records');
+    return res;
+  });
+}
+
+// クラウドから復元（localStorageが空の時）
+function cloudRestore(){
+  return cloudLoadRecords().then(function(rows){
+    if(!rows || !rows.length) return false;
+    var restored = rows.map(function(r){ return r.data; });
+    try {
+      var st = JSON.parse(localStorage.getItem('ippo_state')) || {};
+      if(!st.records || st.records.length === 0){
+        st.records = restored;
+        localStorage.setItem('ippo_state', JSON.stringify(st));
+        console.log('Restored', restored.length, 'records from cloud');
+        return true;
+      }
+    } catch(e){}
+    return false;
+  });
+}
+
+// プロフィール保存
+function cloudSaveProfile(name){
+  var deviceId = getDeviceId();
+  return sbFetch('profiles', 'POST', {
+    device_id: deviceId,
+    name: name || ''
+  });
+}
+
+  
 // ===== STATE =====
 let state = {
   name: '',
@@ -1765,31 +1862,41 @@ const STEPS = [
   }
 ];
 
-// ===== INIT =====
-function init() {
-  const saved = localStorage.getItem('ippo_state');
-  if (saved) {
-    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
-  }
-  // updateDate は要素の存在チェック付きなので常に安全
-  updateDate();
-  if (state.name) {
-    // メインアプリのDOM要素が存在するときだけ更新系を呼ぶ（バグ03修正）
-    showMain();
-    if (state.fastingActive && state.fastingStart) {
-      resumeFasting();
-    }
-  }
-}
-
-function saveState() {
+  function saveState() {
   // バグ16: プライベートブラウジング・容量超過でのクラッシュを防ぐ
   try {
     localStorage.setItem('ippo_state', JSON.stringify(state));
   } catch(e) {
     console.warn('ippo: localStorage save failed', e);
   }
+  // クラウド同期
+  if(typeof cloudBackupAll === 'function') cloudBackupAll();
 }
+
+// ===== INIT =====
+function init() {
+  const saved = localStorage.getItem('ippo_state');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+  updateDate();
+  if (state.name) {
+    showMain();
+    if (state.fastingActive && state.fastingStart) {
+      resumeFasting();
+    }
+  }
+  // クラウドから復元チェック
+  if(typeof cloudRestore === 'function'){
+    cloudRestore().then(function(restored){
+      if(restored){
+        state = JSON.parse(localStorage.getItem('ippo_state'));
+        updateStats(); updateHistory(); buildCalendar();
+      }
+    });
+  }
+}
+
 
 function startApp() {
   const nameInput = document.getElementById('name-input');
@@ -2377,6 +2484,204 @@ function setDailyMessage() {
 var calYear, calMonth;
 (function(){ var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); })();
 
+// ===== EDIT RECORD =====
+var editingDateStr = null;
+
+function openEditRecord(dateString){
+  document.getElementById('dmOverlay').classList.remove('dm-open');
+  editingDateStr = dateString;
+  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === dateString; });
+  var rec = recs.length ? recs[recs.length - 1] : null;
+
+  var overlay = document.getElementById('editOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'editOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(44,36,32,0.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = '<div id="editBox" style="width:90%;max-width:400px;max-height:88vh;background:var(--cream);border-radius:24px;padding:24px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);"></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) closeEditRecord(); });
+  }
+  overlay.style.display = 'flex';
+
+  var dateObj = new Date(dateString);
+  var WDAY = ['日','月','火','水','木','金','土'];
+  var title = dateObj.getFullYear()+'年'+(dateObj.getMonth()+1)+'月'+dateObj.getDate()+'日（'+WDAY[dateObj.getDay()]+'）';
+
+  var m = (rec && rec.meals) ? rec.meals : {};
+  var html = '';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">'+title+'</div>';
+  html += '<button onclick="closeEditRecord()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  // 食事
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
+  var meals = [
+    {key:'morning', label:'🌅 朝食', val: m.morning||''},
+    {key:'lunch',   label:'☀️ 昼食', val: m.lunch||''},
+    {key:'dinner',  label:'🌙 夕食', val: m.dinner||''},
+    {key:'snack',   label:'🍪 間食', val: m.snack||''}
+  ];
+  for(var i=0;i<meals.length;i++){
+    var ml = meals[i];
+    html += '<div style="margin-bottom:8px;">';
+    html += '<label style="font-size:12px;color:var(--ink-mid);display:block;margin-bottom:4px;">'+ml.label+'</label>';
+    html += '<input id="edit-meal-'+ml.key+'" type="text" value="'+ml.val.replace(/"/g,'&quot;')+'" placeholder="例: サラダ、味噌汁…" class="meal-input">';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // 基礎体温
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">TEMPERATURE</div>';
+  html += '<div style="display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-size:16px;">🌡</span>';
+  html += '<input id="edit-temp" type="number" step="0.1" min="35" max="42" value="'+(rec && rec.temperature ? rec.temperature : '')+'" placeholder="36.5" style="flex:1;" class="meal-input">';
+  html += '<span style="font-size:13px;color:var(--ink-mid);">℃</span>';
+  html += '</div></div>';
+
+  // 症状チップ
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">SYMPTOMS</div>';
+  var symptomList = ['頭痛','腰痛','腹痛','むくみ','肌荒れ','倦怠感','イライラ','不眠','便秘','冷え'];
+  var currentSymptoms = (rec && rec.symptoms) ? rec.symptoms : [];
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  for(var si=0;si<symptomList.length;si++){
+    var sym = symptomList[si];
+    var isSel = currentSymptoms.indexOf(sym) >= 0;
+    html += '<button onclick="toggleEditChip(this)" data-val="'+sym+'" class="chip'+(isSel?' selected':'')+'" style="font-size:12px;padding:6px 12px;">'+sym+'</button>';
+  }
+  html += '</div></div>';
+
+  // 生理状態
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MENSTRUAL CYCLE</div>';
+  var cycleOptions = ['なし','生理中','排卵期','高温期','低温期'];
+  var currentCycle = (rec && rec.menstrualCycle) ? rec.menstrualCycle : '';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  for(var ci=0;ci<cycleOptions.length;ci++){
+    var co = cycleOptions[ci];
+    var cSel = (currentCycle === co);
+    html += '<button onclick="selectEditCycle(this,\''+co+'\')" data-val="'+co+'" class="chip'+(cSel?' selected':'')+'" style="font-size:12px;padding:6px 12px;">'+co+'</button>';
+  }
+  html += '</div></div>';
+
+  // メモ
+  html += '<div style="margin-bottom:20px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEMO</div>';
+  html += '<textarea id="edit-note" class="modal-textarea" placeholder="メモ・気づいたことなど" rows="3">'+(rec && rec.note ? rec.note : '')+'</textarea>';
+  html += '</div>';
+
+  // 保存・削除ボタン
+  html += '<div style="display:flex;gap:10px;">';
+  html += '<button onclick="deleteEditRecord()" style="flex:1;padding:14px;background:#f0ebe6;color:var(--ink-mid);border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;cursor:pointer;">🗑 削除</button>';
+  html += '<button onclick="saveEditRecord()" style="flex:2;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
+  html += '</div>';
+
+  document.getElementById('editBox').innerHTML = html;
+}
+
+function closeEditRecord(){
+  var overlay = document.getElementById('editOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function toggleEditChip(el){
+  el.classList.toggle('selected');
+}
+
+function selectEditCycle(el, val){
+  var parent = el.parentElement;
+  var btns = parent.querySelectorAll('.chip');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('selected');
+  el.classList.add('selected');
+}
+
+function saveEditRecord(){
+  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === editingDateStr; });
+  var rec = recs.length ? recs[recs.length - 1] : null;
+
+  if(!rec){
+    // 新規作成
+    rec = { date: new Date(editingDateStr).toISOString() };
+    state.records.push(rec);
+  }
+
+  // 食事
+  var meals = {};
+  var mk = ['morning','lunch','dinner','snack'];
+  for(var i=0;i<mk.length;i++){
+    var v = document.getElementById('edit-meal-'+mk[i]).value.trim();
+    if(v) meals[mk[i]] = v;
+  }
+  rec.meals = meals;
+
+  // 体温
+  var tempVal = document.getElementById('edit-temp').value.trim();
+  if(tempVal) rec.temperature = tempVal;
+  else delete rec.temperature;
+
+  // 症状
+  var symEls = document.querySelectorAll('#editOverlay .chip.selected[data-val]');
+  var symptoms = [];
+  var cycleVal = '';
+  for(var j=0;j<symEls.length;j++){
+    var parent = symEls[j].parentElement.previousElementSibling;
+    if(parent && parent.textContent === 'SYMPTOMS'){
+      symptoms.push(symEls[j].dataset.val);
+    }
+  }
+  // 症状を別途取得
+  symptoms = [];
+  var allChips = document.querySelectorAll('#editOverlay [data-val]');
+  var inSymptoms = false;
+  var inCycle = false;
+  for(var k=0;k<allChips.length;k++){
+    var chip = allChips[k];
+    var val = chip.dataset.val;
+    var symptomList = ['頭痛','腰痛','腹痛','むくみ','肌荒れ','倦怠感','イライラ','不眠','便秘','冷え'];
+    var cycleList = ['なし','生理中','排卵期','高温期','低温期'];
+    if(symptomList.indexOf(val) >= 0 && chip.classList.contains('selected')){
+      symptoms.push(val);
+    }
+    if(cycleList.indexOf(val) >= 0 && chip.classList.contains('selected')){
+      cycleVal = val;
+    }
+  }
+  rec.symptoms = symptoms;
+  rec.menstrualCycle = cycleVal;
+
+  // メモ
+  var noteVal = document.getElementById('edit-note').value.trim();
+  if(noteVal) rec.note = noteVal;
+  else delete rec.note;
+
+  saveState();
+  buildCalendar();
+  updateHistory();
+  if(typeof cloudSaveRecord === 'function') cloudSaveRecord(rec);
+
+  closeEditRecord();
+
+  // 更新後のモーダルを再表示
+  var dateObj = new Date(editingDateStr);
+  openDayDetail(dateObj.getDate());
+}
+
+function deleteEditRecord(){
+  if(!confirm('この日の記録を削除しますか？')) return;
+  state.records = state.records.filter(function(r){
+    return new Date(r.date).toDateString() !== editingDateStr;
+  });
+  saveState();
+  buildCalendar();
+  updateHistory();
+  closeEditRecord();
+  document.getElementById('dmOverlay').classList.remove('dm-open');
+}
+
 // ===== DONUT CHART =====
 function createMealDonut(meals){
   var slots = [
@@ -2515,7 +2820,6 @@ function openDayDetail(d){
   if(rec.foodScore) tags.push('食事 '+rec.foodScore+'/10');
   if(rec.fasting) tags.push('断食 '+rec.fasting+'h');
   if(rec.emotion) tags.push(rec.emotion);
-  if(rec.temperature) tags.push(rec.temperature+'℃');
   if(rec.symptoms && rec.symptoms.length) tags.push(rec.symptoms.join('・'));
   if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') tags.push('生理: '+rec.menstrualCycle);
   if(tags.length){
@@ -2551,17 +2855,35 @@ function openDayDetail(d){
     }
   }
 
+  // ===== メモ（体温・ジャーナル統合） =====
+  var memoItems = [];
+  if(rec.temperature) memoItems.push({icon:'🌡', text:'基礎体温 '+rec.temperature+'℃'});
+  if(rec.note) memoItems.push({icon:'📝', text:rec.note});
+
+  if(memoItems.length){
+    html += '<div style="margin-top:14px;background:var(--rose-pale);border-radius:14px;padding:14px;border-left:3px solid var(--rose);">';
+    html += '<div style="font-size:10px;color:var(--rose);letter-spacing:0.15em;margin-bottom:8px;">MEMO</div>';
+    for(var ni=0;ni<memoItems.length;ni++){
+      var item = memoItems[ni];
+      if(ni > 0) html += '<div style="border-top:1px solid var(--rose-light);margin:8px 0;"></div>';
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;">';
+      html += '<span style="font-size:14px;flex-shrink:0;">'+item.icon+'</span>';
+      html += '<div style="font-size:13px;color:var(--ink);line-height:1.8;">'+item.text.replace(/\n/g,'<br>')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
   // ===== 断食セクション =====
   if(rec.fasting){
-    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#2c2420,#3d302a);border-radius:14px;padding:16px;color:white;">';
-    html += '<div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin-bottom:8px;">FASTING</div>';
-    html += '<div style="display:flex;align-items:center;gap:12px;">';
-    // 断食ミニドーナツ
     var fGoal = rec.fastingGoal || 16;
     var fHours = parseFloat(rec.fasting) || 0;
     var fPct = Math.min(fHours / fGoal, 1);
     var fR = 28, fC = 2 * Math.PI * fR;
     var fOffset = fC - (fC * fPct);
+    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#2c2420,#3d302a);border-radius:14px;padding:16px;color:white;">';
+    html += '<div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin-bottom:8px;">FASTING</div>';
+    html += '<div style="display:flex;align-items:center;gap:12px;">';
     html += '<div style="position:relative;width:64px;height:64px;flex-shrink:0;">';
     html += '<svg viewBox="0 0 64 64" style="width:100%;height:100%;transform:rotate(-90deg);">';
     html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5"/>';
@@ -2571,48 +2893,31 @@ function openDayDetail(d){
     html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;font-weight:700;color:white;">'+fHours+'</div>';
     html += '<div style="font-size:7px;color:rgba(255,255,255,0.6);letter-spacing:0.1em;">時間</div>';
     html += '</div></div>';
-    // テキスト
     html += '<div style="flex:1;">';
     html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;">'+fHours+'時間の断食</div>';
     html += '<div style="font-size:11px;color:rgba(255,255,255,0.6);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
     html += '</div></div></div>';
   }
 
-  // ===== ジャーナル =====
-  if(rec.note){
-    html += '<div style="margin-top:14px;padding:14px;background:var(--rose-pale);border-radius:14px;border-left:3px solid var(--rose);">';
-    html += '<div style="font-size:10px;color:var(--rose);letter-spacing:0.15em;margin-bottom:6px;">JOURNAL</div>';
-    html += '<div style="font-size:13px;color:var(--ink);line-height:1.8;">'+rec.note.replace(/\n/g,'<br>')+'</div></div>';
-  }
-
-  // ===== ドーナツグラフ =====
-  var hasDonut = rec.meals || rec.foodScore || rec.wellness || rec.temperature;
-  if(hasDonut){
+  // ===== 食事ドーナツグラフ =====
+  if(rec.meals){
     html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe6;">';
     html += '<div style="font-size:11px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:12px;">記録サマリー</div>';
-    if(rec.meals){
-      html += createMealDonut(rec.meals);
-    }
-    var scores = [];
-    if(rec.foodScore) scores.push({label:'食事',val:rec.foodScore,max:10,color:'#e8c49a'});
-    if(rec.wellness) scores.push({label:'体調',val:rec.wellness,max:5,color:'#c9747a'});
-    if(rec.temperature) scores.push({label:'体温',val:parseFloat(rec.temperature),max:40,color:'#8aab96'});
-    if(scores.length){
-      html += '<div style="display:grid;grid-template-columns:repeat('+Math.min(scores.length,3)+',1fr);gap:12px;margin-top:16px;">';
-      for(var s=0;s<scores.length;s++){
-        html += '<div>'+createScoreDonut(scores[s].label,scores[s].val,scores[s].max,scores[s].color)+'</div>';
-      }
-      html += '</div>';
-    }
+    html += createMealDonut(rec.meals);
     html += '</div>';
   }
 
+  // ===== 編集ボタン =====
+  html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0ebe6;">';
+  html += '<button onclick="openEditRecord(\''+ds+'\')" style="width:100%;padding:14px;background:var(--ink);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">';
+  html += '<span style="font-size:16px;">✏️</span> この日の記録を編集する</button>';
+  html += '</div>';
+  
   body.innerHTML = html;
   document.getElementById('dmOverlay').classList.add('dm-open');
 }
 
 
- 
 
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
