@@ -1220,7 +1220,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="tm-label">today's message</div>
         <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
       </div>
-
+      <!-- Calendar -->
+      <div class="calendar-section">
+        <div class="cal-header">
+          <div class="cal-title" id="calLabel"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">◀</button>
+            <button class="cal-nav-btn" id="calNext">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div>
+          <div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+      
       <!-- Record CTA -->
       <div class="record-cta">
         <button class="record-btn-main" onclick="openRecordModal()">
