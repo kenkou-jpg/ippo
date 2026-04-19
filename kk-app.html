@@ -1830,27 +1830,43 @@ function supabaseEnsureAuth(){
 function cloudBackupAll(){
   return supabaseEnsureAuth().then(function(){
     var payload = {
-      user_id: supabaseUserId,
       state: state,
       updated_at: new Date().toISOString()
     };
-   return fetch(SUPABASE_URL + '/rest/v1/user_data?on_conflict=user_id', {
-      method: 'POST',
+    // まずUPDATEを試みる
+    return fetch(SUPABASE_URL + '/rest/v1/user_data?user_id=eq.' + supabaseUserId, {
+      method: 'PATCH',
       headers: Object.assign(supabaseHeaders(), {
-        'Prefer': 'resolution=merge-duplicates,return=representation'
+        'Prefer': 'return=representation'
       }),
       body: JSON.stringify(payload)
-    }).then(function(r){
-      if(r.ok){
-        console.log('Cloud backup完了');
-        return r.json();
+    }).then(function(r){ return r.json().then(function(data){ return {ok: r.ok, data: data}; }); })
+    .then(function(result){
+      if(result.ok && result.data && result.data.length > 0){
+        console.log('Cloud backup完了（更新）');
+        return result.data;
       }
-      return r.text().then(function(t){ console.warn('Backup失敗:', t); return null; });
+      // レコードが無い場合はINSERT
+      payload.user_id = supabaseUserId;
+      return fetch(SUPABASE_URL + '/rest/v1/user_data', {
+        method: 'POST',
+        headers: Object.assign(supabaseHeaders(), {
+          'Prefer': 'return=representation'
+        }),
+        body: JSON.stringify(payload)
+      }).then(function(r2){
+        if(r2.ok){
+          console.log('Cloud backup完了（新規）');
+          return r2.json();
+        }
+        return r2.text().then(function(t){ console.warn('Backup失敗:', t); return null; });
+      });
     });
   }).catch(function(e){
     console.warn('Cloud backup エラー:', e);
   });
 }
+
 
 function cloudRestore(){
   return supabaseEnsureAuth().then(function(){
