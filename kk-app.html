@@ -3262,6 +3262,38 @@ function openRecordScreen(){
     var mealTA = document.getElementById('rs-meal-free');
     if(mealTA && !mealTA.value.trim()){ mealTA.value = todayRec.mealFree; updateMealParse(); }
   }
+    // 既存記録の体温を復元
+  if(todayRec && todayRec.temperature){
+    var tempEl = document.getElementById('rs-temp');
+    if(tempEl && !tempEl.value) tempEl.value = todayRec.temperature;
+  }
+  // 既存記録の症状を復元
+  if(todayRec && todayRec.symptoms && todayRec.symptoms.length){
+    document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
+      if(todayRec.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
+    });
+  }
+  // 既存記録の生理周期を復元
+  if(todayRec && todayRec.menstrualCycle){
+    document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
+      if(c.textContent === todayRec.menstrualCycle || c.getAttribute('data-val') === todayRec.menstrualCycle) c.classList.add('selected');
+    });
+  }
+  // 既存記録の疾患チェックを復元
+  if(todayRec && todayRec.diseaseCheck){
+    setTimeout(function(){
+      var dc = todayRec.diseaseCheck;
+      Object.keys(dc).forEach(function(key){
+        var group = document.querySelector('[data-disease-q="'+key+'"]');
+        if(group){
+          group.querySelectorAll('.chip').forEach(function(c){
+            if(c.textContent === dc[key]) c.classList.add('selected');
+          });
+        }
+      });
+    }, 150);
+  }
+
   setTimeout(function(){ updateDiseaseQuestions(); }, 100);
 
   window.scrollTo(0, 0);
