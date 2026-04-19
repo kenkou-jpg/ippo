@@ -2724,20 +2724,18 @@ function openEditRecord(dateString){
   // 食事
   html += '<div style="margin-bottom:16px;">';
   html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
-  var meals = [
-    {key:'morning', label:'🌅 朝食', val: m.morning||''},
-    {key:'lunch',   label:'☀️ 昼食', val: m.lunch||''},
-    {key:'dinner',  label:'🌙 夕食', val: m.dinner||''},
-    {key:'snack',   label:'🍪 間食', val: m.snack||''}
-  ];
-  for(var i=0;i<meals.length;i++){
-    var ml = meals[i];
-    html += '<div style="margin-bottom:8px;">';
-    html += '<label style="font-size:12px;color:var(--ink-mid);display:block;margin-bottom:4px;">'+ml.label+'</label>';
-    html += '<input id="edit-meal-'+ml.key+'" type="text" value="'+ml.val.replace(/"/g,'&quot;')+'" placeholder="例: サラダ、味噌汁…" class="meal-input">';
-    html += '</div>';
+  var freeText = m.free || '';
+  // 旧形式の互換: morning/lunch等が残っている場合はフリーテキストに変換
+  if(!freeText && (m.morning || m.lunch || m.dinner || m.snack)){
+    var parts = [];
+    if(m.morning) parts.push('朝食: ' + m.morning);
+    if(m.lunch) parts.push('昼食: ' + m.lunch);
+    if(m.dinner) parts.push('夕食: ' + m.dinner);
+    if(m.snack) parts.push('間食: ' + m.snack);
+    freeText = parts.join('\n');
   }
-  html += '</div>';
+  html += '<textarea id="edit-meal-free" placeholder="0930 朝食&#10;1200 昼食&#10;1900 夕食" style="width:100%;min-height:120px;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;">'+freeText.replace(/</g,'&lt;')+'</textarea>';
+
 
   // 基礎体温
   html += '<div style="margin-bottom:16px;">';
