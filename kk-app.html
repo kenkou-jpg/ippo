@@ -1419,6 +1419,19 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
     </div> <!-- screen-insights 終了 -->
 
+    <!-- ===== 症状設定オーバーレイ ===== -->
+<div id="symptomSettingsOverlay" style="position:fixed;inset:0;z-index:600;background:rgba(44,36,32,0.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;">
+  <div style="width:88%;max-width:360px;max-height:82vh;background:var(--cream);border-radius:24px;padding:28px 22px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる症状を選択</div>
+      <button onclick="closeSymptomSettings()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">よく気になる症状を選んでおくと、記録画面で優先表示されます。</div>
+    <div id="symptomSettingsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+    <button onclick="saveSymptomSettings()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>
+  </div>
+</div>
+
      <!-- ===== BOTTOM NAV ===== -->
     <nav class="bottom-nav">
       <button class="nav-item active" onclick="switchTab('home', this)">
@@ -1615,14 +1628,16 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="alert('今後のアップデートで実装予定です')"> 
+          <div class="settings-row" onclick="openSymptomSettings()">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
               <div>
                 <div class="settings-row-text">気になる症状</div>
-                <div class="settings-row-sub">設定する</div>
+                <div class="settings-row-sub" id="symptom-setting-display">設定する</div>
               </div>
             </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
           <div class="settings-row" onclick="var h=prompt('断食目標時間（数字）',state.fastingGoal||16);if(h!==null){state.fastingGoal=parseInt(h)||16;document.getElementById('fast-goal-display').textContent=state.fastingGoal+'h';saveState();}">
@@ -2419,6 +2434,86 @@ function setRating(n) {
   document.querySelectorAll('.fb-star').forEach((s, i) => {
     s.classList.toggle('active', i < n);
   });
+}
+
+  // ===== 症状設定 =====
+var ALL_SYMPTOMS = ['頭痛','腰痛','肩こり','むくみ','冷え','便秘','下痢','肌荒れ','不眠','眠気','イライラ','不安感','食欲増加','食欲不振','胸の張り','下腹部痛','めまい','吐き気','倦怠感','関節痛'];
+
+function openSymptomSettings(){
+  var saved = state.mySymptoms || [];
+  var container = document.getElementById('symptomSettingsChips');
+  container.innerHTML = '';
+  for(var i = 0; i < ALL_SYMPTOMS.length; i++){
+    var s = ALL_SYMPTOMS[i];
+    var selected = saved.indexOf(s) !== -1;
+    var chip = document.createElement('span');
+    chip.className = 'chip' + (selected ? ' selected' : '');
+    chip.setAttribute('data-val', s);
+    chip.textContent = s;
+    chip.onclick = function(){ this.classList.toggle('selected'); };
+    container.appendChild(chip);
+  }
+  var overlay = document.getElementById('symptomSettingsOverlay');
+  overlay.style.display = 'flex';
+}
+
+function closeSymptomSettings(){
+  document.getElementById('symptomSettingsOverlay').style.display = 'none';
+}
+
+function saveSymptomSettings(){
+  var selected = [];
+  document.querySelectorAll('#symptomSettingsChips .chip.selected').forEach(function(c){
+    selected.push(c.getAttribute('data-val'));
+  });
+  state.mySymptoms = selected;
+  saveState();
+  var display = document.getElementById('symptom-setting-display');
+  if(display){
+    display.textContent = selected.length ? selected.join('・') : '設定する';
+  }
+  closeSymptomSettings();
+  updateRecordSymptoms();
+}
+
+function updateSymptomSettingDisplay(){
+  var display = document.getElementById('symptom-setting-display');
+  if(!display) return;
+  var saved = state.mySymptoms || [];
+  display.textContent = saved.length ? saved.join('・') : '設定する';
+}
+
+function updateRecordSymptoms(){
+  var container = document.getElementById('rs-symptoms');
+  if(!container) return;
+  var saved = state.mySymptoms || [];
+  var chips = container.querySelectorAll('.chip');
+  var allSymptoms = [];
+  chips.forEach(function(c){ allSymptoms.push(c.textContent); });
+
+  // 登録済みの症状を先頭に並べ替え
+  var sorted = [];
+  for(var i = 0; i < saved.length; i++){
+    if(allSymptoms.indexOf(saved[i]) !== -1) sorted.push(saved[i]);
+  }
+  for(var j = 0; j < allSymptoms.length; j++){
+    if(sorted.indexOf(allSymptoms[j]) === -1) sorted.push(allSymptoms[j]);
+  }
+
+  container.innerHTML = '';
+  for(var k = 0; k < sorted.length; k++){
+    var s = sorted[k];
+    var isMy = saved.indexOf(s) !== -1;
+    var chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = s;
+    if(isMy){
+      chip.style.borderColor = 'var(--rose)';
+      chip.style.background = 'var(--rose-pale)';
+    }
+    chip.onclick = function(){ this.classList.toggle('selected'); };
+    container.appendChild(chip);
+  }
 }
 
 function submitFeedback() {
