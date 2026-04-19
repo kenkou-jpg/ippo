@@ -1602,7 +1602,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
       <!-- Premium Card -->
-      <div class="premium-card">
+    <div class="premium-card">
         <div class="pc-badge">✨ PREMIUM</div>
         <div class="pc-title">もっと深く、からだを知る</div>
         <div class="pc-features">
@@ -1611,8 +1611,20 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div class="pc-feature"><div class="pc-feature-dot"></div>食材データベース検索</div>
           <div class="pc-feature"><div class="pc-feature-dot"></div>LINEリマインダー連携</div>
         </div>
-        <button class="pc-btn" onclick="alert('近日公開予定です。楽しみにお待ちください！')">プレミアムを見る →</button>
+        <div id="premium-form-area">
+          <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:16px;margin-bottom:12px;">
+            <div style="font-size:13px;color:rgba(255,255,255,0.9);margin-bottom:10px;">🎁 先行登録で最初の3ヶ月無料</div>
+            <input type="email" id="premium-email" placeholder="メールアドレス" style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:Noto Sans JP,sans-serif;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
+          </div>
+          <button class="pc-btn" onclick="submitPremiumWaitlist()">先行登録する →</button>
+        </div>
+        <div id="premium-done" style="display:none;text-align:center;padding:16px 0;">
+          <div style="font-size:24px;margin-bottom:8px;">🌸</div>
+          <div style="font-size:14px;color:rgba(255,255,255,0.9);margin-bottom:4px;">登録ありがとうございます</div>
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);">公開時にご案内をお届けします</div>
+        </div>
       </div>
+
 
       <!-- Profile -->
       <div class="settings-section">
@@ -1827,6 +1839,56 @@ function supabaseEnsureAuth(){
   return supabaseSignInAnonymous();
 }
 
+  // ===== プレミアム先行登録 =====
+function submitPremiumWaitlist(){
+  var emailInput = document.getElementById('premium-email');
+  var email = emailInput ? emailInput.value.trim() : '';
+  if(!email || email.indexOf('@') === -1){
+    alert('メールアドレスを入力してください');
+    return;
+  }
+  supabaseEnsureAuth().then(function(){
+    return fetch(SUPABASE_URL + '/rest/v1/premium_waitlist', {
+      method: 'POST',
+      headers: Object.assign(supabaseHeaders(), {
+        'Prefer': 'return=representation'
+      }),
+      body: JSON.stringify({
+        email: email,
+        user_id: supabaseUserId
+      })
+    });
+  }).then(function(r){
+    if(r.ok){
+      document.getElementById('premium-form-area').style.display = 'none';
+      document.getElementById('premium-done').style.display = 'block';
+      localStorage.setItem('ippo_premium_registered', email);
+    } else {
+      return r.json().then(function(data){
+        if(data.code === '23505'){
+          alert('このメールアドレスは既に登録済みです');
+        } else {
+          alert('送信に失敗しました。もう一度お試しください');
+        }
+      });
+    }
+  }).catch(function(e){
+    console.warn('Waitlist error:', e);
+    alert('通信エラーが発生しました');
+  });
+}
+
+// 既に登録済みなら完了表示
+function checkPremiumRegistered(){
+  if(localStorage.getItem('ippo_premium_registered')){
+    var form = document.getElementById('premium-form-area');
+    var done = document.getElementById('premium-done');
+    if(form) form.style.display = 'none';
+    if(done) done.style.display = 'block';
+  }
+}
+
+  
 function cloudBackupAll(){
   return supabaseEnsureAuth().then(function(){
     var payload = {
@@ -1958,6 +2020,8 @@ function init() {
     try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
   }
   updateDate();
+  checkPremiumRegistered();
+
   if (state.name) {
     showMain();
     if (state.fastingActive && state.fastingStart) {
