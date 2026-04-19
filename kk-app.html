@@ -3074,6 +3074,8 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
+    var fastDisplay = document.getElementById('fast-goal-display');
+  if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
 });
 
 function openDayDetail(d){
