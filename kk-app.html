@@ -3414,7 +3414,7 @@ function updateDiseaseQuestions(){
     html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+q.id+'">';
     for(var j=0;j<q.options.length;j++){
-      html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;border:1.5px solid #e8ddd8;background:var(--white);color:var(--ink);cursor:pointer;">'+q.options[j]+'</button>';
+      html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
     }
     html += '</div></div>';
   }
