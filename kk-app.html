@@ -1749,99 +1749,132 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
 
 <script>
-// ===== SUPABASE CLOUD SYNC =====
+// ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
+var supabaseToken = null;
+var supabaseUserId = null;
 
-function getDeviceId(){
-  var id = localStorage.getItem('ippo_device_id');
-  if(!id){
-    id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
-    localStorage.setItem('ippo_device_id', id);
+function supabaseHeaders(){
+  var h = {
+    'apikey': SUPABASE_KEY,
+    'Content-Type': 'application/json'
+  };
+  if(supabaseToken){
+    h['Authorization'] = 'Bearer ' + supabaseToken;
+  } else {
+    h['Authorization'] = 'Bearer ' + SUPABASE_KEY;
   }
-  return id;
+  return h;
 }
 
-function sbFetch(path, method, body){
-  var opts = {
-    method: method || 'GET',
+function supabaseAuth(endpoint, body){
+  return fetch(SUPABASE_URL + '/auth/v1/' + endpoint, {
+    method: 'POST',
     headers: {
       'apikey': SUPABASE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
-    }
-  };
-  if(body) opts.body = JSON.stringify(body);
-  return fetch(SUPABASE_URL + '/rest/v1/' + path, opts)
-    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
-    .catch(function(e){ console.warn('Sync error:', e); return null; });
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(body)
+  }).then(function(r){ return r.json(); });
 }
 
-// クラウドに記録を保存
-function cloudSaveRecord(rec){
-  var deviceId = getDeviceId();
-  var dateStr = new Date(rec.date).toISOString().slice(0,10);
-  return sbFetch('records', 'POST', {
-    device_id: deviceId,
-    record_date: dateStr,
-    data: rec,
-    updated_at: new Date().toISOString()
+function supabaseSignInAnonymous(){
+  return supabaseAuth('signup', {})
+    .then(function(data){
+      if(data.access_token){
+        supabaseToken = data.access_token;
+        supabaseUserId = data.user.id;
+        localStorage.setItem('ippo_sb_token', data.access_token);
+        localStorage.setItem('ippo_sb_refresh', data.refresh_token);
+        localStorage.setItem('ippo_sb_user_id', data.user.id);
+        console.log('Supabase: 匿名ユーザー作成', supabaseUserId);
+        return data;
+      }
+      throw new Error(data.error_description || data.msg || 'signup failed');
+    });
+}
+
+function supabaseRefreshSession(){
+  var refreshToken = localStorage.getItem('ippo_sb_refresh');
+  if(!refreshToken) return Promise.reject('no refresh token');
+  return supabaseAuth('token?grant_type=refresh_token', {
+    refresh_token: refreshToken
+  }).then(function(data){
+    if(data.access_token){
+      supabaseToken = data.access_token;
+      supabaseUserId = data.user.id;
+      localStorage.setItem('ippo_sb_token', data.access_token);
+      localStorage.setItem('ippo_sb_refresh', data.refresh_token);
+      localStorage.setItem('ippo_sb_user_id', data.user.id);
+      return data;
+    }
+    throw new Error('refresh failed');
   });
 }
 
-// クラウドから全記録を取得
-function cloudLoadRecords(){
-  var deviceId = getDeviceId();
-  return sbFetch('records?device_id=eq.' + deviceId + '&order=record_date.desc', 'GET');
-}
-
-// 全記録をクラウドに一括バックアップ
-function cloudBackupAll(){
-  var deviceId = getDeviceId();
-  var records = state.records || [];
-  if(!records.length){ console.log('No records to backup'); return Promise.resolve(); }
-  var rows = [];
-  for(var i=0;i<records.length;i++){
-    var r = records[i];
-    var dateStr = r.date ? new Date(r.date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
-    rows.push({
-      device_id: deviceId,
-      record_date: dateStr,
-      data: r,
-      updated_at: new Date().toISOString()
+function supabaseEnsureAuth(){
+  if(supabaseToken && supabaseUserId) return Promise.resolve();
+  var savedToken = localStorage.getItem('ippo_sb_token');
+  var savedUserId = localStorage.getItem('ippo_sb_user_id');
+  if(savedToken && savedUserId){
+    supabaseToken = savedToken;
+    supabaseUserId = savedUserId;
+    return supabaseRefreshSession().catch(function(){
+      return supabaseSignInAnonymous();
     });
   }
-  return sbFetch('records', 'POST', rows).then(function(res){
-    if(res) console.log('Backup complete:', rows.length, 'records');
-    return res;
-  });
+  return supabaseSignInAnonymous();
 }
 
-// クラウドから復元（localStorageが空の時）
-function cloudRestore(){
-  return cloudLoadRecords().then(function(rows){
-    if(!rows || !rows.length) return false;
-    var restored = rows.map(function(r){ return r.data; });
-    try {
-      var st = JSON.parse(localStorage.getItem('ippo_state')) || {};
-      if(!st.records || st.records.length === 0){
-        st.records = restored;
-        localStorage.setItem('ippo_state', JSON.stringify(st));
-        console.log('Restored', restored.length, 'records from cloud');
-        return true;
+function cloudBackupAll(){
+  return supabaseEnsureAuth().then(function(){
+    var payload = {
+      user_id: supabaseUserId,
+      state: state,
+      updated_at: new Date().toISOString()
+    };
+    return fetch(SUPABASE_URL + '/rest/v1/user_data', {
+      method: 'POST',
+      headers: Object.assign(supabaseHeaders(), {
+        'Prefer': 'resolution=merge-duplicates,return=representation'
+      }),
+      body: JSON.stringify(payload)
+    }).then(function(r){
+      if(r.ok){
+        console.log('Cloud backup完了');
+        return r.json();
       }
-    } catch(e){}
-    return false;
+      return r.text().then(function(t){ console.warn('Backup失敗:', t); return null; });
+    });
+  }).catch(function(e){
+    console.warn('Cloud backup エラー:', e);
   });
 }
 
-// プロフィール保存
-function cloudSaveProfile(name){
-  var deviceId = getDeviceId();
-  return sbFetch('profiles', 'POST', {
-    device_id: deviceId,
-    name: name || ''
+function cloudRestore(){
+  return supabaseEnsureAuth().then(function(){
+    return fetch(SUPABASE_URL + '/rest/v1/user_data?user_id=eq.' + supabaseUserId + '&select=state,updated_at', {
+      method: 'GET',
+      headers: supabaseHeaders()
+    }).then(function(r){ return r.ok ? r.json() : []; });
+  }).then(function(rows){
+    if(!rows || !rows.length) return false;
+    var cloudState = rows[0].state;
+    var cloudDate = new Date(rows[0].updated_at);
+    var localDate = new Date(state.lastSaved || 0);
+    if(cloudDate > localDate && cloudState.records && cloudState.records.length > (state.records || []).length){
+      state = Object.assign(state, cloudState);
+      state.lastSaved = cloudDate.toISOString();
+      localStorage.setItem('ippo_state', JSON.stringify(state));
+      console.log('Cloud restore完了: ' + cloudState.records.length + '件の記録を復元');
+      return true;
+    }
+    console.log('ローカルが最新のため復元スキップ');
+    return false;
+  }).catch(function(e){
+    console.warn('Cloud restore エラー:', e);
+    return false;
   });
 }
 
