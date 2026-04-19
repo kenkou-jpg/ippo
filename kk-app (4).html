@@ -1,0 +1,3460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ippo — 生理周期・卵巣ケア記録アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rose: #c9747a;
+  --rose-light: #f0d5d7;
+  --rose-pale: #fdf3f3;
+  --sage: #8aab96;
+  --sage-light: #d6e8dd;
+  --warm: #e8c49a;
+  --warm-light: #f9edd8;
+  --ink: #2c2420;
+  --ink-mid: #5a4a44;
+  --ink-light: #9a8880;
+  --cream: #faf6f2;
+  --white: #ffffff;
+  --shadow: rgba(44,36,32,0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
+
+/* ===== LAYOUT ===== */
+#app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+/* ===== SCREENS ===== */
+.screen { display: none; min-height: 100vh; padding-bottom: 80px; }
+.screen.active { display: block; }
+
+/* ===== ONBOARDING ===== */
+#screen-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 32px;
+  background: linear-gradient(160deg, #fdf3f3 0%, #faf6f2 50%, #f0ebe6 100%);
+  text-align: center;
+}
+
+.welcome-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--rose);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.welcome-tagline {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+/* ===== BEFORE/AFTER CARDS ===== */
+.before-after {
+  width: 100%;
+  margin-bottom: 40px;
+}
+.ba-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.ba-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ba-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 16px 14px;
+  text-align: left;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.ba-card.after {
+  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
+  border: 1px solid var(--rose-light);
+}
+.ba-card-tag {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.ba-card.before .ba-card-tag { background: #f0ebe6; color: var(--ink-light); }
+.ba-card.after .ba-card-tag { background: var(--rose-light); color: var(--rose); }
+.ba-card-text {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink-mid);
+}
+.ba-card.after .ba-card-text { color: var(--ink); }
+.ba-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  color: var(--rose);
+  font-size: 18px;
+}
+
+.welcome-name-section { width: 100%; }
+.welcome-name-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.welcome-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--rose-light);
+  background: transparent;
+  font-size: 18px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+  padding: 10px 4px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.3s;
+  margin-bottom: 32px;
+}
+.welcome-input:focus { border-color: var(--rose); }
+.welcome-input::placeholder { color: var(--ink-light); font-size: 14px; }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.05em;
+}
+.btn-primary:hover { background: #b8666c; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(201,116,122,0.3); }
+
+.btn-skip {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 8px;
+}
+
+/* ===== NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(250,246,242,0.95);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(200,180,170,0.2);
+  display: flex;
+  z-index: 100;
+  padding: 6px 0 8px;
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--ink-light);
+  font-size: 9px;
+  font-family: 'Noto Sans JP', sans-serif;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  gap: 3px;
+}
+.nav-item.active { color: var(--rose); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ===== HOME ===== */
+.home-header {
+  padding: max(20px, env(safe-area-inset-top, 20px)) 24px 0;
+  background: linear-gradient(160deg, #fdf3f3 0%, var(--cream) 100%);
+}
+.home-greeting {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.home-date {
+  font-size: 12px;
+  color: var(--ink-light);
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+}
+
+/* ===== FASTING TIMER WIDGET ===== */
+.fasting-widget {
+  background: linear-gradient(135deg, #2c2420, #3d302a);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 0 24px 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.fasting-widget::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: rgba(201,116,122,0.2);
+}
+.fw-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.fw-timer {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.fw-status { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+.fw-buttons { display: flex; gap: 8px; }
+.fw-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.fw-btn.start { background: var(--rose); color: white; }
+.fw-btn.stop { background: rgba(255,255,255,0.15); color: white; }
+.fw-btn:hover { opacity: 0.85; }
+.fw-goal-pills { display: flex; gap: 6px; margin-bottom: 14px; }
+.fw-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+.fw-pill.active { background: var(--rose); color: white; border-color: var(--rose); }
+
+/* ===== MILESTONE BADGE ===== */
+.milestone-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+.milestone-card {
+  flex: 1;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.mc-number {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mc-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; }
+.mc-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== UNLOCK PROGRESS ===== */
+.unlock-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.unlock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.unlock-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.unlock-days {
+  font-size: 12px;
+  color: var(--rose);
+  font-weight: 500;
+}
+.unlock-items { display: flex; flex-direction: column; gap: 10px; }
+.unlock-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.unlock-icon {
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.unlock-icon.locked { background: #f0ebe6; filter: grayscale(1); }
+.unlock-icon.unlocked { background: var(--rose-light); }
+.unlock-text { flex: 1; }
+.unlock-text-title { font-size: 13px; color: var(--ink); font-weight: 500; }
+.unlock-text-sub { font-size: 11px; color: var(--ink-light); }
+.unlock-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.unlock-badge.unlocked { background: var(--rose-light); color: var(--rose); }
+.unlock-badge.locked { background: #f0ebe6; color: var(--ink-light); }
+.progress-bar-wrap { margin: 14px 0 0; }
+.progress-bar-bg {
+  background: #f0ebe6;
+  border-radius: 10px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--rose-light), var(--rose));
+  transition: width 1s ease;
+}
+.progress-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.pb-label {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.pb-label.active { color: var(--rose); font-weight: 500; }
+
+/* ===== TODAY MESSAGE ===== */
+.today-msg {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 20px;
+  padding: 20px;
+  border-left: 3px solid var(--rose);
+}
+.tm-label { font-size: 10px; letter-spacing: 0.2em; color: var(--rose); margin-bottom: 8px; text-transform: uppercase; }
+.tm-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+/* ===== RECORD BUTTON ===== */
+.record-cta {
+  margin: 0 24px 24px;
+}
+.record-btn-main {
+  width: 100%;
+  padding: 18px;
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+.record-btn-main:hover { background: var(--rose); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,36,32,0.2); }
+
+/* ===== CHAKRA SECTION ===== */
+.section-card {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 17px;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.chakra-diagnosis-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
+  border-radius: 14px;
+  padding: 16px;
+  cursor: pointer;
+  border: 1px solid var(--rose-light);
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.chakra-diagnosis-link:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-1px); }
+.cdl-text .cdl-title { font-size: 14px; color: var(--ink); font-weight: 500; margin-bottom: 3px; }
+.cdl-text .cdl-sub { font-size: 12px; color: var(--ink-light); }
+.cdl-arrow { font-size: 20px; color: var(--rose); }
+
+/* ===== SHARE CARD ===== */
+.share-section {
+  margin: 0 24px 20px;
+}
+.share-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--white);
+  border: 1.5px solid var(--rose-light);
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: var(--rose);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: var(--rose-pale); }
+
+/* ===== INSIGHTS ===== */
+#screen-insights { padding: 52px 0 80px; }
+
+.insights-header {
+  padding: 0 24px 24px;
+}
+.insights-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.insights-sub { font-size: 13px; color: var(--ink-light); }
+
+/* ===== SAMPLE GRAPH (demo) ===== */
+.sample-graph-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.sg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.sg-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.sg-tabs { display: flex; gap: 4px; }
+.sg-tab {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-light);
+  transition: all 0.2s;
+}
+.sg-tab.active { background: var(--rose); color: white; }
+
+.demo-graph { position: relative; }
+.demo-chart-svg { width: 100%; height: 120px; }
+
+.demo-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250,246,242,0.7);
+  backdrop-filter: blur(3px);
+  border-radius: 8px;
+}
+.demo-overlay-inner { text-align: center; }
+.demo-overlay-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.demo-overlay-sub { font-size: 11px; color: var(--ink-light); }
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  margin: 0 24px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.stat-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; margin-bottom: 6px; }
+.stat-value {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== PATTERN MESSAGE ===== */
+.pattern-section {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink) 0%, #3d302a 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+}
+.ps-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+.ps-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.9;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 16px;
+}
+.ps-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 12px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ===== RECORD MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.5);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+
+.modal-header {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.modal-step-indicator {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.step-dot {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #f0ebe6;
+  transition: background 0.3s;
+}
+.step-dot.active { background: var(--rose); }
+.step-dot.done { background: var(--sage); }
+
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.modal-subtitle { font-size: 12px; color: var(--ink-light); }
+
+.modal-body { padding: 0 24px; }
+
+/* ===== SCORE SELECTOR ===== */
+.score-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.score-btn {
+  flex: 1;
+  padding: 14px 4px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--white);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.score-btn:hover { border-color: var(--rose-light); }
+.score-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.score-label { font-size: 9px; color: var(--ink-light); font-family: 'Noto Sans JP', sans-serif; margin-top: 2px; display: block; }
+
+/* ===== CHAKRA SELECTOR (simplified) ===== */
+.chakra-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.chakra-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--white);
+  border-radius: 14px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: all 0.2s;
+  box-shadow: 0 1px 6px var(--shadow);
+}
+.chakra-item:hover { border-color: var(--rose-light); }
+.chakra-item.selected { border-color: var(--rose); background: var(--rose-pale); }
+.chakra-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.chakra-name { font-size: 14px; color: var(--ink); flex: 1; }
+.chakra-desc { font-size: 11px; color: var(--ink-light); }
+.chakra-item.featured { border-color: var(--rose-light); background: var(--rose-pale); }
+.chakra-star { color: var(--rose); font-size: 12px; }
+
+/* ===== CHIP SELECTORS ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: var(--white);
+  border: 1.5px solid #e8ddd8;
+  font-size: 12px;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.chip:hover { border-color: var(--rose-light); }
+.chip.selected { background: var(--rose-pale); border-color: var(--rose); color: var(--rose); }
+
+/* ===== EMOTION SELECTOR ===== */
+.emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.emotion-btn {
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.emotion-btn:hover { border-color: var(--rose-light); }
+.emotion-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.emotion-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+.emotion-label { font-size: 11px; color: var(--ink-mid); line-height: 1.4; }
+
+/* ===== TEXTAREA ===== */
+.modal-textarea {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  transition: border-color 0.2s;
+  margin-bottom: 24px;
+}
+.modal-textarea:focus { border-color: var(--rose); }
+.modal-textarea::placeholder { color: var(--ink-light); }
+
+/* ===== MODAL FOOTER ===== */
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.btn-secondary {
+  flex: 1;
+  padding: 14px;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: #e8ddd8; }
+.btn-save {
+  flex: 2;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save:hover { background: #b8666c; }
+
+/* ===== SUCCESS ===== */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.6);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.success-overlay.active { display: flex; }
+.success-card {
+  background: var(--cream);
+  border-radius: 28px;
+  padding: 40px 32px;
+  text-align: center;
+  width: 85%;
+  max-width: 320px;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.success-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+.success-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.success-sub { font-size: 13px; color: var(--ink-light); line-height: 1.7; margin-bottom: 24px; }
+.success-close {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===== SETTINGS ===== */
+#screen-settings { padding: 52px 0 80px; }
+.settings-header { padding: 0 24px 24px; }
+.settings-title { font-family: 'Shippori Mincho', serif; font-size: 24px; color: var(--ink); }
+
+.settings-section { margin: 0 24px 20px; }
+.settings-section-title {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.settings-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(200,180,170,0.15);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:hover { background: var(--rose-pale); }
+.settings-row-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.settings-row-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+.settings-row-text { font-size: 14px; color: var(--ink); }
+.settings-row-sub { font-size: 11px; color: var(--ink-light); margin-top: 1px; }
+.settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
+.settings-chevron { font-size: 14px; }
+
+/* ===== PREMIUM SECTION ===== */
+.premium-card {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink), #3d302a);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.premium-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(201,116,122,0.15);
+}
+.pc-badge {
+  display: inline-block;
+  background: var(--rose);
+  color: white;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.pc-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.pc-features { margin-bottom: 20px; }
+.pc-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 8px;
+}
+.pc-feature-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); flex-shrink: 0; }
+.pc-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== FEEDBACK ===== */
+.feedback-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.fb-title { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--ink); margin-bottom: 6px; }
+.fb-sub { font-size: 12px; color: var(--ink-light); margin-bottom: 16px; line-height: 1.6; }
+.fb-stars { display: flex; gap: 8px; margin-bottom: 16px; }
+.fb-star {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  filter: grayscale(1) opacity(0.3);
+}
+.fb-star.active { filter: none; transform: scale(1.15); }
+.fb-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== HISTORY ===== */
+.history-list { padding: 0 24px; }
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink-light);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.history-item {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px var(--shadow);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.history-date-col {
+  text-align: center;
+  flex-shrink: 0;
+  width: 44px;
+}
+.history-date-day { font-family: 'Shippori Mincho', serif; font-size: 22px; color: var(--ink); line-height: 1; }
+.history-date-month { font-size: 10px; color: var(--ink-light); }
+.history-content { flex: 1; }
+.history-item-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; font-weight: 500; }
+.history-item-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.history-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--rose-pale);
+  color: var(--rose);
+}
+
+/* ===== ANIMATIONS ===== */
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 0; }
+
+/* ===== ADD TO HOME ===== */
+.add-home-banner {
+  margin: 0 24px 20px;
+  background: var(--sage-light);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ahb-icon { font-size: 22px; }
+.ahb-text { flex: 1; }
+.ahb-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.ahb-sub { font-size: 11px; color: var(--ink-light); }
+.ahb-btn {
+  background: var(--sage);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ===== SPACER ===== */
+.spacer-top { height: 52px; }
+/* ===== MEAL INPUT ===== */
+.meal-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meal-input:focus { border-color: var(--rose); }
+.meal-input::placeholder { color: var(--ink-light); font-size: 13px; }
+.meal-time-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meal-time-input:focus { border-color: var(--rose); }
+
+/* ===== CALENDAR ===== */
+.calendar-section { margin: 0 24px 20px; background: var(--white); border-radius: 20px; padding: 20px; box-shadow: 0 2px 12px var(--shadow); }
+.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cal-label { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--ink); }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(200,180,170,0.3); background: var(--white); color: var(--ink-light); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 8px; }
+.cal-wd { text-align: center; font-size: 10px; color: var(--ink-light); padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day { text-align: center; padding: 8px 0; font-size: 13px; color: var(--ink-mid); border-radius: 10px; cursor: pointer; transition: all 0.2s; position: relative; }
+.cal-day:hover { background: var(--rose-pale); }
+.cal-day.empty { pointer-events: none; }
+.cal-day.today { background: var(--rose); color: white; font-weight: 600; border-radius: 50%; }
+.cal-day.has-record::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--rose); }
+.cal-day.today.has-record::after { background: white; }
+
+/* ===== DAY DETAIL MODAL ===== */
+.dm-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(44,36,32,0.5); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; }
+.dm-overlay.dm-open { display: flex; }
+.dm-box { width: 88%; max-width: 360px; max-height: 82vh; background: var(--cream); border-radius: 24px; padding: 28px 22px; overflow-y: auto; position: relative; box-shadow: 0 12px 40px rgba(44,36,32,0.15); }
+.dm-x { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(200,180,170,0.3); background: var(--white); color: var(--ink-light); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.dm-date { font-family: 'Shippori Mincho', serif; font-size: 17px; text-align: center; margin-bottom: 20px; color: var(--ink); }
+.dm-empty { text-align: center; padding: 32px 0; font-size: 14px; color: var(--ink-light); line-height: 2; }
+.dm-donut-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 12px; }
+.dm-donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dm-donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+.dm-donut-num { font-family: 'Shippori Mincho', serif; font-size: 22px; font-weight: 700; color: var(--ink); }
+.dm-donut-label { font-size: 9px; color: var(--ink-light); letter-spacing: 0.15em; }
+.dm-legend { display: flex; justify-content: center; gap: 16px; margin: 4px 0 16px; }
+.dm-legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-mid); }
+.dm-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dm-summary { display: flex; justify-content: center; gap: 24px; margin: 16px 0 8px; }
+.dm-summary-item { text-align: center; }
+.dm-summary-num { font-family: 'Shippori Mincho', serif; font-size: 16px; font-weight: 700; }
+.dm-summary-lbl { font-size: 10px; color: var(--ink-light); margin-top: 4px; }
+.dm-record-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; justify-content: center; }
+.dm-tag { font-size: 11px; padding: 5px 12px; border-radius: 20px; background: var(--rose-pale); color: var(--rose); }
+
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===== WELCOME ===== -->
+  <div id="screen-welcome" class="fade-in">
+    <div class="welcome-logo">ippo</div>
+    <div class="welcome-tagline">生理周期・卵巣ケア<br>セルフ記録アプリ</div>
+    <div class="welcome-sub">食事・チャクラ・断食・感情を毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
+
+    <!-- Before/After Cards -->
+    <div class="before-after">
+      <div class="ba-label">30日後のあなたへ</div>
+      <div class="ba-cards">
+        <div class="ba-card before">
+          <span class="ba-card-tag">今</span>
+          <div class="ba-card-text">「なんとなく不調が続く」「パターンが分からない」</div>
+        </div>
+        <div class="ba-card after">
+          <span class="ba-card-tag">30日後 ✨</span>
+          <div class="ba-card-text">「排卵前に食欲が増す」「第2チャクラが月経前に詰まる」自分だけのリズムが見えてくる</div>
+        </div>
+      </div>
+      <div class="ba-arrow">↓</div>
+      <div style="text-align:center; font-size: 12px; color: var(--ink-light);">毎日1〜2分の記録でパターン発見</div>
+    </div>
+
+    <div class="welcome-name-section">
+      <div class="welcome-name-label">あなたのお名前を<br>教えてください</div>
+      <input class="welcome-input" id="name-input" type="text" placeholder="（例）さくら">
+      <button class="btn-primary" onclick="startApp()">はじめる →</button>
+      <button class="btn-skip" onclick="startApp()">スキップ</button>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="main-app" style="display:none;">
+
+    <!-- HOME -->
+    <div id="screen-home" class="screen active">
+      <div class="home-header">
+        <div class="home-greeting" id="greeting-text">おはようございます</div>
+        <div class="home-date" id="today-date"></div>
+      </div>
+
+      <!-- Fasting Timer Widget -->
+      <div class="fasting-widget" style="margin-top: 20px;">
+        <div class="fw-label">FASTING TIMER</div>
+        <div class="fw-goal-pills">
+          <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
+          <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
+          <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
+        </div>
+        <div class="fw-timer" id="fast-timer">00:00:00</div>
+        <div class="fw-status" id="fast-status">断食スタートを押してください</div>
+        <div class="fw-buttons">
+          <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()">断食を始める</button>
+          <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;">断食を終了</button>
+        </div>
+      </div>
+
+      <!-- Milestone Row -->
+      <div class="milestone-row" style="margin-top:16px;">
+        <div class="milestone-card">
+          <div class="mc-number" id="streak-count">0</div>
+          <div class="mc-label">連続記録日</div>
+          <div class="mc-unit">日</div>
+        </div>
+        <div class="milestone-card">
+          <div class="mc-number" id="total-count">0</div>
+          <div class="mc-label">総記録日数</div>
+          <div class="mc-unit">日</div>
+        </div>
+        <div class="milestone-card">
+          <div class="mc-number" id="fast-week">—</div>
+          <div class="mc-label">今週の断食</div>
+          <div class="mc-unit">累計</div>
+        </div>
+      </div>
+
+      <!-- Unlock Progress (prominent) -->
+      <div class="unlock-section">
+        <div class="unlock-header">
+          <div class="unlock-title">🔓 記録で解放される機能</div>
+          <div class="unlock-days" id="unlock-days-label">あと7日</div>
+        </div>
+        <div class="unlock-items">
+          <div class="unlock-item">
+            <div class="unlock-icon unlocked">📊</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">基本グラフ表示</div>
+              <div class="unlock-text-sub">ウェルネス・食事・チャクラの推移</div>
+            </div>
+            <div class="unlock-badge unlocked">解放済み</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">🔍</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">パターン自動分析</div>
+              <div class="unlock-text-sub">7日記録で解放</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-7">7日〜</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">📄</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">月次PDFレポート</div>
+              <div class="unlock-text-sub">30日記録で解放（プレミアム）</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-30">30日〜</div>
+          </div>
+          <div class="unlock-item">
+            <div class="unlock-icon locked">🤖</div>
+            <div class="unlock-text">
+              <div class="unlock-text-title">AIパターン解析コメント</div>
+              <div class="unlock-text-sub">90日記録で解放（プレミアム）</div>
+            </div>
+            <div class="unlock-badge locked" id="badge-90">90日〜</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+          <div class="progress-bar-labels">
+            <span class="pb-label active">0日</span>
+            <span class="pb-label">7日</span>
+            <span class="pb-label">30日</span>
+            <span class="pb-label">90日</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Today Message -->
+      <div class="today-msg">
+        <div class="tm-label">today's message</div>
+        <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
+      </div>
+
+      <!-- Record CTA -->
+     
+      <!-- Chakra Diagnosis -->
+      <div class="section-card">
+        <div class="section-label">chakra diagnosis</div>
+        <a class="chakra-diagnosis-link" href="https://kenkou-jpg.github.io/kenkou-kiroku/chakra-test.html">
+          <div class="cdl-text">
+            <div class="cdl-title">あなたのチャクラ体質を診断する</div>
+            <div class="cdl-sub">8問・約2分 → あなたに合った食事法をご提案</div>
+          </div>
+          <div class="cdl-arrow">→</div>
+        </a>
+      </div>
+      <!-- Calendar -->
+      <div class="calendar-section">
+        <div class="cal-header">
+          <div class="cal-label" id="calLabel"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">◀</button>
+            <button class="cal-nav-btn" id="calNext">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Day Detail Modal -->
+      <div class="dm-overlay" id="dmOverlay">
+        <div class="dm-box">
+          <button class="dm-x" id="dmClose">✕</button>
+          <div class="dm-date" id="dmDate"></div>
+          <div id="dmBody"></div>
+        </div>
+      </div>
+
+      <!-- Share Button -->
+      <div class="share-section">
+        <button class="share-btn" onclick="shareApp()">
+          <span>🔗</span>
+          <span>友だちにシェアして、一緒に続ける</span>
+        </button>
+      </div>
+
+      <!-- Add to Home Banner -->
+      <div class="add-home-banner" id="add-home-banner">
+        <div class="ahb-icon">📱</div>
+        <div class="ahb-text">
+          <div class="ahb-title">ホーム画面に追加</div>
+          <div class="ahb-sub">アプリとして毎日使えます</div>
+        </div>
+        <button class="ahb-btn" onclick="addToHome()">追加する</button>
+      </div>
+
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="screen-insights" class="screen">
+      <div class="spacer-top"></div>
+      <div class="insights-header">
+        <div class="insights-title">インサイト</div>
+        <div class="insights-sub">記録が語るあなたのパターン</div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">記録日数</div>
+          <div class="stat-value" id="insight-total">0</div>
+          <div class="stat-unit">日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">最長連続</div>
+          <div class="stat-value" id="insight-streak">0</div>
+          <div class="stat-unit">日</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">平均食事スコア</div>
+          <div class="stat-value" id="insight-food">—</div>
+          <div class="stat-unit">/ 10</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">平均ウェルネス</div>
+          <div class="stat-value" id="insight-wellness">—</div>
+          <div class="stat-unit">/ 5</div>
+        </div>
+      </div>
+
+      <!-- Sample Graph with demo overlay -->
+      <div class="sample-graph-section">
+        <div class="sg-header">
+          <div class="sg-title">からだのリズム</div>
+          <div class="sg-tabs">
+            <button class="sg-tab active" onclick="setGraphTab('7d', this)">7日</button>
+            <button class="sg-tab" onclick="setGraphTab('30d', this)">30日</button>
+            <button class="sg-tab" onclick="setGraphTab('90d', this)">90日</button>
+          </div>
+        </div>
+        <div class="demo-graph">
+          <svg class="demo-chart-svg" viewBox="0 0 300 100">
+            <defs>
+              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#c9747a" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#c9747a" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18" stroke="#c9747a" stroke-width="2" fill="none" opacity="0.35"/>
+            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18 L300,100 L0,100 Z" fill="url(#chartGrad)" opacity="0.3"/>
+          </svg>
+          <div class="demo-overlay" id="graph-overlay">
+            <div class="demo-overlay-inner">
+              <div class="demo-overlay-title">🔒 記録を続けるとグラフが表示されます</div>
+              <div class="demo-overlay-sub">7日間記録でパターン分析が解放</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pattern Message -->
+      <div class="pattern-section">
+        <div class="ps-label">YOUR PATTERN</div>
+        <div class="ps-text">記録を積み重ねるたびに、<br>あなたのからだが少しずつ見えてくる。<br>それがこのアプリの、いちばん大切な価値です。</div>
+        <div class="ps-locked" id="pattern-locked">
+          <span>🔒</span>
+          <span>7日以上記録するとパターンメッセージが届きます</span>
+        </div>
+      </div>
+
+    </div> <!-- screen-insights 終了 -->
+
+    <!-- ===== 症状設定オーバーレイ ===== -->
+<div id="symptomSettingsOverlay" style="position:fixed;inset:0;z-index:600;background:rgba(44,36,32,0.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;">
+  <div style="width:88%;max-width:360px;max-height:82vh;background:var(--cream);border-radius:24px;padding:28px 22px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる症状を選択</div>
+      <button onclick="closeSymptomSettings()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">よく気になる症状を選んでおくと、記録画面で優先表示されます。</div>
+    <div id="symptomSettingsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+    <button onclick="saveSymptomSettings()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>
+  </div>
+</div>
+
+     <!-- ===== BOTTOM NAV ===== -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" onclick="switchTab('home', this)">
+        <span class="nav-icon">🏠</span>
+        <span>ホーム</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('insights', this)">
+        <span class="nav-icon">📊</span>
+        <span>インサイト</span>
+      </button>
+      <button class="nav-item" onclick="openRecordScreen()">
+        <span class="nav-icon" style="font-size: 28px; margin-top: -6px;">⊕</span>
+        <span>記録</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('settings', this)">
+        <span class="nav-icon">⚙️</span>
+        <span>設定</span>
+      </button>
+    </nav>
+
+  <!-- ===== RECORD SCREEN ===== -->
+<div id="screen-record" class="screen">
+  <div class="spacer-top"></div>
+  <div style="padding:0 24px 24px;">
+    <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
+    <div class="home-date" id="rec-screen-date"></div>
+  </div>
+  <div class="section-card">
+    <div class="section-label">MEAL TIMELINE</div>
+
+
+    <div class="section-title serif">食事の記録</div>
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <div style="font-size:12px;color:var(--ink-mid);margin-bottom:6px;">🌅 朝食</div>
+        <input class="meal-input" id="rs-morning" placeholder="例）オートミール、味噌汁">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--ink-mid);margin-bottom:6px;">☀️ 昼食</div>
+        <input class="meal-input" id="rs-lunch" placeholder="例）玄米、焼き魚、サラダ">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--ink-mid);margin-bottom:6px;">🌙 夕食</div>
+        <input class="meal-input" id="rs-dinner" placeholder="例）鍋、雑穀米">
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--ink-mid);margin-bottom:6px;">🍵 間食</div>
+        <input class="meal-input" id="rs-snack" placeholder="例）ナッツ、ハーブティー">
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">最初の食事</div>
+          <input type="time" class="meal-time-input" id="rs-first-time">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">最後の食事</div>
+          <input type="time" class="meal-time-input" id="rs-last-time">
+        </div>
+      </div>
+    </div>
+  </div>
+  
+    <!-- ===== からだのための選択（参考欄） ===== -->
+  <div class="section-card">
+    <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.bc-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY-CONSCIOUS CHOICES</div>
+        <div style="font-size:14px;color:var(--ink);font-weight:500;">🌿 からだのための選択ガイド</div>
+      </div>
+      <span class="bc-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+    </div>
+    <div style="display:none;margin-top:14px;font-size:12px;color:var(--ink-mid);line-height:2.0;">
+      <div style="margin-bottom:12px;padding:12px;background:var(--rose-pale);border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🔥 温めるもの</div>
+        生姜・シナモン・根菜・味噌汁・白湯
+      </div>
+      <div style="margin-bottom:12px;padding:12px;background:var(--sage-light);border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🌱 腸を整えるもの</div>
+        発酵食品・食物繊維・ぬか漬け・キムチ・ヨーグルト
+      </div>
+      <div style="margin-bottom:12px;padding:12px;background:#fef3e6;border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🩸 血を補うもの</div>
+        ほうれん草・小松菜・ひじき・プルーン・黒ごま
+      </div>
+      <div style="margin-bottom:12px;padding:12px;background:var(--warm-light);border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🧘 ホルモンを助けるもの</div>
+        大豆・亜麻仁・ナッツ・豆乳・アボカド
+      </div>
+      <div style="margin-bottom:12px;padding:12px;background:#e8edf6;border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🔄 巡らせるもの</div>
+        くるみ・えごま油・海藻・玉ねぎ・青魚
+      </div>
+      <div style="padding:12px;background:#f5f0f0;border-radius:12px;">
+        <div style="font-weight:500;margin-bottom:6px;">🚫 控えたいもの</div>
+        カフェイン・砂糖・冷たいもの・アルコール・加工食品
+      </div>
+    </div>
+  </div>
+
+  <div class="section-card">
+    <div class="section-label">BASAL TEMPERATURE</div>
+    <div class="section-title serif">基礎体温</div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
+      <span style="font-size:16px;color:var(--ink-mid);">℃</span>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-label">SYMPTOMS</div>
+    <div class="section-title serif">今日の症状</div>
+    <div class="chips" id="rs-symptoms">
+      <div class="chip" onclick="toggleRsChip(this)">頭痛</div>
+      <div class="chip" onclick="toggleRsChip(this)">腰痛</div>
+      <div class="chip" onclick="toggleRsChip(this)">下腹部痛</div>
+      <div class="chip" onclick="toggleRsChip(this)">むくみ</div>
+      <div class="chip" onclick="toggleRsChip(this)">肌荒れ</div>
+      <div class="chip" onclick="toggleRsChip(this)">便秘</div>
+      <div class="chip" onclick="toggleRsChip(this)">下痢</div>
+      <div class="chip" onclick="toggleRsChip(this)">吐き気</div>
+      <div class="chip" onclick="toggleRsChip(this)">倦怠感</div>
+      <div class="chip" onclick="toggleRsChip(this)">不眠</div>
+      <div class="chip" onclick="toggleRsChip(this)">イライラ</div>
+      <div class="chip" onclick="toggleRsChip(this)">不安感</div>
+      <div class="chip" onclick="toggleRsChip(this)">食欲増加</div>
+      <div class="chip" onclick="toggleRsChip(this)">食欲低下</div>
+      <div class="chip" onclick="toggleRsChip(this)">眠気</div>
+      <div class="chip" onclick="toggleRsChip(this)">冷え</div>
+      <div class="chip" onclick="toggleRsChip(this)">おりもの</div>
+      <div class="chip" onclick="toggleRsChip(this)">胸の張り</div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-label">MENSTRUAL CYCLE</div>
+    <div class="section-title serif">生理の状態</div>
+    <div class="chips" id="rs-cycle">
+      <div class="chip" onclick="selectRsCycle(this,'none')">なし</div>
+      <div class="chip" onclick="selectRsCycle(this,'light')">少量</div>
+      <div class="chip" onclick="selectRsCycle(this,'normal')">普通</div>
+      <div class="chip" onclick="selectRsCycle(this,'heavy')">多い</div>
+      <div class="chip" onclick="selectRsCycle(this,'spotting')">不正出血</div>
+    </div>
+  </div>
+  <div class="section-card">
+    <div class="section-label">JOURNAL</div>
+    <div class="section-title serif">今日のメモ</div>
+    <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
+  </div>
+  <div style="padding:0 24px 40px;">
+    <button class="btn-primary" onclick="saveRecordScreen()" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
+    <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
+    <div id="draft-indicator" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>
+  </div>
+</div>
+
+    <!-- SETTINGS -->
+    <div id="screen-settings" class="screen">
+      <div class="spacer-top"></div>
+      <div class="settings-header">
+        <div class="settings-title">設定</div>
+         </div>
+              <div class="section-card" id="chakra-profile-card" style="display:none;">
+        <div class="section-label">YOUR CHAKRA TYPE</div>
+        <div class="section-title serif">あなたのチャクラタイプ</div>
+        <div id="chakra-profile-body"></div>
+        <div style="margin-top:14px;">
+          <button class="share-btn" onclick="location.href='https://kenkou-jpg.github.io/kenkou-kiroku/chakra-test.html'" style="font-size:12px;padding:10px;">もう一度診断する →</button>
+        </div>
+      </div>
+
+      <!-- Premium Card -->
+      <div class="premium-card">
+        <div class="pc-badge">✨ PREMIUM</div>
+        <div class="pc-title">もっと深く、からだを知る</div>
+        <div class="pc-features">
+          <div class="pc-feature"><div class="pc-feature-dot"></div>月次PDFレポート（30日〜）</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>AIパターン解析コメント（90日〜）</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>食材データベース検索</div>
+          <div class="pc-feature"><div class="pc-feature-dot"></div>LINEリマインダー連携</div>
+        </div>
+        <button class="pc-btn" onclick="alert('近日公開予定です。楽しみにお待ちください！')">プレミアムを見る →</button>
+      </div>
+
+      <!-- Profile -->
+      <div class="settings-section">
+        <div class="settings-section-title">プロフィール</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="var n=prompt('名前を変更',state.name||'');if(n!==null){state.name=n.trim()||'あなた';document.getElementById('settings-name-display').textContent=state.name;saveState();}">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f9edd8">👤</div>
+              <div>
+                <div class="settings-row-text" id="settings-name-display">名前未設定</div>
+                <div class="settings-row-sub">タップして変更</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="openSymptomSettings()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
+              <div>
+                <div class="settings-row-text">気になる症状</div>
+                <div class="settings-row-sub" id="symptom-setting-display">設定する</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="var h=prompt('断食目標時間（数字）',state.fastingGoal||16);if(h!==null){state.fastingGoal=parseInt(h)||16;document.getElementById('fast-goal-display').textContent=state.fastingGoal+'h';saveState();}">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#d6e8dd">⏱</div>
+              <div>
+                <div class="settings-row-text">断食目標時間</div>
+                <div class="settings-row-sub" id="fast-goal-display">14h</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="settings-section">
+        <div class="settings-section-title">データ</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="var d=JSON.stringify(state,null,2);var b=new Blob([d],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ippo-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
+              <div><div class="settings-row-text">データをエクスポート</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
+              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-section">
+        <div class="fb-title">感想・フィードバック</div>
+        <div class="fb-sub">あなたの声がアプリをより良くします。<br>次の機能は皆さんのフィードバックで決めます。</div>
+        <div class="fb-stars" id="fb-stars">
+          <span class="fb-star" onclick="setRating(1)">⭐</span>
+          <span class="fb-star" onclick="setRating(2)">⭐</span>
+          <span class="fb-star" onclick="setRating(3)">⭐</span>
+          <span class="fb-star" onclick="setRating(4)">⭐</span>
+          <span class="fb-star" onclick="setRating(5)">⭐</span>
+        </div>
+        <textarea id="fb-comment" placeholder="ご感想やご要望をお聞かせください（任意）" style="width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:none;min-height:80px;outline:none;margin-bottom:16px;margin-top:12px;"></textarea>
+        <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
+      </div>
+
+      <!-- About -->
+      <div class="settings-section">
+        <div class="settings-card">
+          <div class="settings-row" onclick="alert('ippo v1.0.0\n\n生理周期・卵巣ケアセルフ記録アプリ\n\n毎日のからだの声を記録して、\nあなただけのパターンを発見しましょう。\n\n© 2026 kenkou kiroku')">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">ℹ️</div>
+              <div><div class="settings-row-text">ippoについて</div></div>
+            </div>
+            <div class="settings-row-right"><span>v1.0.0</span><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="window.open('https://kenkou-kiroku.com')">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">📖</div>
+              <div><div class="settings-row-text">ブログ記事を読む</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 0 24px; text-align: center;">
+        <p style="font-size: 11px; color: var(--ink-light); line-height: 1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
+      </div>
+    </div>
+   </div>
+
+  <!-- ===== RECORD MODAL ===== -->
+  <div class="modal-overlay" id="record-modal" onclick="closeModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-step-indicator" id="step-indicator">
+          <div class="step-dot active"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+          <div class="step-dot"></div>
+        </div>
+        <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
+        <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modal-back-btn" onclick="prevStep()">← 戻る</button>
+        <button class="btn-save" id="modal-next-btn" onclick="nextStep()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUCCESS OVERLAY ===== -->
+  <div class="success-overlay" id="success-overlay">
+    <div class="success-card">
+      <span class="success-emoji" id="success-emoji">🌸</span>
+<div class="success-title" id="success-title">記録できました</div>
+      <div class="success-sub" id="success-message">今日もからだの声を<br>聴いてくれてありがとう。<br>記録が積み重なるほど、<br>見えてくるものがあります。</div>
+      <button class="success-close" onclick="closeSuccess()">閉じる</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== SUPABASE CLOUD SYNC =====
+var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
+
+function getDeviceId(){
+  var id = localStorage.getItem('ippo_device_id');
+  if(!id){
+    id = 'dev_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+    localStorage.setItem('ippo_device_id', id);
+  }
+  return id;
+}
+
+function sbFetch(path, method, body){
+  var opts = {
+    method: method || 'GET',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'resolution=merge-duplicates,return=representation' : 'return=representation'
+    }
+  };
+  if(body) opts.body = JSON.stringify(body);
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, opts)
+    .then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+    .catch(function(e){ console.warn('Sync error:', e); return null; });
+}
+
+// クラウドに記録を保存
+function cloudSaveRecord(rec){
+  var deviceId = getDeviceId();
+  var dateStr = new Date(rec.date).toISOString().slice(0,10);
+  return sbFetch('records', 'POST', {
+    device_id: deviceId,
+    record_date: dateStr,
+    data: rec,
+    updated_at: new Date().toISOString()
+  });
+}
+
+// クラウドから全記録を取得
+function cloudLoadRecords(){
+  var deviceId = getDeviceId();
+  return sbFetch('records?device_id=eq.' + deviceId + '&order=record_date.desc', 'GET');
+}
+
+// 全記録をクラウドに一括バックアップ
+function cloudBackupAll(){
+  var deviceId = getDeviceId();
+  var records = state.records || [];
+  if(!records.length){ console.log('No records to backup'); return Promise.resolve(); }
+  var rows = [];
+  for(var i=0;i<records.length;i++){
+    var r = records[i];
+    var dateStr = r.date ? new Date(r.date).toISOString().slice(0,10) : new Date().toISOString().slice(0,10);
+    rows.push({
+      device_id: deviceId,
+      record_date: dateStr,
+      data: r,
+      updated_at: new Date().toISOString()
+    });
+  }
+  return sbFetch('records', 'POST', rows).then(function(res){
+    if(res) console.log('Backup complete:', rows.length, 'records');
+    return res;
+  });
+}
+
+// クラウドから復元（localStorageが空の時）
+function cloudRestore(){
+  return cloudLoadRecords().then(function(rows){
+    if(!rows || !rows.length) return false;
+    var restored = rows.map(function(r){ return r.data; });
+    try {
+      var st = JSON.parse(localStorage.getItem('ippo_state')) || {};
+      if(!st.records || st.records.length === 0){
+        st.records = restored;
+        localStorage.setItem('ippo_state', JSON.stringify(st));
+        console.log('Restored', restored.length, 'records from cloud');
+        return true;
+      }
+    } catch(e){}
+    return false;
+  });
+}
+
+// プロフィール保存
+function cloudSaveProfile(name){
+  var deviceId = getDeviceId();
+  return sbFetch('profiles', 'POST', {
+    device_id: deviceId,
+    name: name || ''
+  });
+}
+
+  
+// ===== STATE =====
+let state = {
+  name: '',
+  records: [],
+  streak: 0,
+  totalDays: 0,
+  fastingActive: false,
+  fastingStart: null,
+  fastGoal: 12,
+  fastTimer: null,
+  rating: 0,
+};
+
+// Current record being built
+let currentRecord = {};
+let currentStep = 0;
+
+const STEPS = [
+  {
+    title: '今日のからだの調子は\nどうですか？',
+    label: '1 / 5',
+    render: renderWellness
+  },
+  {
+    title: '骨盤まわりの\n感覚はどうですか？',
+    label: '2 / 5',
+    render: renderChakra
+  },
+  {
+    title: '今日の食事の質は\nどうでしたか？',
+    label: '3 / 5',
+    render: renderFood
+  },
+  {
+    title: '今日の断食時間は\nどのくらいでしたか？',
+    label: '4 / 5',
+    render: renderFasting
+  },
+  {
+    title: '今の気持ちに\n近いのは？',
+    label: '5 / 5',
+    render: renderEmotion
+  }
+];
+
+  function saveState() {
+  // バグ16: プライベートブラウジング・容量超過でのクラッシュを防ぐ
+  try {
+    localStorage.setItem('ippo_state', JSON.stringify(state));
+  } catch(e) {
+    console.warn('ippo: localStorage save failed', e);
+  }
+  // クラウド同期
+  if(typeof cloudBackupAll === 'function') cloudBackupAll();
+}
+
+// ===== INIT =====
+function init() {
+  const saved = localStorage.getItem('ippo_state');
+  if (saved) {
+    try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
+  }
+  updateDate();
+  if (state.name) {
+    showMain();
+    if (state.fastingActive && state.fastingStart) {
+      resumeFasting();
+    }
+  }
+  // クラウドから復元チェック
+  if(typeof cloudRestore === 'function'){
+    cloudRestore().then(function(restored){
+      if(restored){
+        state = JSON.parse(localStorage.getItem('ippo_state'));
+        updateStats(); updateHistory(); buildCalendar();
+      }
+    });
+  }
+}
+
+
+function startApp() {
+  const nameInput = document.getElementById('name-input');
+  state.name = nameInput.value.trim() || 'あなた';
+  saveState();
+  showMain();
+}
+
+function showMain() {
+  document.getElementById('screen-welcome').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  updateGreeting();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+  buildCalendar();            // ← 追加
+  updateChakraProfile();      // ← 追加
+  document.getElementById('settings-name-display').textContent = state.name;
+  // バグ18: ホームバナー非表示フラグを復元
+  try {
+    if (localStorage.getItem('ippo_hide_add_home') === '1') {
+      const banner = document.getElementById('add-home-banner');
+      if (banner) banner.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+// ===== DATE/GREETING =====
+function updateDate() {
+  const now = new Date();
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  const date = `${now.getMonth() + 1}月${now.getDate()}日（${days[now.getDay()]}）`;
+  const el = document.getElementById('today-date');
+  if (el) el.textContent = date;
+}
+
+function updateGreeting() {
+  const hour = new Date().getHours();
+  let greeting = 'こんにちは';
+  if (hour < 10) greeting = 'おはようございます';
+  else if (hour >= 18) greeting = 'こんばんは';
+  const el = document.getElementById('greeting-text');
+  if (el) el.textContent = `${greeting}、${state.name}さん`;
+  updateDate();
+}
+
+// ===== STATS =====
+function updateStats() {
+  document.getElementById('streak-count').textContent = state.streak;
+  document.getElementById('total-count').textContent = state.totalDays;
+  document.getElementById('insight-total').textContent = state.totalDays;
+  document.getElementById('insight-streak').textContent = state.streak;
+
+  const foods = state.records.filter(r => r.foodScore).map(r => r.foodScore);
+  const wellness = state.records.filter(r => r.wellness).map(r => r.wellness);
+
+  document.getElementById('insight-food').textContent =
+    foods.length ? (foods.reduce((a,b) => a+b, 0) / foods.length).toFixed(1) : '—';
+  document.getElementById('insight-wellness').textContent =
+    wellness.length ? (wellness.reduce((a,b) => a+b, 0) / wellness.length).toFixed(1) : '—';
+}
+
+function updateUnlock() {
+  const days = state.totalDays;
+  const pct = Math.min(days / 90 * 100, 100);
+  const fill = document.getElementById('progress-fill');
+  if (fill) fill.style.width = pct + '%';
+
+  // バグ19: ラベルのactiveクラスを日数に応じて更新
+  const milestones = [0, 7, 30, 90];
+  const labels = document.querySelectorAll('.pb-label');
+  labels.forEach((lb, i) => {
+    lb.classList.toggle('active', days >= milestones[i] && (i === milestones.length - 1 || days < milestones[i + 1]));
+  });
+
+  // 解放バッジの表示更新
+  const badge7  = document.getElementById('badge-7');
+  const badge30 = document.getElementById('badge-30');
+  const badge90 = document.getElementById('badge-90');
+  if (badge7)  { badge7.textContent  = days >= 7  ? '解放済み ✓' : '7日〜';  badge7.className  = days >= 7  ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+  if (badge30) { badge30.textContent = days >= 30 ? '解放済み ✓' : '30日〜'; badge30.className = days >= 30 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+  if (badge90) { badge90.textContent = days >= 90 ? '解放済み ✓' : '90日〜'; badge90.className = days >= 90 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
+
+  // アイコンのlocked/unlocked切替
+  const icons = document.querySelectorAll('.unlock-icon');
+  if (icons[1]) icons[1].className = days >= 7  ? 'unlock-icon unlocked' : 'unlock-icon locked';
+  if (icons[2]) icons[2].className = days >= 30 ? 'unlock-icon unlocked' : 'unlock-icon locked';
+  if (icons[3]) icons[3].className = days >= 90 ? 'unlock-icon unlocked' : 'unlock-icon locked';
+
+  const daysLeft = Math.max(0, 7 - days);
+  const daysEl = document.getElementById('unlock-days-label');
+  if (daysEl) {
+    if (days >= 90)     daysEl.textContent = '全機能解放 ✓';
+    else if (days >= 30) daysEl.textContent = '30日達成 ✓';
+    else if (days >= 7)  daysEl.textContent = '7日達成 ✓';
+    else                 daysEl.textContent = `あと${daysLeft}日`;
+  }
+}
+
+function updateHistory(){}
+
+// ===== FASTING TIMER =====
+let fastInterval = null;
+
+function setFastGoal(h, el) {
+  state.fastGoal = h;
+  saveState();
+  document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleFast() {
+  if (state.fastingActive) return;
+  state.fastingActive = true;
+  state.fastingStart = Date.now();
+  saveState();
+  document.getElementById('fast-start-btn').style.display = 'none';
+  document.getElementById('fast-stop-btn').style.display = 'block';
+  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
+  startFastTimer();
+}
+
+function endFast() {
+  if (!state.fastingActive) return;
+  const elapsed = (Date.now() - state.fastingStart) / 1000 / 3600;
+  state.fastingActive = false;
+  state.fastingStart = null;
+  clearInterval(fastInterval);
+  saveState();
+  document.getElementById('fast-start-btn').style.display = 'block';
+  document.getElementById('fast-stop-btn').style.display = 'none';
+  document.getElementById('fast-timer').textContent = '00:00:00';
+  document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
+}
+
+function resumeFasting() {
+  // Restore pill active state from saved goal
+  document.querySelectorAll('.fw-pill').forEach(p => {
+    p.classList.toggle('active', parseInt(p.textContent) === state.fastGoal);
+  });
+  document.getElementById('fast-start-btn').style.display = 'none';
+  document.getElementById('fast-stop-btn').style.display = 'block';
+  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
+  startFastTimer();
+}
+
+function startFastTimer() {
+  // Always clear before starting — prevents double-run on re-render
+  if (fastInterval !== null) {
+    clearInterval(fastInterval);
+    fastInterval = null;
+  }
+  fastInterval = setInterval(() => {
+    if (!state.fastingStart) return;
+    const elapsed = Date.now() - state.fastingStart;
+    const h = Math.floor(elapsed / 3600000);
+    const m = Math.floor((elapsed % 3600000) / 60000);
+    const s = Math.floor((elapsed % 60000) / 1000);
+    const fmt = v => String(v).padStart(2, '0');
+    const timerEl = document.getElementById('fast-timer');
+    const statusEl = document.getElementById('fast-status');
+    if (!timerEl || !statusEl) { clearInterval(fastInterval); fastInterval = null; return; }
+    timerEl.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+    const goalMs = state.fastGoal * 3600000;
+    if (elapsed >= goalMs) {
+      statusEl.textContent = `🎉 ${state.fastGoal}h 達成！`;
+    } else {
+      const remaining = goalMs - elapsed;
+      const rh = Math.floor(remaining / 3600000);
+      const rm = Math.floor((remaining % 3600000) / 60000);
+      statusEl.textContent = `目標まであと ${rh}h${rm}m`;
+    }
+  }, 1000);
+}
+
+// ===== TABS =====
+function switchTab(tab, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`screen-${tab}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ===== RECORD MODAL =====
+let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき復元
+
+function openRecordModal() {
+  const activeScreen = document.querySelector('.screen.active');
+  if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
+  currentRecord = {};
+  currentStep = 0;
+  renderStep();
+  document.getElementById('record-modal').classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  // バグ14: フォーカスをモーダル内の最初のボタンに移動
+  requestAnimationFrame(() => {
+    const firstFocusable = document.querySelector('#record-modal .modal-sheet button, #record-modal .modal-sheet [tabindex]');
+    if (firstFocusable) firstFocusable.focus();
+  });
+}
+
+function closeModal() {
+  document.getElementById('record-modal').classList.remove('active');
+  const prevBtn = document.querySelector(`.nav-item[onclick*="'${_prevTab}'"]`);
+  switchTab(_prevTab, prevBtn);
+  // バグ14: モーダルを閉じたらナビボタンにフォーカスを戻す
+  if (prevBtn) prevBtn.focus();
+}
+
+function renderStep() {
+  const step = STEPS[currentStep];
+  document.getElementById('modal-title').innerHTML = step.title.replace('\n', '<br>');
+  document.getElementById('modal-step-label').textContent = step.label;
+
+  const dots = document.querySelectorAll('#step-indicator .step-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i < currentStep) d.classList.add('done');
+    else if (i === currentStep) d.classList.add('active');
+  });
+
+  document.getElementById('modal-back-btn').style.display = currentStep === 0 ? 'none' : 'block';
+  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する 🌸' : '次へ →';
+
+  step.render();
+}
+
+function nextStep() {
+  if (currentStep < STEPS.length - 1) {
+    currentStep++;
+    renderStep();
+  } else {
+    saveRecord();
+  }
+}
+
+function prevStep() {
+  if (currentStep > 0) {
+    currentStep--;
+    renderStep();
+  }
+}
+
+// ===== STEP RENDERERS =====
+function renderWellness() {
+  const scores = [
+    { v: 1, emoji: '😔', label: 'つらい' },
+    { v: 2, emoji: '😕', label: '重い' },
+    { v: 3, emoji: '😐', label: 'ふつう' },
+    { v: 4, emoji: '🙂', label: 'まあまあ' },
+    { v: 5, emoji: '😊', label: '良い' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="score-selector">
+      ${scores.map(s => `
+        <button class="score-btn ${currentRecord.wellness === s.v ? 'selected' : ''}" onclick="selectWellness(${s.v}, this)">
+          ${s.emoji}<span class="score-label">${s.label}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function selectWellness(v, el) {
+  currentRecord.wellness = v;
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function renderChakra() {
+  const chakras = [
+    { n: '第1チャクラ', d: '骨盤底・安心感', color: '#e74c3c' },
+    { n: '第2チャクラ ★', d: '子宮・卵巣・創造性', color: '#e67e22', featured: true },
+    { n: '第3チャクラ', d: '腹部・自己肯定', color: '#f1c40f' },
+    { n: '第4チャクラ', d: '胸・愛と受容', color: '#2ecc71' },
+    { n: '第5チャクラ', d: '喉・表現・声', color: '#3498db' },
+    { n: '第6チャクラ', d: '眉間・直感・洞察', color: '#9b59b6' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="chakra-simple">
+      ${chakras.map((c, i) => `
+        <div class="chakra-item ${c.featured ? 'featured' : ''} ${currentRecord.chakra === i ? 'selected' : ''}"
+             data-chakra-index="${i}" onclick="selectChakra(${i})">
+          <div class="chakra-dot" style="background:${c.color}"></div>
+          <div class="chakra-name">${c.n}</div>
+          <div class="chakra-desc">${c.d}</div>
+          ${c.featured ? '<span class="chakra-star">★</span>' : ''}
+        </div>
+      `).join('')}
+    </div>
+    <button class="btn-skip" onclick="skipChakra()" style="display:block;text-align:center;width:100%;padding:8px;color:var(--ink-light);font-size:12px;background:none;border:none;cursor:pointer;">スキップ →</button>
+  `;
+}
+
+function selectChakra(i) {
+  // バグ10: elではなくdata属性でターゲット要素を特定し、子要素クリック時のズレを防ぐ
+  currentRecord.chakra = i;
+  document.querySelectorAll('.chakra-item').forEach(b => b.classList.remove('selected'));
+  const target = document.querySelector(`.chakra-item[data-chakra-index="${i}"]`);
+  if (target) target.classList.add('selected');
+}
+
+function skipChakra() { currentRecord.chakra = null; nextStep(); }
+
+function renderFood() {
+  const foods = ['根菜類', '発酵食品', '温かいもの', '砂糖控え', 'グルテンフリー', 'EPA/DHA', 'ビタミンD', '鉄分', '水2L以上'];
+  if (!currentRecord.foodItems) currentRecord.foodItems = [];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="score-selector" style="margin-bottom:16px;">
+      ${[1,2,3,4,5,6,7,8,9,10].map(v => `
+        <button class="score-btn ${currentRecord.foodScore === v ? 'selected' : ''}" style="font-size:14px;padding:10px 2px;" onclick="selectFood(${v}, this)">
+          ${v}<span class="score-label"></span>
+        </button>
+      `).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">意識した食材（複数OK）</div>
+    <div class="chips" id="food-chips">
+      ${foods.map(f => `<div class="chip ${currentRecord.foodItems.includes(f) ? 'selected' : ''}" onclick="toggleFoodItem('${f}', this)">${f}</div>`).join('')}
+    </div>
+  `;
+}
+
+function selectFood(v, el) {
+  currentRecord.foodScore = v;
+  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function toggleFoodItem(item, el) {
+  if (!currentRecord.foodItems) currentRecord.foodItems = [];
+  if (currentRecord.foodItems.includes(item)) {
+    currentRecord.foodItems = currentRecord.foodItems.filter(f => f !== item);
+    el.classList.remove('selected');
+  } else {
+    currentRecord.foodItems.push(item);
+    el.classList.add('selected');
+  }
+}
+
+function renderFasting() {
+  // バグ05: インデックスではなく実際の値で比較・保存する
+  const opts = [
+    { label: '記録しない', value: null },
+    { label: '12時間',     value: 12 },
+    { label: '14時間',     value: 14 },
+    { label: '16時間',     value: 16 },
+    { label: '18時間以上', value: 18 },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="chips" style="flex-direction:column;gap:8px;">
+      ${opts.map(o => `
+        <div class="chip ${currentRecord.fasting === o.value ? 'selected' : ''}"
+             style="padding:12px 16px;font-size:13px;border-radius:14px;"
+             onclick="selectFasting(${o.value === null ? 'null' : o.value}, this)">${o.label}</div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function selectFasting(v, el) {
+  currentRecord.fasting = v === 'null' ? null : Number(v);
+  document.querySelectorAll('.chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function renderEmotion() {
+  const emotions = [
+    { emoji: '🌸', label: '穏やか\n平和', key: '穏やか' },
+    { emoji: '✨', label: 'うれしい\n満たされ', key: 'うれしい' },
+    { emoji: '🌙', label: '疲れ\n重さ', key: '疲れ' },
+    { emoji: '🌊', label: '不安\n緊張', key: '不安' },
+    { emoji: '🔥', label: 'イライラ\n焦り', key: 'イライラ' },
+    { emoji: '☁️', label: 'ふつう', key: 'ふつう' },
+  ];
+  document.getElementById('modal-body').innerHTML = `
+    <div class="emotion-grid">
+      ${emotions.map(e => `
+        <button class="emotion-btn ${currentRecord.emotion === e.key ? 'selected' : ''}" onclick="selectEmotion('${e.key}', this)">
+          <span class="emotion-emoji">${e.emoji}</span>
+          <span class="emotion-label">${e.label.replace('\n', '<br>')}</span>
+        </button>
+      `).join('')}
+    </div>
+    <textarea class="modal-textarea" id="journal-note" placeholder="今日感じたことを自由に…">${currentRecord.note || ''}</textarea>
+  `;
+}
+
+function selectEmotion(key, el) {
+  currentRecord.emotion = key;
+  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  const note = document.getElementById('journal-note');
+  if (note) currentRecord.note = note.value;
+}
+
+// ===== SAVE RECORD =====
+function saveRecord() {
+  const noteEl = document.getElementById('journal-note');
+  if (noteEl) currentRecord.note = noteEl.value;
+
+  currentRecord.date = new Date().toISOString();
+
+  // Check if already recorded today (BEFORE push)
+  const today = new Date().toDateString();
+  const alreadyToday = state.records.some(r => new Date(r.date).toDateString() === today);
+
+  // Streak logic (BEFORE push, so yesterday check is not polluted by today's record)
+  if (!alreadyToday) {
+    state.totalDays++;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toDateString();
+    const hadYesterday = state.records.some(r => new Date(r.date).toDateString() === yStr);
+    if (hadYesterday || state.streak === 0) {
+      state.streak++;
+    } else if (!hadYesterday && state.streak > 0) {
+      state.streak = 1;
+    }
+  }
+
+  // Push after all checks (prevent duplicate accumulation on same day)
+  if (!alreadyToday) {
+    state.records.push(currentRecord);
+  } else {
+    // Overwrite today's record instead of appending
+    const idx = state.records.findLastIndex
+      ? state.records.findLastIndex(r => new Date(r.date).toDateString() === today)
+      : state.records.reduce((acc, r, i) => new Date(r.date).toDateString() === today ? i : acc, -1);
+    if (idx !== -1) state.records[idx] = currentRecord;
+    else state.records.push(currentRecord);
+  }
+
+  saveState();
+  closeModal();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+  buildCalendar();            // ← 追加
+  updateChakraProfile();      // ← 追加
+
+  // Success message — cycle through msgs so it never gets stuck
+  const msgs = [
+    `記録${state.totalDays}日目。<br>からだの声を聴いてくれてありがとう。`,
+    `${state.streak}日連続！<br>継続はからだへの最高のギフト。`,
+    `今日も一歩。<br>積み重ねが、あなたのパターンを見せてくれます。`,
+    `${state.streak}日続いています。<br>からだのリズムが、少しずつ見えてきます。`,
+    `記録が積み重なるほど、<br>あなただけのパターンが浮かびあがります。`,
+  ];
+  const msgIdx = (state.totalDays - 1) % msgs.length;
+  document.getElementById('success-message').innerHTML = msgs[msgIdx];
+  document.getElementById('success-overlay').classList.add('active');
+}
+
+function closeSuccess() {
+  document.getElementById('success-overlay').classList.remove('active');
+  switchTab('home', document.querySelector('.nav-item'));
+}
+
+// ===== MISC =====
+function shareApp() {
+  if (navigator.share) {
+    navigator.share({
+      title: 'ippo - 卵巣ケア記録アプリ',
+      text: '生理周期・卵巣ケアのセルフ記録アプリです。一緒に続けましょう！',
+      url: window.location.href
+    });
+  } else {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      alert('URLをコピーしました！友だちに送ってください 🌸');
+    });
+  }
+}
+
+function addToHome() {
+  alert('ブラウザの「ホーム画面に追加」からアプリとして追加できます。\niOS: 共有ボタン → 「ホーム画面に追加」\nAndroid: メニュー → 「ホーム画面に追加」');
+  // バグ18: フラグを保存してリロード後も非表示を維持
+  try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
+  document.getElementById('add-home-banner').style.display = 'none';
+}
+
+function setGraphTab(tab, el) {
+  document.querySelectorAll('.sg-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  // バグ12: タブ切替に応じてオーバーレイとグラフタイトルを更新
+  const labelMap = { '7d': '7日間', '30d': '30日間', '90d': '90日間' };
+  const needDays = { '7d': 7, '30d': 30, '90d': 90 };
+  const required = needDays[tab] || 7;
+  const overlay = document.getElementById('graph-overlay');
+  const titleEl = document.querySelector('.sg-title');
+  if (titleEl) titleEl.textContent = `からだのリズム（${labelMap[tab]}）`;
+  if (overlay) {
+    if (state.totalDays >= required) {
+      overlay.style.display = 'none';
+    } else {
+      overlay.style.display = 'flex';
+      const sub = overlay.querySelector('.demo-overlay-sub');
+      if (sub) sub.textContent = `${required}日間記録すると表示されます（現在${state.totalDays}日）`;
+    }
+  }
+}
+
+function setRating(n) {
+  state.rating = n;
+  document.querySelectorAll('.fb-star').forEach((s, i) => {
+    s.classList.toggle('active', i < n);
+  });
+}
+
+  // ===== 症状設定 =====
+var ALL_SYMPTOMS = ['頭痛','腰痛','肩こり','むくみ','冷え','便秘','下痢','肌荒れ','不眠','眠気','イライラ','不安感','食欲増加','食欲不振','胸の張り','下腹部痛','めまい','吐き気','倦怠感','関節痛'];
+
+function openSymptomSettings(){
+  var saved = state.mySymptoms || [];
+  var container = document.getElementById('symptomSettingsChips');
+  container.innerHTML = '';
+  for(var i = 0; i < ALL_SYMPTOMS.length; i++){
+    var s = ALL_SYMPTOMS[i];
+    var selected = saved.indexOf(s) !== -1;
+    var chip = document.createElement('span');
+    chip.className = 'chip' + (selected ? ' selected' : '');
+    chip.setAttribute('data-val', s);
+    chip.textContent = s;
+    chip.onclick = function(){ this.classList.toggle('selected'); };
+    container.appendChild(chip);
+  }
+  var overlay = document.getElementById('symptomSettingsOverlay');
+  overlay.style.display = 'flex';
+}
+
+function closeSymptomSettings(){
+  document.getElementById('symptomSettingsOverlay').style.display = 'none';
+}
+
+function saveSymptomSettings(){
+  var selected = [];
+  document.querySelectorAll('#symptomSettingsChips .chip.selected').forEach(function(c){
+    selected.push(c.getAttribute('data-val'));
+  });
+  state.mySymptoms = selected;
+  saveState();
+  var display = document.getElementById('symptom-setting-display');
+  if(display){
+    display.textContent = selected.length ? selected.join('・') : '設定する';
+  }
+  closeSymptomSettings();
+  updateRecordSymptoms();
+}
+
+function updateSymptomSettingDisplay(){
+  var display = document.getElementById('symptom-setting-display');
+  if(!display) return;
+  var saved = state.mySymptoms || [];
+  display.textContent = saved.length ? saved.join('・') : '設定する';
+}
+
+function updateRecordSymptoms(){
+  var container = document.getElementById('rs-symptoms');
+  if(!container) return;
+  var saved = state.mySymptoms || [];
+  var chips = container.querySelectorAll('.chip');
+  var allSymptoms = [];
+  chips.forEach(function(c){ allSymptoms.push(c.textContent); });
+
+  // 登録済みの症状を先頭に並べ替え
+  var sorted = [];
+  for(var i = 0; i < saved.length; i++){
+    if(allSymptoms.indexOf(saved[i]) !== -1) sorted.push(saved[i]);
+  }
+  for(var j = 0; j < allSymptoms.length; j++){
+    if(sorted.indexOf(allSymptoms[j]) === -1) sorted.push(allSymptoms[j]);
+  }
+
+  container.innerHTML = '';
+  for(var k = 0; k < sorted.length; k++){
+    var s = sorted[k];
+    var isMy = saved.indexOf(s) !== -1;
+    var chip = document.createElement('span');
+    chip.className = 'chip';
+    chip.textContent = s;
+    if(isMy){
+      chip.style.borderColor = 'var(--rose)';
+      chip.style.background = 'var(--rose-pale)';
+    }
+    chip.onclick = function(){ this.classList.toggle('selected'); };
+    container.appendChild(chip);
+  }
+}
+
+function submitFeedback() {
+  if (!state.rating) { alert('評価を選んでください'); return; }
+  var comment = document.getElementById('fb-comment') ? document.getElementById('fb-comment').value.trim() : '';
+  var subject = encodeURIComponent('ippoフィードバック - ' + state.rating + '星');
+  var body = encodeURIComponent('評価: ' + state.rating + '/5\n\n感想:\n' + (comment || '（なし）') + '\n\nユーザー: ' + (state.name || '匿名') + '\n日時: ' + new Date().toLocaleString('ja-JP'));
+  window.location.href = 'mailto:YOUR_EMAIL@example.com?subject=' + subject + '&body=' + body;
+  alert('ありがとうございます！メーラーが開きます 🌸');
+  state.rating = 0;
+  document.querySelectorAll('.fb-star').forEach(function(s){ s.classList.remove('active'); });
+  if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
+}
+
+function clearData() {
+  state.records    = [];
+  state.streak     = 0;
+  state.totalDays  = 0;
+  // バグ20: 断食タイマーも確実にリセット
+  state.fastingActive = false;
+  state.fastingStart  = null;
+  if (fastInterval !== null) {
+    clearInterval(fastInterval);
+    fastInterval = null;
+  }
+  // タイマーUIを初期状態に戻す
+  const timerEl  = document.getElementById('fast-timer');
+  const statusEl = document.getElementById('fast-status');
+  const startBtn = document.getElementById('fast-start-btn');
+  const stopBtn  = document.getElementById('fast-stop-btn');
+  if (timerEl)  timerEl.textContent  = '00:00:00';
+  if (statusEl) statusEl.textContent = '断食スタートを押してください';
+  if (startBtn) startBtn.style.display = 'block';
+  if (stopBtn)  stopBtn.style.display  = 'none';
+  saveState();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+}
+
+// ===== DAILY MESSAGES =====
+const messages = [
+  'からだの小さな変化に\n気づくことが、最初の一歩。',
+  '今日の記録が、\n明日の自分を助けてくれる。',
+  '無理なく、ていねいに。\nあなたのペースでいい。',
+  '子宮は第二の心。\nからだの声に耳を傾けて。',
+  '断食は修行じゃなく、\nからだへの優しい休息。',
+  '感情もからだの一部。\n正直に記録することが癒しになる。',
+];
+
+function setDailyMessage() {
+  const idx = new Date().getDate() % messages.length;
+  const el = document.getElementById('today-message');
+  // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
+  if (el) el.innerHTML = messages[idx].replaceAll('\n', '<br>');
+}
+// ===== CALENDAR =====
+var calYear, calMonth;
+(function(){ var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); })();
+
+// ===== EDIT RECORD =====
+var editingDateStr = null;
+
+function openEditRecord(dateString){
+  document.getElementById('dmOverlay').classList.remove('dm-open');
+  editingDateStr = dateString;
+  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === dateString; });
+  var rec = recs.length ? recs[recs.length - 1] : null;
+
+  var overlay = document.getElementById('editOverlay');
+  if(!overlay){
+    overlay = document.createElement('div');
+    overlay.id = 'editOverlay';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:600;background:rgba(44,36,32,0.5);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = '<div id="editBox" style="width:90%;max-width:400px;max-height:88vh;background:var(--cream);border-radius:24px;padding:24px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);"></div>';
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) closeEditRecord(); });
+  }
+  overlay.style.display = 'flex';
+
+  var dateObj = new Date(dateString);
+  var WDAY = ['日','月','火','水','木','金','土'];
+  var title = dateObj.getFullYear()+'年'+(dateObj.getMonth()+1)+'月'+dateObj.getDate()+'日（'+WDAY[dateObj.getDay()]+'）';
+
+  var m = (rec && rec.meals) ? rec.meals : {};
+  var html = '';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">'+title+'</div>';
+  html += '<button onclick="closeEditRecord()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  // 食事
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
+  var meals = [
+    {key:'morning', label:'🌅 朝食', val: m.morning||''},
+    {key:'lunch',   label:'☀️ 昼食', val: m.lunch||''},
+    {key:'dinner',  label:'🌙 夕食', val: m.dinner||''},
+    {key:'snack',   label:'🍪 間食', val: m.snack||''}
+  ];
+  for(var i=0;i<meals.length;i++){
+    var ml = meals[i];
+    html += '<div style="margin-bottom:8px;">';
+    html += '<label style="font-size:12px;color:var(--ink-mid);display:block;margin-bottom:4px;">'+ml.label+'</label>';
+    html += '<input id="edit-meal-'+ml.key+'" type="text" value="'+ml.val.replace(/"/g,'&quot;')+'" placeholder="例: サラダ、味噌汁…" class="meal-input">';
+    html += '</div>';
+  }
+  html += '</div>';
+
+  // 基礎体温
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">TEMPERATURE</div>';
+  html += '<div style="display:flex;align-items:center;gap:8px;">';
+  html += '<span style="font-size:16px;">🌡</span>';
+  html += '<input id="edit-temp" type="number" step="0.1" min="35" max="42" value="'+(rec && rec.temperature ? rec.temperature : '')+'" placeholder="36.5" style="flex:1;" class="meal-input">';
+  html += '<span style="font-size:13px;color:var(--ink-mid);">℃</span>';
+  html += '</div></div>';
+
+  // 症状チップ
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">SYMPTOMS</div>';
+  var symptomList = ['頭痛','腰痛','腹痛','むくみ','肌荒れ','倦怠感','イライラ','不眠','便秘','冷え'];
+  var currentSymptoms = (rec && rec.symptoms) ? rec.symptoms : [];
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  for(var si=0;si<symptomList.length;si++){
+    var sym = symptomList[si];
+    var isSel = currentSymptoms.indexOf(sym) >= 0;
+    html += '<button onclick="toggleEditChip(this)" data-val="'+sym+'" class="chip'+(isSel?' selected':'')+'" style="font-size:12px;padding:6px 12px;">'+sym+'</button>';
+  }
+  html += '</div></div>';
+
+  // 生理状態
+  html += '<div style="margin-bottom:16px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MENSTRUAL CYCLE</div>';
+  var cycleOptions = ['なし','生理中','排卵期','高温期','低温期'];
+  var currentCycle = (rec && rec.menstrualCycle) ? rec.menstrualCycle : '';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+  for(var ci=0;ci<cycleOptions.length;ci++){
+    var co = cycleOptions[ci];
+    var cSel = (currentCycle === co);
+    html += '<button onclick="selectEditCycle(this,\''+co+'\')" data-val="'+co+'" class="chip'+(cSel?' selected':'')+'" style="font-size:12px;padding:6px 12px;">'+co+'</button>';
+  }
+  html += '</div></div>';
+
+  // メモ
+  html += '<div style="margin-bottom:20px;">';
+  html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEMO</div>';
+  html += '<textarea id="edit-note" class="modal-textarea" placeholder="メモ・気づいたことなど" rows="3">'+(rec && rec.note ? rec.note : '')+'</textarea>';
+  html += '</div>';
+
+  // 保存・削除ボタン
+  html += '<div style="display:flex;gap:10px;">';
+  html += '<button onclick="deleteEditRecord()" style="flex:1;padding:14px;background:#f0ebe6;color:var(--ink-mid);border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;cursor:pointer;">🗑 削除</button>';
+  html += '<button onclick="saveEditRecord()" style="flex:2;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
+  html += '</div>';
+
+  document.getElementById('editBox').innerHTML = html;
+}
+
+function closeEditRecord(){
+  var overlay = document.getElementById('editOverlay');
+  if(overlay) overlay.style.display = 'none';
+}
+
+function toggleEditChip(el){
+  el.classList.toggle('selected');
+}
+
+function selectEditCycle(el, val){
+  var parent = el.parentElement;
+  var btns = parent.querySelectorAll('.chip');
+  for(var i=0;i<btns.length;i++) btns[i].classList.remove('selected');
+  el.classList.add('selected');
+}
+
+function saveEditRecord(){
+  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === editingDateStr; });
+  var rec = recs.length ? recs[recs.length - 1] : null;
+
+  if(!rec){
+    // 新規作成
+    rec = { date: new Date(editingDateStr).toISOString() };
+    state.records.push(rec);
+  }
+
+  // 食事
+  var meals = {};
+  var mk = ['morning','lunch','dinner','snack'];
+  for(var i=0;i<mk.length;i++){
+    var v = document.getElementById('edit-meal-'+mk[i]).value.trim();
+    if(v) meals[mk[i]] = v;
+  }
+  rec.meals = meals;
+
+  // 体温
+  var tempVal = document.getElementById('edit-temp').value.trim();
+  if(tempVal) rec.temperature = tempVal;
+  else delete rec.temperature;
+
+  // 症状
+  var symEls = document.querySelectorAll('#editOverlay .chip.selected[data-val]');
+  var symptoms = [];
+  var cycleVal = '';
+  for(var j=0;j<symEls.length;j++){
+    var parent = symEls[j].parentElement.previousElementSibling;
+    if(parent && parent.textContent === 'SYMPTOMS'){
+      symptoms.push(symEls[j].dataset.val);
+    }
+  }
+  // 症状を別途取得
+  symptoms = [];
+  var allChips = document.querySelectorAll('#editOverlay [data-val]');
+  var inSymptoms = false;
+  var inCycle = false;
+  for(var k=0;k<allChips.length;k++){
+    var chip = allChips[k];
+    var val = chip.dataset.val;
+    var symptomList = ['頭痛','腰痛','腹痛','むくみ','肌荒れ','倦怠感','イライラ','不眠','便秘','冷え'];
+    var cycleList = ['なし','生理中','排卵期','高温期','低温期'];
+    if(symptomList.indexOf(val) >= 0 && chip.classList.contains('selected')){
+      symptoms.push(val);
+    }
+    if(cycleList.indexOf(val) >= 0 && chip.classList.contains('selected')){
+      cycleVal = val;
+    }
+  }
+  rec.symptoms = symptoms;
+  rec.menstrualCycle = cycleVal;
+
+  // メモ
+  var noteVal = document.getElementById('edit-note').value.trim();
+  if(noteVal) rec.note = noteVal;
+  else delete rec.note;
+
+  saveState();
+  buildCalendar();
+  updateHistory();
+  if(typeof cloudSaveRecord === 'function') cloudSaveRecord(rec);
+
+  closeEditRecord();
+
+  // 更新後のモーダルを再表示
+  var dateObj = new Date(editingDateStr);
+  openDayDetail(dateObj.getDate());
+}
+
+function deleteEditRecord(){
+  if(!confirm('この日の記録を削除しますか？')) return;
+  state.records = state.records.filter(function(r){
+    return new Date(r.date).toDateString() !== editingDateStr;
+  });
+  saveState();
+  buildCalendar();
+  updateHistory();
+  closeEditRecord();
+  document.getElementById('dmOverlay').classList.remove('dm-open');
+}
+
+// ===== 24H DONUT CHART =====
+function createMealDonut(meals, fasting, fastingGoal){
+  var R = 52, C = 2 * Math.PI * R;
+  var hourUnit = C / 24;
+
+  // 食事時間のデフォルト（時間入力がない場合）
+  var mealSlots = [
+    { key:'morning', label:'朝食', defaultH:7,  duration:1, color:'#F4B860' },
+    { key:'lunch',   label:'昼食', defaultH:12, duration:1, color:'#7FC8A9' },
+    { key:'dinner',  label:'夕食', defaultH:19, duration:1, color:'#E88D97' },
+    { key:'snack',   label:'間食', defaultH:15, duration:0.5, color:'#C4A7D7' }
+  ];
+
+  // 断食の色
+  var fastColor = '#3D5A80';
+  var bgColor = '#F0EBE6';
+  var emptyColor = '#FAF6F2';
+
+  // SVG開始
+  var svg = '';
+  svg += '<circle cx="64" cy="64" r="'+R+'" fill="none" stroke="'+bgColor+'" stroke-width="14"/>';
+
+  // 断食アーク（最背面）
+  if(fasting){
+    var fH = parseFloat(fasting) || 0;
+    if(fH > 0){
+      // 夕食後〜翌朝（デフォルト: 20時〜翌12時 = 16時間断食）
+      var fastStart = 20;
+      if(meals && meals.dinnerTime){
+        var parts = meals.dinnerTime.split(':');
+        fastStart = parseInt(parts[0]) + 1;
+      } else if(meals && meals.dinner){
+        fastStart = 20;
+      }
+      var fastAngleStart = (fastStart / 24) * C;
+      var fastLen = fH * hourUnit;
+      svg += '<circle cx="64" cy="64" r="'+R+'" fill="none" stroke="'+fastColor+'" stroke-width="14" stroke-opacity="0.25" stroke-dasharray="'+fastLen+' '+(C - fastLen)+'" stroke-dashoffset="-'+fastAngleStart+'" stroke-linecap="butt"/>';
+      // 目標ライン
+      if(fastingGoal){
+        var goalLen = parseFloat(fastingGoal) * hourUnit;
+        var goalEnd = fastAngleStart + goalLen;
+        svg += '<circle cx="64" cy="64" r="'+R+'" fill="none" stroke="'+fastColor+'" stroke-width="14" stroke-opacity="0.08" stroke-dasharray="'+goalLen+' '+(C - goalLen)+'" stroke-dashoffset="-'+fastAngleStart+'" stroke-linecap="butt"/>';
+      }
+    }
+  }
+
+  // 食事アーク
+  var filledMeals = [];
+  for(var i=0;i<mealSlots.length;i++){
+    var sl = mealSlots[i];
+    if(meals && meals[sl.key]){
+      var h = sl.defaultH;
+      if(meals[sl.key+'Time']){
+        var tp = meals[sl.key+'Time'].split(':');
+        h = parseInt(tp[0]) + (parseInt(tp[1]||0) / 60);
+      }
+      var offset = (h / 24) * C;
+      var len = sl.duration * hourUnit;
+      svg += '<circle cx="64" cy="64" r="'+R+'" fill="none" stroke="'+sl.color+'" stroke-width="14" stroke-dasharray="'+len+' '+(C - len)+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round"/>';
+      filledMeals.push(sl);
+    }
+  }
+
+  // 時刻マーカー（0時,6時,12時,18時）
+  var markers = [{h:0,label:'0'},{h:6,label:'6'},{h:12,label:'12'},{h:18,label:'18'}];
+  var markerSvg = '';
+  for(var m=0;m<markers.length;m++){
+    var angle = (markers[m].h / 24) * 360 - 90;
+    var rad = angle * Math.PI / 180;
+    var outerR = R + 12;
+    var mx = 64 + outerR * Math.cos(rad);
+    var my = 64 + outerR * Math.sin(rad);
+    markerSvg += '<text x="'+mx+'" y="'+my+'" text-anchor="middle" dominant-baseline="central" font-size="7" fill="#9a8880" font-family="Noto Sans JP,sans-serif">'+markers[m].label+'</text>';
+    // 小さいドット
+    var dotR = R + 1;
+    var dx = 64 + dotR * Math.cos(rad);
+    var dy = 64 + dotR * Math.sin(rad);
+    markerSvg += '<circle cx="'+dx+'" cy="'+dy+'" r="1" fill="#d8ccc6"/>';
+  }
+
+  var html = '';
+  html += '<div style="position:relative;width:180px;height:180px;margin:0 auto 8px;">';
+  html += '<svg viewBox="0 0 128 128" style="width:100%;height:100%;transform:rotate(-90deg);">';
+  html += svg;
+  html += '</svg>';
+  // 時刻ラベル（回転しないよう別SVG）
+  html += '<svg viewBox="0 0 128 128" style="position:absolute;top:0;left:0;width:100%;height:100%;">';
+  html += markerSvg;
+  html += '</svg>';
+  // 中央テキスト
+  html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;font-weight:700;color:var(--ink);">'+filledMeals.length+'<span style="font-size:13px;font-weight:400;color:var(--ink-light);">/4</span></div>';
+  html += '<div style="font-size:8px;color:var(--ink-light);letter-spacing:0.12em;margin-top:2px;">meals</div>';
+  if(fasting){
+    var fH2 = parseFloat(fasting) || 0;
+    html += '<div style="font-size:9px;color:'+fastColor+';margin-top:4px;font-weight:500;">🌙 '+fH2+'h断食</div>';
+  }
+  html += '</div></div>';
+
+  // 凡例
+  html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;margin-top:6px;">';
+  for(var j=0;j<mealSlots.length;j++){
+    var s = mealSlots[j];
+    var has = meals && meals[s.key];
+    html += '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:'+(has?'var(--ink)':'var(--ink-light)')+';">';
+    html += '<span style="width:8px;height:8px;border-radius:50%;background:'+(has?s.color:'#e8ddd8')+';display:inline-block;"></span>';
+    html += s.label+(has?' ✓':'');
+    html += '</span>';
+  }
+  if(fasting){
+    html += '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:'+fastColor+';">';
+    html += '<span style="width:8px;height:8px;border-radius:2px;background:'+fastColor+';opacity:0.4;display:inline-block;"></span>';
+    html += '断食';
+    html += '</span>';
+  }
+  html += '</div>';
+
+  return html;
+}
+
+function buildCalendar(){
+  var label = document.getElementById('calLabel');
+  var grid = document.getElementById('calGrid');
+  if(!label||!grid) return;
+  label.textContent = calYear + '年 ' + (calMonth+1) + '月';
+  grid.innerHTML = '';
+  var firstDow = new Date(calYear, calMonth, 1).getDay();
+  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  var today = new Date();
+  for(var e=0; e<firstDow; e++){
+    var empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+  for(var d=1; d<=daysInMonth; d++){
+    var el = document.createElement('div');
+    el.className = 'cal-day';
+    var isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
+    if(isToday) el.classList.add('today');
+    var ds = new Date(calYear, calMonth, d).toDateString();
+    var hasRec = state.records.some(function(r){ return new Date(r.date).toDateString() === ds; });
+    if(hasRec) el.classList.add('has-record');
+    el.textContent = d;
+    el.addEventListener('click', (function(day){ return function(){ openDayDetail(day); }; })(d));
+    grid.appendChild(el);
+  }
+}
+
+function changeMonth(delta){
+  calMonth += delta;
+  if(calMonth > 11){ calMonth = 0; calYear++; }
+  if(calMonth < 0){ calMonth = 11; calYear--; }
+  buildCalendar();
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  var prev = document.getElementById('calPrev');
+  var next = document.getElementById('calNext');
+  if(prev) prev.addEventListener('click', function(){ changeMonth(-1); });
+  if(next) next.addEventListener('click', function(){ changeMonth(1); });
+  var dmClose = document.getElementById('dmClose');
+  if(dmClose) dmClose.addEventListener('click', function(){ document.getElementById('dmOverlay').classList.remove('dm-open'); });
+  var dmOverlay = document.getElementById('dmOverlay');
+  if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
+});
+
+function openDayDetail(d){
+  var WDAY = ['日','月','火','水','木','金','土'];
+  var dateObj = new Date(calYear, calMonth, d);
+  var ds = dateObj.toDateString();
+  var w = dateObj.getDay();
+  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === ds; });
+  document.getElementById('dmDate').textContent = calYear+'年'+(calMonth+1)+'月'+d+'日（'+WDAY[w]+'）';
+  var body = document.getElementById('dmBody');
+  if(recs.length === 0){
+    body.innerHTML = '<div class="dm-empty">この日の記録はありません</div>';
+    document.getElementById('dmOverlay').classList.add('dm-open');
+    return;
+  }
+  var rec = recs[recs.length - 1];
+  var html = '';
+  var tags = [];
+  if(rec.wellness) tags.push('体調 '+rec.wellness+'/5');
+  if(rec.chakra !== undefined && rec.chakra !== null){
+    var names = ['第1チャクラ','第2チャクラ','第3チャクラ','第4チャクラ','第5チャクラ','第6チャクラ'];
+    tags.push(names[rec.chakra] || 'チャクラ');
+  }
+  if(rec.foodScore) tags.push('食事 '+rec.foodScore+'/10');
+  if(rec.fasting) tags.push('断食 '+rec.fasting+'h');
+  if(rec.emotion) tags.push(rec.emotion);
+  if(rec.symptoms && rec.symptoms.length) tags.push(rec.symptoms.join('・'));
+  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') tags.push('生理: '+rec.menstrualCycle);
+  if(tags.length){
+    html += '<div class="dm-record-tags">';
+    tags.forEach(function(t){ html += '<span class="dm-tag">'+t+'</span>'; });
+    html += '</div>';
+  }
+
+  // ===== 食事内容テキスト =====
+  if(rec.meals){
+    var m = rec.meals;
+    var mealRows = [];
+    if(m.morning) mealRows.push({icon:'🌅', label:'朝食', text:m.morning, time:m.morningTime||''});
+    if(m.lunch)   mealRows.push({icon:'☀️', label:'昼食', text:m.lunch,   time:m.lunchTime||''});
+    if(m.dinner)  mealRows.push({icon:'🌙', label:'夕食', text:m.dinner,  time:m.dinnerTime||''});
+    if(m.snack)   mealRows.push({icon:'🍪', label:'間食', text:m.snack,   time:m.snackTime||''});
+    if(mealRows.length){
+      html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
+      for(var mi=0;mi<mealRows.length;mi++){
+        var mr = mealRows[mi];
+        html += '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:'+(mi<mealRows.length-1?'10px':'0')+';padding-bottom:'+(mi<mealRows.length-1?'10px':'0')+';border-bottom:'+(mi<mealRows.length-1?'1px solid #f0ebe6':'none')+';">';
+        html += '<span style="font-size:18px;flex-shrink:0;margin-top:2px;">'+mr.icon+'</span>';
+        html += '<div style="flex:1;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+        html += '<span style="font-size:12px;font-weight:500;color:var(--ink);">'+mr.label+'</span>';
+        if(mr.time) html += '<span style="font-size:10px;color:var(--ink-light);">'+mr.time+'</span>';
+        html += '</div>';
+        html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.7;margin-top:3px;">'+mr.text+'</div>';
+        html += '</div></div>';
+      }
+      html += '</div>';
+    }
+  }
+
+  // ===== メモ（体温・ジャーナル統合） =====
+  var memoItems = [];
+  if(rec.temperature) memoItems.push({icon:'🌡', text:'基礎体温 '+rec.temperature+'℃'});
+  if(rec.note) memoItems.push({icon:'📝', text:rec.note});
+
+  if(memoItems.length){
+    html += '<div style="margin-top:14px;background:var(--rose-pale);border-radius:14px;padding:14px;border-left:3px solid var(--rose);">';
+    html += '<div style="font-size:10px;color:var(--rose);letter-spacing:0.15em;margin-bottom:8px;">MEMO</div>';
+    for(var ni=0;ni<memoItems.length;ni++){
+      var item = memoItems[ni];
+      if(ni > 0) html += '<div style="border-top:1px solid var(--rose-light);margin:8px 0;"></div>';
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;">';
+      html += '<span style="font-size:14px;flex-shrink:0;">'+item.icon+'</span>';
+      html += '<div style="font-size:13px;color:var(--ink);line-height:1.8;">'+item.text.replace(/\n/g,'<br>')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ===== 断食セクション =====
+  if(rec.fasting){
+    var fGoal = rec.fastingGoal || 16;
+    var fHours = parseFloat(rec.fasting) || 0;
+    var fPct = Math.min(fHours / fGoal, 1);
+    var fR = 28, fC = 2 * Math.PI * fR;
+    var fOffset = fC - (fC * fPct);
+    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#2c2420,#3d302a);border-radius:14px;padding:16px;color:white;">';
+    html += '<div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin-bottom:8px;">FASTING</div>';
+    html += '<div style="display:flex;align-items:center;gap:12px;">';
+    html += '<div style="position:relative;width:64px;height:64px;flex-shrink:0;">';
+    html += '<svg viewBox="0 0 64 64" style="width:100%;height:100%;transform:rotate(-90deg);">';
+    html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5"/>';
+    html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="'+(fPct>=1?'#8aab96':'#e8c49a')+'" stroke-width="5" stroke-dasharray="'+fC+'" stroke-dashoffset="'+fOffset+'" stroke-linecap="round"/>';
+    html += '</svg>';
+    html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;font-weight:700;color:white;">'+fHours+'</div>';
+    html += '<div style="font-size:7px;color:rgba(255,255,255,0.6);letter-spacing:0.1em;">時間</div>';
+    html += '</div></div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;">'+fHours+'時間の断食</div>';
+    html += '<div style="font-size:11px;color:rgba(255,255,255,0.6);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
+    html += '</div></div></div>';
+  }
+
+  // ===== 食事ドーナツグラフ =====
+  if(rec.meals){
+    html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe6;">';
+    html += '<div style="font-size:11px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:12px;">記録サマリー</div>';
+    html += createMealDonut(rec.meals, rec.fasting, rec.fastingGoal);
+    html += '</div>';
+  }
+
+  // ===== 編集ボタン =====
+  html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0ebe6;">';
+  html += '<button onclick="openEditRecord(\''+ds+'\')" style="width:100%;padding:14px;background:var(--ink);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">';
+  html += '<span style="font-size:16px;">✏️</span> この日の記録を編集する</button>';
+  html += '</div>';
+  
+  body.innerHTML = html;
+  document.getElementById('dmOverlay').classList.add('dm-open');
+}
+
+
+
+// ===== RECORD SCREEN =====
+function openRecordScreen(){
+  var now = new Date();
+  var wd = ['日','月','火','水','木','金','土'];
+  var el = document.getElementById('rec-screen-date');
+  if(el) el.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+wd[now.getDay()]+'）';
+  ['rs-morning','rs-lunch','rs-dinner','rs-snack','rs-note'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  ['rs-first-time','rs-last-time'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
+  var te = document.getElementById('rs-temp'); if(te) te.value='';
+  document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){ c.classList.remove('selected'); });
+  document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
+  var di = document.getElementById('draft-indicator');
+  if(di) di.style.display = 'none';
+  var draft = localStorage.getItem('ippo_draft');
+  if(draft){
+    try {
+      var d = JSON.parse(draft);
+      if(new Date(d._draftDate).toDateString() === now.toDateString()){
+        if(d.morning){ var em=document.getElementById('rs-morning'); if(em) em.value=d.morning; }
+        if(d.lunch){ var el2=document.getElementById('rs-lunch'); if(el2) el2.value=d.lunch; }
+        if(d.dinner){ var ed=document.getElementById('rs-dinner'); if(ed) ed.value=d.dinner; }
+        if(d.snack){ var es=document.getElementById('rs-snack'); if(es) es.value=d.snack; }
+        if(d.firstTime){ var ef=document.getElementById('rs-first-time'); if(ef) ef.value=d.firstTime; }
+        if(d.lastTime){ var elt=document.getElementById('rs-last-time'); if(elt) elt.value=d.lastTime; }
+        if(d.temp){ var et=document.getElementById('rs-temp'); if(et) et.value=d.temp; }
+        if(d.note){ var en=document.getElementById('rs-note'); if(en) en.value=d.note; }
+        if(d.symptoms && d.symptoms.length){
+          document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
+            if(d.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
+          });
+        }
+        if(d.cycle){
+          document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
+            if(c.textContent === d.cycle) c.classList.add('selected');
+          });
+        }
+        if(di){ di.textContent='下書きを復元しました'; di.style.display='block'; setTimeout(function(){ di.style.display='none'; }, 3000); }
+      }
+    } catch(e){}
+  }
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('screen-record').classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function toggleRsChip(el){ el.classList.toggle('selected'); }
+
+function selectRsCycle(el, val){
+  document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function gatherRecordData(){
+  var morning = (document.getElementById('rs-morning')||{}).value||'';
+  var lunch = (document.getElementById('rs-lunch')||{}).value||'';
+  var dinner = (document.getElementById('rs-dinner')||{}).value||'';
+  var snack = (document.getElementById('rs-snack')||{}).value||'';
+  var firstTime = (document.getElementById('rs-first-time')||{}).value||'';
+  var lastTime = (document.getElementById('rs-last-time')||{}).value||'';
+  var temp = parseFloat((document.getElementById('rs-temp')||{}).value) || null;
+  var note = (document.getElementById('rs-note')||{}).value||'';
+  var symptoms = [];
+  document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ symptoms.push(c.textContent); });
+  var cycle = '';
+  var selCycle = document.querySelector('#rs-cycle .chip.selected');
+  if(selCycle) cycle = selCycle.textContent;
+  return { morning:morning, lunch:lunch, dinner:dinner, snack:snack, firstTime:firstTime, lastTime:lastTime, temp:temp, note:note, symptoms:symptoms, cycle:cycle };
+}
+
+function draftRecordScreen(){
+  var data = gatherRecordData();
+  data._draftDate = new Date().toISOString();
+  localStorage.setItem('ippo_draft', JSON.stringify(data));
+  var di = document.getElementById('draft-indicator');
+  if(di){ di.textContent='一時保存しました'; di.style.display='block'; di.style.color='var(--sage)'; setTimeout(function(){ di.style.display='none'; }, 2500); }
+}
+
+function saveRecordScreen(){
+  var data = gatherRecordData();
+  var todayStr = new Date().toDateString();
+  var rec = null;
+  for(var i=0; i<state.records.length; i++){
+    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
+  }
+  if(!rec){
+    rec = { date: new Date().toISOString() };
+    state.records.push(rec);
+  }
+  rec.meals = { morning:data.morning, lunch:data.lunch, dinner:data.dinner, snack:data.snack };
+  rec.firstMealTime = data.firstTime;
+  rec.lastMealTime = data.lastTime;
+  rec.temperature = data.temp;
+  rec.symptoms = data.symptoms;
+  rec.menstrualCycle = data.cycle;
+    // からだのための選択を保存
+  var bodyChoices = {};
+  document.querySelectorAll('#rs-body-choices .chips').forEach(function(group){
+    var cat = group.getAttribute('data-category');
+    var selected = [];
+    group.querySelectorAll('.chip.selected').forEach(function(c){
+      selected.push(c.getAttribute('data-val'));
+    });
+    if(selected.length) bodyChoices[cat] = selected;
+  });
+  rec.bodyChoices = bodyChoices;
+  if(data.note) rec.note = data.note;
+  saveState();
+  updateStats();
+  updateHistory();
+  buildCalendar();
+  updateChakraProfile();
+  localStorage.removeItem('ippo_draft');
+  var so = document.getElementById('success-overlay');
+  if(so){
+    document.getElementById('success-emoji').textContent = '🌿';
+    document.getElementById('success-title').textContent = '記録を保存しました';
+    document.getElementById('success-message').innerHTML = '食事・体温・症状の記録が追加されました。<br>お疲れさまです！';
+    so.classList.add('active');
+  }
+}
+
+// ===== CHAKRA PROFILE =====
+function updateChakraProfile() {
+  var card = document.getElementById('chakra-profile-card');
+  var body = document.getElementById('chakra-profile-body');
+  if (!card || !body) return;
+
+  // まず独立キーから読み取る
+  var result = null;
+  try {
+    result = JSON.parse(localStorage.getItem('ippo_chakra_result'));
+  } catch(e) {}
+
+  // 独立キーにない場合、state.recordsからも探す
+  if (!result) {
+    var latest = null;
+    for (var i = state.records.length - 1; i >= 0; i--) {
+      if (state.records[i].chakra) {
+        latest = state.records[i].chakra;
+        break;
+      }
+    }
+    if (latest) {
+      result = { type: latest, date: null, scores: null };
+    }
+  }
+
+  if (!result || !result.type) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = '';
+
+  var CHAKRA = {
+    root:     { name: '第1チャクラ（ルート）', icon: '🔴', color: '#E53E3E' },
+    sacral:   { name: '第2チャクラ（セイクラル）', icon: '🟠', color: '#ED8936' },
+    solar:    { name: '第3チャクラ（ソーラー）', icon: '🟡', color: '#ECC94B' },
+    heart:    { name: '第4チャクラ（ハート）', icon: '💚', color: '#48BB78' },
+    throat:   { name: '第5チャクラ（スロート）', icon: '🔵', color: '#4299E1' },
+    thirdeye: { name: '第6チャクラ（サードアイ）', icon: '🟣', color: '#805AD5' },
+    crown:    { name: '第7チャクラ（クラウン）', icon: '⚪', color: '#B794F4' }
+  };
+
+  var info = CHAKRA[result.type] || { name: result.type, icon: '🔮', color: '#999' };
+  var html = '';
+  html += '<div style="text-align:center;margin:16px 0 12px;">';
+  html += '<span style="font-size:2.5rem;">' + info.icon + '</span>';
+  html += '</div>';
+  html += '<div style="text-align:center;font-family:var(--font-serif);font-size:1.1rem;color:var(--text-primary);margin-bottom:6px;">' + info.name + '</div>';
+
+  if (result.date) {
+    var d = new Date(result.date);
+    html += '<div style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">診断日: ' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + '</div>';
+  }
+
+  // スコアバー表示
+  if (result.scores) {
+    var keys = Object.keys(CHAKRA);
+    html += '<div style="margin-top:12px;">';
+    for (var k = 0; k < keys.length; k++) {
+      var key = keys[k];
+      var score = result.scores[key] || 0;
+      var maxScore = 24;
+      var pct = Math.round(score / maxScore * 100);
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
+      html += '<span style="font-size:0.7rem;width:70px;color:var(--text-muted);">' + CHAKRA[key].icon + ' ' + CHAKRA[key].name.split('（')[0] + '</span>';
+      html += '<div style="flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden;">';
+      html += '<div style="height:100%;width:' + pct + '%;background:' + CHAKRA[key].color + ';border-radius:2px;"></div>';
+      html += '</div>';
+      html += '<span style="font-size:0.65rem;color:var(--text-muted);width:24px;text-align:right;">' + score + '</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  body.innerHTML = html;
+}
+
+// ===== START =====
+init();
+setDailyMessage();
+updateChakraProfile(); 
+  
+// チャクラ診断結果の読み込みと表示
+  
+function loadChakraResult( ) {
+  const savedResult = localStorage.getItem('ippo_chakra_result');
+  
+  if (!savedResult) {
+    console.log('診断結果が見つかりません');
+    return;
+  }
+  
+  try {
+    const result = JSON.parse(savedResult);
+    console.log('✅ 診断結果を検出:', result);
+    
+    // 結果を表示
+    displayChakraResult(result);
+    
+    // カードを表示
+    const card = document.getElementById('chakra-result-card');
+    if (card) {
+      card.style.display = 'block';
+    }
+    
+  } catch (e) {
+    console.error('診断結果の読み込みに失敗:', e);
+  }
+}
+
+function displayChakraResult(result) {
+  const body = document.getElementById('chakra-result-body');
+  if (!body) return;
+  
+  const chakraNames = {
+    root: 'ルートチャクラ（第1チャクラ）',
+    sacral: 'セイクラルチャクラ（第2チャクラ）',
+    solar: 'ソーラープレクサスチャクラ（第3チャクラ）',
+    heart: 'ハートチャクラ（第4チャクラ）',
+    throat: 'スロートチャクラ（第5チャクラ）',
+    thirdeye: 'サードアイチャクラ（第6チャクラ）',
+    crown: 'クラウンチャクラ（第7チャクラ）'
+  };
+  
+  const maxScore = Math.max(...Object.values(result.scores));
+  
+  let html = `
+    <div style="margin:16px 0;">
+      <p style="font-size:14px; color:#666; margin-bottom:12px;">
+        <strong>${chakraNames[result.type] || result.type}</strong> が最も強いです
+      </p>
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+  `;
+  
+  Object.entries(result.scores).forEach(([chakra, score]) => {
+    const percentage = (score / maxScore) * 100;
+    const name = chakraNames[chakra] || chakra;
+    
+    html += `
+      <div style="padding:8px; background:#f5f5f5; border-radius:6px;">
+        <div style="font-size:12px; color:#666; margin-bottom:4px;">${name}</div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div style="flex:1; height:6px; background:#ddd; border-radius:3px;">
+            <div style="height:100%; background:#d4a574; border-radius:3px; width:${percentage}%;"></div>
+          </div>
+          <span style="font-size:12px; font-weight:bold;">${score}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `
+      </div>
+      <p style="margin-top:12px; font-size:12px; color:#999;">
+        診断日: ${new Date(result.date).toLocaleDateString('ja-JP')}
+      </p>
+    </div>
+  `;
+  
+  body.innerHTML = html;
+}
+
+// ページ読み込み時に実行
+document.addEventListener('DOMContentLoaded', function() {
+  loadChakraResult();
+});
+// ────────────────────────────────────────────────────────────
+// 設定画面でのチャクラ結果表示
+// ────────────────────────────────────────────────────────────
+
+function updateChakraProfileDisplay() {
+  const savedResult = localStorage.getItem('ippo_chakra_result');
+  
+  if (!savedResult) {
+    console.log('設定画面: 診断結果が見つかりません');
+    return;
+  }
+  
+  try {
+    const result = JSON.parse(savedResult);
+    console.log('✅ 設定画面: 診断結果を検出:', result);
+    
+    // chakra-profile-body に結果を表示
+    const body = document.getElementById('chakra-profile-body');
+    if (body) {
+      displayChakraResultInSettings(result, body);
+    }
+    
+    // プロフィールカードを表示
+    const card = document.getElementById('chakra-profile-card');
+    if (card) {
+      card.style.display = 'block';
+    }
+    
+  } catch (e) {
+    console.error('設定画面での表示に失敗:', e);
+  }
+}
+
+function displayChakraResultInSettings(result, body) {
+  const chakraNames = {
+    root: 'ルートチャクラ（第1チャクラ）',
+    sacral: 'セイクラルチャクラ（第2チャクラ）',
+    solar: 'ソーラープレクサスチャクラ（第3チャクラ）',
+    heart: 'ハートチャクラ（第4チャクラ）',
+    throat: 'スロートチャクラ（第5チャクラ）',
+    thirdeye: 'サードアイチャクラ（第6チャクラ）',
+    crown: 'クラウンチャクラ（第7チャクラ）'
+  };
+  
+  const maxScore = Math.max(...Object.values(result.scores));
+  
+  let html = `
+    <div style="margin:16px 0;">
+      <p style="font-size:14px; color:#666; margin-bottom:12px;">
+        <strong>${chakraNames[result.type] || result.type}</strong> が最も強いです
+      </p>
+      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
+  `;
+  
+  Object.entries(result.scores).forEach(([chakra, score]) => {
+    const percentage = (score / maxScore) * 100;
+    const name = chakraNames[chakra] || chakra;
+    
+    html += `
+      <div style="padding:8px; background:#f5f5f5; border-radius:6px;">
+        <div style="font-size:12px; color:#666; margin-bottom:4px;">${name}</div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div style="flex:1; height:6px; background:#ddd; border-radius:3px;">
+            <div style="height:100%; background:#d4a574; border-radius:3px; width:${percentage}%;"></div>
+          </div>
+          <span style="font-size:12px; font-weight:bold;">${score}</span>
+        </div>
+      </div>
+    `;
+  });
+  
+  html += `
+      </div>
+      <p style="margin-top:12px; font-size:12px; color:#999;">
+        診断日: ${new Date(result.date).toLocaleDateString('ja-JP')}
+      </p>
+    </div>
+  `;
+  
+  body.innerHTML = html;
+}
+
+// ────────────────────────────────────────────────────────────
+// 設定画面でのチャクラ結果表示（switchTab 拡張）
+// ────────────────────────────────────────────────────────────
+
+// 既存の switchTab 関数を拡張
+const _originalSwitchTab = switchTab;
+function switchTab(tab, btn) {
+  // 元の switchTab の処理を実行
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`screen-${tab}`).classList.add('active');
+  if (btn) btn.classList.add('active');
+  
+  // 設定画面が表示される場合
+  if (tab === 'settings') {
+    updateChakraProfileDisplay();
+  }
+}
+
+// ページ読み込み時にも実行
+document.addEventListener('DOMContentLoaded', function() {
+  updateChakraProfileDisplay();
+});
+
+</script>
+</body>
+</html>
