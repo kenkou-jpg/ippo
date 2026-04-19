@@ -1,12 +1,12 @@
 {
-  "name": "ippo — からだに還る、一歩",
+  "name": "ippo – からだの声を聴くセルフケア記録",
   "short_name": "ippo",
   "description": "チャクラ・食事・断食・感情・基礎体温を記録して、からだのパターンを発見するウェルネスアプリ",
   "start_url": "/kenkou-kiroku/kk-app.html",
   "scope": "/kenkou-kiroku/",
   "display": "standalone",
-  "background_color": "#FFFFFF",
-  "theme_color": "#E63FA8",
+  "background_color": "#faf6f1",
+  "theme_color": "#3a2e2e",
   "orientation": "portrait",
   "icons": [
     {
@@ -27,24 +27,4 @@
     "lifestyle"
   ],
   "lang": "ja"
-}
-{
-  "name": "ippo – からだの声を聴くセルフケア記録",
-  "short_name": "ippo",
-  "start_url": "kk-app.html",
-  "display": "standalone",
-  "background_color": "#faf6f1",
-  "theme_color": "#3a2e2e",
-  "icons": [
-    {
-      "src": "images/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "images/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
 }
