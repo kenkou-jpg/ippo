@@ -1834,7 +1834,7 @@ function cloudBackupAll(){
       state: state,
       updated_at: new Date().toISOString()
     };
-    return fetch(SUPABASE_URL + '/rest/v1/user_data', {
+   return fetch(SUPABASE_URL + '/rest/v1/user_data?on_conflict=user_id', {
       method: 'POST',
       headers: Object.assign(supabaseHeaders(), {
         'Prefer': 'resolution=merge-duplicates,return=representation'
