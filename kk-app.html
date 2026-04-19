@@ -1605,7 +1605,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="settings-section">
         <div class="settings-section-title">プロフィール</div>
         <div class="settings-card">
-          <div class="settings-row">
+          <div class="settings-row" onclick="var n=prompt('名前を変更',state.name||'');if(n!==null){state.name=n.trim()||'あなた';document.getElementById('settings-name-display').textContent=state.name;saveState();}">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#f9edd8">👤</div>
               <div>
@@ -1615,7 +1615,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" onclick="alert('今後のアップデートで実装予定です')"> 
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
               <div>
@@ -1625,7 +1625,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row">
+          <div class="settings-row" onclick="var h=prompt('断食目標時間（数字）',state.fastingGoal||16);if(h!==null){state.fastingGoal=parseInt(h)||16;document.getElementById('fast-goal-display').textContent=state.fastingGoal+'h';saveState();}">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#d6e8dd">⏱</div>
               <div>
@@ -1642,7 +1642,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="settings-section">
         <div class="settings-section-title">データ</div>
         <div class="settings-card">
-          <div class="settings-row">
+          <div class="settings-row" onclick="var d=JSON.stringify(state,null,2);var b=new Blob([d],{type:'application/json'});var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ippo-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
               <div><div class="settings-row-text">データをエクスポート</div></div>
@@ -1676,7 +1676,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <!-- About -->
       <div class="settings-section">
         <div class="settings-card">
-          <div class="settings-row">
+          <div class="settings-row" onclick="alert('ippo v1.0.0\n\n生理周期・卵巣ケアセルフ記録アプリ\n\n毎日のからだの声を記録して、\nあなただけのパターンを発見しましょう。\n\n© 2026 kenkou kiroku')">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#f0ebe6">ℹ️</div>
               <div><div class="settings-row-text">ippoについて</div></div>
