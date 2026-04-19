@@ -1482,9 +1482,9 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <div class="section-title serif">食事の記録</div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
       時間と食べたものを自由に記入してください<br>
-      <span style="font-size:11px;color:var(--ink-light);">例）0930 緑茶、アーモンド / 1300 味噌汁</span>
+      <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
     </div>
-    <textarea id="rs-meal-free" placeholder="0930 緑茶、アーモンドコーヒー&#10;1300 味噌汁&#10;1430 レタス、さつまいも&#10;1600 納豆ご飯&#10;1700 アーモンドコーヒー" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+    <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食&#10;" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
     <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
       <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;">
@@ -3256,9 +3256,9 @@ function selectRsCycle(el, val){
 }
 // ===== フリーメモ自動解析 =====
 function parseMealMemo(text){
+  if(!text) return null;
   var lines = text.split('\n');
   var times = [];
-  var mealCount = 0;
   lines.forEach(function(line){
     var m = line.match(/(\d{1,2}):?(\d{2})/);
     if(m){
@@ -3266,7 +3266,6 @@ function parseMealMemo(text){
       var min = parseInt(m[2]);
       if(h >= 0 && h <= 23 && min >= 0 && min <= 59){
         times.push(h * 60 + min);
-        mealCount++;
       }
     }
   });
@@ -3278,12 +3277,7 @@ function parseMealMemo(text){
   var fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
   if(fastHours < 0) fastHours = 0;
   var toTime = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-  return {
-    mealCount: mealCount,
-    firstTime: toTime(firstMin),
-    lastTime: toTime(lastMin),
-    fastingHours: fastHours
-  };
+  return { mealCount: times.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
 }
 
 function updateMealParse(){
@@ -3302,34 +3296,21 @@ function updateMealParse(){
   }
 }
 
-// テキストエリア入力時にリアルタイム解析
 document.addEventListener('input', function(e){
   if(e.target.id === 'rs-meal-free') updateMealParse();
 });
 
-// 一時保存
 function saveMealDraft(){
   var ta = document.getElementById('rs-meal-free');
   if(!ta) return;
-  var draft = {
-    mealFree: ta.value,
-    _draftDate: new Date().toISOString()
-  };
-  localStorage.setItem('ippo_meal_draft', JSON.stringify(draft));
+  localStorage.setItem('ippo_meal_draft', JSON.stringify({ mealFree: ta.value, _draftDate: new Date().toISOString() }));
   var msg = document.getElementById('draft-saved-msg');
-  if(msg){
-    msg.style.display = 'inline';
-    setTimeout(function(){ msg.style.display = 'none'; }, 2000);
-  }
+  if(msg){ msg.style.display = 'inline'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
 }
 
 function gatherRecordData(){
-  var morning = (document.getElementById('rs-morning')||{}).value||'';
-  var lunch = (document.getElementById('rs-lunch')||{}).value||'';
-  var dinner = (document.getElementById('rs-dinner')||{}).value||'';
-  var snack = (document.getElementById('rs-snack')||{}).value||'';
-  var firstTime = (document.getElementById('rs-first-time')||{}).value||'';
-  var lastTime = (document.getElementById('rs-last-time')||{}).value||'';
+  var mealFree = (document.getElementById('rs-meal-free')||{}).value||'';
+  var parsed = parseMealMemo(mealFree);
   var temp = parseFloat((document.getElementById('rs-temp')||{}).value) || null;
   var note = (document.getElementById('rs-note')||{}).value||'';
   var symptoms = [];
@@ -3337,8 +3318,19 @@ function gatherRecordData(){
   var cycle = '';
   var selCycle = document.querySelector('#rs-cycle .chip.selected');
   if(selCycle) cycle = selCycle.textContent;
-  return { morning:morning, lunch:lunch, dinner:dinner, snack:snack, firstTime:firstTime, lastTime:lastTime, temp:temp, note:note, symptoms:symptoms, cycle:cycle };
+  return {
+    mealFree: mealFree,
+    firstTime: parsed ? parsed.firstTime : '',
+    lastTime: parsed ? parsed.lastTime : '',
+    mealCount: parsed ? parsed.mealCount : 0,
+    fastingHours: parsed ? parsed.fastingHours : 0,
+    temp: temp,
+    note: note,
+    symptoms: symptoms,
+    cycle: cycle
+  };
 }
+
 
 function draftRecordScreen(){
   var data = gatherRecordData();
