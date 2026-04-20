@@ -2866,6 +2866,178 @@ function isPeriodExpected(){
   return diffDays >= -3 && diffDays <= 3;
 }
 
+  // ===== COMMUNITY VOICE =====
+var currentTopicId = null;
+
+function loadCommunityTopic(){
+  fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.true&order=created_at.desc&limit=1', {
+    headers: {'apikey': SUPABASE_KEY}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data.length > 0){
+      currentTopicId = data[0].id;
+      var weekEl = document.getElementById('community-week');
+      var qEl = document.getElementById('community-question');
+      if(weekEl) weekEl.textContent = data[0].week_label;
+      if(qEl) qEl.textContent = data[0].question;
+      loadCommunityReplies();
+    }
+  })
+  .catch(function(e){ console.log('トピック読込エラー:', e); });
+}
+
+function loadCommunityReplies(){
+  if(!currentTopicId) return;
+  fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.' + currentTopicId + '&order=likes.desc,created_at.desc&limit=20', {
+    headers: {'apikey': SUPABASE_KEY}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(replies){
+    var container = document.getElementById('community-replies');
+    if(!container) return;
+    if(replies.length === 0){
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-light);font-size:13px;">まだ回答がありません。最初の声を届けてみませんか？</div>';
+      return;
+    }
+    var html = '';
+    for(var i=0; i<replies.length; i++){
+      var r = replies[i];
+      var timeAgo = getTimeAgo(r.created_at);
+      var isMyLike = false; // 後で確認
+      html += '<div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #f0ebe6;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+      html += '<div style="font-size:12px;color:var(--ink-mid);font-weight:600;">' + (r.display_name || '匿名さん') + '</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);">' + timeAgo + '</div>';
+      html += '</div>';
+      html += '<div style="font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:10px;">' + escapeHtml(r.body) + '</div>';
+      html += '<div style="display:flex;align-items:center;gap:4px;">';
+      html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:4px;">';
+      html += '♡ <span>' + (r.likes || 0) + '</span></button>';
+      html += '</div>';
+      html += '</div>';
+    }
+    container.innerHTML = html;
+    checkMyLikes(replies);
+  })
+  .catch(function(e){ console.log('回答読込エラー:', e); });
+}
+
+function postCommunityReply(){
+  var input = document.getElementById('community-input');
+  if(!input || !input.value.trim()) return;
+  if(!currentTopicId){ alert('テーマが読み込まれていません'); return; }
+  if(input.value.trim().length < 10){ alert('10文字以上で入力してください'); return; }
+
+  var body = {
+    topic_id: currentTopicId,
+    user_id: supabaseUserId || null,
+    display_name: (state.name || '匿名') + 'さん',
+    body: input.value.trim()
+  };
+
+  fetch(SUPABASE_URL + '/rest/v1/community_replies', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify(body)
+  })
+  .then(function(r){
+    if(r.ok){
+      input.value = '';
+      loadCommunityReplies();
+    } else {
+      alert('投稿に失敗しました。もう一度お試しください。');
+    }
+  })
+  .catch(function(e){ alert('通信エラーが発生しました'); });
+}
+
+function likeCommunityReply(replyId, btn){
+  if(!supabaseUserId){ alert('いいねするにはログインが必要です'); return; }
+
+  fetch(SUPABASE_URL + '/rest/v1/community_likes', {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ reply_id: replyId, user_id: supabaseUserId })
+  })
+  .then(function(r){
+    if(r.ok){
+      // likes カウントを更新（RPC使わずクライアント側で+1）
+      var span = btn.querySelector('span');
+      var current = parseInt(span.textContent) || 0;
+      span.textContent = current + 1;
+      btn.style.color = 'var(--rose)';
+      btn.style.borderColor = 'var(--rose)';
+      btn.disabled = true;
+      // DBのlikesカウントも更新
+      updateReplyLikeCount(replyId, current + 1);
+    }
+  })
+  .catch(function(e){ console.log('いいねエラー:', e); });
+}
+
+function updateReplyLikeCount(replyId, newCount){
+  fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({ likes: newCount })
+  });
+}
+
+function checkMyLikes(replies){
+  if(!supabaseUserId) return;
+  var ids = replies.map(function(r){ return r.id; });
+  fetch(SUPABASE_URL + '/rest/v1/community_likes?user_id=eq.' + supabaseUserId + '&reply_id=in.(' + ids.join(',') + ')', {
+    headers: {'apikey': SUPABASE_KEY}
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(likes){
+    var likedIds = {};
+    likes.forEach(function(l){ likedIds[l.reply_id] = true; });
+    var buttons = document.querySelectorAll('#community-replies button');
+    buttons.forEach(function(btn){
+      var onclick = btn.getAttribute('onclick') || '';
+      var match = onclick.match(/likeCommunityReply\('([^']+)'/);
+      if(match && likedIds[match[1]]){
+        btn.style.color = 'var(--rose)';
+        btn.style.borderColor = 'var(--rose)';
+        btn.innerHTML = '♥ <span>' + btn.querySelector('span').textContent + '</span>';
+        btn.disabled = true;
+      }
+    });
+  });
+}
+
+function escapeHtml(text){
+  var div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function getTimeAgo(dateStr){
+  var now = new Date();
+  var d = new Date(dateStr);
+  var diff = Math.floor((now - d) / 1000);
+  if(diff < 60) return 'たった今';
+  if(diff < 3600) return Math.floor(diff / 60) + '分前';
+  if(diff < 86400) return Math.floor(diff / 3600) + '時間前';
+  if(diff < 604800) return Math.floor(diff / 86400) + '日前';
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+
+
 function updateDiseaseSettingDisplay(){
   var display = document.getElementById('disease-setting-display');
   if(!display) return;
