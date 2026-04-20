@@ -1332,6 +1332,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="cal-grid" id="calGrid"></div>
       </div>
 
+            <!-- Today's Summary -->
+      <div id="home-summary" style="margin:0 20px 20px;display:none;">
+        <div style="background:var(--white);border-radius:16px;padding:20px;box-shadow:0 1px 8px var(--shadow);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の記録サマリー</div>
+            <div id="summary-status" style="font-size:12px;color:var(--ink-light);">未記録</div>
+          </div>
+          <div id="summary-content">
+            <div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day Detail Modal -->
+
+      
       <!-- Day Detail Modal -->
       <div class="dm-overlay" id="dmOverlay">
         <div class="dm-box">
@@ -2597,6 +2613,98 @@ function saveSymptomSettings(){
   closeSymptomSettings();
   updateRecordSymptoms();
 }
+
+// ===== ホーム画面サマリー =====
+function updateHomeSummary(){
+  var container = document.getElementById('home-summary');
+  var content = document.getElementById('summary-content');
+  var status = document.getElementById('summary-status');
+  if(!container || !content || !status) return;
+
+  var todayStr = new Date().toDateString();
+  var rec = null;
+  for(var i=0; i<state.records.length; i++){
+    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
+  }
+
+  container.style.display = 'block';
+
+  if(!rec){
+    status.textContent = '未記録';
+    content.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>';
+    return;
+  }
+
+  status.textContent = '記録済み ✓';
+  var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+
+  // 断食
+  if(rec.fasting){
+    var fastPct = Math.min(100, Math.round((rec.fasting / (state.fastingGoal || 16)) * 100));
+    html += '<div style="flex:1;min-width:100px;text-align:center;">';
+    html += '<div style="position:relative;width:70px;height:70px;margin:0 auto 8px;">';
+    html += '<svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="#f0ebe6" stroke-width="6"/>';
+    html += '<circle cx="35" cy="35" r="30" fill="none" stroke="var(--rose)" stroke-width="6" stroke-dasharray="'+Math.round(188.5*fastPct/100)+' 188.5" stroke-linecap="round" transform="rotate(-90 35 35)"/>';
+    html += '</svg>';
+    html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;color:var(--ink);">'+rec.fasting+'h</div>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);">断食</div>';
+    html += '</div>';
+  }
+
+  // 食事数
+  if(rec.mealCount){
+    html += '<div style="flex:1;min-width:100px;text-align:center;">';
+    html += '<div style="font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;">'+rec.mealCount+'</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);">食</div>';
+    html += '</div>';
+  }
+
+  // 体温
+  if(rec.temperature){
+    html += '<div style="flex:1;min-width:100px;text-align:center;">';
+    html += '<div style="font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;">'+rec.temperature+'</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);">℃</div>';
+    html += '</div>';
+  }
+
+  html += '</div>';
+
+  // 症状
+  if(rec.symptoms && rec.symptoms.length){
+    html += '<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">';
+    rec.symptoms.forEach(function(s){
+      html += '<span style="font-size:11px;background:var(--warm-light);color:var(--ink-mid);padding:4px 10px;border-radius:12px;">'+s+'</span>';
+    });
+    html += '</div>';
+  }
+
+  // 生理周期
+  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし'){
+    html += '<div style="margin-top:10px;font-size:12px;color:var(--rose);">🌸 '+rec.menstrualCycle+'</div>';
+  }
+
+  // 疾患チェック
+  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+    html += '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">';
+    var dc = rec.diseaseCheck;
+    var disease = state.myDisease || '';
+    var config = DISEASE_CONFIG[disease];
+    Object.keys(dc).forEach(function(key){
+      var label = key;
+      if(config){
+        for(var qi=0;qi<config.questions.length;qi++){
+          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+        }
+      }
+      html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
+    });
+    html += '</div>';
+  }
+
+  content.innerHTML = html;
+}
+  
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
   var btn = document.getElementById('home-cta-btn');
@@ -3159,6 +3267,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
   updateHomeCTA();
+  updateHomeSummary();
     var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
 });
