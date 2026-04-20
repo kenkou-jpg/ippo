@@ -2713,31 +2713,34 @@ function updateHomeSummary(){
   
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
-  var btn = document.getElementById('home-cta-btn');
-  if(!btn) return;
+  var title = document.getElementById('home-cta-title');
+  var sub = document.getElementById('home-cta-sub');
+  var card = document.getElementById('home-cta-card');
+  if(!title || !sub || !card) return;
+
   var todayStr = new Date().toDateString();
   var hasRecord = false;
   for(var i=0; i<state.records.length; i++){
     if(new Date(state.records[i].date).toDateString() === todayStr){ hasRecord = true; break; }
   }
 
-  // 生理予測チェック
   var nearPeriod = isPeriodExpected();
 
   if(nearPeriod && !hasRecord){
-    btn.textContent = '🌸 生理がきた？ タップして記録';
-    btn.style.background = 'linear-gradient(135deg, #f8e8e8 0%, #f0d0d0 100%)';
-    btn.style.color = '#8a3a3a';
+    title.textContent = '🌸 生理がきた？';
+    sub.textContent = 'タップして今日の状態を記録';
+    card.style.background = 'linear-gradient(135deg, #d4838a 0%, #b85c6a 100%)';
   } else if(hasRecord){
-    btn.textContent = '✓ 今日の記録を見る';
-    btn.style.background = 'var(--warm-light)';
-    btn.style.color = 'var(--ink)';
+    title.textContent = '✓ 今日の記録を見る';
+    sub.textContent = '記録済み・タップして確認';
+    card.style.background = 'linear-gradient(135deg, #b8c4a8 0%, #8a9c78 100%)';
   } else {
-    btn.textContent = '今日を記録する';
-    btn.style.background = '#3a2e2e';
-    btn.style.color = '#fff';
+    title.textContent = '今日を記録する';
+    sub.textContent = 'まだ今日の記録がありません';
+    card.style.background = 'linear-gradient(135deg, #e8b4b8 0%, #c4878c 100%)';
   }
 }
+
 
 function handleHomeCTA(){
   var todayStr = new Date().toDateString();
