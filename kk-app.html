@@ -3526,6 +3526,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateHomeSummary();
     var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
+  loadCommunityTopic();
 });
 
 function openDayDetail(d){
