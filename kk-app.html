@@ -1304,56 +1304,20 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-        <!-- Unlock Progress (prominent) -->
-      <div class="unlock-section">
-        <div class="unlock-header">
-          <div class="unlock-title">🔓 記録で解放される機能</div>
-          <div class="unlock-days" id="unlock-days-label">あと7日</div>
+      <!-- Unlock Progress -->
+      <div class="unlock-section" style="background:var(--white);border-radius:16px;padding:20px;margin:0 20px 16px;box-shadow:0 1px 8px var(--shadow);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:14px;color:var(--ink);font-weight:600;">🔓 記録で解放される機能</div>
+          <div id="unlock-days-label" style="font-size:13px;color:var(--rose);font-weight:600;">あと7日</div>
         </div>
-        <div class="unlock-items">
-          <div class="unlock-item">
-            <div class="unlock-icon unlocked">📊</div>
-            <div class="unlock-text">
-              <div class="unlock-text-title">基本グラフ表示</div>
-              <div class="unlock-text-sub">ウェルネス・食事・チャクラの推移</div>
-            </div>
-            <div class="unlock-badge unlocked">解放済み</div>
-          </div>
-          <div class="unlock-item">
-            <div class="unlock-icon locked">🔍</div>
-            <div class="unlock-text">
-              <div class="unlock-text-title">パターン自動分析</div>
-              <div class="unlock-text-sub">7日記録で解放</div>
-            </div>
-            <div class="unlock-badge locked" id="badge-7">7日〜</div>
-          </div>
-          <div class="unlock-item">
-            <div class="unlock-icon locked">📄</div>
-            <div class="unlock-text">
-              <div class="unlock-text-title">月次PDFレポート</div>
-              <div class="unlock-text-sub">30日記録で解放（プレミアム）</div>
-            </div>
-            <div class="unlock-badge locked" id="badge-30">30日〜</div>
-          </div>
-          <div class="unlock-item">
-            <div class="unlock-icon locked">🤖</div>
-            <div class="unlock-text">
-              <div class="unlock-text-title">AIパターン解析コメント</div>
-              <div class="unlock-text-sub">90日記録で解放（プレミアム）</div>
-            </div>
-            <div class="unlock-badge locked" id="badge-90">90日〜</div>
-          </div>
+        <div style="height:6px;background:#f0ebe6;border-radius:3px;overflow:hidden;margin-bottom:10px;">
+          <div id="progress-fill" style="height:100%;background:linear-gradient(90deg,#e8b4b8,#c4878c);border-radius:3px;width:0%;transition:width 0.5s;"></div>
         </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
-          </div>
-          <div class="progress-bar-labels">
-            <span class="pb-label active">0日</span>
-            <span class="pb-label">7日</span>
-            <span class="pb-label">30日</span>
-            <span class="pb-label">90日</span>
-          </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--ink-light);">
+          <span>0日</span>
+          <span>7日</span>
+          <span>30日</span>
+          <span>90日</span>
         </div>
       </div>
 
