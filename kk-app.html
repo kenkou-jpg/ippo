@@ -3750,6 +3750,8 @@ function saveRecordScreen(){
   rec.bodyChoices = bodyChoices;
   if(data.note) rec.note = data.note;
   saveState();
+  updateHomeSummary();
+  updateHomeCTA();
   updateStats();
   updateHistory();
   buildCalendar();
