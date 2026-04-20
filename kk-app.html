@@ -1310,7 +1310,12 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
       <!-- Record CTA -->
-     
+      <div id="home-record-cta" style="margin:0 20px 16px;">
+        <button id="home-cta-btn" onclick="handleHomeCTA()" style="width:100%;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.03em;transition:all 0.2s;">
+          今日を記録する
+        </button>
+      </div>
+
       
       <!-- Calendar -->
       <div class="calendar-section">
@@ -2592,6 +2597,82 @@ function saveSymptomSettings(){
   closeSymptomSettings();
   updateRecordSymptoms();
 }
+  // ===== ホーム画面CTAボタン =====
+function updateHomeCTA(){
+  var btn = document.getElementById('home-cta-btn');
+  if(!btn) return;
+  var todayStr = new Date().toDateString();
+  var hasRecord = false;
+  for(var i=0; i<state.records.length; i++){
+    if(new Date(state.records[i].date).toDateString() === todayStr){ hasRecord = true; break; }
+  }
+
+  // 生理予測チェック
+  var nearPeriod = isPeriodExpected();
+
+  if(nearPeriod && !hasRecord){
+    btn.textContent = '🌸 生理がきた？ タップして記録';
+    btn.style.background = 'linear-gradient(135deg, #f8e8e8 0%, #f0d0d0 100%)';
+    btn.style.color = '#8a3a3a';
+  } else if(hasRecord){
+    btn.textContent = '✓ 今日の記録を見る';
+    btn.style.background = 'var(--warm-light)';
+    btn.style.color = 'var(--ink)';
+  } else {
+    btn.textContent = '今日を記録する';
+    btn.style.background = '#3a2e2e';
+    btn.style.color = '#fff';
+  }
+}
+
+function handleHomeCTA(){
+  var todayStr = new Date().toDateString();
+  var hasRecord = false;
+  for(var i=0; i<state.records.length; i++){
+    if(new Date(state.records[i].date).toDateString() === todayStr){ hasRecord = true; break; }
+  }
+  if(hasRecord){
+    openDayDetail(new Date().getDate());
+  } else {
+    openRecordScreen();
+  }
+}
+
+function isPeriodExpected(){
+  // 過去の「生理開始」または「生理中」の記録から次の生理予定日を予測
+  var starts = [];
+  for(var i=0; i<state.records.length; i++){
+    var r = state.records[i];
+    if(r.menstrualCycle === '生理開始' || r.menstrualCycle === '生理中'){
+      var d = new Date(r.date);
+      // 連続する生理中の最初の日だけを取得
+      var isDuplicate = false;
+      for(var j=0; j<starts.length; j++){
+        if(Math.abs(starts[j] - d) < 5 * 86400000){ isDuplicate = true; break; }
+      }
+      if(!isDuplicate) starts.push(d);
+    }
+  }
+  if(starts.length < 2) return false;
+
+  // 平均周期を計算
+  starts.sort(function(a,b){ return a - b; });
+  var totalDays = 0;
+  for(var k=1; k<starts.length; k++){
+    totalDays += (starts[k] - starts[k-1]) / 86400000;
+  }
+  var avgCycle = Math.round(totalDays / (starts.length - 1));
+
+  // 次の予定日
+  var lastStart = starts[starts.length - 1];
+  var nextExpected = new Date(lastStart.getTime() + avgCycle * 86400000);
+  var today = new Date();
+  var diffDays = (nextExpected - today) / 86400000;
+
+  // 予定日の前後3日以内
+  return diffDays >= -3 && diffDays <= 3;
+}
+
 function updateDiseaseSettingDisplay(){
   var display = document.getElementById('disease-setting-display');
   if(!display) return;
@@ -3077,6 +3158,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
+  updateHomeCTA();
     var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
 });
