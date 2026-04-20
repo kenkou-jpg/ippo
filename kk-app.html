@@ -2634,62 +2634,113 @@ function updateHomeSummary(){
 
   if(!rec){
     status.textContent = '未記録';
-    content.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>';
+    // 未記録時のドーナツグラフ
+    var emptyHtml = '<div style="display:flex;align-items:center;gap:20px;">';
+    emptyHtml += '<div style="position:relative;width:120px;height:120px;flex-shrink:0;">';
+    emptyHtml += '<svg width="120" height="120" viewBox="0 0 120 120">';
+    emptyHtml += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
+    emptyHtml += '</svg>';
+    emptyHtml += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ink-light);text-align:center;">断食時間</div>';
+    emptyHtml += '</div>';
+    emptyHtml += '<div style="flex:1;">';
+    var labels = [{color:'#d4a574',name:'朝食'},{color:'#6b9e78',name:'昼食'},{color:'#c4878c',name:'夕食'},{color:'#7ba3c4',name:'間食'}];
+    for(var li=0;li<labels.length;li++){
+      emptyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f0eb;">';
+      emptyHtml += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+labels[li].color+';"></div><span style="font-size:13px;color:var(--ink);">'+labels[li].name+'</span></div>';
+      emptyHtml += '<span style="font-size:13px;color:var(--ink-light);">—</span>';
+      emptyHtml += '</div>';
+    }
+    emptyHtml += '</div></div>';
+    emptyHtml += '<div style="text-align:center;color:var(--ink-light);font-size:12px;margin-top:14px;">今日の記録後に表示されます</div>';
+    content.innerHTML = emptyHtml;
     return;
   }
 
   status.textContent = '記録済み ✓';
-  var html = '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
 
-  // 断食
-  if(rec.fasting){
-    var fastPct = Math.min(100, Math.round((rec.fasting / (state.fastingGoal || 16)) * 100));
-    html += '<div style="flex:1;min-width:100px;text-align:center;">';
-    html += '<div style="position:relative;width:90px;height:90px;margin:0 auto 8px;">';
-    html += '<svg width="90" height="90" viewBox="0 0 90 90"><circle cx="45" cy="45" r="38" fill="none" stroke="#f0ebe6" stroke-width="6"/>';
-    html += '<circle cx="45" cy="45" r="38" fill="none" stroke="var(--rose)" stroke-width="6" stroke-dasharray="'+Math.round(238.8*fastPct/100)+' 238.8" stroke-linecap="round" transform="rotate(-90 45 45)"/>';
-    html += '</svg>';
-    html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:700;color:var(--ink);">'+rec.fasting+'h</div>';
-    html += '</div>';
-    html += '<div style="font-size:11px;color:var(--ink-light);">断食</div>';
-    html += '</div>';
+  // 食事データ解析
+  var mealLines = (rec.mealFree || '').split('\n').filter(function(l){return l.trim();});
+  var mealCount = rec.mealCount || mealLines.length || 0;
+  var fastH = rec.fasting || 0;
+  var goalH = state.fastingGoal || 16;
+  var eatH = 24 - fastH;
+
+  // ドーナツグラフ計算
+  var circumference = 301.6; // 2 * PI * 48
+  var fastArc = Math.round(circumference * (fastH / 24));
+  var eatArc = circumference - fastArc;
+
+  var html = '<div style="display:flex;align-items:center;gap:20px;">';
+
+  // ドーナツグラフ
+  html += '<div style="position:relative;width:120px;height:120px;flex-shrink:0;">';
+  html += '<svg width="120" height="120" viewBox="0 0 120 120">';
+  // 食事時間（ピンク）
+  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#e8b4b8" stroke-width="10" stroke-dasharray="'+eatArc+' '+circumference+'" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
+  // 断食時間（ベージュ）
+  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10" stroke-dasharray="'+fastArc+' '+circumference+'" stroke-linecap="round" transform="rotate('+((-90)+(eatArc/circumference*360))+' 60 60)"/>';
+  // 時間ラベル
+  var positions = [{h:0,x:60,y:8},{h:6,x:112,y:62},{h:12,x:60,y:116},{h:18,x:8,y:62}];
+  for(var pi=0;pi<positions.length;pi++){
+    html += '<text x="'+positions[pi].x+'" y="'+positions[pi].y+'" text-anchor="middle" font-size="9" fill="#b0a090">'+positions[pi].h+'</text>';
+  }
+  html += '</svg>';
+  html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
+  html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+fastH+'h</div>';
+  html += '<div style="font-size:9px;color:var(--ink-light);">断食時間</div>';
+  html += '</div></div>';
+
+  // 食事リスト
+  html += '<div style="flex:1;">';
+  var mealSlots = [];
+  if(rec.mealFree){
+    var lines = rec.mealFree.split('\n');
+    for(var mi=0;mi<lines.length;mi++){
+      var line = lines[mi].trim();
+      if(!line) continue;
+      var timeMatch = line.match(/(\d{1,2}):?(\d{2})/);
+      var time = timeMatch ? ('0'+parseInt(timeMatch[1])).slice(-2)+':'+timeMatch[2] : '';
+      var food = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
+      mealSlots.push({time:time, food:food});
+    }
   }
 
-  // 食事数
-  if(rec.mealCount){
-    html += '<div style="flex:1;min-width:100px;text-align:center;">';
-    html += '<div style="font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;">'+rec.mealCount+'</div>';
-    html += '<div style="font-size:11px;color:var(--ink-light);">食</div>';
-    html += '</div>';
+  var colors = ['#d4a574','#6b9e78','#c4878c','#7ba3c4','#b8a9d4','#d4c474'];
+  if(mealSlots.length){
+    for(var si=0;si<mealSlots.length;si++){
+      var color = colors[si % colors.length];
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';"></div><span style="font-size:12px;color:var(--ink);">'+mealSlots[si].time+'</span></div>';
+      html += '<span style="font-size:12px;color:var(--ink-mid);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+mealSlots[si].food+'</span>';
+      html += '</div>';
+    }
+  } else {
+    var defaultLabels = [{name:'朝食'},{name:'昼食'},{name:'夕食'},{name:'間食'}];
+    for(var di=0;di<defaultLabels.length;di++){
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+colors[di]+';"></div><span style="font-size:12px;color:var(--ink);">'+defaultLabels[di].name+'</span></div>';
+      html += '<span style="font-size:12px;color:var(--ink-light);">—</span>';
+      html += '</div>';
+    }
   }
+  html += '</div></div>';
 
-  // 体温
-  if(rec.temperature){
-    html += '<div style="flex:1;min-width:100px;text-align:center;">';
-    html += '<div style="font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;">'+rec.temperature+'</div>';
-    html += '<div style="font-size:11px;color:var(--ink-light);">℃</div>';
-    html += '</div>';
-  }
-
-  html += '</div>';
-
-  // 症状
-  if(rec.symptoms && rec.symptoms.length){
-    html += '<div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">';
-    rec.symptoms.forEach(function(s){
-      html += '<span style="font-size:11px;background:var(--warm-light);color:var(--ink-mid);padding:4px 10px;border-radius:12px;">'+s+'</span>';
+  // 症状・体温・生理
+  var extras = [];
+  if(rec.temperature) extras.push('🌡 '+rec.temperature+'℃');
+  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') extras.push('🌸 '+rec.menstrualCycle);
+  if(rec.symptoms && rec.symptoms.length) extras.push(rec.symptoms.join('・'));
+  if(extras.length){
+    html += '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">';
+    extras.forEach(function(e){
+      html += '<span style="font-size:11px;background:var(--warm-light);color:var(--ink-mid);padding:4px 10px;border-radius:12px;">'+e+'</span>';
     });
     html += '</div>';
   }
 
-  // 生理周期
-  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし'){
-    html += '<div style="margin-top:10px;font-size:12px;color:var(--rose);">🌸 '+rec.menstrualCycle+'</div>';
-  }
-
   // 疾患チェック
   if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    html += '<div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">';
+    html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
     var dc = rec.diseaseCheck;
     var disease = state.myDisease || '';
     var config = DISEASE_CONFIG[disease];
@@ -2707,6 +2758,7 @@ function updateHomeSummary(){
 
   content.innerHTML = html;
 }
+
   
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
