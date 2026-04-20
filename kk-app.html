@@ -2125,7 +2125,26 @@ function updateGreeting() {
   if (hour < 10) greeting = 'おはようございます';
   else if (hour >= 18) greeting = 'こんばんは';
   const el = document.getElementById('greeting-text');
-  if (el) el.textContent = `${greeting}、${state.name}さん`;
+  if (el) el.textContent = greeting;
+  const nameEl = document.getElementById('greeting-name');
+  if (nameEl) nameEl.textContent = (state.name || 'あなた') + 'さん';
+  // 連続記録バッジ更新
+  const badgeCount = document.getElementById('streak-badge-count');
+  if (badgeCount) {
+    var streak = 0;
+    var d = new Date();
+    while(true){
+      var ds = d.toDateString();
+      var found = false;
+      for(var i=0; i<state.records.length; i++){
+        if(new Date(state.records[i].date).toDateString() === ds){ found = true; break; }
+      }
+      if(!found) break;
+      streak++;
+      d.setDate(d.getDate() - 1);
+    }
+    badgeCount.textContent = streak;
+  }
   updateDate();
 }
 
