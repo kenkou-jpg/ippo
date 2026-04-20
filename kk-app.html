@@ -1215,6 +1215,13 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="home-date" id="today-date"></div>
       </div>
 
+       <!-- Record CTA -->
+      <div id="home-record-cta" style="margin:0 20px 16px;">
+        <button id="home-cta-btn" onclick="handleHomeCTA()" style="width:100%;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.03em;transition:all 0.2s;">
+          今日を記録する
+        </button>
+      </div>
+
       <!-- Fasting Timer Widget -->
       <div class="fasting-widget" style="margin-top: 20px;">
         <div class="fw-label">FASTING TIMER</div>
@@ -1231,7 +1238,35 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-      <!-- Milestone Row -->
+            <!-- Today's Summary -->
+      <div id="home-summary" style="margin:0 20px 20px;display:none;">
+        <div style="background:var(--white);border-radius:16px;padding:20px;box-shadow:0 1px 8px var(--shadow);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の記録サマリー</div>
+            <div id="summary-status" style="font-size:12px;color:var(--ink-light);">未記録</div>
+          </div>
+          <div id="summary-content">
+            <div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>
+          </div>
+        </div>
+      </div>
+
+        <!-- Calendar -->
+      <div class="calendar-section">
+        <div class="cal-header">
+          <div class="cal-label" id="calLabel"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev">◀</button>
+            <button class="cal-nav-btn" id="calNext">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+        <!-- Milestone Row -->
       <div class="milestone-row" style="margin-top:16px;">
         <div class="milestone-card">
           <div class="mc-number" id="streak-count">0</div>
@@ -1250,7 +1285,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-      <!-- Unlock Progress (prominent) -->
+        <!-- Unlock Progress (prominent) -->
       <div class="unlock-section">
         <div class="unlock-header">
           <div class="unlock-title">🔓 記録で解放される機能</div>
@@ -1303,49 +1338,12 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
+      
       <!-- Today Message -->
       <div class="today-msg">
         <div class="tm-label">today's message</div>
         <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
       </div>
-
-      <!-- Record CTA -->
-      <div id="home-record-cta" style="margin:0 20px 16px;">
-        <button id="home-cta-btn" onclick="handleHomeCTA()" style="width:100%;padding:16px;border-radius:16px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.03em;transition:all 0.2s;">
-          今日を記録する
-        </button>
-      </div>
-
-      
-      <!-- Calendar -->
-      <div class="calendar-section">
-        <div class="cal-header">
-          <div class="cal-label" id="calLabel"></div>
-          <div class="cal-nav">
-            <button class="cal-nav-btn" id="calPrev">◀</button>
-            <button class="cal-nav-btn" id="calNext">▶</button>
-          </div>
-        </div>
-        <div class="cal-weekdays">
-          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-      </div>
-
-            <!-- Today's Summary -->
-      <div id="home-summary" style="margin:0 20px 20px;display:none;">
-        <div style="background:var(--white);border-radius:16px;padding:20px;box-shadow:0 1px 8px var(--shadow);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の記録サマリー</div>
-            <div id="summary-status" style="font-size:12px;color:var(--ink-light);">未記録</div>
-          </div>
-          <div id="summary-content">
-            <div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Day Detail Modal -->
 
       
       <!-- Day Detail Modal -->
