@@ -2645,11 +2645,11 @@ function updateHomeSummary(){
   if(rec.fasting){
     var fastPct = Math.min(100, Math.round((rec.fasting / (state.fastingGoal || 16)) * 100));
     html += '<div style="flex:1;min-width:100px;text-align:center;">';
-    html += '<div style="position:relative;width:70px;height:70px;margin:0 auto 8px;">';
-    html += '<svg width="70" height="70" viewBox="0 0 70 70"><circle cx="35" cy="35" r="30" fill="none" stroke="#f0ebe6" stroke-width="6"/>';
-    html += '<circle cx="35" cy="35" r="30" fill="none" stroke="var(--rose)" stroke-width="6" stroke-dasharray="'+Math.round(188.5*fastPct/100)+' 188.5" stroke-linecap="round" transform="rotate(-90 35 35)"/>';
+    html += '<div style="position:relative;width:90px;height:90px;margin:0 auto 8px;">';
+    html += '<svg width="90" height="90" viewBox="0 0 90 90"><circle cx="45" cy="45" r="38" fill="none" stroke="#f0ebe6" stroke-width="6"/>';
+    html += '<circle cx="45" cy="45" r="38" fill="none" stroke="var(--rose)" stroke-width="6" stroke-dasharray="'+Math.round(238.8*fastPct/100)+' 238.8" stroke-linecap="round" transform="rotate(-90 45 45)"/>';
     html += '</svg>';
-    html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:14px;font-weight:700;color:var(--ink);">'+rec.fasting+'h</div>';
+    html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;font-weight:700;color:var(--ink);">'+rec.fasting+'h</div>';
     html += '</div>';
     html += '<div style="font-size:11px;color:var(--ink-light);">断食</div>';
     html += '</div>';
