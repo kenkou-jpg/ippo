@@ -1229,22 +1229,26 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-
       <!-- Fasting Timer Widget -->
-      <div class="fasting-widget" style="margin-top: 20px;">
-        <div class="fw-label">FASTING TIMER</div>
-        <div class="fw-goal-pills">
-          <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
-          <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
-          <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
-        </div>
-        <div class="fw-timer" id="fast-timer">00:00:00</div>
-        <div class="fw-status" id="fast-status">断食スタートを押してください</div>
-        <div class="fw-buttons">
-          <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()">断食を始める</button>
-          <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;">断食を終了</button>
+      <div class="fasting-widget" style="margin-top: 16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div>
+            <div class="fw-label">FASTING TIMER</div>
+            <div class="fw-timer" id="fast-timer">00:00:00</div>
+            <div class="fw-status" id="fast-status">断食スタートを押してください</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+            <div class="fw-goal-pills">
+              <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
+              <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
+              <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
+            </div>
+            <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()" style="padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#e8b4b8,#c4878c);color:#fff;">開始</button>
+            <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
+          </div>
         </div>
       </div>
+
 
             <!-- Today's Summary -->
       <div id="home-summary" style="margin:0 20px 20px;display:none;">
