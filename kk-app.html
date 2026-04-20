@@ -2208,14 +2208,22 @@ function setFastGoal(h, el) {
 
 function toggleFast() {
   if (state.fastingActive) return;
+  // 通知許可をリクエスト
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
   state.fastingActive = true;
   state.fastingStart = Date.now();
   saveState();
   document.getElementById('fast-start-btn').style.display = 'none';
   document.getElementById('fast-stop-btn').style.display = 'block';
-  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
+  // 達成予定時刻を表示
+  var goalTime = new Date(Date.now() + state.fastGoal * 3600000);
+  var goalStr = ('0' + goalTime.getHours()).slice(-2) + ':' + ('0' + goalTime.getMinutes()).slice(-2);
+  document.getElementById('fast-status').textContent = state.fastGoal + 'h目標 → ' + goalStr + ' に達成予定';
   startFastTimer();
 }
+
 
 function endFast() {
   if (!state.fastingActive) return;
@@ -2259,16 +2267,27 @@ function startFastTimer() {
     if (!timerEl || !statusEl) { clearInterval(fastInterval); fastInterval = null; return; }
     timerEl.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
     const goalMs = state.fastGoal * 3600000;
-    if (elapsed >= goalMs) {
-      statusEl.textContent = `🎉 ${state.fastGoal}h 達成！`;
+      if (elapsed >= goalMs) {
+      statusEl.textContent = '🎉 ' + state.fastGoal + 'h 達成！';
+      if (!state.fastingNotified) {
+        state.fastingNotified = true;
+        saveState();
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification('ippo 🌸 断食達成！', {
+            body: state.fastGoal + '時間の断食を達成しました！おつかれさまです。',
+            icon: 'images/icon-192.png'
+          });
+        }
+      }
     } else {
       const remaining = goalMs - elapsed;
       const rh = Math.floor(remaining / 3600000);
       const rm = Math.floor((remaining % 3600000) / 60000);
-      statusEl.textContent = `目標まであと ${rh}h${rm}m`;
+      statusEl.textContent = '目標まであと ' + rh + 'h' + rm + 'm';
     }
   }, 1000);
 }
+
 
 // ===== TABS =====
 function switchTab(tab, btn) {
