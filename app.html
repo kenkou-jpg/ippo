@@ -12,16 +12,14 @@
 <meta property="og:description" content="生理周期・断食・チャクラ・食事を毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ippo-app.com/app.html">
-<meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png
-">
+<meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
 <meta property="og:site_name" content="ippo">
 <meta property="og:locale" content="ja_JP">
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ippo – からだの声を聴くセルフケア記録">
 <meta name="twitter:description" content="生理周期・断食・チャクラ・食事を毎日1分で記録。あなただけのパターンを発見。">
-<meta name="twitter:image" content="https://ippo-app.com/ippo/images/ogp-image.png
-">
+<meta name="twitter:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
 <!-- Favicon -->
 <link rel="icon" href="images/icon-192.png" type="image/png">
 
@@ -30,8 +28,8 @@
 <style>
 :root {
   --rose: #FF6B6B;
-　--rose-light: #FFD4D4;
-　--rose-pale: #FFF0F0;
+  --rose-light: #FFD4D4;
+  --rose-pale: #FFF0F0;
   --sage: #8aab96;
   --sage-light: #d6e8dd;
   --warm: #e8c49a;
@@ -1039,6 +1037,33 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   z-index: 1;
 }
 
+    <div class="archive-search">
+      <input type="text" class="archive-search-input" id="archiveSearchInput" placeholder="キーワードで検索..." oninput="searchArchive()">
+    </div>
+
+    <div class="archive-filters" id="archiveFilters">
+      <button class="archive-filter-btn active" data-filter="all" onclick="filterArchive('all')">すべて</button>
+      <button class="archive-filter-btn" data-filter="recent" onclick="filterArchive('recent')">最近3ヶ月</button>
+      <button class="archive-filter-btn" data-filter="popular" onclick="filterArchive('popular')">人気順</button>
+    </div>
+
+    <!-- Topic List View -->
+    <div class="archive-body" id="archiveTopicList">
+      <div class="archive-empty">読み込み中...</div>
+    </div>
+
+    <!-- Post Detail View -->
+    <div class="archive-body archive-posts-section" id="archivePostsView">
+      <button class="archive-back-btn" onclick="showTopicList()">← テーマ一覧に戻る</button>
+      <div id="archivePostsBody"></div>
+    </div>
+
+    <div class="archive-footer">
+      <button class="archive-close-btn" onclick="closeArchive()">閉じる</button>
+    </div>
+  </div>
+</div>
+
 /* ===== FEEDBACK ===== */
 .feedback-section {
   margin: 0 24px 20px;
@@ -1210,6 +1235,349 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 .dm-summary-lbl { font-size: 10px; color: var(--ink-light); margin-top: 4px; }
 .dm-record-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; justify-content: center; }
 .dm-tag { font-size: 11px; padding: 5px 12px; border-radius: 20px; background: var(--rose-pale); color: var(--rose); }
+/* ===== PREMIUM FEATURES ===== */
+.premium-feature-section {
+  margin: 0 24px 20px;
+}
+.pf-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.pf-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--shadow); }
+.pf-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: var(--rose-pale);
+}
+.pf-text { flex: 1; }
+.pf-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.pf-sub { font-size: 11px; color: var(--ink-light); }
+.pf-arrow { color: var(--ink-light); font-size: 16px; }
+
+/* ===== DOCTOR SUMMARY MODAL ===== */
+.ds-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.ds-overlay.active { display: flex; }
+.ds-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.ds-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.ds-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.ds-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.ds-subtitle { font-size: 12px; color: var(--ink-light); }
+.ds-body { padding: 0 24px; }
+.ds-section { margin-bottom: 20px; }
+.ds-section-title {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+}
+.ds-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.ds-row-label { color: var(--ink-light); flex-shrink: 0; width: 40%; }
+.ds-row-value { color: var(--ink); font-weight: 500; text-align: right; flex: 1; }
+.ds-tag-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.ds-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--rose-pale);
+  color: var(--rose);
+}
+.ds-meal-day { margin-bottom: 12px; }
+.ds-meal-date {
+  font-size: 11px;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.ds-meal-items { font-size: 12px; color: var(--ink-mid); line-height: 1.7; }
+.ds-note-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(200,180,170,0.1);
+  font-size: 12px;
+}
+.ds-note-date { color: var(--ink-light); font-size: 11px; }
+.ds-note-text { color: var(--ink); margin-top: 2px; }
+.ds-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.ds-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.ds-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ds-btn.primary { background: var(--rose); color: white; }
+.ds-btn.primary:hover { background: #FF8A8A; }
+.ds-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.ds-disclaimer {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(200,180,170,0.1);
+  border-radius: 12px;
+  font-size: 10px;
+  color: var(--ink-light);
+  line-height: 1.7;
+  text-align: center;
+}
+
+  /* ===== MONTHLY REPORT MODAL ===== */
+.mr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.mr-overlay.active { display: flex; }
+.mr-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.mr-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.mr-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.mr-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.mr-subtitle { font-size: 12px; color: var(--ink-light); }
+.mr-body { padding: 0 24px; }
+.mr-month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.mr-month-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,180,170,0.3);
+  background: var(--white);
+  color: var(--ink-light);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.mr-month-btn:hover { border-color: var(--rose); color: var(--rose); }
+.mr-month-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  color: var(--ink);
+  min-width: 140px;
+  text-align: center;
+}
+.mr-preview {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+}
+.mr-preview-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.mr-preview-period {
+  font-size: 11px;
+  color: var(--ink-light);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.mr-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mr-stat-box {
+  background: var(--rose-pale);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.mr-stat-num {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mr-stat-label {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.mr-chart-section { margin-bottom: 16px; }
+.mr-chart-title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.mr-bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.mr-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mr-bar-label {
+  font-size: 11px;
+  color: var(--ink-mid);
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.mr-bar-track {
+  flex: 1;
+  height: 20px;
+  background: #f0ebe6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.mr-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--rose-light), var(--rose));
+  transition: width 0.8s ease;
+  min-width: 2px;
+}
+.mr-bar-count {
+  font-size: 11px;
+  color: var(--ink-light);
+  width: 30px;
+  flex-shrink: 0;
+}
+.mr-summary-text {
+  font-size: 13px;
+  color: var(--ink-mid);
+  line-height: 1.8;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 14px;
+  border-left: 3px solid var(--rose);
+}
+.mr-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.mr-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mr-btn.primary { background: var(--rose); color: white; }
+.mr-btn.primary:hover { background: #FF8A8A; }
+.mr-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.mr-generating {
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+  color: var(--ink-light);
+}
 
 </style>
 </head>
@@ -1741,6 +2109,147 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
         </div>
       </div>
+
+       <!-- Premium Features -->
+<div class="settings-section">
+  <div class="settings-section-title">Premium</div>
+</div>
+<div class="premium-feature-section">
+  <div class="pf-card" onclick="openDoctorSummary()">
+    <div class="pf-icon">🩺</div>
+    <div class="pf-text">
+      <div class="pf-title">婦人科受診サポート</div>
+      <div class="pf-sub">過去30日の体調サマリーを自動生成</div>
+    </div>
+    <div class="pf-arrow">→</div>
+  </div>
+<div class="pf-card" onclick="openMonthlyReport()">
+    <div class="pf-icon">📊</div>
+    <div class="pf-text">
+      <div class="pf-title">月次レポート（PDF）</div>
+      <div class="pf-sub">月ごとの体調データを可視化</div>
+    </div>
+    <div class="pf-arrow">→</div>
+  </div>
+<div class="pf-card" onclick="openAIAnalysis()">
+    <div class="pf-icon">✨</div>
+    <div class="pf-text">
+      <div class="pf-title">AIパターン解析</div>
+      <div class="pf-sub">90日分の記録からパターンを発見</div>
+    </div>
+    <div class="pf-arrow">→</div>
+  </div>
+<div class="pf-card" onclick="openSyncModal()">
+    <div class="pf-icon">🔄</div>
+    <div class="pf-text">
+      <div class="pf-title">デバイス間同期</div>
+      <div class="pf-sub" id="syncStatusBrief">未ログイン</div>
+    </div>
+    <div class="pf-arrow">→</div>
+  </div>
+<div class="pf-card" onclick="openArchive()">
+    <div class="pf-icon">💬</div>
+    <div class="pf-text">
+      <div class="pf-title">みんなの声アーカイブ</div>
+      <div class="pf-sub">過去のテーマと投稿を閲覧・検索</div>
+    </div>
+    <div class="pf-arrow">→</div>
+  </div>
+
+<!-- Doctor Summary Modal -->
+<div class="ds-overlay" id="doctorSummaryOverlay">
+  <div class="ds-sheet">
+    <div class="ds-handle"></div>
+    <div class="ds-header">
+      <div class="ds-title">婦人科受診サポート</div>
+      <div class="ds-subtitle">過去30日間の体調サマリー</div>
+    </div>
+    <div class="ds-body" id="doctorSummaryBody">
+      <div class="ds-empty">読み込み中...</div>
+    </div>
+    <div class="ds-disclaimer">
+      ※ このサマリーは医学的診断ではありません。記録データを整理して表示しています。<br>
+      受診の際の参考資料としてご活用ください。
+    </div>
+    <div class="ds-footer">
+      <button class="ds-btn secondary" onclick="closeDoctorSummary()">閉じる</button>
+      <button class="ds-btn primary" onclick="copyDoctorSummary()">テキストをコピー</button>
+    </div>
+  </div>
+</div>
+
+
+  <!-- Monthly Report Modal -->
+<div class="mr-overlay" id="monthlyReportOverlay">
+  <div class="mr-sheet">
+    <div class="mr-handle"></div>
+    <div class="mr-header">
+      <div class="mr-title">月次レポート</div>
+      <div class="mr-subtitle">月ごとの体調データを可視化</div>
+    </div>
+    <div class="mr-body">
+      <div class="mr-month-selector">
+        <button class="mr-month-btn" onclick="changeReportMonth(-1)">←</button>
+        <div class="mr-month-label" id="mrMonthLabel">2026年4月</div>
+        <button class="mr-month-btn" onclick="changeReportMonth(1)">→</button>
+      </div>
+      <div id="monthlyReportBody">
+        <div class="mr-generating">読み込み中...</div>
+      </div>
+    </div>
+    <div class="mr-footer">
+      <button class="mr-btn secondary" onclick="closeMonthlyReport()">閉じる</button>
+      <button class="mr-btn primary" onclick="downloadReportPDF()">PDF ダウンロード</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Analysis Modal -->
+<div class="ai-overlay" id="aiAnalysisOverlay">
+  <div class="ai-sheet">
+    <div class="ai-handle"></div>
+    <div class="ai-header">
+      <div class="ai-title">AIパターン解析</div>
+      <div class="ai-subtitle">あなたの記録データからパターンを読み解きます</div>
+    </div>
+    <div class="ai-body" id="aiAnalysisBody">
+      <div class="ai-loading">
+        <div class="ai-loading-icon">✨</div>
+        <div class="ai-loading-text">読み込み中...</div>
+      </div>
+    </div>
+    <div class="ai-footer">
+      <button class="ai-btn secondary" onclick="closeAIAnalysis()">閉じる</button>
+      <button class="ai-btn primary" onclick="copyAIAnalysis()">テキストをコピー</button>
+    </div>
+  </div>
+</div>
+
+  <!-- Sync Modal -->
+<div class="sync-overlay" id="syncOverlay">
+  <div class="sync-sheet">
+    <div class="sync-handle"></div>
+    <div class="sync-header">
+      <div class="sync-title">デバイス間同期</div>
+      <div class="sync-subtitle">ログインすると、PC・スマホで同じデータにアクセスできます</div>
+    </div>
+    <div class="sync-body" id="syncBody">
+      <!-- JS で動的に生成 -->
+    </div>
+    <div class="sync-footer">
+      <button class="sync-close-btn" onclick="closeSyncModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+  <!-- Community Archive Modal -->
+<div class="archive-overlay" id="archiveOverlay">
+  <div class="archive-sheet">
+    <div class="archive-handle"></div>
+    <div class="archive-header">
+      <div class="archive-title">みんなの声アーカイブ</div>
+      <div class="archive-subtitle">過去のテーマと投稿を振り返る</div>
+    </div>
 
       <!-- Data -->
       <div class="settings-section">
@@ -3266,7 +3775,7 @@ function openEditRecord(dateString){
     freeText = parts.join('\n');
   }
   html += '<textarea id="edit-meal-free" placeholder="0930 朝食&#10;1200 昼食&#10;1900 夕食" style="width:100%;min-height:120px;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;">'+freeText.replace(/</g,'&lt;')+'</textarea>';
-
+  html += '</div>';
 
   // 基礎体温
   html += '<div style="margin-bottom:16px;">';
@@ -4376,6 +4885,1982 @@ document.addEventListener('DOMContentLoaded', function() {
   updateChakraProfileDisplay();
 });
 
-</script>
+// ===== DOCTOR SUMMARY (婦人科受診サポート) =====
+
+function openDoctorSummary() {
+  document.getElementById('doctorSummaryOverlay').classList.add('active');
+  generateDoctorSummary();
+}
+
+function closeDoctorSummary() {
+  document.getElementById('doctorSummaryOverlay').classList.remove('active');
+}
+
+document.getElementById('doctorSummaryOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDoctorSummary();
+});
+
+async function generateDoctorSummary() {
+  const body = document.getElementById('doctorSummaryBody');
+  body.innerHTML = '<div class="ds-empty">データを読み込み中...</div>';
+
+  try {
+    // 過去30日の日付範囲
+    const today = new Date();
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const fromDate = thirtyDaysAgo.toISOString().split('T')[0];
+    const toDate = today.toISOString().split('T')[0];
+
+    // Supabaseから取得
+    const deviceId = localStorage.getItem('ippo_device_id') || '';
+    const { data: records, error } = await supabase
+      .from('records')
+      .select('*')
+      .gte('record_date', fromDate)
+      .lte('record_date', toDate)
+      .order('record_date', { ascending: true });
+
+    if (error) throw error;
+
+    if (!records || records.length === 0) {
+      body.innerHTML = '<div class="ds-empty">過去30日間の記録がありません。<br>毎日の記録を続けると、ここに体調サマリーが自動生成されます。</div>';
+      return;
+    }
+
+    // データ集計
+    const totalDays = records.length;
+    const chakraCounts = {};
+    const emotionCounts = {};
+    const symptomCounts = {};
+    const mealDays = [];
+    const notes = [];
+    const temperatures = [];
+    const fastingHours = [];
+    const cycleStatuses = [];
+
+    records.forEach(r => {
+      const d = r.data || {};
+
+      // チャクラ集計
+      if (d.chakra) {
+        chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
+      }
+
+      // 感情集計
+      if (d.emotion) {
+        emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
+      }
+
+      // 症状集計
+      if (d.symptoms && d.symptoms.length > 0) {
+        d.symptoms.forEach(s => {
+          symptomCounts[s] = (symptomCounts[s] || 0) + 1;
+        });
+      }
+
+      // 食事記録
+      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner)) {
+        mealDays.push({ date: r.record_date, meals: d.meals });
+      }
+
+      // メモ
+      if (d.note && d.note.trim()) {
+        notes.push({ date: r.record_date, text: d.note });
+      }
+
+      // 基礎体温
+      if (d.temperature) {
+        temperatures.push({ date: r.record_date, value: parseFloat(d.temperature) });
+      }
+
+      // 断食時間計算
+      if (d.firstMealTime && d.lastMealTime) {
+        const first = d.firstMealTime.split(':').map(Number);
+        const last = d.lastMealTime.split(':').map(Number);
+        const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
+        if (eating > 0) {
+          fastingHours.push(24 - (eating / 60));
+        }
+      }
+
+      // 生理周期
+      if (d.menstrualCycle && d.menstrualCycle.trim()) {
+        cycleStatuses.push({ date: r.record_date, status: d.menstrualCycle });
+      }
+
+      // 体調スコア
+      if (d.score) {
+        // スコアも集計可能
+      }
+    });
+
+    // HTML生成
+    let html = '';
+
+    // 基本情報
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">記録概要</div>';
+    html += '<div class="ds-row"><span class="ds-row-label">記録期間</span><span class="ds-row-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
+    html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + totalDays + ' 日 / 30日</span></div>';
+    html += '</div>';
+
+    // 生理周期
+    if (cycleStatuses.length > 0) {
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">生理周期</div>';
+      cycleStatuses.forEach(c => {
+        html += '<div class="ds-row"><span class="ds-row-label">' + c.date + '</span><span class="ds-row-value">' + c.status + '</span></div>';
+      });
+      html += '</div>';
+    }
+
+    // 基礎体温
+    if (temperatures.length > 0) {
+      const avgTemp = (temperatures.reduce((sum, t) => sum + t.value, 0) / temperatures.length).toFixed(2);
+      const minTemp = Math.min(...temperatures.map(t => t.value)).toFixed(2);
+      const maxTemp = Math.max(...temperatures.map(t => t.value)).toFixed(2);
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">基礎体温</div>';
+      html += '<div class="ds-row"><span class="ds-row-label">平均</span><span class="ds-row-value">' + avgTemp + ' ℃</span></div>';
+      html += '<div class="ds-row"><span class="ds-row-label">最低 / 最高</span><span class="ds-row-value">' + minTemp + ' / ' + maxTemp + ' ℃</span></div>';
+      html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + temperatures.length + ' 日</span></div>';
+      html += '</div>';
+    }
+
+    // 症状
+    if (Object.keys(symptomCounts).length > 0) {
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">記録された症状</div>';
+      const sortedSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]);
+      sortedSymptoms.forEach(([symptom, count]) => {
+        html += '<div class="ds-row"><span class="ds-row-label">' + symptom + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
+      });
+      html += '</div>';
+    }
+
+    // チャクラ
+    if (Object.keys(chakraCounts).length > 0) {
+      const chakraNames = {
+        'root': '第1（ルート）',
+        'sacral': '第2（仙骨）',
+        'solar': '第3（太陽神経叢）',
+        'heart': '第4（ハート）',
+        'throat': '第5（喉）',
+        'third-eye': '第6（第三の目）',
+        'crown': '第7（クラウン）'
+      };
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">チャクラの状態（参考）</div>';
+      const sortedChakras = Object.entries(chakraCounts).sort((a, b) => b[1] - a[1]);
+      sortedChakras.forEach(([chakra, count]) => {
+        const name = chakraNames[chakra] || chakra;
+        html += '<div class="ds-row"><span class="ds-row-label">' + name + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
+      });
+      html += '</div>';
+    }
+
+    // 断食
+    if (fastingHours.length > 0) {
+      const avgFasting = (fastingHours.reduce((sum, h) => sum + h, 0) / fastingHours.length).toFixed(1);
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">断食（インターミッテント・ファスティング）</div>';
+      html += '<div class="ds-row"><span class="ds-row-label">平均断食時間</span><span class="ds-row-value">約 ' + avgFasting + ' 時間</span></div>';
+      html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + fastingHours.length + ' 日</span></div>';
+      html += '</div>';
+    }
+
+    // 感情
+    if (Object.keys(emotionCounts).length > 0) {
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">感情・気分の傾向</div>';
+      const sortedEmotions = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1]);
+      sortedEmotions.forEach(([emotion, count]) => {
+        html += '<div class="ds-row"><span class="ds-row-label">' + emotion + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
+      });
+      html += '</div>';
+    }
+
+    // メモ（最新5件）
+    if (notes.length > 0) {
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">メモ・体調の記録（最新5件）</div>';
+      notes.slice(-5).reverse().forEach(n => {
+        html += '<div class="ds-note-item"><div class="ds-note-date">' + n.date + '</div><div class="ds-note-text">' + n.text + '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    // 食事（最新5日分）
+    if (mealDays.length > 0) {
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">食事記録（最新5日分）</div>';
+      mealDays.slice(-5).reverse().forEach(m => {
+        html += '<div class="ds-meal-day">';
+        html += '<div class="ds-meal-date">' + m.date + '</div>';
+        html += '<div class="ds-meal-items">';
+        if (m.meals.morning) html += '朝: ' + m.meals.morning + '<br>';
+        if (m.meals.lunch) html += '昼: ' + m.meals.lunch + '<br>';
+        if (m.meals.dinner) html += '夜: ' + m.meals.dinner + '<br>';
+        if (m.meals.snack) html += '間食: ' + m.meals.snack;
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+
+    body.innerHTML = html;
+
+  } catch (err) {
+    console.error('Doctor summary error:', err);
+    body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。<br>もう一度お試しください。</div>';
+  }
+}
+
+// テキストコピー機能
+function copyDoctorSummary() {
+  const body = document.getElementById('doctorSummaryBody');
+  let text = '【ippo 体調サマリー】\n';
+  text += '生成日: ' + new Date().toLocaleDateString('ja-JP') + '\n\n';
+
+  const sections = body.querySelectorAll('.ds-section');
+  sections.forEach(section => {
+    const title = section.querySelector('.ds-section-title');
+    if (title) text += '■ ' + title.textContent + '\n';
+
+    const rows = section.querySelectorAll('.ds-row');
+    rows.forEach(row => {
+      const label = row.querySelector('.ds-row-label');
+      const value = row.querySelector('.ds-row-value');
+      if (label && value) text += '  ' + label.textContent + ': ' + value.textContent + '\n';
+    });
+
+    const notes = section.querySelectorAll('.ds-note-item');
+    notes.forEach(note => {
+      const date = note.querySelector('.ds-note-date');
+      const noteText = note.querySelector('.ds-note-text');
+      if (date && noteText) text += '  ' + date.textContent + ' — ' + noteText.textContent + '\n';
+    });
+
+    const meals = section.querySelectorAll('.ds-meal-day');
+    meals.forEach(meal => {
+      const date = meal.querySelector('.ds-meal-date');
+      const items = meal.querySelector('.ds-meal-items');
+      if (date) text += '  ' + date.textContent + '\n';
+      if (items) text += '  ' + items.textContent.replace(/<br>/g, ' / ') + '\n';
+    });
+
+    text += '\n';
+  });
+
+  text += '※ このサマリーはippoアプリの記録データを整理したものです。医学的診断ではありません。';
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.ds-btn.primary');
+    const original = btn.textContent;
+    btn.textContent = 'コピーしました ✓';
+    btn.style.background = '#8aab96';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+    }, 2000);
+  }).catch(() => {
+    // フォールバック
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+  });
+}
+
+  // ===== MONTHLY REPORT (月次レポート) =====
+
+let reportYear = new Date().getFullYear();
+let reportMonth = new Date().getMonth(); // 0-indexed
+
+function openMonthlyReport() {
+  reportYear = new Date().getFullYear();
+  reportMonth = new Date().getMonth();
+  document.getElementById('monthlyReportOverlay').classList.add('active');
+  updateMonthLabel();
+  generateMonthlyReport();
+}
+
+function closeMonthlyReport() {
+  document.getElementById('monthlyReportOverlay').classList.remove('active');
+}
+
+document.getElementById('monthlyReportOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeMonthlyReport();
+});
+
+function changeReportMonth(delta) {
+  reportMonth += delta;
+  if (reportMonth > 11) { reportMonth = 0; reportYear++; }
+  if (reportMonth < 0) { reportMonth = 11; reportYear--; }
+  updateMonthLabel();
+  generateMonthlyReport();
+}
+
+function updateMonthLabel() {
+  document.getElementById('mrMonthLabel').textContent = reportYear + '年' + (reportMonth + 1) + '月';
+}
+
+async function generateMonthlyReport() {
+  const body = document.getElementById('monthlyReportBody');
+  body.innerHTML = '<div class="mr-generating">データを読み込み中...</div>';
+
+  try {
+    const firstDay = new Date(reportYear, reportMonth, 1);
+    const lastDay = new Date(reportYear, reportMonth + 1, 0);
+    const fromDate = firstDay.toISOString().split('T')[0];
+    const toDate = lastDay.toISOString().split('T')[0];
+    const daysInMonth = lastDay.getDate();
+
+    const { data: records, error } = await supabase
+      .from('records')
+      .select('*')
+      .gte('record_date', fromDate)
+      .lte('record_date', toDate)
+      .order('record_date', { ascending: true });
+
+    if (error) throw error;
+
+    if (!records || records.length === 0) {
+      body.innerHTML = '<div class="ds-empty">この月の記録はありません。</div>';
+      return;
+    }
+
+    // 集計
+    const totalDays = records.length;
+    const chakraCounts = {};
+    const emotionCounts = {};
+    const symptomCounts = {};
+    const temperatures = [];
+    const fastingHours = [];
+    let mealRecordDays = 0;
+    let noteCount = 0;
+    const scores = [];
+
+    records.forEach(r => {
+      const d = r.data || {};
+      if (d.chakra) chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
+      if (d.emotion) emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
+      if (d.symptoms && d.symptoms.length > 0) {
+        d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
+      }
+      if (d.temperature) temperatures.push(parseFloat(d.temperature));
+      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner)) mealRecordDays++;
+      if (d.note && d.note.trim()) noteCount++;
+      if (d.score) scores.push(Number(d.score));
+      if (d.firstMealTime && d.lastMealTime) {
+        const first = d.firstMealTime.split(':').map(Number);
+        const last = d.lastMealTime.split(':').map(Number);
+        const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
+        if (eating > 0) fastingHours.push(24 - (eating / 60));
+      }
+    });
+
+    let html = '';
+
+    // プレビューカード
+    html += '<div class="mr-preview">';
+    html += '<div class="mr-preview-title">ippo 月次レポート</div>';
+    html += '<div class="mr-preview-period">' + fromDate + ' 〜 ' + toDate + '</div>';
+
+    // 統計グリッド
+    html += '<div class="mr-stat-grid">';
+    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + totalDays + '</div><div class="mr-stat-label">記録日数 / ' + daysInMonth + '日</div></div>';
+    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + Math.round(totalDays / daysInMonth * 100) + '%</div><div class="mr-stat-label">記録率</div></div>';
+
+    if (temperatures.length > 0) {
+      const avgTemp = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2);
+      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgTemp + '</div><div class="mr-stat-label">平均基礎体温 ℃</div></div>';
+    }
+    if (fastingHours.length > 0) {
+      const avgFast = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
+      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgFast + '</div><div class="mr-stat-label">平均断食時間 h</div></div>';
+    }
+    if (scores.length > 0) {
+      const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgScore + '</div><div class="mr-stat-label">平均体調スコア</div></div>';
+    }
+    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + mealRecordDays + '</div><div class="mr-stat-label">食事記録日</div></div>';
+    html += '</div>';
+
+    // チャクラ棒グラフ
+    if (Object.keys(chakraCounts).length > 0) {
+      const chakraNames = {
+        'root': 'ルート', 'sacral': '仙骨', 'solar': '太陽神経叢',
+        'heart': 'ハート', 'throat': '喉', 'third-eye': '第三の目', 'crown': 'クラウン'
+      };
+      const maxChakra = Math.max(...Object.values(chakraCounts));
+      html += '<div class="mr-chart-section">';
+      html += '<div class="mr-chart-title">チャクラの傾向</div>';
+      html += '<div class="mr-bar-chart">';
+      Object.entries(chakraCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
+        const pct = Math.round(count / maxChakra * 100);
+        const name = chakraNames[key] || key;
+        html += '<div class="mr-bar-row">';
+        html += '<div class="mr-bar-label">' + name + '</div>';
+        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
+        html += '<div class="mr-bar-count">' + count + '日</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    // 感情棒グラフ
+    if (Object.keys(emotionCounts).length > 0) {
+      const maxEmotion = Math.max(...Object.values(emotionCounts));
+      html += '<div class="mr-chart-section">';
+      html += '<div class="mr-chart-title">感情・気分の傾向</div>';
+      html += '<div class="mr-bar-chart">';
+      Object.entries(emotionCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
+        const pct = Math.round(count / maxEmotion * 100);
+        html += '<div class="mr-bar-row">';
+        html += '<div class="mr-bar-label">' + key + '</div>';
+        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
+        html += '<div class="mr-bar-count">' + count + '日</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    // 症状棒グラフ
+    if (Object.keys(symptomCounts).length > 0) {
+      const maxSymptom = Math.max(...Object.values(symptomCounts));
+      html += '<div class="mr-chart-section">';
+      html += '<div class="mr-chart-title">記録された症状</div>';
+      html += '<div class="mr-bar-chart">';
+      Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
+        const pct = Math.round(count / maxSymptom * 100);
+        html += '<div class="mr-bar-row">';
+        html += '<div class="mr-bar-label">' + key + '</div>';
+        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
+        html += '<div class="mr-bar-count">' + count + '日</div>';
+        html += '</div>';
+      });
+      html += '</div></div>';
+    }
+
+    // サマリーテキスト
+    html += '<div class="mr-summary-text">';
+    html += reportYear + '年' + (reportMonth + 1) + '月は、' + daysInMonth + '日中 ' + totalDays + '日の記録がありました。';
+    if (temperatures.length > 0) {
+      const avgT = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2);
+      html += '基礎体温の平均は ' + avgT + '℃ でした。';
+    }
+    if (fastingHours.length > 0) {
+      const avgF = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
+      html += '断食は平均 ' + avgF + ' 時間を維持しました。';
+    }
+    html += '</div>';
+
+    html += '</div>'; // mr-preview 閉じ
+
+    body.innerHTML = html;
+
+  } catch (err) {
+    console.error('Monthly report error:', err);
+    body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。</div>';
+  }
+}
+
+// PDF ダウンロード
+async function downloadReportPDF() {
+  const btn = document.querySelector('.mr-btn.primary');
+  const original = btn.textContent;
+  btn.textContent = 'PDF 生成中...';
+  btn.style.pointerEvents = 'none';
+
+  try {
+    // jsPDF を動的に読み込み
+    if (!window.jspdf) {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // フォント設定（日本語対応のためシンプルなテキストベース）
+    doc.setFontSize(18);
+    doc.setTextColor(44, 36, 32);
+    doc.text('ippo Monthly Report', 20, 25);
+
+    doc.setFontSize(10);
+    doc.setTextColor(154, 136, 128);
+    const monthLabel = reportYear + '/' + String(reportMonth + 1).padStart(2, '0');
+    doc.text(monthLabel, 20, 33);
+
+    // 区切り線
+    doc.setDrawColor(200, 180, 170);
+    doc.line(20, 37, 190, 37);
+
+    // レポート内容をテキストとして取得
+    const preview = document.querySelector('.mr-preview');
+    if (!preview) throw new Error('No report data');
+
+    let y = 45;
+    const lineHeight = 6;
+
+    // 統計ボックスからデータ取得
+    const statBoxes = preview.querySelectorAll('.mr-stat-box');
+    if (statBoxes.length > 0) {
+      doc.setFontSize(12);
+      doc.setTextColor(44, 36, 32);
+      doc.text('Summary', 20, y);
+      y += 8;
+
+      doc.setFontSize(10);
+      statBoxes.forEach(box => {
+        const num = box.querySelector('.mr-stat-num')?.textContent || '';
+        const label = box.querySelector('.mr-stat-label')?.textContent || '';
+        doc.setTextColor(44, 36, 32);
+        doc.text(num, 25, y);
+        doc.setTextColor(154, 136, 128);
+        doc.text(' — ' + label, 25 + doc.getTextWidth(num) + 2, y);
+        y += lineHeight;
+      });
+      y += 4;
+    }
+
+    // 棒グラフデータ
+    const chartSections = preview.querySelectorAll('.mr-chart-section');
+    chartSections.forEach(section => {
+      const title = section.querySelector('.mr-chart-title')?.textContent || '';
+      doc.setFontSize(12);
+      doc.setTextColor(44, 36, 32);
+      doc.text(title, 20, y);
+      y += 8;
+
+      const rows = section.querySelectorAll('.mr-bar-row');
+      doc.setFontSize(9);
+      rows.forEach(row => {
+        const label = row.querySelector('.mr-bar-label')?.textContent || '';
+        const count = row.querySelector('.mr-bar-count')?.textContent || '';
+        doc.setTextColor(90, 74, 68);
+        doc.text(label + ': ' + count, 25, y);
+        y += 5;
+      });
+      y += 4;
+
+      // ページ溢れ防止
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+    });
+
+    // サマリーテキスト
+    const summaryEl = preview.querySelector('.mr-summary-text');
+    if (summaryEl) {
+      y += 2;
+      doc.setFontSize(10);
+      doc.setTextColor(90, 74, 68);
+      const summaryLines = doc.splitTextToSize(summaryEl.textContent, 165);
+      doc.text(summaryLines, 20, y);
+      y += summaryLines.length * 5 + 8;
+    }
+
+    // 免責
+    doc.setFontSize(7);
+    doc.setTextColor(180, 170, 165);
+    doc.text('This report is generated by ippo. It is not a medical diagnosis.', 20, 285);
+    doc.text('https://www.ippo-app.com', 20, 289);
+
+    // ダウンロード
+    doc.save('ippo-report-' + monthLabel + '.pdf');
+
+    btn.textContent = 'ダウンロード完了 ✓';
+    btn.style.background = '#8aab96';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.style.pointerEvents = '';
+    }, 2000);
+
+  } catch (err) {
+    console.error('PDF generation error:', err);
+    btn.textContent = 'PDF生成に失敗しました';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.pointerEvents = '';
+    }, 2000);
+  }
+}
+
+  // ===== AI PATTERN ANALYSIS (AIパターン解析) =====
+
+const OPENAI_API_KEY = 'YOUR_API_KEY_HERE'; // ← 後で設定
+
+function openAIAnalysis() {
+  document.getElementById('aiAnalysisOverlay').classList.add('active');
+  runAIAnalysis();
+}
+
+function closeAIAnalysis() {
+  document.getElementById('aiAnalysisOverlay').classList.remove('active');
+}
+
+document.getElementById('aiAnalysisOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeAIAnalysis();
+});
+
+async function runAIAnalysis() {
+  const body = document.getElementById('aiAnalysisBody');
+  body.innerHTML = '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">データを収集しています...</div></div>';
+
+  try {
+    // 過去90日のデータを取得
+    const today = new Date();
+    const ninetyDaysAgo = new Date(today);
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const fromDate = ninetyDaysAgo.toISOString().split('T')[0];
+    const toDate = today.toISOString().split('T')[0];
+
+    const { data: records, error } = await supabase
+      .from('records')
+      .select('*')
+      .gte('record_date', fromDate)
+      .lte('record_date', toDate)
+      .order('record_date', { ascending: true });
+
+    if (error) throw error;
+
+    if (!records || records.length < 3) {
+      body.innerHTML = '<div class="ai-error">パターン解析には最低3日分の記録が必要です。<br>記録を続けてから、もう一度お試しください。</div>';
+      return;
+    }
+
+    body.querySelector('.ai-loading-text').textContent = 'パターンを解析中...';
+
+    // データを集計して要約を作成
+    const summary = buildDataSummary(records);
+
+    // データサマリーを先に表示
+    let dataHtml = '<div class="ai-data-summary">';
+    dataHtml += '<div class="ai-data-title">解析対象データ</div>';
+    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">期間</span><span class="ai-data-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
+    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">記録日数</span><span class="ai-data-value">' + records.length + ' 日</span></div>';
+    if (summary.avgTemp) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均体温</span><span class="ai-data-value">' + summary.avgTemp + ' ℃</span></div>';
+    if (summary.avgFasting) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均断食</span><span class="ai-data-value">' + summary.avgFasting + ' 時間</span></div>';
+    if (summary.topChakra) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多チャクラ</span><span class="ai-data-value">' + summary.topChakra + '</span></div>';
+    if (summary.topEmotion) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多感情</span><span class="ai-data-value">' + summary.topEmotion + '</span></div>';
+    dataHtml += '</div>';
+
+    // AI APIを呼び出し
+    body.innerHTML = dataHtml + '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">AIがパターンを読み解いています...</div></div>';
+
+    const aiComment = await callAIAPI(summary);
+
+    // 結果を表示
+    let resultHtml = dataHtml;
+    resultHtml += '<div class="ai-result">';
+    resultHtml += '<div class="ai-result-header">';
+    resultHtml += '<div class="ai-result-icon">✨</div>';
+    resultHtml += '<div class="ai-result-label">AIパターン解析</div>';
+    resultHtml += '<div class="ai-result-date">' + new Date().toLocaleDateString('ja-JP') + '</div>';
+    resultHtml += '</div>';
+    resultHtml += '<div class="ai-result-text">' + aiComment + '</div>';
+    resultHtml += '</div>';
+
+    body.innerHTML = resultHtml;
+
+  } catch (err) {
+    console.error('AI analysis error:', err);
+    body.innerHTML = '<div class="ai-error">解析中にエラーが発生しました。<br><br>' + (err.message || '') + '<br><br><button class="ai-retry-btn" onclick="runAIAnalysis()">もう一度試す</button></div>';
+  }
+}
+
+function buildDataSummary(records) {
+  const chakraCounts = {};
+  const emotionCounts = {};
+  const symptomCounts = {};
+  const temperatures = [];
+  const fastingHours = [];
+  const scores = [];
+  const notes = [];
+  const cycleData = [];
+  const dailySummaries = [];
+
+  records.forEach(r => {
+    const d = r.data || {};
+    const daySummary = { date: r.record_date };
+
+    if (d.chakra) {
+      chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
+      daySummary.chakra = d.chakra;
+    }
+    if (d.emotion) {
+      emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
+      daySummary.emotion = d.emotion;
+    }
+    if (d.symptoms && d.symptoms.length > 0) {
+      d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
+      daySummary.symptoms = d.symptoms;
+    }
+    if (d.temperature) {
+      temperatures.push(parseFloat(d.temperature));
+      daySummary.temp = parseFloat(d.temperature);
+    }
+    if (d.score) {
+      scores.push(Number(d.score));
+      daySummary.score = Number(d.score);
+    }
+    if (d.note && d.note.trim()) {
+      notes.push(d.note);
+      daySummary.note = d.note;
+    }
+    if (d.menstrualCycle && d.menstrualCycle.trim()) {
+      cycleData.push({ date: r.record_date, status: d.menstrualCycle });
+      daySummary.cycle = d.menstrualCycle;
+    }
+    if (d.firstMealTime && d.lastMealTime) {
+      const first = d.firstMealTime.split(':').map(Number);
+      const last = d.lastMealTime.split(':').map(Number);
+      const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
+      if (eating > 0) {
+        const fh = 24 - (eating / 60);
+        fastingHours.push(fh);
+        daySummary.fasting = fh.toFixed(1);
+      }
+    }
+    if (d.meals) daySummary.meals = d.meals;
+
+    dailySummaries.push(daySummary);
+  });
+
+  const topChakra = Object.entries(chakraCounts).sort((a, b) => b[1] - a[1])[0];
+  const topEmotion = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1])[0];
+
+  return {
+    totalDays: records.length,
+    avgTemp: temperatures.length > 0 ? (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2) : null,
+    avgFasting: fastingHours.length > 0 ? (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1) : null,
+    topChakra: topChakra ? topChakra[0] + '（' + topChakra[1] + '日）' : null,
+    topEmotion: topEmotion ? topEmotion[0] + '（' + topEmotion[1] + '日）' : null,
+    chakraCounts,
+    emotionCounts,
+    symptomCounts,
+    cycleData,
+    scores,
+    notes: notes.slice(-10),
+    dailySummaries: dailySummaries.slice(-30)
+  };
+}
+
+async function callAIAPI(summary) {
+  // APIキーが設定されていない場合はローカル解析
+  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_API_KEY_HERE') {
+    return generateLocalAnalysis(summary);
+  }
+
+  const prompt = `あなたは女性の健康セルフケアアプリ「ippo」のパターン解析アシスタントです。
+以下のユーザーの記録データを分析し、気づいたパターンや傾向をコメントしてください。
+
+【ルール】
+- 医学的な診断や指導は絶対にしない
+- 「〜の傾向があるようです」「〜かもしれません」など、事実の提示に留める
+- 具体的なデータ（日数や回数）を引用する
+- 温かく、押しつけがましくないトーンで
+- 3〜4段落、合計300文字程度
+- HTMLの<p>タグで段落を分ける
+
+【データ】
+記録日数: ${summary.totalDays}日
+${summary.avgTemp ? '平均基礎体温: ' + summary.avgTemp + '℃' : ''}
+${summary.avgFasting ? '平均断食時間: ' + summary.avgFasting + '時間' : ''}
+チャクラ傾向: ${JSON.stringify(summary.chakraCounts)}
+感情傾向: ${JSON.stringify(summary.emotionCounts)}
+症状: ${JSON.stringify(summary.symptomCounts)}
+生理周期: ${JSON.stringify(summary.cycleData)}
+直近メモ: ${summary.notes.join(' / ')}
+体調スコア: ${summary.scores.length > 0 ? '平均' + (summary.scores.reduce((a,b)=>a+b,0)/summary.scores.length).toFixed(1) : 'なし'}`;
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + OPENAI_API_KEY
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: 500,
+      temperature: 0.7
+    })
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error('API error: ' + (errData.error?.message || response.status));
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
+
+// APIキーなしのローカル解析（フォールバック）
+function generateLocalAnalysis(summary) {
+  let html = '';
+
+  html += '<p>' + summary.totalDays + '日分の記録を分析しました。';
+  if (summary.avgTemp) {
+    html += '基礎体温の平均は ' + summary.avgTemp + '℃ で';
+    const temp = parseFloat(summary.avgTemp);
+    if (temp >= 36.5) html += '、安定した範囲にあるようです。';
+    else html += '、やや低めの傾向があるかもしれません。';
+  }
+  html += '</p>';
+
+  if (summary.avgFasting) {
+    html += '<p>断食は平均 ' + summary.avgFasting + ' 時間を維持しています。';
+    const fh = parseFloat(summary.avgFasting);
+    if (fh >= 16) html += '16時間以上をキープできているのは、継続力の表れです。';
+    else if (fh >= 14) html += '14時間台ですので、無理のないペースで続けられているようです。';
+    else html += 'まだ短めですが、少しずつ伸ばしていくのも一つの方法かもしれません。';
+    html += '</p>';
+  }
+
+  const topSymptoms = Object.entries(summary.symptomCounts).sort((a, b) => b[1] - a[1]);
+  if (topSymptoms.length > 0) {
+    html += '<p>症状としては「' + topSymptoms[0][0] + '」が ' + topSymptoms[0][1] + '日で最も多く記録されています。';
+    if (topSymptoms.length > 1) html += '次いで「' + topSymptoms[1][0] + '」が ' + topSymptoms[1][1] + '日です。';
+    html += '生理周期のどの時期に集中しているか、引き続き記録を重ねると傾向が見えてくるかもしれません。</p>';
+  }
+
+  if (Object.keys(summary.emotionCounts).length > 0) {
+    const topEmo = Object.entries(summary.emotionCounts).sort((a, b) => b[1] - a[1])[0];
+    html += '<p>感情面では「' + topEmo[0] + '」が ' + topEmo[1] + '日で最も多い傾向です。';
+    html += 'からだの状態と感情の波がどうつながっているか、記録が増えるほど見えてくるものがあるかもしれません。</p>';
+  }
+
+  if (html === '') {
+    html = '<p>記録データがまだ少ないため、詳細なパターン解析が難しい状態です。毎日の記録を続けることで、より具体的な傾向が見えてきます。</p>';
+  }
+
+  return html;
+}
+
+function copyAIAnalysis() {
+  const resultEl = document.querySelector('.ai-result-text');
+  if (!resultEl) return;
+
+  let text = '【ippo AIパターン解析】\n';
+  text += '解析日: ' + new Date().toLocaleDateString('ja-JP') + '\n\n';
+  text += resultEl.textContent;
+  text += '\n\n※ このコメントはippoアプリの記録データに基づく参考情報です。医学的診断ではありません。';
+
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.ai-btn.primary');
+    const original = btn.textContent;
+    btn.textContent = 'コピーしました ✓';
+    btn.style.background = '#8aab96';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+    }, 2000);
+  });
+}
+
+  // ===== DEVICE SYNC (デバイス間同期) =====
+
+function openSyncModal() {
+  document.getElementById('syncOverlay').classList.add('active');
+  renderSyncUI();
+}
+
+function closeSyncModal() {
+  document.getElementById('syncOverlay').classList.remove('active');
+}
+
+document.getElementById('syncOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeSyncModal();
+});
+
+async function renderSyncUI() {
+  const body = document.getElementById('syncBody');
+  
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session && session.user) {
+      // ログイン済み
+      const email = session.user.email;
+      document.getElementById('syncStatusBrief').textContent = email;
+      
+      body.innerHTML = `
+        <div class="sync-status">
+          <div class="sync-status-icon">✅</div>
+          <div class="sync-status-text">同期が有効です</div>
+          <div class="sync-status-sub">このアカウントでログインした端末間でデータが共有されます</div>
+          <div class="sync-email-display">${email}</div>
+        </div>
+        <div class="sync-actions">
+          <button class="sync-action-btn primary" onclick="syncNow()">今すぐ同期</button>
+          <button class="sync-action-btn danger" onclick="logoutSync()">ログアウト</button>
+        </div>
+      `;
+    } else {
+      // 未ログイン
+      document.getElementById('syncStatusBrief').textContent = '未ログイン';
+      showLoginForm();
+    }
+  } catch (err) {
+    console.error('Sync UI error:', err);
+    showLoginForm();
+  }
+}
+
+function showLoginForm() {
+  const body = document.getElementById('syncBody');
+  body.innerHTML = `
+    <div class="sync-status">
+      <div class="sync-status-icon">🔄</div>
+      <div class="sync-status-text">データを同期する</div>
+      <div class="sync-status-sub">メールアドレスでログインすると、<br>どの端末からでも同じ記録にアクセスできます</div>
+    </div>
+    <div id="syncMessage" class="sync-message"></div>
+    <div class="sync-form" id="syncLoginForm">
+      <div class="sync-form-title" id="syncFormTitle">ログイン</div>
+      <input type="email" class="sync-input" id="syncEmail" placeholder="メールアドレス" autocomplete="email">
+      <input type="password" class="sync-input" id="syncPassword" placeholder="パスワード（6文字以上）" autocomplete="current-password">
+      <button class="sync-form-btn" id="syncSubmitBtn" onclick="submitSync()">ログイン</button>
+      <button class="sync-form-toggle" id="syncToggleBtn" onclick="toggleSyncMode()">アカウントをお持ちでない方 → 新規登録</button>
+    </div>
+  `;
+}
+
+let syncMode = 'login'; // 'login' or 'signup'
+
+function toggleSyncMode() {
+  syncMode = syncMode === 'login' ? 'signup' : 'login';
+  const title = document.getElementById('syncFormTitle');
+  const btn = document.getElementById('syncSubmitBtn');
+  const toggle = document.getElementById('syncToggleBtn');
+  
+  if (syncMode === 'signup') {
+    title.textContent = '新規登録';
+    btn.textContent = '登録する';
+    toggle.textContent = 'すでにアカウントをお持ちの方 → ログイン';
+  } else {
+    title.textContent = 'ログイン';
+    btn.textContent = 'ログイン';
+    toggle.textContent = 'アカウントをお持ちでない方 → 新規登録';
+  }
+  
+  hideMessage();
+}
+
+function showMessage(text, type) {
+  const msg = document.getElementById('syncMessage');
+  if (!msg) return;
+  msg.className = 'sync-message ' + type;
+  msg.textContent = text;
+}
+
+function hideMessage() {
+  const msg = document.getElementById('syncMessage');
+  if (msg) msg.className = 'sync-message';
+}
+
+async function submitSync() {
+  const email = document.getElementById('syncEmail').value.trim();
+  const password = document.getElementById('syncPassword').value;
+  const btn = document.getElementById('syncSubmitBtn');
+  
+  if (!email || !password) {
+    showMessage('メールアドレスとパスワードを入力してください', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showMessage('パスワードは6文字以上で入力してください', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+  hideMessage();
+
+  try {
+    let result;
+    
+    if (syncMode === 'signup') {
+      // 新規登録
+      result = await supabase.auth.signUp({ email, password });
+      
+      if (result.error) throw result.error;
+      
+      if (result.data.user && !result.data.session) {
+        // メール確認が必要
+        showMessage('確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。', 'info');
+        btn.disabled = false;
+        btn.textContent = '登録する';
+        return;
+      }
+    } else {
+      // ログイン
+      result = await supabase.auth.signInWithPassword({ email, password });
+      if (result.error) throw result.error;
+    }
+
+    // ログイン成功 → 既存データをuser_idに紐付け
+    if (result.data.session) {
+      await migrateDataToUser(result.data.session.user.id);
+      showMessage('ログインしました。データの同期が有効になりました。', 'success');
+      
+      setTimeout(() => {
+        renderSyncUI();
+      }, 1500);
+    }
+
+  } catch (err) {
+    console.error('Auth error:', err);
+    let errorMsg = 'エラーが発生しました。';
+    if (err.message.includes('Invalid login')) errorMsg = 'メールアドレスまたはパスワードが正しくありません。';
+    else if (err.message.includes('already registered')) errorMsg = 'このメールアドレスはすでに登録されています。ログインしてください。';
+    else if (err.message.includes('Email not confirmed')) errorMsg = 'メールアドレスの確認が完了していません。確認メールを確認してください。';
+    else errorMsg = err.message;
+    
+    showMessage(errorMsg, 'error');
+    btn.disabled = false;
+    btn.textContent = syncMode === 'signup' ? '登録する' : 'ログイン';
+  }
+}
+
+async function migrateDataToUser(userId) {
+  try {
+    const deviceId = localStorage.getItem('ippo_device_id');
+    if (!deviceId) return;
+
+    // records テーブルの device_id のデータに user_id を設定
+    await supabase
+      .from('records')
+      .update({ user_id: userId })
+      .eq('device_id', deviceId)
+      .is('user_id', null);
+
+    // profiles テーブルも同様
+    await supabase
+      .from('profiles')
+      .update({ user_id: userId })
+      .eq('device_id', deviceId)
+      .is('user_id', null);
+
+  } catch (err) {
+    console.error('Migration error:', err);
+  }
+}
+
+async function syncNow() {
+  const btn = document.querySelector('.sync-action-btn.primary');
+  const original = btn.textContent;
+  btn.textContent = '同期中...';
+  btn.disabled = true;
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not logged in');
+
+    const userId = session.user.id;
+    const deviceId = localStorage.getItem('ippo_device_id');
+
+    // 現在の端末のデータをuser_idに紐付け
+    if (deviceId) {
+      await supabase
+        .from('records')
+        .update({ user_id: userId })
+        .eq('device_id', deviceId)
+        .is('user_id', null);
+    }
+
+    btn.textContent = '同期完了 ✓';
+    btn.style.background = '#8aab96';
+    
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+
+  } catch (err) {
+    console.error('Sync error:', err);
+    btn.textContent = '同期に失敗しました';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+async function logoutSync() {
+  if (!confirm('ログアウトしますか？\nこの端末のデータは残りますが、他の端末との同期が無効になります。')) return;
+
+  try {
+    await supabase.auth.signOut();
+    document.getElementById('syncStatusBrief').textContent = '未ログイン';
+    renderSyncUI();
+  } catch (err) {
+    console.error('Logout error:', err);
+  }
+}
+
+// ページ読み込み時に同期状態を確認
+(async function checkSyncStatus() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const brief = document.getElementById('syncStatusBrief');
+    if (brief) {
+      brief.textContent = session?.user?.email || '未ログイン';
+    }
+  } catch(e) {}
+})();
+
+  // ===== COMMUNITY ARCHIVE (みんなの声アーカイブ) =====
+
+let allTopics = [];
+let currentFilter = 'all';
+let archivePostsOffset = 0;
+
+function openArchive() {
+  document.getElementById('archiveOverlay').classList.add('active');
+  document.getElementById('archiveSearchInput').value = '';
+  currentFilter = 'all';
+  updateFilterButtons('all');
+  showTopicList();
+  loadArchiveTopics();
+}
+
+function closeArchive() {
+  document.getElementById('archiveOverlay').classList.remove('active');
+}
+
+document.getElementById('archiveOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeArchive();
+});
+
+function showTopicList() {
+  document.getElementById('archiveTopicList').style.display = 'block';
+  document.getElementById('archivePostsView').classList.remove('active');
+}
+
+function showPostsView() {
+  document.getElementById('archiveTopicList').style.display = 'none';
+  document.getElementById('archivePostsView').classList.add('active');
+}
+
+async function loadArchiveTopics() {
+  const container = document.getElementById('archiveTopicList');
+  container.innerHTML = '<div class="archive-empty">読み込み中...</div>';
+
+  try {
+    // community_topics テーブルから全テーマを取得
+    const { data: topics, error } = await supabase
+      .from('community_topics')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!topics || topics.length === 0) {
+      container.innerHTML = '<div class="archive-empty">まだテーマがありません。<br>コミュニティ機能で投稿が始まると、ここに表示されます。</div>';
+      return;
+    }
+
+    // 各テーマの投稿数を取得
+    for (let topic of topics) {
+      const { count } = await supabase
+        .from('community_replies')
+        .select('*', { count: 'exact', head: true })
+        .eq('topic_id', topic.id);
+      topic.reply_count = count || 0;
+
+      // 最新の投稿をプレビュー用に1件取得
+      const { data: latestReply } = await supabase
+        .from('community_replies')
+        .select('content')
+        .eq('topic_id', topic.id)
+        .order('created_at', { ascending: false })
+        .limit(1);
+      topic.preview = latestReply && latestReply[0] ? latestReply[0].content : '';
+    }
+
+    allTopics = topics;
+    renderTopics(topics);
+
+  } catch (err) {
+    console.error('Archive load error:', err);
+    container.innerHTML = '<div class="archive-empty">データの読み込みに失敗しました。<br>もう一度お試しください。</div>';
+  }
+}
+
+function renderTopics(topics) {
+  const container = document.getElementById('archiveTopicList');
+
+  if (!topics || topics.length === 0) {
+    container.innerHTML = '<div class="archive-empty">該当するテーマが見つかりません。</div>';
+    return;
+  }
+
+  let html = '';
+  topics.forEach(topic => {
+    const date = new Date(topic.created_at);
+    const weekLabel = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+    const preview = topic.preview ? topic.preview.substring(0, 60) + (topic.preview.length > 60 ? '...' : '') : '投稿はまだありません';
+
+    html += '<div class="archive-topic-card" onclick="openTopicPosts(\'' + topic.id + '\', \'' + escapeHtml(topic.title || topic.theme || '') + '\')">';
+    html += '<div class="archive-topic-header">';
+    html += '<div class="archive-topic-week">' + weekLabel + '</div>';
+    html += '<div class="archive-topic-count">' + topic.reply_count + '件の投稿</div>';
+    html += '</div>';
+    html += '<div class="archive-topic-title">' + escapeHtml(topic.title || topic.theme || 'テーマなし') + '</div>';
+    html += '<div class="archive-topic-preview">' + escapeHtml(preview) + '</div>';
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function openTopicPosts(topicId, topicTitle) {
+  showPostsView();
+  const body = document.getElementById('archivePostsBody');
+  body.innerHTML = '<div class="archive-empty">投稿を読み込み中...</div>';
+  archivePostsOffset = 0;
+
+  try {
+    const { data: replies, error } = await supabase
+      .from('community_replies')
+      .select('*')
+      .eq('topic_id', topicId)
+      .order('created_at', { ascending: false })
+      .range(0, 19);
+
+    if (error) throw error;
+
+    if (!replies || replies.length === 0) {
+      body.innerHTML = '<div class="archive-topic-title" style="margin-bottom:16px;">' + escapeHtml(topicTitle) + '</div><div class="archive-empty">このテーマにはまだ投稿がありません。</div>';
+      return;
+    }
+
+    let html = '<div class="archive-topic-title" style="margin-bottom:16px;">' + escapeHtml(topicTitle) + '</div>';
+
+    replies.forEach(reply => {
+      const date = new Date(reply.created_at);
+      const dateStr = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+
+      html += '<div class="archive-post-card">';
+      html += '<div class="archive-post-header">';
+      html += '<div class="archive-post-author">' + escapeHtml(reply.author_name || '匿名') + '</div>';
+      html += '<div class="archive-post-date">' + dateStr + '</div>';
+      html += '</div>';
+      html += '<div class="archive-post-text">' + escapeHtml(reply.content || '') + '</div>';
+      html += '<div class="archive-post-likes">♡ ' + (reply.likes || 0) + '</div>';
+      html += '</div>';
+    });
+
+    if (replies.length >= 20) {
+      html += '<button class="archive-load-more" onclick="loadMorePosts(\'' + topicId + '\')">もっと見る</button>';
+    }
+
+    body.innerHTML = html;
+    archivePostsOffset = replies.length;
+
+  } catch (err) {
+    console.error('Posts load error:', err);
+    body.innerHTML = '<div class="archive-empty">投稿の読み込みに失敗しました。</div>';
+  }
+}
+
+async function loadMorePosts(topicId) {
+  try {
+    const { data: replies, error } = await supabase
+      .from('community_replies')
+      .select('*')
+      .eq('topic_id', topicId)
+      .order('created_at', { ascending: false })
+      .range(archivePostsOffset, archivePostsOffset + 19);
+
+    if (error) throw error;
+
+    const body = document.getElementById('archivePostsBody');
+    // 「もっと見る」ボタンを削除
+    const loadMoreBtn = body.querySelector('.archive-load-more');
+    if (loadMoreBtn) loadMoreBtn.remove();
+
+    let html = '';
+    replies.forEach(reply => {
+      const date = new Date(reply.created_at);
+      const dateStr = date.getFullYear() + '/' + (date.getMonth() + 1) + '/' + date.getDate();
+
+      html += '<div class="archive-post-card">';
+      html += '<div class="archive-post-header">';
+      html += '<div class="archive-post-author">' + escapeHtml(reply.author_name || '匿名') + '</div>';
+      html += '<div class="archive-post-date">' + dateStr + '</div>';
+      html += '</div>';
+      html += '<div class="archive-post-text">' + escapeHtml(reply.content || '') + '</div>';
+      html += '<div class="archive-post-likes">♡ ' + (reply.likes || 0) + '</div>';
+      html += '</div>';
+    });
+
+    if (replies.length >= 20) {
+      html += '<button class="archive-load-more" onclick="loadMorePosts(\'' + topicId + '\')">もっと見る</button>';
+    }
+
+    body.insertAdjacentHTML('beforeend', html);
+    archivePostsOffset += replies.length;
+
+  } catch (err) {
+    console.error('Load more error:', err);
+  }
+}
+
+function searchArchive() {
+  const query = document.getElementById('archiveSearchInput').value.trim().toLowerCase();
+
+  if (!query) {
+    renderTopics(getFilteredTopics());
+    return;
+  }
+
+  const filtered = getFilteredTopics().filter(topic => {
+    const title = (topic.title || topic.theme || '').toLowerCase();
+    const preview = (topic.preview || '').toLowerCase();
+    return title.includes(query) || preview.includes(query);
+  });
+
+  renderTopics(filtered);
+}
+
+function filterArchive(filter) {
+  currentFilter = filter;
+  updateFilterButtons(filter);
+  const query = document.getElementById('archiveSearchInput').value.trim().toLowerCase();
+
+  let filtered = getFilteredTopics();
+
+  if (query) {
+    filtered = filtered.filter(topic => {
+      const title = (topic.title || topic.theme || '').toLowerCase();
+      const preview = (topic.preview || '').toLowerCase();
+      return title.includes(query) || preview.includes(query);
+    });
+  }
+
+  renderTopics(filtered);
+}
+
+function getFilteredTopics() {
+  let topics = [...allTopics];
+
+  if (currentFilter === 'recent') {
+    const threeMonthsAgo = new Date();
+    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+    topics = topics.filter(t => new Date(t.created_at) >= threeMonthsAgo);
+  } else if (currentFilter === 'popular') {
+    topics.sort((a, b) => (b.reply_count || 0) - (a.reply_count || 0));
+  }
+
+  return topics;
+}
+
+function updateFilterButtons(activeFilter) {
+  document.querySelectorAll('.archive-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.filter === activeFilter);
+  });
+}
+
+  </script>
+
+  <style>  
+  /* ===== AI ANALYSIS MODAL ===== */
+.ai-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.ai-overlay.active { display: flex; }
+.ai-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.ai-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.ai-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.ai-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.ai-subtitle { font-size: 12px; color: var(--ink-light); }
+.ai-body { padding: 0 24px; }
+.ai-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+.ai-loading-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.ai-loading-text {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.7;
+}
+.ai-result {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 16px;
+}
+.ai-result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(200,180,170,0.15);
+}
+.ai-result-icon { font-size: 20px; }
+.ai-result-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.ai-result-date {
+  font-size: 10px;
+  color: var(--ink-light);
+  margin-left: auto;
+}
+.ai-result-text {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 2;
+}
+.ai-result-text p {
+  margin-bottom: 12px;
+}
+.ai-result-text p:last-child { margin-bottom: 0; }
+.ai-data-summary {
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--rose);
+}
+.ai-data-title {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--rose);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ai-data-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+}
+.ai-data-label { color: var(--ink-light); }
+.ai-data-value { color: var(--ink); font-weight: 500; }
+.ai-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.ai-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ai-btn.primary { background: var(--rose); color: white; }
+.ai-btn.primary:hover { background: #FF8A8A; }
+.ai-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.ai-error {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.ai-retry-btn {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+
+  /* ===== SYNC / AUTH MODAL ===== */
+.sync-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.sync-overlay.active { display: flex; }
+.sync-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.sync-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.sync-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.sync-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.sync-subtitle { font-size: 12px; color: var(--ink-light); }
+.sync-body { padding: 0 24px; }
+
+.sync-status {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.sync-status-icon { font-size: 32px; margin-bottom: 12px; }
+.sync-status-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.sync-status-sub { font-size: 12px; color: var(--ink-light); }
+.sync-email-display {
+  font-size: 13px;
+  color: var(--rose);
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.sync-form {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+}
+.sync-form-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.sync-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+.sync-input:focus { border-color: var(--rose); }
+.sync-input::placeholder { color: var(--ink-light); font-size: 13px; }
+.sync-form-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--rose);
+  color: white;
+  margin-bottom: 8px;
+}
+.sync-form-btn:hover { background: #FF8A8A; }
+.sync-form-btn:disabled {
+  background: #e8ddd8;
+  color: var(--ink-light);
+  cursor: not-allowed;
+}
+.sync-form-toggle {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.sync-form-toggle:hover { color: var(--rose); }
+
+.sync-message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+  display: none;
+}
+.sync-message.success {
+  display: block;
+  background: var(--sage-light);
+  color: #2d6a4f;
+}
+.sync-message.error {
+  display: block;
+  background: var(--rose-pale);
+  color: #c9747a;
+}
+.sync-message.info {
+  display: block;
+  background: var(--warm-light);
+  color: var(--ink-mid);
+}
+
+.sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.sync-action-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sync-action-btn.primary { background: var(--rose); color: white; }
+.sync-action-btn.primary:hover { background: #FF8A8A; }
+.sync-action-btn.danger {
+  background: none;
+  border: 1px solid #e8ddd8;
+  color: var(--ink-light);
+}
+.sync-action-btn.danger:hover { border-color: var(--rose); color: var(--rose); }
+
+.sync-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.sync-close-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* ===== COMMUNITY ARCHIVE ===== */
+.archive-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.archive-overlay.active { display: flex; }
+.archive-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.archive-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.archive-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 16px;
+}
+.archive-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.archive-subtitle { font-size: 12px; color: var(--ink-light); }
+
+.archive-search {
+  padding: 0 24px;
+  margin-bottom: 16px;
+}
+.archive-search-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 14px;
+  padding: 12px 16px 12px 40px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239a8880' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") no-repeat 14px center;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.archive-search-input:focus { border-color: var(--rose); }
+.archive-search-input::placeholder { color: var(--ink-light); }
+
+.archive-filters {
+  padding: 0 24px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.archive-filter-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #e8ddd8;
+  background: var(--white);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.archive-filter-btn:hover { border-color: var(--rose-light); }
+.archive-filter-btn.active {
+  background: var(--rose-pale);
+  border-color: var(--rose);
+  color: var(--rose);
+}
+
+.archive-body { padding: 0 24px; }
+
+.archive-topic-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 10px var(--shadow);
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.archive-topic-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--shadow); }
+.archive-topic-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.archive-topic-week {
+  font-size: 10px;
+  color: var(--ink-light);
+  letter-spacing: 0.05em;
+}
+.archive-topic-count {
+  font-size: 10px;
+  color: var(--rose);
+  background: var(--rose-pale);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.archive-topic-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.archive-topic-preview {
+  font-size: 12px;
+  color: var(--ink-light);
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.archive-posts-section {
+  display: none;
+}
+.archive-posts-section.active { display: block; }
+.archive-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  color: var(--rose);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 0 0 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.archive-post-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 1px 6px var(--shadow);
+  margin-bottom: 10px;
+}
+.archive-post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.archive-post-author {
+  font-size: 12px;
+  color: var(--ink-light);
+}
+.archive-post-date {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.archive-post-text {
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.8;
+  margin-bottom: 8px;
+}
+.archive-post-likes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-light);
+}
+
+.archive-empty {
+  text-align: center;
+  padding: 40px 16px;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.archive-load-more {
+  width: 100%;
+  padding: 12px;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 14px;
+  background: var(--white);
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+.archive-load-more:hover { border-color: var(--rose); color: var(--rose); }
+
+.archive-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.archive-close-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+  
+</style> 
 </body>
 </html>
