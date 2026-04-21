@@ -3,29 +3,303 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ippo - からだに還る、一歩</title>
-  <meta name="description" content="卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——女性特有の不調と静かに向き合うあなたへ。チャクラ・食事・断食の視点でセルフケアをサポートします。">
+  <title>ippo - 女性疾患に特化したセルフケア記録アプリ</title>
+  <meta name="description" content="卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——女性疾患と診断されたあなたのための記録アプリ。食事・断食・生理周期・感情を毎日記録して、からだのパターンを発見。">
+  <meta property="og:title" content="ippo – 女性疾患に特化したセルフケア記録アプリ">
+  <meta property="og:description" content="卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症と向き合うあなたへ。毎日の記録が、からだの声になる。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://www.ippo-app.com/">
+  <meta property="og:image" content="https://www.ippo-app.com/images/ogp-image.png">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="images/icon-192.png" type="image/png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Noto+Serif+JP:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    /* ===== LP追加スタイル ===== */
+
+    /* 悩みセクション */
+    .pain-section { background: #FFFFFF; }
+    .pain-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .pain-card {
+      background: #FFF5FA;
+      border-radius: var(--radius-card);
+      padding: 1.5rem;
+      border: 1px solid rgba(230,63,168,0.08);
+      text-align: center;
+    }
+    .pain-icon { font-size: 1.75rem; margin-bottom: 0.5rem; }
+    .pain-name {
+      font-family: var(--font-serif-jp);
+      font-size: 1rem;
+      color: var(--color-plum);
+      margin-bottom: 0.25rem;
+    }
+    .pain-desc {
+      font-size: 0.8125rem;
+      color: var(--color-text-light);
+      line-height: 1.7;
+    }
+
+    /* 機能セクション */
+    .features-section { background: #FFF5FA; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .feature-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-card);
+      padding: 1.75rem 1.5rem;
+      border: 1px solid rgba(230,63,168,0.08);
+      text-align: center;
+      transition: box-shadow var(--transition), transform var(--transition);
+    }
+    .feature-card:hover {
+      box-shadow: 0 8px 32px rgba(230,63,168,0.10);
+      transform: translateY(-2px);
+    }
+    .feature-emoji { font-size: 2rem; margin-bottom: 0.75rem; }
+    .feature-name {
+      font-family: var(--font-serif-jp);
+      font-size: 1rem;
+      color: var(--color-plum);
+      margin-bottom: 0.5rem;
+    }
+    .feature-desc {
+      font-size: 0.875rem;
+      color: var(--color-text-light);
+      line-height: 1.7;
+    }
+    .feature-badge-free {
+      display: inline-block;
+      background: #E8F5E9;
+      color: #2E7D32;
+      font-size: 0.6875rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0.05em;
+      font-weight: 500;
+    }
+
+    /* プランセクション */
+    .plan-section { background: #FFFFFF; }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      max-width: 780px;
+      margin: 0 auto;
+    }
+    .plan-card {
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .plan-card.free {
+      background: #FFFFFF;
+      border: 1px solid rgba(230,63,168,0.15);
+    }
+    .plan-card.premium {
+      background: var(--color-plum);
+      color: #FFFFFF;
+    }
+    .plan-badge {
+      display: inline-block;
+      font-size: 0.6875rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      margin-bottom: 1.25rem;
+    }
+    .plan-card.free .plan-badge {
+      background: #E8F5E9;
+      color: #2E7D32;
+    }
+    .plan-card.premium .plan-badge {
+      background: #E63FA8;
+      color: #FFFFFF;
+    }
+    .plan-name {
+      font-family: var(--font-serif-jp);
+      font-size: 1.375rem;
+      margin-bottom: 0.5rem;
+    }
+    .plan-card.premium .plan-name { color: #FFFFFF; }
+    .plan-price {
+      font-family: var(--font-serif-en);
+      font-size: 1.75rem;
+      font-weight: 500;
+      margin-bottom: 1.5rem;
+    }
+    .plan-card.free .plan-price { color: var(--color-plum); }
+    .plan-card.premium .plan-price { color: #FFFFFF; }
+    .plan-price-sub {
+      font-family: var(--font-sans-jp);
+      font-size: 0.8125rem;
+      font-weight: 300;
+    }
+    .plan-features {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+    .plan-feature {
+      font-size: 0.875rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      line-height: 1.6;
+    }
+    .plan-card.free .plan-feature { color: var(--color-text-light); }
+    .plan-card.premium .plan-feature { color: rgba(255,255,255,0.85); }
+    .plan-check { flex-shrink: 0; }
+    .plan-card.free .plan-check { color: #2E7D32; }
+    .plan-card.premium .plan-check { color: #E63FA8; }
+    .plan-btn {
+      display: block;
+      width: 100%;
+      padding: 0.875rem;
+      border-radius: 9999px;
+      font-family: var(--font-sans-jp);
+      font-size: 0.9375rem;
+      font-weight: 500;
+      text-align: center;
+      letter-spacing: 0.04em;
+      transition: all var(--transition);
+    }
+    .plan-card.free .plan-btn {
+      background: #FFFFFF;
+      color: #E63FA8;
+      border: 2px solid #E63FA8;
+    }
+    .plan-card.free .plan-btn:hover {
+      background: #E63FA8;
+      color: #FFFFFF;
+    }
+    .plan-card.premium .plan-btn {
+      background: #E63FA8;
+      color: #FFFFFF;
+      border: 2px solid #E63FA8;
+    }
+    .plan-card.premium .plan-btn:hover {
+      background: #C02E8E;
+      border-color: #C02E8E;
+    }
+    .plan-card.premium::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      right: -30px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(230,63,168,0.15);
+    }
+
+    /* ユーザーの声 */
+    .voice-section { background: #FFF5FA; }
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+    .voice-card {
+      background: #FFFFFF;
+      border-radius: var(--radius-card);
+      padding: 1.75rem;
+      border: 1px solid rgba(230,63,168,0.08);
+    }
+    .voice-text {
+      font-size: 0.9375rem;
+      color: var(--color-text);
+      line-height: 1.9;
+      margin-bottom: 1rem;
+      font-style: italic;
+    }
+    .voice-attr {
+      font-size: 0.8125rem;
+      color: var(--color-text-light);
+    }
+
+    /* プライバシー */
+    .privacy-section { background: #FFFFFF; }
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      max-width: 860px;
+      margin: 0 auto;
+    }
+    .privacy-card { text-align: center; }
+    .privacy-icon { font-size: 2rem; margin-bottom: 0.75rem; }
+    .privacy-title {
+      font-family: var(--font-serif-jp);
+      font-size: 1rem;
+      color: var(--color-plum);
+      margin-bottom: 0.5rem;
+    }
+    .privacy-desc {
+      font-size: 0.8125rem;
+      color: var(--color-text-light);
+      line-height: 1.7;
+    }
+
+    /* 最終CTA */
+    .final-cta {
+      background: linear-gradient(135deg, var(--color-plum), #5a3d55);
+      color: #FFFFFF;
+      text-align: center;
+      padding: 4rem 2rem;
+    }
+    .final-cta .section-title { color: #FFFFFF; }
+    .final-cta .section-desc { color: rgba(255,255,255,0.75); }
+    .final-cta .btn-primary {
+      background: #E63FA8;
+      border-color: #E63FA8;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      .pain-grid { grid-template-columns: 1fr; max-width: 360px; }
+      .features-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
+      .plan-grid { grid-template-columns: 1fr; max-width: 400px; }
+      .voice-grid { grid-template-columns: 1fr; max-width: 400px; margin: 0 auto; }
+      .privacy-grid { grid-template-columns: 1fr; max-width: 360px; margin: 0 auto; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- Header / Navigation -->
+  <!-- Header -->
   <header class="site-header" id="site-header">
     <div class="header-inner container">
       <a href="index.html" class="site-logo" aria-label="ippo トップページへ">
         <span class="logo-text"><span class="logo-i">i</span>ppo</span>
-        <span class="logo-sub">からだに還る、一歩</span>
+        <span class="logo-sub">からだの声を聴くセルフケア記録</span>
       </a>
-      <nav class="nav-primary" aria-label="メインナビゲーション">
+      <nav class="nav-primary">
         <ul class="nav-list">
-          <li><a href="#concept" class="nav-link">コンセプト</a></li>
+          <li><a href="#features" class="nav-link">機能</a></li>
+          <li><a href="#plan" class="nav-link">プラン</a></li>
           <li><a href="https://kenkou-kiroku.com" class="nav-link" target="_blank" rel="noopener">ブログ</a></li>
-          <li><a href="#app" class="nav-link">アプリ</a></li>
           <li><a href="#profile" class="nav-link">プロフィール</a></li>
-          <li><a href="https://page.line.me/384xpfml" class="btn btn-primary btn-sm" target="_blank" rel="noopener">無料ガイドを受け取る</a></li>
+          <li><a href="app.html" class="btn btn-primary btn-sm">無料で始める</a></li>
         </ul>
       </nav>
       <button class="nav-toggle" aria-label="メニューを開く" aria-expanded="false" aria-controls="mobile-nav">
@@ -37,28 +311,28 @@
   </header>
 
   <!-- Mobile Navigation -->
-  <nav class="mobile-nav" id="mobile-nav" aria-label="モバイルナビゲーション" aria-hidden="true">
+  <nav class="mobile-nav" id="mobile-nav" aria-hidden="true">
     <ul class="mobile-nav-list">
-      <li><a href="#concept" class="mobile-nav-link">コンセプト</a></li>
+      <li><a href="#features" class="mobile-nav-link">機能</a></li>
+      <li><a href="#plan" class="mobile-nav-link">プラン</a></li>
       <li><a href="https://kenkou-kiroku.com" class="mobile-nav-link" target="_blank" rel="noopener">ブログ</a></li>
-      <li><a href="#app" class="mobile-nav-link">アプリ</a></li>
       <li><a href="#profile" class="mobile-nav-link">プロフィール</a></li>
-      <li><a href="https://page.line.me/384xpfml" class="btn btn-primary" target="_blank" rel="noopener">無料ガイドを受け取る</a></li>
+      <li><a href="app.html" class="btn btn-primary">無料で始める</a></li>
     </ul>
   </nav>
 
   <main>
 
     <!-- Section 1: Hero -->
-    <section class="hero-section" id="hero" aria-label="ヒーローセクション">
+    <section class="hero-section" id="hero">
       <div class="hero-bg">
-        <img src="images/hero-bg.jpg" alt="朝日が静かな水面に反射する風景" role="presentation" class="hero-img">
+        <img src="images/hero-bg.jpg" alt="" role="presentation" class="hero-img">
         <div class="hero-overlay"></div>
       </div>
       <div class="hero-content container">
-        <h1 class="hero-title">からだを整えることは、<br>意識を澄ませること。</h1>
-        <p class="hero-sub">卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——<br>女性特有の不調と静かに向き合うあなたへ。</p>
-        <a href="https://page.line.me/384xpfml" class="btn btn-primary btn-large" target="_blank" rel="noopener">LINE登録で無料ガイドを受け取る</a>
+        <h1 class="hero-title">からだの声を聴く。<br>女性疾患セルフケア記録アプリ。</h1>
+        <p class="hero-sub">卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——<br>診断されたその日から、あなたのそばに。</p>
+        <a href="app.html" class="btn btn-primary btn-large">無料で始める</a>
       </div>
       <div class="scroll-hint" aria-hidden="true">
         <span class="scroll-text">scroll</span>
@@ -66,121 +340,196 @@
       </div>
     </section>
 
-    <!-- Section 2: Concept (3 Pillars) -->
-    <section class="section pillars-section" id="concept" aria-labelledby="pillars-title">
+    <!-- Section 2: こんな悩みはありませんか？ -->
+    <section class="section pain-section" id="pain">
       <div class="container">
-        <h2 class="section-title text-center" id="pillars-title">3つのアプローチで、内側から整える</h2>
-        <div class="pillars-grid">
-
-          <article class="pillar-card">
-            <div class="pillar-icon body" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="8" r="4" fill="#E63FA8"/>
-                <path d="M8 28c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#E63FA8" stroke-width="2" stroke-linecap="round"/>
-                <path d="M16 16v6" stroke="#E63FA8" stroke-width="2" stroke-linecap="round"/>
-                <path d="M10 20l6-4 6 4" stroke="#E63FA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </div>
-            <h3 class="pillar-title">チャクラと身体</h3>
-            <p class="pillar-desc">骨盤まわりのエネルギーと感情の流れを観察する</p>
-            <a href="https://kenkou-kiroku.com/chakra-body/" class="pillar-link" target="_blank" rel="noopener">詳しく読む →</a>
-          </article>
-
-          <article class="pillar-card">
-            <div class="pillar-icon food" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6 14c0-5.523 4.477-10 10-10s10 4.477 10 10v2H6v-2z" fill="#E63FA8" opacity="0.2"/>
-                <path d="M6 16h20M16 4v4M10 6l2 3M22 6l-2 3" stroke="#E63FA8" stroke-width="2" stroke-linecap="round"/>
-                <rect x="8" y="18" width="16" height="8" rx="2" stroke="#E63FA8" stroke-width="2"/>
-              </svg>
-            </div>
-            <h3 class="pillar-title">食事療法</h3>
-            <p class="pillar-desc">からだと会話する食事を日常に取り入れる</p>
-            <a href="https://kenkou-kiroku.com/food-therapy/" class="pillar-link" target="_blank" rel="noopener">詳しく読む →</a>
-          </article>
-
-          <article class="pillar-card">
-            <div class="pillar-icon mind" aria-hidden="true">
-              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="16" cy="16" r="10" stroke="#E63FA8" stroke-width="2"/>
-                <path d="M16 10v6l4 2" stroke="#E63FA8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <circle cx="16" cy="16" r="2" fill="#E63FA8"/>
-              </svg>
-            </div>
-            <h3 class="pillar-title">プチ断食</h3>
-            <p class="pillar-desc">やさしい断食で、からだの流れをリセット</p>
-            <a href="https://kenkou-kiroku.com/intermittent-fasting/" class="pillar-link" target="_blank" rel="noopener">詳しく読む →</a>
-          </article>
-
-        </div>
-      </div>
-    </section>
-
-    <!-- Section 3: App Introduction -->
-    <section class="section app-intro-section" id="app" aria-labelledby="app-intro-title">
-      <div class="app-intro-inner">
-        <div class="app-intro-content">
-          <h2 class="section-title" id="app-intro-title">毎日の記録が、あなただけのインサイトに変わる</h2>
-          <p class="section-desc">チャクラ・食事・断食・感情・基礎体温——5つの記録を毎日続けることで、からだのパターンが見えてきます。</p>
-          <div class="app-intro-features">
-            <div class="app-intro-feature">🔮 チャクラ観察</div>
-            <div class="app-intro-feature">🍽 食事療法記録</div>
-            <div class="app-intro-feature">🕐 プチ断食トラッキング</div>
-            <div class="app-intro-feature">💭 感情・ジャーナル</div>
+        <h2 class="section-title text-center">こんな悩みはありませんか？</h2>
+        <p class="section-desc text-center">女性疾患と診断されて、不安を抱えるあなたへ。</p>
+        <div class="pain-grid">
+          <div class="pain-card">
+            <div class="pain-icon">🏥</div>
+            <div class="pain-name">診察で何も答えられない</div>
+            <div class="pain-desc">「最近の体調は？」と聞かれても、思い出せない</div>
           </div>
-          <a href="app.html" class="btn btn-primary btn-large">無料でアプリを使ってみる</a>
-        </div>
-        <div class="app-intro-mockup">
-          <div class="app-mockup-frame">
-            <div class="app-mockup-notch"></div>
-            <div class="app-mockup-card">
-              <div class="app-mockup-card-label">today's wellness</div>
-              <div class="app-mockup-card-value">からだの状態: ★★★★☆</div>
-            </div>
-            <div class="app-mockup-card">
-              <div class="app-mockup-card-label">chakra check</div>
-              <div class="app-mockup-card-value">第2チャクラ: 穏やか</div>
-            </div>
-            <div class="app-mockup-card">
-              <div class="app-mockup-card-label">fasting</div>
-              <div class="app-mockup-card-value">16h 達成 🎉</div>
-            </div>
-            <div class="app-mockup-card">
-              <div class="app-mockup-card-label">meal quality</div>
-              <div class="app-mockup-card-value">根菜・発酵食品 ★★★★★</div>
-            </div>
+          <div class="pain-card">
+            <div class="pain-icon">📝</div>
+            <div class="pain-name">記録が続かない</div>
+            <div class="pain-desc">手帳やメモを試したけど、三日坊主で終わってしまう</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">🔍</div>
+            <div class="pain-name">自分のパターンがわからない</div>
+            <div class="pain-desc">不調の原因が食事なのか、周期なのか、見当がつかない</div>
+          </div>
+          <div class="pain-card">
+            <div class="pain-icon">🤫</div>
+            <div class="pain-name">誰にも相談できない</div>
+            <div class="pain-desc">卵巣嚢腫やPCOSの悩みを話せる相手がいない</div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 4: Free Guide CTA -->
-    <section class="section cta-section" id="cta" aria-labelledby="cta-title">
+    <!-- Section 3: 無料でできること -->
+    <section class="section features-section" id="features">
       <div class="container">
-        <div class="cta-inner">
-          <h2 class="section-title" id="cta-title">7日間のセルフケアガイドを無料でお届け</h2>
-          <p class="section-desc">毎日5分から始められる、体調・食事・感情のリセットプログラム</p>
-          <a href="https://page.line.me/384xpfml" class="btn btn-primary btn-large" target="_blank" rel="noopener">LINE登録で受け取る</a>
-          <p class="cta-note">ご登録は無料。いつでも解除できます。</p>
+        <h2 class="section-title text-center">無料で、ここまでできる</h2>
+        <p class="section-desc text-center">毎日1〜2分の記録で、からだのパターンが見えてくる。</p>
+        <div class="features-grid">
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">🍽</div>
+            <div class="feature-name">食事記録</div>
+            <div class="feature-desc">食べたものを記録して、からだへの影響を可視化</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">⏱</div>
+            <div class="feature-name">断食タイマー</div>
+            <div class="feature-desc">16時間断食をタイマーと通知でサポート</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">🌸</div>
+            <div class="feature-name">生理周期記録</div>
+            <div class="feature-desc">周期・基礎体温を記録して体調との関係を発見</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">💭</div>
+            <div class="feature-name">感情・気分メモ</div>
+            <div class="feature-desc">今日のからだの声を一言だけ。続けるほど波が見える</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">🔮</div>
+            <div class="feature-name">チャクラ観察</div>
+            <div class="feature-desc">骨盤まわりのエネルギーと感情の流れを観察</div>
+          </div>
+          <div class="feature-card">
+            <span class="feature-badge-free">無料</span>
+            <div class="feature-emoji">💬</div>
+            <div class="feature-name">みんなの声</div>
+            <div class="feature-desc">同じ悩みを持つ女性たちの体験を読む・書く</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- Section 5: Profile -->
-    <section class="section profile-section" id="profile" aria-labelledby="profile-title">
+    <!-- Section 4: プラン比較 -->
+    <section class="section plan-section" id="plan">
+      <div class="container">
+        <h2 class="section-title text-center">あなたに合ったプランを</h2>
+        <p class="section-desc text-center">まずは無料で。もっと深く知りたくなったら、プレミアムへ。</p>
+        <div class="plan-grid">
+
+          <!-- 無料プラン -->
+          <div class="plan-card free">
+            <span class="plan-badge">FREE</span>
+            <div class="plan-name">無料プラン</div>
+            <div class="plan-price">¥0 <span class="plan-price-sub">/ ずっと無料</span></div>
+            <div class="plan-features">
+              <div class="plan-feature"><span class="plan-check">✓</span> 食事・断食・生理周期の記録</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> 感情・基礎体温・チャクラ記録</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> 断食タイマー＆達成通知</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> みんなの声（今週分）</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> データエクスポート（CSV）</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> ホーム画面に追加（PWA）</div>
+            </div>
+            <a href="app.html" class="plan-btn">無料で始める</a>
+          </div>
+
+          <!-- プレミアムプラン -->
+          <div class="plan-card premium">
+            <span class="plan-badge">PREMIUM</span>
+            <div class="plan-name">プレミアム</div>
+            <div class="plan-price">¥580 <span class="plan-price-sub">/ 月</span></div>
+            <div class="plan-features">
+              <div class="plan-feature"><span class="plan-check">✓</span> 無料プランのすべての機能</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> デバイス間同期（PC・スマホ）</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> 月次レポート（PDF）</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> AIパターン解析コメント</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> 婦人科受診サポート</div>
+              <div class="plan-feature"><span class="plan-check">✓</span> みんなの声アーカイブ</div>
+            </div>
+            <a href="app.html" class="plan-btn">近日公開</a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 5: ユーザーの声 -->
+    <section class="section voice-section" id="voices">
+      <div class="container">
+        <h2 class="section-title text-center">みんなの声</h2>
+        <p class="section-desc text-center">同じ悩みを抱える女性たちから届いた声。</p>
+        <div class="voice-grid">
+          <div class="voice-card">
+            <div class="voice-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</div>
+            <div class="voice-attr">— 卵巣嚢腫と診断・30代</div>
+          </div>
+          <div class="voice-card">
+            <div class="voice-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</div>
+            <div class="voice-attr">— PCOS治療中・20代</div>
+          </div>
+          <div class="voice-card">
+            <div class="voice-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</div>
+            <div class="voice-attr">— 子宮内膜症・30代</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 6: プライバシー・安全性 -->
+    <section class="section privacy-section" id="privacy">
+      <div class="container">
+        <h2 class="section-title text-center">あなたのデータを、大切に</h2>
+        <div class="privacy-grid">
+          <div class="privacy-card">
+            <div class="privacy-icon">🔒</div>
+            <div class="privacy-title">データは端末に保存</div>
+            <div class="privacy-desc">記録データはあなたの端末にのみ保存。外部に送信されません。</div>
+          </div>
+          <div class="privacy-card">
+            <div class="privacy-icon">🚫</div>
+            <div class="privacy-title">広告なし</div>
+            <div class="privacy-desc">広告は一切表示されません。あなたの集中を妨げないアプリです。</div>
+          </div>
+          <div class="privacy-card">
+            <div class="privacy-icon">🗑</div>
+            <div class="privacy-title">いつでも削除可能</div>
+            <div class="privacy-desc">すべての記録をワンタップで削除できます。あなたがコントロール。</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 7: プロフィール -->
+    <section class="section profile-section" id="profile">
       <div class="container">
         <div class="profile-grid">
           <div class="profile-image">
             <img src="images/logo-kenkou-kiroku.png" alt="sumi のプロフィール画像">
           </div>
           <div class="profile-text">
-            <h2 class="section-title" id="profile-title">sumi</h2>
-            <p>卵巣嚢腫の診断をきっかけに、からだと向き合い始めました。<br>
-            食事療法・プチ断食・チャクラの視点でセルフケアを続けた経験を、<br>
-            同じ悩みを持つ女性たちと分かち合うためにこのサイトを運営しています。</p>
+            <h2 class="section-title">sumi</h2>
+            <p>2026年3月、卵巣嚢腫（13cm）と診断されました。<br>
+            手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、<br>
+            食事療法・プチ断食・記録を通じてセルフケアを続けています。<br>
+            同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
             <p class="profile-motto">one step at a time</p>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Section 8: 最終CTA -->
+    <section class="final-cta" id="final-cta">
+      <div class="container">
+        <h2 class="section-title">からだの声を聴く、はじめの一歩。</h2>
+        <p class="section-desc">登録不要・無料・広告なし。今日から始められます。</p>
+        <a href="app.html" class="btn btn-primary btn-large">無料でアプリを使ってみる</a>
       </div>
     </section>
 
@@ -189,30 +538,26 @@
   <!-- Footer -->
   <footer class="site-footer" id="footer">
     <div class="container">
-      <nav class="footer-nav" aria-label="フッターナビゲーション">
-        <a href="index.html" class="footer-link">コンセプト｜</a>
+      <nav class="footer-nav">
+        <a href="#features" class="footer-link">機能｜</a>
+        <a href="#plan" class="footer-link">プラン｜</a>
         <a href="https://kenkou-kiroku.com" class="footer-link" target="_blank" rel="noopener">ブログ｜</a>
         <a href="app.html" class="footer-link">アプリ｜</a>
         <a href="#profile" class="footer-link">プロフィール</a>
       </nav>
 
-      <details class="footer-disclaimer" id="footer-disclaimer">
+      <details class="footer-disclaimer">
         <summary>医療情報に関する免責事項</summary>
         <div class="footer-disclaimer-body">
           <p>本サイトに掲載されている情報は、医学的なアドバイスではありません。<br>
           卵巣嚢腫、PCOS、子宮筋腫、子宮内膜症などの診断や治療については、<br>
           必ず医師に相談してください。</p>
-          <p>チャクラについて：本サイトで紹介するチャクラの概念は、<br>
-          スピリチュアルな視点から身体と感情の関係を観察するためのフレームワークです。<br>
-          医学的な根拠を持つものではありません。</p>
-          <p>プチ断食について：断食は個人差があり、すべての人に適切ではありません。<br>
-          特に妊娠中、授乳中、または医学的な治療を受けている場合は、<br>
-          医師に相談してから始めてください。</p>
+          <p>本アプリのセルフケア記録・体調サマリーは医学的な診断ではありません。<br>
+          記録データの整理を目的としています。</p>
         </div>
       </details>
 
-      <nav class="footer-legal" aria-label="法的情報ナビゲーション">
-        <a href="#faq" class="footer-link">よくある質問｜</a>
+      <nav class="footer-legal">
         <a href="privacy.html" class="footer-link">プライバシーポリシー｜</a>
         <a href="disclaimer.html" class="footer-link">免責事項｜</a>
         <a href="contact.html" class="footer-link">お問い合わせ</a>
