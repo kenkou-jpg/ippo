@@ -2789,15 +2789,18 @@ function init() {
       resumeFasting();
     }
   }
-  // クラウドから復元チェック
-  if(typeof cloudRestore === 'function'){
-    cloudRestore().then(function(restored){
-      if(restored){
-        state = JSON.parse(localStorage.getItem('ippo_state'));
-        updateStats(); updateHistory(); buildCalendar();
-      }
-    });
-  }
+  // クラウドから復元チェック（Supabase初期化を待つ）
+  var restoreInterval = setInterval(function(){
+    if(typeof supabase !== 'undefined' && supabase.auth){
+      clearInterval(restoreInterval);
+      cloudRestore().then(function(restored){
+        if(restored){
+          state = JSON.parse(localStorage.getItem('ippo_state'));
+          updateStats(); updateHistory(); buildCalendar();
+        }
+      }).catch(function(e){ console.log('復元エラー:', e); });
+    }
+  }, 500);
 }
 
 
