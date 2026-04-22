@@ -1579,6 +1579,107 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   color: var(--ink-light);
 }
 
+/* ===== PREMIUM LOCK ===== */
+.premium-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.premium-lock-overlay.active { display: flex; }
+.premium-lock-card {
+  background: var(--cream);
+  border-radius: 24px;
+  padding: 40px 28px;
+  text-align: center;
+  width: 88%;
+  max-width: 340px;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 12px 40px rgba(44,36,32,0.15);
+}
+.premium-lock-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.premium-lock-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.premium-lock-text {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+.premium-lock-price {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.premium-lock-price-sub {
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-bottom: 24px;
+}
+.premium-lock-features {
+  text-align: left;
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+.premium-lock-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-mid);
+  padding: 6px 0;
+}
+.premium-lock-feature .check {
+  color: var(--rose);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.premium-lock-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+.premium-lock-btn:hover { background: #FF8A8A; }
+.premium-lock-close {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.pf-card .pf-lock-badge {
+  font-size: 9px;
+  background: var(--rose-pale);
+  color: var(--rose);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+  
 </style>
 </head>
 <body>
@@ -2115,46 +2216,48 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div class="settings-section-title">Premium</div>
 </div>
 <div class="premium-feature-section">
-  <div class="pf-card" onclick="openDoctorSummary()">
+ <div class="pf-card" onclick="premiumGate(openDoctorSummary)">
     <div class="pf-icon">🩺</div>
     <div class="pf-text">
-      <div class="pf-title">婦人科受診サポート</div>
+      <div class="pf-title">婦人科受診サポート<span class="pf-lock-badge">PRO</span></div>
       <div class="pf-sub">過去30日の体調サマリーを自動生成</div>
     </div>
     <div class="pf-arrow">→</div>
   </div>
-<div class="pf-card" onclick="openMonthlyReport()">
+<div class="pf-card" onclick="premiumGate(openMonthlyReport)">
     <div class="pf-icon">📊</div>
     <div class="pf-text">
-      <div class="pf-title">月次レポート（PDF）</div>
+      <div class="pf-title">月次レポート（PDF）<span class="pf-lock-badge">PRO</span></div>
       <div class="pf-sub">月ごとの体調データを可視化</div>
     </div>
     <div class="pf-arrow">→</div>
   </div>
-<div class="pf-card" onclick="openAIAnalysis()">
+<div class="pf-card" onclick="premiumGate(openAIAnalysis)">
     <div class="pf-icon">✨</div>
     <div class="pf-text">
-      <div class="pf-title">AIパターン解析</div>
+      <div class="pf-title">AIパターン解析<span class="pf-lock-badge">PRO</span></div>
       <div class="pf-sub">90日分の記録からパターンを発見</div>
     </div>
     <div class="pf-arrow">→</div>
   </div>
-<div class="pf-card" onclick="openSyncModal()">
+<div class="pf-card" onclick="premiumGate(openSyncModal)">
     <div class="pf-icon">🔄</div>
     <div class="pf-text">
-      <div class="pf-title">デバイス間同期</div>
+      <div class="pf-title">デバイス間同期<span class="pf-lock-badge">PRO</span></div>
       <div class="pf-sub" id="syncStatusBrief">未ログイン</div>
     </div>
     <div class="pf-arrow">→</div>
   </div>
-<div class="pf-card" onclick="openArchive()">
+    <div class="pf-card" onclick="premiumGate(function(){ openArchive(); })">
     <div class="pf-icon">💬</div>
     <div class="pf-text">
-      <div class="pf-title">みんなの声アーカイブ</div>
-      <div class="pf-sub">過去のテーマと投稿を閲覧・検索</div>
+      <div class="pf-title">みんなの声アーカイブ<span class="pf-lock-badge">PRO</span></div>
+      <div class="pf-sub">過去のテーマと投稿を検索・閲覧</div>
     </div>
     <div class="pf-arrow">→</div>
   </div>
+  
+ </div>
 
 <!-- Doctor Summary Modal -->
 <div class="ds-overlay" id="doctorSummaryOverlay">
@@ -2250,6 +2353,31 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="archive-title">みんなの声アーカイブ</div>
       <div class="archive-subtitle">過去のテーマと投稿を振り返る</div>
     </div>
+
+    <div class="archive-search">
+      <input type="text" class="archive-search-input" id="archiveSearchInput" placeholder="キーワードで検索..." oninput="searchArchive()">
+    </div>
+
+    <div class="archive-filters" id="archiveFilters">
+      <button class="archive-filter-btn active" data-filter="all" onclick="filterArchive('all')">すべて</button>
+      <button class="archive-filter-btn" data-filter="recent" onclick="filterArchive('recent')">最近3ヶ月</button>
+      <button class="archive-filter-btn" data-filter="popular" onclick="filterArchive('popular')">人気順</button>
+    </div>
+
+    <div class="archive-body" id="archiveTopicList">
+      <div class="archive-empty">読み込み中...</div>
+    </div>
+
+    <div class="archive-body archive-posts-section" id="archivePostsView">
+      <button class="archive-back-btn" onclick="showTopicList()">← テーマ一覧に戻る</button>
+      <div id="archivePostsBody"></div>
+    </div>
+
+    <div class="archive-footer">
+      <button class="archive-close-btn" onclick="closeArchive()">閉じる</button>
+    </div>
+  </div>
+</div>
 
       <!-- Data -->
       <div class="settings-section">
@@ -2367,7 +2495,40 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
 </div>
 
+<script type="module">
+// ===== SUPABASE INITIALIZATION =====
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_N1aONYfjCsM-AXxBmptkEw_cj5C-0lb';
+
+window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    storageKey: 'ippo_sb',
+    storage: {
+      getItem: (key) => {
+        if (key.endsWith('-token')) return localStorage.getItem('ippo_sb_token');
+        if (key.endsWith('-refresh')) return localStorage.getItem('ippo_sb_refresh');
+        return localStorage.getItem(key);
+      },
+      setItem: (key, value) => {
+        if (key.endsWith('-token')) localStorage.setItem('ippo_sb_token', value);
+        else if (key.endsWith('-refresh')) localStorage.setItem('ippo_sb_refresh', value);
+        else localStorage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        if (key.endsWith('-token')) localStorage.removeItem('ippo_sb_token');
+        else if (key.endsWith('-refresh')) localStorage.removeItem('ippo_sb_refresh');
+        else localStorage.removeItem(key);
+      }
+    }
+  }
+});
+</script>
+
 <script>
+  
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
@@ -2801,6 +2962,20 @@ function endFast() {
   state.fastingActive = false;
   state.fastingStart = null;
   clearInterval(fastInterval);
+
+  // タイマー結果を今日の記録に保存
+  var todayStr = new Date().toDateString();
+  var rec = null;
+  for(var i=0; i<state.records.length; i++){
+    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
+  }
+  if(!rec){
+    rec = { date: new Date().toISOString() };
+    state.records.push(rec);
+  }
+  rec.fastingTimer = Math.round(elapsed * 10) / 10;
+  rec.fastingGoal = state.fastGoal || 16;
+
   saveState();
   document.getElementById('fast-start-btn').style.display = 'block';
   document.getElementById('fast-stop-btn').style.display = 'none';
@@ -3802,7 +3977,7 @@ function openEditRecord(dateString){
   // 生理状態
   html += '<div style="margin-bottom:16px;">';
   html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MENSTRUAL CYCLE</div>';
-  var cycleOptions = ['なし','生理中','排卵期','高温期','低温期'];
+  var cycleOptions = ['なし','生理開始','生理中','排卵期','高温期','低温期'];
   var currentCycle = (rec && rec.menstrualCycle) ? rec.menstrualCycle : '';
   html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
   for(var ci=0;ci<cycleOptions.length;ci++){
@@ -6283,6 +6458,89 @@ function updateFilterButtons(activeFilter) {
   });
 }
 
+  // ===== EXPOSE FUNCTIONS TO GLOBAL SCOPE =====
+window.openDoctorSummary = openDoctorSummary;
+window.closeDoctorSummary = closeDoctorSummary;
+window.copyDoctorSummary = copyDoctorSummary;
+window.openMonthlyReport = openMonthlyReport;
+window.closeMonthlyReport = closeMonthlyReport;
+window.changeReportMonth = changeReportMonth;
+window.downloadReportPDF = downloadReportPDF;
+window.openAIAnalysis = openAIAnalysis;
+window.closeAIAnalysis = closeAIAnalysis;
+window.runAIAnalysis = runAIAnalysis;
+window.copyAIAnalysis = copyAIAnalysis;
+window.openSyncModal = openSyncModal;
+window.closeSyncModal = closeSyncModal;
+window.submitSync = submitSync;
+window.toggleSyncMode = toggleSyncMode;
+window.syncNow = syncNow;
+window.logoutSync = logoutSync;
+window.openArchive = openArchive;
+window.closeArchive = closeArchive;
+window.searchArchive = searchArchive;
+window.filterArchive = filterArchive;
+window.openTopicPosts = openTopicPosts;
+window.loadMorePosts = loadMorePosts;
+window.showTopicList = showTopicList;
+
+  // ===== PREMIUM LOCK =====
+let isPremium = false;
+
+async function checkPremiumStatus() {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && session.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('is_premium')
+        .eq('user_id', session.user.id)
+        .single();
+      isPremium = profile?.is_premium || false;
+    } else {
+      isPremium = false;
+    }
+  } catch (e) {
+    isPremium = false;
+  }
+  updatePremiumBadges();
+}
+
+function updatePremiumBadges() {
+  document.querySelectorAll('.pf-lock-badge').forEach(badge => {
+    badge.style.display = isPremium ? 'none' : 'inline';
+  });
+}
+
+function premiumGate(callback) {
+  if (isPremium) {
+    callback();
+  } else {
+    document.getElementById('premiumLockOverlay').classList.add('active');
+  }
+}
+
+function closePremiumLock() {
+  document.getElementById('premiumLockOverlay').classList.remove('active');
+}
+
+var premiumOverlay = document.getElementById('premiumLockOverlay');
+if(premiumOverlay) premiumOverlay.addEventListener('click', function(e) {
+if (e.target === this) closePremiumLock();
+});
+
+// Supabase認証の準備完了を待ってからプレミアム状態を確認
+var premiumCheckInterval = setInterval(function(){
+  if(typeof supabase !== 'undefined' && supabase.auth){
+    clearInterval(premiumCheckInterval);
+    supabase.auth.onAuthStateChange(function(event, session){
+      checkPremiumStatus();
+    });
+    checkPremiumStatus();
+  }
+}, 500);
+
+
   </script>
 
   <style>  
@@ -6862,5 +7120,26 @@ function updateFilterButtons(activeFilter) {
 }
   
 </style> 
+
+  <!-- Premium Lock Modal -->
+<div class="premium-lock-overlay" id="premiumLockOverlay">
+  <div class="premium-lock-card">
+    <div class="premium-lock-icon">✨</div>
+    <div class="premium-lock-title">プレミアム機能</div>
+    <div class="premium-lock-text">この機能はプレミアムプランで<br>ご利用いただけます</div>
+    <div class="premium-lock-price">¥580<span style="font-size:14px;color:var(--ink-light);font-family:'Noto Sans JP',sans-serif"> /月</span></div>
+    <div class="premium-lock-price-sub">年額プラン ¥4,800（¥400/月）</div>
+    <div class="premium-lock-features">
+      <div class="premium-lock-feature"><span class="check">✓</span>デバイス間同期</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>月次レポート（PDF）</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>AIパターン解析</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>婦人科受診サポート</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>みんなの声アーカイブ</div>
+    </div>
+    <button class="premium-lock-btn" onclick="window.location.href='mailto:akmt108@gmail.com?subject=ippo プレミアム登録希望&body=プレミアムプランへの登録を希望します。'">登録について問い合わせる</button>
+    <button class="premium-lock-close" onclick="closePremiumLock()">あとで</button>
+  </div>
+</div>
+
 </body>
 </html>
