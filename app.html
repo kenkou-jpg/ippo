@@ -4321,8 +4321,21 @@ function openDayDetail(d){
     html += '</div>';
   }
 
-  // ===== 食事内容テキスト =====
-  if(rec.meals){
+   // ===== 食事内容テキスト =====
+  if(rec.mealFree || (rec.meals && rec.meals.free)){
+    var freeText = rec.mealFree || rec.meals.free;
+    html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
+    html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.9;white-space:pre-wrap;">'+freeText+'</div>';
+    if(rec.mealCount || rec.firstMealTime){
+      html += '<div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">';
+      if(rec.mealCount) html += '<span style="font-size:11px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
+      if(rec.firstMealTime && rec.lastMealTime) html += '<span style="font-size:11px;color:var(--ink-light);">⏰ '+rec.firstMealTime+'〜'+rec.lastMealTime+'</span>';
+      if(rec.fasting) html += '<span style="font-size:11px;color:var(--ink-light);">🌙 断食 '+rec.fasting+'h</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  } else if(rec.meals){
     var m = rec.meals;
     var mealRows = [];
     if(m.morning) mealRows.push({icon:'🌅', label:'朝食', text:m.morning, time:m.morningTime||''});
@@ -4346,6 +4359,25 @@ function openDayDetail(d){
       }
       html += '</div>';
     }
+  }
+
+  // ===== 疾患セルフチェック =====
+  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+    var disease = state.myDisease || '';
+    var config = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
+    html += '<div style="margin-top:14px;background:#f3f0fd;border-radius:14px;padding:14px;">';
+    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 '+(config ? config.label : '疾患セルフチェック')+'</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    Object.keys(rec.diseaseCheck).forEach(function(key){
+      var label = key;
+      if(config){
+        for(var qi=0;qi<config.questions.length;qi++){
+          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+        }
+      }
+      html += '<span style="font-size:11px;background:var(--white);color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+rec.diseaseCheck[key]+'</span>';
+    });
+    html += '</div></div>';
   }
 
   // ===== メモ（体温・ジャーナル統合） =====
