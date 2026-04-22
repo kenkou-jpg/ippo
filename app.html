@@ -2658,69 +2658,62 @@ function checkPremiumRegistered(){
 
   
 function cloudBackupAll(){
-  return supabaseEnsureAuth().then(function(){
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user){
+      console.warn('未ログイン：クラウドバックアップをスキップ');
+      return;
+    }
+    var userId = session.user.id;
     var payload = {
       state: state,
       updated_at: new Date().toISOString()
     };
     // まずUPDATEを試みる
-    return fetch(SUPABASE_URL + '/rest/v1/user_data?user_id=eq.' + supabaseUserId, {
-      method: 'PATCH',
-      headers: Object.assign(supabaseHeaders(), {
-        'Prefer': 'return=representation'
-      }),
-      body: JSON.stringify(payload)
-    }).then(function(r){ return r.json().then(function(data){ return {ok: r.ok, data: data}; }); })
-    .then(function(result){
-      if(result.ok && result.data && result.data.length > 0){
+    return supabase.from('user_data').update(payload).eq('user_id', userId).select().then(function(result){
+      if(result.data && result.data.length > 0){
         console.log('Cloud backup完了（更新）');
         return result.data;
       }
       // レコードが無い場合はINSERT
-      payload.user_id = supabaseUserId;
-      return fetch(SUPABASE_URL + '/rest/v1/user_data', {
-        method: 'POST',
-        headers: Object.assign(supabaseHeaders(), {
-          'Prefer': 'return=representation'
-        }),
-        body: JSON.stringify(payload)
-      }).then(function(r2){
-        if(r2.ok){
+      payload.user_id = userId;
+      return supabase.from('user_data').insert(payload).select().then(function(result2){
+        if(result2.error){
+          console.warn('Backup失敗:', result2.error.message);
+        } else {
           console.log('Cloud backup完了（新規）');
-          return r2.json();
         }
-        return r2.text().then(function(t){ console.warn('Backup失敗:', t); return null; });
+        return result2.data;
       });
     });
-  }).catch(function(e){
-    console.warn('Cloud backup エラー:', e);
   });
 }
 
 
+
 function cloudRestore(){
-  return supabaseEnsureAuth().then(function(){
-    return fetch(SUPABASE_URL + '/rest/v1/user_data?user_id=eq.' + supabaseUserId + '&select=state,updated_at', {
-      method: 'GET',
-      headers: supabaseHeaders()
-    }).then(function(r){ return r.ok ? r.json() : []; });
-  }).then(function(rows){
-    if(!rows || !rows.length) return false;
-    var cloudState = rows[0].state;
-    var cloudDate = new Date(rows[0].updated_at);
-    var localDate = new Date(state.lastSaved || 0);
-    if(cloudDate > localDate && cloudState.records && cloudState.records.length > (state.records || []).length){
-      state = Object.assign(state, cloudState);
-      state.lastSaved = cloudDate.toISOString();
-      localStorage.setItem('ippo_state', JSON.stringify(state));
-      console.log('Cloud restore完了: ' + cloudState.records.length + '件の記録を復元');
-      return true;
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user){
+      console.warn('未ログイン：クラウド復元をスキップ');
+      return false;
     }
-    console.log('ローカルが最新のため復元スキップ');
-    return false;
-  }).catch(function(e){
-    console.warn('Cloud restore エラー:', e);
-    return false;
+    var userId = session.user.id;
+    return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single().then(function(result){
+      if(!result.data) return false;
+      var cloudState = result.data.state;
+      var cloudDate = new Date(result.data.updated_at);
+      var localDate = new Date(state.lastSaved || 0);
+      if(cloudDate > localDate && cloudState.records && cloudState.records.length > (state.records || []).length){
+        state = Object.assign(state, cloudState);
+        state.lastSaved = cloudDate.toISOString();
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+        console.log('クラウドから復元完了: ' + state.records.length + '件');
+        return true;
+      }
+      console.log('ローカルが最新のため復元スキップ');
+      return false;
+    });
   });
 }
 
