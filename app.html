@@ -3563,10 +3563,11 @@ function updateHomeSummary(){
       }
       html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
     });
-    html += '</div>';
+      html += '</div>';
   }
 
-  
+  content.innerHTML = html;
+}
 
 function editPastRecord(dateStr) {
   var dayModal = document.getElementById('dayDetailModal');
