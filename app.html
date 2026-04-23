@@ -4526,7 +4526,10 @@ function createMealDonut(meals, fasting, fastingGoal){
       if(match){
         var mh = parseInt(match[1],10) + parseInt(match[2],10)/60;
         var mlabel = match[3].trim();
-        var isDrink = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/.test(mlabel);
+        var drinkWords = mlabel.match(/飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/g) || [];
+        var allItems = mlabel.split(/[、,\/\s]+/).filter(function(s){ return s; });
+        var isDrink = drinkWords.length > 0 && drinkWords.length >= allItems.length;
+
         // 既存スロットとラベル名でマッチするか
         var matched = false;
         for(var si = 0; si < foodTimes.length; si++){
