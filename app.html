@@ -3054,8 +3054,10 @@ function init() {
     }
   }, 500);
 
-  initVisionUI();
+    initVisionUI();
   updateHomeVision();
+}
+
 // タブが表示されるたびにクラウドから復元
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && typeof cloudRestore === 'function'){
