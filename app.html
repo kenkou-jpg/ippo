@@ -4573,13 +4573,11 @@ function createMealDonut(meals, fasting, fastingGoal){
     svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+fastColor+'" stroke-width="10" stroke-dasharray="'+fastLen+' '+(C - fastLen)+'" stroke-dashoffset="-'+startOff+'" opacity="0.25"/>';
   }
 
-  // 食事アーク
+  // 食事アーク（飲み物は除外）
   for(var fi = 0; fi < foodTimes.length; fi++){
     var ft = foodTimes[fi];
+    if(ft.isDrink) continue;
     var arcLen = ft.slot.duration * hourUnit;
-    var offset = (ft.hour / 24) * C;
-    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+ft.slot.color+'" stroke-width="10" stroke-dasharray="'+arcLen+' '+(C - arcLen)+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round"/>';
-  }
 
   // 時刻マーカー（ドット）
   var markerSvg = '';
