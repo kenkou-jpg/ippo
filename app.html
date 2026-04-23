@@ -2999,7 +2999,8 @@ function cloudRestore(){
       var cloudState = result.data.state;
       var cloudDate = new Date(result.data.updated_at);
       var localDate = new Date(state.lastSaved || 0);
-      if(cloudDate > localDate && cloudState.records && cloudState.records.length > (state.records || []).length){
+   if(cloudDate > localDate){
+
         state = Object.assign(state, cloudState);
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
