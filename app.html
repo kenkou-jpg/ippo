@@ -4696,6 +4696,28 @@ document.addEventListener('input', function(e){
   if(e.target.id === 'rs-meal-free') updateMealParse();
 });
 
+  function insertMealTemplate(type) {
+  var ta = document.getElementById('rs-meal-free');
+  if (!ta) return;
+  var now = new Date();
+  var templates = {
+    morning: { time: '0700', label: '朝食' },
+    lunch:   { time: '1200', label: '昼食' },
+    dinner:  { time: '1900', label: '夕食' },
+    snack:   { time: '1500', label: '間食' }
+  };
+  var h = String(now.getHours()).padStart(2, '0');
+  var m = String(now.getMinutes()).padStart(2, '0');
+  var currentTime = h + m;
+  var t = templates[type];
+  var line = currentTime + ' ' + t.label + ' ';
+  if (ta.value && !ta.value.endsWith('\n')) ta.value += '\n';
+  ta.value += line;
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+  if (typeof updateMealParse === 'function') updateMealParse();
+}
+
 function saveMealDraft(){
   var data = {};
   var keys = ['morning', 'lunch', 'dinner', 'snack'];
