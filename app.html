@@ -4475,122 +4475,178 @@ function deleteEditRecord(){
 
 // ===== 24H DONUT CHART =====
 
-  function createMealDonut(meals, fasting, fastingGoal){
+ // ===== 24H DONUT CHART =====
+function createMealDonut(meals, fasting, fastingGoal){
   var R = 52, C = 2 * Math.PI * R;
   var hourUnit = C / 24;
-  var cx = 65, cy = 65;
+  var cx = 64, cy = 64;
 
   // 食事スロット定義
-  var mealSlots = {
-    '朝食': { defaultH: 7, duration: 1.5, color: '#F4B860' },
-    '昼食': { defaultH: 12, duration: 1.5, color: '#7FC8A9' },
-    '夕食': { defaultH: 19, duration: 1.5, color: '#E88D97' },
-    '間食': { defaultH: 15, duration: 0.75, color: '#C4A7D7' }
-  };
-  var bgColor = '#F0EBE6', emptyColor = '#FAF6F2', fastColor = '#3D5A80';
+  var mealSlots = [
+    { key: '朝食', label: '朝食', defaultH: 7, duration: 1.5, color: '#F4B860' },
+    { key: '昼食', label: '昼食', defaultH: 12, duration: 1.5, color: '#7FC8A9' },
+    { key: '夕食', label: '夕食', defaultH: 19, duration: 1.5, color: '#E88D97' },
+    { key: '間食', label: '間食', defaultH: 15, duration: 0.75, color: '#C4A7D7' }
+  ];
+  var fastColor = '#3D5A80', bgColor = '#F0EBE6', emptyColor = '#FAF6F2';
 
-  // テキストエリアからパース
-  var ta = document.getElementById('rs-meal-free');
-  var entries = [];
-  if(ta && ta.value.trim()){
-    var lines = ta.value.trim().split('\n');
-    lines.forEach(function(line){
-      line = line.trim();
-      if(!line) return;
+  // 食事エントリーを収集（時間付き）
+  var foodTimes = [];
+  var filledMeals = [];
+  for(var i = 0; i < mealSlots.length; i++){
+    var sl = mealSlots[i];
+    if(meals && meals[sl.key]){
+      filledMeals.push(sl);
+      var h = sl.defaultH;
+      // meals内に時間文字列があればパース
+      var val = meals[sl.key];
+      if(typeof val === 'string'){
+        var tm = val.match(/(\d{1,2}):?(\d{2})/);
+        if(tm) h = parseInt(tm[1],10) + parseInt(tm[2],10)/60;
+      }
+      foodTimes.push({ hour: h, slot: sl, isDrink: false });
+    }
+  }
+  // firstTime / lastTime があればそこからも時間取得
+  if(meals && meals.firstTime){
+    var fp = meals.firstTime.split(':');
+    var firstH = parseInt(fp[0],10) + parseInt(fp[1]||0,10)/60;
+    if(foodTimes.length > 0) foodTimes[0].hour = firstH;
+  }
+  if(meals && meals.lastTime){
+    var lp = meals.lastTime.split(':');
+    var lastH = parseInt(lp[0],10) + parseInt(lp[1]||0,10)/60;
+    if(foodTimes.length > 1) foodTimes[foodTimes.length - 1].hour = lastH;
+  }
+  // free テキストからもパース（飲み物判定含む）
+  if(meals && meals.free && typeof meals.free === 'string'){
+    var lines = meals.free.trim().split('\n');
+    for(var li = 0; li < lines.length; li++){
+      var line = lines[li].trim();
       var match = line.match(/^(\d{2})(\d{2})\s+(.+)/);
       if(match){
-        var h = parseInt(match[1],10);
-        var m = parseInt(match[2],10);
-        var label = match[3].trim();
-        var isDrink = label.indexOf('飲み物') !== -1 || label.indexOf('水') !== -1 || label.indexOf('コーヒー') !== -1 || label.indexOf('お茶') !== -1;
-        entries.push({ hour: h + m/60, label: label, isDrink: isDrink });
+        var mh = parseInt(match[1],10) + parseInt(match[2],10)/60;
+        var mlabel = match[3].trim();
+        var isDrink = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/.test(mlabel);
+        // 既存スロットとマッチするか
+        var matched = false;
+        for(var si = 0; si < foodTimes.length; si++){
+          if(mlabel.indexOf(foodTimes[si].slot.key) !== -1){
+            foodTimes[si].hour = mh;
+            foodTimes[si].isDrink = isDrink;
+            matched = true;
+            break;
+          }
+        }
+        if(!matched){
+          foodTimes.push({ hour: mh, slot: { key: mlabel, label: mlabel, defaultH: mh, duration: 0.5, color: '#C4A7D7' }, isDrink: isDrink });
+        }
       }
-    });
+    }
   }
-  entries.sort(function(a,b){ return a.hour - b.hour; });
+  foodTimes.sort(function(a,b){ return a.hour - b.hour; });
 
-  // 食事のみ（飲み物除外）で断食計算
-  var foodEntries = entries.filter(function(e){ return !e.isDrink; });
+  // 断食計算：飲み物除外、最後の食事→翌日最初の食事が12h以上のみ表示
+  var realFoods = foodTimes.filter(function(e){ return !e.isDrink; });
   var fastHours = 0;
   var showFasting = false;
-  if(foodEntries.length >= 2){
-    var lastMealH = foodEntries[foodEntries.length - 1].hour;
-    var firstMealH = foodEntries[0].hour;
-    // 最後の食事から翌日最初の食事までの間隔
-    fastHours = Math.round(((24 - lastMealH) + firstMealH) * 10) / 10;
+  if(fasting && parseFloat(fasting) >= 12){
+    fastHours = parseFloat(fasting);
+    showFasting = true;
+  } else if(realFoods.length >= 2){
+    var lastFoodH = realFoods[realFoods.length - 1].hour;
+    var firstFoodH = realFoods[0].hour;
+    fastHours = Math.round(((24 - lastFoodH) + firstFoodH) * 10) / 10;
     if(fastHours >= 12) showFasting = true;
-  } else if(foodEntries.length === 1){
-    fastHours = 0;
-    showFasting = false;
   }
 
-  // SVG開始
-  var svg = '<svg viewBox="0 0 130 130" style="width:100%;max-width:200px;">';
+  // --- SVG構築 ---
+  var svg = '';
   // 背景円
   svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+emptyColor+'" stroke-width="10"/>';
 
   // 断食アーク（12h以上の場合のみ）
-  if(showFasting && foodEntries.length >= 2){
-    var lastH = foodEntries[foodEntries.length - 1].hour;
-    var startOffset = (lastH / 24) * C;
+  if(showFasting && realFoods.length >= 2){
+    var lastH2 = realFoods[realFoods.length - 1].hour;
+    var startOff = (lastH2 / 24) * C;
     var fastLen = (fastHours / 24) * C;
-    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+fastColor+'" stroke-width="10" stroke-dasharray="'+fastLen+' '+(C - fastLen)+'" stroke-dashoffset="-'+startOffset+'" transform="rotate(-90 '+cx+' '+cy+')" opacity="0.3"/>';
+    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+fastColor+'" stroke-width="10" stroke-dasharray="'+fastLen+' '+(C - fastLen)+'" stroke-dashoffset="-'+startOff+'" opacity="0.25"/>';
   }
 
   // 食事アーク
-  var filledTypes = {};
-  entries.forEach(function(entry){
-    var slotKey = null;
-    Object.keys(mealSlots).forEach(function(k){
-      if(entry.label.indexOf(k) !== -1) slotKey = k;
-    });
-    if(!slotKey) return;
-    filledTypes[slotKey] = true;
-    var slot = mealSlots[slotKey];
-    var arcLen = slot.duration * hourUnit;
-    var offset = (entry.hour / 24) * C;
-    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+slot.color+'" stroke-width="10" stroke-dasharray="'+arcLen+' '+(C - arcLen)+'" stroke-dashoffset="-'+offset+'" transform="rotate(-90 '+cx+' '+cy+')" stroke-linecap="round"/>';
-  });
-
-  // 時間マーカー
-  [0,6,12,18].forEach(function(h){
-    var angle = (h / 24) * 360 - 90;
-    var rad = angle * Math.PI / 180;
-    var mx = cx + (R + 8) * Math.cos(rad);
-    var my = cy + (R + 8) * Math.sin(rad);
-    svg += '<text x="'+mx+'" y="'+my+'" text-anchor="middle" dominant-baseline="central" font-size="7" fill="#bbb">'+h+'</text>';
-  });
-
-  // 中央テキスト
-  if(showFasting){
-    svg += '<text x="'+cx+'" y="'+(cy-6)+'" text-anchor="middle" font-size="18" font-weight="bold" fill="'+fastColor+'">'+fastHours+'h</text>';
-    svg += '<text x="'+cx+'" y="'+(cy+10)+'" text-anchor="middle" font-size="7" fill="#999">断食時間</text>';
-  } else if(foodEntries.length > 0){
-    svg += '<text x="'+cx+'" y="'+(cy-4)+'" text-anchor="middle" font-size="16" font-weight="bold" fill="var(--ink)">'+foodEntries.length+'食</text>';
-    svg += '<text x="'+cx+'" y="'+(cy+10)+'" text-anchor="middle" font-size="7" fill="#999">記録済み</text>';
-  } else {
-    svg += '<text x="'+cx+'" y="'+cy+'" text-anchor="middle" font-size="8" fill="#bbb">未記録</text>';
+  for(var fi = 0; fi < foodTimes.length; fi++){
+    var ft = foodTimes[fi];
+    var arcLen = ft.slot.duration * hourUnit;
+    var offset = (ft.hour / 24) * C;
+    svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+ft.slot.color+'" stroke-width="10" stroke-dasharray="'+arcLen+' '+(C - arcLen)+'" stroke-dashoffset="-'+offset+'" stroke-linecap="round"/>';
   }
-  svg += '</svg>';
+
+  // 時刻マーカー（ドット）
+  var markerSvg = '';
+  var dotR = R + 5;
+  for(var hi = 0; hi < 24; hi++){
+    var angle = (hi / 24) * 360 - 90;
+    var rad = angle * Math.PI / 180;
+    var dx = cx + dotR * Math.cos(rad);
+    var dy = cy + dotR * Math.sin(rad);
+    markerSvg += '<circle cx="'+dx+'" cy="'+dy+'" r="1" fill="#d8ccc6"/>';
+  }
+  // 時刻ラベル（0,6,12,18）
+  var labelR = R + 12;
+  [0,6,12,18].forEach(function(h){
+    var a2 = (h / 24) * 360 - 90;
+    var r2 = a2 * Math.PI / 180;
+    var lx = cx + labelR * Math.cos(r2);
+    var ly = cy + labelR * Math.sin(r2);
+    markerSvg += '<text x="'+lx+'" y="'+ly+'" text-anchor="middle" dominant-baseline="central" font-size="7" fill="#bbb">'+h+'</text>';
+  });
+
+  // HTML組み立て
+  var html = '';
+  html += '<div style="position:relative;width:200px;height:200px;margin:0 auto 8px;">';
+  html += '<svg viewBox="-10 -10 148 148" style="width:100%;height:100%;transform:rotate(-90deg);">';
+  html += svg;
+  html += '</svg>';
+  html += '<svg viewBox="-10 -10 148 148" style="position:absolute;top:0;left:0;width:100%;height:100%;">';
+  html += markerSvg;
+  html += '</svg>';
+  // 中央テキスト
+  html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">';
+  if(showFasting){
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:22px;font-weight:700;color:'+fastColor+';">'+fastHours+'<span style="font-size:12px;font-weight:400;">h</span></div>';
+    html += '<div style="font-size:8px;color:var(--ink-light);letter-spacing:0.1em;margin-top:2px;">断食時間</div>';
+    var fGoalH = fastingGoal || 16;
+    html += '<div style="font-size:9px;color:'+(fastHours >= fGoalH ? '#8aab96' : 'var(--ink-light)')+';margin-top:3px;">'+(fastHours >= fGoalH ? '✓ 目標達成' : '目標 '+fGoalH+'h')+'</div>';
+  } else if(filledMeals.length > 0){
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;font-weight:700;color:var(--ink);">'+filledMeals.length+'<span style="font-size:13px;font-weight:400;color:var(--ink-light);">/4</span></div>';
+    html += '<div style="font-size:8px;color:var(--ink-light);letter-spacing:0.12em;margin-top:2px;">meals</div>';
+  } else {
+    html += '<div style="font-size:10px;color:var(--ink-light);">未記録</div>';
+  }
+  html += '</div></div>';
 
   // 凡例
-  var legend = '<div style="display:flex;flex-wrap:wrap;gap:6px 14px;justify-content:center;margin-top:8px;">';
-  ['朝食','昼食','夕食','間食'].forEach(function(type){
-    var slot = mealSlots[type];
-    var check = filledTypes[type] ? '✓ ' : '';
-    var opacity = filledTypes[type] ? '1' : '0.4';
-    legend += '<div style="display:flex;align-items:center;gap:4px;opacity:'+opacity+';font-size:11px;color:var(--ink);">';
-    legend += '<span style="width:8px;height:8px;border-radius:50%;background:'+slot.color+';display:inline-block;"></span>';
-    legend += check + type + '</div>';
-  });
-  if(showFasting){
-    legend += '<div style="display:flex;align-items:center;gap:4px;font-size:11px;color:'+fastColor+';">';
-    legend += '<span style="width:8px;height:8px;border-radius:50%;background:'+fastColor+';opacity:0.3;display:inline-block;"></span>';
-    legend += '断食 '+fastHours+'h</div>';
+  html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px 14px;margin-top:6px;">';
+  for(var j = 0; j < mealSlots.length; j++){
+    var ms = mealSlots[j];
+    var has = false;
+    for(var k = 0; k < filledMeals.length; k++){
+      if(filledMeals[k].key === ms.key){ has = true; break; }
+    }
+    html += '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:'+(has ? 'var(--ink)' : 'var(--ink-light)')+';">';
+    html += '<span style="width:8px;height:8px;border-radius:50%;background:'+(has ? ms.color : '#e8ddd8')+';display:inline-block;"></span>';
+    html += ms.label + (has ? ' ✓' : '');
+    html += '</span>';
   }
-  legend += '</div>';
+  if(showFasting){
+    html += '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:'+fastColor+';">';
+    html += '<span style="width:8px;height:8px;border-radius:2px;background:'+fastColor+';opacity:0.4;display:inline-block;"></span>';
+    html += '断食 '+fastHours+'h';
+    html += '</span>';
+  }
+  html += '</div>';
 
-  return '<div style="text-align:center;padding:16px 0;">'+svg+legend+'</div>';
+  return html;
 }
 
 function buildCalendar(){
