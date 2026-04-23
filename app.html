@@ -4699,12 +4699,23 @@ document.addEventListener('input', function(e){
 });
 
 function saveMealDraft(){
-  var ta = document.getElementById('rs-meal-free');
-  if(!ta) return;
-  localStorage.setItem('ippo_meal_draft', JSON.stringify({ mealFree: ta.value, _draftDate: new Date().toISOString() }));
+  var data = {};
+  var keys = ['morning', 'lunch', 'dinner', 'snack'];
+  keys.forEach(function(key) {
+    var textEl = document.getElementById('meal-text-' + key);
+    var timeEl = document.getElementById('meal-time-' + key);
+    if (textEl && textEl.value.trim()) {
+      data[key] = textEl.value;
+      data[key + 'Time'] = timeEl ? timeEl.value : '';
+    }
+  });
+  data._openSections = openMealSections;
+  data._draftDate = new Date().toISOString();
+  localStorage.setItem('ippo_meal_draft', JSON.stringify(data));
   var msg = document.getElementById('draft-saved-msg');
   if(msg){ msg.style.display = 'inline'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
 }
+
 
   // ===== 食事セクション管理 =====
 var mealSectionConfig = {
