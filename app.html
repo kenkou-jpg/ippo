@@ -2037,7 +2037,20 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <button onclick="confirmMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
       </div>
     </div>
-
+  <textarea id="rs-meal-free" placeholder="0830 朝食
+1300 昼食
+1430 間食
+1900 夕食
+" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+    <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+      <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
+        <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
+        <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
+      </div>
+    </div>
+  </div>
 
     <!-- ===== からだのための選択（参考欄） ===== -->
   <div class="section-card">
