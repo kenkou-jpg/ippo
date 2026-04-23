@@ -3279,7 +3279,8 @@ function saveRecord() {
     updateHistory();
     buildCalendar();
     updateChakraProfile();
-    showSuccessMessage('記録を更新しました');
+    document.getElementById('success-message').innerHTML = '記録を更新しました。';
+document.getElementById('success-overlay').classList.add('active');
     cloudBackupAll();
     return;
   }
