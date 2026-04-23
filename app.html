@@ -2607,29 +2607,28 @@ function openDiseaseSettings(){
   var diseases = Object.keys(DISEASE_CONFIG);
   
   var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="diseaseOverlay" onclick="if(event.target===this)this.remove()">';
-  html += '<div style="background:var(--white);border-radius:20px;padding:28px 22px;width:88%;max-width:360px;max-height:80vh;overflow-y:auto;">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">';
-  html += '<div>';
-  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);margin-bottom:6px;">気になる疾患</div>';
-  html += '<div style="font-size:12px;color:var(--ink-light);">選択すると記録画面に専用の質問が追加されます</div>';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:88%;max-width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる疾患を選択</div>';
+  html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
   html += '</div>';
-  html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink-light);">×</button>';
-  html += '</div>';
+  html += '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">選択すると記録画面に専用の質問が追加されます。</div>';
   
-  html += '<div style="display:flex;flex-wrap:wrap;gap:10px;">';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">';
   
   // なし
   var noneSelected = (current === '');
-  html += '<button onclick="selectDisease(\'\')" style="padding:10px 16px;border-radius:20px;border:1.5px solid '+(noneSelected?'var(--rose)':'#d8d8d8')+';background:'+(noneSelected?'#fdf3f3':'var(--white)')+';font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap;transition:all 0.2s;">なし</button>';
+  html += '<button onclick="selectDisease(\'\')" style="padding:8px 14px;border-radius:20px;background:'+(noneSelected?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(noneSelected?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(noneSelected?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">なし</button>';
   
   // 疾患
   for(var i=0;i<diseases.length;i++){
     var d = diseases[i];
     var sel = (current===d);
-    html += '<button onclick="selectDisease(\''+d+'\')" style="padding:10px 16px;border-radius:20px;border:1.5px solid '+(sel?'var(--rose)':'#d8d8d8')+';background:'+(sel?'#fdf3f3':'var(--white)')+';font-size:13px;color:var(--ink);cursor:pointer;white-space:nowrap;transition:all 0.2s;">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
+    html += '<button onclick="selectDisease(\''+d+'\')" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
   }
   
   html += '</div>';
+  html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
   html += '</div></div>';
   
   document.body.insertAdjacentHTML('beforeend', html);
