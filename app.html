@@ -1986,8 +1986,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
 
      <!-- ===== BOTTOM NAV ===== -->
-    <nav class="bottom-nav">
-      <button class="nav-item active" onclick="switchTab('home', this)">
+      <nav class="bottom-nav">
+      <button class="nav-item" onclick="switchTab('home', this)">
         <span class="nav-icon">🏠</span>
         <span>ホーム</span>
       </button>
@@ -1998,6 +1998,10 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <button class="nav-item" onclick="openRecordScreen()">
         <span class="nav-icon" style="font-size: 28px; margin-top: -6px;">⊕</span>
         <span>記録</span>
+      </button>
+      <button class="nav-item" onclick="switchTab('premium', this)">
+        <span class="nav-icon">✨</span>
+        <span>PRO</span>
       </button>
       <button class="nav-item" onclick="switchTab('settings', this)">
         <span class="nav-icon">⚙️</span>
@@ -2147,6 +2151,60 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
+    <!-- PREMIUM -->
+    <div id="screen-premium" class="screen">
+      <div class="spacer-top"></div>
+      <div class="settings-header">
+        <div class="settings-title">Premium</div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Premium Features</div>
+      </div>
+      <div class="premium-feature-section">
+        <div class="pf-card" onclick="premiumGate(openDoctorSummary)">
+          <div class="pf-icon">🩺</div>
+          <div class="pf-text">
+            <div class="pf-title">婦人科受診サポート<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">過去30日の体調サマリーを自動生成</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
+        <div class="pf-card" onclick="premiumGate(openMonthlyReport)">
+          <div class="pf-icon">📊</div>
+          <div class="pf-text">
+            <div class="pf-title">月次レポート（PDF）<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">月ごとの体調データを可視化</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
+        <div class="pf-card" onclick="premiumGate(openAIAnalysis)">
+          <div class="pf-icon">✨</div>
+          <div class="pf-text">
+            <div class="pf-title">AIパターン解析<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">90日分の記録からパターンを発見</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
+        <div class="pf-card" onclick="openSyncModal()">
+          <div class="pf-icon">🔄</div>
+          <div class="pf-text">
+            <div class="pf-title">デバイス間同期<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub" id="syncStatusBrief">未ログイン</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
+        <div class="pf-card" onclick="premiumGate(function(){ openArchive(); })">
+          <div class="pf-icon">💬</div>
+          <div class="pf-text">
+            <div class="pf-title">みんなの声アーカイブ<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">過去のテーマと投稿を検索・閲覧</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
+      </div>
+    </div>
+
    <!-- SETTINGS -->
     <div id="screen-settings" class="screen">
       <div class="spacer-top"></div>
@@ -2155,30 +2213,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
     
-      <!-- Premium Card -->
-   <div class="premium-card" style="display:none;">
-        <div class="pc-badge">✨ PREMIUM</div>
-        <div class="pc-title">もっと深く、からだを知る</div>
-        <div class="pc-features">
-          <div class="pc-feature"><div class="pc-feature-dot"></div>月次PDFレポート（30日〜）</div>
-          <div class="pc-feature"><div class="pc-feature-dot"></div>AIパターン解析コメント（90日〜）</div>
-          <div class="pc-feature"><div class="pc-feature-dot"></div>食材データベース検索</div>
-          <div class="pc-feature"><div class="pc-feature-dot"></div>LINEリマインダー連携</div>
-        </div>
-        <div id="premium-form-area">
-          <div style="background:rgba(255,255,255,0.1);border-radius:14px;padding:16px;margin-bottom:12px;">
-            <div style="font-size:13px;color:rgba(255,255,255,0.9);margin-bottom:10px;">🎁 先行登録で最初の3ヶ月無料</div>
-            <input type="email" id="premium-email" placeholder="メールアドレス" style="width:100%;padding:12px 14px;border:1.5px solid rgba(255,255,255,0.2);border-radius:10px;background:rgba(255,255,255,0.1);color:white;font-family:Noto Sans JP,sans-serif;font-size:14px;outline:none;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='rgba(255,255,255,0.2)'">
-          </div>
-          <button class="pc-btn" onclick="submitPremiumWaitlist()">先行登録する →</button>
-        </div>
-        <div id="premium-done" style="display:none;text-align:center;padding:16px 0;">
-          <div style="font-size:24px;margin-bottom:8px;">🌸</div>
-          <div style="font-size:14px;color:rgba(255,255,255,0.9);margin-bottom:4px;">登録ありがとうございます</div>
-          <div style="font-size:12px;color:rgba(255,255,255,0.5);">公開時にご案内をお届けします</div>
-        </div>
-      </div>
-
 
      <!-- Profile -->
       <div class="settings-section">
@@ -2235,54 +2269,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-       <!-- Premium Features -->
-<div class="settings-section">
-  <div class="settings-section-title">Premium</div>
-</div>
-<div class="premium-feature-section">
- <div class="pf-card" onclick="premiumGate(openDoctorSummary)">
-    <div class="pf-icon">🩺</div>
-    <div class="pf-text">
-      <div class="pf-title">婦人科受診サポート<span class="pf-lock-badge">PRO</span></div>
-      <div class="pf-sub">過去30日の体調サマリーを自動生成</div>
-    </div>
-    <div class="pf-arrow">→</div>
-  </div>
-<div class="pf-card" onclick="premiumGate(openMonthlyReport)">
-    <div class="pf-icon">📊</div>
-    <div class="pf-text">
-      <div class="pf-title">月次レポート（PDF）<span class="pf-lock-badge">PRO</span></div>
-      <div class="pf-sub">月ごとの体調データを可視化</div>
-    </div>
-    <div class="pf-arrow">→</div>
-  </div>
-<div class="pf-card" onclick="premiumGate(openAIAnalysis)">
-    <div class="pf-icon">✨</div>
-    <div class="pf-text">
-      <div class="pf-title">AIパターン解析<span class="pf-lock-badge">PRO</span></div>
-      <div class="pf-sub">90日分の記録からパターンを発見</div>
-    </div>
-    <div class="pf-arrow">→</div>
-  </div>
-<div class="pf-card" onclick="openSyncModal()">
-    <div class="pf-icon">🔄</div>
-    <div class="pf-text">
-      <div class="pf-title">デバイス間同期<span class="pf-lock-badge">PRO</span></div>
-      <div class="pf-sub" id="syncStatusBrief">未ログイン</div>
-    </div>
-    <div class="pf-arrow">→</div>
-  </div>
-    <div class="pf-card" onclick="premiumGate(function(){ openArchive(); })">
-    <div class="pf-icon">💬</div>
-    <div class="pf-text">
-      <div class="pf-title">みんなの声アーカイブ<span class="pf-lock-badge">PRO</span></div>
-      <div class="pf-sub">過去のテーマと投稿を検索・閲覧</div>
-    </div>
-    <div class="pf-arrow">→</div>
-  </div>
-  
- </div>
-
+     
 <!-- Doctor Summary Modal -->
 <div class="ds-overlay" id="doctorSummaryOverlay">
   <div class="ds-sheet">
