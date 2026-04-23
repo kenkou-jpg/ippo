@@ -2004,22 +2004,19 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
    <div class="section-label">MEAL TIMELINE</div>
     <div class="section-title serif">食事の記録</div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
-      記録したい食事をタップしてください
+      記録したい食事をタップ → 時間を調整 → 内容を入力
     </div>
     
     <!-- 食事タイプボタン -->
-    <div id="meal-type-buttons" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
-      <button class="chip" onclick="toggleMealSection('morning')" id="meal-btn-morning" style="padding:10px 14px;font-size:13px;">🌅 朝食</button>
-      <button class="chip" onclick="toggleMealSection('lunch')" id="meal-btn-lunch" style="padding:10px 14px;font-size:13px;">☀️ 昼食</button>
-      <button class="chip" onclick="toggleMealSection('dinner')" id="meal-btn-dinner" style="padding:10px 14px;font-size:13px;">🌙 夕食</button>
-      <button class="chip" onclick="toggleMealSection('snack')" id="meal-btn-snack" style="padding:10px 14px;font-size:13px;">🍪 間食</button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+      <button class="chip" onclick="insertMealTemplate('morning')" style="padding:10px 14px;font-size:13px;">🌅 朝食</button>
+      <button class="chip" onclick="insertMealTemplate('lunch')" style="padding:10px 14px;font-size:13px;">☀️ 昼食</button>
+      <button class="chip" onclick="insertMealTemplate('dinner')" style="padding:10px 14px;font-size:13px;">🌙 夕食</button>
+      <button class="chip" onclick="insertMealTemplate('snack')" style="padding:10px 14px;font-size:13px;">🍪 間食</button>
     </div>
 
-    <!-- 各食事の入力欄 -->
-    <div id="meal-sections"></div>
-
-    <!-- AUTO PARSE -->
-    <div id="meal-auto-parse" style="margin-top:12px;padding:14px;background:var(--warm-light);border-radius:12px;">
+    <textarea id="rs-meal-free" placeholder="ボタンをタップするか、自由に入力&#10;例）0830 オートミール、コーヒー&#10;1200 味噌汁、納豆ご飯&#10;" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+    <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
       <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;">
         <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
@@ -2032,6 +2029,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <span id="draft-saved-msg" style="font-size:11px;color:var(--sage);margin-left:8px;display:none;">✓ 保存しました</span>
     </div>
   </div>
+
 
 
     <!-- ===== からだのための選択（参考欄） ===== -->
