@@ -2985,7 +2985,6 @@ const STEPS = [
   if(typeof cloudBackupAll === 'function') cloudBackupAll();
 }
 
-// ===== INIT =====
 function init() {
   const saved = localStorage.getItem('ippo_state');
   if (saved) {
@@ -3012,7 +3011,11 @@ function init() {
       }).catch(function(e){ console.log('復元エラー:', e); });
     }
   }, 500);
+
+  initVisionUI();
+  updateHomeVision();
 }
+
 
 
 function startApp() {
