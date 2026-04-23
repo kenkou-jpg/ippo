@@ -3542,7 +3542,76 @@ function updateHomeSummary(){
     html += '</div>';
   }
 
+    // 疾患チェック
+  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+    html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
+    var dc = rec.diseaseCheck;
+    var disease = state.myDisease || '';
+    var config = DISEASE_CONFIG[disease];
+    Object.keys(dc).forEach(function(key){
+      var label = key;
+      if(config){
+        for(var qi=0;qi<config.questions.length;qi++){
+          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+        }
+      }
+      html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
+    });
+    html += '</div>';
+  }
+
+  // ===== 編集ボタン =====
+  html += '<div style="margin-top:20px;text-align:center;">';
+  html += '<button onclick="editPastRecord(\''+dateStr+'\')" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">この日を編集する ✏️</button>';
+  html += '</div>';
+
   content.innerHTML = html;
+}
+
+function editPastRecord(dateStr) {
+  var dayModal = document.getElementById('dayDetailModal');
+  if (dayModal) dayModal.style.display = 'none';
+  
+  var rec = state.records.find(function(r) {
+    return (r.record_date || (r.date && r.date.slice(0,10))) === dateStr;
+  });
+  
+  state.draft = {
+    record_date: dateStr,
+    meals: { free: '', firstTime: '', lastTime: '' },
+    mealFree: '',
+    mealCount: 0,
+    firstMealTime: '',
+    lastMealTime: '',
+    fasting: 0,
+    temperature: null,
+    symptoms: [],
+    menstrualCycle: '',
+    diseaseCheck: {},
+    note: '',
+    chakra: '',
+    emotion: '',
+    wellness_score: 0,
+    energy_score: 0,
+    bodyChoices: {}
+  };
+  
+  if (rec) {
+    Object.keys(rec).forEach(function(key) {
+      state.draft[key] = rec[key];
+    });
+  }
+  
+  state.editingDate = dateStr;
+  openRecordModal();
+  
+  setTimeout(function() {
+    var titleEl = document.querySelector('.modal-title');
+    if (titleEl) {
+      var d = new Date(dateStr);
+      titleEl.textContent = (d.getMonth()+1) + '月' + d.getDate() + '日の記録を編集';
+    }
+  }, 100);
 }
 
   
@@ -6519,6 +6588,7 @@ async function checkPremiumStatus() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
+     supabaseUserId = session.user.id;
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_premium')
