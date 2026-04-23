@@ -2000,22 +2000,26 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </button>
     </nav>
 
-  <!-- ===== RECORD SCREEN ===== -->
-<div id="screen-record" class="screen">
-  <div class="spacer-top"></div>
-  <div style="padding:0 24px 24px;">
-    <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
-    <div class="home-date" id="rec-screen-date"></div>
-  </div>
-  <div class="section-card">
+<div class="section-card">
    <div class="section-label">MEAL TIMELINE</div>
     <div class="section-title serif">食事の記録</div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
-      時間と食べたものを自由に記入してください<br>
-      <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
+      記録したい食事をタップしてください
     </div>
-    <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食&#10;" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-    <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+    
+    <!-- 食事タイプボタン -->
+    <div id="meal-type-buttons" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <button class="chip" onclick="toggleMealSection('morning')" id="meal-btn-morning" style="padding:10px 14px;font-size:13px;">🌅 朝食</button>
+      <button class="chip" onclick="toggleMealSection('lunch')" id="meal-btn-lunch" style="padding:10px 14px;font-size:13px;">☀️ 昼食</button>
+      <button class="chip" onclick="toggleMealSection('dinner')" id="meal-btn-dinner" style="padding:10px 14px;font-size:13px;">🌙 夕食</button>
+      <button class="chip" onclick="toggleMealSection('snack')" id="meal-btn-snack" style="padding:10px 14px;font-size:13px;">🍪 間食</button>
+    </div>
+
+    <!-- 各食事の入力欄 -->
+    <div id="meal-sections"></div>
+
+    <!-- AUTO PARSE -->
+    <div id="meal-auto-parse" style="margin-top:12px;padding:14px;background:var(--warm-light);border-radius:12px;">
       <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
       <div style="display:flex;gap:16px;flex-wrap:wrap;">
         <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
@@ -2028,6 +2032,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <span id="draft-saved-msg" style="font-size:11px;color:var(--sage);margin-left:8px;display:none;">✓ 保存しました</span>
     </div>
   </div>
+
 
     <!-- ===== からだのための選択（参考欄） ===== -->
   <div class="section-card">
@@ -4700,6 +4705,89 @@ function saveMealDraft(){
   var msg = document.getElementById('draft-saved-msg');
   if(msg){ msg.style.display = 'inline'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
 }
+
+  // ===== 食事セクション管理 =====
+var mealSectionConfig = {
+  morning: { icon: '🌅', label: '朝食', defaultTime: '07:00' },
+  lunch:   { icon: '☀️', label: '昼食', defaultTime: '12:00' },
+  dinner:  { icon: '🌙', label: '夕食', defaultTime: '19:00' },
+  snack:   { icon: '🍪', label: '間食', defaultTime: '15:00' }
+};
+var openMealSections = [];
+
+function toggleMealSection(key) {
+  var idx = openMealSections.indexOf(key);
+  if (idx !== -1) {
+    openMealSections.splice(idx, 1);
+  } else {
+    openMealSections.push(key);
+  }
+  renderMealSections();
+}
+
+function renderMealSections() {
+  var container = document.getElementById('meal-sections');
+  var html = '';
+  var keys = ['morning', 'lunch', 'dinner', 'snack'];
+  
+  keys.forEach(function(key) {
+    var btn = document.getElementById('meal-btn-' + key);
+    if (openMealSections.indexOf(key) !== -1) {
+      btn.classList.add('selected');
+      var cfg = mealSectionConfig[key];
+      var timeVal = document.getElementById('meal-time-' + key);
+      var textVal = document.getElementById('meal-text-' + key);
+      var currentTime = timeVal ? timeVal.value : cfg.defaultTime;
+      var currentText = textVal ? textVal.value : '';
+      
+      html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+      html += '<span style="font-size:18px;">' + cfg.icon + '</span>';
+      html += '<span style="font-size:14px;font-weight:500;color:var(--ink);">' + cfg.label + '</span>';
+      html += '<input type="time" id="meal-time-' + key + '" class="meal-time-input" value="' + currentTime + '" onchange="updateMealParse()" style="margin-left:auto;width:auto;">';
+      html += '</div>';
+      html += '<textarea id="meal-text-' + key + '" class="modal-textarea" placeholder="食べたものを入力..." oninput="updateMealParse()" style="min-height:60px;margin-bottom:0;">' + currentText + '</textarea>';
+      html += '</div>';
+    } else {
+      btn.classList.remove('selected');
+    }
+  });
+  
+  container.innerHTML = html;
+  updateMealParse();
+}
+
+function updateMealParse() {
+  var count = 0;
+  var times = [];
+  var keys = ['morning', 'lunch', 'dinner', 'snack'];
+  
+  keys.forEach(function(key) {
+    if (openMealSections.indexOf(key) === -1) return;
+    var textEl = document.getElementById('meal-text-' + key);
+    var timeEl = document.getElementById('meal-time-' + key);
+    if (textEl && textEl.value.trim()) {
+      count++;
+      if (timeEl && timeEl.value) times.push(timeEl.value);
+    }
+  });
+  
+  times.sort();
+  document.getElementById('parse-meal-count').textContent = count;
+  document.getElementById('parse-first-time').textContent = times.length > 0 ? times[0] : '--:--';
+  document.getElementById('parse-last-time').textContent = times.length > 0 ? times[times.length - 1] : '--:--';
+  
+  if (times.length >= 2) {
+    var first = times[0].split(':');
+    var last = times[times.length - 1].split(':');
+    var eating = (parseInt(last[0]) + parseInt(last[1]) / 60) - (parseInt(first[0]) + parseInt(first[1]) / 60);
+    var fasting = Math.round((24 - eating) * 10) / 10;
+    document.getElementById('parse-fasting').textContent = fasting;
+  } else {
+    document.getElementById('parse-fasting').textContent = '0';
+  }
+}
+
 
   // ===== 疾患別カスタマイズ =====
 var DISEASE_CONFIG = {
