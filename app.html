@@ -2615,25 +2615,10 @@ function updateVisionDisplay(){
 }
 
 function updateHomeVision(){
-  var el = document.getElementById('home-vision');
-  var anchor = document.querySelector('#screen-home .home-greeting');
-  if(!anchor) anchor = document.querySelector('#screen-home .settings-title');
-  if(!el && anchor){
-    el = document.createElement('div');
-    el.id = 'home-vision';
-    el.style.cssText = 'padding:0 24px;margin-bottom:4px;';
-    anchor.parentNode.insertBefore(el, anchor.nextSibling);
-  }
-  if(!el) return;
-  if(state.myVision){
-    el.innerHTML = '<div style="display:flex;align-items:center;gap:6px;padding:8px 0;">'
-      + '<span style="font-size:12px;">🎯</span>'
-      + '<span style="font-size:12px;color:var(--ink-light);">' + state.myVision + '</span>'
-      + '</div>';
-  } else {
-    el.innerHTML = '';
-  }
+  // ホーム画面への表示なし
 }
+
+  
 // ===== 疾患別カスタマイズ =====
 var DISEASE_CONFIG = {
   '卵巣嚢腫': {
