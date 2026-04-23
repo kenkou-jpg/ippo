@@ -2145,7 +2145,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div style="padding:0 16px 16px;">
           <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">このアプリを使う目的を書いてみましょう</div>
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;" id="vision-presets"></div>
-          <textarea id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;min-height:60px;border:1.5px solid #e8e0d8;border-radius:12px;padding:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;resize:none;background:var(--white);box-sizing:border-box;"></textarea>
+          <textarea id="vision-input" placeholder="例: 体調を整えたい" style="width:100%;min-height:60px;border:1.5px solid #e8e0d8;border-radius:12px;padding:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;resize:none;background:var(--white);box-sizing:border-box;"></textarea>
           <button onclick="saveVision()" style="margin-top:10px;width:100%;padding:12px;background:var(--rose);color:white;border:none;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存する</button>
         </div>
       </div>
@@ -2556,11 +2556,9 @@ var supabaseUserId = null;
 
   // ===== わたしの目標 =====
 var VISION_PRESETS = [
-  '卵巣嚢腫を小さくしたい',
   '断食を習慣にしたい',
   '自分の体のリズムを知りたい',
   'PMS/PMDDを軽くしたい',
-  '妊活の準備をしたい',
   '体調を整えたい'
 ];
 
