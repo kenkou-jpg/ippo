@@ -2538,6 +2538,121 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 var supabaseToken = null;
 var supabaseUserId = null;
 
+// ===== 疾患別カスタマイズ =====
+var DISEASE_CONFIG = {
+  '卵巣嚢腫': {
+    label: '卵巣嚢腫セルフチェック',
+    icon: '🩺',
+    questions: [
+      {id:'bloating', text:'お腹の張り具合は？', options:['なし','軽い','中程度','つらい']},
+      {id:'abdom_pain', text:'腹痛は？', options:['なし','軽い','中程度','つらい']},
+      {id:'frequent_urine', text:'頻尿症状は？', options:['なし','少し','頻繁']},
+      {id:'bowel_pain', text:'排便時の痛みは？', options:['なし','軽い','中程度','つらい']},
+      {id:'pelvic_dull', text:'片側の鈍痛は？', options:['なし','左側','右側','両側']}
+    ]
+  },
+  '子宮内膜症': {
+    label: '子宮内膜症セルフチェック',
+    icon: '🩺',
+    questions: [
+      {id:'period_pain', text:'生理痛の強さは？', options:['なし','軽い','中程度','激しい']},
+      {id:'bowel_pain', text:'排便時の痛みは？', options:['なし','軽い','中程度','つらい']},
+      {id:'chronic_pelvic', text:'慢性的な骨盤痛は？', options:['なし','軽い','中程度','つらい']},
+      {id:'heavy_flow', text:'経血量は？', options:['少ない','普通','多い','非常に多い']},
+      {id:'spotting', text:'生理外の出血は？', options:['なし','少量','あり']}
+    ]
+  },
+  '子宮筋腫': {
+    label: '子宮筋腫セルフチェック',
+    icon: '🩺',
+    questions: [
+      {id:'heavy_flow', text:'経血量は？', options:['少ない','普通','多い','非常に多い']},
+      {id:'clots', text:'レバー状の塊は？', options:['なし','少し','多い']},
+      {id:'anemia', text:'貧血感は？', options:['なし','軽い','中程度','つらい']},
+      {id:'frequent_urine', text:'頻尿症状は？', options:['なし','少し','頻繁']},
+      {id:'abdom_bloat', text:'お腹の膨満感は？', options:['なし','軽い','中程度','つらい']}
+    ]
+  },
+  'PCOS': {
+    label: 'PCOS セルフチェック',
+    icon: '🩺',
+    questions: [
+      {id:'irregular', text:'生理の規則性は？', options:['規則的','やや不規則','不規則','3ヶ月以上なし']},
+      {id:'acne', text:'ニキビ・肌荒れは？', options:['なし','軽い','中程度','ひどい']},
+      {id:'weight', text:'体重の変化は？', options:['変化なし','やや増加','増加','減少']},
+      {id:'hair_loss', text:'抜け毛は？', options:['なし','少し','気になる','多い']},
+      {id:'fatigue', text:'食後の強い眠気は？', options:['なし','少し','頻繁']}
+    ]
+  },
+  'PMS/PMDD': {
+    label: 'PMS/PMDD セルフチェック',
+    icon: '🩺',
+    questions: [
+      {id:'irritable', text:'イライラ度は？', options:['なし','軽い','中程度','激しい']},
+      {id:'depression', text:'気分の落ち込みは？', options:['なし','軽い','中程度','つらい']},
+      {id:'overeating', text:'過食傾向は？', options:['なし','少し','中程度','抑えられない']},
+      {id:'sleepiness', text:'異常な眠気は？', options:['なし','少し','強い','起きていられない']},
+      {id:'tearful', text:'涙もろさは？', options:['なし','少し','頻繁']}
+    ]
+  }
+};
+
+function openDiseaseSettings(){
+  var current = state.myDisease || '';
+  var diseases = Object.keys(DISEASE_CONFIG);
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="diseaseOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--white);border-radius:20px;padding:28px 22px;width:88%;max-width:360px;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);margin-bottom:6px;">気になる疾患</div>';
+  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:18px;">選択すると記録画面に専用の質問が追加されます</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:10px;">';
+  html += '<button onclick="selectDisease(\'\')" style="padding:14px 16px;border-radius:12px;border:1.5px solid '+(current===''?'var(--rose)':'#e8ddd8')+';background:'+(current===''?'#fdf3f3':'var(--white)')+';font-size:14px;color:var(--ink);cursor:pointer;text-align:left;">なし（共通の症状のみ）</button>';
+  for(var i=0;i<diseases.length;i++){
+    var d = diseases[i];
+    var sel = (current===d);
+    html += '<button onclick="selectDisease(\''+d+'\')" style="padding:14px 16px;border-radius:12px;border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';background:'+(sel?'#fdf3f3':'var(--white)')+';font-size:14px;color:var(--ink);cursor:pointer;text-align:left;">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
+  }
+  html += '</div></div></div>';
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function selectDisease(name){
+  state.myDisease = name;
+  saveState();
+  var display = document.getElementById('disease-setting-display');
+  if(display) display.textContent = name || '設定する';
+  var overlay = document.getElementById('diseaseOverlay');
+  if(overlay) overlay.remove();
+  updateDiseaseQuestions();
+}
+
+function updateDiseaseQuestions(){
+  var container = document.getElementById('disease-questions');
+  if(!container) return;
+  var disease = state.myDisease || '';
+  if(!disease || !DISEASE_CONFIG[disease]){
+    container.style.display = 'none';
+    container.innerHTML = '';
+    return;
+  }
+  var config = DISEASE_CONFIG[disease];
+  var html = '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">'+config.icon+' '+config.label+'</div>';
+  var questions = config.questions;
+  for(var i=0;i<questions.length;i++){
+    var q = questions[i];
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+q.id+'">';
+    for(var j=0;j<q.options.length;j++){
+      html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
+    }
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+
+
 function supabaseHeaders(){
   var h = {
     'apikey': SUPABASE_KEY,
@@ -4773,24 +4888,6 @@ function updateMealParse() {
   }
 }
 
-function openDiseaseSettings(){
-  var current = state.myDisease || '';
-  var diseases = Object.keys(DISEASE_CONFIG);
-  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="diseaseOverlay" onclick="if(event.target===this)this.remove()">';
-  html += '<div style="background:var(--white);border-radius:20px;padding:28px 22px;width:88%;max-width:360px;">';
-  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);margin-bottom:6px;">気になる疾患</div>';
-  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:18px;">選択すると記録画面に専用の質問が追加されます</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:10px;">';
-  // なし
-  html += '<button onclick="selectDisease(\'\')" style="padding:14px 16px;border-radius:12px;border:1.5px solid '+(current===''?'var(--rose)':'#e8ddd8')+';background:'+(current===''?'#fdf3f3':'var(--white)')+';font-size:14px;color:var(--ink);cursor:pointer;text-align:left;">なし（共通の症状のみ）</button>';
-  for(var i=0;i<diseases.length;i++){
-    var d = diseases[i];
-    var sel = (current===d);
-    html += '<button onclick="selectDisease(\''+d+'\')" style="padding:14px 16px;border-radius:12px;border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';background:'+(sel?'#fdf3f3':'var(--white)')+';font-size:14px;color:var(--ink);cursor:pointer;text-align:left;">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
-  }
-  html += '</div></div></div>';
-  document.body.insertAdjacentHTML('beforeend', html);
-}
 
 function selectDisease(name){
   state.myDisease = name;
