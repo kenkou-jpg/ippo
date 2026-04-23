@@ -4445,39 +4445,7 @@ function openDayDetail(d){
     }
   }
 
-  // ===== 疾患セルフチェック =====
-  var disease = state.myDisease || '';
-  var dcConfig = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
-  if(dcConfig){
-    html += '<div style="margin-top:14px;background:#f3f0fd;border-radius:14px;padding:14px;">';
-    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 '+dcConfig.label+'</div>';
-    var dc = rec.diseaseCheck || {};
-    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
-    for(var qi=0;qi<dcConfig.questions.length;qi++){
-      var q = dcConfig.questions[qi];
-      var val = dc[q.id] || '';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--white);border-radius:10px;padding:8px 12px;">';
-      html += '<span style="font-size:12px;color:#6b5b8a;">'+q.text.replace('？','')+'</span>';
-      if(val){
-        html += '<span style="font-size:11px;background:#e8e0f3;color:#6b5b8a;padding:3px 10px;border-radius:10px;font-weight:500;">'+val+'</span>';
-      } else {
-        html += '<span style="font-size:11px;color:#b0a0c0;">未回答</span>';
-      }
-      html += '</div>';
-    }
-    html += '</div></div>';
-  } else if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    html += '<div style="margin-top:14px;background:#f3f0fd;border-radius:14px;padding:14px;">';
-    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 疾患セルフチェック</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    Object.keys(rec.diseaseCheck).forEach(function(key){
-      html += '<span style="font-size:11px;background:var(--white);color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+key+': '+rec.diseaseCheck[key]+'</span>';
-    });
-    html += '</div></div>';
-  }
-
-
-
+ 
   // ===== メモ（体温・ジャーナル統合） =====
   var memoItems = [];
   if(rec.temperature) memoItems.push({icon:'🌡', text:'基礎体温 '+rec.temperature+'℃'});
