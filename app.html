@@ -2570,13 +2570,18 @@ var _mealPendingBtn = null;
 function toggleMealEntry(type, btn){
   var ta = document.getElementById('rs-meal-free');
   if(!ta) return;
-  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
+  var picker = document.getElementById('meal-time-picker');
   
-  // 既にこの食事タイプが入力済みか確認
+  // 時間ピッカーが開いていて同じタイプなら閉じるだけ
+  if(picker && picker.style.display !== 'none' && _mealPendingType === type){
+    closeMealTimePicker();
+    return;
+  }
+  
+  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
   var exists = lines.some(function(l){ return l.indexOf(type) !== -1; });
   
   if(exists){
-    // 入力済み→削除（トグルOFF）
     var newLines = lines.filter(function(l){ return l.indexOf(type) === -1; });
     ta.value = newLines.join('\n');
     btn.style.background = 'var(--white)';
@@ -2584,14 +2589,11 @@ function toggleMealEntry(type, btn){
     btn.style.borderColor = '#e8ddd8';
     closeMealTimePicker();
   } else {
-    // 未入力→時間選択を表示
     _mealPendingType = type;
     _mealPendingBtn = btn;
-    var picker = document.getElementById('meal-time-picker');
     var label = document.getElementById('meal-time-label');
     var input = document.getElementById('meal-time-input');
     if(label) label.textContent = type + 'の時間';
-    // 現在時刻をデフォルトにセット
     var now = new Date();
     var hh = String(now.getHours()).padStart(2,'0');
     var mm = String(now.getMinutes()).padStart(2,'0');
@@ -2600,7 +2602,7 @@ function toggleMealEntry(type, btn){
   }
   if(typeof parseMealFree === 'function') parseMealFree();
 }
-
+  
 function confirmMealTime(){
   var ta = document.getElementById('rs-meal-free');
   var input = document.getElementById('meal-time-input');
