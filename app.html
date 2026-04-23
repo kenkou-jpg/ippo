@@ -2021,27 +2021,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       時間と食べたものを自由に記入してください<br>
     <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
     </div>
-    <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
-      <button onclick="addMealEntry('朝食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌅 朝食</button>
-      <button onclick="addMealEntry('昼食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">☀️ 昼食</button>
-      <button onclick="addMealEntry('夕食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌙 夕食</button>
-      <button onclick="addMealEntry('間食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🍪 間食</button>
+       <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+      <button id="meal-btn-breakfast" onclick="toggleMealEntry('朝食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌅 朝食</button>
+      <button id="meal-btn-lunch" onclick="toggleMealEntry('昼食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">☀️ 昼食</button>
+      <button id="meal-btn-dinner" onclick="toggleMealEntry('夕食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌙 夕食</button>
+      <button id="meal-btn-snack" onclick="toggleMealEntry('間食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🍪 間食</button>
     </div>
-
-    <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食&#10;" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-    <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
-      <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
-        <div style="font-size:13px;color:var(--ink);">⏰ <span id="parse-first-time">--:--</span>〜<span id="parse-last-time">--:--</span></div>
-        <div style="font-size:13px;color:var(--ink);">🌙 断食 <span id="parse-fasting">0</span>h</div>
+    <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">朝食の時間</span>
+        <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
+        <button onclick="confirmMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
       </div>
     </div>
-    <div style="margin-top:10px;text-align:right;">
-      <button onclick="saveMealDraft()" style="font-size:12px;color:var(--ink-light);background:none;border:1px solid #e8ddd8;border-radius:20px;padding:6px 16px;cursor:pointer;">一時保存</button>
-      <span id="draft-saved-msg" style="font-size:11px;color:var(--sage);margin-left:8px;display:none;">✓ 保存しました</span>
-    </div>
-  </div>
 
 
     <!-- ===== からだのための選択（参考欄） ===== -->
@@ -2555,22 +2550,70 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 var supabaseToken = null;
 var supabaseUserId = null;
 
-  // ===== 食事クイック入力 =====
-function addMealEntry(type, btn){
+// ===== 食事クイック入力 =====
+var _mealPendingType = '';
+var _mealPendingBtn = null;
+
+function toggleMealEntry(type, btn){
   var ta = document.getElementById('rs-meal-free');
   if(!ta) return;
-  var now = new Date();
-  var h = String(now.getHours()).padStart(2,'0');
-  var m = String(now.getMinutes()).padStart(2,'0');
-  var line = h + m + ' ' + type;
-  var current = ta.value.trim();
-  ta.value = current ? current + '\n' + line : line;
-  if(btn){
-    btn.style.background = 'var(--rose)';
-    btn.style.color = 'white';
-    btn.style.borderColor = 'var(--rose)';
+  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
+  
+  // 既にこの食事タイプが入力済みか確認
+  var exists = lines.some(function(l){ return l.indexOf(type) !== -1; });
+  
+  if(exists){
+    // 入力済み→削除（トグルOFF）
+    var newLines = lines.filter(function(l){ return l.indexOf(type) === -1; });
+    ta.value = newLines.join('\n');
+    btn.style.background = 'var(--white)';
+    btn.style.color = 'var(--ink)';
+    btn.style.borderColor = '#e8ddd8';
+    closeMealTimePicker();
+  } else {
+    // 未入力→時間選択を表示
+    _mealPendingType = type;
+    _mealPendingBtn = btn;
+    var picker = document.getElementById('meal-time-picker');
+    var label = document.getElementById('meal-time-label');
+    var input = document.getElementById('meal-time-input');
+    if(label) label.textContent = type + 'の時間';
+    // 現在時刻をデフォルトにセット
+    var now = new Date();
+    var hh = String(now.getHours()).padStart(2,'0');
+    var mm = String(now.getMinutes()).padStart(2,'0');
+    if(input) input.value = hh + ':' + mm;
+    if(picker) picker.style.display = 'block';
   }
   if(typeof parseMealFree === 'function') parseMealFree();
+}
+
+function confirmMealTime(){
+  var ta = document.getElementById('rs-meal-free');
+  var input = document.getElementById('meal-time-input');
+  if(!ta || !input || !_mealPendingType) return;
+  var time = input.value.replace(':','');
+  var line = time + ' ' + _mealPendingType;
+  var current = ta.value.trim();
+  ta.value = current ? current + '\n' + line : line;
+  // 時間順にソート
+  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
+  lines.sort();
+  ta.value = lines.join('\n');
+  if(_mealPendingBtn){
+    _mealPendingBtn.style.background = 'var(--rose)';
+    _mealPendingBtn.style.color = 'white';
+    _mealPendingBtn.style.borderColor = 'var(--rose)';
+  }
+  closeMealTimePicker();
+  if(typeof parseMealFree === 'function') parseMealFree();
+}
+
+function closeMealTimePicker(){
+  var picker = document.getElementById('meal-time-picker');
+  if(picker) picker.style.display = 'none';
+  _mealPendingType = '';
+  _mealPendingBtn = null;
 }
 
   // ===== わたしの目標 =====
