@@ -4522,7 +4522,7 @@ function createMealDonut(meals, fasting, fastingGoal){
     var lines = meals.free.trim().split('\n');
     for(var li = 0; li < lines.length; li++){
       var line = lines[li].trim();
-      var match = line.match(/^(\d{2})(\d{2})\s+(.+)/);
+            var match = line.match(/^(\d{2})(\d{2})\s*(.*)/);
       if(match){
         var mh = parseInt(match[1],10) + parseInt(match[2],10)/60;
         var mlabel = match[3].trim();
