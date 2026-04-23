@@ -3255,7 +3255,7 @@ function saveRecord() {
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
 
-  / ★ 編集モードの場合は編集対象日を使用
+  // ★ 編集モードの場合は編集対象日を使用
   if (state.editingDate) {
     currentRecord.date = new Date(state.editingDate).toISOString();
     currentRecord.record_date = state.editingDate;
