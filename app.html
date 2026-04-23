@@ -2212,9 +2212,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="settings-title">設定</div>
       </div>
 
-    
-
-     <!-- Profile -->
+      <!-- Profile -->
       <div class="settings-section">
         <div class="settings-section-title">プロフィール</div>
         <div class="settings-card">
@@ -2263,13 +2261,74 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
             <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
-            <input type="text" id="vision-input" placeholder="体調リズムを整えたい" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
+            <input type="text" id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
             <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
           </div>
         </div>
       </div>
 
-     
+      <!-- Data -->
+      <div class="settings-section">
+        <div class="settings-section-title">データ</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="var d=JSON.stringify(state,null,2);var b=new Blob([d],{type:'application/json'});var a=document.createElement('a');var u=window.URL||window.webkitURL;a.href=u.createObjectURL(b);a.download='ippo-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
+              <div><div class="settings-row-text">データをエクスポート</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
+              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="feedback-section">
+        <div class="fb-title">感想・フィードバック</div>
+        <div class="fb-sub">あなたの声がアプリをより良くします。<br>次の機能は皆さんのフィードバックで決めます。</div>
+        <div class="fb-stars" id="fb-stars">
+          <span class="fb-star" onclick="setRating(1)">⭐</span>
+          <span class="fb-star" onclick="setRating(2)">⭐</span>
+          <span class="fb-star" onclick="setRating(3)">⭐</span>
+          <span class="fb-star" onclick="setRating(4)">⭐</span>
+          <span class="fb-star" onclick="setRating(5)">⭐</span>
+        </div>
+        <textarea id="fb-comment" placeholder="ご感想やご要望をお聞かせください（任意）" style="width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:none;min-height:80px;outline:none;margin-bottom:16px;margin-top:12px;box-sizing:border-box;"></textarea>
+        <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
+      </div>
+
+      <!-- About -->
+      <div class="settings-section">
+        <div class="settings-section-title">About</div>
+        <div class="settings-card">
+          <a href="index.html" class="settings-row" style="text-decoration:none;">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:var(--rose-pale);">🌐</div>
+              <div>
+                <div class="settings-row-text">ippo 公式サイト</div>
+                <div class="settings-row-sub">機能・プラン・ストーリー</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">→</span></div>
+          </a>
+        </div>
+      </div>
+
+      <div style="padding:0 24px;text-align:center;">
+        <p style="font-size:11px;color:var(--ink-light);line-height:1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
+      </div>
+
+      <div style="text-align:center;padding:10px 0 40px;font-size:11px;color:var(--ink-light);">
+        ippo v1.0 — あなたのからだに寄り添うアプリ
+      </div>
+    </div>
+
 <!-- Doctor Summary Modal -->
 <div class="ds-overlay" id="doctorSummaryOverlay">
   <div class="ds-sheet">
@@ -2292,8 +2351,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
-
-  <!-- Monthly Report Modal -->
+<!-- Monthly Report Modal -->
 <div class="mr-overlay" id="monthlyReportOverlay">
   <div class="mr-sheet">
     <div class="mr-handle"></div>
@@ -2339,7 +2397,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
-  <!-- Sync Modal -->
+<!-- Sync Modal -->
 <div class="sync-overlay" id="syncOverlay">
   <div class="sync-sheet">
     <div class="sync-handle"></div>
@@ -2347,16 +2405,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="sync-title">デバイス間同期</div>
       <div class="sync-subtitle">ログインすると、PC・スマホで同じデータにアクセスできます</div>
     </div>
-    <div class="sync-body" id="syncBody">
-      <!-- JS で動的に生成 -->
-    </div>
+    <div class="sync-body" id="syncBody"></div>
     <div class="sync-footer">
       <button class="sync-close-btn" onclick="closeSyncModal()">閉じる</button>
     </div>
   </div>
 </div>
 
-  <!-- Community Archive Modal -->
+<!-- Community Archive Modal -->
 <div class="archive-overlay" id="archiveOverlay">
   <div class="archive-sheet">
     <div class="archive-handle"></div>
@@ -2364,108 +2420,27 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="archive-title">みんなの声アーカイブ</div>
       <div class="archive-subtitle">過去のテーマと投稿を振り返る</div>
     </div>
-
     <div class="archive-search">
       <input type="text" class="archive-search-input" id="archiveSearchInput" placeholder="キーワードで検索..." oninput="searchArchive()">
     </div>
-
     <div class="archive-filters" id="archiveFilters">
       <button class="archive-filter-btn active" data-filter="all" onclick="filterArchive('all')">すべて</button>
       <button class="archive-filter-btn" data-filter="recent" onclick="filterArchive('recent')">最近3ヶ月</button>
       <button class="archive-filter-btn" data-filter="popular" onclick="filterArchive('popular')">人気順</button>
     </div>
-
     <div class="archive-body" id="archiveTopicList">
       <div class="archive-empty">読み込み中...</div>
     </div>
-
     <div class="archive-body archive-posts-section" id="archivePostsView">
       <button class="archive-back-btn" onclick="showTopicList()">← テーマ一覧に戻る</button>
       <div id="archivePostsBody"></div>
     </div>
-
     <div class="archive-footer">
       <button class="archive-close-btn" onclick="closeArchive()">閉じる</button>
     </div>
   </div>
 </div>
 
-    
-      <!-- About ippo link -->
-<div class="settings-section">
-  <div class="settings-section-title">About</div>
-  <div class="settings-card">
-    <a href="index.html" class="settings-row" style="text-decoration:none;">
-      <div class="settings-row-left">
-        <div class="settings-row-icon" style="background: var(--rose-pale);">🌐</div>
-        <div>
-          <div class="settings-row-text">ippo 公式サイト</div>
-          <div class="settings-row-sub">機能・プラン・ストーリー</div>
-        </div>
-      </div>
-      <div class="settings-row-right">
-        <span class="settings-chevron">→</span>
-      </div>
-    </a>
-  </div>
-</div>
-
-      <!-- About -->
-     
-              <div class="settings-row" onclick="shareApp()">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6">🔗</div>
-              <div><div class="settings-row-text">友だちにシェアする</div></div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
-        </div>
-      </div>
-
-         <!-- Data -->
-      <div class="settings-section">
-        <div class="settings-section-title">データ</div>
-        <div class="settings-card">
-           <div class="settings-row" onclick="var d=JSON.stringify(state,null,2);var b=new Blob([d],{type:'application/json'});var a=document.createElement('a');var u=window.URL||window.webkitURL;a.href=u.createObjectURL(b);a.download='ippo-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
-              <div><div class="settings-row-text">データをエクスポート</div></div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
-          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
-              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
-        </div>
-      </div>
-
-
-      
-      <!-- Feedback -->
-      <div class="feedback-section">
-        <div class="fb-title">感想・フィードバック</div>
-        <div class="fb-sub">あなたの声がアプリをより良くします。<br>次の機能は皆さんのフィードバックで決めます。</div>
-        <div class="fb-stars" id="fb-stars">
-          <span class="fb-star" onclick="setRating(1)">⭐</span>
-          <span class="fb-star" onclick="setRating(2)">⭐</span>
-          <span class="fb-star" onclick="setRating(3)">⭐</span>
-          <span class="fb-star" onclick="setRating(4)">⭐</span>
-          <span class="fb-star" onclick="setRating(5)">⭐</span>
-        </div>
-        <textarea id="fb-comment" placeholder="ご感想やご要望をお聞かせください（任意）" style="width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:none;min-height:80px;outline:none;margin-bottom:16px;margin-top:12px;"></textarea>
-        <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
-      </div>
-
-
-      <div style="padding: 0 24px; text-align: center;">
-        <p style="font-size: 11px; color: var(--ink-light); line-height: 1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
-      </div>
-    </div>
-   </div>
 
   <!-- ===== RECORD MODAL ===== -->
   <div class="modal-overlay" id="record-modal" onclick="closeModal()">
