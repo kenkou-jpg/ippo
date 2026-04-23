@@ -2144,21 +2144,13 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:8px;">MY VISION</div>
   <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);margin-bottom:6px;">わたしの目標</div>
   <div id="vision-display" onclick="toggleVisionEdit()" style="cursor:pointer;">
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--cream);border-radius:12px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:14px;">🎯</span>
-        <span id="vision-display-text" style="font-size:13px;color:var(--ink);">タップして目標を設定</span>
-      </div>
-      <span style="font-size:10px;color:var(--ink-light);">編集 ▾</span>
-    </div>
-  </div>
-  <div id="vision-edit" style="display:none;margin-top:10px;">
-    <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自由に書く</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
-    <input type="text" id="vision-input" placeholder="自分の言葉で書く…" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
-    <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
+  <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:16px;padding:20px 20px 20px 24px;border-left:3px solid var(--rose);position:relative;">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:10px;">MY VISION</div>
+    <div id="vision-display-text" style="font-family:'Shippori Mincho',serif;font-size:15px;line-height:1.8;color:var(--ink);">タップして目標を設定</div>
+    <div style="position:absolute;top:12px;right:14px;font-size:9px;color:var(--ink-light);">編集 ▾</div>
   </div>
 </div>
+
 
       <!-- Premium Card -->
    <div class="premium-card" style="display:none;">
