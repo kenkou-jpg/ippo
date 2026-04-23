@@ -4377,7 +4377,12 @@ function openDayDetail(d){
   document.getElementById('dmDate').textContent = calYear+'年'+(calMonth+1)+'月'+d+'日（'+WDAY[w]+'）';
   var body = document.getElementById('dmBody');
   if(recs.length === 0){
-    body.innerHTML = '<div class="dm-empty">この日の記録はありません</div>';
+    var editDateStr = dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
+    var emptyHtml = '<div class="dm-empty">この日の記録はありません</div>';
+    emptyHtml += '<div style="margin-top:16px;padding:0 4px;">';
+    emptyHtml += '<button onclick="editPastRecord(\''+editDateStr+'\')" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">✏️ この日の記録を作成する</button>';
+    emptyHtml += '</div>';
+    body.innerHTML = emptyHtml;
     document.getElementById('dmOverlay').classList.add('dm-open');
     return;
   }
@@ -4441,23 +4446,28 @@ function openDayDetail(d){
   }
 
   // ===== 疾患セルフチェック =====
-  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    var disease = state.myDisease || '';
-    var config = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
+  var disease = state.myDisease || '';
+  var dcConfig = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
+  if(dcConfig){
     html += '<div style="margin-top:14px;background:#f3f0fd;border-radius:14px;padding:14px;">';
-    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 '+(config ? config.label : '疾患セルフチェック')+'</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    Object.keys(rec.diseaseCheck).forEach(function(key){
-      var label = key;
-      if(config){
-        for(var qi=0;qi<config.questions.length;qi++){
-          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
-        }
+    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 '+dcConfig.label+'</div>';
+    var dc = rec.diseaseCheck || {};
+    html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+    for(var qi=0;qi<dcConfig.questions.length;qi++){
+      var q = dcConfig.questions[qi];
+      var val = dc[q.id] || '';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;background:var(--white);border-radius:10px;padding:8px 12px;">';
+      html += '<span style="font-size:12px;color:#6b5b8a;">'+q.text.replace('？','')+'</span>';
+      if(val){
+        html += '<span style="font-size:11px;background:#e8e0f3;color:#6b5b8a;padding:3px 10px;border-radius:10px;font-weight:500;">'+val+'</span>';
+      } else {
+        html += '<span style="font-size:11px;color:#b0a0c0;">未回答</span>';
       }
-      html += '<span style="font-size:11px;background:var(--white);color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+rec.diseaseCheck[key]+'</span>';
-    });
+      html += '</div>';
+    }
     html += '</div></div>';
-  }
+  } else if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+
 
   // ===== メモ（体温・ジャーナル統合） =====
   var memoItems = [];
