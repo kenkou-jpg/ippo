@@ -3566,32 +3566,7 @@ function updateHomeSummary(){
     html += '</div>';
   }
 
-    // 疾患チェック
-  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
-    var dc = rec.diseaseCheck;
-    var disease = state.myDisease || '';
-    var config = DISEASE_CONFIG[disease];
-    Object.keys(dc).forEach(function(key){
-      var label = key;
-      if(config){
-        for(var qi=0;qi<config.questions.length;qi++){
-          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
-        }
-      }
-      html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
-    });
-    html += '</div>';
-  }
   
-  // ===== 編集ボタン =====
-  var editDateStr = dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
-  html += '<div style="margin-top:20px;text-align:center;">';
-  html += '<button onclick="editPastRecord(\''+editDateStr+'\')" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">この日を編集する ✏️</button>';
-  html += '</div>';
-
-  content.innerHTML = html;
-}
 
 function editPastRecord(dateStr) {
   var dayModal = document.getElementById('dayDetailModal');
