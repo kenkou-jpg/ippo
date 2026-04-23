@@ -3713,6 +3713,9 @@ function updateHomeSummary(){
 }
 
 function editPastRecord(dateStr) {
+  // オーバーレイを閉じる
+  var overlay = document.getElementById('dmOverlay');
+  if (overlay) overlay.classList.remove('dm-open');
   var dayModal = document.getElementById('dayDetailModal');
   if (dayModal) dayModal.style.display = 'none';
   
@@ -3747,18 +3750,32 @@ function editPastRecord(dateStr) {
   }
   
   state.editingDate = dateStr;
-  openRecordModal();
   
+  // 記録画面に遷移
+  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('active'); });
+  var recScreen = document.getElementById('screen-record');
+  if(recScreen) recScreen.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
+  var navItems = document.querySelectorAll('.nav-item');
+  if(navItems[2]) navItems[2].classList.add('active');
+  
+  if(typeof openRecordScreen === 'function') openRecordScreen();
+  
+  // タイトルを対象日に変更
   setTimeout(function() {
-    var titleEl = document.querySelector('.modal-title');
-    if (titleEl) {
-      var d = new Date(dateStr);
-      titleEl.textContent = (d.getMonth()+1) + '月' + d.getDate() + '日の記録を編集';
+    var d = new Date(dateStr);
+    var WDAY = ['日','月','火','水','木','金','土'];
+    var dateLabel = document.getElementById('rec-screen-date');
+    var titleLabel = document.getElementById('rec-screen-title');
+    if (dateLabel) {
+      dateLabel.textContent = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WDAY[d.getDay()]+'）';
     }
-  }, 100);
+    if (titleLabel) {
+      titleLabel.textContent = d.getDate()+'日の記録を編集';
+    }
+  }, 150);
 }
 
-  
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
   var title = document.getElementById('home-cta-title');
