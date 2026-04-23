@@ -2615,13 +2615,9 @@ function saveVision(){
 function updateVisionDisplay(){
   var el = document.getElementById('vision-display-text');
   if(!el) return;
-  if(state.myVision){
-    el.innerHTML = state.myVision.replace(/\n/g, '<br>');
-    el.style.fontWeight = '400';
-  } else {
-    el.textContent = 'タップして目標を設定';
-  }
+  el.textContent = state.myVision || 'タップして設定';
 }
+
 
 function updateHomeVision(){
   // ホーム画面への表示なし
