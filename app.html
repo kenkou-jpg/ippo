@@ -2602,8 +2602,12 @@ function saveVision(){
 function updateVisionDisplay(){
   var el = document.getElementById('vision-display-text');
   if(!el) return;
-  el.textContent = state.myVision || 'タップして目標を設定';
-  el.style.fontWeight = state.myVision ? '500' : '400';
+  if(state.myVision){
+    el.innerHTML = state.myVision.replace(/\n/g, '<br>');
+    el.style.fontWeight = '400';
+  } else {
+    el.textContent = 'タップして目標を設定';
+  }
 }
 
 function updateHomeVision(){
