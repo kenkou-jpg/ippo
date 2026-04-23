@@ -2138,6 +2138,17 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="settings-header">
         <div class="settings-title">設定</div>
          </div>
+         <!-- わたしの目標 -->
+      <div class="section-card" id="vision-setting">
+        <div class="section-label">MY VISION</div>
+        <div class="section-title serif">わたしの目標</div>
+        <div style="padding:0 16px 16px;">
+          <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">このアプリを使う目的を書いてみましょう</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;" id="vision-presets"></div>
+          <textarea id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;min-height:60px;border:1.5px solid #e8e0d8;border-radius:12px;padding:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;resize:none;background:var(--white);box-sizing:border-box;"></textarea>
+          <button onclick="saveVision()" style="margin-top:10px;width:100%;padding:12px;background:var(--rose);color:white;border:none;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存する</button>
+        </div>
+      </div>
               <div class="section-card" id="chakra-profile-card" style="display:none;">
         <div class="section-label">YOUR CHAKRA TYPE</div>
         <div class="section-title serif">あなたのチャクラタイプ</div>
@@ -2543,6 +2554,71 @@ var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 var supabaseToken = null;
 var supabaseUserId = null;
 
+  // ===== わたしの目標 =====
+var VISION_PRESETS = [
+  '卵巣嚢腫を小さくしたい',
+  '断食を習慣にしたい',
+  '自分の体のリズムを知りたい',
+  'PMS/PMDDを軽くしたい',
+  '妊活の準備をしたい',
+  '体調を整えたい'
+];
+
+function initVisionUI(){
+  var container = document.getElementById('vision-presets');
+  if(!container) return;
+  container.innerHTML = '';
+  VISION_PRESETS.forEach(function(text){
+    var btn = document.createElement('button');
+    btn.textContent = text;
+    btn.style.cssText = 'padding:8px 14px;border:1.5px solid #e8e0d8;border-radius:20px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;';
+    btn.onclick = function(){
+      document.getElementById('vision-input').value = text;
+      container.querySelectorAll('button').forEach(function(b){ b.style.background='var(--white)'; b.style.color='var(--ink)'; b.style.borderColor='#e8e0d8'; });
+      btn.style.background = 'var(--rose)';
+      btn.style.color = 'white';
+      btn.style.borderColor = 'var(--rose)';
+    };
+    if(state.myVision === text){
+      btn.style.background = 'var(--rose)';
+      btn.style.color = 'white';
+      btn.style.borderColor = 'var(--rose)';
+    }
+    container.appendChild(btn);
+  });
+  var input = document.getElementById('vision-input');
+  if(input && state.myVision) input.value = state.myVision;
+}
+
+function saveVision(){
+  var input = document.getElementById('vision-input');
+  if(!input) return;
+  state.myVision = input.value.trim();
+  saveState();
+  updateHomeVision();
+  alert('目標を保存しました');
+}
+
+function updateHomeVision(){
+  var el = document.getElementById('home-vision');
+  var homeDate = document.querySelector('#screen-home .home-date');
+  if(!el && homeDate){
+    el = document.createElement('div');
+    el.id = 'home-vision';
+    homeDate.parentNode.insertBefore(el, homeDate.nextSibling);
+  }
+  if(!el) return;
+  if(state.myVision){
+    el.style.cssText = 'padding:0 24px;margin-top:8px;';
+    el.innerHTML = '<div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:10px;">'
+      + '<span style="font-size:20px;">🎯</span>'
+      + '<div><div style="font-size:10px;color:var(--ink-light);letter-spacing:0.1em;">わたしの目標</div>'
+      + '<div style="font-size:13px;color:var(--ink);font-weight:500;margin-top:2px;">' + state.myVision + '</div></div></div>';
+  } else {
+    el.innerHTML = '';
+  }
+}
+
 // ===== 疾患別カスタマイズ =====
 var DISEASE_CONFIG = {
   '卵巣嚢腫': {
@@ -2946,6 +3022,9 @@ function startApp() {
   state.name = nameInput.value.trim() || 'あなた';
   saveState();
   showMain();
+  initVisionUI();
+updateHomeVision();
+
 }
 
 function showMain() {
