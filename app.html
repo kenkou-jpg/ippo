@@ -2139,17 +2139,30 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="settings-title">設定</div>
          </div>
       
-      <!-- わたしの目標 -->
-<div class="section-card" id="vision-setting" style="margin:0 20px 20px;">
-  <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:8px;">MY VISION</div>
-  <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);margin-bottom:6px;">わたしの目標</div>
-  <div id="vision-display" onclick="toggleVisionEdit()" style="cursor:pointer;">
-  <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:16px;padding:20px 20px 20px 24px;border-left:3px solid var(--rose);position:relative;">
-    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:10px;">MY VISION</div>
-    <div id="vision-display-text" style="font-family:'Shippori Mincho',serif;font-size:15px;line-height:1.8;color:var(--ink);">タップして目標を設定</div>
-    <div style="position:absolute;top:12px;right:14px;font-size:9px;color:var(--ink-light);">編集 ▾</div>
+     <!-- わたしの目標 -->
+<div class="settings-section" id="vision-setting" style="margin-top:0;">
+  <div class="settings-card">
+    <div class="settings-row" onclick="toggleVisionEdit()">
+      <div class="settings-row-left">
+        <div class="settings-row-icon" style="background:#fff8f0">🎯</div>
+        <div>
+          <div class="settings-row-text">わたしの目標</div>
+          <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
+        </div>
+      </div>
+      <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+    </div>
+  </div>
+  <div id="vision-edit" style="display:none;margin:10px 0 20px;">
+    <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
+      <input type="text" id="vision-input" placeholder="からだのリズムを知ること" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
+      <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
+    </div>
   </div>
 </div>
+
 
 
       <!-- Premium Card -->
