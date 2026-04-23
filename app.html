@@ -2137,32 +2137,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="spacer-top"></div>
       <div class="settings-header">
         <div class="settings-title">設定</div>
-         </div>
-      
-     <!-- わたしの目標 -->
-<div class="settings-section" id="vision-setting" style="margin-top:0;">
-  <div class="settings-card">
-    <div class="settings-row" onclick="toggleVisionEdit()">
-      <div class="settings-row-left">
-        <div class="settings-row-icon" style="background:#fff8f0">🎯</div>
-        <div>
-          <div class="settings-row-text">わたしの目標</div>
-          <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
-        </div>
       </div>
-      <div class="settings-row-right"><span class="settings-chevron">›</span></div>
     </div>
-  </div>
-  <div id="vision-edit" style="display:none;margin:10px 0 20px;">
-    <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
-      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
-      <input type="text" id="vision-input" placeholder="からだのリズムを知ること" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
-      <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
-    </div>
-  </div>
-</div>
-
 
 
       <!-- Premium Card -->
@@ -2190,7 +2166,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
 
-      <!-- Profile -->
+     <!-- Profile -->
       <div class="settings-section">
         <div class="settings-section-title">プロフィール</div>
         <div class="settings-card">
@@ -2214,7 +2190,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-             <div class="settings-row" onclick="openDiseaseSettings()">
+          <div class="settings-row" onclick="openDiseaseSettings()">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#f3f0fd">🩺</div>
               <div>
@@ -2224,15 +2200,23 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="var h=prompt('断食目標時間（数字）',state.fastingGoal||16);if(h!==null){state.fastingGoal=parseInt(h)||16;document.getElementById('fast-goal-display').textContent=state.fastingGoal+'h';saveState();}">
+          <div class="settings-row" onclick="toggleVisionEdit()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#d6e8dd">⏱</div>
+              <div class="settings-row-icon" style="background:#fff8f0">🎯</div>
               <div>
-                <div class="settings-row-text">断食目標時間</div>
-                <div class="settings-row-sub" id="fast-goal-display">14h</div>
+                <div class="settings-row-text">わたしの目標</div>
+                <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
               </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+        <div id="vision-edit" style="display:none;margin:10px 0 0;">
+          <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
+            <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
+            <input type="text" id="vision-input" placeholder="体調リズムを整えたい" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
+            <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
           </div>
         </div>
       </div>
