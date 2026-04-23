@@ -3056,7 +3056,23 @@ function init() {
 
   initVisionUI();
   updateHomeVision();
-}
+// タブが表示されるたびにクラウドから復元
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden && typeof cloudRestore === 'function'){
+    cloudRestore().then(function(restored){
+      if(restored){
+        updateStats(); 
+        updateHistory(); 
+        buildCalendar();
+        if(state.fastingActive && state.fastingStart){
+          resumeFasting();
+        }
+      }
+    }).catch(function(e){ 
+      console.log('復元エラー:', e); 
+    });
+  }
+});
 
 
 
@@ -3188,6 +3204,7 @@ let fastInterval = null;
 function setFastGoal(h, el) {
   state.fastGoal = h;
   saveState();
+   cloudBackupAll();
   document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
 }
@@ -3201,6 +3218,7 @@ function toggleFast() {
   state.fastingActive = true;
   state.fastingStart = Date.now();
   saveState();
+  cloudBackupAll();
   document.getElementById('fast-start-btn').style.display = 'none';
   document.getElementById('fast-stop-btn').style.display = 'block';
   // 達成予定時刻を表示
@@ -3232,6 +3250,7 @@ function endFast() {
   rec.fastingGoal = state.fastGoal || 16;
 
   saveState();
+  cloudBackupAll();
   document.getElementById('fast-start-btn').style.display = 'block';
   document.getElementById('fast-stop-btn').style.display = 'none';
   document.getElementById('fast-timer').textContent = '00:00:00';
