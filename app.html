@@ -2019,8 +2019,15 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <div class="section-title serif">食事の記録</div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
       時間と食べたものを自由に記入してください<br>
-      <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
+    <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
     </div>
+    <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+      <button onclick="addMealEntry('朝食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌅 朝食</button>
+      <button onclick="addMealEntry('昼食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">☀️ 昼食</button>
+      <button onclick="addMealEntry('夕食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌙 夕食</button>
+      <button onclick="addMealEntry('間食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🍪 間食</button>
+    </div>
+
     <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食&#10;" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
     <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
       <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
@@ -2547,6 +2554,24 @@ var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
 var supabaseToken = null;
 var supabaseUserId = null;
+
+  // ===== 食事クイック入力 =====
+function addMealEntry(type, btn){
+  var ta = document.getElementById('rs-meal-free');
+  if(!ta) return;
+  var now = new Date();
+  var h = String(now.getHours()).padStart(2,'0');
+  var m = String(now.getMinutes()).padStart(2,'0');
+  var line = h + m + ' ' + type;
+  var current = ta.value.trim();
+  ta.value = current ? current + '\n' + line : line;
+  if(btn){
+    btn.style.background = 'var(--rose)';
+    btn.style.color = 'white';
+    btn.style.borderColor = 'var(--rose)';
+  }
+  if(typeof parseMealFree === 'function') parseMealFree();
+}
 
   // ===== わたしの目標 =====
 var VISION_PRESETS = [
