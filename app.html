@@ -2629,6 +2629,13 @@ function closeMealTimePicker(){
   _mealPendingBtn = null;
 }
 
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id === 'meal-time-input'){
+    confirmMealTime();
+  }
+});
+
+
   // ===== わたしの目標 =====
 var VISION_PRESETS = [
   '断食を習慣にしたい',
