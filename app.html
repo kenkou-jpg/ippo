@@ -3255,6 +3255,35 @@ function saveRecord() {
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
 
+  / ★ 編集モードの場合は編集対象日を使用
+  if (state.editingDate) {
+    currentRecord.date = new Date(state.editingDate).toISOString();
+    currentRecord.record_date = state.editingDate;
+    
+    // 既存の記録を上書き
+    var editIdx = state.records.findIndex(function(r) {
+      return (r.record_date || (r.date && r.date.slice(0,10))) === state.editingDate;
+    });
+    if (editIdx !== -1) {
+      state.records[editIdx] = currentRecord;
+    } else {
+      state.records.push(currentRecord);
+    }
+    
+    state.editingDate = null; // 編集モード解除
+    
+    saveState();
+    closeModal();
+    updateStats();
+    updateUnlock();
+    updateHistory();
+    buildCalendar();
+    updateChakraProfile();
+    showSuccessMessage('記録を更新しました');
+    cloudBackupAll();
+    return;
+  }
+  
   currentRecord.date = new Date().toISOString();
 
   // Check if already recorded today (BEFORE push)
