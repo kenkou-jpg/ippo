@@ -2132,11 +2132,97 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
-    <!-- SETTINGS -->
+   <!-- SETTINGS -->
     <div id="screen-settings" class="screen">
       <div class="spacer-top"></div>
       <div class="settings-header">
         <div class="settings-title">設定</div>
+      </div>
+
+      <!-- Profile -->
+      <div class="settings-section">
+        <div class="settings-section-title">プロフィール</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="var n=prompt('名前を変更',state.name||'');if(n!==null){state.name=n.trim()||'あなた';document.getElementById('settings-name-display').textContent=state.name;saveState();}">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f9edd8">👤</div>
+              <div>
+                <div class="settings-row-text" id="settings-name-display">名前未設定</div>
+                <div class="settings-row-sub">タップして変更</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="openSymptomSettings()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
+              <div>
+                <div class="settings-row-text">気になる症状</div>
+                <div class="settings-row-sub" id="symptom-setting-display">設定する</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="openDiseaseSettings()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f3f0fd">🩺</div>
+              <div>
+                <div class="settings-row-text">気になる疾患</div>
+                <div class="settings-row-sub" id="disease-setting-display">設定する</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="toggleVisionEdit()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fff8f0">🎯</div>
+              <div>
+                <div class="settings-row-text">わたしの目標</div>
+                <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+        <div id="vision-edit" style="display:none;margin:10px 0 0;">
+          <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
+            <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
+            <input type="text" id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
+            <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data -->
+      <div class="settings-section">
+        <div class="settings-section-title">データ管理</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="syncToCloud()" id="sync-btn-row">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#e8f4ec">☁️</div>
+              <div>
+                <div class="settings-row-text">クラウドに同期</div>
+                <div class="settings-row-sub">データをバックアップ</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="if(confirm('すべてのデータを削除しますか？')){localStorage.removeItem('ippo_state');location.reload();}">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fdeaea">🗑</div>
+              <div>
+                <div class="settings-row-text" style="color:#c0392b;">データを全削除</div>
+                <div class="settings-row-sub">すべての記録をリセット</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;padding:20px 0 40px;font-size:11px;color:var(--ink-light);">
+        ippo v1.0 — あなたのからだに寄り添うアプリ
       </div>
     </div>
 
