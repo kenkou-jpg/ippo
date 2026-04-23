@@ -4467,6 +4467,15 @@ function openDayDetail(d){
     }
     html += '</div></div>';
   } else if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+    html += '<div style="margin-top:14px;background:#f3f0fd;border-radius:14px;padding:14px;">';
+    html += '<div style="font-size:10px;color:#6b5b8a;letter-spacing:0.15em;margin-bottom:10px;">🩺 疾患セルフチェック</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    Object.keys(rec.diseaseCheck).forEach(function(key){
+      html += '<span style="font-size:11px;background:var(--white);color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+key+': '+rec.diseaseCheck[key]+'</span>';
+    });
+    html += '</div></div>';
+  }
+
 
 
   // ===== メモ（体温・ジャーナル統合） =====
