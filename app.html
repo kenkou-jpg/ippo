@@ -4528,7 +4528,7 @@ function createMealDonut(meals, fasting, fastingGoal){
         var mh = parseInt(match[1],10) + parseInt(match[2],10)/60;
         var mlabel = match[3].trim();
         var isDrink = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/.test(mlabel);
-        // 既存スロットとマッチするか
+        // 既存スロットとラベル名でマッチするか
         var matched = false;
         for(var si = 0; si < foodTimes.length; si++){
           if(mlabel.indexOf(foodTimes[si].slot.key) !== -1){
@@ -4539,7 +4539,18 @@ function createMealDonut(meals, fasting, fastingGoal){
           }
         }
         if(!matched){
-          foodTimes.push({ hour: mh, slot: { key: mlabel, label: mlabel, defaultH: mh, duration: 0.5, color: '#C4A7D7' }, isDrink: isDrink });
+          // 時間帯から自動的にスロットを推定
+          var autoSlot;
+          if(mh >= 5 && mh < 10){
+            autoSlot = mealSlots[0]; // 朝食
+          } else if(mh >= 10 && mh < 14){
+            autoSlot = mealSlots[1]; // 昼食
+          } else if(mh >= 17 && mh < 22){
+            autoSlot = mealSlots[2]; // 夕食
+          } else {
+            autoSlot = mealSlots[3]; // 間食
+          }
+          foodTimes.push({ hour: mh, slot: { key: mlabel, label: mlabel, defaultH: mh, duration: autoSlot.duration, color: autoSlot.color }, isDrink: isDrink });
         }
       }
     }
