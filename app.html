@@ -4848,12 +4848,12 @@ function openDayDetail(d){
     var fPct = Math.min(fHours / fGoal, 1);
     var fR = 28, fC = 2 * Math.PI * fR;
     var fOffset = fC - (fC * fPct);
-    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#2c2420,#3d302a);border-radius:14px;padding:16px;color:white;">';
-    html += '<div style="font-size:10px;letter-spacing:0.15em;color:rgba(255,255,255,0.5);margin-bottom:8px;">FASTING</div>';
+    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#faf6f2,#f5ede6);border-radius:14px;padding:16px;color:var(--ink);">';
+    html += '<div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:8px;">FASTING</div>';
     html += '<div style="display:flex;align-items:center;gap:12px;">';
     html += '<div style="position:relative;width:64px;height:64px;flex-shrink:0;">';
     html += '<svg viewBox="0 0 64 64" style="width:100%;height:100%;transform:rotate(-90deg);">';
-    html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="5"/>';
+    html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="#e8ddd8" stroke-width="5"/>';
     html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="'+(fPct>=1?'#8aab96':'#e8c49a')+'" stroke-width="5" stroke-dasharray="'+fC+'" stroke-dashoffset="'+fOffset+'" stroke-linecap="round"/>';
     html += '</svg>';
     html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
