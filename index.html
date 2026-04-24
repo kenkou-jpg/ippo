@@ -608,6 +608,61 @@
       z-index: 2;
     }
 
+        /* ── ABOUT VISUAL (photo + phone overlay) ── */
+    .about-visual {
+      position: relative;
+      width: 220px;
+      margin: 0 auto;
+    }
+    .about-visual .about-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      margin: 0 auto;
+    }
+    .about-visual .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .about-phone-overlay {
+      position: absolute;
+      bottom: -20px;
+      right: -30px;
+      width: 90px;
+      z-index: 2;
+      filter: drop-shadow(0 8px 24px rgba(26,23,20,0.18));
+    }
+    .about-phone-overlay .phone-frame {
+      border-radius: 16px;
+      padding: 4px;
+    }
+    .about-phone-overlay .phone-screen {
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    .about-phone-overlay .phone-screen img {
+      width: 100%;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .about-visual {
+        width: 180px;
+      }
+      .about-visual .about-photo {
+        width: 160px;
+        height: 160px;
+      }
+      .about-phone-overlay {
+        width: 72px;
+        bottom: -14px;
+        right: -20px;
+      }
+    }
+
 
   </style>
 </head>
@@ -1016,8 +1071,17 @@
 <section class="about section">
   <div class="container">
     <div class="about-inner">
-      <div class="about-photo">
-        <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+          <div class="about-visual">
+        <div class="about-photo">
+          <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+        </div>
+        <div class="about-phone-overlay">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <img src="images/mockup_01_home.png" alt="ippoアプリ画面">
+            </div>
+          </div>
+        </div>
       </div>
       <div class="about-content">
         <div data-lang="ja">
