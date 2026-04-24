@@ -1,514 +1,1336 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ippo — 女性疾患セルフケアアプリ | Self-Care App for Women's Health</title>
-<meta name="description" content="卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症。診断されたその日から使える、毎日1分のセルフケア記録アプリ。無料・広告なし・プライバシー最優先。">
-<link rel="canonical" href="https://www.ippo-app.com/">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@400;700&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-<style>
-/* ===== RESET & VARIABLES ===== */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg:#faf6f2;--bg-warm:#f5ede4;--bg-card:#fff;
-  --ink:#3c2e26;--ink-mid:#7a6a5e;--ink-light:#b0a090;
-  --accent:#c4878c;--accent-light:#f0d4d7;
-  --green:#6b9e78;--orange:#d4a574;--purple:#8a7bb5;
-  --font-jp:'Shippori Mincho','Zen Kaku Gothic New',serif;
-  --font-body:'Zen Kaku Gothic New','Hiragino Sans',sans-serif;
-  --max-w:1080px;
-}
-html{scroll-behavior:smooth}
-body{font-family:var(--font-body);color:var(--ink);background:var(--bg);line-height:1.7;-webkit-font-smoothing:antialiased}
-img{max-width:100%;display:block}
-a{color:inherit;text-decoration:none}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ippo — Self-Care Tracking for Women's Health</title>
+  <meta name="description" content="Track your cycle, diet, fasting, mood, and body patterns. Designed for ovarian cysts, PCOS, endometriosis, and uterine fibroids. Free, private, science-aware.">
+  <meta property="og:title" content="ippo — Self-Care Tracking for Women's Health">
+  <meta property="og:description" content="Daily self-care records for women with gynecological conditions. Free and private.">
+  <meta property="og:url" content="https://www.ippo-app.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://www.ippo-app.com/images/ogp-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://www.ippo-app.com/">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===========================
+       0. CSS Custom Properties
+    =========================== */
+    :root {
+      --color-bg: #0D0D0D;
+      --color-bg-secondary: #1A1A1A;
+      --color-bg-card: #222222;
+      --color-text: #F5F5F5;
+      --color-text-secondary: #A0A0A0;
+      --color-accent: #FF6B6B;
+      --color-accent-hover: #FF8A8A;
+      --color-accent-subtle: rgba(255, 107, 107, 0.12);
+      --color-green: #4ECDC4;
+      --color-purple: #A78BFA;
+      --color-border: rgba(255,255,255,0.08);
+      --font-primary: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      --max-width: 1200px;
+      --section-padding: 120px 0;
+      --radius: 16px;
+      --radius-sm: 8px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-/* ===== UTILITY ===== */
-.container{max-width:var(--max-w);margin:0 auto;padding:0 24px}
-.section{padding:80px 0}
-.section-label{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px}
-.section-title{font-family:var(--font-jp);font-size:clamp(26px,5vw,38px);font-weight:700;line-height:1.4;margin-bottom:16px}
-.section-sub{font-size:15px;color:var(--ink-mid);max-width:520px;line-height:1.8}
-.btn{display:inline-block;padding:14px 36px;border-radius:40px;font-size:14px;font-weight:700;letter-spacing:0.05em;transition:all 0.3s ease;cursor:pointer;border:none}
-.btn-primary{background:var(--ink);color:#fff}
-.btn-primary:hover{background:#5a4a3e;transform:translateY(-2px);box-shadow:0 6px 20px rgba(60,46,38,0.2)}
-.btn-outline{border:1.5px solid var(--ink-light);color:var(--ink);background:transparent}
-.btn-outline:hover{border-color:var(--ink);background:rgba(60,46,38,0.03)}
-.badge{display:inline-block;font-size:10px;letter-spacing:0.12em;padding:3px 10px;border-radius:20px;font-weight:700}
-.badge-free{background:#e8f5ec;color:var(--green)}
-.badge-pro{background:#f3f0fd;color:var(--purple)}
-.bilingual{margin-top:40px;padding-top:32px;border-top:1px solid rgba(176,160,144,0.2)}
-.bilingual .section-label,.bilingual .section-title,.bilingual .section-sub{color:var(--ink-light)}
-.bilingual .section-title{font-size:clamp(22px,4vw,32px)}
+    /* ===========================
+       1. Reset & Base
+    =========================== */
+    *, *::before, *::after {
+      margin: 0; padding: 0; box-sizing: border-box;
+    }
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+    body {
+      font-family: var(--font-primary);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    ul { list-style: none; }
 
-/* ===== WAVE DIVIDER ===== */
-.wave-divider{width:100%;overflow:hidden;line-height:0}
-.wave-divider svg{display:block;width:100%;height:60px}
-.wave-divider.flip svg{transform:rotate(180deg)}
+    /* ===========================
+       2. Utility
+    =========================== */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-accent);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 20px;
+    }
+    .section-subtitle {
+      font-size: 1.125rem;
+      color: var(--color-text-secondary);
+      max-width: 640px;
+      line-height: 1.8;
+    }
+    .highlight { color: var(--color-accent); }
+    .highlight-green { color: var(--color-green); }
+    .highlight-purple { color: var(--color-purple); }
 
-/* ===== NAV ===== */
-.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(250,246,242,0.85);backdrop-filter:blur(16px);border-bottom:1px solid rgba(176,160,144,0.1)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;max-width:var(--max-w);margin:0 auto;padding:14px 24px}
-.nav-logo{font-family:var(--font-jp);font-size:20px;font-weight:700;color:var(--ink)}
-.nav-cta .btn{padding:8px 22px;font-size:12px}
+    /* ===========================
+       3. Header / Navigation
+    =========================== */
+    .header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+      padding: 16px 0;
+      background: rgba(13,13,13,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--color-border);
+      transition: var(--transition);
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--color-accent); }
+    .nav { display: flex; align-items: center; gap: 32px; }
+    .nav a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      transition: var(--transition);
+    }
+    .nav a:hover { color: var(--color-text); }
 
-/* ===== HERO ===== */
-.hero{padding:140px 0 60px;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;top:-100px;right:-200px;width:500px;height:500px;background:radial-gradient(circle,var(--accent-light) 0%,transparent 70%);opacity:0.3;pointer-events:none}
-.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
-.hero-text .tagline{font-size:12px;letter-spacing:0.15em;color:var(--accent);margin-bottom:16px;text-transform:uppercase}
-.hero-text h1{font-family:var(--font-jp);font-size:clamp(30px,6vw,48px);font-weight:700;line-height:1.3;margin-bottom:20px}
-.hero-text p{font-size:15px;color:var(--ink-mid);max-width:420px;margin-bottom:32px;line-height:1.8}
-.hero-stats{display:flex;gap:32px;margin-top:32px}
-.hero-stat-num{font-family:var(--font-jp);font-size:28px;font-weight:700;color:var(--ink)}
-.hero-stat-label{font-size:11px;color:var(--ink-light);letter-spacing:0.05em}
-.hero-visual{display:flex;justify-content:center;position:relative}
-.phone-mock{width:260px;height:520px;background:var(--bg-card);border-radius:32px;box-shadow:0 20px 60px rgba(60,46,38,0.12);overflow:hidden;position:relative;border:6px solid #e8ddd8}
-.phone-mock img{width:100%;height:100%;object-fit:cover}
-.phone-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#faf6f2,#f0e8de);flex-direction:column;gap:12px}
-.phone-placeholder svg{width:60px;height:60px;opacity:0.3}
-.phone-placeholder span{font-size:12px;color:var(--ink-light)}
+    .lang-switch {
+      display: flex;
+      background: var(--color-bg-card);
+      border-radius: 20px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .lang-switch button {
+      background: none;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 6px 14px;
+      border-radius: 18px;
+      cursor: pointer;
+      transition: var(--transition);
+      font-family: var(--font-primary);
+    }
+    .lang-switch button.active {
+      background: var(--color-accent);
+      color: #fff;
+    }
 
-/* ===== CONDITIONS ===== */
-.conditions{background:var(--bg-warm)}
-.condition-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;margin-top:36px}
-.condition-card{background:var(--bg-card);border-radius:16px;padding:28px 24px;transition:transform 0.2s,box-shadow 0.2s}
-.condition-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(60,46,38,0.08)}
-.condition-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
-.condition-card h3{font-family:var(--font-jp);font-size:16px;font-weight:700;margin-bottom:8px}
-.condition-card p{font-size:13px;color:var(--ink-mid);line-height:1.7}
-.icon-cyst{background:#e8f0f8}
-.icon-pcos{background:#fce8e6}
-.icon-endo{background:#f5f0e6}
-.icon-fibroid{background:#e8f5ec}
+    .btn-header {
+      background: var(--color-accent);
+      color: #fff;
+      padding: 10px 24px;
+      border-radius: 24px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+    }
+    .btn-header:hover {
+      background: var(--color-accent-hover);
+      transform: translateY(-1px);
+    }
 
-/* ===== FEATURES (ZIGZAG) ===== */
-.feature-row{display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:64px}
-.feature-row.reverse .feature-text{order:2}
-.feature-row.reverse .feature-img{order:1}
-.feature-text .badge{margin-bottom:12px}
-.feature-text h3{font-family:var(--font-jp);font-size:clamp(20px,4vw,28px);font-weight:700;line-height:1.4;margin-bottom:12px}
-.feature-text p{font-size:14px;color:var(--ink-mid);line-height:1.8}
-.feature-img{display:flex;justify-content:center}
-.feature-phone{width:220px;height:440px;background:var(--bg-card);border-radius:28px;box-shadow:0 12px 40px rgba(60,46,38,0.1);overflow:hidden;border:5px solid #ece5dd}
-.feature-phone img{width:100%;height:100%;object-fit:cover}
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .hamburger span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: var(--color-text);
+      margin: 5px 0;
+      transition: var(--transition);
+    }
 
-/* ===== PRICING ===== */
-.pricing{background:var(--bg-warm)}
-.pricing-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:36px;max-width:720px;margin-left:auto;margin-right:auto}
-.price-card{background:var(--bg-card);border-radius:20px;padding:36px 28px;position:relative;transition:transform 0.2s,box-shadow 0.2s}
-.price-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(60,46,38,0.1)}
-.price-card.featured{border:2px solid var(--accent)}
-.price-card .price-label{font-size:12px;letter-spacing:0.1em;color:var(--ink-light);margin-bottom:8px;text-transform:uppercase}
-.price-card .price-amount{font-family:var(--font-jp);font-size:36px;font-weight:700;margin-bottom:4px}
-.price-card .price-period{font-size:12px;color:var(--ink-light);margin-bottom:20px}
-.price-card ul{list-style:none;margin-bottom:24px}
-.price-card li{font-size:13px;color:var(--ink-mid);padding:6px 0;padding-left:20px;position:relative}
-.price-card li::before{content:'✓';position:absolute;left:0;color:var(--green);font-weight:700;font-size:12px}
-.price-card .btn{width:100%;text-align:center}
-.coming-badge{position:absolute;top:16px;right:16px;background:var(--accent);color:#fff;font-size:9px;letter-spacing:0.1em;padding:4px 10px;border-radius:12px;font-weight:700}
+    /* ===========================
+       4. Hero Section
+    =========================== */
+    .hero {
+      padding: 180px 0 120px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(255,107,107,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-accent-subtle);
+      color: var(--color-accent);
+      padding: 8px 20px;
+      border-radius: 24px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 32px;
+      letter-spacing: 0.03em;
+    }
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 24px;
+      letter-spacing: -0.02em;
+    }
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--color-text-secondary);
+      max-width: 600px;
+      margin: 0 auto 48px;
+      line-height: 1.8;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-accent);
+      color: #fff;
+      padding: 16px 40px;
+      border-radius: 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: var(--transition);
+    }
+    .hero-cta:hover {
+      background: var(--color-accent-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(255,107,107,0.25);
+    }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 64px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-number {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--color-text);
+    }
+    .hero-stat-label {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      margin-top: 4px;
+    }
 
-/* ===== REVIEWS ===== */
-.reviews-track{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding:8px 0 20px;scrollbar-width:none}
-.reviews-track::-webkit-scrollbar{display:none}
-.review-card{min-width:300px;max-width:340px;background:var(--bg-card);border-radius:16px;padding:28px 24px;scroll-snap-align:start;flex-shrink:0;box-shadow:0 4px 16px rgba(60,46,38,0.06)}
-.review-stars{color:#e8b860;font-size:14px;letter-spacing:2px;margin-bottom:12px}
-.review-card blockquote{font-size:14px;line-height:1.7;color:var(--ink);margin-bottom:16px;font-style:normal}
-.review-card cite{font-size:12px;color:var(--ink-light);font-style:normal}
+    /* ===========================
+       5. Conditions Section
+    =========================== */
+    .conditions {
+      padding: var(--section-padding);
+    }
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+    }
+    .condition-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .condition-card:hover {
+      border-color: var(--color-accent);
+      transform: translateY(-4px);
+    }
+    .condition-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--color-accent-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      font-size: 1.5rem;
+    }
+    .condition-card h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .condition-card p {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      line-height: 1.6;
+    }
 
-/* ===== PRIVACY ===== */
-.privacy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:36px}
-.privacy-card{text-align:center;padding:32px 20px}
-.privacy-icon{width:64px;height:64px;margin:0 auto 16px;border-radius:50%;display:flex;align-items:center;justify-content:center}
-.privacy-icon svg{width:28px;height:28px}
-.privacy-card h3{font-family:var(--font-jp);font-size:15px;font-weight:700;margin-bottom:8px}
-.privacy-card p{font-size:13px;color:var(--ink-mid);line-height:1.7}
+    /* ===========================
+       6. Features Section
+    =========================== */
+    .features {
+      padding: var(--section-padding);
+    }
+    .feature-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      margin-bottom: 120px;
+    }
+    .feature-row:last-child { margin-bottom: 0; }
+    .feature-row.reverse { direction: rtl; }
+    .feature-row.reverse > * { direction: ltr; }
+    .feature-visual {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius);
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      font-size: 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,107,107,0.05), transparent);
+    }
+    .feature-content .section-label { margin-bottom: 12px; }
+    .feature-content h3 {
+      font-size: clamp(1.5rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+    .feature-content p {
+      color: var(--color-text-secondary);
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-bottom: 24px;
+    }
+    .feature-tag {
+      display: inline-block;
+      background: var(--color-accent-subtle);
+      color: var(--color-accent);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .feature-tag.green {
+      background: rgba(78,205,196,0.12);
+      color: var(--color-green);
+    }
 
-/* ===== STORY ===== */
-.story{background:var(--bg-warm)}
-.story-grid{display:grid;grid-template-columns:1fr 1.2fr;gap:48px;align-items:center}
-.story-img{border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(60,46,38,0.1)}
-.story-img img{width:100%;display:block}
-.story-text h3{font-family:var(--font-jp);font-size:clamp(20px,4vw,28px);font-weight:700;margin-bottom:16px}
-.story-text p{font-size:14px;color:var(--ink-mid);line-height:1.9;margin-bottom:12px}
-.story-text .signature{font-family:var(--font-jp);font-size:16px;font-style:italic;color:var(--accent);margin-top:20px}
+    /* ===========================
+       7. Plan Section
+    =========================== */
+    .plans {
+      padding: var(--section-padding);
+    }
+    .plans-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .plan-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 48px 36px;
+      position: relative;
+      transition: var(--transition);
+    }
+    .plan-card.premium {
+      border-color: var(--color-accent);
+      background: linear-gradient(180deg, rgba(255,107,107,0.05) 0%, var(--color-bg-secondary) 100%);
+    }
+    .plan-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--color-accent);
+      color: #fff;
+      padding: 4px 16px;
+      border-radius: 12px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .plan-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+    }
+    .plan-price {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .plan-price-sub {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      margin-bottom: 32px;
+    }
+    .plan-features {
+      margin-bottom: 32px;
+    }
+    .plan-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 0;
+      font-size: 0.95rem;
+      color: var(--color-text-secondary);
+      border-bottom: 1px solid var(--color-border);
+    }
+    .plan-features li:last-child { border-bottom: none; }
+    .plan-features li .check {
+      color: var(--color-green);
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .plan-btn {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+      border-radius: 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: var(--transition);
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-primary);
+    }
+    .plan-btn.primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .plan-btn.primary:hover {
+      background: var(--color-accent-hover);
+      transform: translateY(-2px);
+    }
+    .plan-btn.secondary {
+      background: var(--color-bg-card);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
+    }
+    .plan-btn.secondary:hover {
+      border-color: var(--color-text-secondary);
+    }
 
-/* ===== CTA ===== */
-.final-cta{text-align:center;padding:80px 0;background:linear-gradient(180deg,var(--bg) 0%,var(--bg-warm) 100%)}
-.final-cta h2{font-family:var(--font-jp);font-size:clamp(24px,5vw,36px);font-weight:700;margin-bottom:16px;line-height:1.4}
-.final-cta p{font-size:14px;color:var(--ink-mid);margin-bottom:32px}
+    /* ===========================
+       8. Testimonials
+    =========================== */
+    .testimonials {
+      padding: var(--section-padding);
+    }
+    .testimonials-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .testimonial-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 36px;
+    }
+    .testimonial-stars {
+      color: var(--color-accent);
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+      letter-spacing: 2px;
+    }
+    .testimonial-text {
+      font-size: 1rem;
+      line-height: 1.8;
+      margin-bottom: 24px;
+      color: var(--color-text);
+    }
+    .testimonial-author {
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+    }
 
-/* ===== FOOTER ===== */
-.footer{text-align:center;padding:32px 0;border-top:1px solid rgba(176,160,144,0.15);font-size:12px;color:var(--ink-light)}
+    /* ===========================
+       9. Privacy Section
+    =========================== */
+    .privacy {
+      padding: var(--section-padding);
+    }
+    .privacy-inner {
+      text-align: center;
+    }
+    .privacy-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 48px;
+    }
+    .privacy-item {
+      padding: 32px;
+    }
+    .privacy-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .privacy-item h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .privacy-item p {
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      line-height: 1.7;
+    }
 
-/* ===== RESPONSIVE ===== */
-@media(max-width:768px){
-  .hero-grid,.feature-row,.story-grid,.pricing-grid,.privacy-grid{grid-template-columns:1fr}
-  .feature-row.reverse .feature-text{order:1}
-  .feature-row.reverse .feature-img{order:2}
-  .hero-visual{margin-top:32px}
-  .phone-mock{width:220px;height:440px}
-  .feature-phone{width:180px;height:360px}
-  .hero-stats{gap:20px}
-  .condition-grid{grid-template-columns:1fr 1fr}
-  .privacy-grid{grid-template-columns:1fr}
-  .story-grid{gap:24px}
-  .story-img{order:2}
-  .section{padding:56px 0}
-  .pricing-grid{gap:16px}
-}
-@media(max-width:480px){
-  .condition-grid{grid-template-columns:1fr}
-  .hero-stats{flex-direction:column;gap:12px}
-}
-</style>
+    /* ===========================
+       10. About / Story
+    =========================== */
+    .about {
+      padding: var(--section-padding);
+    }
+    .about-inner {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 64px;
+      align-items: center;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .about-image {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: var(--color-bg-secondary);
+      border: 2px solid var(--color-border);
+      overflow: hidden;
+      margin: 0 auto;
+    }
+    .about-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .about-content .section-label { margin-bottom: 12px; }
+    .about-content h3 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .about-content p {
+      color: var(--color-text-secondary);
+      line-height: 1.9;
+      margin-bottom: 12px;
+    }
+    .about-tagline {
+      font-style: italic;
+      color: var(--color-accent) !important;
+      font-weight: 500;
+      margin-top: 20px !important;
+    }
+
+    /* ===========================
+       11. Final CTA
+    =========================== */
+    .final-cta {
+      padding: 120px 0;
+      text-align: center;
+      position: relative;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255,107,107,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .final-cta h2 {
+      font-size: clamp(2rem, 5vw, 3rem);
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .final-cta p {
+      color: var(--color-text-secondary);
+      font-size: 1.1rem;
+      margin-bottom: 40px;
+    }
+
+    /* ===========================
+       12. Footer
+    =========================== */
+    .footer {
+      padding: 64px 0 32px;
+      border-top: 1px solid var(--color-border);
+    }
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 48px;
+      margin-bottom: 48px;
+    }
+    .footer-brand .logo { margin-bottom: 12px; }
+    .footer-brand p {
+      font-size: 0.85rem;
+      color: var(--color-text-secondary);
+      max-width: 280px;
+      line-height: 1.7;
+    }
+    .footer-links h4 {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-secondary);
+      margin-bottom: 16px;
+    }
+    .footer-links a {
+      display: block;
+      font-size: 0.9rem;
+      color: var(--color-text-secondary);
+      padding: 4px 0;
+      transition: var(--transition);
+    }
+    .footer-links a:hover { color: var(--color-text); }
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 32px;
+      border-top: 1px solid var(--color-border);
+      font-size: 0.8rem;
+      color: var(--color-text-secondary);
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-legal a {
+      color: var(--color-text-secondary);
+      margin-left: 24px;
+      transition: var(--transition);
+    }
+    .footer-legal a:hover { color: var(--color-text); }
+
+    /* ===========================
+       13. Responsive
+    =========================== */
+    @media (max-width: 1024px) {
+      .conditions-grid { grid-template-columns: repeat(2, 1fr); }
+      .feature-row { gap: 48px; }
+    }
+
+    @media (max-width: 768px) {
+      :root { --section-padding: 80px 0; }
+      .nav { display: none; }
+      .hamburger { display: block; }
+      .nav.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 60px; left: 0; right: 0; bottom: 0;
+        background: var(--color-bg);
+        padding: 32px 24px;
+        gap: 24px;
+        z-index: 999;
+      }
+      .nav.open a { font-size: 1.2rem; }
+      .hero { padding: 140px 0 80px; }
+      .hero h1 { font-size: 2.2rem; }
+      .hero-stats { gap: 32px; }
+      .conditions-grid { grid-template-columns: 1fr 1fr; }
+      .feature-row {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+      .feature-row.reverse { direction: ltr; }
+      .plans-grid { grid-template-columns: 1fr; }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .privacy-grid { grid-template-columns: 1fr; }
+      .about-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .footer-inner { flex-direction: column; }
+    }
+
+    /* ===========================
+       14. Animations
+    =========================== */
+    @media (prefers-reduced-motion: no-preference) {
+      .fade-in {
+        opacity: 0;
+        transform: translateY(24px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===========================
+       15. Language Toggle
+    =========================== */
+    [data-lang="en"] { display: none; }
+    html[lang="en"] [data-lang="en"] { display: block; }
+    html[lang="en"] [data-lang="ja"] { display: none; }
+    html[lang="en"] [data-lang-inline="en"] { display: inline; }
+    html[lang="en"] [data-lang-inline="ja"] { display: none; }
+    html[lang="ja"] [data-lang-inline="en"] { display: none; }
+    html[lang="ja"] [data-lang-inline="ja"] { display: inline; }
+  </style>
 </head>
 <body>
 
-<!-- ===== NAV ===== -->
-<nav class="nav">
-  <div class="nav-inner">
-    <a href="/" class="nav-logo">ippo</a>
-    <div class="nav-cta">
-      <a href="https://www.ippo-app.com/app.html" class="btn btn-primary">無料で始める</a>
+  <!-- ======= HEADER ======= -->
+  <header class="header">
+    <div class="container header-inner">
+      <div class="logo">ippo<span>.</span></div>
+      <nav class="nav" id="nav">
+        <a href="#features">
+          <span data-lang-inline="ja">機能</span>
+          <span data-lang-inline="en">Features</span>
+        </a>
+        <a href="#plans">
+          <span data-lang-inline="ja">プラン</span>
+          <span data-lang-inline="en">Plans</span>
+        </a>
+        <a href="#privacy-section">
+          <span data-lang-inline="ja">プライバシー</span>
+          <span data-lang-inline="en">Privacy</span>
+        </a>
+        <a href="https://kenkou-kiroku.com" target="_blank">
+          <span data-lang-inline="ja">ブログ</span>
+          <span data-lang-inline="en">Blog</span>
+        </a>
+        <div class="lang-switch">
+          <button id="lang-ja" class="active" onclick="setLang('ja')">JA</button>
+          <button id="lang-en" onclick="setLang('en')">EN</button>
+        </div>
+        <a href="app.html" class="btn-header">
+          <span data-lang-inline="ja">無料で始める</span>
+          <span data-lang-inline="en">Start Free</span>
+        </a>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
-  </div>
-</nav>
+  </header>
 
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <div class="container">
-    <div class="hero-grid">
-      <div class="hero-text">
-        <div class="tagline">Self-Care App for Women's Health</div>
+  <!-- ======= HERO ======= -->
+  <section class="hero">
+    <div class="container">
+      <div data-lang="ja">
+        <div class="hero-badge">女性疾患に特化したセルフケアアプリ</div>
         <h1>からだの声を<br>聴くことから。</h1>
         <p>卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——<br>
         診断されたその日から使える、毎日1分のセルフケア記録。<br>
         無料。広告なし。プライバシー最優先。</p>
-        <a href="https://www.ippo-app.com/app.html" class="btn btn-primary">無料で記録を始める →</a>
-        <div class="hero-stats">
-          <div><div class="hero-stat-num">5</div><div class="hero-stat-label">記録カテゴリ</div></div>
-          <div><div class="hero-stat-num">1–2min</div><div class="hero-stat-label">1日の記録時間</div></div>
-          <div><div class="hero-stat-num">¥0</div><div class="hero-stat-label">ずっと無料</div></div>
+      </div>
+      <div data-lang="en">
+        <div class="hero-badge">Self-Care App for Women's Health</div>
+        <h1>Listen to<br>your body.</h1>
+        <p>Ovarian cysts, PCOS, fibroids, endometriosis—<br>
+        daily self-care tracking from the day of your diagnosis.<br>
+        Free. No ads. Privacy first.</p>
+      </div>
+      <a href="app.html" class="hero-cta">
+        <span data-lang-inline="ja">無料で記録を始める</span>
+        <span data-lang-inline="en">Start Tracking Free</span>
+        <span>→</span>
+      </a>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-number">5</div>
+          <div class="hero-stat-label" data-lang-inline="ja">記録カテゴリ</div>
+          <div class="hero-stat-label" data-lang-inline="en">Tracking categories</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-number">1–2<span style="font-size:1rem">min</span></div>
+          <div class="hero-stat-label" data-lang-inline="ja">1日あたりの記録時間</div>
+          <div class="hero-stat-label" data-lang-inline="en">Daily tracking time</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-number">¥0</div>
+          <div class="hero-stat-label" data-lang-inline="ja">ずっと無料</div>
+          <div class="hero-stat-label" data-lang-inline="en">Free forever</div>
         </div>
       </div>
-      <div class="hero-visual">
-        <div class="phone-mock">
-          <!-- スクリーンショットがあれば <img src="screenshot-home.png" alt="ippoホーム画面"> に差し替え -->
-          <div class="phone-placeholder">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9-4.03-9-9-9z"/><path d="M12 8v4l3 3"/></svg>
-            <span>App Screenshot</span>
+    </div>
+  </section>
+
+  <!-- ======= CONDITIONS ======= -->
+  <section class="conditions">
+    <div class="container">
+      <div data-lang="ja">
+        <p class="section-label">Designed for</p>
+        <h2 class="section-title">女性疾患を抱える<br>あなたのために</h2>
+        <p class="section-subtitle">ippoは、婦人科系の疾患と向き合いながら日々を過ごす方のためにつくられたアプリです。</p>
+      </div>
+      <div data-lang="en">
+        <p class="section-label">Designed for</p>
+        <h2 class="section-title">Built for women<br>living with</h2>
+        <p class="section-subtitle">ippo was created for people navigating daily life with gynecological conditions.</p>
+      </div>
+      <div class="conditions-grid">
+        <div class="condition-card fade-in">
+          <div class="condition-icon">🫧</div>
+          <div data-lang="ja">
+            <h3>卵巣嚢腫</h3>
+            <p>経過観察中の体調変化を毎日記録し、受診時に活用</p>
+          </div>
+          <div data-lang="en">
+            <h3>Ovarian Cysts</h3>
+            <p>Track daily changes during monitoring and use records at checkups</p>
+          </div>
+        </div>
+        <div class="condition-card fade-in">
+          <div class="condition-icon">🔄</div>
+          <div data-lang="ja">
+            <h3>PCOS（多嚢胞性卵巣症候群）</h3>
+            <p>不規則な周期・食欲・体重の変化パターンを可視化</p>
+          </div>
+          <div data-lang="en">
+            <h3>PCOS</h3>
+            <p>Visualize irregular cycles, appetite, and weight change patterns</p>
+          </div>
+        </div>
+        <div class="condition-card fade-in">
+          <div class="condition-icon">🌡</div>
+          <div data-lang="ja">
+            <h3>子宮内膜症</h3>
+            <p>痛みや感情の波と周期の関係を記録から発見</p>
+          </div>
+          <div data-lang="en">
+            <h3>Endometriosis</h3>
+            <p>Discover the link between pain, mood shifts, and your cycle</p>
+          </div>
+        </div>
+        <div class="condition-card fade-in">
+          <div class="condition-icon">🩺</div>
+          <div data-lang="ja">
+            <h3>子宮筋腫</h3>
+            <p>食事・断食・体調の変化を長期的に追跡</p>
+          </div>
+          <div data-lang="en">
+            <h3>Uterine Fibroids</h3>
+            <p>Track diet, fasting, and symptom changes over time</p>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- English bilingual -->
-    <div class="bilingual">
-      <div class="section-label">Listen to your body.</div>
-      <p class="section-sub">Ovarian cysts, PCOS, fibroids, endometriosis—daily self-care tracking from the day of your diagnosis. Free. No ads. Privacy first.</p>
+  <!-- ======= FEATURES ======= -->
+  <section class="features" id="features">
+    <div class="container">
+
+      <!-- Feature 1: Daily Tracking -->
+      <div class="feature-row fade-in">
+        <div class="feature-visual">🍽</div>
+        <div class="feature-content">
+          <div data-lang="ja">
+            <p class="section-label">Daily Tracking</p>
+            <h3>食事・断食・感情を<br>毎日1分で記録</h3>
+            <p>食べたもの、断食時間、気分、基礎体温、チャクラの状態——5つのカテゴリを1画面で記録。続けるほど、あなただけのパターンが見えてきます。</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+          <div data-lang="en">
+            <p class="section-label">Daily Tracking</p>
+            <h3>Meals, fasting, mood—<br>recorded in 1 minute</h3>
+            <p>Food, fasting hours, mood, basal body temperature, chakra—five categories on one screen. The longer you track, the more patterns emerge.</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 2: Cycle & Symptoms -->
+      <div class="feature-row reverse fade-in">
+        <div class="feature-visual">🌸</div>
+        <div class="feature-content">
+          <div data-lang="ja">
+            <p class="section-label">Cycle & Symptoms</p>
+            <h3>生理周期と<br>体調の関係を発見</h3>
+            <p>「高温期に必ず便秘になる」「排卵前に食欲が増す」——記録を続けると、こうした自分だけのパターンが浮かび上がります。</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+          <div data-lang="en">
+            <p class="section-label">Cycle & Symptoms</p>
+            <h3>Discover how your cycle<br>affects your body</h3>
+            <p>"Constipation every luteal phase." "Appetite spikes before ovulation." With enough records, your unique patterns emerge.</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 3: Community -->
+      <div class="feature-row fade-in">
+        <div class="feature-visual">💬</div>
+        <div class="feature-content">
+          <div data-lang="ja">
+            <p class="section-label">Community</p>
+            <h3>みんなの声で<br>ひとりじゃないと知る</h3>
+            <p>卵巣嚢腫やPCOSの悩みを話せる場所。毎週テーマが変わる匿名コミュニティで、同じ経験を持つ女性たちの声を読んだり、あなたの声を届けたり。</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+          <div data-lang="en">
+            <p class="section-label">Community</p>
+            <h3>You're not alone.<br>Hear their voices.</h3>
+            <p>An anonymous, weekly-themed space to share and read real experiences from women navigating ovarian cysts, PCOS, and more.</p>
+            <span class="feature-tag">FREE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Feature 4: Premium — AI & Reports -->
+      <div class="feature-row reverse fade-in">
+        <div class="feature-visual" style="border-color: var(--color-accent);">✨</div>
+        <div class="feature-content">
+          <div data-lang="ja">
+            <p class="section-label" style="color: var(--color-purple);">Premium</p>
+            <h3>AIが読み解く<br>あなたのパターン</h3>
+            <p>30日分の記録をAIが分析し、体調の波・食事の傾向・周期との関連をコメント。月次PDFレポート、婦人科受診サポート、デバイス間同期も。</p>
+            <span class="feature-tag" style="background: rgba(167,139,250,0.12); color: var(--color-purple);">PREMIUM</span>
+          </div>
+          <div data-lang="en">
+            <p class="section-label" style="color: var(--color-purple);">Premium</p>
+            <h3>AI-powered<br>pattern insights</h3>
+            <p>AI analyzes 30 days of data—highlighting symptom waves, diet trends, and cycle correlations. Plus monthly PDF reports, doctor-visit summaries, and cross-device sync.</p>
+            <span class="feature-tag" style="background: rgba(167,139,250,0.12); color: var(--color-purple);">PREMIUM</span>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== WAVE ===== -->
-<div class="wave-divider">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
-
-<!-- ===== CONDITIONS ===== -->
-<section class="conditions section" id="conditions">
-  <div class="container">
-    <div class="section-label">Designed for</div>
-    <div class="section-title">女性疾患を抱える<br>あなたのために</div>
-    <p class="section-sub">ippoは、婦人科系の疾患と向き合いながら日々を過ごす方のためにつくられたアプリです。</p>
-    <div class="condition-grid">
-      <div class="condition-card">
-        <div class="condition-icon icon-cyst">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5b8abf" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3" stroke-dasharray="2 2"/></svg>
+  <!-- ======= PLANS ======= -->
+  <section class="plans" id="plans">
+    <div class="container">
+      <div class="plans-header">
+        <div data-lang="ja">
+          <p class="section-label">Plans</p>
+          <h2 class="section-title">あなたに合ったプランを</h2>
+          <p class="section-subtitle" style="margin: 0 auto;">まずは無料で。もっと深く知りたくなったら、プレミアムへ。</p>
         </div>
-        <h3>卵巣嚢腫</h3>
-        <p>経過観察中の体調変化を毎日記録し、受診時に活用</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:6px">Ovarian Cysts — Track daily changes during monitoring</p>
-      </div>
-      <div class="condition-card">
-        <div class="condition-icon icon-pcos">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#c4878c" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="10" r="3"/><circle cx="16" cy="10" r="3"/><circle cx="12" cy="16" r="3"/></svg>
-        </div>
-        <h3>PCOS</h3>
-        <p>不規則な周期・食欲・体重の変化パターンを可視化</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:6px">Visualize irregular cycles, appetite, and weight patterns</p>
-      </div>
-      <div class="condition-card">
-        <div class="condition-icon icon-endo">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8956a" stroke-width="1.5" stroke-linecap="round"><path d="M12 4c-3 0-6 3-6 7s3 7 6 7"/><path d="M12 4c3 0 6 3 6 7s-3 7-6 7"/><line x1="12" y1="8" x2="12" y2="16"/></svg>
-        </div>
-        <h3>子宮内膜症</h3>
-        <p>痛みや感情の波と周期の関係を記録から発見</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:6px">Discover the link between pain, mood, and your cycle</p>
-      </div>
-      <div class="condition-card">
-        <div class="condition-icon icon-fibroid">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b9e78" stroke-width="1.5" stroke-linecap="round"><rect x="6" y="6" width="12" height="12" rx="3"/><line x1="10" y1="10" x2="14" y2="14"/><line x1="10" y1="14" x2="14" y2="10"/></svg>
-        </div>
-        <h3>子宮筋腫</h3>
-        <p>食事・断食・体調の変化を長期的に追跡</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:6px">Track diet, fasting, and symptom changes over time</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WAVE ===== -->
-<div class="wave-divider flip">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
-
-<!-- ===== FEATURES (ZIGZAG) ===== -->
-<section class="section" id="features">
-  <div class="container">
-    <div class="section-label">Features</div>
-    <div class="section-title">あなたの毎日に<br>寄り添う機能</div>
-    <p class="section-sub" style="margin-bottom:48px">続けるほど、あなただけのパターンが見えてきます。</p>
-
-    <!-- Feature 1: Daily Tracking -->
-    <div class="feature-row">
-      <div class="feature-text">
-        <span class="badge badge-free">FREE</span>
-        <div class="section-label">Daily Tracking</div>
-        <h3>食事・断食・感情を<br>毎日1分で記録</h3>
-        <p>食べたもの、断食時間、気分、基礎体温、チャクラの状態——5つのカテゴリを1画面で記録。</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:8px">Food, fasting hours, mood, basal body temperature, chakra—five categories on one screen.</p>
-      </div>
-      <div class="feature-img">
-        <div class="feature-phone">
-          <!-- <img src="screenshot-record.png" alt="記録画面"> -->
-          <div class="phone-placeholder"><span>記録画面</span></div>
+        <div data-lang="en">
+          <p class="section-label">Plans</p>
+          <h2 class="section-title">Choose your plan</h2>
+          <p class="section-subtitle" style="margin: 0 auto;">Start free. Upgrade when you're ready for deeper insights.</p>
         </div>
       </div>
-    </div>
-
-    <!-- Feature 2: Cycle (REVERSE) -->
-    <div class="feature-row reverse">
-      <div class="feature-text">
-        <span class="badge badge-free">FREE</span>
-        <div class="section-label">Cycle & Symptoms</div>
-        <h3>生理周期と<br>体調の関係を発見</h3>
-        <p>「高温期に必ず便秘になる」「排卵前に食欲が増す」——記録を続けると、こうした自分だけのパターンが浮かび上がります。</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:8px">"Constipation every luteal phase." With enough records, your unique patterns emerge.</p>
-      </div>
-      <div class="feature-img">
-        <div class="feature-phone">
-          <!-- <img src="screenshot-cycle.png" alt="周期画面"> -->
-          <div class="phone-placeholder"><span>カレンダー画面</span></div>
+      <div class="plans-grid">
+        <!-- Free Plan -->
+        <div class="plan-card">
+          <div data-lang="ja">
+            <p class="plan-name">Free</p>
+            <p class="plan-price">¥0</p>
+            <p class="plan-price-sub">ずっと無料</p>
+            <ul class="plan-features">
+              <li><span class="check">✓</span>食事・断食・生理周期の記録</li>
+              <li><span class="check">✓</span>感情・基礎体温・チャクラ記録</li>
+              <li><span class="check">✓</span>断食タイマー＆達成通知</li>
+              <li><span class="check">✓</span>みんなの声（今週分の閲覧・投稿）</li>
+              <li><span class="check">✓</span>データエクスポート（CSV）</li>
+              <li><span class="check">✓</span>ホーム画面に追加（PWA）</li>
+            </ul>
+          </div>
+          <div data-lang="en">
+            <p class="plan-name">Free</p>
+            <p class="plan-price">$0</p>
+            <p class="plan-price-sub">Free forever</p>
+            <ul class="plan-features">
+              <li><span class="check">✓</span>Meal, fasting & cycle tracking</li>
+              <li><span class="check">✓</span>Mood, BBT & chakra tracking</li>
+              <li><span class="check">✓</span>Fasting timer & notifications</li>
+              <li><span class="check">✓</span>Community (current week)</li>
+              <li><span class="check">✓</span>Data export (CSV)</li>
+              <li><span class="check">✓</span>Add to home screen (PWA)</li>
+            </ul>
+          </div>
+          <a href="app.html" class="plan-btn secondary">
+            <span data-lang-inline="ja">無料で始める</span>
+            <span data-lang-inline="en">Start Free</span>
+          </a>
         </div>
-      </div>
-    </div>
 
-    <!-- Feature 3: Community -->
-    <div class="feature-row">
-      <div class="feature-text">
-        <span class="badge badge-free">FREE</span>
-        <div class="section-label">Community</div>
-        <h3>みんなの声で<br>ひとりじゃないと知る</h3>
-        <p>卵巣嚢腫やPCOSの悩みを話せる場所。毎週テーマが変わる匿名コミュニティで、同じ経験を持つ女性たちの声を読んだり、あなたの声を届けたり。</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:8px">An anonymous, weekly-themed space to share and read real experiences.</p>
-      </div>
-      <div class="feature-img">
-        <div class="feature-phone">
-          <!-- <img src="screenshot-community.png" alt="コミュニティ画面"> -->
-          <div class="phone-placeholder"><span>コミュニティ画面</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Feature 4: Premium (REVERSE) -->
-    <div class="feature-row reverse">
-      <div class="feature-text">
-        <span class="badge badge-pro">PREMIUM</span>
-        <div class="section-label">AI Pattern Insights</div>
-        <h3>AIが読み解く<br>あなたのパターン</h3>
-        <p>30日分の記録をAIが分析し、体調の波・食事の傾向・周期との関連をコメント。月次PDFレポート、婦人科受診サポート、デバイス間同期も。</p>
-        <p style="font-size:12px;color:var(--ink-light);margin-top:8px">AI analyzes 30 days of data—highlighting symptom waves, diet trends, and cycle correlations.</p>
-      </div>
-      <div class="feature-img">
-        <div class="feature-phone">
-          <!-- <img src="screenshot-premium.png" alt="AI分析画面"> -->
-          <div class="phone-placeholder"><span>AI分析画面</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WAVE ===== -->
-<div class="wave-divider">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
-
-<!-- ===== PRICING ===== -->
-<section class="pricing section" id="pricing">
-  <div class="container">
-    <div class="section-label">Plans</div>
-    <div class="section-title" style="text-align:center">自分に合ったプランを</div>
-    <p class="section-sub" style="text-align:center;margin:0 auto 8px">Choose the plan that works for you.</p>
-    <div class="pricing-grid">
-      <!-- Free -->
-      <div class="price-card">
-        <div class="price-label">Free</div>
-        <div class="price-amount">¥0</div>
-        <div class="price-period">ずっと無料 / Free forever</div>
-        <ul>
-          <li>食事・断食・生理周期の記録</li>
-          <li>感情・基礎体温・チャクラ記録</li>
-          <li>断食タイマー＆達成通知</li>
-          <li>みんなの声（今週分）</li>
-          <li>データエクスポート（CSV）</li>
-          <li>ホーム画面に追加（PWA）</li>
-        </ul>
-        <a href="https://www.ippo-app.com/app.html" class="btn btn-primary">無料で始める</a>
-      </div>
-      <!-- Premium -->
-      <div class="price-card featured">
-        <span class="coming-badge">COMING SOON</span>
-        <div class="price-label">Premium</div>
-        <div class="price-amount">¥580<span style="font-size:16px;font-weight:400"> /月</span></div>
-        <div class="price-period">年額 ¥4,800（¥400/月）/ $3.99/mo</div>
-        <ul>
-          <li>無料プランのすべての機能</li>
-          <li>デバイス間同期（PC・スマホ）</li>
-          <li>月次レポート（PDF生成）</li>
-          <li>AIパターン解析コメント</li>
-          <li>婦人科受診サポート</li>
-          <li>みんなの声アーカイブ</li>
-        </ul>
-        <a href="https://www.ippo-app.com/app.html" class="btn btn-outline">先行登録する</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WAVE ===== -->
-<div class="wave-divider flip">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
-
-<!-- ===== REVIEWS ===== -->
-<section class="section" id="reviews">
-  <div class="container">
-    <div class="section-label">Reviews</div>
-    <div class="section-title">利用者の声</div>
-    <p class="section-sub" style="margin-bottom:32px">Trusted by women navigating gynecological conditions.</p>
-    <div class="reviews-track">
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <blockquote>「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</blockquote>
-        <blockquote style="font-size:12px;color:var(--ink-light)">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</blockquote>
-        <cite>— 卵巣嚢腫・30代 / Ovarian cyst, 30s</cite>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <blockquote>「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</blockquote>
-        <blockquote style="font-size:12px;color:var(--ink-light)">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</blockquote>
-        <cite>— PCOS治療中・20代 / PCOS treatment, 20s</cite>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <blockquote>「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</blockquote>
-        <blockquote style="font-size:12px;color:var(--ink-light)">"Just knowing through the community that others share my struggles made me feel a little lighter."</blockquote>
-        <cite>— 子宮内膜症・30代 / Endometriosis, 30s</cite>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PRIVACY ===== -->
-<section class="section" id="privacy">
-  <div class="container">
-    <div class="section-label">Privacy</div>
-    <div class="section-title" style="text-align:center">あなたのデータは、<br>あなたのもの</div>
-    <p class="section-sub" style="text-align:center;margin:0 auto 8px">Your data belongs to you. Health data is deeply personal. ippo will never sell or share it.</p>
-    <div class="privacy-grid">
-      <div class="privacy-card">
-        <div class="privacy-icon" style="background:#e8f0f8">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#5b8abf" stroke-width="1.5" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-        </div>
-        <h3>端末内保存</h3>
-        <p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p>
-        <p style="font-size:11px;color:var(--ink-light);margin-top:4px">On-device storage. Nothing sent to external servers.</p>
-      </div>
-      <div class="privacy-card">
-        <div class="privacy-icon" style="background:#fce8e6">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#c4878c" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
-        </div>
-        <h3>広告なし</h3>
-        <p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p>
-        <p style="font-size:11px;color:var(--ink-light);margin-top:4px">No ads. No distractions. Ever.</p>
-      </div>
-      <div class="privacy-card">
-        <div class="privacy-icon" style="background:#e8f5ec">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#6b9e78" stroke-width="1.5" stroke-linecap="round"><polyline points="3 6 5 6 6 21 18 21 19 6 21 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
-        </div>
-        <h3>いつでも削除</h3>
-        <p>すべての記録をワンタップで削除できます。あなたがコントロール。</p>
-        <p style="font-size:11px;color:var(--ink-light);margin-top:4px">Delete anytime. You're always in control.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== WAVE ===== -->
-<div class="wave-divider">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
-
-<!-- ===== STORY ===== -->
-<section class="story section" id="story">
-  <div class="container">
-    <div class="story-grid">
-      <div class="story-img">
-        <img src="https://sspark.genspark.ai/cfimages?u1=8s2ii7oV3ylYYJxjhxxZ8%2F49bKcuFwWNZ3dXQNFQJtWvIASxM9MbWsLALOnInAtfo2ebRsk1f3Z4L14zM9VqlQ%3D%3D&u2=MXy2nG05y31%2BBV2b&width=1024" alt="ippo創設者" loading="lazy">
-      </div>
-      <div class="story-text">
-        <div class="section-label">Story</div>
-        <h3>つくった人のこと</h3>
-        <p>2026年3月、卵巣嚢腫（13cm）と診断されました。手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、食事療法・プチ断食・記録を通じてセルフケアを続けています。</p>
-        <p>同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
-        <div class="signature">one step at a time.</div>
-
-        <div class="bilingual" style="border-top-color:rgba(176,160,144,0.15)">
-          <h3 style="color:var(--ink-light);font-size:20px">Why I built ippo</h3>
-          <p style="color:var(--ink-light)">In March 2026, I was diagnosed with a 13cm ovarian cyst. Instead of rushing into surgery, I chose to face my body through diet, fasting, and daily tracking. I created ippo to share this experience with others walking the same path.</p>
-          <div class="signature" style="color:var(--ink-light);opacity:0.7">one step at a time.</div>
+        <!-- Premium Plan -->
+        <div class="plan-card premium">
+          <div class="plan-badge">COMING SOON</div>
+          <div data-lang="ja">
+            <p class="plan-name">Premium</p>
+            <p class="plan-price">¥580<span style="font-size:1rem;font-weight:400;color:var(--color-text-secondary)"> /月</span></p>
+            <p class="plan-price-sub">年額プラン ¥4,800（¥400/月）</p>
+            <ul class="plan-features">
+              <li><span class="check">✓</span>無料プランのすべての機能</li>
+              <li><span class="check">✓</span>デバイス間同期（PC・スマホ）</li>
+              <li><span class="check">✓</span>月次レポート（PDF生成）</li>
+              <li><span class="check">✓</span>AIパターン解析コメント</li>
+              <li><span class="check">✓</span>婦人科受診サポート</li>
+              <li><span class="check">✓</span>みんなの声アーカイブ（過去テーマ閲覧・検索）</li>
+            </ul>
+          </div>
+          <div data-lang="en">
+            <p class="plan-name">Premium</p>
+            <p class="plan-price">$3.99<span style="font-size:1rem;font-weight:400;color:var(--color-text-secondary)"> /mo</span></p>
+            <p class="plan-price-sub">Annual plan $29.99 ($2.50/mo)</p>
+            <ul class="plan-features">
+              <li><span class="check">✓</span>Everything in Free</li>
+              <li><span class="check">✓</span>Cross-device sync (PC & mobile)</li>
+              <li><span class="check">✓</span>Monthly PDF report</li>
+              <li><span class="check">✓</span>AI pattern analysis</li>
+              <li><span class="check">✓</span>Doctor visit support</li>
+              <li><span class="check">✓</span>Community archive (past themes & search)</li>
+            </ul>
+          </div>
+          <a href="app.html" class="plan-btn primary">
+            <span data-lang-inline="ja">近日公開 — 先行登録する</span>
+            <span data-lang-inline="en">Coming Soon — Join Waitlist</span>
+          </a>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ===== WAVE ===== -->
-<div class="wave-divider flip">
-  <svg viewBox="0 0 1440 60" preserveAspectRatio="none"><path d="M0,40 C360,80 720,0 1440,40 L1440,60 L0,60Z" fill="#f5ede4"/></svg>
-</div>
+  <!-- ======= TESTIMONIALS ======= -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="testimonials-header">
+        <div data-lang="ja">
+          <p class="section-label">Voices</p>
+          <h2 class="section-title">使っている方の声</h2>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Voices</p>
+          <h2 class="section-title">What users say</h2>
+        </div>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <div data-lang="ja">
+            <p class="testimonial-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</p>
+            <p class="testimonial-author">— 卵巣嚢腫と診断・30代</p>
+          </div>
+          <div data-lang="en">
+            <p class="testimonial-text">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</p>
+            <p class="testimonial-author">— Diagnosed with ovarian cyst, 30s</p>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <div data-lang="ja">
+            <p class="testimonial-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</p>
+            <p class="testimonial-author">— PCOS治療中・20代</p>
+          </div>
+          <div data-lang="en">
+            <p class="testimonial-text">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</p>
+            <p class="testimonial-author">— PCOS treatment, 20s</p>
+          </div>
+        </div>
+        <div class="testimonial-card fade-in">
+          <div class="testimonial-stars">★★★★★</div>
+          <div data-lang="ja">
+            <p class="testimonial-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</p>
+            <p class="testimonial-author">— 子宮内膜症・30代</p>
+          </div>
+          <div data-lang="en">
+            <p class="testimonial-text">"Just knowing through the community that others share my struggles made me feel a little lighter."</p>
+            <p class="testimonial-author">— Endometriosis, 30s</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- ===== FINAL CTA ===== -->
-<section class="final-cta">
-  <div class="container">
-    <h2>からだの声を聴く一歩を、<br>今日から。</h2>
-    <p>無料。登録不要。広告なし。1分で始められます。</p>
-    <p style="font-size:12px;color:var(--ink-light);margin-bottom:24px">Free. No signup. No ads. Ready in one minute.</p>
-    <a href="https://www.ippo-app.com/app.html" class="btn btn-primary" style="padding:16px 48px;font-size:15px">無料で始める Start Free →</a>
-  </div>
-</section>
+  <!-- ======= PRIVACY ======= -->
+  <section class="privacy" id="privacy-section">
+    <div class="container">
+      <div class="privacy-inner">
+        <div data-lang="ja">
+          <p class="section-label">Privacy</p>
+          <h2 class="section-title">あなたのデータは、<br>あなたのもの</h2>
+          <p class="section-subtitle" style="margin: 0 auto;">健康データは最も個人的な情報です。ippoはそれを売ったり、共有したりしません。</p>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Privacy</p>
+          <h2 class="section-title">Your data belongs<br>to you</h2>
+          <p class="section-subtitle" style="margin: 0 auto;">Health data is deeply personal. ippo will never sell or share it.</p>
+        </div>
+        <div class="privacy-grid">
+          <div class="privacy-item fade-in">
+            <div class="privacy-icon">🔒</div>
+            <div data-lang="ja">
+              <h3>端末内保存</h3>
+              <p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p>
+            </div>
+            <div data-lang="en">
+              <h3>On-device storage</h3>
+              <p>Your records stay on your device. Nothing is sent to external servers.</p>
+            </div>
+          </div>
+          <div class="privacy-item fade-in">
+            <div class="privacy-icon">🚫</div>
+            <div data-lang="ja">
+              <h3>広告なし</h3>
+              <p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p>
+            </div>
+            <div data-lang="en">
+              <h3>No ads. Ever.</h3>
+              <p>No advertisements. No distractions. Your focus stays on your health.</p>
+            </div>
+          </div>
+          <div class="privacy-item fade-in">
+            <div class="privacy-icon">🗑</div>
+            <div data-lang="ja">
+              <h3>いつでも削除</h3>
+              <p>すべての記録をワンタップで削除できます。あなたがコントロール。</p>
+            </div>
+            <div data-lang="en">
+              <h3>Delete anytime</h3>
+              <p>Erase all your data with one tap. You're always in control.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-  <div class="container">
-    <p>© 2026 ippo — Self-Care App for Women's Health</p>
-  </div>
-</footer>
+  <!-- ======= ABOUT ======= -->
+  <section class="about">
+    <div class="container">
+      <div class="about-inner">
+        <div class="about-image">
+          <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+        </div>
+        <div class="about-content">
+          <div data-lang="ja">
+            <p class="section-label">Story</p>
+            <h3>つくった人のこと</h3>
+            <p>2026年3月、卵巣嚢腫（13cm）と診断されました。手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、食事療法・プチ断食・記録を通じてセルフケアを続けています。</p>
+            <p>同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
+            <p class="about-tagline">one step at a time.</p>
+          </div>
+          <div data-lang="en">
+            <p class="section-label">Story</p>
+            <h3>Why I built ippo</h3>
+            <p>In March 2026, I was diagnosed with a 13cm ovarian cyst. Instead of rushing into surgery, I chose to face my body through diet, fasting, and daily tracking.</p>
+            <p>I created ippo to share this experience with others walking the same path.</p>
+            <p class="about-tagline">one step at a time.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======= FINAL CTA ======= -->
+  <section class="final-cta">
+    <div class="container">
+      <div data-lang="ja">
+        <h2>からだの声を聴く一歩を、<br>今日から。</h2>
+        <p>無料。登録不要。広告なし。1分で始められます。</p>
+      </div>
+      <div data-lang="en">
+        <h2>Start listening to<br>your body today.</h2>
+        <p>Free. No signup. No ads. Ready in one minute.</p>
+      </div>
+      <a href="app.html" class="hero-cta">
+        <span data-lang-inline="ja">無料で始める</span>
+        <span data-lang-inline="en">Start Free</span>
+        <span>→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-brand">
+          <div class="logo">ippo<span>.</span></div>
+          <div data-lang="ja">
+            <p>女性疾患に特化したセルフケア記録アプリ。からだの声を聴く、毎日の一歩。</p>
+          </div>
+          <div data-lang="en">
+            <p>Self-care tracking app for women's health. One step at a time.</p>
+          </div>
+        </div>
+        <div class="footer-links">
+          <div data-lang="ja"><h4>リンク</h4></div>
+          <div data-lang="en"><h4>Links</h4></div>
+          <a href="app.html">
+            <span data-lang-inline="ja">アプリ</span>
+            <span data-lang-inline="en">App</span>
+          </a>
+          <a href="https://kenkou-kiroku.com" target="_blank">
+            <span data-lang-inline="ja">ブログ</span>
+            <span data-lang-inline="en">Blog</span>
+          </a>
+          <a href="#plans">
+            <span data-lang-inline="ja">プラン</span>
+            <span data-lang-inline="en">Plans</span>
+          </a>
+        </div>
+        <div class="footer-links">
+          <div data-lang="ja"><h4>法的情報</h4></div>
+          <div data-lang="en"><h4>Legal</h4></div>
+          <a href="privacy.html">
+            <span data-lang-inline="ja">プライバシーポリシー</span>
+            <span data-lang-inline="en">Privacy Policy</span>
+          </a>
+          <a href="disclaimer.html">
+            <span data-lang-inline="ja">免責事項</span>
+            <span data-lang-inline="en">Disclaimer</span>
+          </a>
+          <a href="contact.html">
+            <span data-lang-inline="ja">お問い合わせ</span>
+            <span data-lang-inline="en">Contact</span>
+          </a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>© 2025–2026 ippo. All rights reserved.</span>
+        <div class="footer-legal">
+          <div data-lang-inline="ja">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</div>
+          <div data-lang-inline="en">This app is not a substitute for medical care. Please consult a healthcare provider if you have concerns.</div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ======= SCRIPTS ======= -->
+  <script>
+    // Language Toggle
+    function setLang(lang) {
+      document.documentElement.lang = lang;
+      document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+      localStorage.setItem('ippo-lang', lang);
+    }
+    // Restore saved language
+    const savedLang = localStorage.getItem('ippo-lang');
+    if (savedLang) setLang(savedLang);
+
+    // Detect browser language for first visit
+    if (!savedLang && navigator.language && !navigator.language.startsWith('ja')) {
+      setLang('en');
+    }
+
+    // Hamburger Menu
+    document.getElementById('hamburger').addEventListener('click', function() {
+      document.getElementById('nav').classList.toggle('open');
+    });
+
+    // Close menu on link click
+    document.querySelectorAll('.nav a').forEach(function(link) {
+      link.addEventListener('click', function() {
+        document.getElementById('nav').classList.remove('open');
+      });
+    });
+
+    // Scroll Fade-in
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      }, { threshold: 0.15 });
+      document.querySelectorAll('.fade-in').forEach(function(el) {
+        observer.observe(el);
+      });
+    }
+
+    // Header scroll effect
+    window.addEventListener('scroll', function() {
+      const header = document.querySelector('.header');
+      if (window.scrollY > 50) {
+        header.style.padding = '10px 0';
+      } else {
+        header.style.padding = '16px 0';
+      }
+    });
+  </script>
 
 </body>
 </html>
