@@ -3754,27 +3754,60 @@ function updateHomeSummary(){
 
   status.textContent = '記録済み ✓';
 
-  // 食事データ解析
+  // 食事データ解析（飲み物除外）
+  var drinkPattern = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/;
   var mealLines = (rec.mealFree || '').split('\n').filter(function(l){return l.trim();});
-  var mealCount = rec.mealCount || mealLines.length || 0;
-  var fastH = rec.fasting || 0;
+  var allSlots = [];
+  var foodSlots = [];
+  mealLines.forEach(function(line){
+    line = line.trim();
+    if(!line) return;
+    var timeMatch = line.match(/(\d{1,2}):?(\d{2})/);
+    var time = timeMatch ? ('0'+parseInt(timeMatch[1])).slice(-2)+':'+timeMatch[2] : '';
+    var food = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
+    var items = food.split(/[、,\/\s]+/).filter(function(s){ return s; });
+    var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
+    var isDrinkOnly = drinkItems.length > 0 && drinkItems.length >= items.length;
+    allSlots.push({time:time, food:food, isDrink:isDrinkOnly});
+    if(!isDrinkOnly) foodSlots.push({time:time, food:food});
+  });
+
+  var parsed = parseMealMemo(rec.mealFree);
+  var mealCount = parsed ? parsed.mealCount : 0;
+  var fastH = parsed ? parsed.fastingHours : 0;
   var goalH = state.fastingGoal || 16;
   var eatH = 24 - fastH;
 
   // ドーナツグラフ計算
-  var circumference = 301.6; // 2 * PI * 48
-  var fastArc = Math.round(circumference * (fastH / 24));
-  var eatArc = circumference - fastArc;
+  var circumference = 301.6;
+  var fastArc = fastH > 0 ? Math.round(circumference * (fastH / 24)) : 0;
+  var eatArc = fastH > 0 ? circumference - fastArc : 0;
 
   var html = '<div style="display:flex;align-items:center;gap:20px;">';
 
   // ドーナツグラフ
   html += '<div style="position:relative;width:120px;height:120px;flex-shrink:0;">';
   html += '<svg width="120" height="120" viewBox="0 0 120 120">';
-  // 食事時間（ピンク）
-  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#e8b4b8" stroke-width="10" stroke-dasharray="'+eatArc+' '+circumference+'" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
-  // 断食時間（ベージュ）
-  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10" stroke-dasharray="'+fastArc+' '+circumference+'" stroke-linecap="round" transform="rotate('+((-90)+(eatArc/circumference*360))+' 60 60)"/>';
+  // 背景円
+  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
+  if(fastH > 0){
+    // 食事時間（ピンク）
+    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#e8b4b8" stroke-width="10" stroke-dasharray="'+eatArc+' '+circumference+'" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
+  }
+  // 食事アーク（時間帯別色分け）
+  foodSlots.forEach(function(slot){
+    if(!slot.time) return;
+    var parts = slot.time.split(':');
+    var h = parseInt(parts[0]);
+    var mealArc = circumference / 24 * 1.5;
+    var rotation = -90 + (h / 24 * 360);
+    var color;
+    if(h >= 5 && h < 10) color = '#d4a574';
+    else if(h >= 10 && h < 14) color = '#6b9e78';
+    else if(h >= 17 && h < 22) color = '#c4878c';
+    else color = '#7ba3c4';
+    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="'+color+'" stroke-width="10" stroke-dasharray="'+mealArc+' '+(circumference - mealArc)+'" stroke-linecap="round" transform="rotate('+rotation+' 60 60)"/>';
+  });
   // 時間ラベル
   var positions = [{h:0,x:60,y:8},{h:6,x:112,y:62},{h:12,x:60,y:116},{h:18,x:8,y:62}];
   for(var pi=0;pi<positions.length;pi++){
@@ -3782,40 +3815,33 @@ function updateHomeSummary(){
   }
   html += '</svg>';
   html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
-  html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+fastH+'h</div>';
-  html += '<div style="font-size:9px;color:var(--ink-light);">断食時間</div>';
+  if(fastH > 0){
+    html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+fastH+'h</div>';
+    html += '<div style="font-size:9px;color:var(--ink-light);">断食時間</div>';
+  } else if(mealCount > 0){
+    html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+mealCount+'食</div>';
+    html += '<div style="font-size:9px;color:var(--ink-light);">記録済み</div>';
+  } else {
+    html += '<div style="font-size:11px;color:var(--ink-light);">飲み物のみ</div>';
+  }
   html += '</div></div>';
 
-  // 食事リスト
+  // 食事リスト（全件表示、飲み物は薄く）
   html += '<div style="flex:1;">';
-  var mealSlots = [];
-  if(rec.mealFree){
-    var lines = rec.mealFree.split('\n');
-    for(var mi=0;mi<lines.length;mi++){
-      var line = lines[mi].trim();
-      if(!line) continue;
-      var timeMatch = line.match(/(\d{1,2}):?(\d{2})/);
-      var time = timeMatch ? ('0'+parseInt(timeMatch[1])).slice(-2)+':'+timeMatch[2] : '';
-      var food = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
-      mealSlots.push({time:time, food:food});
-    }
-  }
-
   var colors = ['#d4a574','#6b9e78','#c4878c','#7ba3c4','#b8a9d4','#d4c474'];
-  if(mealSlots.length){
-    for(var si=0;si<mealSlots.length;si++){
-      var color = colors[si % colors.length];
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;">';
-      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';"></div><span style="font-size:12px;color:var(--ink);">'+mealSlots[si].time+'</span></div>';
-      html += '<span style="font-size:12px;color:var(--ink-mid);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+mealSlots[si].food+'</span>';
-      html += '</div>';
-    }
-  } else {
-    var defaultLabels = [{name:'朝食'},{name:'昼食'},{name:'夕食'},{name:'間食'}];
-    for(var di=0;di<defaultLabels.length;di++){
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;">';
-      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+colors[di]+';"></div><span style="font-size:12px;color:var(--ink);">'+defaultLabels[di].name+'</span></div>';
-      html += '<span style="font-size:12px;color:var(--ink-light);">—</span>';
+  if(allSlots.length){
+    for(var si=0;si<allSlots.length;si++){
+      var slot = allSlots[si];
+      var h2 = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
+      var color;
+      if(h2 >= 5 && h2 < 10) color = '#d4a574';
+      else if(h2 >= 10 && h2 < 14) color = '#6b9e78';
+      else if(h2 >= 17 && h2 < 22) color = '#c4878c';
+      else color = '#7ba3c4';
+      var opacity = slot.isDrink ? '0.4' : '1';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;opacity:'+opacity+';">';
+      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';"></div><span style="font-size:12px;color:var(--ink);">'+slot.time+'</span></div>';
+      html += '<span style="font-size:12px;color:var(--ink-mid);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
       html += '</div>';
     }
   }
@@ -3849,11 +3875,12 @@ function updateHomeSummary(){
       }
       html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
     });
-      html += '</div>';
+    html += '</div>';
   }
 
   content.innerHTML = html;
 }
+  
 
 function editPastRecord(dateStr) {
   // オーバーレイを閉じる
