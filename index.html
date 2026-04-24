@@ -756,6 +756,137 @@
     html[lang="en"] [data-lang-inline="ja"] { display: none; }
     html[lang="ja"] [data-lang-inline="en"] { display: none; }
     html[lang="ja"] [data-lang-inline="ja"] { display: inline; }
+
+    /* ===========================
+       16. Hero Phone Mockups (2台斜め重ね)
+    =========================== */
+    .hero-phones {
+      position: relative;
+      width: 340px;
+      height: 420px;
+      margin: 64px auto 0;
+    }
+    .hero-phone {
+      position: absolute;
+      width: 200px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      overflow: hidden;
+      border: 3px solid rgba(255,255,255,0.08);
+    }
+    .hero-phone img {
+      width: 100%;
+      display: block;
+    }
+    .hero-phone.back {
+      top: 0;
+      left: 0;
+      transform: rotate(-6deg);
+      z-index: 1;
+    }
+    .hero-phone.front {
+      top: 30px;
+      right: 0;
+      transform: rotate(4deg);
+      z-index: 2;
+    }
+
+    /* ===========================
+       17. Feature Phone Mockup (single)
+    =========================== */
+    .feature-visual {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius);
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--color-border);
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-visual::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,107,107,0.05), transparent);
+      pointer-events: none;
+    }
+    .feature-mockup {
+      width: 180px;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.06);
+      position: relative;
+      z-index: 1;
+    }
+    .feature-mockup img {
+      width: 100%;
+      display: block;
+    }
+    .feature-emoji {
+      font-size: 4rem;
+    }
+
+    /* ===========================
+       18. Story Section (強化: 全幅写真 + スマホ重ね)
+    =========================== */
+    .about-visual {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .about-photo-main {
+      width: 100%;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+    .about-photo-main img {
+      width: 100%;
+      display: block;
+    }
+    .about-phone-overlay {
+      position: absolute;
+      bottom: -20px;
+      left: -20px;
+      width: 120px;
+      border-radius: 16px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.08);
+      z-index: 2;
+    }
+    .about-phone-overlay img {
+      width: 100%;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .hero-phones {
+        width: 280px;
+        height: 360px;
+        margin-top: 48px;
+      }
+      .hero-phone {
+        width: 160px;
+      }
+      .hero-phone.front {
+        top: 20px;
+      }
+      .feature-mockup {
+        width: 140px;
+      }
+      .about-phone-overlay {
+        width: 90px;
+        bottom: -12px;
+        left: -10px;
+      }
+    }
+
+    
   </style>
 </head>
 <body>
@@ -906,7 +1037,11 @@
 
       <!-- Feature 1: Daily Tracking -->
       <div class="feature-row fade-in">
-        <div class="feature-visual">🍽</div>
+        <div class="feature-visual">
+          <div class="feature-mockup">
+            <img src="images/mockup_02_meal.png" alt="食事記録画面">
+          </div>
+        </div>
         <div class="feature-content">
           <div data-lang="ja">
             <p class="section-label">Daily Tracking</p>
@@ -925,7 +1060,11 @@
 
       <!-- Feature 2: Cycle & Symptoms -->
       <div class="feature-row reverse fade-in">
-        <div class="feature-visual">🌸</div>
+               <div class="feature-visual">
+          <div class="feature-mockup">
+            <img src="images/mockup_05_calendar.png" alt="カレンダー画面">
+          </div>
+        </div>
         <div class="feature-content">
           <div data-lang="ja">
             <p class="section-label">Cycle & Symptoms</p>
@@ -944,7 +1083,9 @@
 
       <!-- Feature 3: Community -->
       <div class="feature-row fade-in">
-        <div class="feature-visual">💬</div>
+               <div class="feature-visual">
+          <span class="feature-emoji">💬</span>
+        </div>
         <div class="feature-content">
           <div data-lang="ja">
             <p class="section-label">Community</p>
@@ -963,7 +1104,11 @@
 
       <!-- Feature 4: Premium — AI & Reports -->
       <div class="feature-row reverse fade-in">
-        <div class="feature-visual" style="border-color: var(--color-accent);">✨</div>
+                <div class="feature-visual" style="border-color: var(--color-accent);">
+          <div class="feature-mockup">
+            <img src="images/mockup_04_summary.png" alt="記録サマリー画面">
+          </div>
+        </div>
         <div class="feature-content">
           <div data-lang="ja">
             <p class="section-label" style="color: var(--color-purple);">Premium</p>
@@ -1179,8 +1324,13 @@
   <section class="about">
     <div class="container">
       <div class="about-inner">
-        <div class="about-image">
-          <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+                <div class="about-visual">
+          <div class="about-photo-main">
+            <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+          </div>
+          <div class="about-phone-overlay">
+            <img src="images/mockup_01_home.png" alt="ippoアプリ画面">
+          </div>
         </div>
         <div class="about-content">
           <div data-lang="ja">
