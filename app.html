@@ -3790,23 +3790,22 @@ function updateHomeSummary(){
   html += '<svg width="120" height="120" viewBox="0 0 120 120">';
   // 背景円
   html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
-  if(fastH > 0){
-    // 食事時間（ピンク）
-    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#e8b4b8" stroke-width="10" stroke-dasharray="'+eatArc+' '+circumference+'" stroke-linecap="round" transform="rotate(-90 60 60)"/>';
-  }
   // 食事アーク（時間帯別色分け）
   foodSlots.forEach(function(slot){
     if(!slot.time) return;
     var parts = slot.time.split(':');
     var h = parseInt(parts[0]);
-    var mealArc = circumference / 24 * 1.5;
-    var rotation = -90 + (h / 24 * 360);
+    var m = parseInt(parts[1]) || 0;
+    var hourDecimal = h + m / 60;
+    var mealArc = circumference / 24 * 1;
+    var dashGap = circumference - mealArc;
+    var offset = circumference - (hourDecimal / 24 * circumference) + (circumference / 4);
     var color;
     if(h >= 5 && h < 10) color = '#d4a574';
     else if(h >= 10 && h < 14) color = '#6b9e78';
     else if(h >= 17 && h < 22) color = '#c4878c';
     else color = '#7ba3c4';
-    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="'+color+'" stroke-width="10" stroke-dasharray="'+mealArc+' '+(circumference - mealArc)+'" stroke-linecap="round" transform="rotate('+rotation+' 60 60)"/>';
+    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="'+color+'" stroke-width="10" stroke-dasharray="'+mealArc+' '+dashGap+'" stroke-dashoffset="'+offset+'" stroke-linecap="round"/>';
   });
   // 時間ラベル
   var positions = [{h:0,x:60,y:8},{h:6,x:112,y:62},{h:12,x:60,y:116},{h:18,x:8,y:62}];
