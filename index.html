@@ -663,6 +663,104 @@
       }
     }
 
+        /* ── ABOUT VISUAL (photo + phone overlay) ── */
+    .about-visual {
+      position: relative;
+      width: 220px;
+      margin: 0 auto;
+    }
+    .about-visual .about-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      margin: 0 auto;
+    }
+    .about-visual .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .about-phone-overlay {
+      position: absolute;
+      bottom: -20px;
+      right: -30px;
+      width: 90px;
+      z-index: 2;
+      filter: drop-shadow(0 8px 24px rgba(26,23,20,0.18));
+    }
+    .about-phone-overlay .phone-frame {
+      border-radius: 16px;
+      padding: 4px;
+    }
+    .about-phone-overlay .phone-screen {
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    .about-phone-overlay .phone-screen img {
+      width: 100%;
+      display: block;
+    }
+
+    /* ── ABOUT CONTENT ENHANCED ─────────────── */
+    .about-lead {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 14px !important;
+    }
+    .about-highlight {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--accent);
+      margin: 20px 0 !important;
+      padding-left: 16px;
+      border-left: 3px solid var(--accent);
+    }
+    .about-mission {
+      background: var(--accent-bg);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+    .about-mission h4 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .about-mission p {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 0 !important;
+    }
+
+    @media (max-width: 768px) {
+      .about-visual {
+        width: 180px;
+      }
+      .about-visual .about-photo {
+        width: 160px;
+        height: 160px;
+      }
+      .about-phone-overlay {
+        width: 72px;
+        bottom: -14px;
+        right: -20px;
+      }
+    }
+
+
 
   </style>
 </head>
@@ -1071,7 +1169,7 @@
 <section class="about section">
   <div class="container">
     <div class="about-inner">
-          <div class="about-visual">
+      <div class="about-visual">
         <div class="about-photo">
           <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
         </div>
@@ -1086,16 +1184,30 @@
       <div class="about-content">
         <div data-lang="ja">
           <p class="section-label">Story</p>
-          <h3>つくった人のこと</h3>
-          <p>2026年3月、卵巣嚢腫（13cm）と診断されました。手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、食事療法・プチ断食・記録を通じてセルフケアを続けています。</p>
-          <p>同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
+          <h3>なぜ ippo をつくったのか</h3>
+          <p class="about-lead">2026年3月——卵巣嚢腫（13cm）と診断されました。</p>
+          <p>手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思いました。食事・断食・体調を毎日メモするうちに、自分だけのパターンが見えはじめたのです。</p>
+          <p>でも、既存のアプリはどれも合いませんでした。広告が多い。データが外部に送られる。婦人科疾患に特化したものがない。</p>
+          <p class="about-highlight">「ないなら、自分でつくろう。」</p>
+          <p>同じ悩みを持つ方が、診断されたその日から使えるアプリを——それがippoの出発点です。</p>
+          <div class="about-mission">
+            <h4>ippo のミッション</h4>
+            <p>女性疾患を抱える方が、自分のからだの声を聴き、セルフケアの一歩を踏み出せる環境をつくること。</p>
+          </div>
           <p class="about-tagline">one step at a time.</p>
         </div>
         <div data-lang="en">
           <p class="section-label">Story</p>
           <h3>Why I built ippo</h3>
-          <p>In March 2026, I was diagnosed with a 13cm ovarian cyst. Instead of rushing into surgery, I chose to face my body through diet, fasting, and daily tracking.</p>
-          <p>I created ippo to share this experience with others walking the same path.</p>
+          <p class="about-lead">In March 2026, I was diagnosed with a 13cm ovarian cyst.</p>
+          <p>Doctors recommended surgery, but I wanted to understand my body first. As I began tracking meals, fasting, and symptoms every day, I started to see patterns unique to me.</p>
+          <p>But no existing app fit my needs. Too many ads. Data sent to servers. Nothing designed for gynecological conditions.</p>
+          <p class="about-highlight">"If it doesn't exist, I'll build it myself."</p>
+          <p>An app that anyone can use from the day of their diagnosis — that's how ippo began.</p>
+          <div class="about-mission">
+            <h4>ippo's Mission</h4>
+            <p>To empower women with gynecological conditions to listen to their bodies and take the first step in self-care.</p>
+          </div>
           <p class="about-tagline">one step at a time.</p>
         </div>
       </div>
