@@ -757,7 +757,7 @@
     html[lang="ja"] [data-lang-inline="en"] { display: none; }
     html[lang="ja"] [data-lang-inline="ja"] { display: inline; }
 
-    /* ===========================
+      /* ===========================
        16. Hero Phone Mockups (2台斜め重ね)
     =========================== */
     .hero-phones {
@@ -792,25 +792,19 @@
     }
 
     /* ===========================
-       17. Feature Phone Mockup (single)
+       17. Feature Mockup & Background
     =========================== */
-    .feature-visual {
-      background: var(--color-bg-secondary);
-      border-radius: var(--radius);
-      aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--color-border);
-      position: relative;
-      overflow: hidden;
-    }
-    .feature-visual::after {
-      content: '';
+    .feature-bg-img {
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(255,107,107,0.05), transparent);
-      pointer-events: none;
+      z-index: 0;
+    }
+    .feature-bg-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.15;
+      filter: grayscale(30%);
     }
     .feature-mockup {
       width: 180px;
@@ -827,15 +821,61 @@
     }
     .feature-emoji {
       font-size: 4rem;
+      position: relative;
+      z-index: 1;
     }
 
     /* ===========================
-       18. Story Section (強化: 全幅写真 + スマホ重ね)
+       18. Hero Background Image
+    =========================== */
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .hero-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.12;
+      filter: grayscale(20%);
+    }
+    .hero > .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===========================
+       19. Testimonials Background
+    =========================== */
+    .testimonials {
+      position: relative;
+      overflow: hidden;
+    }
+    .testimonials-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+    .testimonials-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.06;
+      filter: grayscale(40%);
+    }
+    .testimonials > .container {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===========================
+       20. Story Section Enhanced
     =========================== */
     .about-visual {
       position: relative;
       width: 100%;
-      max-width: 400px;
+      max-width: 360px;
       margin: 0 auto;
     }
     .about-photo-main {
@@ -850,18 +890,37 @@
     }
     .about-phone-overlay {
       position: absolute;
-      bottom: -20px;
-      left: -20px;
-      width: 120px;
-      border-radius: 16px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+      bottom: -16px;
+      left: -16px;
+      width: 100px;
+      border-radius: 14px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
       overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.08);
+      border: 2px solid rgba(255,255,255,0.1);
       z-index: 2;
     }
     .about-phone-overlay img {
       width: 100%;
       display: block;
+    }
+
+    /* ===========================
+       21. Privacy Icon Hover
+    =========================== */
+    .privacy-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: var(--color-accent-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      transition: var(--transition);
+    }
+    .privacy-item:hover .privacy-icon {
+      transform: scale(1.1);
+      background: rgba(255,107,107,0.2);
     }
 
     @media (max-width: 768px) {
@@ -870,18 +929,12 @@
         height: 360px;
         margin-top: 48px;
       }
-      .hero-phone {
-        width: 160px;
-      }
-      .hero-phone.front {
-        top: 20px;
-      }
-      .feature-mockup {
-        width: 140px;
-      }
+      .hero-phone { width: 160px; }
+      .hero-phone.front { top: 20px; }
+      .feature-mockup { width: 140px; }
       .about-phone-overlay {
-        width: 90px;
-        bottom: -12px;
+        width: 80px;
+        bottom: -10px;
         left: -10px;
       }
     }
@@ -928,7 +981,10 @@
   </header>
 
   <!-- ======= HERO ======= -->
-  <section class="hero">
+    <section class="hero">
+    <div class="hero-bg">
+      <img src="images/hero-bg.jpg" alt="" loading="eager">
+    </div>
     <div class="container">
       <div data-lang="ja">
         <div class="hero-badge">女性疾患に特化したセルフケアアプリ</div>
@@ -967,7 +1023,7 @@
           <div class="hero-stat-label" data-lang-inline="en">Free forever</div>
         </div>
       </div>
-      <!-- スマホ2台斜め重ね -->
+       <!-- スマホ2台斜め重ね -->
       <div class="hero-phones">
         <div class="hero-phone back">
           <img src="images/mockup_01_home.png" alt="ippoホーム画面">
@@ -1047,7 +1103,10 @@
 
       <!-- Feature 1: Daily Tracking -->
       <div class="feature-row fade-in">
-        <div class="feature-visual">
+          <div class="feature-visual">
+          <div class="feature-bg-img">
+            <img src="images/bg-meal.jpg" alt="">
+          </div>
           <div class="feature-mockup">
             <img src="images/mockup_02_meal.png" alt="食事記録画面">
           </div>
@@ -1070,7 +1129,10 @@
 
       <!-- Feature 2: Cycle & Symptoms -->
       <div class="feature-row reverse fade-in">
-               <div class="feature-visual">
+                      <div class="feature-visual">
+          <div class="feature-bg-img">
+            <img src="images/bg-cycle.jpg" alt="">
+          </div>
           <div class="feature-mockup">
             <img src="images/mockup_05_calendar.png" alt="カレンダー画面">
           </div>
@@ -1114,7 +1176,10 @@
 
       <!-- Feature 4: Premium — AI & Reports -->
       <div class="feature-row reverse fade-in">
-                <div class="feature-visual" style="border-color: var(--color-accent);">
+                  <div class="feature-visual" style="border-color: var(--color-accent);">
+          <div class="feature-bg-img">
+            <img src="images/bg-premium.jpg" alt="">
+          </div>
           <div class="feature-mockup">
             <img src="images/mockup_04_summary.png" alt="記録サマリー画面">
           </div>
@@ -1227,7 +1292,10 @@
   </section>
 
   <!-- ======= TESTIMONIALS ======= -->
-  <section class="testimonials">
+    <section class="testimonials">
+    <div class="testimonials-bg">
+      <img src="images/bg-testimonials.jpg" alt="">
+    </div>
     <div class="container">
       <div class="testimonials-header">
         <div data-lang="ja">
