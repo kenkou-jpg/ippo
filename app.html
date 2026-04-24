@@ -4866,16 +4866,14 @@ function openDayDetail(d){
     html += '</div></div></div>';
   }
 
-  // ===== 食事ドーナツグラフ =====
-  if(rec.meals){
+  // ===== 食事サマリー（テキスト表示） =====
+  if(rec.mealCount || rec.firstMealTime || rec.fasting){
     html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe6;">';
-    html += '<div style="font-size:11px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:12px;">記録サマリー</div>';
-    var mealsWithTime = rec.meals || {};
-    if(rec.firstMealTime) mealsWithTime.firstTime = rec.firstMealTime;
-    if(rec.lastMealTime) mealsWithTime.lastTime = rec.lastMealTime;
-    html += createMealDonut(mealsWithTime, rec.fasting, rec.fastingGoal);
-
-    html += '</div>';
+    html += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
+    if(rec.mealCount) html += '<span style="font-size:12px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
+    if(rec.firstMealTime && rec.lastMealTime) html += '<span style="font-size:12px;color:var(--ink-light);">⏰ '+rec.firstMealTime+'〜'+rec.lastMealTime+'</span>';
+    if(rec.fasting && rec.fasting >= 12) html += '<span style="font-size:12px;color:var(--ink-light);">🌙 断食 '+rec.fasting+'h</span>';
+    html += '</div></div>';
   }
 
   // ===== 編集ボタン =====
