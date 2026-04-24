@@ -4857,12 +4857,12 @@ function openDayDetail(d){
     html += '<circle cx="32" cy="32" r="'+fR+'" fill="none" stroke="'+(fPct>=1?'#8aab96':'#e8c49a')+'" stroke-width="5" stroke-dasharray="'+fC+'" stroke-dashoffset="'+fOffset+'" stroke-linecap="round"/>';
     html += '</svg>';
     html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;font-weight:700;color:white;">'+fHours+'</div>';
-    html += '<div style="font-size:7px;color:rgba(255,255,255,0.6);letter-spacing:0.1em;">時間</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;font-weight:700;color:var(--ink);">'+fHours+'</div>';
+    html += '<div style="font-size:7px;color:var(--ink-light);letter-spacing:0.1em;">時間</div>';
     html += '</div></div>';
     html += '<div style="flex:1;">';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;">'+fHours+'時間の断食</div>';
-    html += '<div style="font-size:11px;color:rgba(255,255,255,0.6);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;color:var(--ink);">'+fHours+'時間の断食</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
     html += '</div></div></div>';
   }
 
