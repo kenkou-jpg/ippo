@@ -4993,8 +4993,12 @@ function parseMealMemo(text){
     }
   });
   if(allTimes.length === 0) return null;
-  // 食事（飲み物除外）でカウント・断食計算
-  var countTimes = foodTimes.length > 0 ? foodTimes : allTimes;
+  // 食事がない場合（飲み物のみ）は断食なし
+  if(foodTimes.length === 0){
+    var toTime2 = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
+    return { mealCount: 0, firstTime: '', lastTime: '', fastingHours: 0 };
+  }
+  var countTimes = foodTimes;
   countTimes.sort(function(a,b){ return a-b; });
   var firstMin = countTimes[0];
   var lastMin = countTimes[countTimes.length - 1];
