@@ -591,6 +591,24 @@
       .hero-photo-strip { height: 180px; }
     }
 
+        /* ── COMMUNITY VISUAL ────────────────────── */
+    .feat-visual .community-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.18;
+      filter: grayscale(20%);
+      z-index: 0;
+    }
+    .feat-visual .community-emoji {
+      font-size: 3.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+
   </style>
 </head>
 <body>
@@ -813,7 +831,11 @@
     </div>
 
     <div class="feat-row fade-in">
-      <div class="feat-visual emoji-fallback">💬</div>
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="community-bg" src="images/bg-community.jpg" alt="">
+        <span class="community-emoji">💬</span>
+      </div>
       <div class="feat-content">
         <div data-lang="ja">
           <p class="section-label">Community</p>
