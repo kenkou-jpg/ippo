@@ -4967,26 +4967,44 @@ function selectRsCycle(el, val){
 function parseMealMemo(text){
   if(!text) return null;
   var lines = text.split('\n');
-  var times = [];
+  var allTimes = [];
+  var foodTimes = [];
+  var drinkPattern = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/;
   lines.forEach(function(line){
+    line = line.trim();
+    if(!line) return;
     var m = line.match(/(\d{1,2}):?(\d{2})/);
     if(m){
       var h = parseInt(m[1]);
       var min = parseInt(m[2]);
       if(h >= 0 && h <= 23 && min >= 0 && min <= 59){
-        times.push(h * 60 + min);
+        var totalMin = h * 60 + min;
+        allTimes.push(totalMin);
+        // 飲み物判定
+        var label = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
+        var drinkWords = (label.match(drinkPattern) || []).length > 0;
+        var items = label.split(/[、,\/\s]+/).filter(function(s){ return s; });
+        var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
+        var isDrinkOnly = drinkWords && drinkItems.length >= items.length;
+        if(!isDrinkOnly){
+          foodTimes.push(totalMin);
+        }
       }
     }
   });
-  if(times.length === 0) return null;
-  times.sort(function(a,b){ return a-b; });
-  var firstMin = times[0];
-  var lastMin = times[times.length - 1];
+  if(allTimes.length === 0) return null;
+  // 食事（飲み物除外）でカウント・断食計算
+  var countTimes = foodTimes.length > 0 ? foodTimes : allTimes;
+  countTimes.sort(function(a,b){ return a-b; });
+  var firstMin = countTimes[0];
+  var lastMin = countTimes[countTimes.length - 1];
   var eatWindow = lastMin - firstMin;
   var fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
   if(fastHours < 0) fastHours = 0;
+  // 断食は12h以上のみ表示
+  if(fastHours < 12) fastHours = 0;
   var toTime = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-  return { mealCount: times.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
+  return { mealCount: foodTimes.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
 }
 
 function updateMealParse(){
