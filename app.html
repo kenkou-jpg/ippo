@@ -5002,11 +5002,12 @@ function parseMealMemo(text){
   countTimes.sort(function(a,b){ return a-b; });
   var firstMin = countTimes[0];
   var lastMin = countTimes[countTimes.length - 1];
-  var eatWindow = lastMin - firstMin;
-  var fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
-  if(fastHours < 0) fastHours = 0;
-  // 断食は12h以上のみ表示
-  if(fastHours < 12) fastHours = 0;
+  var fastHours = 0;
+  if(foodTimes.length >= 2){
+    var eatWindow = lastMin - firstMin;
+    fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
+    if(fastHours < 12) fastHours = 0;
+  }
   var toTime = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
   return { mealCount: foodTimes.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
 }
