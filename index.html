@@ -15,1551 +15,1050 @@
   <link rel="icon" href="images/favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+
   <style>
-    /* ===========================
-       0. CSS Custom Properties
-    =========================== */
     :root {
-      --color-bg: #0D0D0D;
-      --color-bg-secondary: #1A1A1A;
-      --color-bg-card: #222222;
-      --color-text: #F5F5F5;
-      --color-text-secondary: #A0A0A0;
-      --color-accent: #FF6B6B;
-      --color-accent-hover: #FF8A8A;
-      --color-accent-subtle: rgba(255, 107, 107, 0.12);
-      --color-green: #4ECDC4;
-      --color-purple: #A78BFA;
-      --color-border: rgba(255,255,255,0.08);
-      --font-primary: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-      --max-width: 1200px;
-      --section-padding: 120px 0;
-      --radius: 16px;
-      --radius-sm: 8px;
-      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --bg:        #FAFAF8;
+      --bg2:       #F3F1EE;
+      --bg3:       #EDE9E4;
+      --text:      #1A1714;
+      --text2:     #6B6460;
+      --text3:     #A09890;
+      --accent:    #E8614A;
+      --accent2:   #F07B63;
+      --accent-bg: rgba(232,97,74,0.08);
+      --green:     #3DB89B;
+      --purple:    #8B6FD4;
+      --border:    rgba(26,23,20,0.08);
+      --shadow:    rgba(26,23,20,0.06);
+      --font-display: 'Playfair Display', 'Noto Sans JP', serif;
+      --font-body:    'DM Sans', 'Noto Sans JP', sans-serif;
+      --max: 1200px;
+      --rad: 20px;
+      --tr: 0.3s cubic-bezier(0.4,0,0.2,1);
     }
 
-    /* ===========================
-       1. Reset & Base
-    =========================== */
-    *, *::before, *::after {
-      margin: 0; padding: 0; box-sizing: border-box;
-    }
-    html {
-      scroll-behavior: smooth;
-      -webkit-text-size-adjust: 100%;
-    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
     body {
-      font-family: var(--font-primary);
-      background: var(--color-bg);
-      color: var(--color-text);
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
       line-height: 1.7;
-      font-weight: 400;
       -webkit-font-smoothing: antialiased;
     }
     a { color: inherit; text-decoration: none; }
     img { max-width: 100%; display: block; }
     ul { list-style: none; }
 
-    /* ===========================
-       2. Utility
-    =========================== */
-    .container {
-      max-width: var(--max-width);
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-    .section-label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--color-accent);
-      margin-bottom: 16px;
-    }
-    .section-title {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 700;
-      line-height: 1.2;
-      margin-bottom: 20px;
-    }
-    .section-subtitle {
-      font-size: 1.125rem;
-      color: var(--color-text-secondary);
-      max-width: 640px;
-      line-height: 1.8;
-    }
-    .highlight { color: var(--color-accent); }
-    .highlight-green { color: var(--color-green); }
-    .highlight-purple { color: var(--color-purple); }
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
 
-    /* ===========================
-       3. Header / Navigation
-    =========================== */
+    /* ── HEADER ─────────────────────────────── */
     .header {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 1000;
-      padding: 16px 0;
-      background: rgba(13,13,13,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--color-border);
-      transition: var(--transition);
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 18px 0;
+      background: rgba(250,250,248,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      transition: var(--tr);
     }
-    .header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-    .logo span { color: var(--color-accent); }
-    .nav { display: flex; align-items: center; gap: 32px; }
-    .nav a {
-      font-size: 0.875rem;
-      font-weight: 500;
-      color: var(--color-text-secondary);
-      transition: var(--transition);
-    }
-    .nav a:hover { color: var(--color-text); }
-
-    .lang-switch {
-      display: flex;
-      background: var(--color-bg-card);
-      border-radius: 20px;
-      padding: 2px;
-      gap: 2px;
-    }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-family: var(--font-display); font-size: 1.6rem; font-weight:700; letter-spacing:-0.02em; }
+    .logo span { color: var(--accent); }
+    .nav { display:flex; align-items:center; gap:28px; }
+    .nav a { font-size:0.875rem; font-weight:500; color:var(--text2); transition:var(--tr); }
+    .nav a:hover { color:var(--text); }
+    .lang-switch { display:flex; background:var(--bg3); border-radius:20px; padding:2px; gap:2px; }
     .lang-switch button {
-      background: none;
-      border: none;
-      color: var(--color-text-secondary);
-      font-size: 0.75rem;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 18px;
-      cursor: pointer;
-      transition: var(--transition);
-      font-family: var(--font-primary);
+      background:none; border:none; color:var(--text2); font-size:0.75rem; font-weight:600;
+      padding:6px 14px; border-radius:18px; cursor:pointer; transition:var(--tr); font-family:var(--font-body);
     }
-    .lang-switch button.active {
-      background: var(--color-accent);
-      color: #fff;
-    }
-
+    .lang-switch button.active { background:var(--accent); color:#fff; }
     .btn-header {
-      background: var(--color-accent);
-      color: #fff;
-      padding: 10px 24px;
-      border-radius: 24px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      transition: var(--transition);
-      border: none;
-      cursor: pointer;
+      background:var(--accent); color:#fff; padding:10px 24px; border-radius:24px;
+      font-size:0.875rem; font-weight:600; transition:var(--tr); border:none; cursor:pointer;
     }
-    .btn-header:hover {
-      background: var(--color-accent-hover);
-      transform: translateY(-1px);
-    }
+    .btn-header:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 6px 20px rgba(232,97,74,0.28); }
+    .hamburger { display:none; background:none; border:none; cursor:pointer; padding:4px; }
+    .hamburger span { display:block; width:24px; height:2px; background:var(--text); margin:5px 0; transition:var(--tr); }
 
-    .hamburger {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 4px;
-    }
-    .hamburger span {
-      display: block;
-      width: 24px;
-      height: 2px;
-      background: var(--color-text);
-      margin: 5px 0;
-      transition: var(--transition);
-    }
-
-    /* ===========================
-       4. Hero Section
-    =========================== */
+    /* ── HERO ────────────────────────────────── */
     .hero {
-      padding: 180px 0 120px;
-      text-align: center;
+      padding: 140px 0 0;
       position: relative;
       overflow: hidden;
+      background: linear-gradient(170deg, #FAFAF8 0%, #F5EFE9 60%, #EFE6DC 100%);
     }
-    .hero::before {
-      content: '';
+    /* Decorative blob */
+    .hero-blob {
       position: absolute;
-      top: -200px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 800px;
-      height: 800px;
-      background: radial-gradient(circle, rgba(255,107,107,0.08) 0%, transparent 70%);
+      border-radius: 50%;
       pointer-events: none;
     }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--color-accent-subtle);
-      color: var(--color-accent);
-      padding: 8px 20px;
-      border-radius: 24px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      margin-bottom: 32px;
-      letter-spacing: 0.03em;
+    .hero-blob-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(232,97,74,0.10) 0%, transparent 70%);
+      top: -200px; right: -100px;
     }
-    .hero h1 {
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 700;
-      line-height: 1.15;
-      margin-bottom: 24px;
-      letter-spacing: -0.02em;
-    }
-    .hero p {
-      font-size: 1.2rem;
-      color: var(--color-text-secondary);
-      max-width: 600px;
-      margin: 0 auto 48px;
-      line-height: 1.8;
-    }
-    .hero-cta {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--color-accent);
-      color: #fff;
-      padding: 16px 40px;
-      border-radius: 32px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      transition: var(--transition);
-    }
-    .hero-cta:hover {
-      background: var(--color-accent-hover);
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(255,107,107,0.25);
-    }
-    .hero-stats {
-      display: flex;
-      justify-content: center;
-      gap: 48px;
-      margin-top: 64px;
-      flex-wrap: nowrap;
-    }
-    .hero-stat {
-      text-align: center;
-    }
-    .hero-stat-number {
-      font-size: 2rem;
-      font-weight: 700;
-      color: var(--color-text);
-    }
-    .hero-stat-label {
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-      margin-top: 4px;
+    .hero-blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(61,184,155,0.08) 0%, transparent 70%);
+      bottom: 100px; left: -50px;
     }
 
-    /* ===========================
-       5. Conditions Section
-    =========================== */
-    .conditions {
-      padding: var(--section-padding);
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      position: relative; z-index: 2;
     }
+
+    .hero-text {}
+    .hero-badge {
+      display: inline-flex; align-items:center; gap:8px;
+      background: rgba(232,97,74,0.10);
+      border: 1px solid rgba(232,97,74,0.20);
+      color: var(--accent);
+      padding: 7px 18px; border-radius: 24px;
+      font-size: 0.78rem; font-weight: 600; letter-spacing:0.04em;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text2); line-height: 1.85;
+      margin-bottom: 36px; max-width: 420px;
+    }
+    .hero-cta-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom: 48px; }
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--accent); color:#fff;
+      padding: 14px 32px; border-radius:32px;
+      font-size:1rem; font-weight:600;
+      transition:var(--tr);
+      box-shadow: 0 8px 28px rgba(232,97,74,0.25);
+    }
+    .btn-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 14px 36px rgba(232,97,74,0.32); }
+    .btn-ghost { font-size:0.9rem; color:var(--text2); display:flex; align-items:center; gap:5px; transition:var(--tr); }
+    .btn-ghost:hover { color:var(--text); }
+
+    .hero-trust {
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--text2); font-weight:500;
+    }
+    .trust-icon { font-size: 1rem; }
+
+    /* Hero phones */
+    .hero-visual {
+      position: relative;
+      height: 580px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .phone-wrap {
+      position: absolute;
+      bottom: 0;
+      filter: drop-shadow(0 24px 48px rgba(26,23,20,0.14));
+      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .phone-wrap:hover { transform: translateY(-8px) !important; }
+
+    .phone-frame {
+      background: #F8F6F4;
+      border-radius: 44px;
+      padding: 13px;
+      border: 1.5px solid rgba(26,23,20,0.10);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.8) inset,
+        0 2px 4px rgba(26,23,20,0.08) inset;
+    }
+    .phone-screen {
+      border-radius: 34px;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+    }
+    .phone-screen img { width:100%; display:block; object-fit:cover; object-position:top; }
+    .phone-notch {
+      position:absolute; top:0; left:50%; transform:translateX(-50%);
+      width:80px; height:24px;
+      background: #E8E4E0;
+      border-radius: 0 0 14px 14px;
+      z-index: 5;
+    }
+
+    .phone-main {
+      left: 50%; transform: translateX(-50%);
+      z-index: 3;
+      width: 230px;
+    }
+    .phone-main .phone-screen { height: 498px; }
+
+    .phone-left {
+      left: calc(50% - 190px);
+      transform: rotate(-8deg);
+      z-index: 2;
+      width: 195px;
+      opacity: 0.82;
+    }
+    .phone-left .phone-screen { height: 422px; }
+    .phone-left:hover { transform: rotate(-8deg) translateY(-8px) !important; }
+
+    .phone-right {
+      left: calc(50% + 80px);
+      transform: rotate(7deg);
+      z-index: 2;
+      width: 190px;
+      opacity: 0.78;
+    }
+    .phone-right .phone-screen { height: 411px; }
+    .phone-right:hover { transform: rotate(7deg) translateY(-8px) !important; }
+
+    /* Floating badges */
+    .float-tag {
+      position: absolute;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex; align-items:center; gap: 8px;
+      font-size: 12px; font-weight:600;
+      box-shadow: 0 8px 28px rgba(26,23,20,0.12);
+      z-index: 10;
+      animation: floatY 3s ease-in-out infinite alternate;
+      white-space: nowrap;
+    }
+    .float-tag .ft-icon { font-size: 16px; }
+    .float-tag .ft-val { color: var(--accent); }
+
+    .ft-1 { bottom: 180px; left: 20px; animation-delay:0s; }
+    .ft-2 { top: 120px; right: 10px; animation-delay:1s; }
+    .ft-3 { bottom: 100px; right: 30px; animation-delay:0.5s; }
+
+    @keyframes floatY {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-10px); }
+    }
+
+    /* Hero stats bar */
+    .hero-stats-bar {
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      position: relative; z-index: 2;
+    }
+    .hero-stats-inner {
+      display: flex; justify-content: center; gap: 0;
+    }
+    .hstat {
+      text-align: center;
+      padding: 0 48px;
+      border-right: 1px solid var(--border);
+    }
+    .hstat:last-child { border-right: none; }
+    .hstat-num {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight:700;
+      color: var(--text);
+      display: block;
+    }
+    .hstat-label { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
+
+    /* ── SECTION COMMON ──────────────────────── */
+    .section { padding: 100px 0; }
+    .section-label {
+      font-size: 0.72rem; font-weight:700; letter-spacing:0.15em;
+      text-transform:uppercase; color:var(--accent); margin-bottom:14px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      font-weight:700; line-height:1.22; margin-bottom:18px;
+    }
+    .section-sub { font-size:1.05rem; color:var(--text2); line-height:1.8; max-width:560px; }
+
+    /* ── CONDITIONS ──────────────────────────── */
+    .conditions { background: var(--bg); }
     .conditions-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       margin-top: 48px;
     }
-    .condition-card {
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 32px 24px;
+    .cond-card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: var(--rad);
+      padding: 28px 20px;
       text-align: center;
-      transition: var(--transition);
+      transition: var(--tr);
+      box-shadow: 0 2px 12px var(--shadow);
     }
-    .condition-card:hover {
-      border-color: var(--color-accent);
+    .cond-card:hover {
+      border-color: var(--accent);
       transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(232,97,74,0.10);
     }
-    .condition-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--color-accent-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      font-size: 1.5rem;
+    .cond-icon {
+      width: 52px; height:52px; border-radius:50%;
+      background: var(--accent-bg);
+      display:flex; align-items:center; justify-content:center;
+      margin: 0 auto 14px; font-size:1.4rem;
     }
-    .condition-card h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .condition-card p {
-      font-size: 0.85rem;
-      color: var(--color-text-secondary);
-      line-height: 1.6;
-    }
+    .cond-card h3 { font-size:0.95rem; font-weight:600; margin-bottom:6px; }
+    .cond-card p { font-size:0.82rem; color:var(--text2); line-height:1.6; }
 
-    /* ===========================
-       6. Features Section
-    =========================== */
-    .features {
-      padding: var(--section-padding);
-    }
-    .feature-row {
+    /* ── FEATURES ────────────────────────────── */
+    .features { background: var(--bg2); }
+    .feat-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 80px;
       align-items: center;
-      margin-bottom: 120px;
+      margin-bottom: 100px;
     }
-    .feature-row:last-child { margin-bottom: 0; }
-    .feature-row.reverse { direction: rtl; }
-    .feature-row.reverse > * { direction: ltr; }
-    .feature-visual {
-      background: var(--color-bg-secondary);
-      border-radius: var(--radius);
+    .feat-row:last-child { margin-bottom: 0; }
+    .feat-row.rev { direction: rtl; }
+    .feat-row.rev > * { direction: ltr; }
+
+    .feat-visual {
+      border-radius: 24px;
       aspect-ratio: 4/3;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--color-border);
-      font-size: 4rem;
-      position: relative;
-      overflow: hidden;
+      background: #fff;
+      border: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      position: relative; overflow: hidden;
+      box-shadow: 0 8px 40px var(--shadow);
     }
-    .feature-visual::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(255,107,107,0.05), transparent);
+    .feat-visual img.mockup {
+      width: 52%;
+      border-radius: 22px;
+      box-shadow: 0 20px 48px rgba(26,23,20,0.15);
+      position: relative; z-index:2;
+      transition: transform 0.4s var(--tr);
     }
-    .feature-content .section-label { margin-bottom: 12px; }
-    .feature-content h3 {
-      font-size: clamp(1.5rem, 3vw, 2.2rem);
-      font-weight: 700;
-      margin-bottom: 16px;
-      line-height: 1.3;
+    .feat-visual:hover img.mockup { transform: translateY(-6px); }
+    .feat-visual .vglow {
+      position:absolute; inset:0;
+      background: radial-gradient(circle at 50% 70%, rgba(232,97,74,0.06), transparent 65%);
     }
-    .feature-content p {
-      color: var(--color-text-secondary);
-      font-size: 1rem;
-      line-height: 1.8;
-      margin-bottom: 24px;
+    .feat-visual.premium-v .vglow {
+      background: radial-gradient(circle at 50% 70%, rgba(139,111,212,0.07), transparent 65%);
     }
-    .feature-tag {
-      display: inline-block;
-      background: var(--color-accent-subtle);
-      color: var(--color-accent);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .feature-tag.green {
-      background: rgba(78,205,196,0.12);
-      color: var(--color-green);
+    .feat-visual.emoji-fallback { font-size: 3.5rem; }
+    .feat-visual.emoji-fallback::after {
+      content:''; position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(232,97,74,0.04), transparent);
     }
 
-    /* ===========================
-       7. Plan Section
-    =========================== */
-    .plans {
-      padding: var(--section-padding);
+    .feat-tag {
+      display:inline-block;
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 5px 14px; border-radius:20px;
+      font-size:0.72rem; font-weight:700; letter-spacing:0.08em;
     }
-    .plans-header {
-      text-align: center;
-      margin-bottom: 64px;
+    .feat-tag.purple-tag {
+      background: rgba(139,111,212,0.10);
+      color: var(--purple);
     }
+    .feat-content h3 {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight:700; line-height:1.3; margin-bottom:14px;
+    }
+    .feat-content p { color:var(--text2); font-size:0.98rem; line-height:1.85; margin-bottom:22px; }
+
+    /* ── PLANS ───────────────────────────────── */
+    .plans { background: var(--bg); }
+    .plans-header { text-align:center; margin-bottom:60px; }
     .plans-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 24px;
-      max-width: 900px;
-      margin: 0 auto;
+      display:grid; grid-template-columns:1fr 1fr; gap:24px;
+      max-width:860px; margin:0 auto;
     }
     .plan-card {
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 48px 36px;
-      position: relative;
-      transition: var(--transition);
+      background:#fff; border:1.5px solid var(--border);
+      border-radius:24px; padding:44px 32px;
+      position:relative; transition:var(--tr);
+      box-shadow: 0 4px 24px var(--shadow);
     }
     .plan-card.premium {
-      border-color: var(--color-accent);
-      background: linear-gradient(180deg, rgba(255,107,107,0.05) 0%, var(--color-bg-secondary) 100%);
+      border-color: var(--accent);
+      background: linear-gradient(160deg, rgba(232,97,74,0.04) 0%, #fff 50%);
+      box-shadow: 0 8px 40px rgba(232,97,74,0.12);
     }
     .plan-badge {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--color-accent);
-      color: #fff;
-      padding: 4px 16px;
-      border-radius: 12px;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
+      position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+      background:var(--accent); color:#fff;
+      padding:4px 16px; border-radius:12px;
+      font-size:0.68rem; font-weight:700; letter-spacing:0.1em;
     }
-    .plan-name {
-      font-size: 0.85rem;
-      font-weight: 600;
-      color: var(--color-text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-    }
-    .plan-price {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .plan-price-sub {
-      font-size: 0.85rem;
-      color: var(--color-text-secondary);
-      margin-bottom: 32px;
-    }
-    .plan-features {
-      margin-bottom: 32px;
-    }
+    .plan-name { font-size:0.8rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+    .plan-price { font-family:var(--font-display); font-size:2.4rem; font-weight:700; margin-bottom:3px; }
+    .plan-price-sub { font-size:0.82rem; color:var(--text3); margin-bottom:28px; }
+    .plan-features { margin-bottom:28px; }
     .plan-features li {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 10px 0;
-      font-size: 0.95rem;
-      color: var(--color-text-secondary);
-      border-bottom: 1px solid var(--color-border);
+      display:flex; align-items:flex-start; gap:10px;
+      padding:9px 0; font-size:0.9rem; color:var(--text2);
+      border-bottom:1px solid var(--border);
     }
-    .plan-features li:last-child { border-bottom: none; }
-    .plan-features li .check {
-      color: var(--color-green);
-      font-weight: 700;
-      flex-shrink: 0;
-      margin-top: 2px;
-    }
+    .plan-features li:last-child { border-bottom:none; }
+    .plan-features li .ck { color:var(--green); font-weight:700; flex-shrink:0; }
     .plan-btn {
-      display: block;
-      width: 100%;
-      text-align: center;
-      padding: 14px;
-      border-radius: 28px;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: var(--transition);
-      border: none;
-      cursor: pointer;
-      font-family: var(--font-primary);
+      display:block; width:100%; text-align:center; padding:13px;
+      border-radius:28px; font-size:0.95rem; font-weight:600;
+      transition:var(--tr); border:none; cursor:pointer; font-family:var(--font-body);
     }
-    .plan-btn.primary {
-      background: var(--color-accent);
-      color: #fff;
-    }
-    .plan-btn.primary:hover {
-      background: var(--color-accent-hover);
-      transform: translateY(-2px);
-    }
-    .plan-btn.secondary {
-      background: var(--color-bg-card);
-      color: var(--color-text);
-      border: 1px solid var(--color-border);
-    }
-    .plan-btn.secondary:hover {
-      border-color: var(--color-text-secondary);
-    }
+    .plan-btn.pb-primary { background:var(--accent); color:#fff; }
+    .plan-btn.pb-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 8px 24px rgba(232,97,74,0.28); }
+    .plan-btn.pb-secondary { background:var(--bg2); color:var(--text); border:1.5px solid var(--border); }
+    .plan-btn.pb-secondary:hover { border-color:var(--text3); }
 
-    /* ===========================
-       8. Testimonials
-    =========================== */
-    .testimonials {
-      padding: var(--section-padding);
+    /* ── TESTIMONIALS ────────────────────────── */
+    .testimonials { background: var(--bg2); }
+    .testimonials-header { text-align:center; margin-bottom:56px; }
+    .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+    .testi-card {
+      background:#fff; border:1px solid var(--border);
+      border-radius:20px; padding:32px;
+      box-shadow: 0 2px 16px var(--shadow);
+      transition: var(--tr);
     }
-    .testimonials-header {
-      text-align: center;
-      margin-bottom: 64px;
-    }
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-    }
-    .testimonial-card {
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 36px;
-    }
-    .testimonial-stars {
-      color: var(--color-accent);
-      font-size: 0.9rem;
-      margin-bottom: 16px;
-      letter-spacing: 2px;
-    }
-    .testimonial-text {
-      font-size: 1rem;
-      line-height: 1.8;
-      margin-bottom: 24px;
-      color: var(--color-text);
-    }
-    .testimonial-author {
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-    }
+    .testi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px var(--shadow); }
+    .testi-stars { color:var(--accent); font-size:0.85rem; margin-bottom:14px; letter-spacing:2px; }
+    .testi-text { font-size:0.95rem; line-height:1.8; margin-bottom:20px; color:var(--text); }
+    .testi-author { font-size:0.78rem; color:var(--text3); }
 
-    /* ===========================
-       9. Privacy Section
-    =========================== */
-    .privacy {
-      padding: var(--section-padding);
+    /* ── PRIVACY ─────────────────────────────── */
+    .privacy { background:var(--bg); }
+    .privacy-inner { text-align:center; }
+    .privacy-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:48px; }
+    .priv-item {
+      background:#fff; border:1px solid var(--border); border-radius:20px;
+      padding:36px 28px; text-align:center;
+      box-shadow: 0 2px 12px var(--shadow);
+      transition: var(--tr);
     }
-    .privacy-inner {
-      text-align: center;
-    }
-    .privacy-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-      margin-top: 48px;
-    }
-    .privacy-item {
-      padding: 32px;
-    }
-    .privacy-icon {
-      font-size: 2rem;
-      margin-bottom: 16px;
-    }
-    .privacy-item h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-    .privacy-item p {
-      font-size: 0.9rem;
-      color: var(--color-text-secondary);
-      line-height: 1.7;
-    }
+    .priv-item:hover { transform:translateY(-3px); box-shadow: 0 8px 28px var(--shadow); }
+    .priv-icon { font-size:2rem; margin-bottom:14px; }
+    .priv-item h3 { font-size:1rem; font-weight:600; margin-bottom:8px; }
+    .priv-item p { font-size:0.88rem; color:var(--text2); line-height:1.7; }
 
-    /* ===========================
-       10. About / Story
-    =========================== */
-    .about {
-      padding: var(--section-padding);
-    }
+    /* ── ABOUT ───────────────────────────────── */
+    .about { background: linear-gradient(135deg, #FDF8F4 0%, #F5EDE4 100%); }
     .about-inner {
-      display: grid;
-      grid-template-columns: 1fr 2fr;
-      gap: 64px;
-      align-items: center;
-      max-width: 900px;
-      margin: 0 auto;
+      display:grid; grid-template-columns:1fr 2fr;
+      gap:60px; align-items:center;
+      max-width:860px; margin:0 auto;
     }
-    .about-image {
-      width: 200px;
-      height: 200px;
-      border-radius: 50%;
-      background: var(--color-bg-secondary);
-      border: 2px solid var(--color-border);
-      overflow: hidden;
-      margin: 0 auto;
+    .about-photo {
+      width:200px; height:200px; border-radius:50%;
+      background:var(--bg3); border:3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      overflow:hidden; margin:0 auto;
     }
-    .about-image img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-    .about-content .section-label { margin-bottom: 12px; }
-    .about-content h3 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
-    .about-content p {
-      color: var(--color-text-secondary);
-      line-height: 1.9;
-      margin-bottom: 12px;
-    }
-    .about-tagline {
-      font-style: italic;
-      color: var(--color-accent) !important;
-      font-weight: 500;
-      margin-top: 20px !important;
-    }
+    .about-photo img { width:100%; height:100%; object-fit:cover; }
+    .about-content h3 { font-family:var(--font-display); font-size:1.7rem; font-weight:700; margin-bottom:14px; }
+    .about-content p { color:var(--text2); line-height:1.9; margin-bottom:10px; font-size:0.97rem; }
+    .about-tagline { font-style:italic; color:var(--accent) !important; font-weight:500; margin-top:18px !important; font-family:var(--font-display); font-size:1.1rem !important; }
 
-    /* ===========================
-       11. Final CTA
-    =========================== */
+    /* ── FINAL CTA ───────────────────────────── */
     .final-cta {
-      padding: 120px 0;
-      text-align: center;
-      position: relative;
+      background: linear-gradient(135deg, var(--accent) 0%, #F07B63 100%);
+      padding: 100px 0; text-align:center;
+      position: relative; overflow: hidden;
     }
     .final-cta::before {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, rgba(255,107,107,0.06) 0%, transparent 70%);
-      pointer-events: none;
+      content:''; position:absolute;
+      width:500px; height:500px; border-radius:50%;
+      background:rgba(255,255,255,0.06);
+      top:-200px; right:-100px;
+    }
+    .final-cta::after {
+      content:''; position:absolute;
+      width:300px; height:300px; border-radius:50%;
+      background:rgba(255,255,255,0.05);
+      bottom:-100px; left:5%;
     }
     .final-cta h2 {
-      font-size: clamp(2rem, 5vw, 3rem);
-      font-weight: 700;
-      margin-bottom: 16px;
+      font-family:var(--font-display);
+      font-size:clamp(1.9rem,4vw,2.9rem); font-weight:700;
+      color:#fff; margin-bottom:14px; position:relative; z-index:1;
     }
-    .final-cta p {
-      color: var(--color-text-secondary);
-      font-size: 1.1rem;
-      margin-bottom: 40px;
+    .final-cta p { color:rgba(255,255,255,0.82); font-size:1.05rem; margin-bottom:36px; position:relative; z-index:1; }
+    .btn-white {
+      display:inline-flex; align-items:center; gap:8px;
+      background:#fff; color:var(--accent);
+      padding:14px 36px; border-radius:32px;
+      font-size:1rem; font-weight:700; transition:var(--tr);
+      position:relative; z-index:1;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.15);
     }
+    .btn-white:hover { transform:translateY(-2px); box-shadow: 0 14px 36px rgba(0,0,0,0.20); }
 
-    /* ===========================
-       12. Footer
-    =========================== */
-    .footer {
-      padding: 64px 0 32px;
-      border-top: 1px solid var(--color-border);
-    }
-    .footer-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 48px;
-      margin-bottom: 48px;
-    }
-    .footer-brand .logo { margin-bottom: 12px; }
-    .footer-brand p {
-      font-size: 0.85rem;
-      color: var(--color-text-secondary);
-      max-width: 280px;
-      line-height: 1.7;
-    }
-    .footer-links h4 {
-      font-size: 0.8rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--color-text-secondary);
-      margin-bottom: 16px;
-    }
-    .footer-links a {
-      display: block;
-      font-size: 0.9rem;
-      color: var(--color-text-secondary);
-      padding: 4px 0;
-      transition: var(--transition);
-    }
-    .footer-links a:hover { color: var(--color-text); }
+    /* ── FOOTER ──────────────────────────────── */
+    .footer { padding:60px 0 28px; border-top:1px solid var(--border); background:var(--bg); }
+    .footer-inner { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:40px; margin-bottom:40px; }
+    .footer-brand .logo { margin-bottom:10px; }
+    .footer-brand p { font-size:0.83rem; color:var(--text2); max-width:260px; line-height:1.7; }
+    .footer-links h4 { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--text2); margin-bottom:14px; }
+    .footer-links a { display:block; font-size:0.88rem; color:var(--text2); padding:3px 0; transition:var(--tr); }
+    .footer-links a:hover { color:var(--text); }
     .footer-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 32px;
-      border-top: 1px solid var(--color-border);
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .footer-legal a {
-      color: var(--color-text-secondary);
-      margin-left: 24px;
-      transition: var(--transition);
-    }
-    .footer-legal a:hover { color: var(--color-text); }
-
-    /* ===========================
-       13. Responsive
-    =========================== */
-    @media (max-width: 1024px) {
-      .conditions-grid { grid-template-columns: repeat(2, 1fr); }
-      .feature-row { gap: 48px; }
+      display:flex; justify-content:space-between; align-items:center;
+      padding-top:28px; border-top:1px solid var(--border);
+      font-size:0.78rem; color:var(--text3); flex-wrap:wrap; gap:12px;
     }
 
-    @media (max-width: 768px) {
-      :root { --section-padding: 80px 0; }
-      .nav { display: none; }
-      .hamburger { display: block; }
-      .nav.open {
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        top: 60px; left: 0; right: 0; bottom: 0;
-        background: var(--color-bg);
-        padding: 32px 24px;
-        gap: 24px;
-        z-index: 999;
-      }
-      .nav.open a { font-size: 1.2rem; }
-      .hero { padding: 140px 0 80px; }
-      .hero h1 { font-size: 2.2rem; }
-      .hero-stats { gap: 32px; }
-      .conditions-grid { grid-template-columns: 1fr 1fr; }
-      .feature-row {
-        grid-template-columns: 1fr;
-        gap: 32px;
-      }
-      .feature-row.reverse { direction: ltr; }
-      .plans-grid { grid-template-columns: 1fr; }
-      .testimonials-grid { grid-template-columns: 1fr; }
-      .privacy-grid { grid-template-columns: 1fr; }
-      .about-inner {
-        grid-template-columns: 1fr;
-        text-align: center;
-      }
-      .footer-inner { flex-direction: column; }
-    }
-
-    /* ===========================
-       14. Animations
-    =========================== */
+    /* ── FADE IN ─────────────────────────────── */
     @media (prefers-reduced-motion: no-preference) {
-      .fade-in {
-        opacity: 0;
-        transform: translateY(24px);
-        transition: opacity 0.6s ease, transform 0.6s ease;
+      .fade-in { opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease; }
+      .fade-in.visible { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── LANG ────────────────────────────────── */
+    [data-lang="en"] { display:none; }
+    html[lang="en"] [data-lang="en"] { display:block; }
+    html[lang="en"] [data-lang="ja"] { display:none; }
+    html[lang="en"] [data-lang-inline="en"] { display:inline; }
+    html[lang="en"] [data-lang-inline="ja"] { display:none; }
+    html[lang="ja"] [data-lang-inline="en"] { display:none; }
+    html[lang="ja"] [data-lang-inline="ja"] { display:inline; }
+
+    /* ── RESPONSIVE ──────────────────────────── */
+    @media (max-width: 1024px) {
+      .conditions-grid { grid-template-columns:repeat(2,1fr); }
+      .feat-row { gap:48px; }
+    }
+    @media (max-width: 768px) {
+      .nav { display:none; }
+      .hamburger { display:block; }
+      .nav.open {
+        display:flex; flex-direction:column;
+        position:fixed; top:62px; left:0; right:0; bottom:0;
+        background:var(--bg); padding:32px 24px; gap:20px; z-index:999;
       }
-      .fade-in.visible {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      .nav.open a { font-size:1.2rem; }
+      .hero-inner { grid-template-columns:1fr; text-align:center; padding-bottom:0; }
+      .hero-sub { margin-left:auto; margin-right:auto; }
+      .hero-cta-row { justify-content:center; }
+      .hero-trust { justify-content:center; }
+      .hero-visual { height:320px; }
+      .phone-main { width:165px; }
+      .phone-main .phone-screen { height:357px; }
+      .phone-left { left:calc(50% - 138px); width:140px; }
+      .phone-left .phone-screen { height:303px; }
+      .phone-right { left:calc(50% + 52px); width:136px; }
+      .phone-right .phone-screen { height:295px; }
+      .hstat { padding:0 24px; }
+      .hstat-num { font-size:1.6rem; }
+      .feat-row { grid-template-columns:1fr; gap:28px; }
+      .feat-row.rev { direction:ltr; }
+      .plans-grid { grid-template-columns:1fr; }
+      .testi-grid { grid-template-columns:1fr; }
+      .privacy-grid { grid-template-columns:1fr; }
+      .about-inner { grid-template-columns:1fr; text-align:center; }
+      .footer-inner { flex-direction:column; }
+      .conditions-grid { grid-template-columns:1fr 1fr; }
     }
-
-    /* ===========================
-       15. Language Toggle
-    =========================== */
-    [data-lang="en"] { display: none; }
-    html[lang="en"] [data-lang="en"] { display: block; }
-    html[lang="en"] [data-lang="ja"] { display: none; }
-    html[lang="en"] [data-lang-inline="en"] { display: inline; }
-    html[lang="en"] [data-lang-inline="ja"] { display: none; }
-    html[lang="ja"] [data-lang-inline="en"] { display: none; }
-    html[lang="ja"] [data-lang-inline="ja"] { display: inline; }
-
-      /* ===========================
-       16. Hero Phone Mockups (2台斜め重ね)
-    =========================== */
-    .hero-phones {
-      position: relative;
-      width: 340px;
-      height: 420px;
-      margin: 64px auto 0;
-    }
-    .hero-phone {
-      position: absolute;
-      width: 200px;
-      border-radius: 24px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      overflow: hidden;
-      border: 3px solid rgba(255,255,255,0.08);
-    }
-    .hero-phone img {
-      width: 100%;
-      display: block;
-    }
-    .hero-phone.back {
-      top: 0;
-      left: 0;
-      transform: rotate(-6deg);
-      z-index: 1;
-    }
-    .hero-phone.front {
-      top: 30px;
-      right: 0;
-      transform: rotate(4deg);
-      z-index: 2;
-    }
-
-    /* ===========================
-       17. Feature Mockup & Background
-    =========================== */
-    .feature-bg-img {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .feature-bg-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.15;
-      filter: grayscale(30%);
-    }
-    .feature-mockup {
-      width: 180px;
-      border-radius: 20px;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.4);
-      overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.06);
-      position: relative;
-      z-index: 1;
-    }
-    .feature-mockup img {
-      width: 100%;
-      display: block;
-    }
-    .feature-emoji {
-      font-size: 4rem;
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ===========================
-       18. Hero Background Image
-    =========================== */
-    .hero-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .hero-bg img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.12;
-      filter: grayscale(20%);
-    }
-    .hero > .container {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ===========================
-       19. Testimonials Background
-    =========================== */
-    .testimonials {
-      position: relative;
-      overflow: hidden;
-    }
-    .testimonials-bg {
-      position: absolute;
-      inset: 0;
-      z-index: 0;
-    }
-    .testimonials-bg img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      opacity: 0.06;
-      filter: grayscale(40%);
-    }
-    .testimonials > .container {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* ===========================
-       20. Story Section Enhanced
-    =========================== */
-    .about-visual {
-      position: relative;
-      width: 100%;
-      max-width: 360px;
-      margin: 0 auto;
-    }
-    .about-photo-main {
-      width: 100%;
-      border-radius: var(--radius);
-      overflow: hidden;
-      border: 1px solid var(--color-border);
-    }
-    .about-photo-main img {
-      width: 100%;
-      display: block;
-    }
-    .about-phone-overlay {
-      position: absolute;
-      bottom: -16px;
-      left: -16px;
-      width: 100px;
-      border-radius: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-      overflow: hidden;
-      border: 2px solid rgba(255,255,255,0.1);
-      z-index: 2;
-    }
-    .about-phone-overlay img {
-      width: 100%;
-      display: block;
-    }
-
-    /* ===========================
-       21. Privacy Icon Hover
-    =========================== */
-    .privacy-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: var(--color-accent-subtle);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      transition: var(--transition);
-    }
-    .privacy-item:hover .privacy-icon {
-      transform: scale(1.1);
-      background: rgba(255,107,107,0.2);
-    }
-
-       @media (max-width: 768px) {
-      .hero-phones {
-        width: 280px;
-        height: 360px;
-        margin-top: 48px;
-      }
-      .hero-phone { width: 160px; }
-      .hero-phone.front { top: 20px; }
-      .feature-mockup { width: 140px; }
-      .about-phone-overlay {
-        width: 80px;
-        bottom: -10px;
-        left: -10px;
-      }
-      .hero-stats { flex-wrap: wrap; }
-    }
-
-    
   </style>
 </head>
 <body>
 
-  <!-- ======= HEADER ======= -->
-  <header class="header">
-    <div class="container header-inner">
-      <div class="logo">ippo<span>.</span></div>
-      <nav class="nav" id="nav">
-        <a href="#features">
-          <span data-lang-inline="ja">機能</span>
-          <span data-lang-inline="en">Features</span>
-        </a>
-        <a href="#plans">
-          <span data-lang-inline="ja">プラン</span>
-          <span data-lang-inline="en">Plans</span>
-        </a>
-        <a href="#privacy-section">
-          <span data-lang-inline="ja">プライバシー</span>
-          <span data-lang-inline="en">Privacy</span>
-        </a>
-        <a href="https://kenkou-kiroku.com" target="_blank">
-          <span data-lang-inline="ja">ブログ</span>
-          <span data-lang-inline="en">Blog</span>
-        </a>
-        <div class="lang-switch">
-          <button id="lang-ja" class="active" onclick="setLang('ja')">JA</button>
-          <button id="lang-en" onclick="setLang('en')">EN</button>
-        </div>
-        <a href="app.html" class="btn-header">
-          <span data-lang-inline="ja">無料で始める</span>
-          <span data-lang-inline="en">Start Free</span>
-        </a>
-      </nav>
-      <button class="hamburger" id="hamburger" aria-label="Menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-  </header>
-
-  <!-- ======= HERO ======= -->
-    <section class="hero">
-    <div class="hero-bg">
-      <img src="images/hero-bg.jpg" alt="" loading="eager">
-    </div>
-    <div class="container">
-      <div data-lang="ja">
-        <div class="hero-badge">女性疾患に特化したセルフケアアプリ</div>
-        <h1>からだの声を<br>聴くことから。</h1>
-        <p>卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——<br>
-        診断されたその日から使える、毎日1分のセルフケア記録。<br>
-        無料。広告なし。プライバシー最優先。</p>
+<!-- ── HEADER ─────────────────────────────────── -->
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">ippo<span>.</span></div>
+    <nav class="nav" id="nav">
+      <a href="#features"><span data-lang-inline="ja">機能</span><span data-lang-inline="en">Features</span></a>
+      <a href="#plans"><span data-lang-inline="ja">プラン</span><span data-lang-inline="en">Plans</span></a>
+      <a href="#privacy-section"><span data-lang-inline="ja">プライバシー</span><span data-lang-inline="en">Privacy</span></a>
+      <a href="https://kenkou-kiroku.com" target="_blank"><span data-lang-inline="ja">ブログ</span><span data-lang-inline="en">Blog</span></a>
+      <div class="lang-switch">
+        <button id="lang-ja" class="active" onclick="setLang('ja')">JA</button>
+        <button id="lang-en" onclick="setLang('en')">EN</button>
       </div>
-      <div data-lang="en">
-        <div class="hero-badge">Self-Care App for Women's Health</div>
-        <h1>Listen to<br>your body.</h1>
-        <p>Ovarian cysts, PCOS, fibroids, endometriosis—<br>
-        daily self-care tracking from the day of your diagnosis.<br>
-        Free. No ads. Privacy first.</p>
-      </div>
-      <a href="app.html" class="hero-cta">
-        <span data-lang-inline="ja">無料で記録を始める</span>
-        <span data-lang-inline="en">Start Tracking Free</span>
-        <span>→</span>
-      </a>
-      <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-number">5</div>
-          <div class="hero-stat-label" data-lang-inline="ja">記録カテゴリ</div>
-          <div class="hero-stat-label" data-lang-inline="en">Tracking categories</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">1–2<span style="font-size:1rem">min</span></div>
-          <div class="hero-stat-label" data-lang-inline="ja">1日あたりの記録時間</div>
-          <div class="hero-stat-label" data-lang-inline="en">Daily tracking time</div>
-        </div>
-             <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-number">¥0</div>
-          <div class="hero-stat-label" data-lang-inline="ja">ずっと無料</div>
-          <div class="hero-stat-label" data-lang-inline="en">Free forever</div>
-        </div>
-      </div>
-       <!-- スマホ2台斜め重ね -->
-      <div class="hero-phones">
-        <div class="hero-phone back">
-          <img src="images/mockup_01_home.png" alt="ippoホーム画面">
-        </div>
-        <div class="hero-phone front">
-          <img src="images/mockup_05_calendar.png" alt="ippoカレンダー画面">
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= CONDITIONS ======= -->
-  <section class="conditions">
-    <div class="container">
-      <div data-lang="ja">
-        <p class="section-label">Designed for</p>
-        <h2 class="section-title">女性疾患を抱える<br>あなたのために</h2>
-        <p class="section-subtitle">ippoは、婦人科系の疾患と向き合いながら日々を過ごす方のためにつくられたアプリです。</p>
-      </div>
-      <div data-lang="en">
-        <p class="section-label">Designed for</p>
-        <h2 class="section-title">Built for women<br>living with</h2>
-        <p class="section-subtitle">ippo was created for people navigating daily life with gynecological conditions.</p>
-      </div>
-      <div class="conditions-grid">
-        <div class="condition-card fade-in">
-          <div class="condition-icon">🫧</div>
-          <div data-lang="ja">
-            <h3>卵巣嚢腫</h3>
-            <p>経過観察中の体調変化を毎日記録し、受診時に活用</p>
-          </div>
-          <div data-lang="en">
-            <h3>Ovarian Cysts</h3>
-            <p>Track daily changes during monitoring and use records at checkups</p>
-          </div>
-        </div>
-        <div class="condition-card fade-in">
-          <div class="condition-icon">🔄</div>
-          <div data-lang="ja">
-            <h3>PCOS（多嚢胞性卵巣症候群）</h3>
-            <p>不規則な周期・食欲・体重の変化パターンを可視化</p>
-          </div>
-          <div data-lang="en">
-            <h3>PCOS</h3>
-            <p>Visualize irregular cycles, appetite, and weight change patterns</p>
-          </div>
-        </div>
-        <div class="condition-card fade-in">
-          <div class="condition-icon">🌡</div>
-          <div data-lang="ja">
-            <h3>子宮内膜症</h3>
-            <p>痛みや感情の波と周期の関係を記録から発見</p>
-          </div>
-          <div data-lang="en">
-            <h3>Endometriosis</h3>
-            <p>Discover the link between pain, mood shifts, and your cycle</p>
-          </div>
-        </div>
-        <div class="condition-card fade-in">
-          <div class="condition-icon">🩺</div>
-          <div data-lang="ja">
-            <h3>子宮筋腫</h3>
-            <p>食事・断食・体調の変化を長期的に追跡</p>
-          </div>
-          <div data-lang="en">
-            <h3>Uterine Fibroids</h3>
-            <p>Track diet, fasting, and symptom changes over time</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= FEATURES ======= -->
-  <section class="features" id="features">
-    <div class="container">
-
-      <!-- Feature 1: Daily Tracking -->
-      <div class="feature-row fade-in">
-          <div class="feature-visual">
-          <div class="feature-bg-img">
-            <img src="images/bg-meal.jpg" alt="">
-          </div>
-          <div class="feature-mockup">
-            <img src="images/mockup_02_meal.png" alt="食事記録画面">
-          </div>
-        </div>
-        <div class="feature-content">
-          <div data-lang="ja">
-            <p class="section-label">Daily Tracking</p>
-            <h3>食事・断食・感情を<br>毎日1分で記録</h3>
-            <p>食べたもの、断食時間、気分、基礎体温、チャクラの状態——5つのカテゴリを1画面で記録。続けるほど、あなただけのパターンが見えてきます。</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-          <div data-lang="en">
-            <p class="section-label">Daily Tracking</p>
-            <h3>Meals, fasting, mood—<br>recorded in 1 minute</h3>
-            <p>Food, fasting hours, mood, basal body temperature, chakra—five categories on one screen. The longer you track, the more patterns emerge.</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature 2: Cycle & Symptoms -->
-      <div class="feature-row reverse fade-in">
-                      <div class="feature-visual">
-          <div class="feature-bg-img">
-            <img src="images/bg-cycle.jpg" alt="">
-          </div>
-          <div class="feature-mockup">
-            <img src="images/mockup_05_calendar.png" alt="カレンダー画面">
-          </div>
-        </div>
-        <div class="feature-content">
-          <div data-lang="ja">
-            <p class="section-label">Cycle & Symptoms</p>
-            <h3>生理周期と<br>体調の関係を発見</h3>
-            <p>「高温期に必ず便秘になる」「排卵前に食欲が増す」——記録を続けると、こうした自分だけのパターンが浮かび上がります。</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-          <div data-lang="en">
-            <p class="section-label">Cycle & Symptoms</p>
-            <h3>Discover how your cycle<br>affects your body</h3>
-            <p>"Constipation every luteal phase." "Appetite spikes before ovulation." With enough records, your unique patterns emerge.</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature 3: Community -->
-      <div class="feature-row fade-in">
-               <div class="feature-visual">
-          <span class="feature-emoji">💬</span>
-        </div>
-        <div class="feature-content">
-          <div data-lang="ja">
-            <p class="section-label">Community</p>
-            <h3>みんなの声で<br>ひとりじゃないと知る</h3>
-            <p>卵巣嚢腫やPCOSの悩みを話せる場所。毎週テーマが変わる匿名コミュニティで、同じ経験を持つ女性たちの声を読んだり、あなたの声を届けたり。</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-          <div data-lang="en">
-            <p class="section-label">Community</p>
-            <h3>You're not alone.<br>Hear their voices.</h3>
-            <p>An anonymous, weekly-themed space to share and read real experiences from women navigating ovarian cysts, PCOS, and more.</p>
-            <span class="feature-tag">FREE</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Feature 4: Premium — AI & Reports -->
-      <div class="feature-row reverse fade-in">
-                  <div class="feature-visual" style="border-color: var(--color-accent);">
-          <div class="feature-bg-img">
-            <img src="images/bg-premium.jpg" alt="">
-          </div>
-          <div class="feature-mockup">
-            <img src="images/mockup_04_summary.png" alt="記録サマリー画面">
-          </div>
-        </div>
-        <div class="feature-content">
-          <div data-lang="ja">
-            <p class="section-label" style="color: var(--color-purple);">Premium</p>
-            <h3>AIが読み解く<br>あなたのパターン</h3>
-            <p>30日分の記録をAIが分析し、体調の波・食事の傾向・周期との関連をコメント。月次PDFレポート、婦人科受診サポート、デバイス間同期も。</p>
-            <span class="feature-tag" style="background: rgba(167,139,250,0.12); color: var(--color-purple);">PREMIUM</span>
-          </div>
-          <div data-lang="en">
-            <p class="section-label" style="color: var(--color-purple);">Premium</p>
-            <h3>AI-powered<br>pattern insights</h3>
-            <p>AI analyzes 30 days of data—highlighting symptom waves, diet trends, and cycle correlations. Plus monthly PDF reports, doctor-visit summaries, and cross-device sync.</p>
-            <span class="feature-tag" style="background: rgba(167,139,250,0.12); color: var(--color-purple);">PREMIUM</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ======= PLANS ======= -->
-  <section class="plans" id="plans">
-    <div class="container">
-      <div class="plans-header">
-        <div data-lang="ja">
-          <p class="section-label">Plans</p>
-          <h2 class="section-title">あなたに合ったプランを</h2>
-          <p class="section-subtitle" style="margin: 0 auto;">まずは無料で。もっと深く知りたくなったら、プレミアムへ。</p>
-        </div>
-        <div data-lang="en">
-          <p class="section-label">Plans</p>
-          <h2 class="section-title">Choose your plan</h2>
-          <p class="section-subtitle" style="margin: 0 auto;">Start free. Upgrade when you're ready for deeper insights.</p>
-        </div>
-      </div>
-      <div class="plans-grid">
-        <!-- Free Plan -->
-        <div class="plan-card">
-          <div data-lang="ja">
-            <p class="plan-name">Free</p>
-            <p class="plan-price">¥0</p>
-            <p class="plan-price-sub">ずっと無料</p>
-            <ul class="plan-features">
-              <li><span class="check">✓</span>食事・断食・生理周期の記録</li>
-              <li><span class="check">✓</span>感情・基礎体温・チャクラ記録</li>
-              <li><span class="check">✓</span>断食タイマー＆達成通知</li>
-              <li><span class="check">✓</span>みんなの声（今週分の閲覧・投稿）</li>
-              <li><span class="check">✓</span>データエクスポート（CSV）</li>
-              <li><span class="check">✓</span>ホーム画面に追加（PWA）</li>
-            </ul>
-          </div>
-          <div data-lang="en">
-            <p class="plan-name">Free</p>
-            <p class="plan-price">$0</p>
-            <p class="plan-price-sub">Free forever</p>
-            <ul class="plan-features">
-              <li><span class="check">✓</span>Meal, fasting & cycle tracking</li>
-              <li><span class="check">✓</span>Mood, BBT & chakra tracking</li>
-              <li><span class="check">✓</span>Fasting timer & notifications</li>
-              <li><span class="check">✓</span>Community (current week)</li>
-              <li><span class="check">✓</span>Data export (CSV)</li>
-              <li><span class="check">✓</span>Add to home screen (PWA)</li>
-            </ul>
-          </div>
-          <a href="app.html" class="plan-btn secondary">
-            <span data-lang-inline="ja">無料で始める</span>
-            <span data-lang-inline="en">Start Free</span>
-          </a>
-        </div>
-
-        <!-- Premium Plan -->
-        <div class="plan-card premium">
-          <div class="plan-badge">COMING SOON</div>
-          <div data-lang="ja">
-            <p class="plan-name">Premium</p>
-            <p class="plan-price">¥580<span style="font-size:1rem;font-weight:400;color:var(--color-text-secondary)"> /月</span></p>
-            <p class="plan-price-sub">年額プラン ¥4,800（¥400/月）</p>
-            <ul class="plan-features">
-              <li><span class="check">✓</span>無料プランのすべての機能</li>
-              <li><span class="check">✓</span>デバイス間同期（PC・スマホ）</li>
-              <li><span class="check">✓</span>月次レポート（PDF生成）</li>
-              <li><span class="check">✓</span>AIパターン解析コメント</li>
-              <li><span class="check">✓</span>婦人科受診サポート</li>
-              <li><span class="check">✓</span>みんなの声アーカイブ（過去テーマ閲覧・検索）</li>
-            </ul>
-          </div>
-          <div data-lang="en">
-            <p class="plan-name">Premium</p>
-            <p class="plan-price">$3.99<span style="font-size:1rem;font-weight:400;color:var(--color-text-secondary)"> /mo</span></p>
-            <p class="plan-price-sub">Annual plan $29.99 ($2.50/mo)</p>
-            <ul class="plan-features">
-              <li><span class="check">✓</span>Everything in Free</li>
-              <li><span class="check">✓</span>Cross-device sync (PC & mobile)</li>
-              <li><span class="check">✓</span>Monthly PDF report</li>
-              <li><span class="check">✓</span>AI pattern analysis</li>
-              <li><span class="check">✓</span>Doctor visit support</li>
-              <li><span class="check">✓</span>Community archive (past themes & search)</li>
-            </ul>
-          </div>
-          <a href="app.html" class="plan-btn primary">
-            <span data-lang-inline="ja">近日公開 — 先行登録する</span>
-            <span data-lang-inline="en">Coming Soon — Join Waitlist</span>
-          </a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= TESTIMONIALS ======= -->
-    <section class="testimonials">
-    <div class="testimonials-bg">
-      <img src="images/bg-testimonials.jpg" alt="">
-    </div>
-    <div class="container">
-      <div class="testimonials-header">
-        <div data-lang="ja">
-          <p class="section-label">Voices</p>
-          <h2 class="section-title">使っている方の声</h2>
-        </div>
-        <div data-lang="en">
-          <p class="section-label">Voices</p>
-          <h2 class="section-title">What users say</h2>
-        </div>
-      </div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card fade-in">
-          <div class="testimonial-stars">★★★★★</div>
-          <div data-lang="ja">
-            <p class="testimonial-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</p>
-            <p class="testimonial-author">— 卵巣嚢腫と診断・30代</p>
-          </div>
-          <div data-lang="en">
-            <p class="testimonial-text">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</p>
-            <p class="testimonial-author">— Diagnosed with ovarian cyst, 30s</p>
-          </div>
-        </div>
-        <div class="testimonial-card fade-in">
-          <div class="testimonial-stars">★★★★★</div>
-          <div data-lang="ja">
-            <p class="testimonial-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</p>
-            <p class="testimonial-author">— PCOS治療中・20代</p>
-          </div>
-          <div data-lang="en">
-            <p class="testimonial-text">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</p>
-            <p class="testimonial-author">— PCOS treatment, 20s</p>
-          </div>
-        </div>
-        <div class="testimonial-card fade-in">
-          <div class="testimonial-stars">★★★★★</div>
-          <div data-lang="ja">
-            <p class="testimonial-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</p>
-            <p class="testimonial-author">— 子宮内膜症・30代</p>
-          </div>
-          <div data-lang="en">
-            <p class="testimonial-text">"Just knowing through the community that others share my struggles made me feel a little lighter."</p>
-            <p class="testimonial-author">— Endometriosis, 30s</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= PRIVACY ======= -->
-  <section class="privacy" id="privacy-section">
-    <div class="container">
-      <div class="privacy-inner">
-        <div data-lang="ja">
-          <p class="section-label">Privacy</p>
-          <h2 class="section-title">あなたのデータは、<br>あなたのもの</h2>
-          <p class="section-subtitle" style="margin: 0 auto;">健康データは最も個人的な情報です。ippoはそれを売ったり、共有したりしません。</p>
-        </div>
-        <div data-lang="en">
-          <p class="section-label">Privacy</p>
-          <h2 class="section-title">Your data belongs<br>to you</h2>
-          <p class="section-subtitle" style="margin: 0 auto;">Health data is deeply personal. ippo will never sell or share it.</p>
-        </div>
-        <div class="privacy-grid">
-          <div class="privacy-item fade-in">
-            <div class="privacy-icon">🔒</div>
-            <div data-lang="ja">
-              <h3>端末内保存</h3>
-              <p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p>
-            </div>
-            <div data-lang="en">
-              <h3>On-device storage</h3>
-              <p>Your records stay on your device. Nothing is sent to external servers.</p>
-            </div>
-          </div>
-          <div class="privacy-item fade-in">
-            <div class="privacy-icon">🚫</div>
-            <div data-lang="ja">
-              <h3>広告なし</h3>
-              <p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p>
-            </div>
-            <div data-lang="en">
-              <h3>No ads. Ever.</h3>
-              <p>No advertisements. No distractions. Your focus stays on your health.</p>
-            </div>
-          </div>
-          <div class="privacy-item fade-in">
-            <div class="privacy-icon">🗑</div>
-            <div data-lang="ja">
-              <h3>いつでも削除</h3>
-              <p>すべての記録をワンタップで削除できます。あなたがコントロール。</p>
-            </div>
-            <div data-lang="en">
-              <h3>Delete anytime</h3>
-              <p>Erase all your data with one tap. You're always in control.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= ABOUT ======= -->
-  <section class="about">
-    <div class="container">
-      <div class="about-inner">
-                <div class="about-visual">
-          <div class="about-photo-main">
-            <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
-          </div>
-          <div class="about-phone-overlay">
-            <img src="images/mockup_01_home.png" alt="ippoアプリ画面">
-          </div>
-        </div>
-        <div class="about-content">
-          <div data-lang="ja">
-            <p class="section-label">Story</p>
-            <h3>つくった人のこと</h3>
-            <p>2026年3月、卵巣嚢腫（13cm）と診断されました。手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、食事療法・プチ断食・記録を通じてセルフケアを続けています。</p>
-            <p>同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
-            <p class="about-tagline">one step at a time.</p>
-          </div>
-          <div data-lang="en">
-            <p class="section-label">Story</p>
-            <h3>Why I built ippo</h3>
-            <p>In March 2026, I was diagnosed with a 13cm ovarian cyst. Instead of rushing into surgery, I chose to face my body through diet, fasting, and daily tracking.</p>
-            <p>I created ippo to share this experience with others walking the same path.</p>
-            <p class="about-tagline">one step at a time.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ======= FINAL CTA ======= -->
-  <section class="final-cta">
-    <div class="container">
-      <div data-lang="ja">
-        <h2>からだの声を聴く一歩を、<br>今日から。</h2>
-        <p>無料。登録不要。広告なし。1分で始められます。</p>
-      </div>
-      <div data-lang="en">
-        <h2>Start listening to<br>your body today.</h2>
-        <p>Free. No signup. No ads. Ready in one minute.</p>
-      </div>
-      <a href="app.html" class="hero-cta">
+      <a href="app.html" class="btn-header">
         <span data-lang-inline="ja">無料で始める</span>
         <span data-lang-inline="en">Start Free</span>
-        <span>→</span>
       </a>
-    </div>
-  </section>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
 
-  <!-- ======= FOOTER ======= -->
-  <footer class="footer">
+<!-- ── HERO ───────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="container">
+    <div class="hero-inner">
+
+      <div class="hero-text">
+        <div data-lang="ja">
+          <div class="hero-badge">🌸 女性疾患に特化したセルフケアアプリ</div>
+          <h1>からだの声を<br><em>聴くことから。</em></h1>
+          <p class="hero-sub">卵巣嚢腫・PCOS・子宮筋腫・子宮内膜症——<br>診断されたその日から使える、毎日1分のセルフケア記録。<br>無料。広告なし。プライバシー最優先。</p>
+        </div>
+        <div data-lang="en">
+          <div class="hero-badge">🌸 Self-Care App for Women's Health</div>
+          <h1>Listen to<br><em>your body.</em></h1>
+          <p class="hero-sub">Ovarian cysts, PCOS, fibroids, endometriosis—<br>daily self-care tracking from the day of your diagnosis.<br>Free. No ads. Privacy first.</p>
+        </div>
+        <div class="hero-cta-row">
+          <a href="app.html" class="btn-primary">
+            <span data-lang-inline="ja">無料で記録を始める →</span>
+            <span data-lang-inline="en">Start Tracking Free →</span>
+          </a>
+          <a href="#features" class="btn-ghost">
+            <span data-lang-inline="ja">機能を見る</span>
+            <span data-lang-inline="en">See features</span>
+          </a>
+        </div>
+        <div class="hero-trust">
+          <div class="trust-item"><span class="trust-icon">🔒</span><span data-lang-inline="ja">広告なし</span><span data-lang-inline="en">No ads</span></div>
+          <div class="trust-item"><span class="trust-icon">📱</span><span data-lang-inline="ja">端末内保存</span><span data-lang-inline="en">On-device</span></div>
+          <div class="trust-item"><span class="trust-icon">✨</span><span data-lang-inline="ja">完全無料</span><span data-lang-inline="en">Free forever</span></div>
+        </div>
+      </div>
+
+      <div class="hero-visual">
+        <div class="phone-wrap phone-left">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/bright_mockup_02_meal.png" alt="食事記録" loading="lazy">
+            </div>
+          </div>
+        </div>
+        <div class="phone-wrap phone-main">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/bright_mockup_01_home.png" alt="ippoホーム">
+            </div>
+          </div>
+        </div>
+        <div class="phone-wrap phone-right">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/bright_mockup_05_calendar.png" alt="カレンダー" loading="lazy">
+            </div>
+          </div>
+        </div>
+
+        <div class="float-tag ft-1">
+          <span class="ft-icon">⏱</span>
+          <span><span class="ft-val">12h</span> <span data-lang-inline="ja">断食達成</span><span data-lang-inline="en">fast done</span></span>
+        </div>
+        <div class="float-tag ft-2">
+          <span class="ft-icon">📅</span>
+          <span><span class="ft-val">5日</span><span data-lang-inline="ja">連続記録</span><span data-lang-inline="en">streak</span></span>
+        </div>
+        <div class="float-tag ft-3">
+          <span class="ft-icon">🔒</span>
+          <span data-lang-inline="ja">端末内保存</span>
+          <span data-lang-inline="en">On-device</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-stats-bar">
     <div class="container">
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <div class="logo">ippo<span>.</span></div>
-          <div data-lang="ja">
-            <p>女性疾患に特化したセルフケア記録アプリ。からだの声を聴く、毎日の一歩。</p>
-          </div>
-          <div data-lang="en">
-            <p>Self-care tracking app for women's health. One step at a time.</p>
-          </div>
+      <div class="hero-stats-inner">
+        <div class="hstat">
+          <span class="hstat-num">5</span>
+          <div class="hstat-label"><span data-lang-inline="ja">記録カテゴリ</span><span data-lang-inline="en">Tracking categories</span></div>
         </div>
-        <div class="footer-links">
-          <div data-lang="ja"><h4>リンク</h4></div>
-          <div data-lang="en"><h4>Links</h4></div>
-          <a href="app.html">
-            <span data-lang-inline="ja">アプリ</span>
-            <span data-lang-inline="en">App</span>
-          </a>
-          <a href="https://kenkou-kiroku.com" target="_blank">
-            <span data-lang-inline="ja">ブログ</span>
-            <span data-lang-inline="en">Blog</span>
-          </a>
-          <a href="#plans">
-            <span data-lang-inline="ja">プラン</span>
-            <span data-lang-inline="en">Plans</span>
-          </a>
+        <div class="hstat">
+          <span class="hstat-num">1–2<span style="font-size:1rem">min</span></span>
+          <div class="hstat-label"><span data-lang-inline="ja">1日あたり</span><span data-lang-inline="en">per day</span></div>
         </div>
-        <div class="footer-links">
-          <div data-lang="ja"><h4>法的情報</h4></div>
-          <div data-lang="en"><h4>Legal</h4></div>
-          <a href="privacy.html">
-            <span data-lang-inline="ja">プライバシーポリシー</span>
-            <span data-lang-inline="en">Privacy Policy</span>
-          </a>
-          <a href="disclaimer.html">
-            <span data-lang-inline="ja">免責事項</span>
-            <span data-lang-inline="en">Disclaimer</span>
-          </a>
-          <a href="contact.html">
-            <span data-lang-inline="ja">お問い合わせ</span>
-            <span data-lang-inline="en">Contact</span>
-          </a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>© 2025–2026 ippo. All rights reserved.</span>
-        <div class="footer-legal">
-          <div data-lang-inline="ja">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</div>
-          <div data-lang-inline="en">This app is not a substitute for medical care. Please consult a healthcare provider if you have concerns.</div>
+        <div class="hstat">
+          <span class="hstat-num">¥0</span>
+          <div class="hstat-label"><span data-lang-inline="ja">ずっと無料</span><span data-lang-inline="en">Free forever</span></div>
         </div>
       </div>
     </div>
-  </footer>
+  </div>
+</section>
 
-  <!-- ======= SCRIPTS ======= -->
-  <script>
-    // Language Toggle
-    function setLang(lang) {
-      document.documentElement.lang = lang;
-      document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
-      document.getElementById('lang-en').classList.toggle('active', lang === 'en');
-      localStorage.setItem('ippo-lang', lang);
-    }
-    // Restore saved language
-    const savedLang = localStorage.getItem('ippo-lang');
-    if (savedLang) setLang(savedLang);
 
-    // Detect browser language for first visit
-    if (!savedLang && navigator.language && !navigator.language.startsWith('ja')) {
-      setLang('en');
-    }
+  <!-- ======= HERO PHOTO STRIP ======= -->
+  <!-- Unsplash: Jaspinder Singh / yoga morning -->
+  <div class="hero-photo-strip">
+    <img
+      src="https://images.unsplash.com/photo-1692621081241-38a18a6eab7f?fm=jpg&q=80&w=2000&auto=format&fit=crop&crop=center"
+      alt="朝のセルフケア"
+      loading="lazy"
+    >
+  </div>
 
-    // Hamburger Menu
-    document.getElementById('hamburger').addEventListener('click', function() {
-      document.getElementById('nav').classList.toggle('open');
-    });
+<!-- ── CONDITIONS ─────────────────────────────── -->
+<section class="conditions section">
+  <div class="container">
+    <div data-lang="ja">
+      <p class="section-label">Designed for</p>
+      <h2 class="section-title">女性疾患を抱える<br>あなたのために</h2>
+      <p class="section-sub">ippoは、婦人科系の疾患と向き合いながら日々を過ごす方のためにつくられたアプリです。</p>
+    </div>
+    <div data-lang="en">
+      <p class="section-label">Designed for</p>
+      <h2 class="section-title">Built for women<br>living with</h2>
+      <p class="section-sub">ippo was created for people navigating daily life with gynecological conditions.</p>
+    </div>
+    <div class="conditions-grid">
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🫧</div>
+        <div data-lang="ja"><h3>卵巣嚢腫</h3><p>経過観察中の体調変化を毎日記録し、受診時に活用</p></div>
+        <div data-lang="en"><h3>Ovarian Cysts</h3><p>Track daily changes during monitoring and use records at checkups</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🔄</div>
+        <div data-lang="ja"><h3>PCOS（多嚢胞性卵巣症候群）</h3><p>不規則な周期・食欲・体重の変化パターンを可視化</p></div>
+        <div data-lang="en"><h3>PCOS</h3><p>Visualize irregular cycles, appetite, and weight change patterns</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🌡</div>
+        <div data-lang="ja"><h3>子宮内膜症</h3><p>痛みや感情の波と周期の関係を記録から発見</p></div>
+        <div data-lang="en"><h3>Endometriosis</h3><p>Discover the link between pain, mood shifts, and your cycle</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🩺</div>
+        <div data-lang="ja"><h3>子宮筋腫</h3><p>食事・断食・体調の変化を長期的に追跡</p></div>
+        <div data-lang="en"><h3>Uterine Fibroids</h3><p>Track diet, fasting, and symptom changes over time</p></div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    // Close menu on link click
-    document.querySelectorAll('.nav a').forEach(function(link) {
-      link.addEventListener('click', function() {
-        document.getElementById('nav').classList.remove('open');
-      });
-    });
+<!-- ── FEATURES ────────────────────────────────── -->
+<section class="features section" id="features">
+  <div class="container">
 
-    // Scroll Fade-in
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-          }
-        });
-      }, { threshold: 0.15 });
-      document.querySelectorAll('.fade-in').forEach(function(el) {
-        observer.observe(el);
-      });
-    }
+    <div class="feat-row fade-in">
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/bright_mockup_02_meal.png" alt="食事記録画面">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Daily Tracking</p>
+          <h3>食事・断食・感情を<br>毎日1分で記録</h3>
+          <p>食べたもの、断食時間、気分、基礎体温、チャクラの状態——5つのカテゴリを1画面で記録。続けるほど、あなただけのパターンが見えてきます。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Daily Tracking</p>
+          <h3>Meals, fasting, mood—<br>recorded in 1 minute</h3>
+          <p>Food, fasting hours, mood, basal body temperature, chakra—five categories on one screen. The longer you track, the more patterns emerge.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
 
-    // Header scroll effect
-    window.addEventListener('scroll', function() {
-      const header = document.querySelector('.header');
-      if (window.scrollY > 50) {
-        header.style.padding = '10px 0';
-      } else {
-        header.style.padding = '16px 0';
-      }
-    });
-  </script>
+    <div class="feat-row rev fade-in">
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/bright_mockup_05_calendar.png" alt="カレンダー・周期画面">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Cycle & Symptoms</p>
+          <h3>生理周期と<br>体調の関係を発見</h3>
+          <p>「高温期に必ず便秘になる」「排卵前に食欲が増す」——記録を続けると、こうした自分だけのパターンが浮かび上がります。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Cycle & Symptoms</p>
+          <h3>Discover how your cycle<br>affects your body</h3>
+          <p>"Constipation every luteal phase." "Appetite spikes before ovulation." With enough records, your unique patterns emerge.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
 
+    <div class="feat-row fade-in">
+      <div class="feat-visual emoji-fallback">💬</div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Community</p>
+          <h3>みんなの声で<br>ひとりじゃないと知る</h3>
+          <p>卵巣嚢腫やPCOSの悩みを話せる場所。毎週テーマが変わる匿名コミュニティで、同じ経験を持つ女性たちの声を読んだり、あなたの声を届けたり。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Community</p>
+          <h3>You're not alone.<br>Hear their voices.</h3>
+          <p>An anonymous, weekly-themed space to share and read real experiences from women navigating ovarian cysts, PCOS, and more.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat-row rev fade-in">
+      <div class="feat-visual premium-v" style="border-color:rgba(232,97,74,0.25);">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/bright_mockup_04_summary.png" alt="AIパターン分析">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label" style="color:var(--purple)">Premium</p>
+          <h3>AIが読み解く<br>あなたのパターン</h3>
+          <p>30日分の記録をAIが分析し、体調の波・食事の傾向・周期との関連をコメント。月次PDFレポート、婦人科受診サポート、デバイス間同期も。</p>
+          <span class="feat-tag purple-tag">PREMIUM</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label" style="color:var(--purple)">Premium</p>
+          <h3>AI-powered<br>pattern insights</h3>
+          <p>AI analyzes 30 days of data—highlighting symptom waves, diet trends, and cycle correlations. Plus monthly PDF reports, doctor-visit summaries, and cross-device sync.</p>
+          <span class="feat-tag purple-tag">PREMIUM</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── PLANS ───────────────────────────────────── -->
+<section class="plans section" id="plans">
+  <div class="container">
+    <div class="plans-header">
+      <div data-lang="ja"><p class="section-label">Plans</p><h2 class="section-title">あなたに合ったプランを</h2><p class="section-sub" style="margin:0 auto">まずは無料で。もっと深く知りたくなったら、プレミアムへ。</p></div>
+      <div data-lang="en"><p class="section-label">Plans</p><h2 class="section-title">Choose your plan</h2><p class="section-sub" style="margin:0 auto">Start free. Upgrade when you're ready for deeper insights.</p></div>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div data-lang="ja">
+          <p class="plan-name">Free</p><p class="plan-price">¥0</p><p class="plan-price-sub">ずっと無料</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>食事・断食・生理周期の記録</li>
+            <li><span class="ck">✓</span>感情・基礎体温・チャクラ記録</li>
+            <li><span class="ck">✓</span>断食タイマー＆達成通知</li>
+            <li><span class="ck">✓</span>みんなの声（今週分）</li>
+            <li><span class="ck">✓</span>データエクスポート（CSV）</li>
+            <li><span class="ck">✓</span>ホーム画面に追加（PWA）</li>
+          </ul>
+        </div>
+        <div data-lang="en">
+          <p class="plan-name">Free</p><p class="plan-price">$0</p><p class="plan-price-sub">Free forever</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>Meal, fasting & cycle tracking</li>
+            <li><span class="ck">✓</span>Mood, BBT & chakra tracking</li>
+            <li><span class="ck">✓</span>Fasting timer & notifications</li>
+            <li><span class="ck">✓</span>Community (current week)</li>
+            <li><span class="ck">✓</span>Data export (CSV)</li>
+            <li><span class="ck">✓</span>Add to home screen (PWA)</li>
+          </ul>
+        </div>
+        <a href="app.html" class="plan-btn pb-secondary"><span data-lang-inline="ja">無料で始める</span><span data-lang-inline="en">Start Free</span></a>
+      </div>
+      <div class="plan-card premium">
+        <div class="plan-badge">COMING SOON</div>
+        <div data-lang="ja">
+          <p class="plan-name">Premium</p>
+          <p class="plan-price">¥580<span style="font-size:1rem;font-weight:400;color:var(--text2)"> /月</span></p>
+          <p class="plan-price-sub">年額プラン ¥4,800（¥400/月）</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>無料プランのすべての機能</li>
+            <li><span class="ck">✓</span>デバイス間同期</li>
+            <li><span class="ck">✓</span>月次レポート（PDF）</li>
+            <li><span class="ck">✓</span>AIパターン解析</li>
+            <li><span class="ck">✓</span>婦人科受診サポート</li>
+            <li><span class="ck">✓</span>みんなの声アーカイブ</li>
+          </ul>
+        </div>
+        <div data-lang="en">
+          <p class="plan-name">Premium</p>
+          <p class="plan-price">$3.99<span style="font-size:1rem;font-weight:400;color:var(--text2)"> /mo</span></p>
+          <p class="plan-price-sub">Annual plan $29.99 ($2.50/mo)</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>Everything in Free</li>
+            <li><span class="ck">✓</span>Cross-device sync</li>
+            <li><span class="ck">✓</span>Monthly PDF report</li>
+            <li><span class="ck">✓</span>AI pattern analysis</li>
+            <li><span class="ck">✓</span>Doctor visit support</li>
+            <li><span class="ck">✓</span>Community archive</li>
+          </ul>
+        </div>
+        <a href="app.html" class="plan-btn pb-primary"><span data-lang-inline="ja">近日公開 — 先行登録する</span><span data-lang-inline="en">Coming Soon — Join Waitlist</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ────────────────────────────── -->
+<section class="testimonials section">
+  <div class="container">
+    <div class="testimonials-header">
+      <div data-lang="ja"><p class="section-label">Voices</p><h2 class="section-title">使っている方の声</h2></div>
+      <div data-lang="en"><p class="section-label">Voices</p><h2 class="section-title">What users say</h2></div>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</p><p class="testi-author">— 卵巣嚢腫と診断・30代</p></div>
+        <div data-lang="en"><p class="testi-text">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</p><p class="testi-author">— Diagnosed with ovarian cyst, 30s</p></div>
+      </div>
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</p><p class="testi-author">— PCOS治療中・20代</p></div>
+        <div data-lang="en"><p class="testi-text">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</p><p class="testi-author">— PCOS treatment, 20s</p></div>
+      </div>
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</p><p class="testi-author">— 子宮内膜症・30代</p></div>
+        <div data-lang="en"><p class="testi-text">"Just knowing through the community that others share my struggles made me feel a little lighter."</p><p class="testi-author">— Endometriosis, 30s</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRIVACY ─────────────────────────────────── -->
+<section class="privacy section" id="privacy-section">
+  <div class="container">
+    <div class="privacy-inner">
+      <div data-lang="ja"><p class="section-label">Privacy</p><h2 class="section-title">あなたのデータは、<br>あなたのもの</h2><p class="section-sub" style="margin:0 auto">健康データは最も個人的な情報です。ippoはそれを売ったり、共有したりしません。</p></div>
+      <div data-lang="en"><p class="section-label">Privacy</p><h2 class="section-title">Your data belongs<br>to you</h2><p class="section-sub" style="margin:0 auto">Health data is deeply personal. ippo will never sell or share it.</p></div>
+      <div class="privacy-grid">
+        <div class="priv-item fade-in">
+          <div class="priv-icon">🔒</div>
+          <div data-lang="ja"><h3>端末内保存</h3><p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p></div>
+          <div data-lang="en"><h3>On-device storage</h3><p>Your records stay on your device. Nothing is sent to external servers.</p></div>
+        </div>
+        <div class="priv-item fade-in">
+          <div class="priv-icon">🚫</div>
+          <div data-lang="ja"><h3>広告なし</h3><p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p></div>
+          <div data-lang="en"><h3>No ads. Ever.</h3><p>No advertisements. No distractions. Your focus stays on your health.</p></div>
+        </div>
+        <div class="priv-item fade-in">
+          <div class="priv-icon">🗑</div>
+          <div data-lang="ja"><h3>いつでも削除</h3><p>すべての記録をワンタップで削除できます。あなたがコントロール。</p></div>
+          <div data-lang="en"><h3>Delete anytime</h3><p>Erase all your data with one tap. You're always in control.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── ABOUT ───────────────────────────────────── -->
+<section class="about section">
+  <div class="container">
+    <div class="about-inner">
+      <div class="about-photo">
+        <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+      </div>
+      <div class="about-content">
+        <div data-lang="ja">
+          <p class="section-label">Story</p>
+          <h3>つくった人のこと</h3>
+          <p>2026年3月、卵巣嚢腫（13cm）と診断されました。手術をすすめられましたが、まずは自分のからだと向き合ってみたいと思い、食事療法・プチ断食・記録を通じてセルフケアを続けています。</p>
+          <p>同じ悩みを持つ方と、この経験を分かち合うためにippoを作りました。</p>
+          <p class="about-tagline">one step at a time.</p>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Story</p>
+          <h3>Why I built ippo</h3>
+          <p>In March 2026, I was diagnosed with a 13cm ovarian cyst. Instead of rushing into surgery, I chose to face my body through diet, fasting, and daily tracking.</p>
+          <p>I created ippo to share this experience with others walking the same path.</p>
+          <p class="about-tagline">one step at a time.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ───────────────────────────────── -->
+<section class="final-cta">
+  <div class="container">
+    <div data-lang="ja"><h2>からだの声を聴く一歩を、<br>今日から。</h2><p>無料。登録不要。広告なし。1分で始められます。</p></div>
+    <div data-lang="en"><h2>Start listening to<br>your body today.</h2><p>Free. No signup. No ads. Ready in one minute.</p></div>
+    <a href="app.html" class="btn-white">
+      <span data-lang-inline="ja">無料で始める →</span>
+      <span data-lang-inline="en">Start Free →</span>
+    </a>
+  </div>
+</section>
+
+<!-- ── FOOTER ──────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo">ippo<span>.</span></div>
+        <div data-lang="ja"><p>女性疾患に特化したセルフケア記録アプリ。からだの声を聴く、毎日の一歩。</p></div>
+        <div data-lang="en"><p>Self-care tracking app for women's health. One step at a time.</p></div>
+      </div>
+      <div class="footer-links">
+        <div data-lang="ja"><h4>リンク</h4></div>
+        <div data-lang="en"><h4>Links</h4></div>
+        <a href="app.html"><span data-lang-inline="ja">アプリ</span><span data-lang-inline="en">App</span></a>
+        <a href="https://kenkou-kiroku.com" target="_blank"><span data-lang-inline="ja">ブログ</span><span data-lang-inline="en">Blog</span></a>
+        <a href="#plans"><span data-lang-inline="ja">プラン</span><span data-lang-inline="en">Plans</span></a>
+      </div>
+      <div class="footer-links">
+        <div data-lang="ja"><h4>法的情報</h4></div>
+        <div data-lang="en"><h4>Legal</h4></div>
+        <a href="privacy.html"><span data-lang-inline="ja">プライバシーポリシー</span><span data-lang-inline="en">Privacy Policy</span></a>
+        <a href="disclaimer.html"><span data-lang-inline="ja">免責事項</span><span data-lang-inline="en">Disclaimer</span></a>
+        <a href="contact.html"><span data-lang-inline="ja">お問い合わせ</span><span data-lang-inline="en">Contact</span></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025–2026 ippo. All rights reserved.</span>
+      <div>
+        <span data-lang-inline="ja">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</span>
+        <span data-lang-inline="en">This app is not a substitute for medical care. Please consult a healthcare provider if you have concerns.</span>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('ippo-lang', lang);
+  }
+  const savedLang = localStorage.getItem('ippo-lang');
+  if (savedLang) setLang(savedLang);
+  if (!savedLang && navigator.language && !navigator.language.startsWith('ja')) setLang('en');
+
+  document.getElementById('hamburger').addEventListener('click', function() {
+    document.getElementById('nav').classList.toggle('open');
+  });
+  document.querySelectorAll('.nav a').forEach(function(link) {
+    link.addEventListener('click', function() { document.getElementById('nav').classList.remove('open'); });
+  });
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+  }
+
+  window.addEventListener('scroll', function() {
+    document.querySelector('.header').style.padding = window.scrollY > 50 ? '10px 0' : '18px 0';
+  });
+</script>
 </body>
 </html>
