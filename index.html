@@ -807,6 +807,99 @@
       height: 28px;
     }
 
+        /* ── MOCKUP BRIGHTNESS BOOST ────────────── */
+    .feat-visual img.mockup {
+      filter: brightness(1.08) saturate(0.95);
+      background: #fff;
+      padding: 4px;
+      border: 1px solid var(--border);
+    }
+    .phone-screen img {
+      filter: brightness(1.05);
+    }
+
+        /* ── ABOUT TEXT-ONLY LAYOUT ─────────────── */
+    .about-inner-text {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .about-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .about-inner-text p {
+      color: var(--text2);
+      line-height: 1.9;
+      margin-bottom: 14px;
+      font-size: 0.97rem;
+    }
+    .about-inner-text .about-lead {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .about-inner-text .about-highlight {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--accent);
+      margin: 28px auto;
+      padding: 20px 28px;
+      border-left: 3px solid var(--accent);
+      text-align: left;
+      max-width: 580px;
+      background: var(--accent-bg);
+      border-radius: 0 12px 12px 0;
+    }
+    .about-inner-text .about-mission {
+      background: var(--accent-bg);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin: 28px auto;
+      max-width: 580px;
+      text-align: left;
+    }
+    .about-inner-text .about-mission h4 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .about-inner-text .about-mission p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+    .about-inner-text .about-bridge {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .about-inner-text .about-origin {
+      font-size: 0.85rem;
+      color: var(--text3);
+      font-style: italic;
+      margin-top: 20px;
+    }
+    .about-inner-text .about-tagline {
+      font-family: var(--font-display);
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 1.1rem;
+      margin-top: 24px;
+    }
+
   </style>
 </head>
 <body>
@@ -1228,59 +1321,45 @@
 <!-- ── ABOUT ───────────────────────────────────── -->
 <section class="about section">
   <div class="container">
-    <div class="about-inner">
-      <div class="about-visual">
-        <div class="about-photo">
-          <img src="images/profile-sumi.jpg" alt="sumi" loading="lazy">
+    <div class="about-inner-text">
+      <div data-lang="ja">
+        <p class="section-label">Story</p>
+        <h3 class="about-title">なぜ ippo をつくったのか</h3>
+        <p class="about-lead">女性疾患は、多くの人が経験する身近な健康課題です。<br>しかし、再発率が高く、継続的な管理が求められる領域でもあります。</p>
+        <p>体調の変化は、食事や生活習慣、ストレスなど、複数の要因が重なって起こります。しかし、それらを横断して記録し、変化として捉え続ける仕組みは、まだ十分に整っていません。</p>
+        <p>その結果、「原因が分からないまま不調を繰り返す」という状態が生まれています。</p>
+        <p class="about-highlight">重要なのは、日々の小さな変化を記録し、その積み重ねから自分自身のパターンを理解すること。</p>
+        <p>それは、再発の予防や、体調を安定させるための基盤になります。</p>
+        <p>ippoは、食事・体調・生活習慣の記録をひとつにまとめ、身体の状態を可視化するアプリです。記録を続けることで変化に気づき、自分に合った選択ができる状態をつくります。</p>
+        <div class="about-mission">
+          <h4>ippo のミッション</h4>
+          <p>女性疾患と向き合うすべての人が、自分の身体を理解し、日々のコンディションを整えられるように。ippoは、そのための基盤として設計されています。</p>
         </div>
-        <div class="about-phone-overlay">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <img src="images/mockup_01_home.png" alt="ippoアプリ画面">
-            </div>
-          </div>
-        </div>
+        <p class="about-bridge">この課題を、日々の記録から理解できる形にするために、ippoは設計されています。</p>
+        <p class="about-origin">この課題意識は、開発者自身の実体験を通じて強く認識されました。</p>
+        <p class="about-tagline">one step at a time.</p>
       </div>
-         <div class="about-content">
-        <div data-lang="ja">
-          <p class="section-label">Story</p>
-          <h3>なぜ ippo をつくったのか</h3>
-          <p class="about-lead">女性疾患は、多くの人が経験する身近な健康課題です。<br>しかし、再発率が高く、継続的な管理が求められる領域でもあります。</p>
-          <p>体調の変化は、食事や生活習慣、ストレスなど、複数の要因が重なって起こります。しかし、それらを横断して記録し、変化として捉え続ける仕組みは、まだ十分に整っていません。</p>
-          <p>その結果、「原因が分からないまま不調を繰り返す」という状態が生まれています。</p>
-          <p class="about-highlight">重要なのは、日々の小さな変化を記録し、その積み重ねから自分自身のパターンを理解すること。</p>
-          <p>それは、再発の予防や、体調を安定させるための基盤になります。</p>
-          <p>ippoは、食事・体調・生活習慣の記録をひとつにまとめ、身体の状態を可視化するアプリです。記録を続けることで変化に気づき、自分に合った選択ができる状態をつくります。</p>
-          <div class="about-mission">
-            <h4>ippo のミッション</h4>
-            <p>女性疾患と向き合うすべての人が、自分の身体を理解し、日々のコンディションを整えられるように。ippoは、そのための基盤として設計されています。</p>
-          </div>
-          <p class="about-bridge">この課題を、日々の記録から理解できる形にするために、ippoは設計されています。</p>
-          <p class="about-origin">この課題意識は、開発者自身の実体験を通じて強く認識されました。</p>
-          <p class="about-tagline">one step at a time.</p>
+      <div data-lang="en">
+        <p class="section-label">Story</p>
+        <h3 class="about-title">Why ippo exists</h3>
+        <p class="about-lead">Gynecological conditions are common health challenges that many women face.<br>Yet they often recur, requiring ongoing, long-term management.</p>
+        <p>Changes in your body are caused by overlapping factors — diet, lifestyle, stress, and more. But there is still no adequate system for tracking all of these together and recognizing patterns over time.</p>
+        <p>The result: recurring symptoms with no clear understanding of their cause.</p>
+        <p class="about-highlight">What matters is recording small daily changes and building an understanding of your own patterns.</p>
+        <p>That understanding becomes the foundation for preventing recurrence and stabilizing your condition.</p>
+        <p>ippo brings together records of diet, symptoms, and lifestyle into one place, making your body's state visible. By continuing to track, you notice changes and gain the ability to make choices that are right for you.</p>
+        <div class="about-mission">
+          <h4>ippo's Mission</h4>
+          <p>To help every person navigating a gynecological condition understand their body and maintain their daily well-being. ippo is designed as the foundation for that journey.</p>
         </div>
-        <div data-lang="en">
-          <p class="section-label">Story</p>
-          <h3>Why ippo exists</h3>
-          <p class="about-lead">Gynecological conditions are common health challenges that many women face.<br>Yet they often recur, requiring ongoing, long-term management.</p>
-          <p>Changes in your body are caused by overlapping factors — diet, lifestyle, stress, and more. But there is still no adequate system for tracking all of these together and recognizing patterns over time.</p>
-          <p>The result: recurring symptoms with no clear understanding of their cause.</p>
-          <p class="about-highlight">What matters is recording small daily changes and building an understanding of your own patterns.</p>
-          <p>That understanding becomes the foundation for preventing recurrence and stabilizing your condition.</p>
-          <p>ippo brings together records of diet, symptoms, and lifestyle into one place, making your body's state visible. By continuing to track, you notice changes and gain the ability to make choices that are right for you.</p>
-          <div class="about-mission">
-            <h4>ippo's Mission</h4>
-            <p>To help every person navigating a gynecological condition understand their body and maintain their daily well-being. ippo is designed as the foundation for that journey.</p>
-          </div>
-          <p class="about-bridge">ippo was designed to turn this challenge into something you can understand — through daily records.</p>
-          <p class="about-origin">This sense of purpose was born from the developer's own lived experience.</p>
-          <p class="about-tagline">one step at a time.</p>
-        </div>
+        <p class="about-bridge">ippo was designed to turn this challenge into something you can understand — through daily records.</p>
+        <p class="about-origin">This sense of purpose was born from the developer's own lived experience.</p>
+        <p class="about-tagline">one step at a time.</p>
       </div>
     </div>
   </div>
 </section>
-
+  
 <!-- ── FINAL CTA ───────────────────────────────── -->
 <section class="final-cta">
   <div class="container">
