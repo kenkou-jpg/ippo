@@ -253,7 +253,7 @@
       justify-content: center;
       gap: 48px;
       margin-top: 64px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
     .hero-stat {
       text-align: center;
@@ -923,7 +923,7 @@
       background: rgba(255,107,107,0.2);
     }
 
-    @media (max-width: 768px) {
+       @media (max-width: 768px) {
       .hero-phones {
         width: 280px;
         height: 360px;
@@ -937,6 +937,7 @@
         bottom: -10px;
         left: -10px;
       }
+      .hero-stats { flex-wrap: wrap; }
     }
 
     
