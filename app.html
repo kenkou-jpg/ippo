@@ -3033,6 +3033,24 @@ function init() {
     try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
   }
   updateDate();
+  // totalDaysとstreakの自動修復
+  if(state.records.length > 0){
+    var uniqueDays = {};
+    state.records.forEach(function(r){ uniqueDays[new Date(r.date).toDateString()] = true; });
+    var actualDays = Object.keys(uniqueDays).length;
+    if(state.totalDays !== actualDays){
+      state.totalDays = actualDays;
+      var streak = 0;
+      var d = new Date();
+      while(true){
+        if(!uniqueDays[d.toDateString()]) break;
+        streak++;
+        d.setDate(d.getDate() - 1);
+      }
+      state.streak = streak;
+      saveState();
+    }
+  }
   checkPremiumRegistered();
 
  if (state.name) {
