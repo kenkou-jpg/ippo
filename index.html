@@ -85,197 +85,6 @@
     .hamburger span { display:block; width:24px; height:2px; background:var(--text); margin:5px 0; transition:var(--tr); }
 
     /* ── HERO ────────────────────────────────── */
-    .hero {
-      padding: 140px 0 0;
-      position: relative;
-      overflow: hidden;
-      background: linear-gradient(170deg, #FAFAF8 0%, #F5EFE9 60%, #EFE6DC 100%);
-    }
-    /* Decorative blob */
-    .hero-blob {
-      position: absolute;
-      border-radius: 50%;
-      pointer-events: none;
-    }
-    .hero-blob-1 {
-      width: 700px; height: 700px;
-      background: radial-gradient(circle, rgba(232,97,74,0.10) 0%, transparent 70%);
-      top: -200px; right: -100px;
-    }
-    .hero-blob-2 {
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(61,184,155,0.08) 0%, transparent 70%);
-      bottom: 100px; left: -50px;
-    }
-
-    .hero-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      align-items: center;
-      position: relative; z-index: 2;
-    }
-
-    .hero-text {}
-    .hero-badge {
-      display: inline-flex; align-items:center; gap:8px;
-      background: rgba(232,97,74,0.10);
-      border: 1px solid rgba(232,97,74,0.20);
-      color: var(--accent);
-      padding: 7px 18px; border-radius: 24px;
-      font-size: 0.78rem; font-weight: 600; letter-spacing:0.04em;
-      margin-bottom: 28px;
-    }
-    .hero h1 {
-      font-family: var(--font-display);
-      font-size: clamp(2.6rem, 5vw, 4rem);
-      font-weight: 700;
-      line-height: 1.18;
-      letter-spacing: -0.02em;
-      margin-bottom: 20px;
-    }
-    .hero h1 em { font-style: italic; color: var(--accent); }
-    .hero-sub {
-      font-size: 1.05rem; color: var(--text2); line-height: 1.85;
-      margin-bottom: 36px; max-width: 420px;
-    }
-    .hero-cta-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom: 48px; }
-    .btn-primary {
-      display:inline-flex; align-items:center; gap:8px;
-      background:var(--accent); color:#fff;
-      padding: 14px 32px; border-radius:32px;
-      font-size:1rem; font-weight:600;
-      transition:var(--tr);
-      box-shadow: 0 8px 28px rgba(232,97,74,0.25);
-    }
-    .btn-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 14px 36px rgba(232,97,74,0.32); }
-    .btn-ghost { font-size:0.9rem; color:var(--text2); display:flex; align-items:center; gap:5px; transition:var(--tr); }
-    .btn-ghost:hover { color:var(--text); }
-
-    .hero-trust {
-      display: flex; gap: 24px; flex-wrap: wrap;
-    }
-    .trust-item {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.82rem; color: var(--text2); font-weight:500;
-    }
-    .trust-icon { font-size: 1rem; }
-
-    /* Hero phones */
-    .hero-visual {
-      position: relative;
-      height: 580px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-    }
-    .phone-wrap {
-      position: absolute;
-      bottom: 0;
-      filter: drop-shadow(0 24px 48px rgba(26,23,20,0.14));
-      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
-    }
-    .phone-wrap:hover { transform: translateY(-8px) !important; }
-
-    .phone-frame {
-      background: #F8F6F4;
-      border-radius: 44px;
-      padding: 13px;
-      border: 1.5px solid rgba(26,23,20,0.10);
-      box-shadow:
-        0 0 0 1px rgba(255,255,255,0.8) inset,
-        0 2px 4px rgba(26,23,20,0.08) inset;
-    }
-    .phone-screen {
-      border-radius: 34px;
-      overflow: hidden;
-      background: #fff;
-      position: relative;
-    }
-    .phone-screen img { width:100%; display:block; object-fit:cover; object-position:top; }
-    .phone-notch {
-      position:absolute; top:0; left:50%; transform:translateX(-50%);
-      width:80px; height:24px;
-      background: #E8E4E0;
-      border-radius: 0 0 14px 14px;
-      z-index: 5;
-    }
-
-    .phone-main {
-      left: 50%; transform: translateX(-50%);
-      z-index: 3;
-      width: 230px;
-    }
-    .phone-main .phone-screen { height: 498px; }
-
-    .phone-left {
-      left: calc(50% - 190px);
-      transform: rotate(-8deg);
-      z-index: 2;
-      width: 195px;
-      opacity: 0.82;
-    }
-    .phone-left .phone-screen { height: 422px; }
-    .phone-left:hover { transform: rotate(-8deg) translateY(-8px) !important; }
-
-    .phone-right {
-      left: calc(50% + 80px);
-      transform: rotate(7deg);
-      z-index: 2;
-      width: 190px;
-      opacity: 0.78;
-    }
-    .phone-right .phone-screen { height: 411px; }
-    .phone-right:hover { transform: rotate(7deg) translateY(-8px) !important; }
-
-    /* Floating badges */
-    .float-tag {
-      position: absolute;
-      background: #fff;
-      border-radius: 14px;
-      padding: 10px 16px;
-      display: flex; align-items:center; gap: 8px;
-      font-size: 12px; font-weight:600;
-      box-shadow: 0 8px 28px rgba(26,23,20,0.12);
-      z-index: 10;
-      animation: floatY 3s ease-in-out infinite alternate;
-      white-space: nowrap;
-    }
-    .float-tag .ft-icon { font-size: 16px; }
-    .float-tag .ft-val { color: var(--accent); }
-
-    .ft-1 { bottom: 180px; left: 20px; animation-delay:0s; }
-    .ft-2 { top: 120px; right: 10px; animation-delay:1s; }
-    .ft-3 { bottom: 100px; right: 30px; animation-delay:0.5s; }
-
-    @keyframes floatY {
-      from { transform: translateY(0); }
-      to   { transform: translateY(-10px); }
-    }
-
-    /* Hero stats bar */
-    .hero-stats-bar {
-      background: #fff;
-      border-top: 1px solid var(--border);
-      padding: 28px 0;
-      position: relative; z-index: 2;
-    }
-    .hero-stats-inner {
-      display: flex; justify-content: center; gap: 0;
-    }
-    .hstat {
-      text-align: center;
-      padding: 0 48px;
-      border-right: 1px solid var(--border);
-    }
-    .hstat:last-child { border-right: none; }
-    .hstat-num {
-      font-family: var(--font-display);
-      font-size: 2rem; font-weight:700;
-      color: var(--text);
-      display: block;
-    }
-    .hstat-label { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
 
     /* ── SECTION COMMON ──────────────────────── */
     .section { padding: 100px 0; }
@@ -617,21 +426,7 @@
       .conditions-grid { grid-template-columns:1fr 1fr; }
     }
 
-      /* ── HERO PHOTO STRIP ────────────────────── */
-    .hero-photo-strip {
-      width: 100%;
-      height: 280px;
-      overflow: hidden;
-    }
-    .hero-photo-strip img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center 30%;
-    }
-    @media (max-width: 768px) {
-      .hero-photo-strip { height: 180px; }
-    }
+   
 
         /* ── COMMUNITY VISUAL ────────────────────── */
     .feat-visual .community-bg {
@@ -993,23 +788,11 @@
     .phone-left .phone-screen {
       height: 476px;
     }
-    .phone-right {
-      width: 215px;
-      left: calc(50% + 90px);
-    }
-    .phone-right .phone-screen {
-      height: 465px;
-    }
+    
     .hero-visual {
       height: 640px;
     }
     @media (max-width: 768px) {
-      .phone-main { width: 190px; }
-      .phone-main .phone-screen { height: 411px; }
-      .phone-left { width: 160px; left: calc(50% - 158px); }
-      .phone-left .phone-screen { height: 346px; }
-      .phone-right { width: 155px; left: calc(50% + 62px); }
-      .phone-right .phone-screen { height: 336px; }
       .hero-visual { height: 380px; }
     }
 
@@ -1041,6 +824,146 @@
   line-height: 1.8;
   color: var(--text2);
 }
+
+    /* ── HERO (FLO-style) ────────────────────── */
+.hero {
+  padding: 160px 0 0;
+  background: var(--bg);
+  text-align: center;
+  overflow: hidden;
+}
+.hero-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6vw, 4.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  color: var(--text);
+  margin-bottom: 28px;
+}
+.hero h1 em {
+  font-style: normal;
+}
+.hero-sub {
+  font-size: 1.05rem;
+  color: var(--text2);
+  line-height: 1.9;
+  margin: 0 auto 40px;
+  max-width: 540px;
+}
+.hero-cta-row {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+.hero-trust {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 80px;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text3);
+}
+.trust-icon {
+  font-size: 1rem;
+}
+
+/* Hero phones (FLO-style: 2 phones + caption) */
+.hero-phones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  align-items: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 20px 100px;
+}
+.hero-phone {
+  filter: drop-shadow(0 20px 40px rgba(26,23,20,0.12));
+}
+.hero-phone .phone-frame {
+  background: #F8F6F4;
+  border-radius: 36px;
+  padding: 10px;
+  border: 1.5px solid rgba(26,23,20,0.08);
+}
+.hero-phone .phone-screen {
+  border-radius: 28px;
+  overflow: hidden;
+  background: #fff;
+}
+.hero-phone .phone-screen img {
+  width: 100%;
+  display: block;
+}
+.hero-phone-left {
+  justify-self: end;
+  max-width: 260px;
+}
+.hero-phone-right {
+  justify-self: start;
+  max-width: 260px;
+  margin-top: 40px;
+}
+.hero-phone-caption {
+  grid-column: 1 / -1;
+  text-align: left;
+  max-width: 500px;
+  margin: -20px auto 0;
+  padding: 0 20px;
+}
+.hero-phone-caption h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+.hero-phone-caption p {
+  font-size: 0.95rem;
+  color: var(--text2);
+  line-height: 1.85;
+}
+
+@media (max-width: 768px) {
+  .hero {
+    padding: 120px 0 0;
+  }
+  .hero h1 {
+    font-size: 2.2rem;
+  }
+  .hero-trust {
+    margin-bottom: 48px;
+  }
+  .hero-phones {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 0 16px 60px;
+  }
+  .hero-phone-left,
+  .hero-phone-right {
+    max-width: 180px;
+  }
+  .hero-phone-right {
+    margin-top: 24px;
+  }
+  .hero-phone-caption {
+    text-align: center;
+  }
+}
+
     
   </style>
     <script type="application/ld+json">
@@ -1097,126 +1020,62 @@
   </div>
 </header>
 
-<!-- ── HERO ───────────────────────────────────── -->
+<!-- ── HERO (FLO-style) ──────────────────────────── -->
 <section class="hero">
-  <div class="hero-blob hero-blob-1"></div>
-  <div class="hero-blob hero-blob-2"></div>
   <div class="container">
     <div class="hero-inner">
-
       <div class="hero-text">
         <div data-lang="ja">
-                <div data-lang="ja">
-          <div class="hero-badge">🌸 女性疾患に特化したセルフケアアプリ</div>
-          <h1>日々の体調を、<br><em>整える習慣へ。</em></h1>
-          <p class="hero-sub">記録は1分。すべて、あなたのために。</p>
+          <h1>記録から、身体の<br>変化を理解する。</h1>
+          <p class="hero-sub">食事・体調・生活習慣をひとつにまとめ、<br>女性疾患の変化を継続的に理解するためのアプリ。</p>
         </div>
         <div data-lang="en">
-          <div class="hero-badge">🌸 Self-Care App for Women's Health</div>
-          <h1>Turn daily tracking<br><em>into a habit.</em></h1>
-          <p class="hero-sub">It takes just one minute. Everything, for you.</p>
+          <h1>Understand your body<br>through tracking.</h1>
+          <p class="hero-sub">Diet, symptoms, and lifestyle — all in one place.<br>An app for understanding changes in gynecological conditions.</p>
         </div>
-              <div class="hero-cta-row">
+        <div class="hero-cta-row">
           <a href="app.html" class="btn-primary">
             <span data-lang-inline="ja">記録をはじめる →</span>
             <span data-lang-inline="en">Start Tracking →</span>
           </a>
-          <a href="#features" class="btn-ghost">
-            <span data-lang-inline="ja">機能を見る</span>
-            <span data-lang-inline="en">See features</span>
-          </a>
         </div>
-        <!-- ↓ ここに追加 -->
-        <div style="margin-top: -12px; margin-bottom: 32px;">
-          <span style="font-size: 0.8rem; color: var(--text3);">
-            <span data-lang-inline="ja">📱 PWA対応 — ホーム画面に追加するだけ。アプリストア不要。</span>
-            <span data-lang-inline="en">📱 PWA — Just add to your home screen. No app store needed.</span>
-          </span>
-        </div>
-        <!-- ↑ ここまで -->
         <div class="hero-trust">
           <div class="trust-item"><span class="trust-icon">🔒</span><span data-lang-inline="ja">広告なし</span><span data-lang-inline="en">No ads</span></div>
           <div class="trust-item"><span class="trust-icon">📱</span><span data-lang-inline="ja">端末内保存</span><span data-lang-inline="en">On-device</span></div>
           <div class="trust-item"><span class="trust-icon">✨</span><span data-lang-inline="ja">完全無料</span><span data-lang-inline="en">Free forever</span></div>
         </div>
       </div>
-
-      <div class="hero-visual">
-        <div class="phone-wrap phone-left">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <div class="phone-notch"></div>
-              <img src="images/mockup_02_meal.png" alt="食事記録" loading="lazy">
-            </div>
-          </div>
-        </div>
-        <div class="phone-wrap phone-main">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <div class="phone-notch"></div>
-              <img src="images/mockup_01_home.png" alt="ippoホーム">
-            </div>
-          </div>
-        </div>
-        <div class="phone-wrap phone-right">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <div class="phone-notch"></div>
-              <img src="images/mockup_05_calendar.png" alt="カレンダー" loading="lazy">
-            </div>
-          </div>
-        </div>
-
-        <div class="float-tag ft-1">
-          <span class="ft-icon">⏱</span>
-          <span><span class="ft-val">12h</span> <span data-lang-inline="ja">断食達成</span><span data-lang-inline="en">fast done</span></span>
-        </div>
-        <div class="float-tag ft-2">
-          <span class="ft-icon">📅</span>
-          <span><span class="ft-val">5日</span><span data-lang-inline="ja">連続記録</span><span data-lang-inline="en">streak</span></span>
-        </div>
-        <div class="float-tag ft-3">
-          <span class="ft-icon">🔒</span>
-          <span data-lang-inline="ja">端末内保存</span>
-          <span data-lang-inline="en">On-device</span>
-        </div>
-      </div>
     </div>
-  </div>
-  <div class="hero-stats-bar">
-    <div class="container">
-           <div class="hero-stats-inner">
-        <div class="hstat">
-          <span class="hstat-num">5</span>
-          <div class="hstat-label"><span data-lang-inline="ja">記録カテゴリ</span><span data-lang-inline="en">Tracking categories</span></div>
-        </div>
-        <div class="hstat">
-          <span class="hstat-num">1–2<span style="font-size:1rem">min</span></span>
-          <div class="hstat-label"><span data-lang-inline="ja">1日あたり</span><span data-lang-inline="en">per day</span></div>
-        </div>
-        <div class="hstat">
-          <span class="hstat-num">¥0</span>
-          <div class="hstat-label"><span data-lang-inline="ja">ずっと無料</span><span data-lang-inline="en">Free forever</span></div>
+
+    <div class="hero-phones">
+      <div class="hero-phone hero-phone-left">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <img src="images/mockup_02_meal.png" alt="食事記録">
+          </div>
         </div>
       </div>
-      <!-- ↓ ここに追加 -->
-      <div style="text-align: center; margin-top: 16px; display: flex; justify-content: center; align-items: center; gap: 8px;">
-        <span style="color: var(--accent); font-size: 0.9rem; letter-spacing: 2px;">★★★★★</span>
-        <span style="font-size: 0.82rem; color: var(--text3);">
-          <span data-lang-inline="ja">ユーザーの声から生まれたアプリ</span>
-          <span data-lang-inline="en">Built from real user experiences</span>
-        </span>
+      <div class="hero-phone hero-phone-right">
+        <div class="phone-frame">
+          <div class="phone-screen">
+            <img src="images/mockup_01_home.png" alt="ippoホーム">
+          </div>
+        </div>
       </div>
-      <!-- ↑ ここまで -->
+      <div class="hero-phone-caption">
+        <div data-lang="ja">
+          <h3>食事・体調・生活習慣を<br>ひとつの場所に</h3>
+          <p>毎日1〜2分の記録で、あなただけのコンディションパターンを可視化。婦人科受診時の参考資料としても活用できます。</p>
+        </div>
+        <div data-lang="en">
+          <h3>Diet, symptoms & lifestyle<br>all in one place</h3>
+          <p>Track in just 1–2 minutes a day to visualize your unique condition patterns. Use your records as reference for doctor visits.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
-  <!-- ======= HERO PHOTO STRIP ======= -->
-  <!-- Unsplash: Jaspinder Singh / yoga morning -->
-   <div class="hero-photo-strip">
-    <img src="images/hero-strip.jpg" alt="朝のセルフケア" loading="lazy">
-  </div>
 
 
 <!-- ── CONDITIONS ─────────────────────────────── -->
