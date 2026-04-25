@@ -298,14 +298,20 @@
       gap: 16px;
       margin-top: 48px;
     }
+       /* ── CONDITION CARDS: subtle ─────────────── */
     .cond-card {
       background: #fff;
-      border: 1px solid var(--border);
+      border: none;
       border-radius: var(--rad);
-      padding: 28px 20px;
+      padding: 36px 24px;
       text-align: center;
       transition: var(--tr);
-      box-shadow: 0 2px 12px var(--shadow);
+      box-shadow: 0 1px 4px rgba(26,23,20,0.04);
+    }
+    .cond-card:hover {
+      border: none;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 24px rgba(26,23,20,0.08);
     }
     .cond-card:hover {
       border-color: var(--accent);
@@ -442,21 +448,33 @@
     .testi-text { font-size:0.95rem; line-height:1.8; margin-bottom:20px; color:var(--text); }
     .testi-author { font-size:0.78rem; color:var(--text3); }
 
-    /* ── PRIVACY ─────────────────────────────── */
-    .privacy { background:var(--bg); }
-    .privacy-inner { text-align:center; }
-    .privacy-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:48px; }
+        /* ── PRIVACY: Apple-style minimal ────────── */
     .priv-item {
-      background:#fff; border:1px solid var(--border); border-radius:20px;
-      padding:36px 28px; text-align:center;
-      box-shadow: 0 2px 12px var(--shadow);
+      background: none;
+      border: none;
+      box-shadow: none;
+      padding: 40px 28px;
+      text-align: center;
       transition: var(--tr);
     }
-    .priv-item:hover { transform:translateY(-3px); box-shadow: 0 8px 28px var(--shadow); }
-    .priv-icon { font-size:2rem; margin-bottom:14px; }
-    .priv-item h3 { font-size:1rem; font-weight:600; margin-bottom:8px; }
-    .priv-item p { font-size:0.88rem; color:var(--text2); line-height:1.7; }
-
+    .priv-item:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .priv-item h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .priv-item p {
+      font-size: 0.92rem;
+      color: var(--text2);
+      line-height: 1.8;
+      max-width: 280px;
+      margin: 0 auto;
+    }
     /* ── ABOUT ───────────────────────────────── */
     .about { background: linear-gradient(135deg, #FDF8F4 0%, #F5EDE4 100%); }
     .about-inner {
@@ -936,6 +954,56 @@
       width: 100%;
       margin-top: 48px;
     }
+
+        /* ── HERO: phone mockups larger ─────────── */
+    .phone-main {
+      width: 260px;
+    }
+    .phone-main .phone-screen {
+      height: 563px;
+    }
+    .phone-left {
+      width: 220px;
+      left: calc(50% - 220px);
+    }
+    .phone-left .phone-screen {
+      height: 476px;
+    }
+    .phone-right {
+      width: 215px;
+      left: calc(50% + 90px);
+    }
+    .phone-right .phone-screen {
+      height: 465px;
+    }
+    .hero-visual {
+      height: 640px;
+    }
+    @media (max-width: 768px) {
+      .phone-main { width: 190px; }
+      .phone-main .phone-screen { height: 411px; }
+      .phone-left { width: 160px; left: calc(50% - 158px); }
+      .phone-left .phone-screen { height: 346px; }
+      .phone-right { width: 155px; left: calc(50% + 62px); }
+      .phone-right .phone-screen { height: 336px; }
+      .hero-visual { height: 380px; }
+    }
+
+        /* ── SPACING: premium feel ───────────────── */
+    .section {
+      padding: 120px 0;
+    }
+    .feat-row {
+      margin-bottom: 120px;
+    }
+    .conditions-grid {
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .testi-grid {
+      gap: 28px;
+    }
+
     
   </style>
     <script type="application/ld+json">
@@ -1001,17 +1069,15 @@
 
       <div class="hero-text">
         <div data-lang="ja">
-                  <div data-lang="ja">
+                <div data-lang="ja">
           <div class="hero-badge">🌸 女性疾患に特化したセルフケアアプリ</div>
-          <h1>記録から、身体の<br><em>変化を理解する。</em></h1>
-          <p class="hero-sub">食事・体調・生活習慣をひとつにまとめ、<br>
-          女性疾患の変化を継続的に理解するためのアプリ。</p>
+          <h1>日々の体調を、<br><em>整える習慣へ。</em></h1>
+          <p class="hero-sub">記録は1分。すべて、あなたのために。</p>
         </div>
         <div data-lang="en">
           <div class="hero-badge">🌸 Self-Care App for Women's Health</div>
-          <h1>Understand your body<br><em>through tracking.</em></h1>
-          <p class="hero-sub">Diet, symptoms, and lifestyle — all in one place.<br>
-          An app for understanding changes in gynecological conditions.</p>
+          <h1>Turn daily tracking<br><em>into a habit.</em></h1>
+          <p class="hero-sub">It takes just one minute. Everything, for you.</p>
         </div>
               <div class="hero-cta-row">
           <a href="app.html" class="btn-primary">
@@ -1357,24 +1423,20 @@
     <div class="privacy-inner">
       <div data-lang="ja"><p class="section-label">Privacy</p><h2 class="section-title">あなたのデータは、<br>あなたのもの</h2><p class="section-sub" style="margin:0 auto">健康データは最も個人的な情報です。ippoはそれを売ったり、共有したりしません。</p></div>
       <div data-lang="en"><p class="section-label">Privacy</p><h2 class="section-title">Your data belongs<br>to you</h2><p class="section-sub" style="margin:0 auto">Health data is deeply personal. ippo will never sell or share it.</p></div>
-      <div class="privacy-grid">
-        <div class="priv-item fade-in">
-          <div class="priv-icon">🔒</div>
-          <div data-lang="ja"><h3>端末内保存</h3><p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p></div>
-          <div data-lang="en"><h3>On-device storage</h3><p>Your records stay on your device. Nothing is sent to external servers.</p></div>
+           <div class="privacy-grid">
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>端末内保存</h3><p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p></div>
+            <div data-lang="en"><h3>On-device storage</h3><p>Your records stay on your device. Nothing is sent to external servers.</p></div>
+          </div>
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>広告なし</h3><p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p></div>
+            <div data-lang="en"><h3>No ads. Ever.</h3><p>No advertisements. No distractions. Your focus stays on your health.</p></div>
+          </div>
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>いつでも削除</h3><p>すべての記録をワンタップで削除できます。あなたがコントロール。</p></div>
+            <div data-lang="en"><h3>Delete anytime</h3><p>Erase all your data with one tap. You're always in control.</p></div>
+          </div>
         </div>
-        <div class="priv-item fade-in">
-          <div class="priv-icon">🚫</div>
-          <div data-lang="ja"><h3>広告なし</h3><p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p></div>
-          <div data-lang="en"><h3>No ads. Ever.</h3><p>No advertisements. No distractions. Your focus stays on your health.</p></div>
-        </div>
-        <div class="priv-item fade-in">
-          <div class="priv-icon">🗑</div>
-          <div data-lang="ja"><h3>いつでも削除</h3><p>すべての記録をワンタップで削除できます。あなたがコントロール。</p></div>
-          <div data-lang="en"><h3>Delete anytime</h3><p>Erase all your data with one tap. You're always in control.</p></div>
-        </div>
-      </div>
-    </div>
   </div>
 </section>
 
