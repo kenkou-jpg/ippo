@@ -3039,12 +3039,18 @@ function init() {
   updateDate();
   checkPremiumRegistered();
 
-  if (state.name) {
-    showMain();
-    if (state.fastingActive && state.fastingStart) {
+ if (state.name) {
+  showMain();
+  if (state.fastingActive && state.fastingStart) {
+    if (Date.now() - state.fastingStart > 24 * 3600000) {
+      state.fastingActive = false;
+      state.fastingStart = null;
+      saveState();
+    } else {
       resumeFasting();
     }
   }
+}
   // クラウドから復元チェック（Supabase初期化を待つ）
   var restoreInterval = setInterval(function(){
     if(typeof supabase !== 'undefined' && supabase.auth){
@@ -3067,11 +3073,16 @@ document.addEventListener('visibilitychange', function(){
   if(!document.hidden && typeof cloudRestore === 'function'){
     cloudRestore().then(function(restored){
       if(restored){
+        state = JSON.parse(localStorage.getItem('ippo_state'));
         updateStats(); 
         updateHistory(); 
         buildCalendar();
-        if(state.fastingActive && state.fastingStart){
+        if(state.fastingActive && state.fastingStart && (Date.now() - state.fastingStart < 24 * 3600000)){
           resumeFasting();
+        } else if(state.fastingActive) {
+          state.fastingActive = false;
+          state.fastingStart = null;
+          saveState();
         }
       }
     }).catch(function(e){ 
@@ -3079,6 +3090,7 @@ document.addEventListener('visibilitychange', function(){
     });
   }
 });
+
 
 
 
@@ -3240,6 +3252,7 @@ function endFast() {
   const elapsed = (Date.now() - state.fastingStart) / 1000 / 3600;
   state.fastingActive = false;
   state.fastingStart = null;
+  state.fastingEnded = Date.now();
   clearInterval(fastInterval);
 
   // タイマー結果を今日の記録に保存
