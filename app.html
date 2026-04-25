@@ -3189,39 +3189,24 @@ function updateStats() {
 }
 
 function updateUnlock() {
-  const days = state.totalDays;
-  const pct = Math.min(days / 90 * 100, 100);
-  const fill = document.getElementById('progress-fill');
+  var days = state.totalDays;
+  
+  // プログレスバー：段階的に表示（7日=33%, 30日=66%, 90日=100%）
+  var pct = 0;
+  if(days >= 90) pct = 100;
+  else if(days >= 30) pct = 66 + (days - 30) / 60 * 34;
+  else if(days >= 7) pct = 33 + (days - 7) / 23 * 33;
+  else pct = days / 7 * 33;
+  
+  var fill = document.getElementById('progress-fill');
   if (fill) fill.style.width = pct + '%';
 
-  // バグ19: ラベルのactiveクラスを日数に応じて更新
-  const milestones = [0, 7, 30, 90];
-  const labels = document.querySelectorAll('.pb-label');
-  labels.forEach((lb, i) => {
-    lb.classList.toggle('active', days >= milestones[i] && (i === milestones.length - 1 || days < milestones[i + 1]));
-  });
-
-  // 解放バッジの表示更新
-  const badge7  = document.getElementById('badge-7');
-  const badge30 = document.getElementById('badge-30');
-  const badge90 = document.getElementById('badge-90');
-  if (badge7)  { badge7.textContent  = days >= 7  ? '解放済み ✓' : '7日〜';  badge7.className  = days >= 7  ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
-  if (badge30) { badge30.textContent = days >= 30 ? '解放済み ✓' : '30日〜'; badge30.className = days >= 30 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
-  if (badge90) { badge90.textContent = days >= 90 ? '解放済み ✓' : '90日〜'; badge90.className = days >= 90 ? 'unlock-badge unlocked' : 'unlock-badge locked'; }
-
-  // アイコンのlocked/unlocked切替
-  const icons = document.querySelectorAll('.unlock-icon');
-  if (icons[1]) icons[1].className = days >= 7  ? 'unlock-icon unlocked' : 'unlock-icon locked';
-  if (icons[2]) icons[2].className = days >= 30 ? 'unlock-icon unlocked' : 'unlock-icon locked';
-  if (icons[3]) icons[3].className = days >= 90 ? 'unlock-icon unlocked' : 'unlock-icon locked';
-
-  const daysLeft = Math.max(0, 7 - days);
-  const daysEl = document.getElementById('unlock-days-label');
+  var daysEl = document.getElementById('unlock-days-label');
   if (daysEl) {
-    if (days >= 90)     daysEl.textContent = '全機能解放 ✓';
+    if (days >= 90)      daysEl.textContent = '全機能解放 ✓';
     else if (days >= 30) daysEl.textContent = '30日達成 ✓';
     else if (days >= 7)  daysEl.textContent = '7日達成 ✓';
-    else                 daysEl.textContent = `あと${daysLeft}日`;
+    else                 daysEl.textContent = 'あと' + Math.max(0, 7 - days) + '日';
   }
 }
 
