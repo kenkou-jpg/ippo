@@ -3064,24 +3064,14 @@ document.addEventListener('visibilitychange', function(){
   }
 });
 
+
 function startApp() {
   const nameInput = document.getElementById('name-input');
-  if (!nameInput) {
-    console.error('Error: name-input element not found');
-    return;
-  }
-  
   state.name = nameInput.value.trim() || 'あなた';
   saveState();
   showMain();
-  
-  if (typeof initVisionUI === 'function') {
-    initVisionUI();
-  }
-  
-  if (typeof updateHomeVision === 'function') {
-    updateHomeVision();
-  }
+  initVisionUI();
+updateHomeVision();
 }
 
 function showMain() {
@@ -3091,10 +3081,9 @@ function showMain() {
   updateStats();
   updateUnlock();
   updateHistory();
-  buildCalendar();
-  updateChakraProfile();
+  buildCalendar();            // ← 追加
+  updateChakraProfile();      // ← 追加
   document.getElementById('settings-name-display').textContent = state.name;
-  
   // バグ18: ホームバナー非表示フラグを復元
   try {
     if (localStorage.getItem('ippo_hide_add_home') === '1') {
