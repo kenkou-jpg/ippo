@@ -1098,6 +1098,105 @@
   line-height: 1.8;
   color: var(--text2);
 }
+
+    /* ===== FLO型ヒーロー完成版 ===== */
+
+.hero {
+  padding: 140px 0 100px;
+  background:
+    radial-gradient(circle at 70% 20%, rgba(232,97,74,0.18), transparent 40%),
+    linear-gradient(180deg, #ffffff 0%, #f7f3ef 100%);
+}
+
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.hero-text {
+  max-width: 640px;
+  margin-bottom: 60px;
+}
+
+.hero-badge {
+  display: inline-block;
+  background: rgba(232,97,74,0.1);
+  color: var(--accent);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  margin-bottom: 24px;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.6rem, 5vw, 3.6rem);
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+
+.hero h1 em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.hero-sub {
+  color: var(--text2);
+  font-size: 1.05rem;
+  line-height: 1.8;
+  margin-bottom: 32px;
+}
+
+/* CTA */
+.hero-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  padding: 16px 36px;
+  border-radius: 32px;
+  font-weight: 600;
+  box-shadow: 0 12px 30px rgba(232,97,74,0.25);
+  text-decoration: none;
+}
+
+.hero-note {
+  font-size: 0.8rem;
+  color: var(--text3);
+}
+
+/* UI */
+.hero-visual {
+  margin-top: 40px;
+}
+
+.phone-main {
+  width: 380px;
+  margin: 0 auto;
+}
+
+/* 既存の左右スマホは無効化 */
+.phone-left,
+.phone-right {
+  display: none !important;
+}
+
+/* モバイル */
+@media (max-width: 768px) {
+  .hero {
+    padding: 120px 0 60px;
+  }
+  .phone-main {
+    width: 220px;
+  }
+}
     
   </style>
     <script type="application/ld+json">
@@ -1156,30 +1255,27 @@
 
 <!-- ── HERO ───────────────────────────────────── -->
 <section class="hero">
-  <div class="hero-blob hero-blob-1"></div>
-  <div class="hero-blob hero-blob-2"></div>
-
   <div class="container">
     <div class="hero-inner">
 
-      <!-- ===== TEXT ===== -->
+      <!-- TEXT -->
       <div class="hero-text">
 
-        <!-- 日本語 -->
+        <!-- JA -->
         <div data-lang="ja">
           <div class="hero-badge">🌸 女性のためのセルフケアアプリ</div>
 
           <h1>
-            体調の波を、<br>
+            なんとなく不調を、<br>
             <em>見える化する</em>
           </h1>
 
           <p class="hero-sub">
-            周期・食事・気分をひとつに記録
+            周期・食事・気分をまとめて記録
           </p>
         </div>
 
-        <!-- 英語 -->
+        <!-- EN -->
         <div data-lang="en">
           <div class="hero-badge">🌸 Self-Care App for Women's Health</div>
 
@@ -1193,7 +1289,7 @@
           </p>
         </div>
 
-        <!-- CTA（1つに統一） -->
+        <!-- CTA -->
         <div class="hero-cta">
           <a href="app.html" class="btn-primary">
             <span data-lang-inline="ja">記録をはじめる</span>
@@ -1207,30 +1303,8 @@
 
       </div>
 
-      <!-- ===== UI ===== -->
-
-  <div class="phone-wrap phone-main">
-    <div class="phone-frame">
-      <div class="phone-screen">
-        <div class="phone-notch"></div>
-        <img src="images/mockup_01_home.png" alt="ippoホーム">
-      </div>
-    </div>
-  </div>
-
-</div>
-
-        <!-- 左 -->
-        <div class="phone-wrap phone-left">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <div class="phone-notch"></div>
-              <img src="images/mockup_02_meal.png" alt="食事記録" loading="lazy">
-            </div>
-          </div>
-        </div>
-
-        <!-- メイン -->
+      <!-- UI（1枚だけ） -->
+      <div class="hero-visual">
         <div class="phone-wrap phone-main">
           <div class="phone-frame">
             <div class="phone-screen">
@@ -1239,23 +1313,11 @@
             </div>
           </div>
         </div>
-
-        <!-- 右 -->
-        <div class="phone-wrap phone-right">
-          <div class="phone-frame">
-            <div class="phone-screen">
-              <div class="phone-notch"></div>
-              <img src="images/mockup_05_calendar.png" alt="カレンダー" loading="lazy">
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
   </div>
 </section>
-
       
 
   <!-- ======= HERO PHOTO STRIP ======= -->
