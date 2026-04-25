@@ -5238,57 +5238,95 @@ function draftRecordScreen(){
 }
 
 function saveRecordScreen(){
-  var data = gatherRecordData();
-  var todayStr = new Date().toDateString();
-  var rec = null;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
-  }
-  if(!rec){
-    rec = { date: new Date().toISOString() };
-    state.records.push(rec);
-  }
-   // フリーメモから食事データを取得
-  var mealFreeEl = document.getElementById('rs-meal-free');
-  var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
-  var parsed = parseMealMemo(mealFreeText);
-  rec.mealFree = mealFreeText;
-  rec.meals = { free: mealFreeText };
-  rec.firstMealTime = parsed ? parsed.firstTime : '';
-  rec.lastMealTime = parsed ? parsed.lastTime : '';
-  rec.mealCount = parsed ? parsed.mealCount : 0;
-  rec.fasting = parsed ? parsed.fastingHours : 0;
-  rec.diseaseCheck = gatherDiseaseData();
-  localStorage.removeItem('ippo_meal_draft');
-  rec.temperature = data.temp;
-  rec.symptoms = data.symptoms;
-  rec.menstrualCycle = data.cycle;
-    // からだのための選択を保存
-  var bodyChoices = {};
-  document.querySelectorAll('#rs-body-choices .chips').forEach(function(group){
-    var cat = group.getAttribute('data-category');
-    var selected = [];
-    group.querySelectorAll('.chip.selected').forEach(function(c){
-      selected.push(c.getAttribute('data-val'));
+  try {
+    var data = gatherRecordData();
+    var todayStr = new Date().toDateString();
+    var rec = null;
+    for(var i=0; i<state.records.length; i++){
+      if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
+    }
+    var isNew = false;
+    if(!rec){
+      rec = { date: new Date().toISOString() };
+      isNew = true;
+    }
+    var mealFreeEl = document.getElementById('rs-meal-free');
+    var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
+    var parsed = parseMealMemo(mealFreeText);
+    rec.mealFree = mealFreeText;
+    rec.meals = { free: mealFreeText };
+    rec.firstMealTime = parsed ? parsed.firstTime : '';
+    rec.lastMealTime = parsed ? parsed.lastTime : '';
+    rec.mealCount = parsed ? parsed.mealCount : 0;
+    rec.fasting = parsed ? parsed.fastingHours : 0;
+    rec.diseaseCheck = gatherDiseaseData();
+    localStorage.removeItem('ippo_meal_draft');
+    rec.temperature = data.temp;
+    rec.symptoms = data.symptoms;
+    rec.menstrualCycle = data.cycle;
+    var bodyChoices = {};
+    document.querySelectorAll('#rs-body-choices .chips').forEach(function(group){
+      var cat = group.getAttribute('data-category');
+      var selected = [];
+      group.querySelectorAll('.chip.selected').forEach(function(c){
+        selected.push(c.getAttribute('data-val'));
+      });
+      if(selected.length) bodyChoices[cat] = selected;
     });
-    if(selected.length) bodyChoices[cat] = selected;
-  });
-  rec.bodyChoices = bodyChoices;
-  if(data.note) rec.note = data.note;
-  saveState();
-  updateHomeSummary();
-  updateHomeCTA();
-  updateStats();
-  updateHistory();
-  buildCalendar();
-  updateChakraProfile();
-  localStorage.removeItem('ippo_draft');
-  var so = document.getElementById('success-overlay');
-  if(so){
-    document.getElementById('success-emoji').textContent = '🌿';
-    document.getElementById('success-title').textContent = '記録を保存しました';
-    document.getElementById('success-message').innerHTML = '食事・体温・症状の記録が追加されました。<br>お疲れさまです！';
-    so.classList.add('active');
+    rec.bodyChoices = bodyChoices;
+    if(data.note) rec.note = data.note;
+
+    // 新規の場合のみ配列に追加
+    if(isNew){
+      state.records.push(rec);
+      state.totalDays++;
+      // streak計算
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      var yStr = yesterday.toDateString();
+      var hadYesterday = state.records.some(function(r){ return new Date(r.date).toDateString() === yStr; });
+      if(hadYesterday || state.streak === 0) state.streak++;
+      else state.streak = 1;
+    }
+
+    // 保存を即座に実行
+    try {
+      localStorage.setItem('ippo_state', JSON.stringify(state));
+    } catch(storageErr) {
+      alert('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
+      console.error('Storage error:', storageErr);
+      return;
+    }
+
+    // 保存成功を検証
+    var verify = JSON.parse(localStorage.getItem('ippo_state'));
+    var saved = verify.records.some(function(r){ return new Date(r.date).toDateString() === todayStr; });
+    if(!saved){
+      alert('記録の保存に失敗しました。もう一度お試しください。');
+      return;
+    }
+
+    // UI更新（保存成功後のみ）
+    updateHomeSummary();
+    updateHomeCTA();
+    updateStats();
+    updateHistory();
+    buildCalendar();
+    updateChakraProfile();
+    localStorage.removeItem('ippo_draft');
+    if(typeof cloudBackupAll === 'function') cloudBackupAll();
+
+    var so = document.getElementById('success-overlay');
+    if(so){
+      document.getElementById('success-emoji').textContent = '🌿';
+      document.getElementById('success-title').textContent = '記録を保存しました';
+      document.getElementById('success-message').innerHTML = '食事・体温・症状の記録が追加されました。<br>お疲れさまです！';
+      so.classList.add('active');
+    }
+
+  } catch(e) {
+    console.error('saveRecordScreen error:', e);
+    alert('記録の保存中にエラーが発生しました。\nもう一度お試しください。\n\nエラー: ' + e.message);
   }
 }
 
