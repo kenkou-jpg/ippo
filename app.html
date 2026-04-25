@@ -5252,14 +5252,15 @@ function draftRecordScreen(){
 function saveRecordScreen(){
   try {
     var data = gatherRecordData();
-    var todayStr = new Date().toDateString();
+   var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
+var todayStr = targetDate.toDateString();
     var rec = null;
     for(var i=0; i<state.records.length; i++){
       if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
     }
     var isNew = false;
     if(!rec){
-      rec = { date: new Date().toISOString() };
+      rec = { date: targetDate.toISOString() };
       isNew = true;
     }
     var mealFreeEl = document.getElementById('rs-meal-free');
@@ -5340,7 +5341,10 @@ function saveRecordScreen(){
       document.getElementById('success-message').innerHTML = '食事・体温・症状の記録が追加されました。<br>お疲れさまです！';
       so.classList.add('active');
     }
-
+    if(state.editingDate){
+      state.editingDate = null;
+      saveState();
+    }
   } catch(e) {
     console.error('saveRecordScreen error:', e);
     alert('記録の保存中にエラーが発生しました。\nもう一度お試しください。\n\nエラー: ' + e.message);
