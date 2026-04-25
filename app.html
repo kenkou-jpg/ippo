@@ -1863,16 +1863,16 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div class="stat-unit">日</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">平均食事スコア</div>
-          <div class="stat-value" id="insight-food">—</div>
-          <div class="stat-unit">/ 10</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">平均ウェルネス</div>
-          <div class="stat-value" id="insight-wellness">—</div>
-          <div class="stat-unit">/ 5</div>
-        </div>
-      </div>
+  <div class="stat-label">平均食事回数</div>
+  <div class="stat-value" id="insight-food">—</div>
+  <div class="stat-unit">食 / 日</div>
+</div>
+<div class="stat-card">
+  <div class="stat-label">平均断食時間</div>
+  <div class="stat-value" id="insight-wellness">—</div>
+  <div class="stat-unit">時間</div>
+</div>
+    </div>
 
       <!-- Sample Graph with demo overlay -->
       <div class="sample-graph-section">
@@ -3161,13 +3161,15 @@ function updateStats() {
   document.getElementById('insight-total').textContent = state.totalDays;
   document.getElementById('insight-streak').textContent = state.streak;
 
-  const foods = state.records.filter(r => r.foodScore).map(r => r.foodScore);
-  const wellness = state.records.filter(r => r.wellness).map(r => r.wellness);
-
+  // 食事スコア → 平均食事回数に変更
+  var mealCounts = state.records.filter(function(r){ return r.mealCount; }).map(function(r){ return r.mealCount; });
   document.getElementById('insight-food').textContent =
-    foods.length ? (foods.reduce((a,b) => a+b, 0) / foods.length).toFixed(1) : '—';
+    mealCounts.length ? (mealCounts.reduce(function(a,b){ return a+b; }, 0) / mealCounts.length).toFixed(1) : '—';
+
+  // ウェルネス → 平均断食時間に変更
+  var fastHours = state.records.filter(function(r){ return r.fasting && r.fasting >= 12; }).map(function(r){ return parseFloat(r.fasting); });
   document.getElementById('insight-wellness').textContent =
-    wellness.length ? (wellness.reduce((a,b) => a+b, 0) / wellness.length).toFixed(1) : '—';
+    fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
 }
 
 function updateUnlock() {
