@@ -1718,8 +1718,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <div class="welcome-name-section">
       <div class="welcome-name-label">あなたのお名前を<br>教えてください</div>
       <input class="welcome-input" id="name-input" type="text" placeholder="（例）さくら">
-      <button class="btn-primary" onclick="startApp()">はじめる →</button>
-<button class="btn-skip" onclick="startApp()">スキップ</button>
+      <button class="btn-primary" id="btn-start">はじめる →</button>
+      <button class="btn-skip" id="btn-skip">スキップ</button>
     </div>
   </div>
 
@@ -5297,78 +5297,6 @@ function updateChakraProfile() {
   var card = document.getElementById('chakra-profile-card');
   if (card) card.style.display = 'none';
   return;
-}
-
-  // まず独立キーから読み取る
-  var result = null;
-  try {
-    result = JSON.parse(localStorage.getItem('ippo_chakra_result'));
-  } catch(e) {}
-
-  // 独立キーにない場合、state.recordsからも探す
-  if (!result) {
-    var latest = null;
-    for (var i = state.records.length - 1; i >= 0; i--) {
-      if (state.records[i].chakra) {
-        latest = state.records[i].chakra;
-        break;
-      }
-    }
-    if (latest) {
-      result = { type: latest, date: null, scores: null };
-    }
-  }
-
-  if (!result || !result.type) {
-    card.style.display = 'none';
-    return;
-  }
-
-  card.style.display = '';
-
-  var CHAKRA = {
-    root:     { name: '第1チャクラ（ルート）', icon: '🔴', color: '#E53E3E' },
-    sacral:   { name: '第2チャクラ（セイクラル）', icon: '🟠', color: '#ED8936' },
-    solar:    { name: '第3チャクラ（ソーラー）', icon: '🟡', color: '#ECC94B' },
-    heart:    { name: '第4チャクラ（ハート）', icon: '💚', color: '#48BB78' },
-    throat:   { name: '第5チャクラ（スロート）', icon: '🔵', color: '#4299E1' },
-    thirdeye: { name: '第6チャクラ（サードアイ）', icon: '🟣', color: '#805AD5' },
-    crown:    { name: '第7チャクラ（クラウン）', icon: '⚪', color: '#B794F4' }
-  };
-
-  var info = CHAKRA[result.type] || { name: result.type, icon: '🔮', color: '#999' };
-  var html = '';
-  html += '<div style="text-align:center;margin:16px 0 12px;">';
-  html += '<span style="font-size:2.5rem;">' + info.icon + '</span>';
-  html += '</div>';
-  html += '<div style="text-align:center;font-family:var(--font-serif);font-size:1.1rem;color:var(--text-primary);margin-bottom:6px;">' + info.name + '</div>';
-
-  if (result.date) {
-    var d = new Date(result.date);
-    html += '<div style="text-align:center;font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">診断日: ' + d.getFullYear() + '/' + (d.getMonth()+1) + '/' + d.getDate() + '</div>';
-  }
-
-  // スコアバー表示
-  if (result.scores) {
-    var keys = Object.keys(CHAKRA);
-    html += '<div style="margin-top:12px;">';
-    for (var k = 0; k < keys.length; k++) {
-      var key = keys[k];
-      var score = result.scores[key] || 0;
-      var maxScore = 24;
-      var pct = Math.round(score / maxScore * 100);
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">';
-      html += '<span style="font-size:0.7rem;width:70px;color:var(--text-muted);">' + CHAKRA[key].icon + ' ' + CHAKRA[key].name.split('（')[0] + '</span>';
-      html += '<div style="flex:1;height:4px;background:var(--border-light);border-radius:2px;overflow:hidden;">';
-      html += '<div style="height:100%;width:' + pct + '%;background:' + CHAKRA[key].color + ';border-radius:2px;"></div>';
-      html += '</div>';
-      html += '<span style="font-size:0.65rem;color:var(--text-muted);width:24px;text-align:right;">' + score + '</span>';
-      html += '</div>';
-    }
-    html += '</div>';
-  }
-
-  body.innerHTML = html;
 }
 
 // ===== START =====
