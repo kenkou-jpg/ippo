@@ -107,6 +107,16 @@ body{
   border-radius:14px;
 }
 
+ <section class="gallery">
+  <h2>アプリ画面</h2>
+  <div class="gallery-scroll">
+    <img src="images/mockup_01_home.png">
+    <img src="images/mockup_02_meal.png">
+    <img src="images/mockup_05_calendar.png">
+  </div>
+</section>
+
+
 /* ===== FEATURES ===== */
 .features{
   background:#fafafa;
@@ -127,6 +137,36 @@ body{
   padding:60px 20px;
   font-size:0.8rem;
   color:var(--text3);
+}
+
+  .gallery {
+  padding: 100px 0;
+  background: #fff;
+}
+
+.gallery h2 {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.gallery-scroll {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 0 20px;
+  scroll-snap-type: x mandatory;
+}
+
+.gallery-scroll img {
+  width: 240px;
+  border-radius: 20px;
+  scroll-snap-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+  /* ===== 余白強化（重要） ===== */
+.section {
+  padding: 120px 20px;
 }
 </style>
 </head>
@@ -172,6 +212,11 @@ body{
   </div>
 </section>
 
+  <section class="review">
+  <p>★★★★★</p>
+  <p>「続かなかった記録が、初めて続いています」</p>
+</section>
+
 <!-- SOLUTION -->
 <section class="section">
   <h2>すべてをつなげて記録</h2>
@@ -215,6 +260,11 @@ body{
 <div class="footer">
   © ippo
 </div>
+
+  <section class="cta-bottom">
+  <a href="app.html" class="btn">今すぐはじめる</a>
+</section>
+
 
 </body>
 </html>
