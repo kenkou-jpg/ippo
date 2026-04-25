@@ -2993,15 +2993,19 @@ let currentRecord = {};
 let currentStep = 0;
 
 
-  function saveState() {
-  // バグ16: プライベートブラウジング・容量超過でのクラッシュを防ぐ
+function saveState() {
   try {
+    state.lastSaved = new Date().toISOString();
     localStorage.setItem('ippo_state', JSON.stringify(state));
   } catch(e) {
     console.warn('ippo: localStorage save failed', e);
   }
-  // クラウド同期
-  if(typeof cloudBackupAll === 'function') cloudBackupAll();
+  if(typeof cloudBackupAll === 'function'){
+    cloudBackupAll().catch(function(e){
+      console.warn('クラウド同期失敗:', e);
+      setTimeout(function(){ cloudBackupAll().catch(function(){}); }, 3000);
+    });
+  }
 }
 
 function init() {
@@ -5314,7 +5318,12 @@ function saveRecordScreen(){
     buildCalendar();
     updateChakraProfile();
     localStorage.removeItem('ippo_draft');
-    if(typeof cloudBackupAll === 'function') cloudBackupAll();
+    if(typeof cloudBackupAll === 'function'){
+  cloudBackupAll().catch(function(e){
+    console.warn('クラウドバックアップ失敗、リトライ中...', e);
+    setTimeout(function(){ cloudBackupAll().catch(function(){}); }, 3000);
+  });
+}
 
     var so = document.getElementById('success-overlay');
     if(so){
