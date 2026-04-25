@@ -4726,9 +4726,13 @@ document.addEventListener('DOMContentLoaded', function(){
   updateDiseaseSettingDisplay();
   updateHomeCTA();
   updateHomeSummary();
-    var fastDisplay = document.getElementById('fast-goal-display');
+  var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
   loadCommunityTopic();
+  var btnStart = document.getElementById('btn-start');
+  var btnSkip = document.getElementById('btn-skip');
+  if(btnStart) btnStart.addEventListener('click', function(){ startApp(); });
+  if(btnSkip) btnSkip.addEventListener('click', function(){ startApp(); });
 });
 
 function openDayDetail(d){
