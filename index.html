@@ -303,15 +303,24 @@
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--rad);
-  padding: 24px 20px;
+  padding: 28px 20px;
   text-align: center;
   transition: var(--tr);
   box-shadow: 0 2px 12px var(--shadow);
 }
 .cond-card:hover {
+  border-color: var(--accent);
   transform: translateY(-4px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  box-shadow: 0 12px 32px rgba(232,97,74,0.10);
 }
+.cond-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent-bg);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; font-size: 1.4rem;
+}
+.cond-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+.cond-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
 
 /* アイコン部分を統一 */
 .cond-icon {
@@ -339,10 +348,6 @@
   line-height: 1.6;
 }
 
-/* グリッドの余白を広く */
-.conditions-grid {
-  gap: 16px;
-}
     /* ── FEATURES ────────────────────────────── */
    .features { background: var(--bg2); }
 .feat-row {
