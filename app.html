@@ -2020,36 +2020,29 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       時間と食べたものを自由に記入してください<br>
     <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
     </div>
-       <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
-      <button id="meal-btn-breakfast" onclick="toggleMealEntry('朝食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌅 朝食</button>
-      <button id="meal-btn-lunch" onclick="toggleMealEntry('昼食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">☀️ 昼食</button>
-      <button id="meal-btn-dinner" onclick="toggleMealEntry('夕食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🌙 夕食</button>
-      <button id="meal-btn-snack" onclick="toggleMealEntry('間食',this)" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;">🍪 間食</button>
-    </div>
-    <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">朝食の時間</span>
-        <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
-      </div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
-        <button onclick="confirmMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
-      </div>
-    </div>
-  <textarea id="rs-meal-free" placeholder="0830 朝食
-1300 昼食
-1430 間食
-1900 夕食
-" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-    <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
-      <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
-      <div style="display:flex;gap:16px;flex-wrap:wrap;">
-        <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
-        <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
-        <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
-      </div>
-    </div>
+     <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+  <button id="meal-btn-add" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;" onclick="openMealTimePicker()">＋ 時間を追加</button>
+</div>
+<div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
+    <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
   </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
+    <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
+  </div>
+</div>
+<textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+<div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+  <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;">
+    <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
+    <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
+    <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
+  </div>
+</div>
+</div>
 
     <!-- ===== からだのための選択（参考欄） ===== -->
   <div class="section-card">
@@ -2527,6 +2520,32 @@ var supabaseUserId = null;
 // ===== 食事クイック入力 =====
 var _mealPendingType = '';
 var _mealPendingBtn = null;
+
+  function openMealTimePicker(){
+  var picker = document.getElementById('meal-time-picker');
+  var input = document.getElementById('meal-time-input');
+  var now = new Date();
+  var hh = String(now.getHours()).padStart(2,'0');
+  var mm = String(now.getMinutes()).padStart(2,'0');
+  if(input) input.value = hh + ':' + mm;
+  if(picker) picker.style.display = 'block';
+}
+
+function addMealTime(){
+  var ta = document.getElementById('rs-meal-free');
+  var input = document.getElementById('meal-time-input');
+  if(!ta || !input) return;
+  var time = input.value.replace(':','');
+  var current = ta.value.trim();
+  ta.value = current ? current + '\n' + time + ' ' : time + ' ';
+  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
+  lines.sort();
+  ta.value = lines.join('\n');
+  ta.focus();
+  ta.selectionStart = ta.selectionEnd = ta.value.length;
+  closeMealTimePicker();
+  if(typeof updateMealParse === 'function') updateMealParse();
+}
 
 function toggleMealEntry(type, btn){
   var ta = document.getElementById('rs-meal-free');
