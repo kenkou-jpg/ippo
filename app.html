@@ -5598,29 +5598,25 @@ async function generateDoctorSummary() {
   body.innerHTML = '<div class="ds-empty">データを読み込み中...</div>';
 
   try {
-    // 過去30日の日付範囲
     const today = new Date();
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const fromDate = thirtyDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
 
-    // Supabaseから取得
-    const deviceId = localStorage.getItem('ippo_device_id') || '';
-    const { data: records, error } = await supabase
-      .from('records')
-      .select('*')
-      .gte('record_date', fromDate)
-      .lte('record_date', toDate)
-      .order('record_date', { ascending: true });
+    // ローカルのstate.recordsから過去30日分を取得
+    const records = state.records.filter(function(r) {
+      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
+      return d >= fromDate && d <= toDate;
+    }).map(function(r) {
+      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
+    });
 
-    if (error) throw error;
-
-    if (!records || records.length === 0) {
+    if (records.length === 0) {
       body.innerHTML = '<div class="ds-empty">過去30日間の記録がありません。<br>毎日の記録を続けると、ここに体調サマリーが自動生成されます。</div>';
       return;
     }
-
+    
     // データ集計
     const totalDays = records.length;
     const chakraCounts = {};
@@ -5911,20 +5907,19 @@ async function generateMonthlyReport() {
     const toDate = lastDay.toISOString().split('T')[0];
     const daysInMonth = lastDay.getDate();
 
-    const { data: records, error } = await supabase
-      .from('records')
-      .select('*')
-      .gte('record_date', fromDate)
-      .lte('record_date', toDate)
-      .order('record_date', { ascending: true });
+    // ローカルから取得
+    const records = state.records.filter(function(r) {
+      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
+      return d >= fromDate && d <= toDate;
+    }).map(function(r) {
+      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
+    });
 
-    if (error) throw error;
-
-    if (!records || records.length === 0) {
+    if (records.length === 0) {
       body.innerHTML = '<div class="ds-empty">この月の記録はありません。</div>';
       return;
     }
-
+    
     // 集計
     const totalDays = records.length;
     const chakraCounts = {};
@@ -6212,23 +6207,21 @@ async function runAIAnalysis() {
   body.innerHTML = '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">データを収集しています...</div></div>';
 
   try {
-    // 過去90日のデータを取得
     const today = new Date();
     const ninetyDaysAgo = new Date(today);
     ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
     const fromDate = ninetyDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
 
-    const { data: records, error } = await supabase
-      .from('records')
-      .select('*')
-      .gte('record_date', fromDate)
-      .lte('record_date', toDate)
-      .order('record_date', { ascending: true });
+    // ローカルから取得
+    const records = state.records.filter(function(r) {
+      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
+      return d >= fromDate && d <= toDate;
+    }).map(function(r) {
+      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
+    });
 
-    if (error) throw error;
-
-    if (!records || records.length < 3) {
+    if (records.length < 3) {
       body.innerHTML = '<div class="ai-error">パターン解析には最低3日分の記録が必要です。<br>記録を続けてから、もう一度お試しください。</div>';
       return;
     }
