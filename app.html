@@ -1922,17 +1922,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-       <!-- チャクラ診断 -->
-      <div class="section-card">
-        <div class="section-label">chakra diagnosis</div>
-        <a class="chakra-diagnosis-link" href="https://www.ippo-app.com/chakra-test.html">
-          <div class="cdl-text">
-            <div class="cdl-title">あなたのチャクラ体質を診断する</div>
-            <div class="cdl-sub">8問・約2分 → あなたに合った食事法をご提案</div>
-          </div>
-          <div class="cdl-arrow">→</div>
-        </a>
-      </div>
 
             <!-- Community Voice -->
       <div class="section-card" style="margin:0 20px 20px;">
@@ -2326,6 +2315,19 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
+      <div class="settings-card" style="margin-top:10px;">
+  <a href="https://www.ippo-app.com/chakra-test.html" class="settings-row" style="text-decoration:none;">
+    <div class="settings-row-left">
+      <div class="settings-row-icon" style="background:#f3f0fd;">🔮</div>
+      <div>
+        <div class="settings-row-text">チャクラ体質診断</div>
+        <div class="settings-row-sub">参考：8問・約2分</div>
+      </div>
+    </div>
+    <div class="settings-row-right"><span class="settings-chevron">→</span></div>
+  </a>
+</div>
+
       <div style="padding:0 24px;text-align:center;">
         <p style="font-size:11px;color:var(--ink-light);line-height:1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
       </div>
@@ -2453,13 +2455,12 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <div class="modal-sheet" onclick="event.stopPropagation()">
       <div class="modal-handle"></div>
       <div class="modal-header">
-        <div class="modal-step-indicator" id="step-indicator">
-          <div class="step-dot active"></div>
-          <div class="step-dot"></div>
-          <div class="step-dot"></div>
-          <div class="step-dot"></div>
-          <div class="step-dot"></div>
-        </div>
+       <div class="modal-step-indicator" id="step-indicator">
+  <div class="step-dot active"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+</div>
         <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
         <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
       </div>
@@ -2991,33 +2992,6 @@ state = {
 let currentRecord = {};
 let currentStep = 0;
 
-const STEPS = [
-  {
-    title: '今日のからだの調子は\nどうですか？',
-    label: '1 / 5',
-    render: renderWellness
-  },
-  {
-    title: '骨盤まわりの\n感覚はどうですか？',
-    label: '2 / 5',
-    render: renderChakra
-  },
-  {
-    title: '今日の食事の質は\nどうでしたか？',
-    label: '3 / 5',
-    render: renderFood
-  },
-  {
-    title: '今日の断食時間は\nどのくらいでしたか？',
-    label: '4 / 5',
-    render: renderFasting
-  },
-  {
-    title: '今の気持ちに\n近いのは？',
-    label: '5 / 5',
-    render: renderEmotion
-  }
-];
 
   function saveState() {
   // バグ16: プライベートブラウジング・容量超過でのクラッシュを防ぐ
@@ -5324,8 +5298,9 @@ function saveRecordScreen(){
 // ===== CHAKRA PROFILE =====
 function updateChakraProfile() {
   var card = document.getElementById('chakra-profile-card');
-  var body = document.getElementById('chakra-profile-body');
-  if (!card || !body) return;
+  if (card) card.style.display = 'none';
+  return;
+}
 
   // まず独立キーから読み取る
   var result = null;
