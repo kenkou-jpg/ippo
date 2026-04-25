@@ -1937,30 +1937,34 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
             <!-- Community Voice -->
       <div class="section-card" style="margin:0 20px 20px;">
-        <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:8px;">COMMUNITY VOICE</div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);margin-bottom:6px;">みんなの声</div>
-        <div style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
-        
-        <!-- 今週のテーマ -->
-        <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
-          <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
-          <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
-        </div>
+  <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.cv-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+    <div>
+      <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMMUNITY VOICE</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">みんなの声</div>
+    </div>
+    <span class="cv-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+  </div>
+  <div style="display:none;margin-top:14px;">
+    <div style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
 
-        <!-- 回答一覧 -->
-        <div id="community-replies" style="margin-bottom:14px;">
-        </div>
+    <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
+      <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
+      <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
+    </div>
 
-        <!-- 投稿フォーム -->
-        <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
-          <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
-          <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-            <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
-            <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
-          </div>
-        </div>
+    <div id="community-replies" style="margin-bottom:14px;"></div>
+
+    <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
+      <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
+        <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
       </div>
+    </div>
+  </div>
+</div>
+
 
 
       <!-- Pattern Message -->
