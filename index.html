@@ -576,11 +576,10 @@
     html[lang="ja"] [data-lang-inline="en"] { display:none; }
     html[lang="ja"] [data-lang-inline="ja"] { display:inline; }
 
-    /* ── RESPONSIVE ──────────────────────────── */
-    @media (max-width: 1024px) {
-      .conditions-grid { grid-template-columns:repeat(2,1fr); }
-      .feat-row { gap:48px; }
-    }
+@media (max-width: 1024px) {
+  .conditions-grid { grid-template-columns: repeat(4, 1fr); }
+  .feat-row { gap: 48px; }
+}
     @media (max-width: 768px) {
       .nav { display:none; }
       .hamburger { display:block; }
@@ -1016,10 +1015,12 @@
     .feat-row {
       margin-bottom: 120px;
     }
-    .conditions-grid {
-      gap: 24px;
-      margin-top: 56px;
-    }
+  
+.conditions-grid {
+  gap: 16px;
+  margin-top: 48px;
+}
+
     .testi-grid {
       gap: 28px;
     }
