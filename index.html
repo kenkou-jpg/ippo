@@ -1,333 +1,1608 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ippo — 女性のためのセルフケア記録アプリ</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ippo — Self-Care Tracking for Women's Health</title>
+  <meta name="description" content="Track your cycle, diet, fasting, mood, and body patterns. Designed for ovarian cysts, PCOS, endometriosis, and uterine fibroids. Free, private, science-aware.">
+  <meta property="og:title" content="ippo — Self-Care Tracking for Women's Health">
+  <meta property="og:description" content="Daily self-care records for women with gynecological conditions. Free and private.">
+  <meta property="og:url" content="https://www.ippo-app.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://www.ippo-app.com/images/mockup_01_home.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://www.ippo-app.com/">
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Noto+Sans+JP:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #FAFAF8;
+      --bg2:       #F3F1EE;
+      --bg3:       #EDE9E4;
+      --text:      #1A1714;
+      --text2:     #6B6460;
+      --text3:     #A09890;
+      --accent:    #E8614A;
+      --accent2:   #F07B63;
+      --accent-bg: rgba(232,97,74,0.08);
+      --green:     #3DB89B;
+      --purple:    #8B6FD4;
+      --border:    rgba(26,23,20,0.08);
+      --shadow:    rgba(26,23,20,0.06);
+      --font-display: 'Playfair Display', 'Noto Sans JP', serif;
+      --font-body:    'DM Sans', 'Noto Sans JP', sans-serif;
+      --max: 1200px;
+      --rad: 20px;
+      --tr: 0.3s cubic-bezier(0.4,0,0.2,1);
+    }
 
-<style>
-:root {
-  --accent:#E8614A;
-  --text:#2a2a2a;
-  --text2:#666;
-  --text3:#999;
-}
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    ul { list-style: none; }
 
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--text);
-}
+    .container { max-width: var(--max); margin: 0 auto; padding: 0 32px; }
 
-/* ===== HERO ===== */
-.hero{
-  padding:140px 20px 100px;
-  text-align:center;
-  background:
-    radial-gradient(circle at 70% 20%, rgba(232,97,74,0.18), transparent 40%),
-    linear-gradient(#fff,#f7f3ef);
-}
+    /* ── HEADER ─────────────────────────────── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 18px 0;
+      background: rgba(250,250,248,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+      transition: var(--tr);
+    }
+    .header-inner { display:flex; align-items:center; justify-content:space-between; }
+    .logo { font-family: var(--font-display); font-size: 1.6rem; font-weight:700; letter-spacing:-0.02em; }
+    .logo span { color: var(--accent); }
+    .nav { display:flex; align-items:center; gap:28px; }
+    .nav a { font-size:0.875rem; font-weight:500; color:var(--text2); transition:var(--tr); }
+    .nav a:hover { color:var(--text); }
+    .lang-switch { display:flex; background:var(--bg3); border-radius:20px; padding:2px; gap:2px; }
+    .lang-switch button {
+      background:none; border:none; color:var(--text2); font-size:0.75rem; font-weight:600;
+      padding:6px 14px; border-radius:18px; cursor:pointer; transition:var(--tr); font-family:var(--font-body);
+    }
+    .lang-switch button.active { background:var(--accent); color:#fff; }
+    .btn-header {
+      background:var(--accent); color:#fff; padding:10px 24px; border-radius:24px;
+      font-size:0.875rem; font-weight:600; transition:var(--tr); border:none; cursor:pointer;
+    }
+    .btn-header:hover { background:var(--accent2); transform:translateY(-1px); box-shadow:0 6px 20px rgba(232,97,74,0.28); }
+    .hamburger { display:none; background:none; border:none; cursor:pointer; padding:4px; }
+    .hamburger span { display:block; width:24px; height:2px; background:var(--text); margin:5px 0; transition:var(--tr); }
 
-.hero h1{
-  font-size:clamp(2.4rem,5vw,3.6rem);
-  line-height:1.2;
-}
+    /* ── HERO ────────────────────────────────── */
+    .hero {
+      padding: 140px 0 0;
+      position: relative;
+      overflow: hidden;
+      background: linear-gradient(170deg, #FAFAF8 0%, #F5EFE9 60%, #EFE6DC 100%);
+    }
+    /* Decorative blob */
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-blob-1 {
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(232,97,74,0.10) 0%, transparent 70%);
+      top: -200px; right: -100px;
+    }
+    .hero-blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(61,184,155,0.08) 0%, transparent 70%);
+      bottom: 100px; left: -50px;
+    }
 
-.hero em{
-  color:var(--accent);
-  font-style:normal;
-}
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      position: relative; z-index: 2;
+    }
 
-.hero-sub{
-  color:var(--text2);
-  margin:16px 0 32px;
-}
+    .hero-text {}
+    .hero-badge {
+      display: inline-flex; align-items:center; gap:8px;
+      background: rgba(232,97,74,0.10);
+      border: 1px solid rgba(232,97,74,0.20);
+      color: var(--accent);
+      padding: 7px 18px; border-radius: 24px;
+      font-size: 0.78rem; font-weight: 600; letter-spacing:0.04em;
+      margin-bottom: 28px;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.6rem, 5vw, 4rem);
+      font-weight: 700;
+      line-height: 1.18;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .hero h1 em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text2); line-height: 1.85;
+      margin-bottom: 36px; max-width: 420px;
+    }
+    .hero-cta-row { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom: 48px; }
+    .btn-primary {
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--accent); color:#fff;
+      padding: 14px 32px; border-radius:32px;
+      font-size:1rem; font-weight:600;
+      transition:var(--tr);
+      box-shadow: 0 8px 28px rgba(232,97,74,0.25);
+    }
+    .btn-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 14px 36px rgba(232,97,74,0.32); }
+    .btn-ghost { font-size:0.9rem; color:var(--text2); display:flex; align-items:center; gap:5px; transition:var(--tr); }
+    .btn-ghost:hover { color:var(--text); }
 
-.btn{
-  background:var(--accent);
-  color:#fff;
-  padding:16px 34px;
-  border-radius:30px;
-  text-decoration:none;
-  display:inline-block;
-}
+    .hero-trust {
+      display: flex; gap: 24px; flex-wrap: wrap;
+    }
+    .trust-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--text2); font-weight:500;
+    }
+    .trust-icon { font-size: 1rem; }
 
-/* UI */
-.phone{
-  width:340px;
-  margin:40px auto 0;
-}
+    /* Hero phones */
+    .hero-visual {
+      position: relative;
+      height: 580px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .phone-wrap {
+      position: absolute;
+      bottom: 0;
+      filter: drop-shadow(0 24px 48px rgba(26,23,20,0.14));
+      transition: transform 0.6s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .phone-wrap:hover { transform: translateY(-8px) !important; }
 
-/* ===== CONDITIONS ===== */
-.section{
-  padding:100px 20px;
-  text-align:center;
-}
+    .phone-frame {
+      background: #F8F6F4;
+      border-radius: 44px;
+      padding: 13px;
+      border: 1.5px solid rgba(26,23,20,0.10);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.8) inset,
+        0 2px 4px rgba(26,23,20,0.08) inset;
+    }
+    .phone-screen {
+      border-radius: 34px;
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+    }
+    .phone-screen img { width:100%; display:block; object-fit:cover; object-position:top; }
+    .phone-notch {
+      position:absolute; top:0; left:50%; transform:translateX(-50%);
+      width:80px; height:24px;
+      background: #E8E4E0;
+      border-radius: 0 0 14px 14px;
+      z-index: 5;
+    }
 
-.conditions p{
-  color:var(--text2);
-  margin:10px 0;
-}
+    .phone-main {
+      left: 50%; transform: translateX(-50%);
+      z-index: 3;
+      width: 230px;
+    }
+    .phone-main .phone-screen { height: 498px; }
 
-/* ===== STATS ===== */
-.stats{
-  background:#fff;
-}
+    .phone-left {
+      left: calc(50% - 190px);
+      transform: rotate(-8deg);
+      z-index: 2;
+      width: 195px;
+      opacity: 0.82;
+    }
+    .phone-left .phone-screen { height: 422px; }
+    .phone-left:hover { transform: rotate(-8deg) translateY(-8px) !important; }
 
-.stats-inner{
-  display:flex;
-  justify-content:center;
-  gap:50px;
-}
+    .phone-right {
+      left: calc(50% + 80px);
+      transform: rotate(7deg);
+      z-index: 2;
+      width: 190px;
+      opacity: 0.78;
+    }
+    .phone-right .phone-screen { height: 411px; }
+    .phone-right:hover { transform: rotate(7deg) translateY(-8px) !important; }
 
-.stat-num{
-  color:var(--accent);
-  font-size:2rem;
-  font-weight:bold;
-}
+    /* Floating badges */
+    .float-tag {
+      position: absolute;
+      background: #fff;
+      border-radius: 14px;
+      padding: 10px 16px;
+      display: flex; align-items:center; gap: 8px;
+      font-size: 12px; font-weight:600;
+      box-shadow: 0 8px 28px rgba(26,23,20,0.12);
+      z-index: 10;
+      animation: floatY 3s ease-in-out infinite alternate;
+      white-space: nowrap;
+    }
+    .float-tag .ft-icon { font-size: 16px; }
+    .float-tag .ft-val { color: var(--accent); }
 
-/* ===== SOLUTION ===== */
-.solution-visual{
-  display:flex;
-  justify-content:center;
-  gap:15px;
-  flex-wrap:wrap;
-}
+    .ft-1 { bottom: 180px; left: 20px; animation-delay:0s; }
+    .ft-2 { top: 120px; right: 10px; animation-delay:1s; }
+    .ft-3 { bottom: 100px; right: 30px; animation-delay:0.5s; }
 
-.box{
-  background:#faf7f4;
-  padding:14px 18px;
-  border-radius:14px;
-}
+    @keyframes floatY {
+      from { transform: translateY(0); }
+      to   { transform: translateY(-10px); }
+    }
 
-.result{
-  background:rgba(232,97,74,0.1);
-  color:var(--accent);
-  padding:14px 18px;
-  border-radius:14px;
-}
+    /* Hero stats bar */
+    .hero-stats-bar {
+      background: #fff;
+      border-top: 1px solid var(--border);
+      padding: 28px 0;
+      position: relative; z-index: 2;
+    }
+    .hero-stats-inner {
+      display: flex; justify-content: center; gap: 0;
+    }
+    .hstat {
+      text-align: center;
+      padding: 0 48px;
+      border-right: 1px solid var(--border);
+    }
+    .hstat:last-child { border-right: none; }
+    .hstat-num {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight:700;
+      color: var(--text);
+      display: block;
+    }
+    .hstat-label { font-size: 0.78rem; color: var(--text3); margin-top: 2px; }
 
+    /* ── SECTION COMMON ──────────────────────── */
+    .section { padding: 100px 0; }
+    .section-label {
+      font-size: 0.72rem; font-weight:700; letter-spacing:0.15em;
+      text-transform:uppercase; color:var(--accent); margin-bottom:14px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      font-weight:700; line-height:1.22; margin-bottom:18px;
+    }
+    .section-sub { font-size:1.05rem; color:var(--text2); line-height:1.8; max-width:560px; }
 
-
-/* ===== FEATURES ===== */
-.features{
-  background:#fafafa;
-}
-
-.feature{
-  margin-bottom:40px;
-}
-
-.feature img{
-  width:260px;
-  margin-top:20px;
-}
-
-/* ===== FOOTER ===== */
-.footer{
-  text-align:center;
-  padding:60px 20px;
-  font-size:0.8rem;
-  color:var(--text3);
-}
-
-  .gallery {
-  padding: 100px 0;
+    /* ── CONDITIONS ──────────────────────────── */
+    .conditions { background: var(--bg); }
+    .conditions-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 48px;
+    }
+/* ── CONDITION CARDS: Clue-style ─────────── */
+.cond-card {
   background: #fff;
-}
-
-.gallery h2 {
+  border: 1px solid var(--border);
+  border-radius: var(--rad);
+  padding: 28px 20px;
   text-align: center;
-  margin-bottom: 40px;
+  transition: var(--tr);
+  box-shadow: 0 2px 12px var(--shadow);
 }
+.cond-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(232,97,74,0.10);
+}
+.cond-icon {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent-bg);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px; font-size: 1.4rem;
+}
+.cond-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 6px; }
+.cond-card p { font-size: 0.82rem; color: var(--text2); line-height: 1.6; }
 
-.gallery-scroll {
+/* アイコン部分を統一 */
+.cond-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--accent-bg);
   display: flex;
-  gap: 20px;
-  overflow-x: auto;
-  padding: 0 20px;
-  scroll-snap-type: x mandatory;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 1.4rem;
 }
 
-.gallery-scroll img {
-  width: 240px;
+/* テキスト */
+.cond-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.cond-card p {
+  font-size: 0.85rem;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+    /* ── FEATURES ────────────────────────────── */
+   .features { background: var(--bg2); }
+.feat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin-bottom: 100px;
+}
+.feat-row:last-child { margin-bottom: 0; }
+.feat-row.rev { direction: rtl; }
+.feat-row.rev > * { direction: ltr; }
+
+    .feat-visual {
+      border-radius: 24px;
+      aspect-ratio: 4/3;
+      background: #fff;
+      border: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      position: relative; overflow: hidden;
+      box-shadow: 0 8px 40px var(--shadow);
+    }
+    .feat-visual img.mockup {
+      width: 52%;
+      border-radius: 22px;
+      box-shadow: 0 20px 48px rgba(26,23,20,0.15);
+      position: relative; z-index:2;
+      transition: transform 0.4s var(--tr);
+    }
+    .feat-visual:hover img.mockup { transform: translateY(-6px); }
+    .feat-visual .vglow {
+      position:absolute; inset:0;
+      background: radial-gradient(circle at 50% 70%, rgba(232,97,74,0.06), transparent 65%);
+    }
+    .feat-visual.premium-v .vglow {
+      background: radial-gradient(circle at 50% 70%, rgba(139,111,212,0.07), transparent 65%);
+    }
+    .feat-visual.emoji-fallback { font-size: 3.5rem; }
+    .feat-visual.emoji-fallback::after {
+      content:''; position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(232,97,74,0.04), transparent);
+    }
+
+    .feat-tag {
+      display:inline-block;
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 5px 14px; border-radius:20px;
+      font-size:0.72rem; font-weight:700; letter-spacing:0.08em;
+    }
+    .feat-tag.purple-tag {
+      background: rgba(139,111,212,0.10);
+      color: var(--purple);
+    }
+    .feat-content h3 {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 2.5vw, 2rem);
+      font-weight:700; line-height:1.3; margin-bottom:14px;
+    }
+    .feat-content p { color:var(--text2); font-size:0.98rem; line-height:1.85; margin-bottom:22px; }
+
+    /* ── PLANS ───────────────────────────────── */
+    .plans { background: var(--bg); }
+    .plans-header { text-align:center; margin-bottom:60px; }
+    .plans-grid {
+      display:grid; grid-template-columns:1fr 1fr; gap:24px;
+      max-width:860px; margin:0 auto;
+    }
+    .plan-card {
+      background:#fff; border:1.5px solid var(--border);
+      border-radius:24px; padding:44px 32px;
+      position:relative; transition:var(--tr);
+      box-shadow: 0 4px 24px var(--shadow);
+    }
+    .plan-card.premium {
+      border-color: var(--accent);
+      background: linear-gradient(160deg, rgba(232,97,74,0.04) 0%, #fff 50%);
+      box-shadow: 0 8px 40px rgba(232,97,74,0.12);
+    }
+    .plan-badge {
+      position:absolute; top:-13px; left:50%; transform:translateX(-50%);
+      background:var(--accent); color:#fff;
+      padding:4px 16px; border-radius:12px;
+      font-size:0.68rem; font-weight:700; letter-spacing:0.1em;
+    }
+    .plan-name { font-size:0.8rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+    .plan-price { font-family:var(--font-display); font-size:2.4rem; font-weight:700; margin-bottom:3px; }
+    .plan-price-sub { font-size:0.82rem; color:var(--text3); margin-bottom:28px; }
+    .plan-features { margin-bottom:28px; }
+    .plan-features li {
+      display:flex; align-items:flex-start; gap:10px;
+      padding:9px 0; font-size:0.9rem; color:var(--text2);
+      border-bottom:1px solid var(--border);
+    }
+    .plan-features li:last-child { border-bottom:none; }
+    .plan-features li .ck { color:var(--green); font-weight:700; flex-shrink:0; }
+    .plan-btn {
+      display:block; width:100%; text-align:center; padding:13px;
+      border-radius:28px; font-size:0.95rem; font-weight:600;
+      transition:var(--tr); border:none; cursor:pointer; font-family:var(--font-body);
+    }
+    .plan-btn.pb-primary { background:var(--accent); color:#fff; }
+    .plan-btn.pb-primary:hover { background:var(--accent2); transform:translateY(-2px); box-shadow:0 8px 24px rgba(232,97,74,0.28); }
+    .plan-btn.pb-secondary { background:var(--bg2); color:var(--text); border:1.5px solid var(--border); }
+    .plan-btn.pb-secondary:hover { border-color:var(--text3); }
+
+    /* ── TESTIMONIALS ────────────────────────── */
+    .testimonials { background: var(--bg2); }
+    .testimonials-header { text-align:center; margin-bottom:56px; }
+    .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+/* ── TESTIMONIALS: Clue-style ────────────── */
+.testi-card {
+  background: #fff;
+  border: none;
   border-radius: 20px;
-  scroll-snap-align: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  padding: 32px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.testi-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+}
+    .testi-stars { color:var(--accent); font-size:0.85rem; margin-bottom:14px; letter-spacing:2px; }
+    .testi-text { font-size:0.95rem; line-height:1.8; margin-bottom:20px; color:var(--text); }
+    .testi-author { font-size:0.78rem; color:var(--text3); }
+
+        /* ── PRIVACY: Apple-style minimal ────────── */
+    .priv-item {
+      background: none;
+      border: none;
+      box-shadow: none;
+      padding: 40px 28px;
+      text-align: center;
+      transition: var(--tr);
+    }
+    .priv-item:hover {
+      transform: none;
+      box-shadow: none;
+    }
+    .priv-item h3 {
+      font-family: var(--font-display);
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+    .priv-item p {
+      font-size: 0.92rem;
+      color: var(--text2);
+      line-height: 1.8;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+    /* ── ABOUT ───────────────────────────────── */
+    .about { background: linear-gradient(135deg, #FDF8F4 0%, #F5EDE4 100%); }
+    .about-inner {
+      display:grid; grid-template-columns:1fr 2fr;
+      gap:60px; align-items:center;
+      max-width:860px; margin:0 auto;
+    }
+    .about-photo {
+      width:200px; height:200px; border-radius:50%;
+      background:var(--bg3); border:3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      overflow:hidden; margin:0 auto;
+    }
+    .about-photo img { width:100%; height:100%; object-fit:cover; }
+    .about-content h3 { font-family:var(--font-display); font-size:1.7rem; font-weight:700; margin-bottom:14px; }
+    .about-content p { color:var(--text2); line-height:1.9; margin-bottom:10px; font-size:0.97rem; }
+    .about-tagline { font-style:italic; color:var(--accent) !important; font-weight:500; margin-top:18px !important; font-family:var(--font-display); font-size:1.1rem !important; }
+
+    /* ── FINAL CTA ───────────────────────────── */
+    .final-cta {
+      background: linear-gradient(135deg, var(--accent) 0%, #F07B63 100%);
+      padding: 100px 0; text-align:center;
+      position: relative; overflow: hidden;
+    }
+    .final-cta::before {
+      content:''; position:absolute;
+      width:500px; height:500px; border-radius:50%;
+      background:rgba(255,255,255,0.06);
+      top:-200px; right:-100px;
+    }
+    .final-cta::after {
+      content:''; position:absolute;
+      width:300px; height:300px; border-radius:50%;
+      background:rgba(255,255,255,0.05);
+      bottom:-100px; left:5%;
+    }
+    .final-cta h2 {
+      font-family:var(--font-display);
+      font-size:clamp(1.9rem,4vw,2.9rem); font-weight:700;
+      color:#fff; margin-bottom:14px; position:relative; z-index:1;
+    }
+    .final-cta p { color:rgba(255,255,255,0.82); font-size:1.05rem; margin-bottom:36px; position:relative; z-index:1; }
+    .btn-white {
+      display:inline-flex; align-items:center; gap:8px;
+      background:#fff; color:var(--accent);
+      padding:14px 36px; border-radius:32px;
+      font-size:1rem; font-weight:700; transition:var(--tr);
+      position:relative; z-index:1;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.15);
+    }
+    .btn-white:hover { transform:translateY(-2px); box-shadow: 0 14px 36px rgba(0,0,0,0.20); }
+
+    /* ── FOOTER ──────────────────────────────── */
+    .footer { padding:60px 0 28px; border-top:1px solid var(--border); background:var(--bg); }
+    .footer-inner { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:40px; margin-bottom:40px; }
+    .footer-brand .logo { margin-bottom:10px; }
+    .footer-brand p { font-size:0.83rem; color:var(--text2); max-width:260px; line-height:1.7; }
+    .footer-links h4 { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--text2); margin-bottom:14px; }
+    .footer-links a { display:block; font-size:0.88rem; color:var(--text2); padding:3px 0; transition:var(--tr); }
+    .footer-links a:hover { color:var(--text); }
+    .footer-bottom {
+      display:flex; justify-content:space-between; align-items:center;
+      padding-top:28px; border-top:1px solid var(--border);
+      font-size:0.78rem; color:var(--text3); flex-wrap:wrap; gap:12px;
+    }
+
+    /* ── FADE IN ─────────────────────────────── */
+    @media (prefers-reduced-motion: no-preference) {
+      .fade-in { opacity:0; transform:translateY(20px); transition:opacity 0.6s ease, transform 0.6s ease; }
+      .fade-in.visible { opacity:1; transform:translateY(0); }
+    }
+
+    /* ── LANG ────────────────────────────────── */
+    [data-lang="en"] { display:none; }
+    html[lang="en"] [data-lang="en"] { display:block; }
+    html[lang="en"] [data-lang="ja"] { display:none; }
+    html[lang="en"] [data-lang-inline="en"] { display:inline; }
+    html[lang="en"] [data-lang-inline="ja"] { display:none; }
+    html[lang="ja"] [data-lang-inline="en"] { display:none; }
+    html[lang="ja"] [data-lang-inline="ja"] { display:inline; }
+
+@media (max-width: 1024px) {
+  .conditions-grid { grid-template-columns: repeat(4, 1fr); }
+  .feat-row { gap: 48px; }
+}
+    @media (max-width: 768px) {
+      .nav { display:none; }
+      .hamburger { display:block; }
+      .nav.open {
+        display:flex; flex-direction:column;
+        position:fixed; top:62px; left:0; right:0; bottom:0;
+        background:var(--bg); padding:32px 24px; gap:20px; z-index:999;
+      }
+      .nav.open a { font-size:1.2rem; }
+      .hero-inner { grid-template-columns:1fr; text-align:center; padding-bottom:0; }
+      .hero-sub { margin-left:auto; margin-right:auto; }
+      .hero-cta-row { justify-content:center; }
+      .hero-trust { justify-content:center; }
+      .hero-visual { height:320px; }
+      .phone-main { width:165px; }
+      .phone-main .phone-screen { height:357px; }
+      .phone-left { left:calc(50% - 138px); width:140px; }
+      .phone-left .phone-screen { height:303px; }
+      .phone-right { left:calc(50% + 52px); width:136px; }
+      .phone-right .phone-screen { height:295px; }
+      .hstat { padding:0 24px; }
+      .hstat-num { font-size:1.6rem; }
+      .feat-row { grid-template-columns:1fr; gap:28px; }
+      .feat-row.rev { direction:ltr; }
+      .plans-grid { grid-template-columns:1fr; }
+      .testi-grid { grid-template-columns:1fr; }
+      .privacy-grid { grid-template-columns:1fr; }
+      .about-inner { grid-template-columns:1fr; text-align:center; }
+      .footer-inner { flex-direction:column; }
+      .conditions-grid { grid-template-columns:1fr 1fr; }
+    }
+
+      /* ── HERO PHOTO STRIP ────────────────────── */
+    .hero-photo-strip {
+      width: 100%;
+      height: 280px;
+      overflow: hidden;
+    }
+    .hero-photo-strip img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 30%;
+    }
+    @media (max-width: 768px) {
+      .hero-photo-strip { height: 180px; }
+    }
+
+        /* ── COMMUNITY VISUAL ────────────────────── */
+    .feat-visual .community-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.18;
+      filter: grayscale(20%);
+      z-index: 0;
+    }
+    .feat-visual .community-emoji {
+      font-size: 3.5rem;
+      position: relative;
+      z-index: 2;
+    }
+
+        /* ── ABOUT VISUAL (photo + phone overlay) ── */
+    .about-visual {
+      position: relative;
+      width: 220px;
+      margin: 0 auto;
+    }
+    .about-visual .about-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      margin: 0 auto;
+    }
+    .about-visual .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .about-phone-overlay {
+      position: absolute;
+      bottom: -20px;
+      right: -30px;
+      width: 90px;
+      z-index: 2;
+      filter: drop-shadow(0 8px 24px rgba(26,23,20,0.18));
+    }
+    .about-phone-overlay .phone-frame {
+      border-radius: 16px;
+      padding: 4px;
+    }
+    .about-phone-overlay .phone-screen {
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    .about-phone-overlay .phone-screen img {
+      width: 100%;
+      display: block;
+    }
+    @media (max-width: 768px) {
+      .about-visual {
+        width: 180px;
+      }
+      .about-visual .about-photo {
+        width: 160px;
+        height: 160px;
+      }
+      .about-phone-overlay {
+        width: 72px;
+        bottom: -14px;
+        right: -20px;
+      }
+    }
+
+        /* ── ABOUT VISUAL (photo + phone overlay) ── */
+    .about-visual {
+      position: relative;
+      width: 220px;
+      margin: 0 auto;
+    }
+    .about-visual .about-photo {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      overflow: hidden;
+      border: 3px solid #fff;
+      box-shadow: 0 12px 40px rgba(232,97,74,0.12);
+      margin: 0 auto;
+    }
+    .about-visual .about-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .about-phone-overlay {
+      position: absolute;
+      bottom: -20px;
+      right: -30px;
+      width: 90px;
+      z-index: 2;
+      filter: drop-shadow(0 8px 24px rgba(26,23,20,0.18));
+    }
+    .about-phone-overlay .phone-frame {
+      border-radius: 16px;
+      padding: 4px;
+    }
+    .about-phone-overlay .phone-screen {
+      border-radius: 13px;
+      overflow: hidden;
+    }
+    .about-phone-overlay .phone-screen img {
+      width: 100%;
+      display: block;
+    }
+
+    /* ── ABOUT CONTENT ENHANCED ─────────────── */
+    .about-lead {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 14px !important;
+    }
+    .about-highlight {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--accent);
+      margin: 20px 0 !important;
+      padding-left: 16px;
+      border-left: 3px solid var(--accent);
+    }
+    .about-mission {
+      background: var(--accent-bg);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-top: 24px;
+      margin-bottom: 8px;
+    }
+    .about-mission h4 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+      letter-spacing: 0.02em;
+    }
+    .about-mission p {
+      font-size: 0.95rem;
+      color: var(--text);
+      line-height: 1.7;
+      margin-bottom: 0 !important;
+    }
+
+    @media (max-width: 768px) {
+      .about-visual {
+        width: 180px;
+      }
+      .about-visual .about-photo {
+        width: 160px;
+        height: 160px;
+      }
+      .about-phone-overlay {
+        width: 72px;
+        bottom: -14px;
+        right: -20px;
+      }
+    }
+
+    .about-origin {
+      font-size: 0.85rem;
+      color: var(--text3);
+      font-style: italic;
+      margin-top: 20px !important;
+    }
+
+        /* ── FEATURE NOTE (Clue-style disclaimer) ── */
+    .feat-note {
+      font-size: 0.78rem;
+      color: var(--text3);
+      line-height: 1.6;
+      margin-top: -8px;
+      margin-bottom: 18px;
+    }
+
+        /* ── STORY BRIDGE ───────────────────────── */
+    .about-bridge {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-top: 20px !important;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── FINAL CTA NOTE ─────────────────────── */
+    .final-cta-note {
+      margin-top: 24px;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.5);
+      position: relative;
+      z-index: 1;
+    }
+
+        /* ── CONDITION ICONS: unified accent color ── */
+    .cond-icon {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-size: 1.5rem;
+    }
+    .cond-icon svg,
+    .cond-icon img {
+      width: 28px;
+      height: 28px;
+    }
+
+        /* ── MOCKUP BRIGHTNESS BOOST ────────────── */
+    .feat-visual img.mockup {
+      filter: brightness(1.08) saturate(0.95);
+      background: #fff;
+      padding: 4px;
+      border: 1px solid var(--border);
+    }
+    .phone-screen img {
+      filter: brightness(1.05);
+    }
+
+        /* ── ABOUT TEXT-ONLY LAYOUT ─────────────── */
+    .about-inner-text {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .about-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+    .about-inner-text p {
+      color: var(--text2);
+      line-height: 1.9;
+      margin-bottom: 14px;
+      font-size: 0.97rem;
+    }
+    .about-inner-text .about-lead {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+       .about-inner-text .about-highlight {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      font-style: italic;
+      color: var(--accent);
+      padding: 20px 28px;
+      border-left: none !important;
+      text-align: center !important;
+      max-width: 580px;
+      background: var(--accent-bg);
+      border-radius: 12px !important;
+      display: block !important;
+      margin: 28px auto !important;
+    }
+    .about-inner-text .about-mission {
+      background: var(--accent-bg);
+      border-radius: 16px;
+      padding: 28px 32px;
+      margin: 28px auto;
+      max-width: 580px;
+      text-align: center;
+    }
+    .about-inner-text .about-mission h4 {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .about-inner-text .about-mission p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+    .about-inner-text .about-bridge {
+      font-size: 0.95rem;
+      color: var(--text);
+      font-weight: 500;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .about-inner-text .about-origin {
+      font-size: 0.85rem;
+      color: var(--text3);
+      font-style: italic;
+      margin-top: 20px;
+    }
+    .about-inner-text .about-tagline {
+      font-family: var(--font-display);
+      font-style: italic;
+      color: var(--accent);
+      font-weight: 500;
+      font-size: 1.1rem;
+      margin-top: 24px;
+    }
+    /* ── CONDITIONS: center text ─────────────── */
+    .conditions > .container > [data-lang] {
+      text-align: center;
+    }
+    .conditions .section-sub {
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+        /* ── HERO: center layout ────────────────── */
+    .hero-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    .hero-text {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+    .hero-sub {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero-cta-row {
+      justify-content: center;
+    }
+    .hero-trust {
+      justify-content: center;
+    }
+    .hero-visual {
+      width: 100%;
+      margin-top: 48px;
+    }
+
+        /* ── HERO: phone mockups larger ─────────── */
+    .phone-main {
+      width: 260px;
+    }
+    .phone-main .phone-screen {
+      height: 563px;
+    }
+    .phone-left {
+      width: 220px;
+      left: calc(50% - 220px);
+    }
+    .phone-left .phone-screen {
+      height: 476px;
+    }
+    .phone-right {
+      width: 215px;
+      left: calc(50% + 90px);
+    }
+    .phone-right .phone-screen {
+      height: 465px;
+    }
+    .hero-visual {
+      height: 640px;
+    }
+    @media (max-width: 768px) {
+      .phone-main { width: 190px; }
+      .phone-main .phone-screen { height: 411px; }
+      .phone-left { width: 160px; left: calc(50% - 158px); }
+      .phone-left .phone-screen { height: 346px; }
+      .phone-right { width: 155px; left: calc(50% + 62px); }
+      .phone-right .phone-screen { height: 336px; }
+      .hero-visual { height: 380px; }
+    }
+
+        /* ── SPACING: premium feel ───────────────── */
+    .section {
+      padding: 120px 0;
+    }
+    .feat-row {
+      margin-bottom: 120px;
+    }
+  
+.conditions-grid {
+  gap: 16px;
+  margin-top: 48px;
 }
 
-  /* ===== 余白強化（重要） ===== */
-.section {
-  padding: 120px 20px;
-}
+    .testi-grid {
+      gap: 28px;
+    }
 
-  body {
-  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+    /* ── FEAT-ROW: Clue-style typography ─────── */
+.feat-content h3 {
+  font-size: 1.6rem;
+  line-height: 1.4;
+  margin-bottom: 16px;
 }
-
-  .btn {
-  background: linear-gradient(135deg, #E8614A, #ff8a6d);
-  box-shadow: 0 10px 25px rgba(232,97,74,0.3);
-  transition: all 0.25s ease;
+.feat-content p {
+  font-size: 0.95rem;
+  line-height: 1.8;
+  color: var(--text2);
 }
-
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 35px rgba(232,97,74,0.4);
-}
-
-  .section:nth-child(even){
-  background:#fafafa;
-}
-
-  .gallery-scroll {
-  display: flex;
-  gap: 24px;
-  overflow-x: auto;
-  padding: 20px;
-}
-
-.gallery-scroll img {
-  width: 260px;
-  border-radius: 24px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.15);
-  transform: scale(0.95);
-  transition: 0.3s;
-}
-
-.gallery-scroll img:hover {
-  transform: scale(1);
-}
-
-  .hero {
-  padding: 160px 20px 120px;
-}
-
-  .review {
-  text-align:center;
-  padding:80px 20px;
-  font-size:1rem;
-}
-
-.review p:first-child {
-  color:var(--accent);
-  letter-spacing:4px;
-}
-
-  .cta-bottom {
-  text-align:center;
-  padding:100px 20px;
-}
-</style>
+    
+  </style>
+    <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "ippo",
+    "description": "女性疾患に特化したセルフケア記録アプリ。食事・体調・生活習慣をひとつにまとめ、コンディションを可視化。",
+    "url": "https://www.ippo-app.com/",
+    "applicationCategory": "HealthApplication",
+    "operatingSystem": "Web (PWA)",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "JPY"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "5",
+      "ratingCount": "3",
+      "bestRating": "5"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "ippo",
+      "url": "https://www.ippo-app.com/"
+    }
+  }
+  </script>
 </head>
-
 <body>
 
-<!-- HERO -->
+<!-- ── HEADER ─────────────────────────────────── -->
+<header class="header">
+  <div class="container header-inner">
+    <div class="logo">ippo<span>.</span></div>
+    <nav class="nav" id="nav">
+      <a href="#features"><span data-lang-inline="ja">機能</span><span data-lang-inline="en">Features</span></a>
+      <a href="#plans"><span data-lang-inline="ja">プラン</span><span data-lang-inline="en">Plans</span></a>
+      <a href="#privacy-section"><span data-lang-inline="ja">プライバシー</span><span data-lang-inline="en">Privacy</span></a>
+      <a href="https://kenkou-kiroku.com" target="_blank"><span data-lang-inline="ja">ブログ</span><span data-lang-inline="en">Blog</span></a>
+      <div class="lang-switch">
+        <button id="lang-ja" class="active" onclick="setLang('ja')">JA</button>
+        <button id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <a href="app.html" class="btn-header">
+        <span data-lang-inline="ja">無料で始める</span>
+        <span data-lang-inline="en">Start Free</span>
+      </a>
+    </nav>
+    <button class="hamburger" id="hamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<!-- ── HERO ───────────────────────────────────── -->
 <section class="hero">
-  <h1>
-    なんとなく不調を、<br>
-    <em>見える化する</em>
-  </h1>
-  <p class="hero-sub">周期・食事・気分をまとめて記録</p>
-  <a href="app.html" class="btn">記録をはじめる</a>
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+  <div class="container">
+    <div class="hero-inner">
 
-  <img src="images/mockup_01_home.png" class="phone">
-</section>
+      <div class="hero-text">
+        <div data-lang="ja">
+                <div data-lang="ja">
+          <div class="hero-badge">🌸 女性疾患に特化したセルフケアアプリ</div>
+          <h1>日々の体調を、<br><em>整える習慣へ。</em></h1>
+          <p class="hero-sub">記録は1分。すべて、あなたのために。</p>
+        </div>
+        <div data-lang="en">
+          <div class="hero-badge">🌸 Self-Care App for Women's Health</div>
+          <h1>Turn daily tracking<br><em>into a habit.</em></h1>
+          <p class="hero-sub">It takes just one minute. Everything, for you.</p>
+        </div>
+              <div class="hero-cta-row">
+          <a href="app.html" class="btn-primary">
+            <span data-lang-inline="ja">記録をはじめる →</span>
+            <span data-lang-inline="en">Start Tracking →</span>
+          </a>
+          <a href="#features" class="btn-ghost">
+            <span data-lang-inline="ja">機能を見る</span>
+            <span data-lang-inline="en">See features</span>
+          </a>
+        </div>
+        <!-- ↓ ここに追加 -->
+        <div style="margin-top: -12px; margin-bottom: 32px;">
+          <span style="font-size: 0.8rem; color: var(--text3);">
+            <span data-lang-inline="ja">📱 PWA対応 — ホーム画面に追加するだけ。アプリストア不要。</span>
+            <span data-lang-inline="en">📱 PWA — Just add to your home screen. No app store needed.</span>
+          </span>
+        </div>
+        <!-- ↑ ここまで -->
+        <div class="hero-trust">
+          <div class="trust-item"><span class="trust-icon">🔒</span><span data-lang-inline="ja">広告なし</span><span data-lang-inline="en">No ads</span></div>
+          <div class="trust-item"><span class="trust-icon">📱</span><span data-lang-inline="ja">端末内保存</span><span data-lang-inline="en">On-device</span></div>
+          <div class="trust-item"><span class="trust-icon">✨</span><span data-lang-inline="ja">完全無料</span><span data-lang-inline="en">Free forever</span></div>
+        </div>
+      </div>
 
-<!-- CONDITIONS -->
-<section class="section conditions">
-  <h2>こんな悩みありませんか？</h2>
-  <p>なんとなく体調が悪い</p>
-  <p>原因が分からない</p>
-  <p>記録が続かない</p>
-</section>
+      <div class="hero-visual">
+        <div class="phone-wrap phone-left">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/mockup_02_meal.png" alt="食事記録" loading="lazy">
+            </div>
+          </div>
+        </div>
+        <div class="phone-wrap phone-main">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/mockup_01_home.png" alt="ippoホーム">
+            </div>
+          </div>
+        </div>
+        <div class="phone-wrap phone-right">
+          <div class="phone-frame">
+            <div class="phone-screen">
+              <div class="phone-notch"></div>
+              <img src="images/mockup_05_calendar.png" alt="カレンダー" loading="lazy">
+            </div>
+          </div>
+        </div>
 
-<!-- STATS -->
-<section class="section stats">
-  <h2>選ばれている理由</h2>
-  <div class="stats-inner">
-    <div>
-      <div class="stat-num">5</div>
-      <div>記録カテゴリ</div>
+        <div class="float-tag ft-1">
+          <span class="ft-icon">⏱</span>
+          <span><span class="ft-val">12h</span> <span data-lang-inline="ja">断食達成</span><span data-lang-inline="en">fast done</span></span>
+        </div>
+        <div class="float-tag ft-2">
+          <span class="ft-icon">📅</span>
+          <span><span class="ft-val">5日</span><span data-lang-inline="ja">連続記録</span><span data-lang-inline="en">streak</span></span>
+        </div>
+        <div class="float-tag ft-3">
+          <span class="ft-icon">🔒</span>
+          <span data-lang-inline="ja">端末内保存</span>
+          <span data-lang-inline="en">On-device</span>
+        </div>
+      </div>
     </div>
-    <div>
-      <div class="stat-num">1–2分</div>
-      <div>1日あたり</div>
+  </div>
+  <div class="hero-stats-bar">
+    <div class="container">
+           <div class="hero-stats-inner">
+        <div class="hstat">
+          <span class="hstat-num">5</span>
+          <div class="hstat-label"><span data-lang-inline="ja">記録カテゴリ</span><span data-lang-inline="en">Tracking categories</span></div>
+        </div>
+        <div class="hstat">
+          <span class="hstat-num">1–2<span style="font-size:1rem">min</span></span>
+          <div class="hstat-label"><span data-lang-inline="ja">1日あたり</span><span data-lang-inline="en">per day</span></div>
+        </div>
+        <div class="hstat">
+          <span class="hstat-num">¥0</span>
+          <div class="hstat-label"><span data-lang-inline="ja">ずっと無料</span><span data-lang-inline="en">Free forever</span></div>
+        </div>
+      </div>
+      <!-- ↓ ここに追加 -->
+      <div style="text-align: center; margin-top: 16px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+        <span style="color: var(--accent); font-size: 0.9rem; letter-spacing: 2px;">★★★★★</span>
+        <span style="font-size: 0.82rem; color: var(--text3);">
+          <span data-lang-inline="ja">ユーザーの声から生まれたアプリ</span>
+          <span data-lang-inline="en">Built from real user experiences</span>
+        </span>
+      </div>
+      <!-- ↑ ここまで -->
     </div>
-    <div>
-      <div class="stat-num">¥0</div>
-      <div>完全無料</div>
+  </div>
+</section>
+
+  <!-- ======= HERO PHOTO STRIP ======= -->
+  <!-- Unsplash: Jaspinder Singh / yoga morning -->
+   <div class="hero-photo-strip">
+    <img src="images/hero-strip.jpg" alt="朝のセルフケア" loading="lazy">
+  </div>
+
+
+<!-- ── CONDITIONS ─────────────────────────────── -->
+<section class="conditions section">
+  <div class="container">
+    <div data-lang="ja">
+      <p class="section-label">Designed for</p>
+      <h2 class="section-title">女性疾患を抱える<br>あなたのために</h2>
+      <p class="section-sub">ippoは、婦人科系の疾患と向き合いながら日々を過ごす方のためにつくられたアプリです。</p>
+    </div>
+    <div data-lang="en">
+      <p class="section-label">Designed for</p>
+      <h2 class="section-title">Built for women<br>living with</h2>
+      <p class="section-sub">ippo was created for people navigating daily life with gynecological conditions.</p>
+    </div>
+    <div class="conditions-grid">
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🫧</div>
+        <div data-lang="ja"><h3>卵巣嚢腫</h3><p>経過観察中の体調変化を毎日記録し、受診時に活用</p></div>
+        <div data-lang="en"><h3>Ovarian Cysts</h3><p>Track daily changes during monitoring and use records at checkups</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🔄</div>
+        <div data-lang="ja"><h3>PCOS（多嚢胞性卵巣症候群）</h3><p>不規則な周期・食欲・体重の変化パターンを可視化</p></div>
+        <div data-lang="en"><h3>PCOS</h3><p>Visualize irregular cycles, appetite, and weight change patterns</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🌡</div>
+        <div data-lang="ja"><h3>子宮内膜症</h3><p>痛みや感情の波と周期の関係を記録から発見</p></div>
+        <div data-lang="en"><h3>Endometriosis</h3><p>Discover the link between pain, mood shifts, and your cycle</p></div>
+      </div>
+      <div class="cond-card fade-in">
+        <div class="cond-icon">🩺</div>
+        <div data-lang="ja"><h3>子宮筋腫</h3><p>食事・断食・体調の変化を長期的に追跡</p></div>
+        <div data-lang="en"><h3>Uterine Fibroids</h3><p>Track diet, fasting, and symptom changes over time</p></div>
+      </div>
     </div>
   </div>
 </section>
 
-  <section class="review">
-  <p>★★★★★</p>
-  <p>「続かなかった記録が、初めて続いています」</p>
-</section>
+<!-- ── FEATURES ────────────────────────────────── -->
+<section class="features section" id="features">
+  <div class="container">
 
-<!-- SOLUTION -->
-<section class="section">
-  <h2>すべてをつなげて記録</h2>
+    <!-- Feature 1: 記録する -->
+    <div class="feat-row fade-in">
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/mockup_02_meal.png" alt="食事記録画面">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Record</p>
+          <h3>日々の状態を、<br>ひとつの場所に記録する</h3>
+          <p>食事・体調・生活習慣をまとめて記録し、日々のコンディションを継続的に残せます。記録は1〜2分で完了。特別な知識は必要ありません。</p>
+          <p class="feat-note">※ ippoは記録の内容について評価や判定を行いません。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Record</p>
+          <h3>Keep everything<br>in one place</h3>
+          <p>Log meals, symptoms, and lifestyle habits together. Track your daily condition in just 1–2 minutes. No special knowledge required.</p>
+          <p class="feat-note">※ ippo does not evaluate or judge what you record.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
 
-  <div class="solution-visual">
-    <div class="box">周期</div>
-    <div>＋</div>
-    <div class="box">食事</div>
-    <div>＋</div>
-    <div class="box">気分</div>
-    <div>→</div>
-    <div class="result">体調のパターン</div>
+    <!-- Feature 2: 可視化する -->
+    <div class="feat-row rev fade-in">
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/mockup_05_calendar.png" alt="カレンダー・周期画面">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Visualize</p>
+          <h3>変化のパターンを、<br>可視化する</h3>
+          <p>蓄積されたデータから、体調の変化と生活習慣の関係性を把握できます。カレンダーと周期を重ねて見ることで、自分だけの傾向が浮かび上がります。</p>
+          <p class="feat-note">※ 診断や医学的アドバイスを提供するものではありません。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Visualize</p>
+          <h3>See the patterns<br>in your changes</h3>
+          <p>As data accumulates, you can see how symptoms relate to lifestyle habits. Overlay your calendar with your cycle to reveal trends unique to you.</p>
+          <p class="feat-note">※ This is not a diagnostic tool or medical advice.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature 3: リズムを見つける -->
+    <div class="feat-row fade-in">
+          <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="community-bg" src="images/bg-community.jpg" alt="" loading="lazy">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label">Understand</p>
+          <h3>自分に合った<br>リズムを見つける</h3>
+          <p>記録をもとに、無理のないコンディションの整え方を理解できます。同じ疾患を持つ方の声を読むことで、自分だけではないと感じられる場所もあります。</p>
+          <p class="feat-note">※ 特定の生活習慣や治療法をおすすめすることはありません。</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label">Understand</p>
+          <h3>Find the rhythm<br>that works for you</h3>
+          <p>Use your records to understand how to manage your condition without overextending yourself. A community space lets you read voices from others with similar experiences.</p>
+          <p class="feat-note">※ ippo does not recommend specific treatments or lifestyle changes.</p>
+          <span class="feat-tag">FREE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Feature 4: 続けやすい設計 -->
+    <div class="feat-row rev fade-in">
+      <div class="feat-visual premium-v" style="border-color:rgba(232,97,74,0.25);">
+        <div class="vglow"></div>
+        <img class="mockup" src="images/mockup_04_summary.png" alt="記録サマリー画面">
+      </div>
+      <div class="feat-content">
+        <div data-lang="ja">
+          <p class="section-label" style="color:var(--purple)">Premium</p>
+          <h3>継続しやすい<br>シンプルな設計</h3>
+          <p>必要な機能だけに絞り、日常の中で続けられる設計になっています。Premiumでは、AIによるパターン解析、月次レポート、デバイス間同期で、さらに深い理解をサポートします。</p>
+          <p class="feat-note">※ AIの分析結果は参考情報であり、医療判断の根拠にはなりません。</p>
+          <span class="feat-tag purple-tag">PREMIUM</span>
+        </div>
+        <div data-lang="en">
+          <p class="section-label" style="color:var(--purple)">Premium</p>
+          <h3>Simple enough<br>to keep going</h3>
+          <p>Focused on only what you need, designed to fit into your daily routine. Premium adds AI pattern analysis, monthly reports, and cross-device sync for deeper understanding.</p>
+          <p class="feat-note">※ AI insights are for reference only and do not constitute medical advice.</p>
+          <span class="feat-tag purple-tag">PREMIUM</span>
+        </div>
+      </div>
+    </div>
+
   </div>
 </section>
 
-  <!-- GALLERY（ここ！） -->
-<section class="gallery">
-  <h2>アプリ画面</h2>
-  <div class="gallery-scroll">
-    <img src="images/mockup_01_home.png">
-    <img src="images/mockup_02_meal.png">
-    <img src="images/mockup_02_meal.png">
-    <img src="images/mockup_05_calendar.png">
+<!-- ── PLANS ───────────────────────────────────── -->
+<section class="plans section" id="plans">
+  <div class="container">
+    <div class="plans-header">
+      <div data-lang="ja"><p class="section-label">Plans</p><h2 class="section-title">あなたに合ったプランを</h2><p class="section-sub" style="margin:0 auto">まずは無料で。もっと深く知りたくなったら、プレミアムへ。</p></div>
+      <div data-lang="en"><p class="section-label">Plans</p><h2 class="section-title">Choose your plan</h2><p class="section-sub" style="margin:0 auto">Start free. Upgrade when you're ready for deeper insights.</p></div>
+    </div>
+    <div class="plans-grid">
+      <div class="plan-card">
+        <div data-lang="ja">
+          <p class="plan-name">Free</p><p class="plan-price">¥0</p><p class="plan-price-sub">ずっと無料</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>食事・断食・生理周期の記録</li>
+            <li><span class="ck">✓</span>感情・基礎体温・チャクラ記録</li>
+            <li><span class="ck">✓</span>断食タイマー＆達成通知</li>
+            <li><span class="ck">✓</span>みんなの声（今週分）</li>
+            <li><span class="ck">✓</span>データエクスポート（CSV）</li>
+            <li><span class="ck">✓</span>ホーム画面に追加（PWA）</li>
+          </ul>
+        </div>
+        <div data-lang="en">
+          <p class="plan-name">Free</p><p class="plan-price">$0</p><p class="plan-price-sub">Free forever</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>Meal, fasting & cycle tracking</li>
+            <li><span class="ck">✓</span>Mood, BBT & chakra tracking</li>
+            <li><span class="ck">✓</span>Fasting timer & notifications</li>
+            <li><span class="ck">✓</span>Community (current week)</li>
+            <li><span class="ck">✓</span>Data export (CSV)</li>
+            <li><span class="ck">✓</span>Add to home screen (PWA)</li>
+          </ul>
+        </div>
+        <a href="app.html" class="plan-btn pb-secondary"><span data-lang-inline="ja">無料で始める</span><span data-lang-inline="en">Start Free</span></a>
+      </div>
+      <div class="plan-card premium">
+        <div class="plan-badge">COMING SOON</div>
+        <div data-lang="ja">
+          <p class="plan-name">Premium</p>
+          <p class="plan-price">¥580<span style="font-size:1rem;font-weight:400;color:var(--text2)"> /月</span></p>
+          <p class="plan-price-sub">年額プラン ¥4,800（¥400/月）</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>無料プランのすべての機能</li>
+            <li><span class="ck">✓</span>デバイス間同期</li>
+            <li><span class="ck">✓</span>月次レポート（PDF）</li>
+            <li><span class="ck">✓</span>AIパターン解析</li>
+            <li><span class="ck">✓</span>婦人科受診サポート</li>
+            <li><span class="ck">✓</span>みんなの声アーカイブ</li>
+          </ul>
+        </div>
+        <div data-lang="en">
+          <p class="plan-name">Premium</p>
+          <p class="plan-price">$3.99<span style="font-size:1rem;font-weight:400;color:var(--text2)"> /mo</span></p>
+          <p class="plan-price-sub">Annual plan $29.99 ($2.50/mo)</p>
+          <ul class="plan-features">
+            <li><span class="ck">✓</span>Everything in Free</li>
+            <li><span class="ck">✓</span>Cross-device sync</li>
+            <li><span class="ck">✓</span>Monthly PDF report</li>
+            <li><span class="ck">✓</span>AI pattern analysis</li>
+            <li><span class="ck">✓</span>Doctor visit support</li>
+            <li><span class="ck">✓</span>Community archive</li>
+          </ul>
+        </div>
+        <a href="app.html" class="plan-btn pb-primary"><span data-lang-inline="ja">近日公開 — 先行登録する</span><span data-lang-inline="en">Coming Soon — Join Waitlist</span></a>
+      </div>
+    </div>
   </div>
 </section>
 
-<!-- FEATURES -->
-<section class="section features">
-  <h2>できること</h2>
-
-  <div class="feature">
-    <h3>体調を記録</h3>
-    <p>シンプルに毎日記録</p>
-    <img src="images/mockup_01_home.png">
+<!-- ── TESTIMONIALS ────────────────────────────── -->
+<section class="testimonials section">
+  <div class="container">
+    <div class="testimonials-header">
+      <div data-lang="ja"><p class="section-label">Voices</p><h2 class="section-title">使っている方の声</h2></div>
+      <div data-lang="en"><p class="section-label">Voices</p><h2 class="section-title">What users say</h2></div>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</p><p class="testi-author">— 卵巣嚢腫と診断・30代</p></div>
+        <div data-lang="en"><p class="testi-text">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</p><p class="testi-author">— Diagnosed with ovarian cyst, 30s</p></div>
+      </div>
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</p><p class="testi-author">— PCOS治療中・20代</p></div>
+        <div data-lang="en"><p class="testi-text">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</p><p class="testi-author">— PCOS treatment, 20s</p></div>
+      </div>
+      <div class="testi-card fade-in">
+        <div class="testi-stars">★★★★★</div>
+        <div data-lang="ja"><p class="testi-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</p><p class="testi-author">— 子宮内膜症・30代</p></div>
+        <div data-lang="en"><p class="testi-text">"Just knowing through the community that others share my struggles made me feel a little lighter."</p><p class="testi-author">— Endometriosis, 30s</p></div>
+      </div>
+    </div>
   </div>
-
-  <div class="feature">
-    <h3>食事を記録</h3>
-    <p>体調との関係が見える</p>
-    <img src="images/mockup_02_meal.png">
-  </div>
-
-  <div class="feature">
-    <h3>カレンダーで確認</h3>
-    <p>流れを一目で把握</p>
-    <img src="images/mockup_05_calendar.png">
-  </div>
-
 </section>
 
-<!-- FOOTER -->
-<div class="footer">
-  © ippo
-</div>
-
-  <section class="cta-bottom">
-  <a href="app.html" class="btn">今すぐはじめる</a>
+<!-- ── PRIVACY ─────────────────────────────────── -->
+<section class="privacy section" id="privacy-section">
+  <div class="container">
+    <div class="privacy-inner">
+      <div data-lang="ja"><p class="section-label">Privacy</p><h2 class="section-title">あなたのデータは、<br>あなたのもの</h2><p class="section-sub" style="margin:0 auto">健康データは最も個人的な情報です。ippoはそれを売ったり、共有したりしません。</p></div>
+      <div data-lang="en"><p class="section-label">Privacy</p><h2 class="section-title">Your data belongs<br>to you</h2><p class="section-sub" style="margin:0 auto">Health data is deeply personal. ippo will never sell or share it.</p></div>
+           <div class="privacy-grid">
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>端末内保存</h3><p>記録データはあなたの端末にのみ保存。外部サーバーに送信されません。</p></div>
+            <div data-lang="en"><h3>On-device storage</h3><p>Your records stay on your device. Nothing is sent to external servers.</p></div>
+          </div>
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>広告なし</h3><p>広告は一切表示されません。あなたの集中を妨げないアプリです。</p></div>
+            <div data-lang="en"><h3>No ads. Ever.</h3><p>No advertisements. No distractions. Your focus stays on your health.</p></div>
+          </div>
+          <div class="priv-item fade-in">
+            <div data-lang="ja"><h3>いつでも削除</h3><p>すべての記録をワンタップで削除できます。あなたがコントロール。</p></div>
+            <div data-lang="en"><h3>Delete anytime</h3><p>Erase all your data with one tap. You're always in control.</p></div>
+          </div>
+        </div>
+  </div>
 </section>
 
+<!-- ── ABOUT ───────────────────────────────────── -->
+<section class="about section">
+  <div class="container">
+    <div class="about-inner-text">
+      <div data-lang="ja">
+        <p class="section-label">Story</p>
+        <h3 class="about-title">なぜ ippo をつくったのか</h3>
+        <p class="about-lead">女性疾患は、多くの人が経験する身近な健康課題です。<br>しかし、再発率が高く、継続的な管理が求められる領域でもあります。</p>
+        <p>体調の変化は、食事や生活習慣、ストレスなど、複数の要因が重なって起こります。しかし、それらを横断して記録し、変化として捉え続ける仕組みは、まだ十分に整っていません。</p>
+        <p>その結果、「原因が分からないまま不調を繰り返す」という状態が生まれています。</p>
+        <p class="about-highlight">重要なのは、日々の小さな変化を記録し、その積み重ねから自分自身のパターンを理解すること。</p>
+        <p>それは、再発の予防や、体調を安定させるための基盤になります。</p>
+        <p>ippoは、食事・体調・生活習慣の記録をひとつにまとめ、身体の状態を可視化するアプリです。記録を続けることで変化に気づき、自分に合った選択ができる状態をつくります。</p>
+        <div class="about-mission">
+          <h4>ippo のミッション</h4>
+          <p>女性疾患と向き合うすべての人が、自分の身体を理解し、日々のコンディションを整えられるように。ippoは、そのための基盤として設計されています。</p>
+        </div>
+        <p class="about-bridge">この課題を、日々の記録から理解できる形にするために、ippoは設計されています。</p>
+        <p class="about-origin">この課題意識は、開発者自身の実体験を通じて強く認識されました。</p>
+        <p class="about-tagline">one step at a time.</p>
+      </div>
+      <div data-lang="en">
+        <p class="section-label">Story</p>
+        <h3 class="about-title">Why ippo exists</h3>
+        <p class="about-lead">Gynecological conditions are common health challenges that many women face.<br>Yet they often recur, requiring ongoing, long-term management.</p>
+        <p>Changes in your body are caused by overlapping factors — diet, lifestyle, stress, and more. But there is still no adequate system for tracking all of these together and recognizing patterns over time.</p>
+        <p>The result: recurring symptoms with no clear understanding of their cause.</p>
+        <p class="about-highlight">What matters is recording small daily changes and building an understanding of your own patterns.</p>
+        <p>That understanding becomes the foundation for preventing recurrence and stabilizing your condition.</p>
+        <p>ippo brings together records of diet, symptoms, and lifestyle into one place, making your body's state visible. By continuing to track, you notice changes and gain the ability to make choices that are right for you.</p>
+        <div class="about-mission">
+          <h4>ippo's Mission</h4>
+          <p>To help every person navigating a gynecological condition understand their body and maintain their daily well-being. ippo is designed as the foundation for that journey.</p>
+        </div>
+        <p class="about-bridge">ippo was designed to turn this challenge into something you can understand — through daily records.</p>
+        <p class="about-origin">This sense of purpose was born from the developer's own lived experience.</p>
+        <p class="about-tagline">one step at a time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+  
+<!-- ── FINAL CTA ───────────────────────────────── -->
+<section class="final-cta">
+  <div class="container">
+    <div data-lang="ja">
+      <h2>自分の身体を、<br>記録から理解する。</h2>
+      <p>今日の状態を記録することから始められます。</p>
+    </div>
+    <div data-lang="en">
+      <h2>Understand your body<br>through your records.</h2>
+      <p>Start by recording how you feel today.</p>
+    </div>
+    <a href="app.html" class="btn-white">
+      <span data-lang-inline="ja">記録をはじめる →</span>
+      <span data-lang-inline="en">Start Tracking →</span>
+    </a>
+    <div class="final-cta-note">
+      <span data-lang-inline="ja">医療的判断を目的としたものではありません。</span>
+      <span data-lang-inline="en">This is not intended for medical decision-making.</span>
+    </div>
+  </div>
+</section>
+  
+<!-- ── FOOTER ──────────────────────────────────── -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="logo">ippo<span>.</span></div>
+        <div data-lang="ja"><p>女性疾患に特化したセルフケア記録アプリ。からだの声を聴く、毎日の一歩。</p></div>
+        <div data-lang="en"><p>Self-care tracking app for women's health. One step at a time.</p></div>
+      </div>
+      <div class="footer-links">
+        <div data-lang="ja"><h4>リンク</h4></div>
+        <div data-lang="en"><h4>Links</h4></div>
+        <a href="app.html"><span data-lang-inline="ja">アプリ</span><span data-lang-inline="en">App</span></a>
+        <a href="https://kenkou-kiroku.com" target="_blank"><span data-lang-inline="ja">ブログ</span><span data-lang-inline="en">Blog</span></a>
+        <a href="#plans"><span data-lang-inline="ja">プラン</span><span data-lang-inline="en">Plans</span></a>
+      </div>
+      <div class="footer-links">
+        <div data-lang="ja"><h4>法的情報</h4></div>
+        <div data-lang="en"><h4>Legal</h4></div>
+        <a href="privacy.html"><span data-lang-inline="ja">プライバシーポリシー</span><span data-lang-inline="en">Privacy Policy</span></a>
+        <a href="disclaimer.html"><span data-lang-inline="ja">免責事項</span><span data-lang-inline="en">Disclaimer</span></a>
+        <a href="contact.html"><span data-lang-inline="ja">お問い合わせ</span><span data-lang-inline="en">Contact</span></a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2025–2026 ippo. All rights reserved.</span>
+      <div>
+        <span data-lang-inline="ja">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</span>
+        <span data-lang-inline="en">This app is not a substitute for medical care. Please consult a healthcare provider if you have concerns.</span>
+      </div>
+    </div>
+  </div>
+</footer>
 
+<script>
+  function setLang(lang) {
+    document.documentElement.lang = lang;
+    document.getElementById('lang-ja').classList.toggle('active', lang === 'ja');
+    document.getElementById('lang-en').classList.toggle('active', lang === 'en');
+    localStorage.setItem('ippo-lang', lang);
+  }
+  const savedLang = localStorage.getItem('ippo-lang');
+  if (savedLang) setLang(savedLang);
+  if (!savedLang && navigator.language && !navigator.language.startsWith('ja')) setLang('en');
+
+  document.getElementById('hamburger').addEventListener('click', function() {
+    document.getElementById('nav').classList.toggle('open');
+  });
+  document.querySelectorAll('.nav a').forEach(function(link) {
+    link.addEventListener('click', function() { document.getElementById('nav').classList.remove('open'); });
+  });
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.fade-in').forEach(function(el) { observer.observe(el); });
+  }
+
+  window.addEventListener('scroll', function() {
+    document.querySelector('.header').style.padding = window.scrollY > 50 ? '10px 0' : '18px 0';
+  });
+</script>
 </body>
 </html>
