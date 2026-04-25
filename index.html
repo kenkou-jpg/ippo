@@ -298,47 +298,63 @@
       gap: 16px;
       margin-top: 48px;
     }
-       /* ── CONDITION CARDS: subtle ─────────────── */
-    .cond-card {
-      background: #fff;
-      border: none;
-      border-radius: var(--rad);
-      padding: 36px 24px;
-      text-align: center;
-      transition: var(--tr);
-      box-shadow: 0 1px 4px rgba(26,23,20,0.04);
-    }
-    .cond-card:hover {
-      border: none;
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(26,23,20,0.08);
-    }
-    .cond-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(232,97,74,0.10);
-    }
-    .cond-icon {
-      width: 52px; height:52px; border-radius:50%;
-      background: var(--accent-bg);
-      display:flex; align-items:center; justify-content:center;
-      margin: 0 auto 14px; font-size:1.4rem;
-    }
-    .cond-card h3 { font-size:0.95rem; font-weight:600; margin-bottom:6px; }
-    .cond-card p { font-size:0.82rem; color:var(--text2); line-height:1.6; }
+/* ── CONDITION CARDS: Clue-style ─────────── */
+.cond-card {
+  background: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 36px 28px;
+  text-align: center;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cond-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+}
 
+/* アイコン部分を統一 */
+.cond-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: var(--accent-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 1.4rem;
+}
+
+/* テキスト */
+.cond-card h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.cond-card p {
+  font-size: 0.85rem;
+  color: var(--text3);
+  line-height: 1.6;
+}
+
+/* グリッドの余白を広く */
+.conditions-grid {
+  gap: 24px;
+}
     /* ── FEATURES ────────────────────────────── */
-    .features { background: var(--bg2); }
-    .feat-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 80px;
-      align-items: center;
-      margin-bottom: 100px;
-    }
-    .feat-row:last-child { margin-bottom: 0; }
-    .feat-row.rev { direction: rtl; }
-    .feat-row.rev > * { direction: ltr; }
+   .features { background: var(--bg2); }
+.feat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  margin-bottom: 100px;
+}
+.feat-row:last-child { margin-bottom: 0; }
+.feat-row.rev { direction: rtl; }
+.feat-row.rev > * { direction: ltr; }
 
     .feat-visual {
       border-radius: 24px;
@@ -437,13 +453,17 @@
     .testimonials { background: var(--bg2); }
     .testimonials-header { text-align:center; margin-bottom:56px; }
     .testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-    .testi-card {
-      background:#fff; border:1px solid var(--border);
-      border-radius:20px; padding:32px;
-      box-shadow: 0 2px 16px var(--shadow);
-      transition: var(--tr);
-    }
-    .testi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px var(--shadow); }
+/* ── TESTIMONIALS: Clue-style ────────────── */
+.testi-card {
+  background: #fff;
+  border: none;
+  border-radius: 20px;
+  padding: 32px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+.testi-card:hover {
+  box-shadow: 0 6px 20px rgba(0,0,0,0.07);
+}
     .testi-stars { color:var(--accent); font-size:0.85rem; margin-bottom:14px; letter-spacing:2px; }
     .testi-text { font-size:0.95rem; line-height:1.8; margin-bottom:20px; color:var(--text); }
     .testi-author { font-size:0.78rem; color:var(--text3); }
