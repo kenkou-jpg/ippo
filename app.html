@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -1334,6 +1335,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 }
 .ds-row-label { color: var(--ink-light); flex-shrink: 0; width: 40%; }
 .ds-row-value { color: var(--ink); font-weight: 500; text-align: right; flex: 1; }
+.ds-narrative {font-size: 13px;color: var(--ink);line-height: 1.9;padding: 4px 0;}
+.ds-narrative strong {color: var(--rose);font-weight: 600;}
 .ds-tag-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
 .ds-tag {
   font-size: 11px;
@@ -1874,36 +1877,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
     </div>
 
-      <!-- Sample Graph with demo overlay -->
-      <div class="sample-graph-section">
-        <div class="sg-header">
-          <div class="sg-title">からだのリズム</div>
-          <div class="sg-tabs">
-            <button class="sg-tab active" onclick="setGraphTab('7d', this)">7日</button>
-            <button class="sg-tab" onclick="setGraphTab('30d', this)">30日</button>
-            <button class="sg-tab" onclick="setGraphTab('90d', this)">90日</button>
-          </div>
-        </div>
-        <div class="demo-graph">
-          <svg class="demo-chart-svg" viewBox="0 0 300 100">
-            <defs>
-              <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#c9747a" stop-opacity="0.3"/>
-                <stop offset="100%" stop-color="#c9747a" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18" stroke="#c9747a" stroke-width="2" fill="none" opacity="0.35"/>
-            <path d="M0,70 C30,65 50,40 80,45 C110,50 130,30 160,35 C190,40 210,25 240,28 C270,31 290,20 300,18 L300,100 L0,100 Z" fill="url(#chartGrad)" opacity="0.3"/>
-          </svg>
-          <div class="demo-overlay" id="graph-overlay">
-            <div class="demo-overlay-inner">
-              <div class="demo-overlay-title">🔒 記録を続けるとグラフが表示されます</div>
-              <div class="demo-overlay-sub">7日間記録でパターン分析が解放</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    
 
             <!-- Community Voice -->
       <div class="section-card" style="margin:0 20px 20px;">
@@ -1934,18 +1908,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     </div>
   </div>
 </div>
-
-
-
-      <!-- Pattern Message -->
-      <div class="pattern-section">
-        <div class="ps-label">YOUR PATTERN</div>
-        <div class="ps-text">記録を積み重ねるたびに、<br>あなたのからだが少しずつ見えてくる。</div>
-        <div class="ps-locked" id="pattern-locked">
-          <span>🔒</span>
-          <span>7日以上記録するとパターンメッセージが届きます</span>
-        </div>
-      </div>
 
     </div> <!-- screen-insights 終了 -->
 
@@ -2135,7 +2097,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="pf-card" onclick="premiumGate(openDoctorSummary)">
           <div class="pf-icon">🩺</div>
           <div class="pf-text">
-            <div class="pf-title">婦人科受診サポート<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-title">からだサマリー<span class="pf-lock-badge">PRO</span></div>
             <div class="pf-sub">過去30日の体調サマリーを自動生成</div>
           </div>
           <div class="pf-arrow">→</div>
@@ -2328,15 +2290,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div class="ds-sheet">
     <div class="ds-handle"></div>
     <div class="ds-header">
-      <div class="ds-title">婦人科受診サポート</div>
-      <div class="ds-subtitle">過去30日間の体調サマリー</div>
+      <div class="ds-title">からだサマリー</div>
+      <div class="ds-subtitle">今月のあなたのからだの傾向</div>
     </div>
     <div class="ds-body" id="doctorSummaryBody">
       <div class="ds-empty">読み込み中...</div>
     </div>
     <div class="ds-disclaimer">
-      ※ このサマリーは医学的診断ではありません。記録データを整理して表示しています。<br>
-      受診の際の参考資料としてご活用ください。
+     ※ このサマリーは記録データをもとに傾向を整理したものです。医学的診断ではありません。
     </div>
     <div class="ds-footer">
       <button class="ds-btn secondary" onclick="closeDoctorSummary()">閉じる</button>
@@ -2503,8 +2464,6 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 </script>
 
 <script>
-
-function updateUnlock() {}
   
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
@@ -3201,27 +3160,6 @@ function updateStats() {
     fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
 }
 
-function updateUnlock() {
-  var days = state.totalDays;
-  
-  // プログレスバー：段階的に表示（7日=33%, 30日=66%, 90日=100%）
-  var pct = 0;
-  if(days >= 90) pct = 100;
-  else if(days >= 30) pct = 66 + (days - 30) / 60 * 34;
-  else if(days >= 7) pct = 33 + (days - 7) / 23 * 33;
-  else pct = days / 7 * 33;
-  
-  var fill = document.getElementById('progress-fill');
-  if (fill) fill.style.width = pct + '%';
-
-  var daysEl = document.getElementById('unlock-days-label');
-  if (daysEl) {
-    if (days >= 90)      daysEl.textContent = '全機能解放 ✓';
-    else if (days >= 30) daysEl.textContent = '30日達成 ✓';
-    else if (days >= 7)  daysEl.textContent = '7日達成 ✓';
-    else                 daysEl.textContent = 'あと' + Math.max(0, 7 - days) + '日';
-  }
-}
 
 function updateHistory(){}
 
@@ -3432,40 +3370,10 @@ function selectWellness(v, el) {
   el.classList.add('selected');
 }
 
-function renderChakra() {
-  const chakras = [
-    { n: '第1チャクラ', d: '骨盤底・安心感', color: '#e74c3c' },
-    { n: '第2チャクラ ★', d: '子宮・卵巣・創造性', color: '#e67e22', featured: true },
-    { n: '第3チャクラ', d: '腹部・自己肯定', color: '#f1c40f' },
-    { n: '第4チャクラ', d: '胸・愛と受容', color: '#2ecc71' },
-    { n: '第5チャクラ', d: '喉・表現・声', color: '#3498db' },
-    { n: '第6チャクラ', d: '眉間・直感・洞察', color: '#9b59b6' },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="chakra-simple">
-      ${chakras.map((c, i) => `
-        <div class="chakra-item ${c.featured ? 'featured' : ''} ${currentRecord.chakra === i ? 'selected' : ''}"
-             data-chakra-index="${i}" onclick="selectChakra(${i})">
-          <div class="chakra-dot" style="background:${c.color}"></div>
-          <div class="chakra-name">${c.n}</div>
-          <div class="chakra-desc">${c.d}</div>
-          ${c.featured ? '<span class="chakra-star">★</span>' : ''}
-        </div>
-      `).join('')}
-    </div>
-    <button class="btn-skip" onclick="skipChakra()" style="display:block;text-align:center;width:100%;padding:8px;color:var(--ink-light);font-size:12px;background:none;border:none;cursor:pointer;">スキップ →</button>
-  `;
-}
+function renderChakra() {}
+function selectChakra(i) {}
+function skipChakra() { nextStep(); }
 
-function selectChakra(i) {
-  // バグ10: elではなくdata属性でターゲット要素を特定し、子要素クリック時のズレを防ぐ
-  currentRecord.chakra = i;
-  document.querySelectorAll('.chakra-item').forEach(b => b.classList.remove('selected'));
-  const target = document.querySelector(`.chakra-item[data-chakra-index="${i}"]`);
-  if (target) target.classList.add('selected');
-}
-
-function skipChakra() { currentRecord.chakra = null; nextStep(); }
 
 function renderFood() {
   const foods = ['根菜類', '発酵食品', '温かいもの', '砂糖控え', 'グルテンフリー', 'EPA/DHA', 'ビタミンD', '鉄分', '水2L以上'];
@@ -5588,7 +5496,7 @@ document.addEventListener('DOMContentLoaded', function() {
   updateChakraProfileDisplay();
 });
 
-// ===== DOCTOR SUMMARY (婦人科受診サポート) =====
+// ===== BODY SUMMARY (からだサマリー) =====
 
 function openDoctorSummary() {
   document.getElementById('doctorSummaryOverlay').classList.add('active');
@@ -5613,6 +5521,7 @@ async function generateDoctorSummary() {
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
     const fromDate = thirtyDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
+    const monthLabel = (today.getMonth() + 1) + '月';
 
     // ローカルのstate.recordsから過去30日分を取得
     const records = state.records.filter(function(r) {
@@ -5623,197 +5532,221 @@ async function generateDoctorSummary() {
     });
 
     if (records.length === 0) {
-      body.innerHTML = '<div class="ds-empty">過去30日間の記録がありません。<br>毎日の記録を続けると、ここに体調サマリーが自動生成されます。</div>';
+      body.innerHTML = '<div class="ds-empty">過去30日間の記録がありません。<br>毎日の記録を続けると、ここにからだサマリーが届きます。</div>';
       return;
     }
-    
+
     // データ集計
     const totalDays = records.length;
-    const chakraCounts = {};
-    const emotionCounts = {};
     const symptomCounts = {};
-    const mealDays = [];
-    const notes = [];
     const temperatures = [];
     const fastingHours = [];
     const cycleStatuses = [];
+    const mealCounts = [];
+    const diseaseChecks = [];
 
-    records.forEach(r => {
-      const d = r.data || {};
+    records.forEach(function(r) {
+      var d = r.data || {};
 
-      // チャクラ集計
-      if (d.chakra) {
-        chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
-      }
-
-      // 感情集計
-      if (d.emotion) {
-        emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
-      }
-
-      // 症状集計
       if (d.symptoms && d.symptoms.length > 0) {
-        d.symptoms.forEach(s => {
+        d.symptoms.forEach(function(s) {
           symptomCounts[s] = (symptomCounts[s] || 0) + 1;
         });
       }
 
-      // 食事記録
-      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner)) {
-        mealDays.push({ date: r.record_date, meals: d.meals });
-      }
-
-      // メモ
-      if (d.note && d.note.trim()) {
-        notes.push({ date: r.record_date, text: d.note });
-      }
-
-      // 基礎体温
       if (d.temperature) {
         temperatures.push({ date: r.record_date, value: parseFloat(d.temperature) });
       }
 
-      // 断食時間計算
-      if (d.firstMealTime && d.lastMealTime) {
-        const first = d.firstMealTime.split(':').map(Number);
-        const last = d.lastMealTime.split(':').map(Number);
-        const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
-        if (eating > 0) {
-          fastingHours.push(24 - (eating / 60));
-        }
+      if (d.fasting && parseFloat(d.fasting) >= 12) {
+        fastingHours.push({ date: r.record_date, value: parseFloat(d.fasting) });
       }
 
-      // 生理周期
-      if (d.menstrualCycle && d.menstrualCycle.trim()) {
+      if (d.menstrualCycle && d.menstrualCycle.trim() && d.menstrualCycle !== 'なし') {
         cycleStatuses.push({ date: r.record_date, status: d.menstrualCycle });
       }
 
-      // 体調スコア
-      if (d.score) {
-        // スコアも集計可能
+      if (d.mealCount) {
+        mealCounts.push(d.mealCount);
+      }
+
+      if (d.diseaseCheck && Object.keys(d.diseaseCheck).length > 0) {
+        diseaseChecks.push({ date: r.record_date, check: d.diseaseCheck });
       }
     });
 
-    // HTML生成
-    let html = '';
+    // ===== 文章生成 =====
+    var html = '';
 
-    // 基本情報
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">記録概要</div>';
-    html += '<div class="ds-row"><span class="ds-row-label">記録期間</span><span class="ds-row-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
-    html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + totalDays + ' 日 / 30日</span></div>';
+    // ヘッダー
+    html += '<div style="text-align:center;margin-bottom:24px;">';
+    html += '<div style="font-size:11px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY SUMMARY</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);">' + monthLabel + 'のからだサマリー</div>';
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-top:6px;">' + fromDate + ' 〜 ' + toDate + '（' + totalDays + '日間の記録）</div>';
     html += '</div>';
 
-    // 生理周期
-    if (cycleStatuses.length > 0) {
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">生理周期</div>';
-      cycleStatuses.forEach(c => {
-        html += '<div class="ds-row"><span class="ds-row-label">' + c.date + '</span><span class="ds-row-value">' + c.status + '</span></div>';
+    // ① 体温のリズム
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">🌡 体温のリズム</div>';
+    if (temperatures.length >= 3) {
+      var avgTemp = (temperatures.reduce(function(s, t) { return s + t.value; }, 0) / temperatures.length).toFixed(2);
+      var minTemp = Math.min.apply(null, temperatures.map(function(t) { return t.value; })).toFixed(2);
+      var maxTemp = Math.max.apply(null, temperatures.map(function(t) { return t.value; })).toFixed(2);
+      var tempRange = (maxTemp - minTemp).toFixed(2);
+
+      html += '<div class="ds-narrative">';
+      html += '今月の基礎体温は平均 <strong>' + avgTemp + '℃</strong> でした。';
+      html += '最低 ' + minTemp + '℃ 〜 最高 ' + maxTemp + '℃ の範囲で、';
+      if (tempRange >= 0.3) {
+        html += '高温期と低温期の差が <strong>' + tempRange + '℃</strong> あり、二相性のリズムが見られます。';
+      } else {
+        html += '変動幅は ' + tempRange + '℃ と小さめです。引き続き記録を続けると、リズムがより明確になります。';
+      }
+      html += '</div>';
+    } else {
+      html += '<div class="ds-narrative">体温の記録が' + temperatures.length + '日分です。あと' + (3 - temperatures.length) + '日記録すると、リズムの傾向が見えてきます。</div>';
+    }
+    html += '</div>';
+
+    // ② 食事とからだの関係
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">🍽 食事とからだの関係</div>';
+    html += '<div class="ds-narrative">';
+    if (fastingHours.length >= 3) {
+      var avgFast = (fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length).toFixed(1);
+      var longFastDays = fastingHours.filter(function(h) { return h.value >= 16; }).length;
+      html += '今月の平均断食時間は <strong>' + avgFast + '時間</strong> でした。';
+      if (longFastDays > 0) {
+        html += '16時間以上の断食を達成した日は <strong>' + longFastDays + '日</strong> あります。';
+
+        // 断食が長い日と症状の関係を分析
+        var longFastDates = fastingHours.filter(function(h) { return h.value >= 16; }).map(function(h) { return h.date; });
+        var symptomOnFastDay = {};
+        records.forEach(function(r) {
+          if (longFastDates.indexOf(r.record_date) !== -1 && r.data.symptoms) {
+            r.data.symptoms.forEach(function(s) {
+              symptomOnFastDay[s] = (symptomOnFastDay[s] || 0) + 1;
+            });
+          }
+        });
+        if (Object.keys(symptomOnFastDay).length > 0) {
+          var topSymptom = Object.entries(symptomOnFastDay).sort(function(a, b) { return b[1] - a[1]; })[0];
+          html += '断食が長い日には「' + topSymptom[0] + '」の記録が目立ちます。';
+        } else {
+          html += '断食が長い日に特定の症状は記録されていません。良い傾向です。';
+        }
+      }
+    } else if (mealCounts.length > 0) {
+      var avgMeals = (mealCounts.reduce(function(s, m) { return s + m; }, 0) / mealCounts.length).toFixed(1);
+      html += '1日あたりの平均食事回数は <strong>' + avgMeals + '回</strong> でした。';
+    } else {
+      html += '食事の記録をもう少し増やすと、食事と体調の関係が見えてきます。';
+    }
+    html += '</div>';
+    html += '</div>';
+
+    // ③ 気になるパターン
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">🔍 気になるパターン</div>';
+    html += '<div class="ds-narrative">';
+    var sortedSymptoms = Object.entries(symptomCounts).sort(function(a, b) { return b[1] - a[1]; });
+    if (sortedSymptoms.length > 0) {
+      html += '今月もっとも多く記録された症状は「<strong>' + sortedSymptoms[0][0] + '</strong>」で、' + sortedSymptoms[0][1] + '日間記録されています。';
+      if (sortedSymptoms.length > 1) {
+        html += '次いで「' + sortedSymptoms[1][0] + '」が' + sortedSymptoms[1][1] + '日間です。';
+      }
+
+      // 症状と生理周期の関係
+      if (cycleStatuses.length > 0) {
+        var cycleDates = cycleStatuses.map(function(c) { return c.date; });
+        var symptomNearCycle = 0;
+        records.forEach(function(r) {
+          if (r.data.symptoms && r.data.symptoms.length > 0) {
+            var rDate = new Date(r.record_date);
+            cycleDates.forEach(function(cd) {
+              var diff = Math.abs(rDate - new Date(cd));
+              if (diff <= 3 * 86400000) symptomNearCycle++;
+            });
+          }
+        });
+        if (symptomNearCycle > 0) {
+          html += '<br>生理前後に症状の記録が集中する傾向が見られます。来月も同じ時期に注目してみましょう。';
+        }
+      }
+    } else {
+      html += '今月は症状の記録がありません。体調が安定していた月かもしれません。';
+    }
+
+    // 疾患チェックの傾向
+    if (diseaseChecks.length > 0) {
+      var checkCounts = {};
+      diseaseChecks.forEach(function(dc) {
+        Object.entries(dc.check).forEach(function(entry) {
+          var key = entry[0];
+          var val = entry[1];
+          if (val !== 'なし') {
+            checkCounts[key] = (checkCounts[key] || 0) + 1;
+          }
+        });
       });
-      html += '</div>';
+      var sortedChecks = Object.entries(checkCounts).sort(function(a, b) { return b[1] - a[1]; });
+      if (sortedChecks.length > 0) {
+        var checkNames = {
+          'bloating': '膨満感', 'abdom_pain': '腹痛', 'bowel_pain': '排便痛',
+          'pelvic_dull': '骨盤の鈍痛', 'frequent_urine': '頻尿'
+        };
+        var topCheck = sortedChecks[0];
+        var checkName = checkNames[topCheck[0]] || topCheck[0];
+        html += '<br>疾患チェックでは「' + checkName + '」が' + topCheck[1] + '日間記録されています。';
+      }
     }
+    html += '</div>';
+    html += '</div>';
 
-    // 基礎体温
-    if (temperatures.length > 0) {
-      const avgTemp = (temperatures.reduce((sum, t) => sum + t.value, 0) / temperatures.length).toFixed(2);
-      const minTemp = Math.min(...temperatures.map(t => t.value)).toFixed(2);
-      const maxTemp = Math.max(...temperatures.map(t => t.value)).toFixed(2);
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">基礎体温</div>';
-      html += '<div class="ds-row"><span class="ds-row-label">平均</span><span class="ds-row-value">' + avgTemp + ' ℃</span></div>';
-      html += '<div class="ds-row"><span class="ds-row-label">最低 / 最高</span><span class="ds-row-value">' + minTemp + ' / ' + maxTemp + ' ℃</span></div>';
-      html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + temperatures.length + ' 日</span></div>';
-      html += '</div>';
+    // ④ 来月のセルフケアヒント
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">💡 来月のセルフケアヒント</div>';
+    html += '<div class="ds-narrative">';
+    var hints = [];
+    if (temperatures.length < 15) {
+      hints.push('基礎体温の記録を増やすと、高温期・低温期のリズムがより明確になります。');
     }
-
-    // 症状
-    if (Object.keys(symptomCounts).length > 0) {
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">記録された症状</div>';
-      const sortedSymptoms = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]);
-      sortedSymptoms.forEach(([symptom, count]) => {
-        html += '<div class="ds-row"><span class="ds-row-label">' + symptom + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
-      });
-      html += '</div>';
-    }
-
-    // チャクラ
-    if (Object.keys(chakraCounts).length > 0) {
-      const chakraNames = {
-        'root': '第1（ルート）',
-        'sacral': '第2（仙骨）',
-        'solar': '第3（太陽神経叢）',
-        'heart': '第4（ハート）',
-        'throat': '第5（喉）',
-        'third-eye': '第6（第三の目）',
-        'crown': '第7（クラウン）'
-      };
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">チャクラの状態（参考）</div>';
-      const sortedChakras = Object.entries(chakraCounts).sort((a, b) => b[1] - a[1]);
-      sortedChakras.forEach(([chakra, count]) => {
-        const name = chakraNames[chakra] || chakra;
-        html += '<div class="ds-row"><span class="ds-row-label">' + name + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
-      });
-      html += '</div>';
-    }
-
-    // 断食
     if (fastingHours.length > 0) {
-      const avgFasting = (fastingHours.reduce((sum, h) => sum + h, 0) / fastingHours.length).toFixed(1);
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">断食（インターミッテント・ファスティング）</div>';
-      html += '<div class="ds-row"><span class="ds-row-label">平均断食時間</span><span class="ds-row-value">約 ' + avgFasting + ' 時間</span></div>';
-      html += '<div class="ds-row"><span class="ds-row-label">記録日数</span><span class="ds-row-value">' + fastingHours.length + ' 日</span></div>';
-      html += '</div>';
+      var avgF = fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length;
+      if (avgF >= 16) {
+        hints.push('断食時間が安定しています。この習慣を続けましょう。');
+      } else {
+        hints.push('断食時間を少し延ばすと、体調の変化が見えやすくなるかもしれません。');
+      }
     }
+    if (sortedSymptoms.length > 0 && cycleStatuses.length > 0) {
+      hints.push('生理前後の症状に注目して記録すると、周期ごとのパターンが見つかりやすくなります。');
+    }
+    if (totalDays < 20) {
+      hints.push('記録日数を増やすと、より正確なパターンが見えてきます。毎日1〜2分の記録を習慣にしてみましょう。');
+    }
+    if (hints.length === 0) {
+      hints.push('今月の記録は充実しています。来月も同じペースで続けると、長期的なパターンが見えてきます。');
+    }
+    hints.forEach(function(h) {
+      html += '・' + h + '<br>';
+    });
+    html += '</div>';
+    html += '</div>';
 
-    // 感情
-    if (Object.keys(emotionCounts).length > 0) {
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">感情・気分の傾向</div>';
-      const sortedEmotions = Object.entries(emotionCounts).sort((a, b) => b[1] - a[1]);
-      sortedEmotions.forEach(([emotion, count]) => {
-        html += '<div class="ds-row"><span class="ds-row-label">' + emotion + '</span><span class="ds-row-value">' + count + ' 日</span></div>';
-      });
-      html += '</div>';
-    }
-
-    // メモ（最新5件）
-    if (notes.length > 0) {
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">メモ・体調の記録（最新5件）</div>';
-      notes.slice(-5).reverse().forEach(n => {
-        html += '<div class="ds-note-item"><div class="ds-note-date">' + n.date + '</div><div class="ds-note-text">' + n.text + '</div></div>';
-      });
-      html += '</div>';
-    }
-
-    // 食事（最新5日分）
-    if (mealDays.length > 0) {
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">食事記録（最新5日分）</div>';
-      mealDays.slice(-5).reverse().forEach(m => {
-        html += '<div class="ds-meal-day">';
-        html += '<div class="ds-meal-date">' + m.date + '</div>';
-        html += '<div class="ds-meal-items">';
-        if (m.meals.morning) html += '朝: ' + m.meals.morning + '<br>';
-        if (m.meals.lunch) html += '昼: ' + m.meals.lunch + '<br>';
-        if (m.meals.dinner) html += '夜: ' + m.meals.dinner + '<br>';
-        if (m.meals.snack) html += '間食: ' + m.meals.snack;
-        html += '</div></div>';
-      });
-      html += '</div>';
-    }
+    // ⑤ PDF保存への案内
+    html += '<div style="margin-top:20px;padding:14px;background:var(--warm-light);border-radius:12px;font-size:12px;color:var(--ink-light);line-height:1.7;text-align:center;">';
+    html += '📄 このサマリーをPDFで保存して、婦人科に持参することもできます。';
+    html += '</div>';
 
     body.innerHTML = html;
 
   } catch (err) {
-    console.error('Doctor summary error:', err);
+    console.error('Body summary error:', err);
     body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。<br>もう一度お試しください。</div>';
   }
 }
+
 
 // テキストコピー機能
 function copyDoctorSummary() {
@@ -7690,7 +7623,7 @@ var premiumCheckInterval = setInterval(function(){
       <div class="premium-lock-feature"><span class="check">✓</span>デバイス間同期</div>
       <div class="premium-lock-feature"><span class="check">✓</span>月次レポート（PDF）</div>
       <div class="premium-lock-feature"><span class="check">✓</span>AIパターン解析</div>
-      <div class="premium-lock-feature"><span class="check">✓</span>婦人科受診サポート</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>からだサマリー</div>
       <div class="premium-lock-feature"><span class="check">✓</span>みんなの声アーカイブ</div>
         </div>
     <button class="premium-lock-btn" onclick="window.location.href='mailto:akmt108@gmail.com?subject=ippo プレミアム登録希望&body=プレミアムプランへの登録を希望します。'">登録について問い合わせる</button>
