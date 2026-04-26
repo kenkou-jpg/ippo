@@ -5773,20 +5773,7 @@ function displayChakraResultInSettings(result, body) {
 // 設定画面でのチャクラ結果表示（switchTab 拡張）
 // ────────────────────────────────────────────────────────────
 
-// 既存の switchTab 関数を拡張
-const _originalSwitchTab = switchTab;
-function switchTab(tab, btn) {
-  // 元の switchTab の処理を実行
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(`screen-${tab}`).classList.add('active');
-  if (btn) btn.classList.add('active');
-  
-  // 設定画面が表示される場合
-  if (tab === 'settings') {
-    updateChakraProfileDisplay();
-  }
-}
+
 
 // ページ読み込み時にも実行
 document.addEventListener('DOMContentLoaded', function() {
