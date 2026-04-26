@@ -4502,9 +4502,11 @@ function deleteEditRecord(){
 
 
 // ===== 24H DONUT CHART =====
+function createMealDonut(meals, fasting, fastingGoal){
   var R = 52, C = 2 * Math.PI * R;
   var hourUnit = C / 24;
   var cx = 64, cy = 64;
+
 
   // 食事スロット定義
   var mealSlots = [
