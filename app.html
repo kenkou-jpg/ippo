@@ -5011,15 +5011,66 @@ function openDayDetail(d){
 function openRecordScreen(){
   var now = new Date();
   var wd = ['日','月','火','水','木','金','土'];
+  
+  // ★ 編集モード：対象日の日付とデータを使用
+  var isEditing = !!state.editingDate;
+  var targetDate = isEditing ? new Date(state.editingDate) : now;
+  
   var el = document.getElementById('rec-screen-date');
-  if(el) el.textContent = now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+wd[now.getDay()]+'）';
+  if(el) el.textContent = targetDate.getFullYear()+'年'+(targetDate.getMonth()+1)+'月'+targetDate.getDate()+'日（'+wd[targetDate.getDay()]+'）';
+  
+  // フォームをリセット
   ['rs-morning','rs-lunch','rs-dinner','rs-snack','rs-note'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
   ['rs-first-time','rs-last-time'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
   var te = document.getElementById('rs-temp'); if(te) te.value='';
+  var mealFreeEl = document.getElementById('rs-meal-free'); if(mealFreeEl) mealFreeEl.value='';
   document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){ c.classList.remove('selected'); });
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
   var di = document.getElementById('draft-indicator');
   if(di) di.style.display = 'none';
+
+  // ★ 編集モード：既存記録をフォームに復元
+  if(isEditing){
+    var editDateStr = targetDate.toDateString();
+    var editRec = null;
+    for(var ri=0; ri<state.records.length; ri++){
+      if(new Date(state.records[ri].date).toDateString() === editDateStr){
+        editRec = state.records[ri];
+        break;
+      }
+    }
+    if(editRec){
+      if(editRec.temperature){ var et=document.getElementById('rs-temp'); if(et) et.value=editRec.temperature; }
+      if(editRec.note){ var en=document.getElementById('rs-note'); if(en) en.value=editRec.note; }
+      if(editRec.mealFree){ var mf=document.getElementById('rs-meal-free'); if(mf){ mf.value=editRec.mealFree; if(typeof updateMealParse==='function') updateMealParse(); } }
+      if(editRec.meals){
+        var m=editRec.meals;
+        if(m.morning){ var em=document.getElementById('rs-morning'); if(em) em.value=m.morning; }
+        if(m.lunch){ var el2=document.getElementById('rs-lunch'); if(el2) el2.value=m.lunch; }
+        if(m.dinner){ var ed=document.getElementById('rs-dinner'); if(ed) ed.value=m.dinner; }
+        if(m.snack){ var es=document.getElementById('rs-snack'); if(es) es.value=m.snack; }
+        if(m.free){ var ef=document.getElementById('rs-meal-free'); if(ef){ ef.value=m.free; if(typeof updateMealParse==='function') updateMealParse(); } }
+      }
+      if(editRec.firstMealTime){ var ft=document.getElementById('rs-first-time'); if(ft) ft.value=editRec.firstMealTime; }
+      if(editRec.lastMealTime){ var lt=document.getElementById('rs-last-time'); if(lt) lt.value=editRec.lastMealTime; }
+      if(editRec.symptoms && editRec.symptoms.length){
+        document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
+          if(editRec.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      if(editRec.menstrualCycle){
+        document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
+          if(c.textContent === editRec.menstrualCycle) c.classList.add('selected');
+        });
+      }
+      if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
+    }
+    // 編集モードでは下書き復元をスキップ
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('screen-record').classList.add('active');
+    return;
+  }
+
   var draft = localStorage.getItem('ippo_draft');
   if(draft){
     try {
