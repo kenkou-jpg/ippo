@@ -3211,17 +3211,6 @@ document.addEventListener('visibilitychange', function(){
 }
 
 
-  if (tab === 'insights') {
-  setTimeout(function(){
-    if (typeof updateFoodBodyCorrelation === 'function') {
-      updateFoodBodyCorrelation();
-    }
-    if (typeof updateCycleSymptomCorrelation === 'function') {
-      updateCycleSymptomCorrelation();
-    }
-  }, 500);
-}
-
 
   function updateCycleSymptomCorrelation(){
   var container = document.getElementById('cycle-symptom-correlation');
