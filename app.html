@@ -2248,10 +2248,21 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+            <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
               <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <!-- ↓ ここに追加 -->
+          <div class="settings-row" onclick="manualCloudRestore()" style="cursor:pointer;">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#e8f4f0;">☁️</div>
+              <div>
+                <div class="settings-row-text">クラウドから復元</div>
+                <div class="settings-row-sub">データが消えた場合に使用</div>
+              </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
@@ -7052,6 +7063,29 @@ var premiumCheckInterval = setInterval(function(){
   }
 }, 500);
 
+  function manualCloudRestore(){
+  if(!confirm('クラウドのデータでローカルデータを上書きします。\nよろしいですか？')) return;
+  var sb = window.supabase;
+  sb.auth.getUser().then(function(res){
+    if(!res.data || !res.data.user){
+      alert('ログインしていません。先にログインしてください。');
+      return;
+    }
+    var uid = res.data.user.id;
+    sb.from('user_data').select('*').eq('user_id', uid).order('updated_at', {ascending:false}).limit(1).then(function(r){
+      if(!r.data || r.data.length === 0){
+        alert('クラウドにデータが見つかりません。');
+        return;
+      }
+      var cloudState = r.data[0].state;
+      var recordCount = cloudState.records ? cloudState.records.length : 0;
+      if(!confirm('クラウドに ' + recordCount + ' 件の記録があります。\n復元しますか？')) return;
+      localStorage.setItem('ippo_state', JSON.stringify(cloudState));
+      alert('復元完了！（' + recordCount + ' 件の記録）\nページを再読み込みします。');
+      location.reload();
+    });
+  });
+}
 
   </script>
 
