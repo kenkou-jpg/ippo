@@ -1893,7 +1893,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
 
             <!-- Community Voice -->
-      <div class="section-card" style="margin:0 20px 20px;">
+       <div class="section-card" style="margin:0 20px 20px;">
   <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.cv-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
     <div>
       <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMMUNITY VOICE</div>
@@ -1904,21 +1904,36 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div style="display:none;margin-top:14px;">
     <div style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
 
-    <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
-      <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
-      <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
+    <!-- タブ切り替え -->
+    <div id="cv-tabs" style="display:flex;gap:8px;margin-bottom:14px;">
+      <button onclick="switchCVTab('current')" id="cv-tab-current" style="flex:1;padding:8px;border:1.5px solid var(--rose);border-radius:10px;background:var(--rose);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">今週のテーマ</button>
+      <button onclick="switchCVTab('archive')" id="cv-tab-archive" style="flex:1;padding:8px;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);color:var(--ink-mid);font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">過去のテーマ</button>
     </div>
 
-    <div id="community-replies" style="margin-bottom:14px;"></div>
+    <!-- 今週のテーマ -->
+    <div id="cv-current">
+      <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
+        <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
+        <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
+      </div>
 
-    <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
-      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
-      <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-        <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
-        <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
+      <div id="community-replies" style="margin-bottom:14px;"></div>
+
+      <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
+        <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+          <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
+          <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
+        </div>
       </div>
     </div>
+
+    <!-- 過去のテーマ -->
+    <div id="cv-archive" style="display:none;">
+      <div id="cv-archive-list" style="font-size:13px;color:var(--ink-light);text-align:center;padding:20px 0;">読み込み中...</div>
+    </div>
+
   </div>
 </div>
 
@@ -4150,6 +4165,95 @@ function loadCommunityTopic(){
     }
   })
   .catch(function(e){ console.log('トピック読込エラー:', e); });
+}
+
+  function switchCVTab(tab){
+  var current = document.getElementById('cv-current');
+  var archive = document.getElementById('cv-archive');
+  var tabCurrent = document.getElementById('cv-tab-current');
+  var tabArchive = document.getElementById('cv-tab-archive');
+  if(tab === 'current'){
+    current.style.display = 'block';
+    archive.style.display = 'none';
+    tabCurrent.style.background = 'var(--rose)';
+    tabCurrent.style.color = 'white';
+    tabCurrent.style.borderColor = 'var(--rose)';
+    tabArchive.style.background = 'var(--white)';
+    tabArchive.style.color = 'var(--ink-mid)';
+    tabArchive.style.borderColor = '#e8ddd8';
+  } else {
+    current.style.display = 'none';
+    archive.style.display = 'block';
+    tabArchive.style.background = 'var(--rose)';
+    tabArchive.style.color = 'white';
+    tabArchive.style.borderColor = 'var(--rose)';
+    tabCurrent.style.background = 'var(--white)';
+    tabCurrent.style.color = 'var(--ink-mid)';
+    tabCurrent.style.borderColor = '#e8ddd8';
+    loadCVArchive();
+  }
+}
+
+function loadCVArchive(){
+  var container = document.getElementById('cv-archive-list');
+  container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>';
+  fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.false&order=created_at.desc&limit=20', {
+    headers: { 'apikey': SUPABASE_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(topics){
+    if(!topics || topics.length === 0){
+      container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">過去のテーマはまだありません</div>';
+      return;
+    }
+    var html = '';
+    topics.forEach(function(t){
+      var date = new Date(t.created_at);
+      var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate();
+      html += '<div class="cv-archive-item" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #f0ebe6;cursor:pointer;" onclick="toggleArchiveReplies(this, \''+t.id+'\')">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+      html += '<div style="font-size:13px;color:var(--ink);font-weight:600;line-height:1.6;flex:1;">'+t.question+'</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);flex-shrink:0;margin-left:10px;">'+dateStr+'</div>';
+      html += '</div>';
+      html += '<div class="cv-archive-replies" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f0ebe6;"></div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  })
+  .catch(function(e){
+    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込みに失敗しました</div>';
+  });
+}
+
+function toggleArchiveReplies(el, topicId){
+  var repliesDiv = el.querySelector('.cv-archive-replies');
+  if(repliesDiv.style.display === 'block'){
+    repliesDiv.style.display = 'none';
+    return;
+  }
+  repliesDiv.style.display = 'block';
+  repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込み中...</div>';
+  fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.'+topicId+'&order=created_at.desc&limit=20', {
+    headers: { 'apikey': SUPABASE_KEY }
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(replies){
+    if(!replies || replies.length === 0){
+      repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">まだ回答がありません</div>';
+      return;
+    }
+    var html = '';
+    replies.forEach(function(r){
+      html += '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f5f0eb;">';
+      html += '<div style="font-size:11px;color:var(--ink-mid);font-weight:600;margin-bottom:4px;">'+(r.display_name || '匿名さん')+'</div>';
+      html += '<div style="font-size:13px;color:var(--ink);line-height:1.7;">'+escapeHtml(r.body)+'</div>';
+      html += '</div>';
+    });
+    repliesDiv.innerHTML = html;
+  })
+  .catch(function(e){
+    repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込みに失敗しました</div>';
+  });
 }
 
 function loadCommunityReplies(){
