@@ -4187,6 +4187,9 @@ function loadCommunityReplies(){
       html += '<div style="display:flex;align-items:center;gap:4px;">';
       html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:4px;">';
       html += '♡ <span>' + (r.likes || 0) + '</span></button>';
+      if(supabaseUserId && r.user_id === supabaseUserId){
+        html += '<button onclick="deleteCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">削除</button>';
+      }
       html += '</div>';
       html += '</div>';
     }
