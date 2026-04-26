@@ -1045,32 +1045,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   z-index: 1;
 }
 
-    <div class="archive-search">
-      <input type="text" class="archive-search-input" id="archiveSearchInput" placeholder="キーワードで検索..." oninput="searchArchive()">
-    </div>
-
-    <div class="archive-filters" id="archiveFilters">
-      <button class="archive-filter-btn active" data-filter="all" onclick="filterArchive('all')">すべて</button>
-      <button class="archive-filter-btn" data-filter="recent" onclick="filterArchive('recent')">最近3ヶ月</button>
-      <button class="archive-filter-btn" data-filter="popular" onclick="filterArchive('popular')">人気順</button>
-    </div>
-
-    <!-- Topic List View -->
-    <div class="archive-body" id="archiveTopicList">
-      <div class="archive-empty">読み込み中...</div>
-    </div>
-
-    <!-- Post Detail View -->
-    <div class="archive-body archive-posts-section" id="archivePostsView">
-      <button class="archive-back-btn" onclick="showTopicList()">← テーマ一覧に戻る</button>
-      <div id="archivePostsBody"></div>
-    </div>
-
-    <div class="archive-footer">
-      <button class="archive-close-btn" onclick="closeArchive()">閉じる</button>
-    </div>
-  </div>
-</div>
 
 /* ===== FEEDBACK ===== */
 .feedback-section {
