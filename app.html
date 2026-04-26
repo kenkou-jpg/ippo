@@ -1865,6 +1865,21 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
+      <!-- 生理周期×症状パターン -->
+<div class="section-card" style="margin:0 20px 20px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+    <div>
+      <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">生理周期と症状の関係</div>
+    </div>
+    <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
+  </div>
+  <div id="cycle-symptom-correlation">
+    <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
+  </div>
+</div>
+
+
 
             <!-- Community Voice -->
        <div class="section-card" style="margin:0 20px 20px;">
@@ -3194,6 +3209,131 @@ document.addEventListener('visibilitychange', function(){
 
   container.innerHTML = html;
 }
+
+
+  if (tab === 'insights') {
+  setTimeout(function(){
+    if (typeof updateFoodBodyCorrelation === 'function') {
+      updateFoodBodyCorrelation();
+    }
+    if (typeof updateCycleSymptomCorrelation === 'function') {
+      updateCycleSymptomCorrelation();
+    }
+  }, 500);
+}
+
+
+  function updateCycleSymptomCorrelation(){
+  var container = document.getElementById('cycle-symptom-correlation');
+  if(!container) return;
+
+  if(!isPremium){
+    container.innerHTML = '<div style="text-align:center;padding:24px 0;">'
+      +'<div style="font-size:28px;margin-bottom:8px;">🔒</div>'
+      +'<div style="font-size:13px;color:var(--ink-light);line-height:1.7;">生理周期と症状の関係を<br>分析します</div>'
+      +'<button onclick="document.getElementById(\'premiumLockOverlay\').classList.add(\'active\')" style="margin-top:12px;padding:8px 20px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">Premiumで解放</button>'
+      +'</div>';
+    return;
+  }
+
+  var records = state.records || [];
+  var phases = {};
+  var phaseLabels = ['生理中','生理開始','排卵期','高温期','低温期','少量','普通','多い','不正出血'];
+  var displayPhases = {
+    '生理開始':'生理期間','生理中':'生理期間','少量':'生理期間','普通':'生理期間','多い':'生理期間',
+    '不正出血':'不正出血','排卵期':'排卵期','高温期':'高温期','低温期':'低温期'
+  };
+
+  records.forEach(function(r){
+    var cycle = r.menstrualCycle;
+    if(!cycle || cycle === 'なし' || cycle === 'none' || !cycle.trim()) return;
+    var phase = displayPhases[cycle] || cycle;
+    if(!phases[phase]) phases[phase] = { total:0, withSymptoms:0, symptoms:{} };
+    phases[phase].total++;
+    var syms = r.symptoms || [];
+    if(syms.length > 0){
+      phases[phase].withSymptoms++;
+      syms.forEach(function(s){
+        phases[phase].symptoms[s] = (phases[phase].symptoms[s]||0) + 1;
+      });
+    }
+  });
+
+  var phaseKeys = Object.keys(phases);
+
+  if(phaseKeys.length === 0){
+    container.innerHTML = '<div style="text-align:center;padding:24px 0;">'
+      +'<div style="font-size:28px;margin-bottom:8px;">🌸</div>'
+      +'<div style="font-size:13px;color:var(--ink-light);line-height:1.8;">生理周期の記録があると<br>フェーズごとの症状パターンが表示されます。</div>'
+      +'<div style="font-size:12px;color:var(--ink-light);margin-top:10px;">記録画面の「生理の状態」で状態を選択してください。</div>'
+      +'</div>';
+    return;
+  }
+
+  var html = '';
+
+  // ① フェーズ別の症状出現率
+  html += '<div style="margin-bottom:20px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:12px;">📊 フェーズ別の不調出現率</div>';
+  var phaseColors = {'生理期間':'#E88D97','排卵期':'#F4B860','高温期':'#c4878c','低温期':'#7FC8A9','不正出血':'#C4A7D7'};
+  var maxRate = 0;
+  phaseKeys.forEach(function(p){ var rate = phases[p].total > 0 ? phases[p].withSymptoms / phases[p].total * 100 : 0; if(rate > maxRate) maxRate = rate; });
+  if(maxRate === 0) maxRate = 1;
+
+  phaseKeys.forEach(function(p){
+    var d = phases[p];
+    var rate = d.total > 0 ? Math.round(d.withSymptoms / d.total * 100) : 0;
+    var color = phaseColors[p] || '#b8a9d4';
+    html += '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">';
+    html += '<span style="font-size:11px;color:var(--ink-light);width:65px;flex-shrink:0;text-align:right;">'+p+'</span>';
+    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
+    html += '<div style="height:100%;width:'+(rate/maxRate*100)+'%;background:linear-gradient(90deg,'+color+'88,'+color+');border-radius:10px;transition:width 0.5s;"></div></div>';
+    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:40px;text-align:right;">'+rate+'%</span>';
+    html += '<span style="font-size:10px;color:var(--ink-light);width:30px;">('+d.total+'日)</span>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // ② フェーズ別の頻出症状
+  html += '<div style="margin-bottom:20px;">';
+  html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:12px;">🔍 フェーズ別の頻出症状</div>';
+  phaseKeys.forEach(function(p){
+    var d = phases[p];
+    var sorted = Object.entries(d.symptoms).sort(function(a,b){ return b[1]-a[1]; });
+    if(sorted.length === 0) return;
+    var color = phaseColors[p] || '#b8a9d4';
+    html += '<div style="margin-bottom:12px;padding:12px;background:var(--white);border-radius:12px;border-left:3px solid '+color+';">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px;">'+p+'</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    sorted.slice(0,5).forEach(function(entry){
+      html += '<span style="font-size:11px;padding:4px 10px;border-radius:12px;background:'+color+'20;color:'+color.replace('88','')+';">'+entry[0]+' ('+entry[1]+'日)</span>';
+    });
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  // ③ パターンコメント
+  html += '<div style="padding:12px;background:var(--warm-light);border-radius:12px;font-size:12px;color:var(--ink);line-height:1.8;">';
+  var mostSymptomPhase = phaseKeys.reduce(function(best, p){
+    var rate = phases[p].total > 0 ? phases[p].withSymptoms / phases[p].total : 0;
+    if(!best || rate > best.rate) return {phase:p, rate:rate};
+    return best;
+  }, null);
+
+  if(mostSymptomPhase && mostSymptomPhase.rate > 0){
+    html += '「<strong style="color:var(--rose);">'+mostSymptomPhase.phase+'</strong>」に不調の記録が最も集中しています（'+Math.round(mostSymptomPhase.rate*100)+'%）。';
+    var topSym = Object.entries(phases[mostSymptomPhase.phase].symptoms).sort(function(a,b){return b[1]-a[1];})[0];
+    if(topSym){
+      html += 'この時期は特に「<strong style="color:var(--rose);">'+topSym[0]+'</strong>」に注意してみましょう。';
+    }
+  } else {
+    html += '記録を続けると、周期ごとの症状パターンが見えてきます。';
+  }
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
 
 
 function startApp() {
