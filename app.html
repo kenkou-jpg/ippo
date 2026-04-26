@@ -2949,7 +2949,8 @@ function cloudRestore(){
     return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single().then(function(result){
       if(!result.data) return false;
       var cloudState = result.data.state;
-      var cloudDate = new Date(result.data.updated_at);
+      var rawDate = result.data.updated_at;
+      var cloudDate = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
       var localDate = new Date(state.lastSaved || 0);
 
       // ★ ガード②：ローカルが空ならクラウドから強制復元
