@@ -3449,7 +3449,18 @@ function switchTab(tab, btn) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`screen-${tab}`).classList.add('active');
   if (btn) btn.classList.add('active');
+
+  if (tab === 'settings') {
+    updateChakraProfileDisplay();
+  }
+
+  if (tab === 'insights') {
+    if (typeof updateFoodBodyCorrelation === 'function') {
+      updateFoodBodyCorrelation();
+    }
+  }
 }
+
 
 // ===== RECORD MODAL =====
 let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき復元
