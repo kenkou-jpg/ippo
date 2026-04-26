@@ -3407,12 +3407,14 @@ function switchTab(tab, btn) {
     updateChakraProfileDisplay();
   }
 
-  if (tab === 'insights') {
-    if (typeof updateFoodBodyCorrelation === 'function') {
-      updateFoodBodyCorrelation();
-    }
+   if (tab === 'insights') {
+    setTimeout(function(){
+      if (typeof updateFoodBodyCorrelation === 'function') {
+        updateFoodBodyCorrelation();
+      }
+    }, 500);
   }
-}
+
 
 
 // ===== RECORD MODAL =====
