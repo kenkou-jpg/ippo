@@ -1877,7 +1877,20 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
     </div>
 
-    
+          <!-- 食事×体調の相関 -->
+      <div class="section-card" style="margin:0 20px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">食事とからだの関係</div>
+          </div>
+          <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
+        </div>
+        <div id="food-body-correlation">
+          <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
+        </div>
+      </div>
+
 
             <!-- Community Voice -->
       <div class="section-card" style="margin:0 20px 20px;">
@@ -3074,6 +3087,160 @@ document.addEventListener('visibilitychange', function(){
     });
   }
 });
+
+  function updateFoodBodyCorrelation() {
+  var container = document.getElementById('food-body-correlation');
+  if (!container) return;
+
+  if (!isPremium) {
+    container.innerHTML = '<div style="text-align:center;padding:24px 0;">'
+      + '<div style="font-size:28px;margin-bottom:8px;">🔒</div>'
+      + '<div style="font-size:13px;color:var(--ink-light);line-height:1.7;">7日以上の記録があると<br>食事と体調の相関が表示されます</div>'
+      + '<button onclick="document.getElementById(\'premiumLockOverlay\').classList.add(\'active\')" style="margin-top:12px;padding:8px 20px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">Premiumで解放</button>'
+      + '</div>';
+    return;
+  }
+
+  var records = state.records || [];
+  if (records.length < 7) {
+    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">7日以上記録すると相関分析が表示されます。<br>あと' + Math.max(0, 7 - records.length) + '日！</div>';
+    return;
+  }
+
+  var html = '';
+
+  // ① 断食時間と症状の関係
+  var longFast = [];
+  var shortFast = [];
+  records.forEach(function(r) {
+    var f = parseFloat(r.fasting) || 0;
+    var symptoms = r.symptoms || [];
+    var checks = r.diseaseCheck || {};
+    var hasIssue = symptoms.length > 0 || Object.values(checks).some(function(v) { return v !== 'なし' && v; });
+    if (f >= 16) longFast.push({ hasIssue: hasIssue, symptoms: symptoms, checks: checks });
+    else if (f > 0) shortFast.push({ hasIssue: hasIssue, symptoms: symptoms, checks: checks });
+  });
+
+  if (longFast.length >= 2 && shortFast.length >= 2) {
+    var longIssueRate = Math.round(longFast.filter(function(d) { return d.hasIssue; }).length / longFast.length * 100);
+    var shortIssueRate = Math.round(shortFast.filter(function(d) { return d.hasIssue; }).length / shortFast.length * 100);
+    var maxRate = Math.max(longIssueRate, shortIssueRate, 1);
+
+    html += '<div style="margin-bottom:20px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 断食時間と不調の関係</div>';
+    html += '<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;">';
+    html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h以上</span>';
+    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
+    html += '<div style="height:100%;width:' + (longIssueRate / maxRate * 100) + '%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;transition:width 0.5s;"></div></div>';
+    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:35px;text-align:right;">' + longIssueRate + '%</span>';
+    html += '</div>';
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h未満</span>';
+    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
+    html += '<div style="height:100%;width:' + (shortIssueRate / maxRate * 100) + '%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;transition:width 0.5s;"></div></div>';
+    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:35px;text-align:right;">' + shortIssueRate + '%</span>';
+    html += '</div>';
+
+    html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;margin-top:10px;padding:10px;background:var(--warm-light);border-radius:10px;">';
+    if (longIssueRate < shortIssueRate) {
+      html += '断食16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。断食がからだに合っているかもしれません。';
+    } else if (longIssueRate > shortIssueRate) {
+      html += '断食16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。断食時間を調整してみましょう。';
+    } else {
+      html += '断食時間と不調に明確な差は見られません。引き続き記録を続けましょう。';
+    }
+    html += '</div></div>';
+  }
+
+  // ② 食事回数と体調の関係
+  var fewMeals = [];
+  var manyMeals = [];
+  records.forEach(function(r) {
+    var mc = r.mealCount || 0;
+    var checks = r.diseaseCheck || {};
+    var issueCount = Object.values(checks).filter(function(v) { return v !== 'なし' && v; }).length;
+    if (mc > 0 && mc <= 3) fewMeals.push(issueCount);
+    else if (mc > 3) manyMeals.push(issueCount);
+  });
+
+  if (fewMeals.length >= 2 && manyMeals.length >= 2) {
+    var fewAvg = (fewMeals.reduce(function(a, b) { return a + b; }, 0) / fewMeals.length).toFixed(1);
+    var manyAvg = (manyMeals.reduce(function(a, b) { return a + b; }, 0) / manyMeals.length).toFixed(1);
+
+    html += '<div style="margin-bottom:20px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🍽 食事回数と疾患チェック</div>';
+    html += '<div style="display:flex;gap:12px;margin-bottom:8px;">';
+    html += '<div style="flex:1;text-align:center;padding:12px;background:var(--warm-light);border-radius:12px;">';
+    html += '<div style="font-size:10px;color:var(--ink-light);">3食以下の日</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);margin-top:4px;">' + fewAvg + '</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);">平均チェック項目</div></div>';
+    html += '<div style="flex:1;text-align:center;padding:12px;background:var(--warm-light);border-radius:12px;">';
+    html += '<div style="font-size:10px;color:var(--ink-light);">4食以上の日</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);margin-top:4px;">' + manyAvg + '</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);">平均チェック項目</div></div>';
+    html += '</div>';
+
+    html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;padding:10px;background:var(--warm-light);border-radius:10px;">';
+    if (parseFloat(fewAvg) < parseFloat(manyAvg)) {
+      html += '食事回数が少ない日の方が疾患チェックの項目数が <strong style="color:#8aab96;">少なく</strong> 安定しています。';
+    } else if (parseFloat(fewAvg) > parseFloat(manyAvg)) {
+      html += '食事回数が多い日の方が疾患チェックが <strong style="color:#8aab96;">安定</strong> しています。';
+    } else {
+      html += '食事回数と疾患チェックに明確な差は見られません。';
+    }
+    html += '</div></div>';
+  }
+
+  // ③ 食材キーワードと症状
+  var keywords = [
+    { word: '小麦', aliases: ['パン', 'パスタ', 'うどん', 'ラーメン', 'グルテン'] },
+    { word: '乳製品', aliases: ['牛乳', 'チーズ', 'ヨーグルト', '乳'] },
+    { word: '砂糖', aliases: ['甘い', 'クッキー', 'ケーキ', 'チョコ', 'お菓子', 'アイス'] },
+    { word: 'カフェイン', aliases: ['コーヒー', '紅茶', 'カフェ'] },
+    { word: 'アルコール', aliases: ['ビール', 'ワイン', '酒', 'サワー'] }
+  ];
+
+  var keywordResults = [];
+  keywords.forEach(function(kw) {
+    var withFood = [];
+    var withoutFood = [];
+    records.forEach(function(r) {
+      var memo = (r.mealFree || '') + ' ' + (r.meals && r.meals.free ? r.meals.free : '');
+      var hasKeyword = false;
+      var allWords = [kw.word].concat(kw.aliases);
+      allWords.forEach(function(w) { if (memo.indexOf(w) !== -1) hasKeyword = true; });
+      var symptoms = (r.symptoms || []).length;
+      var checks = r.diseaseCheck ? Object.values(r.diseaseCheck).filter(function(v) { return v !== 'なし' && v; }).length : 0;
+      var total = symptoms + checks;
+      if (hasKeyword) withFood.push(total);
+      else withoutFood.push(total);
+    });
+    if (withFood.length >= 2 && withoutFood.length >= 2) {
+      var withAvg = withFood.reduce(function(a, b) { return a + b; }, 0) / withFood.length;
+      var withoutAvg = withoutFood.reduce(function(a, b) { return a + b; }, 0) / withoutFood.length;
+      if (withAvg > withoutAvg + 0.3) {
+        keywordResults.push({ word: kw.word, days: withFood.length, diff: (withAvg - withoutAvg).toFixed(1) });
+      }
+    }
+  });
+
+  if (keywordResults.length > 0) {
+    html += '<div style="margin-bottom:20px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🔍 注目の食材パターン</div>';
+    keywordResults.forEach(function(kr) {
+      html += '<div style="padding:10px;background:var(--warm-light);border-radius:10px;margin-bottom:8px;font-size:12px;color:var(--ink);line-height:1.8;">';
+      html += '「<strong style="color:var(--rose);">' + kr.word + '</strong>」を含む日（' + kr.days + '日）は、不調の記録が平均 <strong style="color:var(--rose);">+' + kr.diff + '</strong> 項目多い傾向があります。';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (html === '') {
+    html = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">まだ十分なデータがありません。<br>記録を続けると食事と体調の関係が見えてきます。</div>';
+  }
+
+  container.innerHTML = html;
+}
 
 
 function startApp() {
