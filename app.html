@@ -6957,11 +6957,7 @@ function escapeHtml(str) {
 }
 
 
-function updateFilterButtons(activeFilter) {
-  document.querySelectorAll('.archive-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.filter === activeFilter);
-  });
-}
+
 
   // ===== EXPOSE FUNCTIONS TO GLOBAL SCOPE =====
 window.openDoctorSummary = openDoctorSummary;
