@@ -4485,7 +4485,7 @@ function checkMyLikes(replies){
       if(match && likedIds[match[1]]){
         btn.style.color = 'var(--rose)';
         btn.style.borderColor = 'var(--rose)';
-        btn.innerHTML = '♥ <span>' + btn.querySelector('span').textContent + '</span>';
+        var span = btn.querySelector('span');btn.innerHTML = '♥ ' + (span ? span.textContent : '共感');
         btn.disabled = true;
       }
     });
