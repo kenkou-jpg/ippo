@@ -4185,8 +4185,8 @@ function loadCommunityReplies(){
       html += '</div>';
       html += '<div style="font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:10px;">' + escapeHtml(r.body) + '</div>';
       html += '<div style="display:flex;align-items:center;gap:4px;">';
-      html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;gap:4px;">';
-      html += '♡ <span>' + (r.likes || 0) + '</span></button>';
+      html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">';
+      html += '♡ 共感</button>';
       if(supabaseUserId && r.user_id === supabaseUserId){
         html += '<button onclick="deleteCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">削除</button>';
       }
@@ -4259,6 +4259,29 @@ function likeCommunityReply(replyId, btn){
   })
   .catch(function(e){ console.log('いいねエラー:', e); });
 }
+
+  function deleteCommunityReply(replyId, btn){
+  if(!confirm('この投稿を削除しますか？')) return;
+  fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId + '&user_id=eq.' + supabaseUserId, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + supabaseAccessToken
+    }
+  })
+  .then(function(r){
+    if(r.ok){
+      var card = btn.closest('div[style*="background:var(--white)"]');
+      if(card) card.remove();
+    } else {
+      alert('削除に失敗しました');
+    }
+  })
+  .catch(function(e){ alert('通信エラーが発生しました'); });
+}
+
+function updateReplyLikeCount(replyId, newCount){
+
 
 function updateReplyLikeCount(replyId, newCount){
   fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId, {
