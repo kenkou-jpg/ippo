@@ -2492,6 +2492,8 @@ window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
 </script>
 
 <script>
+
+function updateUnlock() {}
   
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
@@ -4500,7 +4502,6 @@ function deleteEditRecord(){
 
 
 // ===== 24H DONUT CHART =====
-function createMealDonut(meals, fasting, fastingGoal){
   var R = 52, C = 2 * Math.PI * R;
   var hourUnit = C / 24;
   var cx = 64, cy = 64;
