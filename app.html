@@ -2917,6 +2917,11 @@ function checkPremiumRegistered(){
 
   
 function cloudBackupAll(){
+  // ガード：空データでクラウドを上書きしない
+  if(!state.records || state.records.length === 0){
+    console.warn('記録が空のためクラウド同期をスキップ');
+    return Promise.resolve();
+  }
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
@@ -2963,8 +2968,19 @@ function cloudRestore(){
       var cloudState = result.data.state;
       var cloudDate = new Date(result.data.updated_at);
       var localDate = new Date(state.lastSaved || 0);
-   if(cloudDate > localDate){
 
+      // ★ ガード②：ローカルが空ならクラウドから強制復元
+      var localRecs = state.records ? state.records.length : 0;
+      var cloudRecs = cloudState.records ? cloudState.records.length : 0;
+      if(localRecs === 0 && cloudRecs > 0){
+        state = Object.assign(state, cloudState);
+        state.lastSaved = cloudDate.toISOString();
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+        console.log('ローカルが空のためクラウドから強制復元:', cloudRecs + '件');
+        return true;
+      }
+
+      if(cloudDate > localDate){
         state = Object.assign(state, cloudState);
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
