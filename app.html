@@ -3078,6 +3078,12 @@ document.addEventListener('visibilitychange', function(){
     return;
   }
 
+    var records = state.records || [];
+  if (records.length < 7) {
+    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">7日以上記録すると相関分析が表示されます。<br>あと' + Math.max(0, 7 - records.length) + '日！</div>';
+    return;
+  }
+
   var html = '';
 
   // ① 断食時間と症状の関係
