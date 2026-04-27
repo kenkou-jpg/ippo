@@ -3244,6 +3244,9 @@ document.addEventListener('visibilitychange', function(){
     return;
   }
 
+  var records = state.records || [];
+  var phases = {};
+
   records.forEach(function(r){
     var cycle = r.menstrualCycle;
     if(!cycle || cycle === 'なし' || cycle === 'none' || !cycle.trim()) return;
