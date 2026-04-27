@@ -3060,11 +3060,21 @@ document.addEventListener('visibilitychange', function(){
   var container = document.getElementById('food-body-correlation');
   if (!container) return;
 
- if (!isPremium) {
-
-  var records = state.records || [];
-  if (records.length < 7) {
-    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">7日以上記録すると相関分析が表示されます。<br>あと' + Math.max(0, 7 - records.length) + '日！</div>';
+  if (!isPremium) {
+    container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
+      +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
+      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 断食時間と不調の関係</div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h以上</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:35%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">35%</span></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h未満</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:65%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">65%</span></div></div>'
+      +'<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--ink);">🔍 注目の食材パターン</div>'
+      +'<div style="margin-top:8px;padding:10px;background:var(--warm-light);border-radius:10px;font-size:12px;color:var(--ink);">「小麦」を含む日は不調が...</div>'
+      +'</div>'
+      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(250,246,242,0.4);border-radius:12px;">'
+      +'<div style="font-size:28px;margin-bottom:8px;">🔒</div>'
+      +'<div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px;">プレミアム機能</div>'
+      +'<div style="font-size:11px;color:var(--ink-light);margin-bottom:12px;">食事と体調の相関を分析します</div>'
+      +'<button onclick="document.getElementById(\'premiumLockOverlay\').classList.add(\'active\')" style="padding:8px 24px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,107,0.3);">Premiumで解放</button>'
+      +'</div></div>';
     return;
   }
 
