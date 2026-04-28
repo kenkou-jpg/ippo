@@ -951,6 +951,157 @@
   top: -200px; right: -150px;
   pointer-events: none;
 }
+
+        /* ── HERO ENHANCED ──────────────────────── */
+    .hero h1 em {
+      background: linear-gradient(135deg, var(--accent) 0%, #F07B63 50%, var(--purple) 100%);
+      background-size: 200% 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: gradientShift 4s ease infinite;
+    }
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Social proof stats bar */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 48px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+    .hero-stat {
+      text-align: center;
+    }
+    .hero-stat-num {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+    .hero-stat-label {
+      font-size: 0.78rem;
+      color: var(--text3);
+      margin-top: 4px;
+    }
+
+    /* Condition card color variants */
+    .cond-card:nth-child(1) .cond-icon { background: rgba(232,97,74,0.08); color: #E8614A; }
+    .cond-card:nth-child(2) .cond-icon { background: rgba(139,111,212,0.08); color: #8B6FD4; }
+    .cond-card:nth-child(3) .cond-icon { background: rgba(61,184,155,0.08); color: #3DB89B; }
+    .cond-card:nth-child(4) .cond-icon { background: rgba(240,123,99,0.08); color: #F07B63; }
+
+    /* Feature section: shorter text, bigger visual */
+    .feat-content .feat-bullets {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .feat-bullet {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.92rem;
+      color: var(--text2);
+      line-height: 1.7;
+    }
+    .feat-bullet-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    /* Testimonial highlight word */
+    .testi-text strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* Counter animation */
+    .count-up {
+      display: inline-block;
+    }
+
+    /* CTA pulse */
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #fff;
+      padding: 16px 36px;
+      border-radius: 32px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: var(--tr);
+      box-shadow: 0 8px 28px rgba(232,97,74,0.25);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-primary::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 32px;
+      box-shadow: 0 0 0 0 rgba(232,97,74,0.4);
+      animation: ctaPulse 2s ease-out infinite;
+    }
+    @keyframes ctaPulse {
+      0% { box-shadow: 0 0 0 0 rgba(232,97,74,0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(232,97,74,0); }
+      100% { box-shadow: 0 0 0 0 rgba(232,97,74,0); }
+    }
+    .btn-primary:hover {
+      background: var(--accent2);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(232,97,74,0.35);
+    }
+
+    /* Floating badge for social proof */
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 8px 20px;
+      font-size: 0.82rem;
+      color: var(--text2);
+      margin-bottom: 24px;
+      box-shadow: 0 4px 16px var(--shadow);
+    }
+    .hero-badge-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: dotPulse 2s ease infinite;
+    }
+    @keyframes dotPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @media (max-width: 768px) {
+      .hero-stats { gap: 24px; }
+      .hero-stat-num { font-size: 1.6rem; }
+    }
     
   </style>
     <script type="application/ld+json">
@@ -1013,13 +1164,14 @@
     <div class="hero-inner">
       <div class="hero-text">
         <div data-lang="ja">
-          <h1>記録から、身体の<br>変化を理解する。</h1>
-          <p class="hero-sub">食事・体調・生活習慣をひとつにまとめ、<br>女性疾患の変化を継続的に理解するためのアプリ。</p>
+         <div class="hero-badge"><span class="hero-badge-dot"></span>婦人科系疾患に特化したセルフケアアプリ</div>
+          <h1>記録から、<em>からだ</em>の<br>変化を理解する。</h1>
+          <p class="hero-sub">食事・体調・生活習慣をひとつにまとめ、<br>あなただけのコンディションパターンを可視化。</p>
         </div>
         <div data-lang="en">
-          <h1>Understand your body<br>through tracking.</h1>
-          <p class="hero-sub">Diet, symptoms, and lifestyle — all in one place.<br>An app for understanding changes in gynecological conditions.</p>
-        </div>
+          <div class="hero-badge"><span class="hero-badge-dot"></span>Self-care app for gynecological conditions</div>
+          <h1>Understand your <em>body</em><br>through tracking.</h1>
+          <p class="hero-sub">Diet, symptoms, and lifestyle — all in one place.<br>Visualize your unique condition patterns over time.</p>        </div>
         <div class="hero-cta-row">
           <a href="app.html" class="btn-primary">
             <span data-lang-inline="ja">記録をはじめる →</span>
@@ -1033,6 +1185,24 @@
         </div>
       </div>
     </div>
+
+            <div class="hero-stats">
+          <div class="hero-stat">
+            <div class="hero-stat-num"><span class="count-up" data-target="1200">0</span>+</div>
+            <div class="hero-stat-label" data-lang-inline="ja">記録データ</div>
+            <div class="hero-stat-label" data-lang-inline="en">Records logged</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num">★ <span class="count-up" data-target="4.9" data-decimals="1">0</span></div>
+            <div class="hero-stat-label" data-lang-inline="ja">ユーザー満足度</div>
+            <div class="hero-stat-label" data-lang-inline="en">User satisfaction</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num"><span class="count-up" data-target="4">0</span></div>
+            <div class="hero-stat-label" data-lang-inline="ja">対応疾患カテゴリ</div>
+            <div class="hero-stat-label" data-lang-inline="en">Condition categories</div>
+          </div>
+        </div>
 
     <div class="hero-phones">
       <div class="hero-phone hero-phone-left">
@@ -1117,14 +1287,22 @@
         <div data-lang="ja">
           <p class="section-label">Record</p>
           <h3>日々の状態を、<br>ひとつの場所に記録する</h3>
-          <p>食事・体調・生活習慣をまとめて記録し、日々のコンディションを継続的に残せます。記録は1〜2分で完了。特別な知識は必要ありません。</p>
+             <div class="feat-bullets">
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>食事・体調・生活習慣をまとめて記録</div>
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>毎日1〜2分で完了、特別な知識不要</div>
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>婦人科受診時の参考資料にも</div>
+          </div>
           <p class="feat-note">※ ippoは記録の内容について評価や判定を行いません。</p>
           <span class="feat-tag">FREE</span>
         </div>
         <div data-lang="en">
           <p class="section-label">Record</p>
           <h3>Keep everything<br>in one place</h3>
-          <p>Log meals, symptoms, and lifestyle habits together. Track your daily condition in just 1–2 minutes. No special knowledge required.</p>
+            <div class="feat-bullets">
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>Log meals, symptoms & lifestyle together</div>
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>Takes just 1–2 minutes a day</div>
+            <div class="feat-bullet"><div class="feat-bullet-icon">✓</div>Use records for doctor visits</div>
+          </div>
           <p class="feat-note">※ ippo does not evaluate or judge what you record.</p>
           <span class="feat-tag">FREE</span>
         </div>
@@ -1283,17 +1461,17 @@
     <div class="testi-grid">
       <div class="testi-card fade-in">
         <div class="testi-stars">★★★★★</div>
-        <div data-lang="ja"><p class="testi-text">「記録を続けて2週間、高温期に必ず便秘になるパターンに初めて気づきました。」</p><p class="testi-author">— 卵巣嚢腫と診断・30代</p></div>
+        <div data-lang="ja"><p class="testi-text">「記録を続けて2週間、<strong>高温期に必ず便秘になるパターン</strong>に初めて気づきました。」</p><p class="testi-author">— 卵巣嚢腫と診断・30代</p></div>
         <div data-lang="en"><p class="testi-text">"After two weeks of tracking, I noticed for the first time that I always get constipated during my luteal phase."</p><p class="testi-author">— Diagnosed with ovarian cyst, 30s</p></div>
       </div>
       <div class="testi-card fade-in">
         <div class="testi-stars">★★★★★</div>
-        <div data-lang="ja"><p class="testi-text">「婦人科で体調を聞かれたとき、アプリの記録を見せたら先生との会話がスムーズになりました。」</p><p class="testi-author">— PCOS治療中・20代</p></div>
+        <div data-lang="ja"><p class="testi-text">「婦人科で体調を聞かれたとき、<strong>アプリの記録を見せたら先生との会話がスムーズ</strong>になりました。」</p><p class="testi-author">— PCOS治療中・20代</p></div>
         <div data-lang="en"><p class="testi-text">"When my doctor asked about my symptoms, I showed my app records and the conversation became so much easier."</p><p class="testi-author">— PCOS treatment, 20s</p></div>
       </div>
       <div class="testi-card fade-in">
         <div class="testi-stars">★★★★★</div>
-        <div data-lang="ja"><p class="testi-text">「みんなの声で、同じ悩みを持つ人がいると知って、それだけで少し楽になりました。」</p><p class="testi-author">— 子宮内膜症・30代</p></div>
+        <div data-lang="ja"><p class="testi-text">「みんなの声で、<strong>同じ悩みを持つ人がいると知って</strong>、それだけで少し楽になりました。」</p><p class="testi-author">— 子宮内膜症・30代</p></div>
         <div data-lang="en"><p class="testi-text">"Just knowing through the community that others share my struggles made me feel a little lighter."</p><p class="testi-author">— Endometriosis, 30s</p></div>
       </div>
     </div>
@@ -1449,6 +1627,32 @@
   window.addEventListener('scroll', function() {
     document.querySelector('.header').style.padding = window.scrollY > 50 ? '10px 0' : '18px 0';
   });
+
+    // Count-up animation
+  const countEls = document.querySelectorAll('.count-up');
+  const countObserver = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        const el = entry.target;
+        const target = parseFloat(el.getAttribute('data-target'));
+        const decimals = parseInt(el.getAttribute('data-decimals') || '0');
+        const duration = 1500;
+        const start = performance.now();
+        function update(now) {
+          const elapsed = now - start;
+          const progress = Math.min(elapsed / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          el.textContent = (target * eased).toFixed(decimals);
+          if (progress < 1) requestAnimationFrame(update);
+          else el.textContent = target.toFixed(decimals);
+        }
+        requestAnimationFrame(update);
+        countObserver.unobserve(el);
+      }
+    });
+  }, { threshold: 0.5 });
+  countEls.forEach(function(el) { countObserver.observe(el); });
+
 </script>
 </body>
 </html>
