@@ -1757,7 +1757,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div>
             <div class="fw-label">FASTING TIMER</div>
             <div class="fw-timer" id="fast-timer">00:00:00</div>
-            <div class="fw-status" id="fast-status">リペアタイムを始めましょう</div>
+            <div class="fw-status" id="fast-status">からだの修復開始</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
             <div class="fw-goal-pills">
@@ -3087,7 +3087,7 @@ document.addEventListener('visibilitychange', function(){
   if (!isPremium) {
     container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
       +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
-      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 からだの修復時間と不調の関係</div>'
+      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 ファスティングと不調の関係</div>'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h以上</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:35%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">35%</span></div>'
       +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h未満</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:65%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">65%</span></div></div>'
       +'<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--ink);">🔍 注目の食材パターン</div>'
@@ -3110,7 +3110,7 @@ document.addEventListener('visibilitychange', function(){
 
   var html = '';
 
-  //  ① からだの修復時間と症状の関係
+  //  ① ファスティングと症状の関係
   var longFast = [];
   var shortFast = [];
   records.forEach(function(r) {
@@ -3128,7 +3128,7 @@ document.addEventListener('visibilitychange', function(){
     var maxRate = Math.max(longIssueRate, shortIssueRate, 1);
 
     html += '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 からだの修復時間と不調の関係</div>';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 ファスティングと不調の関係</div>';
     html += '<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;">';
     html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h以上</span>';
     html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
@@ -3148,7 +3148,7 @@ document.addEventListener('visibilitychange', function(){
     } else if (longIssueRate > shortIssueRate) {
       html += '修復時間16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。修復時間を調整してみましょう。';
     } else {
-      html += 'からだの修復時間と不調に明確な差は見られません。引き続き記録を続けましょう。';
+      html += 'ファスティングと不調に明確な差は見られません。引き続き記録を続けましょう。';
     }
     html += '</div></div>';
   }
@@ -4631,7 +4631,7 @@ function clearData() {
   const startBtn = document.getElementById('fast-start-btn');
   const stopBtn  = document.getElementById('fast-stop-btn');
   if (timerEl)  timerEl.textContent  = '00:00:00';
-  if (statusEl) statusEl.textContent = 'リペアタイムを始めましょう';
+  if (statusEl) statusEl.textContent = 'からだの修復開始';
   if (startBtn) startBtn.style.display = 'block';
   if (stopBtn)  stopBtn.style.display  = 'none';
   saveState();
@@ -6389,7 +6389,7 @@ async function generateMonthlyReport() {
       var longPct = Math.round(longFast / fastingHours.length * 100);
       var shortPct = Math.round(shortFast / fastingHours.length * 100);
       html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">からだの修復時間 達成率</div>';
+      html += '<div class="mr-chart-title">ファスティング 達成率</div>';
       html += '<div class="mr-bar-chart">';
       html += '<div class="mr-bar-row"><div class="mr-bar-label">16h+</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + longPct + '%;background:var(--rose);"></div></div><div class="mr-bar-count">' + longFast + '日 (' + longPct + '%)</div></div>';
       html += '<div class="mr-bar-row"><div class="mr-bar-label">12-16h</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + shortPct + '%;background:#f0c9a6;"></div></div><div class="mr-bar-count">' + shortFast + '日 (' + shortPct + '%)</div></div>';
@@ -6467,7 +6467,7 @@ async function generateMonthlyReport() {
     }
     if (fastingHours.length > 0) {
       const avgF = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
-      html += 'からだの修復時間は平均 ' + avgF + ' 時間を維持しました。';
+      html += 'ファスティングは平均 ' + avgF + ' 時間を維持しました。';
     }
     html += '</div>';
 
@@ -6835,7 +6835,7 @@ function generateLocalAnalysis(summary) {
   html += '</p>';
 
   if (summary.avgFasting) {
-    html += '<p>からだの修復時間は平均 ' + summary.avgFasting + ' 時間を維持しています。';
+    html += '<p>ファスティングは平均 ' + summary.avgFasting + ' 時間を維持しています。';
     const fh = parseFloat(summary.avgFasting);
     if (fh >= 16) html += '16時間以上をキープできているのは、継続力の表れです。';
     else if (fh >= 14) html += '14時間台ですので、無理のないペースで続けられているようです。';
