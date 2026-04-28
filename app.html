@@ -1757,7 +1757,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div>
             <div class="fw-label">FASTING TIMER</div>
             <div class="fw-timer" id="fast-timer">00:00:00</div>
-            <div class="fw-status" id="fast-status">からだの修復開始</div>
+            <div class="fw-status" id="fast-status">開始を押して下さい</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
             <div class="fw-goal-pills">
@@ -4634,7 +4634,7 @@ function clearData() {
   const startBtn = document.getElementById('fast-start-btn');
   const stopBtn  = document.getElementById('fast-stop-btn');
   if (timerEl)  timerEl.textContent  = '00:00:00';
-  if (statusEl) statusEl.textContent = 'からだの修復開始';
+  if (statusEl) statusEl.textContent = 開始を押して下さい';
   if (startBtn) startBtn.style.display = 'block';
   if (stopBtn)  stopBtn.style.display  = 'none';
   saveState();
