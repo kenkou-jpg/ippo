@@ -3110,7 +3110,7 @@ document.addEventListener('visibilitychange', function(){
 
   var html = '';
 
-  // ① 断食時間と症状の関係
+  //  ① からだの修復時間と症状の関係
   var longFast = [];
   var shortFast = [];
   records.forEach(function(r) {
@@ -3144,9 +3144,9 @@ document.addEventListener('visibilitychange', function(){
 
     html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;margin-top:10px;padding:10px;background:var(--warm-light);border-radius:10px;">';
     if (longIssueRate < shortIssueRate) {
-      html += '修復時間16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。断食がからだに合っているかもしれません。';
+      html += '修復時間16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。リペアタイムがからだに合っているかもしれません。';
     } else if (longIssueRate > shortIssueRate) {
-      html += '修復時間16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。断食時間を調整してみましょう。';
+      html += '修復時間16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。修復時間を調整してみましょう。';
     } else {
       html += 'からだの修復時間と不調に明確な差は見られません。引き続き記録を続けましょう。';
     }
@@ -5043,7 +5043,7 @@ function createMealDonut(meals, fasting, fastingGoal){
   if(showFasting){
     html += '<span style="display:flex;align-items:center;gap:4px;font-size:10px;color:'+fastColor+';">';
     html += '<span style="width:8px;height:8px;border-radius:2px;background:'+fastColor+';opacity:0.4;display:inline-block;"></span>';
-    html += '断食 '+fastHours+'h';
+    html += '修復 '+fastHours+'h';
     html += '</span>';
   }
   html += '</div>';
@@ -5135,7 +5135,7 @@ function openDayDetail(d){
     tags.push(names[rec.chakra] || 'チャクラ');
   }
   if(rec.foodScore) tags.push('食事 '+rec.foodScore+'/10');
-  if(rec.fasting) tags.push('断食 '+rec.fasting+'h');
+  if(rec.fasting) tags.push('修復 '+rec.fasting+'h');
   if(rec.emotion) tags.push(rec.emotion);
   if(rec.symptoms && rec.symptoms.length) tags.push(rec.symptoms.join('・'));
   if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') tags.push('生理: '+rec.menstrualCycle);
@@ -5155,7 +5155,7 @@ function openDayDetail(d){
       html += '<div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">';
       if(rec.mealCount) html += '<span style="font-size:11px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
       if(rec.firstMealTime && rec.lastMealTime) html += '<span style="font-size:11px;color:var(--ink-light);">⏰ '+rec.firstMealTime+'〜'+rec.lastMealTime+'</span>';
-      if(rec.fasting) html += '<span style="font-size:11px;color:var(--ink-light);">🌙 断食 '+rec.fasting+'h</span>';
+      if(rec.fasting) html += '<span style="font-size:11px;color:var(--ink-light);">🌙 修復 '+rec.fasting+'h</span>';
       html += '</div>';
     }
     html += '</div>';
@@ -5236,7 +5236,7 @@ function openDayDetail(d){
     html += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
     if(rec.mealCount) html += '<span style="font-size:12px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
     if(rec.firstMealTime && rec.lastMealTime) html += '<span style="font-size:12px;color:var(--ink-light);">⏰ '+rec.firstMealTime+'〜'+rec.lastMealTime+'</span>';
-    if(rec.fasting && rec.fasting >= 12) html += '<span style="font-size:12px;color:var(--ink-light);">🌙 断食 '+rec.fasting+'h</span>';
+    if(rec.fasting && rec.fasting >= 12) html += '<span style="font-size:12px;color:var(--ink-light);">🌙 修復 '+rec.fasting+'h</span>';
     html += '</div></div>';
   }
 
@@ -6079,7 +6079,7 @@ async function generateDoctorSummary() {
       var longFastDays = fastingHours.filter(function(h) { return h.value >= 16; }).length;
       html += '今月の平均修復時間は <strong>' + avgFast + '時間</strong> でした。';
       if (longFastDays > 0) {
-        html += '16時間以上の断食を達成した日は <strong>' + longFastDays + '日</strong> あります。';
+        html += '16時間以上の修復時間を達成した日は <strong>' + longFastDays + '日</strong> あります。';
 
         // 修復時間が長い日と症状の関係を分析
         var longFastDates = fastingHours.filter(function(h) { return h.value >= 16; }).map(function(h) { return h.date; });
@@ -6642,7 +6642,7 @@ async function runAIAnalysis() {
     dataHtml += '<div class="ai-data-row"><span class="ai-data-label">期間</span><span class="ai-data-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
     dataHtml += '<div class="ai-data-row"><span class="ai-data-label">記録日数</span><span class="ai-data-value">' + records.length + ' 日</span></div>';
     if (summary.avgTemp) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均体温</span><span class="ai-data-value">' + summary.avgTemp + ' ℃</span></div>';
-    if (summary.avgFasting) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均断食</span><span class="ai-data-value">' + summary.avgFasting + ' 時間</span></div>';
+    if (summary.avgFasting) dataHtml += '<div class="ai-data-row"><span class="ai-data-label"> 平均修復時間</span><span class="ai-data-value">' + summary.avgFasting + ' 時間</span></div>';
     if (summary.topChakra) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多チャクラ</span><span class="ai-data-value">' + summary.topChakra + '</span></div>';
     if (summary.topEmotion) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多感情</span><span class="ai-data-value">' + summary.topEmotion + '</span></div>';
     dataHtml += '</div>';
