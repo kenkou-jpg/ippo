@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="images/icon-512.png">
 
 <meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
-<meta property="og:description" content="生理周期・断食・チャクラ・食事を毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
+<meta property="og:description" content="生理周期・食事・からだリペアタイムを毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ippo-app.com/app.html">
 <meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
@@ -23,7 +23,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ippo – からだの声を聴くセルフケア記録">
-<meta name="twitter:description" content="生理周期・断食・チャクラ・食事を毎日1分で記録。あなただけのパターンを発見。">
+<meta name="twitter:description" content="生理周期・食事・からだリペアタイムを毎日1分で記録。あなただけのパターンを発見。">
 <meta name="twitter:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
 <!-- Favicon -->
 <link rel="icon" href="images/icon-192.png" type="image/png">
@@ -1673,7 +1673,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div id="screen-welcome" class="fade-in">
     <div class="welcome-logo">ippo</div>
     <div class="welcome-tagline">生理周期・卵巣ケア<br>セルフ記録アプリ</div>
-    <div class="welcome-sub">食事・チャクラ・断食・感情を毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
+    <div class="welcome-sub">食事・感情・からだリペアタイムを毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
 
     <!-- Before/After Cards -->
     <div class="before-after">
@@ -1745,7 +1745,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
         <div class="milestone-card">
           <div class="mc-number" id="fast-week">—</div>
-          <div class="mc-label">今週の断食</div>
+          <div class="mc-label">今週のリペアタイム</div>
           <div class="mc-unit">累計</div>
         </div>
       </div>
@@ -1757,7 +1757,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div>
             <div class="fw-label">FASTING TIMER</div>
             <div class="fw-timer" id="fast-timer">00:00:00</div>
-            <div class="fw-status" id="fast-status">断食スタートを押してください</div>
+            <div class="fw-status" id="fast-status">リペアタイムを始めましょう</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
             <div class="fw-goal-pills">
@@ -2578,7 +2578,7 @@ document.addEventListener('change', function(e){
 
   // ===== わたしの目標 =====
 var VISION_PRESETS = [
-  '断食を習慣にしたい',
+  'からだリペアタイムを習慣にしたい',
   '自分の体のリズムを知りたい',
   'PMS/PMDDを軽くしたい',
   '体調を整えたい'
@@ -3441,7 +3441,7 @@ function updateStats() {
   document.getElementById('insight-food').textContent =
     mealCounts.length ? (mealCounts.reduce(function(a,b){ return a+b; }, 0) / mealCounts.length).toFixed(1) : '—';
 
-  // ウェルネス → 平均断食時間に変更
+  // ウェルネス → 平均修復時間に変更
   var fastHours = state.records.filter(function(r){ return r.fasting && r.fasting >= 12; }).map(function(r){ return parseFloat(r.fasting); });
   document.getElementById('insight-wellness').textContent =
     fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
@@ -3547,8 +3547,8 @@ function startFastTimer() {
         state.fastingNotified = true;
         saveState();
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('ippo 🌸 断食達成！', {
-            body: state.fastGoal + '時間の断食を達成しました！おつかれさまです。',
+          new Notification('ippo 🌸リペアタイム達成！', {
+            body: state.fastGoal + '時間のリペアタイムを達成しました！おつかれさまです。',
             icon: 'images/icon-192.png'
           });
         }
@@ -4631,7 +4631,7 @@ function clearData() {
   const startBtn = document.getElementById('fast-start-btn');
   const stopBtn  = document.getElementById('fast-stop-btn');
   if (timerEl)  timerEl.textContent  = '00:00:00';
-  if (statusEl) statusEl.textContent = '断食スタートを押してください';
+  if (statusEl) statusEl.textContent = 'リペアタイムを始めましょう';
   if (startBtn) startBtn.style.display = 'block';
   if (stopBtn)  stopBtn.style.display  = 'none';
   saveState();
@@ -4646,7 +4646,7 @@ const messages = [
   '今日の記録が、\n明日の自分を助けてくれる。',
   '無理なく、ていねいに。\nあなたのペースでいい。',
   '子宮は第二の心。\nからだの声に耳を傾けて。',
-  '断食は修行じゃなく、\nからだへの優しい休息。',
+  'からだリペアタイムは、、\nからだへの優しいご褒美。',
   '感情もからだの一部。\n正直に記録することが癒しになる。',
 ];
 
