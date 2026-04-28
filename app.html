@@ -1845,7 +1845,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div class="stat-unit">食 / 日</div>
 </div>
 <div class="stat-card">
-  <div class="stat-label">平均断食時間</div>
+  <div class="stat-label">平均修復時間</div>
   <div class="stat-value" id="insight-wellness">—</div>
   <div class="stat-unit">時間</div>
 </div>
@@ -3087,7 +3087,7 @@ document.addEventListener('visibilitychange', function(){
   if (!isPremium) {
     container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
       +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
-      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 断食時間と不調の関係</div>'
+      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 からだの修復時間と不調の関係</div>'
       +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h以上</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:35%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">35%</span></div>'
       +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h未満</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:65%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">65%</span></div></div>'
       +'<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--ink);">🔍 注目の食材パターン</div>'
@@ -3128,7 +3128,7 @@ document.addEventListener('visibilitychange', function(){
     var maxRate = Math.max(longIssueRate, shortIssueRate, 1);
 
     html += '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 断食時間と不調の関係</div>';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 からだの修復時間と不調の関係</div>';
     html += '<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;">';
     html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h以上</span>';
     html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
@@ -3144,11 +3144,11 @@ document.addEventListener('visibilitychange', function(){
 
     html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;margin-top:10px;padding:10px;background:var(--warm-light);border-radius:10px;">';
     if (longIssueRate < shortIssueRate) {
-      html += '断食16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。断食がからだに合っているかもしれません。';
+      html += '修復時間16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。断食がからだに合っているかもしれません。';
     } else if (longIssueRate > shortIssueRate) {
-      html += '断食16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。断食時間を調整してみましょう。';
+      html += '修復時間16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。断食時間を調整してみましょう。';
     } else {
-      html += '断食時間と不調に明確な差は見られません。引き続き記録を続けましょう。';
+      html += 'からだの修復時間と不調に明確な差は見られません。引き続き記録を続けましょう。';
     }
     html += '</div></div>';
   }
@@ -3976,7 +3976,7 @@ function updateHomeSummary(){
     emptyHtml += '<svg width="120" height="120" viewBox="0 0 120 120">';
     emptyHtml += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
     emptyHtml += '</svg>';
-    emptyHtml += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ink-light);text-align:center;">断食時間</div>';
+    emptyHtml += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ink-light);text-align:center;">修復時間</div>';
     emptyHtml += '</div>';
     emptyHtml += '<div style="flex:1;">';
     var labels = [{color:'#d4a574',name:'朝食'},{color:'#6b9e78',name:'昼食'},{color:'#c4878c',name:'夕食'},{color:'#7ba3c4',name:'間食'}];
@@ -4056,7 +4056,7 @@ function updateHomeSummary(){
   html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
   if(fastH > 0){
     html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+fastH+'h</div>';
-    html += '<div style="font-size:9px;color:var(--ink-light);">断食時間</div>';
+    html += '<div style="font-size:9px;color:var(--ink-light);">修復時間</div>';
   } else if(mealCount > 0){
     html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+mealCount+'食</div>';
     html += '<div style="font-size:9px;color:var(--ink-light);">記録済み</div>';
@@ -4618,7 +4618,7 @@ function clearData() {
   state.records    = [];
   state.streak     = 0;
   state.totalDays  = 0;
-  // バグ20: 断食タイマーも確実にリセット
+  // バグ20: リペアタイマーも確実にリセット
   state.fastingActive = false;
   state.fastingStart  = null;
   if (fastInterval !== null) {
@@ -4946,7 +4946,7 @@ function createMealDonut(meals, fasting, fastingGoal){
   }
   foodTimes.sort(function(a,b){ return a.hour - b.hour; });
 
-  // 断食計算：飲み物除外、最後の食事→翌日最初の食事が12h以上のみ表示
+  //  修復時間計算：飲み物除外、最後の食事→翌日最初の食事が12h以上のみ表示
   var realFoods = foodTimes.filter(function(e){ return !e.isDrink; });
   var fastHours = 0;
   var showFasting = false;
@@ -4965,7 +4965,7 @@ function createMealDonut(meals, fasting, fastingGoal){
   // 背景円
   svg += '<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="none" stroke="'+emptyColor+'" stroke-width="10"/>';
 
-  // 断食アーク（12h以上の場合のみ）
+  // 修復アーク（12h以上の場合のみ）
   if(showFasting && realFoods.length >= 2){
     var lastH2 = realFoods[realFoods.length - 1].hour;
     var startOff = (lastH2 / 24) * C;
@@ -5016,7 +5016,7 @@ function createMealDonut(meals, fasting, fastingGoal){
   html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">';
   if(showFasting){
     html += '<div style="font-family:Shippori Mincho,serif;font-size:22px;font-weight:700;color:'+fastColor+';">'+fastHours+'<span style="font-size:12px;font-weight:400;">h</span></div>';
-    html += '<div style="font-size:8px;color:var(--ink-light);letter-spacing:0.1em;margin-top:2px;">断食時間</div>';
+    html += '<div style="font-size:8px;color:var(--ink-light);letter-spacing:0.1em;margin-top:2px;">修復時間</div>';
     var fGoalH = fastingGoal || 16;
     html += '<div style="font-size:9px;color:'+(fastHours >= fGoalH ? '#8aab96' : 'var(--ink-light)')+';margin-top:3px;">'+(fastHours >= fGoalH ? '✓ 目標達成' : '目標 '+fGoalH+'h')+'</div>';
   } else if(filledMeals.length > 0){
@@ -5205,7 +5205,7 @@ function openDayDetail(d){
     html += '</div>';
   }
 
-  // ===== 断食セクション =====
+  // ===== 修復時間セクション =====
   if(rec.fasting){
     var fGoal = rec.fastingGoal || 16;
     var fHours = parseFloat(rec.fasting) || 0;
@@ -5225,7 +5225,7 @@ function openDayDetail(d){
     html += '<div style="font-size:7px;color:var(--ink-light);letter-spacing:0.1em;">時間</div>';
     html += '</div></div>';
     html += '<div style="flex:1;">';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;color:var(--ink);">'+fHours+'時間の断食</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;color:var(--ink);">'+fHours+'時間のリペアタイム</div>';
     html += '<div style="font-size:11px;color:var(--ink-light);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
     html += '</div></div></div>';
   }
@@ -5433,7 +5433,7 @@ function parseMealMemo(text){
     }
   });
   if(allTimes.length === 0) return null;
-  // 食事がない場合（飲み物のみ）は断食なし
+  // 食事がない場合（飲み物のみ）は修復時間なし
   if(foodTimes.length === 0){
     var toTime2 = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
     return { mealCount: 0, firstTime: '', lastTime: '', fastingHours: 0 };
@@ -6077,11 +6077,11 @@ async function generateDoctorSummary() {
     if (fastingHours.length >= 3) {
       var avgFast = (fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length).toFixed(1);
       var longFastDays = fastingHours.filter(function(h) { return h.value >= 16; }).length;
-      html += '今月の平均断食時間は <strong>' + avgFast + '時間</strong> でした。';
+      html += '今月の平均修復時間は <strong>' + avgFast + '時間</strong> でした。';
       if (longFastDays > 0) {
         html += '16時間以上の断食を達成した日は <strong>' + longFastDays + '日</strong> あります。';
 
-        // 断食が長い日と症状の関係を分析
+        // 修復時間が長い日と症状の関係を分析
         var longFastDates = fastingHours.filter(function(h) { return h.value >= 16; }).map(function(h) { return h.date; });
         var symptomOnFastDay = {};
         records.forEach(function(r) {
@@ -6093,9 +6093,9 @@ async function generateDoctorSummary() {
         });
         if (Object.keys(symptomOnFastDay).length > 0) {
           var topSymptom = Object.entries(symptomOnFastDay).sort(function(a, b) { return b[1] - a[1]; })[0];
-          html += '断食が長い日には「' + topSymptom[0] + '」の記録が目立ちます。';
+          html += '修復時間が長い日には「' + topSymptom[0] + '」の記録が目立ちます。';
         } else {
-          html += '断食が長い日に特定の症状は記録されていません。良い傾向です。';
+          html += '修復時間が長い日に特定の症状は記録されていません。良い傾向です。';
         }
       }
     } else if (mealCounts.length > 0) {
@@ -6176,9 +6176,9 @@ async function generateDoctorSummary() {
     if (fastingHours.length > 0) {
       var avgF = fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length;
       if (avgF >= 16) {
-        hints.push('断食時間が安定しています。この習慣を続けましょう。');
+        hints.push('修復時間が安定しています。この習慣を続けましょう。');
       } else {
-        hints.push('断食時間を少し延ばすと、体調の変化が見えやすくなるかもしれません。');
+        hints.push('修復時間を少し延ばすと、体調の変化が見えやすくなるかもしれません。');
       }
     }
     if (sortedSymptoms.length > 0 && cycleStatuses.length > 0) {
@@ -6373,7 +6373,7 @@ async function generateMonthlyReport() {
     }
     if (fastingHours.length > 0) {
       const avgFast = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
-      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgFast + '</div><div class="mr-stat-label">平均断食時間 h</div></div>';
+      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgFast + '</div><div class="mr-stat-label">平均修復時間 h</div></div>';
     }
     if (scores.length > 0) {
       const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
@@ -6447,7 +6447,7 @@ async function generateMonthlyReport() {
     }
     if (fastingHours.length > 0) {
       const avgF = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
-      html += '断食は平均 ' + avgF + ' 時間を維持しました。';
+      html += 'からだの修復時間は平均 ' + avgF + ' 時間を維持しました。';
     }
     html += '</div>';
 
@@ -6768,7 +6768,7 @@ async function callAIAPI(summary) {
 【データ】
 記録日数: ${summary.totalDays}日
 ${summary.avgTemp ? '平均基礎体温: ' + summary.avgTemp + '℃' : ''}
-${summary.avgFasting ? '平均断食時間: ' + summary.avgFasting + '時間' : ''}
+${summary.avgFasting ? '平均修復時間: ' + summary.avgFasting + '時間' : ''}
 チャクラ傾向: ${JSON.stringify(summary.chakraCounts)}
 感情傾向: ${JSON.stringify(summary.emotionCounts)}
 症状: ${JSON.stringify(summary.symptomCounts)}
@@ -6813,7 +6813,7 @@ function generateLocalAnalysis(summary) {
   html += '</p>';
 
   if (summary.avgFasting) {
-    html += '<p>断食は平均 ' + summary.avgFasting + ' 時間を維持しています。';
+    html += '<p>からだの修復時間は平均 ' + summary.avgFasting + ' 時間を維持しています。';
     const fh = parseFloat(summary.avgFasting);
     if (fh >= 16) html += '16時間以上をキープできているのは、継続力の表れです。';
     else if (fh >= 14) html += '14時間台ですので、無理のないペースで続けられているようです。';
