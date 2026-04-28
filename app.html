@@ -6346,7 +6346,7 @@ async function generateMonthlyReport() {
         d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
       }
       if (d.temperature) temperatures.push(parseFloat(d.temperature));
-      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner)) mealRecordDays++;
+      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner || d.meals.free || d.mealCount)) mealRecordDays++;
       if (d.note && d.note.trim()) noteCount++;
       if (d.score) scores.push(Number(d.score));
       if (d.firstMealTime && d.lastMealTime) {
