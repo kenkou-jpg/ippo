@@ -14,7 +14,7 @@
 <link rel="apple-touch-icon" href="images/icon-512.png">
 
 <meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
-<meta property="og:description" content="生理周期・食事・からだリペアタイムを毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
+<meta property="og:description" content="生理周期・食事・ファスティングタイムを毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ippo-app.com/app.html">
 <meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
@@ -23,7 +23,7 @@
 <!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ippo – からだの声を聴くセルフケア記録">
-<meta name="twitter:description" content="生理周期・食事・からだリペアタイムを毎日1分で記録。あなただけのパターンを発見。">
+<meta name="twitter:description" content="生理周期・食事・ファスティングタイムを毎日1分で記録。あなただけのパターンを発見。">
 <meta name="twitter:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
 <!-- Favicon -->
 <link rel="icon" href="images/icon-192.png" type="image/png">
@@ -1673,7 +1673,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div id="screen-welcome" class="fade-in">
     <div class="welcome-logo">ippo</div>
     <div class="welcome-tagline">生理周期・卵巣ケア<br>セルフ記録アプリ</div>
-    <div class="welcome-sub">食事・感情・からだリペアタイムを毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
+    <div class="welcome-sub">食事・感情・ファスティングタイムを毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
 
     <!-- Before/After Cards -->
     <div class="before-after">
@@ -2578,7 +2578,7 @@ document.addEventListener('change', function(e){
 
   // ===== わたしの目標 =====
 var VISION_PRESETS = [
-  'からだリペアタイムを習慣にしたい',
+  'ファスティングを習慣にしたい',
   '自分の体のリズムを知りたい',
   'PMS/PMDDを軽くしたい',
   '体調を整えたい'
@@ -3144,9 +3144,9 @@ document.addEventListener('visibilitychange', function(){
 
     html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;margin-top:10px;padding:10px;background:var(--warm-light);border-radius:10px;">';
     if (longIssueRate < shortIssueRate) {
-      html += 'ファスティング16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。リペアタイムがからだに合っているかもしれません。';
+      html += 'ファスティング16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。あなたのからだに合っているかもしれません。';
     } else if (longIssueRate > shortIssueRate) {
-      html += 'ファスティング16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。ファスティングを調整してみましょう。';
+      html += 'ファスティング16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。ファスティング時間を調整してみましょう。';
     } else {
       html += 'ファスティングと不調に明確な差は見られません。引き続き記録を続けましょう。';
     }
@@ -3547,8 +3547,8 @@ function startFastTimer() {
         state.fastingNotified = true;
         saveState();
         if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('ippo 🌸リペアタイム達成！', {
-            body: state.fastGoal + '時間のリペアタイムを達成しました！おつかれさまです。',
+          new Notification('ippo 🌸ファスティング達成！', {
+            body: state.fastGoal + '時間のファスティングを達成しました！おつかれさまです。',
             icon: 'images/icon-192.png'
           });
         }
@@ -5224,7 +5224,7 @@ function openDayDetail(d){
     html += '<div style="font-size:7px;color:var(--ink-light);letter-spacing:0.1em;">時間</div>';
     html += '</div></div>';
     html += '<div style="flex:1;">';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;color:var(--ink);">'+fHours+'時間のリペアタイム</div>';
+    html += '<div style="font-family:Shippori Mincho,serif;font-size:15px;margin-bottom:4px;color:var(--ink);">'+fHours+'時間のファスティング</div>';
     html += '<div style="font-size:11px;color:var(--ink-light);">目標 '+fGoal+'時間'+(fPct>=1?' ✓ 達成':'')+'</div>';
     html += '</div></div></div>';
   }
