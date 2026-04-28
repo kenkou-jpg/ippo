@@ -2255,7 +2255,30 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
       </div>
 
+<!-- Admin Panel (管理者のみ表示) -->
+<div id="admin-panel" style="display:none;">
+  <div class="settings-section">
+    <div class="settings-section-title">🔧 Admin Panel</div>
+    <div class="settings-card" style="padding:20px;">
+      <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px;">プレミアム管理</div>
+      <div style="margin-bottom:12px;">
+        <input type="email" id="admin-email" placeholder="ユーザーのメールアドレス" style="width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;box-sizing:border-box;">
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="adminSetPremium(true)" style="flex:1;padding:12px;background:var(--rose);color:white;border:none;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">✓ Premium ON</button>
+        <button onclick="adminSetPremium(false)" style="flex:1;padding:12px;background:#f0ebe6;color:var(--ink-mid);border:none;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">✗ Premium OFF</button>
+      </div>
+      <div id="admin-result" style="font-size:12px;color:var(--ink-light);min-height:20px;"></div>
+      <div style="border-top:1px solid #f0ebe6;margin-top:16px;padding-top:16px;">
+        <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px;">プレミアムユーザー一覧</div>
+        <button onclick="adminLoadPremiumUsers()" style="width:100%;padding:10px;background:var(--white);border:1.5px solid #e8ddd8;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink-mid);cursor:pointer;">一覧を読み込む</button>
+        <div id="admin-user-list" style="margin-top:12px;"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
+      
       <!-- About -->
       <div class="settings-section">
         <div class="settings-section-title">About</div>
@@ -7120,6 +7143,70 @@ window.submitSync = submitSync;
 window.toggleSyncMode = toggleSyncMode;
 window.syncNow = syncNow;
 window.logoutSync = logoutSync;
+// ===== ADMIN PANEL =====
+var ADMIN_USER_ID = '723dba96-caf3-48d6-9fdc-4151071bbc89';
+
+function initAdminPanel(){
+  if(supabaseUserId === ADMIN_USER_ID){
+    var panel = document.getElementById('admin-panel');
+    if(panel) panel.style.display = 'block';
+  }
+}
+
+function adminSetPremium(value){
+  var email = document.getElementById('admin-email').value.trim();
+  var result = document.getElementById('admin-result');
+  if(!email){
+    result.innerHTML = '<span style="color:#c9747a;">メールアドレスまたはuser_idを入力してください</span>';
+    return;
+  }
+  result.innerHTML = '<span style="color:var(--ink-light);">処理中...</span>';
+
+  supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session){ result.innerHTML = '<span style="color:#c9747a;">ログインが必要です</span>'; return; }
+
+    // まずuser_idとして試す
+    supabase.from('profiles').update({ is_premium: value }).eq('user_id', email).select().then(function(r){
+      if(r.data && r.data.length > 0){
+        result.innerHTML = '<span style="color:#8aab96;">✓ ' + email + ' を Premium ' + (value ? 'ON' : 'OFF') + ' に設定しました</span>';
+        document.getElementById('admin-email').value = '';
+      } else {
+        result.innerHTML = '<span style="color:#c9747a;">ユーザーが見つかりません。user_idを確認してください。</span>';
+      }
+    });
+  });
+}
+
+function adminLoadPremiumUsers(){
+  var list = document.getElementById('admin-user-list');
+  list.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込み中...</div>';
+
+  supabase.from('profiles').select('user_id,name,is_premium,created_at').eq('is_premium', true).then(function(r){
+    if(!r.data || r.data.length === 0){
+      list.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">プレミアムユーザーはいません</div>';
+      return;
+    }
+    var html = '';
+    r.data.forEach(function(u){
+      var date = new Date(u.created_at).toLocaleDateString('ja-JP');
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--white);border-radius:10px;margin-bottom:6px;border:1px solid #f0ebe6;">';
+      html += '<div><div style="font-size:13px;color:var(--ink);font-weight:500;">' + (u.name || '名前なし') + '</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);">' + u.user_id.substring(0,8) + '... | ' + date + '</div></div>';
+      html += '<span style="font-size:10px;background:var(--rose-pale);color:var(--rose);padding:3px 8px;border-radius:8px;">PRO</span>';
+      html += '</div>';
+    });
+    list.innerHTML = html;
+  });
+}
+
+var adminCheckInterval = setInterval(function(){
+  if(supabaseUserId){
+    clearInterval(adminCheckInterval);
+    initAdminPanel();
+  }
+}, 1000);
+
 
 
   // ===== PREMIUM LOCK =====
