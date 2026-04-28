@@ -6382,23 +6382,43 @@ async function generateMonthlyReport() {
     html += '<div class="mr-stat-box"><div class="mr-stat-num">' + mealRecordDays + '</div><div class="mr-stat-label">食事記録日</div></div>';
     html += '</div>';
 
-    // チャクラ棒グラフ
-    if (Object.keys(chakraCounts).length > 0) {
-      const chakraNames = {
-        'root': 'ルート', 'sacral': '仙骨', 'solar': '太陽神経叢',
-        'heart': 'ハート', 'throat': '喉', 'third-eye': '第三の目', 'crown': 'クラウン'
-      };
-      const maxChakra = Math.max(...Object.values(chakraCounts));
+       // 修復時間の達成率
+    if (fastingHours.length > 0) {
+      var longFast = fastingHours.filter(function(h){ return h >= 16; }).length;
+      var shortFast = fastingHours.filter(function(h){ return h >= 12 && h < 16; }).length;
+      var longPct = Math.round(longFast / fastingHours.length * 100);
+      var shortPct = Math.round(shortFast / fastingHours.length * 100);
       html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">チャクラの傾向</div>';
+      html += '<div class="mr-chart-title">からだの修復時間 達成率</div>';
       html += '<div class="mr-bar-chart">';
-      Object.entries(chakraCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
-        const pct = Math.round(count / maxChakra * 100);
-        const name = chakraNames[key] || key;
-        html += '<div class="mr-bar-row">';
-        html += '<div class="mr-bar-label">' + name + '</div>';
-        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
-        html += '<div class="mr-bar-count">' + count + '日</div>';
+      html += '<div class="mr-bar-row"><div class="mr-bar-label">16h+</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + longPct + '%;background:var(--rose);"></div></div><div class="mr-bar-count">' + longFast + '日 (' + longPct + '%)</div></div>';
+      html += '<div class="mr-bar-row"><div class="mr-bar-label">12-16h</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + shortPct + '%;background:#f0c9a6;"></div></div><div class="mr-bar-count">' + shortFast + '日 (' + shortPct + '%)</div></div>';
+      html += '</div></div>';
+    }
+
+    // 症状の週別推移
+    if (Object.keys(symptomCounts).length > 0) {
+      var weekSymptoms = [{},{},{},{}];
+      records.forEach(function(r){
+        var day = new Date(r.date).getDate();
+        var weekIdx = Math.min(3, Math.floor((day - 1) / 7));
+        (r.symptoms || []).forEach(function(s){
+          weekSymptoms[weekIdx][s] = (weekSymptoms[weekIdx][s] || 0) + 1;
+        });
+      });
+      html += '<div class="mr-chart-section">';
+      html += '<div class="mr-chart-title">症状の週別推移</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;">';
+      ['第1週','第2週','第3週','第4週'].forEach(function(label, idx){
+        var ws = weekSymptoms[idx];
+        var top = Object.entries(ws).sort(function(a,b){ return b[1]-a[1]; }).slice(0,2);
+        html += '<div style="background:var(--white);border-radius:10px;padding:10px;text-align:center;border:1px solid #f0ebe6;">';
+        html += '<div style="font-weight:600;color:var(--ink);margin-bottom:4px;">' + label + '</div>';
+        if(top.length > 0){
+          top.forEach(function(t){ html += '<div style="color:var(--ink-light);">' + t[0] + ' ' + t[1] + '日</div>'; });
+        } else {
+          html += '<div style="color:var(--ink-light);">記録なし</div>';
+        }
         html += '</div>';
       });
       html += '</div></div>';
