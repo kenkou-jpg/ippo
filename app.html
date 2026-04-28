@@ -2255,6 +2255,28 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
       </div>
 
+      fetch('https://www.ippo-app.com/app.html?v='+Date.now()).then(r=>r.text()).then(t=>{
+  var lines = t.split('\n');
+  for(var i=0;i<lines.length;i++){
+    if(lines[i].indexOf('<!-- About -->') !== -1){
+      for(var j=i-3;j<i+3;j++){
+        console.log((j+1)+': '+lines[j]);
+      }
+      break;
+    }
+  }
+  console.log('---');
+  // JSの追加場所
+  for(var i=0;i<lines.length;i++){
+    if(lines[i].indexOf('window.logoutSync') !== -1){
+      for(var j=i-1;j<i+3;j++){
+        console.log((j+1)+': '+lines[j]);
+      }
+      break;
+    }
+  }
+});
+
       <!-- About -->
       <div class="settings-section">
         <div class="settings-section-title">About</div>
