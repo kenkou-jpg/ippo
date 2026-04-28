@@ -451,14 +451,20 @@
 
         /* ── COMMUNITY VISUAL ────────────────────── */
     .feat-visual .community-bg {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
+      width: 52%;
+      height: auto;
       object-fit: cover;
-      opacity: 0.18;
+      border-radius: 22px;
+      opacity: 0.85;
       filter: grayscale(20%);
-      z-index: 0;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 32px 48px rgba(26,23,20,0.20);
+      transform: translateY(-8px);
+      transition: transform 0.5s ease;
+    }
+    .feat-visual:hover .community-bg {
+      transform: translateY(-14px);
     }
     .feat-visual .community-emoji {
       font-size: 3.5rem;
@@ -1150,10 +1156,11 @@
     </div>
 
     <!-- Feature 3: リズムを見つける -->
-   <div class="feat-visual">
-  <div class="vglow"></div>
-  <span style="font-size:3.5rem;position:relative;z-index:2;">🫂</span>
-</div>
+    <div class="feat-row fade-in">
+      <div class="feat-visual">
+        <div class="vglow"></div>
+        <img class="community-bg" src="images/bg-community.jpg" alt="" loading="lazy">
+      </div>
       <div class="feat-content">
         <div data-lang="ja">
           <p class="section-label">Understand</p>
