@@ -1102,6 +1102,31 @@
       .hero-stats { gap: 24px; }
       .hero-stat-num { font-size: 1.6rem; }
     }
+
+        /* ── HERO SHOWCASE ──────────────────────── */
+    .hero-showcase {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+    .hero-showcase-img {
+      width: 100%;
+      border-radius: 24px;
+      filter: drop-shadow(0 24px 48px rgba(26,23,20,0.12));
+      transition: transform 0.5s ease;
+    }
+    .hero-showcase-img:hover {
+      transform: scale(1.02);
+    }
+    @media (max-width: 768px) {
+      .hero-showcase {
+        padding: 0 12px 48px;
+      }
+      .hero-showcase-img {
+        border-radius: 16px;
+      }
+    }
+
     
   </style>
     <script type="application/ld+json">
@@ -1204,31 +1229,8 @@
           </div>
         </div>
 
-    <div class="hero-phones">
-      <div class="hero-phone hero-phone-left">
-        <div class="phone-frame">
-          <div class="phone-screen">
-            <img src="images/mockup_02_meal.png" alt="食事記録">
-          </div>
-        </div>
-      </div>
-      <div class="hero-phone hero-phone-right">
-        <div class="phone-frame">
-          <div class="phone-screen">
-            <img src="images/mockup_01_home.png" alt="ippoホーム">
-          </div>
-        </div>
-      </div>
-      <div class="hero-phone-caption">
-        <div data-lang="ja">
-          <h3>食事・体調・生活習慣を<br>ひとつの場所に</h3>
-          <p>毎日1〜2分の記録で、あなただけのコンディションパターンを可視化。婦人科受診時の参考資料としても活用できます。</p>
-        </div>
-        <div data-lang="en">
-          <h3>Diet, symptoms & lifestyle<br>all in one place</h3>
-          <p>Track in just 1–2 minutes a day to visualize your unique condition patterns. Use your records as reference for doctor visits.</p>
-        </div>
-      </div>
+       <div class="hero-showcase">
+      <img src="images/hero_main.png" alt="ippo アプリ画面" class="hero-showcase-img">
     </div>
   </div>
 </section>
