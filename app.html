@@ -5953,24 +5953,67 @@ function gatherRecordData(){
   // 服薬
   var medication = [];
   document.querySelectorAll('#rs-medication .chip.selected').forEach(function(c){ medication.push(c.textContent); });
+    // エネルギーレベル
+    var energy = 0;
+    var selEnergy = document.querySelector('#rs-energy .chip.selected');
+    if(selEnergy) energy = parseInt(selEnergy.getAttribute('data-val')) || 0;
 
-  return {
-    mealFree: mealFree,
-    firstTime: parsed ? parsed.firstTime : '',
-    lastTime: parsed ? parsed.lastTime : '',
-    mealCount: parsed ? parsed.mealCount : 0,
-    fastingHours: parsed ? parsed.fastingHours : 0,
-    temp: temp,
-    note: note,
-    symptoms: symptoms,
-    cycle: cycle,
-    painLocation: painLocation,
-    painType: painType,
-    painLevel: painLevel,
-    medication: medication,
-    bloodClot: (function(){ var r=[]; document.querySelectorAll('#rs-blood-clot .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
-    bloodColor: (function(){ var r=[]; document.querySelectorAll('#rs-blood-color .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })()
-  };
+    // 睡眠
+    var sleepBed = (document.getElementById('rs-sleep-bed')||{}).value || '';
+    var sleepWake = (document.getElementById('rs-sleep-wake')||{}).value || '';
+    var sleepQuality = 0;
+    var selSQ = document.querySelector('#rs-sleep-quality .chip.selected');
+    if(selSQ) sleepQuality = parseInt(selSQ.getAttribute('data-val')) || 0;
+    var sleepHours = 0;
+    if(sleepBed && sleepWake){
+      var b = sleepBed.split(':'), w = sleepWake.split(':');
+      var bMin = parseInt(b[0])*60+parseInt(b[1]), wMin = parseInt(w[0])*60+parseInt(w[1]);
+      if(wMin <= bMin) wMin += 1440;
+      sleepHours = Math.round((wMin - bMin)/60*10)/10;
+    }
+
+    // 生活ファクター
+    var factors = [];
+    document.querySelectorAll('#rs-factors .chip.selected').forEach(function(c){ factors.push(c.textContent); });
+
+    // お通じ
+    var bowel = '';
+    var selBowel = document.querySelector('#rs-bowel .chip.selected');
+    if(selBowel) bowel = selBowel.textContent;
+
+    // 疾患セルフチェック（複数疾患対応）
+    var diseaseCheck = {};
+    document.querySelectorAll('[data-disease-q]').forEach(function(g){
+      var sel = g.querySelector('.chip.selected');
+      if(sel) diseaseCheck[g.getAttribute('data-disease-q')] = sel.textContent;
+    });
+
+    return {
+      mealFree: mealFree,
+      firstTime: parsed ? parsed.firstTime : '',
+      lastTime: parsed ? parsed.lastTime : '',
+      mealCount: parsed ? parsed.mealCount : 0,
+      fastingHours: parsed ? parsed.fastingHours : 0,
+      temp: temp,
+      note: note,
+      symptoms: symptoms,
+      cycle: cycle,
+      painLocation: painLocation,
+      painType: painType,
+      painLevel: painLevel,
+      medication: medication,
+      bloodClot: (function(){ var r=[]; document.querySelectorAll('#rs-blood-clot .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
+      bloodColor: (function(){ var r=[]; document.querySelectorAll('#rs-blood-color .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
+      energy: energy,
+      sleepBed: sleepBed,
+      sleepWake: sleepWake,
+      sleepQuality: sleepQuality,
+      sleepHours: sleepHours,
+      factors: factors,
+      bowel: bowel,
+      diseaseCheck: diseaseCheck,
+      diseases: state.myDiseases || []
+    };
 }
 
 function draftRecordScreen(){
