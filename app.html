@@ -5590,6 +5590,32 @@ function openRecordScreen(){
           if(editRec.bloodColor.indexOf(c.textContent) !== -1) c.classList.add('selected');
         });
       }
+            // エネルギー復元
+      if(editRec.energy){
+        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
+          if(parseInt(c.getAttribute('data-val'))===editRec.energy) c.classList.add('selected');
+        });
+      }
+      // 睡眠復元
+      if(editRec.sleepBed){ var sb=document.getElementById('rs-sleep-bed'); if(sb) sb.value=editRec.sleepBed; }
+      if(editRec.sleepWake){ var sw=document.getElementById('rs-sleep-wake'); if(sw) sw.value=editRec.sleepWake; }
+      if(editRec.sleepQuality){
+        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
+          if(parseInt(c.getAttribute('data-val'))===editRec.sleepQuality) c.classList.add('selected');
+        });
+      }
+      // ファクター復元
+      if(editRec.factors && editRec.factors.length){
+        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
+          if(editRec.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      // お通じ復元
+      if(editRec.bowel){
+        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
+          if(c.textContent === editRec.bowel) c.classList.add('selected');
+        });
+      }
       // 経血詳細セクション表示
       var cycleDetail = document.getElementById('cycle-detail-section');
       if(cycleDetail && editRec.menstrualCycle && editRec.menstrualCycle !== 'なし'){
@@ -5626,7 +5652,32 @@ function openRecordScreen(){
             if(d.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
           });
         }
-        
+              // エネルギー下書き復元
+      if(d.energy){
+        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
+          if(parseInt(c.getAttribute('data-val'))===d.energy) c.classList.add('selected');
+        });
+      }
+      // 睡眠下書き復元
+      if(d.sleepBed){ var dsb=document.getElementById('rs-sleep-bed'); if(dsb) dsb.value=d.sleepBed; }
+      if(d.sleepWake){ var dsw=document.getElementById('rs-sleep-wake'); if(dsw) dsw.value=d.sleepWake; }
+      if(d.sleepQuality){
+        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
+          if(parseInt(c.getAttribute('data-val'))===d.sleepQuality) c.classList.add('selected');
+        });
+      }
+      // ファクター下書き復元
+      if(d.factors && d.factors.length){
+        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
+          if(d.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      // お通じ下書き復元
+      if(d.bowel){
+        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
+          if(c.textContent === d.bowel) c.classList.add('selected');
+        });
+      }
         if(d.cycle){
           document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
             if(c.textContent === d.cycle) c.classList.add('selected');
