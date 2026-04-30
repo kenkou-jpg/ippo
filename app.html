@@ -7085,6 +7085,13 @@ function buildDataSummary(records) {
   const painData = [];
   const medicationCounts = {};
   const bloodDetails = [];
+  const energyLevels = [];
+  const sleepHoursArr = [];
+  const sleepQualityArr = [];
+  const factorCounts = {};
+  const bowelCounts = {};
+  const wellnessScores = [];
+  const smiScores = [];
   const dailySummaries = [];
 
   records.forEach(r => {
@@ -7148,6 +7155,43 @@ function buildDataSummary(records) {
       bloodDetails.push({ date: r.record_date, flow: d.menstrualCycle, clot: d.bloodClot || [], color: d.bloodColor || [] });
     }
 
+    // エネルギー
+    if(d.energy){
+      if(!energyLevels) energyLevels = [];
+      energyLevels.push(d.energy);
+      daySummary.energy = d.energy;
+    }
+    // 睡眠
+    if(d.sleepHours){
+      if(!sleepHoursArr) sleepHoursArr = [];
+      sleepHoursArr.push(d.sleepHours);
+      daySummary.sleepHours = d.sleepHours;
+    }
+    if(d.sleepQuality){
+      if(!sleepQualityArr) sleepQualityArr = [];
+      sleepQualityArr.push(d.sleepQuality);
+      daySummary.sleepQuality = d.sleepQuality;
+    }
+    // ファクター
+    if(d.factors && d.factors.length > 0){
+      d.factors.forEach(f => { factorCounts[f] = (factorCounts[f] || 0) + 1; });
+      daySummary.factors = d.factors;
+    }
+    // お通じ
+    if(d.bowel){
+      bowelCounts[d.bowel] = (bowelCounts[d.bowel] || 0) + 1;
+      daySummary.bowel = d.bowel;
+    }
+    // ウェルネススコア
+    if(d.wellnessScore !== undefined){
+      wellnessScores.push(d.wellnessScore);
+      daySummary.wellnessScore = d.wellnessScore;
+    }
+    // SMIスコア
+    if(d.smiScore !== undefined && d.smiScore !== null){
+      smiScores.push(d.smiScore);
+      daySummary.smiScore = d.smiScore;
+    }
 
     dailySummaries.push(daySummary);
   });
@@ -7170,7 +7214,15 @@ function buildDataSummary(records) {
     avgPainLevel: painData.length > 0 ? (painData.reduce((a, b) => a + b.level, 0) / painData.length).toFixed(1) : null,
     painDays: painData.length,
     medicationDays: Object.values(medicationCounts).reduce((a, b) => a + b, 0),
-
+       avgEnergy: energyLevels.length > 0 ? (energyLevels.reduce((a,b) => a+b, 0) / energyLevels.length).toFixed(1) : null,
+    avgSleepHours: sleepHoursArr.length > 0 ? (sleepHoursArr.reduce((a,b) => a+b, 0) / sleepHoursArr.length).toFixed(1) : null,
+    avgSleepQuality: sleepQualityArr.length > 0 ? (sleepQualityArr.reduce((a,b) => a+b, 0) / sleepQualityArr.length).toFixed(1) : null,
+    factorCounts,
+    bowelCounts,
+    avgWellness: wellnessScores.length > 0 ? (wellnessScores.reduce((a,b) => a+b, 0) / wellnessScores.length).toFixed(0) : null,
+    avgSMI: smiScores.length > 0 ? (smiScores.reduce((a,b) => a+b, 0) / smiScores.length).toFixed(0) : null,
+    wellnessScores,
+    smiScores,
     notes: notes.slice(-10),
     dailySummaries: dailySummaries.slice(-30)
   };
