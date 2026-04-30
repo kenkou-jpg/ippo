@@ -4152,6 +4152,23 @@ function updateHomeSummary(){
   if(rec.temperature) extras.push('🌡 '+rec.temperature+'℃');
   if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') extras.push('🌸 '+rec.menstrualCycle);
   if(rec.symptoms && rec.symptoms.length) extras.push(rec.symptoms.join('・'));
+    // 痛みの詳細
+  if(rec.painLevel && rec.painLevel > 0){
+    var painText = '痛み ' + rec.painLevel + '/10';
+    if(rec.painLocation && rec.painLocation.length) painText += '（' + rec.painLocation.join('・') + '）';
+    extras.push('🔴 ' + painText);
+  }
+  // 服薬
+  if(rec.medication && rec.medication.length){
+    extras.push('💊 ' + rec.medication.join('・'));
+  }
+  // 経血詳細
+  if(rec.bloodClot && rec.bloodClot.length){
+    extras.push('🩸 ' + rec.bloodClot.join('・'));
+  }
+  if(rec.bloodColor && rec.bloodColor.length){
+    extras.push(rec.bloodColor.join('・'));
+  }
   if(extras.length){
     html += '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">';
     extras.forEach(function(e){
@@ -4206,6 +4223,12 @@ function editPastRecord(dateStr) {
     menstrualCycle: '',
     diseaseCheck: {},
     note: '',
+    painLocation: [],
+    painType: [],
+    painLevel: 0,
+    medication: [],
+    bloodClot: [],
+    bloodColor: [],
     chakra: '',
     emotion: '',
     wellness_score: 0,
