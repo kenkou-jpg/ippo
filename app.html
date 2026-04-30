@@ -5703,6 +5703,18 @@ function gatherRecordData(){
   var cycle = '';
   var selCycle = document.querySelector('#rs-cycle .chip.selected');
   if(selCycle) cycle = selCycle.textContent;
+
+  // 痛みの詳細
+  var painLocation = [];
+  document.querySelectorAll('#rs-pain-location .chip.selected').forEach(function(c){ painLocation.push(c.textContent); });
+  var painType = [];
+  document.querySelectorAll('#rs-pain-type .chip.selected').forEach(function(c){ painType.push(c.textContent); });
+  var painLevel = parseInt((document.getElementById('rs-pain-level')||{}).value) || 0;
+
+  // 服薬
+  var medication = [];
+  document.querySelectorAll('#rs-medication .chip.selected').forEach(function(c){ medication.push(c.textContent); });
+
   return {
     mealFree: mealFree,
     firstTime: parsed ? parsed.firstTime : '',
@@ -5712,10 +5724,13 @@ function gatherRecordData(){
     temp: temp,
     note: note,
     symptoms: symptoms,
-    cycle: cycle
+    cycle: cycle,
+    painLocation: painLocation,
+    painType: painType,
+    painLevel: painLevel,
+    medication: medication
   };
 }
-
 
 function draftRecordScreen(){
   var data = gatherRecordData();
@@ -5764,6 +5779,12 @@ var todayStr = targetDate.toDateString();
     });
     rec.bodyChoices = bodyChoices;
     if(data.note) rec.note = data.note;
+    // 痛みの詳細
+    rec.painLocation = data.painLocation;
+    rec.painType = data.painType;
+    rec.painLevel = data.painLevel;
+    // 服薬
+    rec.medication = data.medication;
 
     // 新規の場合のみ配列に追加
     if(isNew){
