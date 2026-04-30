@@ -2101,6 +2101,77 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="chip" onclick="toggleRsChip(this)">その他</div>
     </div>
   </div>
+     <!-- ENERGY LEVEL -->
+      <div class="section-card">
+        <div class="section-label">ENERGY</div>
+        <div class="section-title serif">エネルギーレベル</div>
+        <div style="display:flex;justify-content:center;gap:6px;padding:8px 0;" id="rs-energy">
+          <button class="chip" onclick="selectEnergy(this,1)" data-val="1" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">1<br><span style="font-size:9px;">ぐったり</span></button>
+          <button class="chip" onclick="selectEnergy(this,2)" data-val="2" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">2<br><span style="font-size:9px;">低い</span></button>
+          <button class="chip" onclick="selectEnergy(this,3)" data-val="3" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">3<br><span style="font-size:9px;">普通</span></button>
+          <button class="chip" onclick="selectEnergy(this,4)" data-val="4" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">4<br><span style="font-size:9px;">良い</span></button>
+          <button class="chip" onclick="selectEnergy(this,5)" data-val="5" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">5<br><span style="font-size:9px;">絶好調</span></button>
+        </div>
+      </div>
+
+      <!-- SLEEP -->
+      <div class="section-card">
+        <div class="section-label">SLEEP</div>
+        <div class="section-title serif">睡眠</div>
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">就寝</div>
+            <input type="time" id="rs-sleep-bed" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+          </div>
+          <div style="flex:1;">
+            <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">起床</div>
+            <input type="time" id="rs-sleep-wake" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">睡眠の質</div>
+        <div style="display:flex;gap:6px;" id="rs-sleep-quality">
+          <button class="chip" onclick="selectSleepQuality(this,1)" data-val="1" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">1 最悪</button>
+          <button class="chip" onclick="selectSleepQuality(this,2)" data-val="2" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">2 悪い</button>
+          <button class="chip" onclick="selectSleepQuality(this,3)" data-val="3" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">3 普通</button>
+          <button class="chip" onclick="selectSleepQuality(this,4)" data-val="4" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">4 良い</button>
+          <button class="chip" onclick="selectSleepQuality(this,5)" data-val="5" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">5 最高</button>
+        </div>
+      </div>
+
+      <!-- LIFESTYLE FACTORS -->
+      <div class="section-card">
+        <div class="section-label">FACTORS</div>
+        <div class="section-title serif">生活ファクター</div>
+        <div class="chips" id="rs-factors">
+          <div class="chip" onclick="toggleRsChip(this)">カフェイン</div>
+          <div class="chip" onclick="toggleRsChip(this)">アルコール</div>
+          <div class="chip" onclick="toggleRsChip(this)">運動した</div>
+          <div class="chip" onclick="toggleRsChip(this)">ストレス高</div>
+          <div class="chip" onclick="toggleRsChip(this)">仕事が忙しい</div>
+          <div class="chip" onclick="toggleRsChip(this)">外出した</div>
+          <div class="chip" onclick="toggleRsChip(this)">雨・低気圧</div>
+          <div class="chip" onclick="toggleRsChip(this)">夜更かし</div>
+          <div class="chip" onclick="toggleRsChip(this)">入浴・半身浴</div>
+          <div class="chip" onclick="toggleRsChip(this)">瞑想・リラックス</div>
+        </div>
+        <div style="margin-top:8px;">
+          <input type="text" id="rs-factor-custom" placeholder="＋ 自分だけのファクターを追加" style="width:100%;padding:10px 14px;border:1px dashed #e8ddd8;border-radius:12px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:transparent;color:var(--ink);outline:none;" onkeydown="if(event.key==='Enter'){addCustomFactor();event.preventDefault();}">
+        </div>
+      </div>
+
+      <!-- BOWEL -->
+      <div class="section-card">
+        <div class="section-label">BOWEL</div>
+        <div class="section-title serif">お通じ</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rs-bowel">
+          <button class="chip" onclick="selectBowel(this,'なし')">なし</button>
+          <button class="chip" onclick="selectBowel(this,'硬い（コロコロ）')">硬い（コロコロ）</button>
+          <button class="chip" onclick="selectBowel(this,'やや硬い')">やや硬い</button>
+          <button class="chip" onclick="selectBowel(this,'普通')">普通</button>
+          <button class="chip" onclick="selectBowel(this,'やや軟らかい')">やや軟らかい</button>
+          <button class="chip" onclick="selectBowel(this,'軟便・下痢')">軟便・下痢</button>
+        </div>
+      </div>
   <div class="section-card">
     <div class="section-label">JOURNAL</div>
     <div class="section-title serif">今日のメモ</div>
@@ -5818,6 +5889,36 @@ function updateMealParse() {
   }
 }
 
+  // ===== 新規記録セクション用関数 =====
+function selectEnergy(btn, val){
+  document.querySelectorAll('#rs-energy .chip').forEach(function(c){ c.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+
+function selectSleepQuality(btn, val){
+  document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){ c.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+
+function selectBowel(btn, val){
+  document.querySelectorAll('#rs-bowel .chip').forEach(function(c){ c.classList.remove('selected'); });
+  btn.classList.add('selected');
+}
+
+function addCustomFactor(){
+  var input = document.getElementById('rs-factor-custom');
+  if(!input) return;
+  var text = input.value.trim();
+  if(!text) return;
+  var container = document.getElementById('rs-factors');
+  if(!container) return;
+  var chip = document.createElement('div');
+  chip.className = 'chip selected';
+  chip.textContent = text;
+  chip.setAttribute('onclick', 'toggleRsChip(this)');
+  container.appendChild(chip);
+  input.value = '';
+}
 
 function gatherDiseaseData(){
   var container = document.getElementById('disease-questions');
