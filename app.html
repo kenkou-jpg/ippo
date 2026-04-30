@@ -5398,6 +5398,22 @@ function openRecordScreen(){
           if(editRec.medication.indexOf(c.textContent) !== -1) c.classList.add('selected');
         });
       }
+            // 経血詳細を復元
+      if(editRec.bloodClot && editRec.bloodClot.length){
+        document.querySelectorAll('#rs-blood-clot .chip').forEach(function(c){
+          if(editRec.bloodClot.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      if(editRec.bloodColor && editRec.bloodColor.length){
+        document.querySelectorAll('#rs-blood-color .chip').forEach(function(c){
+          if(editRec.bloodColor.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      // 経血詳細セクション表示
+      var cycleDetail = document.getElementById('cycle-detail-section');
+      if(cycleDetail && editRec.menstrualCycle && editRec.menstrualCycle !== 'なし'){
+        cycleDetail.style.display = 'block';
+      }
       if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
     }
     // 編集モードでは下書き復元をスキップ
@@ -5505,6 +5521,10 @@ function toggleRsChip(el){
 function selectRsCycle(el, val){
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
   el.classList.add('selected');
+  var detail = document.getElementById('cycle-detail-section');
+  if(detail){
+    detail.style.display = (val !== 'none') ? 'block' : 'none';
+  }
 }
 // ===== フリーメモ自動解析 =====
 function parseMealMemo(text){
@@ -5773,6 +5793,8 @@ function gatherRecordData(){
     painType: painType,
     painLevel: painLevel,
     medication: medication
+    bloodClot: (function(){ var r=[]; document.querySelectorAll('#rs-blood-clot .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
+    bloodColor: (function(){ var r=[]; document.querySelectorAll('#rs-blood-color .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })()
   };
 }
 
@@ -5829,6 +5851,9 @@ var todayStr = targetDate.toDateString();
     rec.painLevel = data.painLevel;
     // 服薬
     rec.medication = data.medication;
+    rec.bloodClot = data.bloodClot;
+    rec.bloodColor = data.bloodColor;
+
 
     // 新規の場合のみ配列に追加
     if(isNew){
