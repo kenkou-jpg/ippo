@@ -5443,7 +5443,20 @@ function openRecordScreen(){
   window.scrollTo(0, 0);
 }
 
-function toggleRsChip(el){ el.classList.toggle('selected'); }
+function toggleRsChip(el){
+  el.classList.toggle('selected');
+  // 痛み関連チップが選択されたら痛み詳細セクションを表示
+  var painSection = document.getElementById('pain-detail-section');
+  if(painSection){
+    var painChips = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み'];
+    var hasAnyPain = false;
+    document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){
+      if(painChips.indexOf(c.textContent) !== -1) hasAnyPain = true;
+    });
+    painSection.style.display = hasAnyPain ? 'block' : 'none';
+  }
+}
+
 
 function selectRsCycle(el, val){
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
