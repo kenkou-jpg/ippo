@@ -5356,7 +5356,16 @@ function openRecordScreen(){
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
   var di = document.getElementById('draft-indicator');
   if(di) di.style.display = 'none';
-
+    // 追加フォームのリセット
+  document.querySelectorAll('#rs-pain-location .chip, #rs-pain-type .chip, #rs-medication .chip, #rs-blood-clot .chip, #rs-blood-color .chip').forEach(function(c){ c.classList.remove('selected'); });
+  var painLevel = document.getElementById('rs-pain-level');
+  if(painLevel){ painLevel.value = 0; }
+  var painDisplay = document.getElementById('pain-level-display');
+  if(painDisplay){ painDisplay.textContent = '0'; }
+  var painSection = document.getElementById('pain-detail-section');
+  if(painSection){ painSection.style.display = 'none'; }
+  var cycleDetail = document.getElementById('cycle-detail-section');
+  if(cycleDetail){ cycleDetail.style.display = 'none'; }
   // ★ 編集モード：既存記録をフォームに復元
   if(isEditing){
     var editDateStr = targetDate.toDateString();
@@ -5521,7 +5530,7 @@ function openRecordScreen(){
     }, 150);
   }
 
-  setTimeout(function(){ updateDiseaseQuestions(); }, 100);
+  setTimeout(function(){ updateDiseaseQuestions(); }, 300);
 
   window.scrollTo(0, 0);
 }
