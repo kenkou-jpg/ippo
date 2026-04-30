@@ -2697,6 +2697,84 @@ var DISEASE_CONFIG = {
       {id:'sleepiness', text:'異常な眠気は？', options:['なし','少し','強い','起きていられない']},
       {id:'tearful', text:'涙もろさは？', options:['なし','少し','頻繁']}
     ]
+ },
+    '子宮腺筋症': {
+    label: '子宮腺筋症セルフチェック',
+    icon: '🩺',
+    category: '子宮',
+    questions: [
+      {id:'period_pain', text:'生理痛の強さは？', options:['なし','軽い','中程度','激しい','動けない']},
+      {id:'heavy_flow', text:'経血量は？', options:['少ない','普通','多い','非常に多い']},
+      {id:'clots', text:'レバー状の塊は？', options:['なし','少し','多い']},
+      {id:'period_length', text:'生理の日数は？', options:['〜5日','6〜7日','8〜10日','11日以上']},
+      {id:'anemia', text:'貧血感は？', options:['なし','軽い','中程度','つらい']},
+      {id:'back_pain', text:'腰痛は？', options:['なし','軽い','中程度','つらい']}
+    ]
+  },
+  '更年期障害': {
+    label: '更年期セルフチェック（SMI簡易版）',
+    icon: '🌡️',
+    category: 'ホルモン',
+    questions: [
+      {id:'hot_flash', text:'顔がほてる', options:['なし','軽い','中程度','強い']},
+      {id:'sweating', text:'汗をかきやすい', options:['なし','軽い','中程度','強い']},
+      {id:'insomnia', text:'寝つきが悪い・眠りが浅い', options:['なし','軽い','中程度','強い']},
+      {id:'irritable', text:'怒りやすい・イライラ', options:['なし','軽い','中程度','強い']},
+      {id:'depression', text:'気分が沈む・不安感', options:['なし','軽い','中程度','強い']},
+      {id:'fatigue', text:'疲れやすい', options:['なし','軽い','中程度','強い']},
+      {id:'headache', text:'頭痛・めまい・吐き気', options:['なし','軽い','中程度','強い']},
+      {id:'palpitation', text:'動悸・息切れ', options:['なし','軽い','中程度','強い']},
+      {id:'shoulder', text:'肩こり・腰痛・手足の痛み', options:['なし','軽い','中程度','強い']},
+      {id:'numbness', text:'手足の冷え・しびれ', options:['なし','軽い','中程度','強い']}
+    ]
+  },
+  '不妊症・排卵障害': {
+    label: '不妊・排卵障害セルフチェック',
+    icon: '🌱',
+    category: 'ホルモン',
+    questions: [
+      {id:'cycle_reg', text:'生理周期の規則性は？', options:['規則的','やや不規則','不規則','3ヶ月以上なし']},
+      {id:'mucus', text:'おりものの伸び（排卵期）は？', options:['確認できる','少し','ほぼない','わからない']},
+      {id:'bbt_biphasic', text:'基礎体温の二相性は？', options:['はっきり二相','やや不明瞭','一相のみ','未計測']},
+      {id:'breast_tension', text:'排卵期〜生理前の胸の張りは？', options:['ある','少し','ない']},
+      {id:'treatment_stage', text:'現在の治療ステージは？', options:['未受診','タイミング法','人工授精','体外受精','その他']}
+    ]
+  },
+  '骨盤臓器脱': {
+    label: '骨盤臓器脱セルフチェック',
+    icon: '🏥',
+    category: '骨盤',
+    questions: [
+      {id:'bulge', text:'膣からの臓器の下垂感は？', options:['なし','入浴時に感じる','日中も感じる','常に感じる']},
+      {id:'urinary', text:'尿もれ・頻尿は？', options:['なし','くしゃみ時','日常的','常に']},
+      {id:'residual', text:'残尿感は？', options:['なし','時々','頻繁']},
+      {id:'constipation', text:'排便困難・残便感は？', options:['なし','時々','頻繁','毎回']},
+      {id:'heaviness', text:'骨盤底の重さ・引っ張られる感じは？', options:['なし','軽い','中程度','つらい']}
+    ]
+  },
+  '外陰痛・膣カンジダ': {
+    label: '外陰部症状セルフチェック',
+    icon: '🩹',
+    category: '外陰・膣',
+    questions: [
+      {id:'itch', text:'外陰部のかゆみは？', options:['なし','軽い','中程度','強い']},
+      {id:'pain', text:'外陰部の痛み・灼熱感は？', options:['なし','軽い','中程度','強い']},
+      {id:'discharge', text:'おりものの異常は？', options:['なし','量が多い','色が変','かたまり状']},
+      {id:'dyspareunia', text:'性交時の痛みは？', options:['なし','軽い','中程度','強い']},
+      {id:'recurrence', text:'症状の繰り返しは？', options:['初めて','2〜3回目','頻繁に再発']}
+    ]
+  },
+  '慢性骨盤痛': {
+    label: '慢性骨盤痛セルフチェック',
+    icon: '💫',
+    category: '骨盤',
+    questions: [
+      {id:'pelvic_pain', text:'骨盤の痛みの強さは？', options:['なし','軽い','中程度','強い','激しい']},
+      {id:'duration', text:'痛みの持続は？', options:['一時的','数時間','半日以上','ほぼ一日中']},
+      {id:'trigger', text:'痛みが強まるタイミングは？', options:['生理中','排卵期','性交後','常に','不定']},
+      {id:'urinary_pain', text:'排尿時の痛みは？', options:['なし','軽い','中程度','強い']},
+      {id:'daily_impact', text:'日常生活への影響は？', options:['なし','少し制限','かなり制限','ほぼ動けない']}
+    ]
   }
 };
 
