@@ -523,22 +523,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   color: var(--ink);
   margin-bottom: 16px;
 }
-.chakra-diagnosis-link {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
-  border-radius: 14px;
-  padding: 16px;
-  cursor: pointer;
-  border: 1px solid var(--rose-light);
-  transition: all 0.2s;
-  text-decoration: none;
-}
-.chakra-diagnosis-link:hover { box-shadow: 0 4px 16px var(--shadow); transform: translateY(-1px); }
-.cdl-text .cdl-title { font-size: 14px; color: var(--ink); font-weight: 500; margin-bottom: 3px; }
-.cdl-text .cdl-sub { font-size: 12px; color: var(--ink-light); }
-.cdl-arrow { font-size: 20px; color: var(--rose); }
 
 /* ===== SHARE CARD ===== */
 .share-section {
@@ -765,36 +749,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 .score-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
 .score-label { font-size: 9px; color: var(--ink-light); font-family: 'Noto Sans JP', sans-serif; margin-top: 2px; display: block; }
 
-/* ===== CHAKRA SELECTOR (simplified) ===== */
-.chakra-simple {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 24px;
-}
-.chakra-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
-  background: var(--white);
-  border-radius: 14px;
-  cursor: pointer;
-  border: 2px solid transparent;
-  transition: all 0.2s;
-  box-shadow: 0 1px 6px var(--shadow);
-}
-.chakra-item:hover { border-color: var(--rose-light); }
-.chakra-item.selected { border-color: var(--rose); background: var(--rose-pale); }
-.chakra-dot {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.chakra-name { font-size: 14px; color: var(--ink); flex: 1; }
-.chakra-desc { font-size: 11px; color: var(--ink-light); }
-.chakra-item.featured { border-color: var(--rose-light); background: var(--rose-pale); }
-.chakra-star { color: var(--rose); font-size: 12px; }
+
 
 /* ===== CHIP SELECTORS ===== */
 .chips {
@@ -2351,20 +2306,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">→</span></div>
               </a>
-          <a href="https://www.ippo-app.com/chakra-test.html" class="settings-row" style="text-decoration:none;border-top:1px solid #f0ebe6;">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f3f0fd;">🔮</div>
-              <div>
-                <div class="settings-row-text">チャクラ体質診断</div>
-                <div class="settings-row-sub">参考：8問・約2分</div>
-              </div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">→</span></div>
-          </a>
-                    <div id="chakra-profile-card" style="display:none;border-top:1px solid #f0ebe6;padding:16px 20px;">
-            <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;">診断結果</div>
-            <div id="chakra-profile-body" style="font-size:12px;color:var(--ink-light);line-height:1.8;"></div>
-          </div>
         </div>
       </div>
 
@@ -3441,7 +3382,6 @@ function showMain() {
   updateUnlock();
   updateHistory();
   buildCalendar();            // ← 追加
-  updateChakraProfile();      // ← 追加
   document.getElementById('settings-name-display').textContent = state.name;
   // バグ18: ホームバナー非表示フラグを復元
   try {
@@ -3631,9 +3571,6 @@ function switchTab(tab, btn) {
   document.getElementById(`screen-${tab}`).classList.add('active');
   if (btn) btn.classList.add('active');
 
-  if (tab === 'settings') {
-    updateChakraProfileDisplay();
-  }
 
     if (tab === 'insights') {
     setTimeout(function(){
@@ -3735,9 +3672,6 @@ function selectWellness(v, el) {
   el.classList.add('selected');
 }
 
-function renderChakra() {}
-function selectChakra(i) {}
-function skipChakra() { nextStep(); }
 
 
 function renderFood() {
@@ -3859,7 +3793,6 @@ function saveRecord() {
     updateUnlock();
     updateHistory();
     buildCalendar();
-    updateChakraProfile();
     document.getElementById('success-message').innerHTML = '記録を更新しました。';
 document.getElementById('success-overlay').classList.add('active');
     cloudBackupAll();
@@ -3904,7 +3837,6 @@ document.getElementById('success-overlay').classList.add('active');
   updateUnlock();
   updateHistory();
   buildCalendar();            // ← 追加
-  updateChakraProfile();      // ← 追加
 
   // Success message — cycle through msgs so it never gets stuck
   const msgs = [
@@ -4229,7 +4161,6 @@ function editPastRecord(dateStr) {
     medication: [],
     bloodClot: [],
     bloodColor: [],
-    chakra: '',
     emotion: '',
     wellness_score: 0,
     energy_score: 0,
@@ -5213,10 +5144,6 @@ function openDayDetail(d){
   var html = '';
   var tags = [];
   if(rec.wellness) tags.push('体調 '+rec.wellness+'/5');
-  if(rec.chakra !== undefined && rec.chakra !== null){
-    var names = ['第1チャクラ','第2チャクラ','第3チャクラ','第4チャクラ','第5チャクラ','第6チャクラ'];
-    tags.push(names[rec.chakra] || 'チャクラ');
-  }
   if(rec.foodScore) tags.push('食事 '+rec.foodScore+'/10');
   if(rec.fasting) tags.push('修復 '+rec.fasting+'h');
   if(rec.emotion) tags.push(rec.emotion);
@@ -5923,7 +5850,6 @@ var todayStr = targetDate.toDateString();
     updateStats();
     updateHistory();
     buildCalendar();
-    updateChakraProfile();
     localStorage.removeItem('ippo_draft');
     if(typeof cloudBackupAll === 'function'){
   cloudBackupAll().catch(function(e){
@@ -5949,195 +5875,12 @@ var todayStr = targetDate.toDateString();
   }
 }
 
-// ===== CHAKRA PROFILE =====
-function updateChakraProfile() {
-  var card = document.getElementById('chakra-profile-card');
-  if (card) card.style.display = 'none';
-  return;
-}
 
 // ===== START =====
 init();
 setDailyMessage();
-updateChakraProfile(); 
   
-// チャクラ診断結果の読み込みと表示
-function loadChakraResult() {
-  const savedResult = localStorage.getItem('ippo_chakra_result');
-  
-  if (!savedResult) {
-    console.log('診断結果が見つかりません');
-    return;
-  }
-  
-  try {
-    const result = JSON.parse(savedResult);
-    console.log('✅ 診断結果を検出:', result);
-    
-    // 結果を表示
-    displayChakraResult(result);
-    
-    // カードを表示
-    const card = document.getElementById('chakra-result-card');
-    if (card) {
-      card.style.display = 'block';
-    }
-    
-  } catch (e) {
-    console.error('診断結果の読み込みに失敗:', e);
-  }
-}
 
-function displayChakraResult(result) {
-  const body = document.getElementById('chakra-result-body');
-  if (!body) return;
-  
-  const chakraNames = {
-    root: 'ルートチャクラ（第1チャクラ）',
-    sacral: 'セイクラルチャクラ（第2チャクラ）',
-    solar: 'ソーラープレクサスチャクラ（第3チャクラ）',
-    heart: 'ハートチャクラ（第4チャクラ）',
-    throat: 'スロートチャクラ（第5チャクラ）',
-    thirdeye: 'サードアイチャクラ（第6チャクラ）',
-    crown: 'クラウンチャクラ（第7チャクラ）'
-  };
-  
-  const maxScore = Math.max(...Object.values(result.scores));
-  
-  let html = `
-    <div style="margin:16px 0;">
-      <p style="font-size:14px; color:#666; margin-bottom:12px;">
-        <strong>${chakraNames[result.type] || result.type}</strong> が最も強いです
-      </p>
-      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
-  `;
-  
-  Object.entries(result.scores).forEach(([chakra, score]) => {
-    const percentage = (score / maxScore) * 100;
-    const name = chakraNames[chakra] || chakra;
-    
-    html += `
-      <div style="padding:8px; background:#f5f5f5; border-radius:6px;">
-        <div style="font-size:12px; color:#666; margin-bottom:4px;">${name}</div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <div style="flex:1; height:6px; background:#ddd; border-radius:3px;">
-            <div style="height:100%; background:#d4a574; border-radius:3px; width:${percentage}%;"></div>
-          </div>
-          <span style="font-size:12px; font-weight:bold;">${score}</span>
-        </div>
-      </div>
-    `;
-  });
-  
-  html += `
-      </div>
-      <p style="margin-top:12px; font-size:12px; color:#999;">
-        診断日: ${new Date(result.date).toLocaleDateString('ja-JP')}
-      </p>
-    </div>
-  `;
-  
-  body.innerHTML = html;
-}
-
-// ページ読み込み時に実行
-document.addEventListener('DOMContentLoaded', function() {
-  loadChakraResult();
-});
-
-
-// ────────────────────────────────────────────────────────────
-// 設定画面でのチャクラ結果表示
-// ────────────────────────────────────────────────────────────
-
-function updateChakraProfileDisplay() {
-  const savedResult = localStorage.getItem('ippo_chakra_result');
-  
-  if (!savedResult) {
-    console.log('設定画面: 診断結果が見つかりません');
-    return;
-  }
-  
-  try {
-    const result = JSON.parse(savedResult);
-    console.log('✅ 設定画面: 診断結果を検出:', result);
-    
-    // chakra-profile-body に結果を表示
-    const body = document.getElementById('chakra-profile-body');
-    if (body) {
-      displayChakraResultInSettings(result, body);
-    }
-    
-    // プロフィールカードを表示
-    const card = document.getElementById('chakra-profile-card');
-    if (card) {
-      card.style.display = 'block';
-    }
-    
-  } catch (e) {
-    console.error('設定画面での表示に失敗:', e);
-  }
-}
-
-function displayChakraResultInSettings(result, body) {
-  const chakraNames = {
-    root: 'ルートチャクラ（第1チャクラ）',
-    sacral: 'セイクラルチャクラ（第2チャクラ）',
-    solar: 'ソーラープレクサスチャクラ（第3チャクラ）',
-    heart: 'ハートチャクラ（第4チャクラ）',
-    throat: 'スロートチャクラ（第5チャクラ）',
-    thirdeye: 'サードアイチャクラ（第6チャクラ）',
-    crown: 'クラウンチャクラ（第7チャクラ）'
-  };
-  
-  const maxScore = Math.max(...Object.values(result.scores));
-  
-  let html = `
-    <div style="margin:16px 0;">
-      <p style="font-size:14px; color:#666; margin-bottom:12px;">
-        <strong>${chakraNames[result.type] || result.type}</strong> が最も強いです
-      </p>
-      <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:10px;">
-  `;
-  
-  Object.entries(result.scores).forEach(([chakra, score]) => {
-    const percentage = (score / maxScore) * 100;
-    const name = chakraNames[chakra] || chakra;
-    
-    html += `
-      <div style="padding:8px; background:#f5f5f5; border-radius:6px;">
-        <div style="font-size:12px; color:#666; margin-bottom:4px;">${name}</div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <div style="flex:1; height:6px; background:#ddd; border-radius:3px;">
-            <div style="height:100%; background:#d4a574; border-radius:3px; width:${percentage}%;"></div>
-          </div>
-          <span style="font-size:12px; font-weight:bold;">${score}</span>
-        </div>
-      </div>
-    `;
-  });
-  
-  html += `
-      </div>
-      <p style="margin-top:12px; font-size:12px; color:#999;">
-        診断日: ${new Date(result.date).toLocaleDateString('ja-JP')}
-      </p>
-    </div>
-  `;
-  
-  body.innerHTML = html;
-}
-
-// ────────────────────────────────────────────────────────────
-// 設定画面でのチャクラ結果表示（switchTab 拡張）
-// ────────────────────────────────────────────────────────────
-
-
-
-// ページ読み込み時にも実行
-document.addEventListener('DOMContentLoaded', function() {
-  updateChakraProfileDisplay();
-});
 
 // ===== BODY SUMMARY (からだサマリー) =====
 
@@ -6508,7 +6251,6 @@ async function generateMonthlyReport() {
     
     // 集計
     const totalDays = records.length;
-    const chakraCounts = {};
     const emotionCounts = {};
     const symptomCounts = {};
     const temperatures = [];
@@ -6519,7 +6261,6 @@ async function generateMonthlyReport() {
 
     records.forEach(r => {
       const d = r.data || {};
-      if (d.chakra) chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
       if (d.emotion) emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
       if (d.symptoms && d.symptoms.length > 0) {
         d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
@@ -6873,7 +6614,6 @@ async function runAIAnalysis() {
 }
 
 function buildDataSummary(records) {
-  const chakraCounts = {};
   const emotionCounts = {};
   const symptomCounts = {};
   const temperatures = [];
@@ -6890,10 +6630,6 @@ function buildDataSummary(records) {
     const d = r.data || {};
     const daySummary = { date: r.record_date };
 
-    if (d.chakra) {
-      chakraCounts[d.chakra] = (chakraCounts[d.chakra] || 0) + 1;
-      daySummary.chakra = d.chakra;
-    }
     if (d.emotion) {
       emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
       daySummary.emotion = d.emotion;
@@ -6956,15 +6692,12 @@ function buildDataSummary(records) {
   });
 
   const topSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0];
-  const topChakra = Object.entries(chakraCounts).sort((a, b) => b[1] - a[1])[0];
 
   return {
     totalDays: records.length,
     avgTemp: temperatures.length > 0 ? (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2) : null,
     avgFasting: fastingHours.length > 0 ? (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1) : null,
     topSymptom: topSymptom ? topSymptom[0] + '（' + topSymptom[1] + '日）' : null,
-    topChakra: topChakra ? topChakra[0] + '（' + topChakra[1] + '日）' : null,
-    chakraCounts,
     emotionCounts,
     symptomCounts,
     cycleData,
