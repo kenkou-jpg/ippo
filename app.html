@@ -4477,7 +4477,15 @@ function updateHomeSummary(){
       });
       html += '</div>';
     }
-  
+  fetch('https://www.ippo-app.com/app.html?v='+Date.now()).then(r=>r.text()).then(t=>{
+  var lines=t.split('\n');
+  lines.forEach(function(l,i){
+    if(l.includes('content.innerHTML = html') && i>4300 && i<4500){
+      console.log((i+1)+': '+l.trim().substring(0,80));
+    }
+  });
+});
+
   content.innerHTML = html;
 }
   
@@ -6554,6 +6562,146 @@ function openCorrelationReport(){
   }
 
   html += '<button onclick="document.getElementById(\'corrReportOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">閉じる</button>';
+  html += '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ===== フレアアップ自動検出 =====
+function detectFlareups(records){
+  var sorted = records.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+  var flareups = [];
+  for(var i=1; i<sorted.length; i++){
+    var prev = sorted[i-1];
+    var curr = sorted[i];
+    var reasons = [];
+
+    // 痛みが前日比+3以上
+    if((curr.painLevel||0) - (prev.painLevel||0) >= 3){
+      reasons.push('痛み急上昇 ('+(prev.painLevel||0)+'→'+(curr.painLevel||0)+')');
+    }
+    // ウェルネスが前日比-20以上
+    if((prev.wellnessScore||50) - (curr.wellnessScore||50) >= 20){
+      reasons.push('ウェルネス急低下 ('+(prev.wellnessScore||50)+'→'+(curr.wellnessScore||50)+')');
+    }
+    // 症状が前日比+3以上
+    var prevSym = prev.symptoms ? prev.symptoms.length : 0;
+    var currSym = curr.symptoms ? curr.symptoms.length : 0;
+    if(currSym - prevSym >= 3){
+      reasons.push('症状急増 ('+prevSym+'→'+currSym+'個)');
+    }
+    // エネルギーが前日比-2以上
+    if((prev.energy||3) - (curr.energy||3) >= 2){
+      reasons.push('エネルギー急低下 ('+(prev.energy||3)+'→'+(curr.energy||3)+')');
+    }
+
+    if(reasons.length > 0){
+      var d = new Date(curr.date);
+      flareups.push({
+        date: curr.date,
+        dateStr: (d.getMonth()+1)+'/'+d.getDate(),
+        reasons: reasons,
+        painLevel: curr.painLevel || 0,
+        symptoms: curr.symptoms || [],
+        factors: curr.factors || [],
+        wellness: curr.wellnessScore,
+        energy: curr.energy || 0,
+        prevFactors: prev.factors || []
+      });
+    }
+  }
+  return flareups;
+}
+
+function openFlareupReport(){
+  var flareups = detectFlareups(state.records);
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="flareupOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:92%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+
+  // ヘッダー
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:18px;color:var(--ink);">🔥 フレアアップ検出</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-top:4px;">体調が急変した日を自動検出</div>';
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'flareupOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  if(flareups.length === 0){
+    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">';
+    html += '✨ フレアアップは検出されませんでした。<br>安定した状態が続いているようです。</div>';
+  } else {
+    html += '<div style="font-size:12px;color:var(--ink-mid);margin-bottom:16px;background:var(--rose-pale);padding:10px 14px;border-radius:12px;">';
+    html += '⚠️ '+flareups.length+'件のフレアアップを検出しました</div>';
+
+    flareups.reverse().forEach(function(f){
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);border-left:3px solid var(--rose);">';
+      
+      // 日付とバッジ
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+      html += '<div style="font-size:15px;font-weight:600;color:var(--ink);">'+f.dateStr+'</div>';
+      html += '<div style="display:flex;gap:4px;">';
+      if(f.wellness !== undefined) html += '<span style="font-size:10px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">WS:'+f.wellness+'</span>';
+      if(f.energy) html += '<span style="font-size:10px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;">⚡'+f.energy+'</span>';
+      if(f.painLevel) html += '<span style="font-size:10px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">痛み'+f.painLevel+'</span>';
+      html += '</div></div>';
+
+      // 検出理由
+      html += '<div style="margin-bottom:8px;">';
+      f.reasons.forEach(function(r){
+        html += '<div style="font-size:11px;color:var(--rose);margin-bottom:3px;">🔺 '+r+'</div>';
+      });
+      html += '</div>';
+
+      // 症状
+      if(f.symptoms.length > 0){
+        html += '<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px;">';
+        f.symptoms.forEach(function(s){
+          html += '<span style="font-size:10px;background:var(--warm-light);color:var(--ink-mid);padding:2px 8px;border-radius:8px;">'+s+'</span>';
+        });
+        html += '</div>';
+      }
+
+      // 当日のファクター
+      if(f.factors.length > 0){
+        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:6px;">📋 当日の要因：'+f.factors.join('・')+'</div>';
+      }
+      // 前日のファクター
+      if(f.prevFactors.length > 0){
+        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">📋 前日の要因：'+f.prevFactors.join('・')+'</div>';
+      }
+
+      html += '</div>';
+    });
+
+    // トリガー分析
+    var triggerCounts = {};
+    flareups.forEach(function(f){
+      f.factors.concat(f.prevFactors).forEach(function(fac){
+        triggerCounts[fac] = (triggerCounts[fac] || 0) + 1;
+      });
+    });
+    var triggers = Object.entries(triggerCounts).sort(function(a,b){ return b[1]-a[1]; });
+    if(triggers.length > 0){
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:10px;">🎯 フレアアップ時に多い要因</div>';
+      triggers.slice(0,5).forEach(function(t){
+        var pct = Math.round(t[1] / flareups.length * 100);
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+        html += '<div style="font-size:12px;color:var(--ink-mid);">'+t[0]+'</div>';
+        html += '<div style="display:flex;align-items:center;gap:6px;flex:1;margin-left:12px;">';
+        html += '<div style="flex:1;height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+        html += '<div style="height:100%;width:'+pct+'%;background:var(--rose);border-radius:3px;"></div>';
+        html += '</div>';
+        html += '<div style="font-size:10px;color:var(--ink-light);min-width:32px;text-align:right;">'+t[1]+'回</div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+    }
+  }
+
+  html += '<button onclick="document.getElementById(\'flareupOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">閉じる</button>';
   html += '</div></div>';
 
   document.body.insertAdjacentHTML('beforeend', html);
