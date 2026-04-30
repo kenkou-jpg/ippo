@@ -4366,6 +4366,25 @@ function updateHomeSummary(){
       html += '<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+(ws>=70?'良好な状態です':ws>=40?'まずまずの状態です':'少し注意が必要です')+'</div>';
       html += '</div></div>';
     }
+  
+    // SMIスコア表示
+    if(rec.smiScore !== undefined && rec.smiScore !== null){
+      var smi = rec.smiScore;
+      var smiColor = smi <= 25 ? '#6b9e78' : smi <= 50 ? '#d4a574' : smi <= 75 ? '#c4878c' : '#c44848';
+      var smiLabel = smi <= 25 ? '問題なし' : smi <= 50 ? '注意が必要' : smi <= 75 ? '受診をおすすめ' : '長期的な治療が必要';
+      html += '<div style="margin-top:10px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;">';
+      html += '<div style="font-size:24px;">🌡️</div>';
+      html += '<div style="flex:1;">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
+      html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">更年期指数（SMI）</div>';
+      html += '<div style="font-family:Inter,sans-serif;font-size:18px;font-weight:700;color:'+smiColor+';">'+smi+'<span style="font-size:11px;color:var(--ink-light);">/94</span></div>';
+      html += '</div>';
+      html += '<div style="margin-top:4px;height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+      html += '<div style="height:100%;width:'+Math.min(Math.round(smi/94*100),100)+'%;background:'+smiColor+';border-radius:3px;"></div>';
+      html += '</div>';
+      html += '<div style="font-size:10px;color:'+smiColor+';margin-top:3px;">'+smiLabel+'</div>';
+      html += '</div></div>';
+    }
 
     // エネルギー・睡眠・ファクター・お通じ
     var newExtras = [];
@@ -4381,6 +4400,7 @@ function updateHomeSummary(){
       });
       html += '</div>';
     }
+  
   content.innerHTML = html;
 }
   
@@ -6014,6 +6034,41 @@ function gatherDiseaseData(){
   });
   return data;
 }
+ // ===== 更年期SMI（簡略更年期指数）自動計算 =====
+function calcSMIScore(diseaseCheck){
+  // SMI配点：各症状ごとの重み × 選択肢の重度
+  var smiWeights = {
+    'hot_flash': 10,
+    'sweating': 10,
+    'insomnia': 14,
+    'irritable': 12,
+    'depression': 14,
+    'fatigue': 8,
+    'headache': 8,
+    'palpitation': 8,
+    'shoulder': 5,
+    'numbness': 5
+  };
+  var severityMap = {
+    'なし': 0,
+    '軽い': 0.33,
+    '中程度': 0.66,
+    '強い': 1
+  };
+  var total = 0;
+  var found = false;
+  var keys = Object.keys(smiWeights);
+  for(var i=0;i<keys.length;i++){
+    var qKey = '更年期障害__' + keys[i];
+    if(diseaseCheck[qKey]){
+      found = true;
+      var sev = severityMap[diseaseCheck[qKey]] || 0;
+      total += smiWeights[keys[i]] * sev;
+    }
+  }
+  if(!found) return null;
+  return Math.round(total);
+}
 // ===== ウェルネススコア自動計算 =====
 function calcWellnessScore(rec){
   var score = 50; // ベース
@@ -6214,6 +6269,10 @@ var todayStr = targetDate.toDateString();
     rec.bowel = data.bowel;
     rec.diseases = data.diseases;
     rec.wellnessScore = calcWellnessScore(rec);
+        // 更年期SMIスコア
+    var smi = calcSMIScore(rec.diseaseCheck || {});
+    if(smi !== null) rec.smiScore = smi;
+
 
 
     // 新規の場合のみ配列に追加
