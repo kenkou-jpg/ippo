@@ -6119,6 +6119,105 @@ function calcWellnessScore(rec){
   // 0〜100にクランプ
   return Math.max(0, Math.min(100, Math.round(score)));
 }
+// ===== ファクター相関計算 =====
+function calcFactorCorrelations(records){
+  // 各ファクターの有無で、他のメトリクスの平均を比較する
+  var factorSet = {};
+  records.forEach(function(r){
+    if(r.factors && r.factors.length){
+      r.factors.forEach(function(f){ factorSet[f] = true; });
+    }
+  });
+
+  var factors = Object.keys(factorSet);
+  if(!factors.length) return {};
+
+  var results = {};
+
+  factors.forEach(function(factor){
+    var withDays = [];
+    var withoutDays = [];
+
+    records.forEach(function(r){
+      var hasFactor = r.factors && r.factors.indexOf(factor) !== -1;
+      var day = {
+        energy: r.energy || null,
+        sleepQuality: r.sleepQuality || null,
+        sleepHours: r.sleepHours || null,
+        painLevel: r.painLevel || null,
+        symptomCount: (r.symptoms && r.symptoms.length) || 0,
+        wellnessScore: r.wellnessScore !== undefined ? r.wellnessScore : null
+      };
+      if(hasFactor) withDays.push(day);
+      else withoutDays.push(day);
+    });
+
+    if(withDays.length < 2 || withoutDays.length < 2) return;
+
+    var metrics = ['energy','sleepQuality','sleepHours','painLevel','symptomCount','wellnessScore'];
+    var comparison = { days: withDays.length, totalDays: records.length };
+
+    metrics.forEach(function(m){
+      var wVals = withDays.filter(function(d){ return d[m] !== null; }).map(function(d){ return d[m]; });
+      var woVals = withoutDays.filter(function(d){ return d[m] !== null; }).map(function(d){ return d[m]; });
+      if(wVals.length >= 2 && woVals.length >= 2){
+        var wAvg = wVals.reduce(function(a,b){ return a+b; },0) / wVals.length;
+        var woAvg = woVals.reduce(function(a,b){ return a+b; },0) / woVals.length;
+        var diff = wAvg - woAvg;
+        var pct = woAvg !== 0 ? Math.round((diff / Math.abs(woAvg)) * 100) : 0;
+        comparison[m] = {
+          with: Math.round(wAvg * 10) / 10,
+          without: Math.round(woAvg * 10) / 10,
+          diff: Math.round(diff * 10) / 10,
+          pct: pct
+        };
+      }
+    });
+
+    // 症状別の出現率比較
+    var symptomWithRate = {};
+    var symptomWithoutRate = {};
+    withDays.forEach(function(d, idx){
+      var r = records.filter(function(rec){ return rec.factors && rec.factors.indexOf(factor) !== -1; })[idx];
+      if(r && r.symptoms){
+        r.symptoms.forEach(function(s){ symptomWithRate[s] = (symptomWithRate[s]||0) + 1; });
+      }
+    });
+    withoutDays.forEach(function(d, idx){
+      var r = records.filter(function(rec){ return !rec.factors || rec.factors.indexOf(factor) === -1; })[idx];
+      if(r && r.symptoms){
+        r.symptoms.forEach(function(s){ symptomWithoutRate[s] = (symptomWithoutRate[s]||0) + 1; });
+      }
+    });
+
+    var symptomEffects = {};
+    Object.keys(symptomWithRate).forEach(function(s){
+      var wRate = symptomWithRate[s] / withDays.length;
+      var woRate = (symptomWithoutRate[s] || 0) / withoutDays.length;
+      if(wRate > 0 && woRate > 0){
+        symptomEffects[s] = {
+          withRate: Math.round(wRate * 100),
+          withoutRate: Math.round(woRate * 100),
+          ratio: Math.round((wRate / woRate) * 10) / 10
+        };
+      } else if(wRate > 0){
+        symptomEffects[s] = {
+          withRate: Math.round(wRate * 100),
+          withoutRate: 0,
+          ratio: '∞'
+        };
+      }
+    });
+
+    if(Object.keys(symptomEffects).length > 0){
+      comparison.symptomEffects = symptomEffects;
+    }
+
+    results[factor] = comparison;
+  });
+
+  return results;
+}
 
 function gatherRecordData(){
   var mealFree = (document.getElementById('rs-meal-free')||{}).value||'';
