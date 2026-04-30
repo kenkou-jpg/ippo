@@ -5792,7 +5792,7 @@ function gatherRecordData(){
     painLocation: painLocation,
     painType: painType,
     painLevel: painLevel,
-    medication: medication
+    medication: medication,
     bloodClot: (function(){ var r=[]; document.querySelectorAll('#rs-blood-clot .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
     bloodColor: (function(){ var r=[]; document.querySelectorAll('#rs-blood-color .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })()
   };
