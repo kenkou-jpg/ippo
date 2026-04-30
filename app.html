@@ -2292,6 +2292,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="pf-arrow">→</div>
         </div>
+                <div class="pf-card" onclick="premiumGate(openExperiments)">
+          <div class="pf-icon">🧪</div>
+          <div class="pf-text">
+            <div class="pf-title">ヘルスエクスペリメント<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">仮説を立てて30日間検証</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
       </div>
     </div>
 
@@ -3176,6 +3184,227 @@ function openCyclePhaseReport(){
 
   document.body.insertAdjacentHTML('beforeend', html);
 }
+  // ===== ヘルスエクスペリメント =====
+var EXPERIMENT_PRESETS = [
+  {title:'グルテンフリー30日', factor:'グルテン', condition:'avoid', days:30, hypothesis:'グルテンを避けると腹部症状が改善する'},
+  {title:'毎日30分の運動', factor:'運動した', condition:'do', days:30, hypothesis:'運動習慣でエネルギーと睡眠の質が改善する'},
+  {title:'カフェイン断ち14日', factor:'カフェイン', condition:'avoid', days:14, hypothesis:'カフェインを控えると睡眠の質が上がる'},
+  {title:'就寝前スマホなし14日', factor:'夜更かし', condition:'avoid', days:14, hypothesis:'夜更かしを避けると睡眠の質が改善する'},
+  {title:'毎日入浴・半身浴21日', factor:'入浴・半身浴', condition:'do', days:21, hypothesis:'入浴習慣で痛みやストレスが軽減する'},
+  {title:'アルコール断ち30日', factor:'アルコール', condition:'avoid', days:30, hypothesis:'禁酒で睡眠の質とウェルネスが改善する'}
+];
+
+function openExperiments(){
+  var experiments = state.experiments || [];
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="expOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:92%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+
+  // ヘッダー
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:18px;color:var(--ink);">🧪 ヘルスエクスペリメント</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-top:4px;">仮説を立てて、自分のからだで検証する</div>';
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'expOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  // 進行中の実験
+  var active = experiments.filter(function(e){ return e.status === 'active'; });
+  if(active.length > 0){
+    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">進行中</div>';
+    active.forEach(function(exp, idx){
+      var start = new Date(exp.startDate);
+      var now = new Date();
+      var elapsed = Math.floor((now - start) / 86400000);
+      var progress = Math.min(100, Math.round(elapsed / exp.days * 100));
+      var remaining = Math.max(0, exp.days - elapsed);
+
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);border-left:3px solid var(--sage);">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+      html += '<div style="font-size:14px;font-weight:500;color:var(--ink);">🧪 '+exp.title+'</div>';
+      html += '<div style="font-size:10px;color:var(--sage);background:var(--sage-light);padding:2px 8px;border-radius:8px;">残り'+remaining+'日</div>';
+      html += '</div>';
+      html += '<div style="font-size:11px;color:var(--ink-mid);margin-bottom:10px;">💡 '+exp.hypothesis+'</div>';
+
+      // プログレスバー
+      html += '<div style="height:8px;background:#e8ddd8;border-radius:4px;overflow:hidden;margin-bottom:8px;">';
+      html += '<div style="height:100%;width:'+progress+'%;background:var(--sage);border-radius:4px;transition:width 0.3s;"></div>';
+      html += '</div>';
+      html += '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);">';
+      html += '<span>'+elapsed+'/'+exp.days+'日経過</span>';
+      html += '<span>'+progress+'%</span>';
+      html += '</div>';
+
+      // 完了判定
+      if(elapsed >= exp.days){
+        html += '<button onclick="completeExperiment('+idx+')" style="width:100%;margin-top:10px;padding:10px;background:var(--sage);color:white;border:none;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">📊 結果を見る</button>';
+      } else {
+        html += '<button onclick="cancelExperiment('+idx+')" style="width:100%;margin-top:10px;padding:8px;background:transparent;color:var(--ink-light);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">中止する</button>';
+      }
+      html += '</div>';
+    });
+  }
+
+  // 完了した実験
+  var completed = experiments.filter(function(e){ return e.status === 'completed'; });
+  if(completed.length > 0){
+    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin:16px 0 10px;">完了済み</div>';
+    completed.forEach(function(exp){
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+      html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">✅ '+exp.title+'</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);">'+exp.days+'日間</div>';
+      html += '</div>';
+      if(exp.result){
+        html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">'+exp.result+'</div>';
+      }
+      html += '</div>';
+    });
+  }
+
+  // 新しい実験を始める
+  html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin:16px 0 10px;">新しい実験を始める</div>';
+
+  // プリセット
+  EXPERIMENT_PRESETS.forEach(function(preset, idx){
+    var alreadyActive = active.some(function(e){ return e.title === preset.title; });
+    html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px var(--shadow);display:flex;align-items:center;gap:12px;'+(alreadyActive?'opacity:0.5;':'')+'">';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">'+preset.title+'</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'+preset.hypothesis+'</div>';
+    html += '</div>';
+    if(!alreadyActive){
+      html += '<button onclick="startExperiment('+idx+')" style="padding:8px 14px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;white-space:nowrap;">開始</button>';
+    } else {
+      html += '<span style="font-size:10px;color:var(--sage);">実施中</span>';
+    }
+    html += '</div>';
+  });
+
+  // カスタム実験
+  html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px var(--shadow);">';
+  html += '<div style="font-size:12px;color:var(--ink);margin-bottom:8px;">✏️ オリジナル実験を作成</div>';
+  html += '<input type="text" id="exp-custom-title" placeholder="実験名（例：乳製品を控える）" style="width:100%;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;margin-bottom:6px;background:var(--cream);color:var(--ink);outline:none;box-sizing:border-box;">';
+  html += '<input type="text" id="exp-custom-hypothesis" placeholder="仮説（例：乳製品を避けるとお腹の張りが減る）" style="width:100%;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;margin-bottom:6px;background:var(--cream);color:var(--ink);outline:none;box-sizing:border-box;">';
+  html += '<div style="display:flex;gap:8px;align-items:center;">';
+  html += '<select id="exp-custom-days" style="flex:1;padding:8px;border:1px solid #e8ddd8;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:var(--cream);color:var(--ink);">';
+  html += '<option value="7">7日間</option><option value="14">14日間</option><option value="21">21日間</option><option value="30" selected>30日間</option>';
+  html += '</select>';
+  html += '<button onclick="startCustomExperiment()" style="padding:8px 16px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">作成</button>';
+  html += '</div></div>';
+
+  html += '<button onclick="document.getElementById(\'expOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:12px;">閉じる</button>';
+  html += '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function startExperiment(presetIdx){
+  var preset = EXPERIMENT_PRESETS[presetIdx];
+  if(!state.experiments) state.experiments = [];
+  state.experiments.push({
+    title: preset.title,
+    factor: preset.factor,
+    condition: preset.condition,
+    hypothesis: preset.hypothesis,
+    days: preset.days,
+    startDate: new Date().toISOString(),
+    status: 'active'
+  });
+  saveState();
+  document.getElementById('expOverlay').remove();
+  openExperiments();
+}
+
+function startCustomExperiment(){
+  var title = (document.getElementById('exp-custom-title')||{}).value||'';
+  var hypothesis = (document.getElementById('exp-custom-hypothesis')||{}).value||'';
+  var days = parseInt((document.getElementById('exp-custom-days')||{}).value) || 30;
+  if(!title.trim()){
+    alert('実験名を入力してください');
+    return;
+  }
+  if(!state.experiments) state.experiments = [];
+  state.experiments.push({
+    title: title.trim(),
+    factor: '',
+    condition: 'custom',
+    hypothesis: hypothesis.trim() || '（仮説未設定）',
+    days: days,
+    startDate: new Date().toISOString(),
+    status: 'active'
+  });
+  saveState();
+  document.getElementById('expOverlay').remove();
+  openExperiments();
+}
+
+function cancelExperiment(idx){
+  if(!confirm('この実験を中止しますか？')) return;
+  state.experiments[idx].status = 'cancelled';
+  saveState();
+  document.getElementById('expOverlay').remove();
+  openExperiments();
+}
+
+function completeExperiment(idx){
+  var exp = state.experiments[idx];
+  var start = new Date(exp.startDate);
+  var end = new Date(start.getTime() + exp.days * 86400000);
+
+  // 実験前の期間（同じ日数だけ遡る）
+  var preStart = new Date(start.getTime() - exp.days * 86400000);
+  var preRecs = state.records.filter(function(r){
+    var d = new Date(r.date);
+    return d >= preStart && d < start;
+  });
+  var duringRecs = state.records.filter(function(r){
+    var d = new Date(r.date);
+    return d >= start && d <= end;
+  });
+
+  var calcAvg = function(recs, key){
+    var vals = recs.map(function(r){ return r[key]; }).filter(function(v){ return v !== undefined && v !== null && v !== 0; });
+    if(vals.length === 0) return null;
+    return Math.round(vals.reduce(function(a,b){return a+b;},0) / vals.length * 10) / 10;
+  };
+
+  var metrics = ['energy','sleepQuality','painLevel','wellnessScore'];
+  var metricLabels = {energy:'エネルギー',sleepQuality:'睡眠の質',painLevel:'痛み',wellnessScore:'ウェルネス'};
+  var result = '📊 実験結果（'+exp.days+'日間）\n\n';
+
+  metrics.forEach(function(m){
+    var pre = calcAvg(preRecs, m);
+    var during = calcAvg(duringRecs, m);
+    if(pre !== null && during !== null){
+      var diff = Math.round((during - pre) * 10) / 10;
+      var arrow = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      result += metricLabels[m] + '：' + pre + ' → ' + during + ' (' + arrow + Math.abs(diff) + ')\n';
+    }
+  });
+
+  // 症状数比較
+  var preSymAvg = calcAvg(preRecs.map(function(r){ return {symptomCount: r.symptoms ? r.symptoms.length : 0}; }).map(function(r){ return {painLevel: r.symptomCount}; }), 'painLevel');
+  var duringSymAvg = calcAvg(duringRecs.map(function(r){ return {symptomCount: r.symptoms ? r.symptoms.length : 0}; }).map(function(r){ return {painLevel: r.symptomCount}; }), 'painLevel');
+  if(preSymAvg !== null && duringSymAvg !== null){
+    var symDiff = Math.round((duringSymAvg - preSymAvg) * 10) / 10;
+    var symArrow = symDiff > 0 ? '↑' : symDiff < 0 ? '↓' : '→';
+    result += '症状数：' + preSymAvg + ' → ' + duringSymAvg + ' (' + symArrow + Math.abs(symDiff) + ')\n';
+  }
+
+  if(preRecs.length < 3 || duringRecs.length < 3){
+    result += '\n⚠️ データが少ないため参考値です（実験前'+preRecs.length+'日/実験中'+duringRecs.length+'日）';
+  }
+
+  exp.status = 'completed';
+  exp.result = result;
+  exp.endDate = new Date().toISOString();
+  saveState();
+  document.getElementById('expOverlay').remove();
+  openExperiments();
+}
+
 
 function toggleDiseaseChip(btn, name){
   var sel = btn.style.borderColor === 'var(--rose)';
