@@ -1834,6 +1834,47 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
+      <!-- 比較グラフ（Comparison Chart） -->
+      <div class="section-card" style="margin:0 20px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMPARISON CHART</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">比較グラフ</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+          <select id="cg-metric1" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
+            <option value="energy">エネルギー</option>
+            <option value="sleepQuality">睡眠の質</option>
+            <option value="sleepHours">睡眠時間</option>
+            <option value="painLevel">痛みレベル</option>
+            <option value="wellnessScore">ウェルネス</option>
+            <option value="smiScore">SMI</option>
+            <option value="symptomCount">症状数</option>
+          </select>
+          <select id="cg-metric2" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
+            <option value="">なし（単独表示）</option>
+            <option value="energy">エネルギー</option>
+            <option value="sleepQuality" selected>睡眠の質</option>
+            <option value="sleepHours">睡眠時間</option>
+            <option value="painLevel">痛みレベル</option>
+            <option value="wellnessScore">ウェルネス</option>
+            <option value="smiScore">SMI</option>
+            <option value="symptomCount">症状数</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;">
+          <button class="cg-range-btn" onclick="setCGRange(7,this)" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">7日</button>
+          <button class="cg-range-btn selected" onclick="setCGRange(30,this)" style="padding:5px 12px;border:1px solid var(--rose);border-radius:8px;font-size:10px;background:var(--rose-pale);color:var(--rose);cursor:pointer;">30日</button>
+          <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(90)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">90日<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
+          <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(365)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">1年<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="cg-factor-toggles"></div>
+        <div id="cg-chart-container" style="width:100%;overflow-x:auto;">
+          <svg id="cg-chart" width="100%" height="200" style="min-width:300px;"></svg>
+        </div>
+        <div id="cg-legend" style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--ink-light);"></div>
+      </div>
 
 
             <!-- Community Voice -->
@@ -6246,7 +6287,174 @@ function calcFactorCorrelations(records){
 
   return results;
 }
+// ===== 比較グラフ =====
+var _cgRange = 30;
+var _cgFactors = {};
 
+function setCGRange(days, btn){
+  _cgRange = days;
+  if(btn){
+    document.querySelectorAll('.cg-range-btn').forEach(function(b){
+      b.style.background='var(--white)'; b.style.color='var(--ink-mid)'; b.style.borderColor='#e8ddd8';
+    });
+    btn.style.background='var(--rose-pale)'; btn.style.color='var(--rose)'; btn.style.borderColor='var(--rose)';
+  }
+  renderComparisonChart();
+}
+
+function toggleCGFactor(factor, btn){
+  _cgFactors[factor] = !_cgFactors[factor];
+  btn.style.background = _cgFactors[factor] ? 'var(--rose-pale)' : 'var(--white)';
+  btn.style.color = _cgFactors[factor] ? 'var(--rose)' : 'var(--ink-mid)';
+  btn.style.borderColor = _cgFactors[factor] ? 'var(--rose)' : '#e8ddd8';
+  renderComparisonChart();
+}
+
+function getMetricValue(rec, metric){
+  if(metric === 'symptomCount') return rec.symptoms ? rec.symptoms.length : 0;
+  return rec[metric] || 0;
+}
+
+function getMetricLabel(metric){
+  var labels = {
+    energy:'エネルギー', sleepQuality:'睡眠の質', sleepHours:'睡眠時間',
+    painLevel:'痛み', wellnessScore:'ウェルネス', smiScore:'SMI', symptomCount:'症状数'
+  };
+  return labels[metric] || metric;
+}
+
+function getMetricMax(metric){
+  var maxes = {
+    energy:5, sleepQuality:5, sleepHours:12,
+    painLevel:10, wellnessScore:100, smiScore:94, symptomCount:15
+  };
+  return maxes[metric] || 10;
+}
+
+function renderComparisonChart(){
+  var svg = document.getElementById('cg-chart');
+  var legend = document.getElementById('cg-legend');
+  var toggles = document.getElementById('cg-factor-toggles');
+  if(!svg) return;
+
+  var m1 = (document.getElementById('cg-metric1')||{}).value || 'energy';
+  var m2 = (document.getElementById('cg-metric2')||{}).value || '';
+
+  // 期間内レコード取得
+  var now = new Date();
+  var cutoff = new Date(now.getTime() - _cgRange * 86400000);
+  var recs = state.records.filter(function(r){
+    return new Date(r.date) >= cutoff;
+  }).sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+
+  if(recs.length < 2){
+    svg.innerHTML = '<text x="50%" y="100" text-anchor="middle" fill="#9a8880" font-size="12">データが不足しています（2日以上の記録が必要）</text>';
+    if(legend) legend.innerHTML = '';
+    return;
+  }
+
+  // ファクタートグル生成
+  var allFactors = {};
+  recs.forEach(function(r){
+    if(r.factors) r.factors.forEach(function(f){ allFactors[f] = true; });
+  });
+  if(toggles){
+    var tHtml = '';
+    Object.keys(allFactors).forEach(function(f){
+      var active = _cgFactors[f];
+      tHtml += '<button onclick="toggleCGFactor(\''+f+'\',this)" style="padding:3px 8px;border:1px solid '+(active?'var(--rose)':'#e8ddd8')+';border-radius:6px;font-size:9px;background:'+(active?'var(--rose-pale)':'var(--white)')+';color:'+(active?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;">'+f+'</button>';
+    });
+    toggles.innerHTML = tHtml;
+  }
+
+  // SVG描画設定
+  var W = Math.max(300, recs.length * 28);
+  var H = 180;
+  var padL = 30, padR = 10, padT = 15, padB = 30;
+  var chartW = W - padL - padR;
+  var chartH = H - padT - padB;
+
+  svg.setAttribute('width', W);
+  svg.setAttribute('height', H);
+
+  var html = '';
+
+  // 背景のファクターハイライト
+  var activeFactors = Object.keys(_cgFactors).filter(function(f){ return _cgFactors[f]; });
+  if(activeFactors.length > 0){
+    recs.forEach(function(r, idx){
+      var hasAny = r.factors && activeFactors.some(function(f){ return r.factors.indexOf(f) !== -1; });
+      if(hasAny){
+        var x = padL + (idx / (recs.length - 1)) * chartW;
+        html += '<rect x="'+(x-8)+'" y="'+padT+'" width="16" height="'+chartH+'" fill="rgba(255,107,107,0.08)" rx="4"/>';
+      }
+    });
+  }
+
+  // グリッド線
+  for(var g=0;g<=4;g++){
+    var gy = padT + (g/4) * chartH;
+    html += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'" stroke="#f0ebe6" stroke-width="1"/>';
+  }
+
+  // 指標1の折れ線
+  var max1 = getMetricMax(m1);
+  var points1 = [];
+  recs.forEach(function(r, idx){
+    var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
+    var v = getMetricValue(r, m1);
+    var y = padT + chartH - (v / max1) * chartH;
+    points1.push(x+','+y);
+  });
+  html += '<polyline points="'+points1.join(' ')+'" fill="none" stroke="var(--rose)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
+  // ドット
+  points1.forEach(function(p){
+    var xy = p.split(',');
+    html += '<circle cx="'+xy[0]+'" cy="'+xy[1]+'" r="3" fill="var(--rose)"/>';
+  });
+
+  // 指標2の折れ線
+  if(m2){
+    var max2 = getMetricMax(m2);
+    var points2 = [];
+    recs.forEach(function(r, idx){
+      var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
+      var v = getMetricValue(r, m2);
+      var y = padT + chartH - (v / max2) * chartH;
+      points2.push(x+','+y);
+    });
+    html += '<polyline points="'+points2.join(' ')+'" fill="none" stroke="var(--sage)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3"/>';
+    points2.forEach(function(p){
+      var xy = p.split(',');
+      html += '<circle cx="'+xy[0]+'" cy="'+xy[1]+'" r="3" fill="var(--sage)"/>';
+    });
+  }
+
+  // X軸ラベル（間引き）
+  var step = Math.max(1, Math.floor(recs.length / 6));
+  recs.forEach(function(r, idx){
+    if(idx % step === 0 || idx === recs.length - 1){
+      var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
+      var d = new Date(r.date);
+      var label = (d.getMonth()+1)+'/'+d.getDate();
+      html += '<text x="'+x+'" y="'+(H-5)+'" text-anchor="middle" fill="#9a8880" font-size="9">'+label+'</text>';
+    }
+  });
+
+  svg.innerHTML = html;
+
+  // 凡例
+  if(legend){
+    var lHtml = '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--rose);border-radius:2px;"></span>'+getMetricLabel(m1)+'</span>';
+    if(m2){
+      lHtml += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--sage);border-radius:2px;border-top:1px dashed var(--sage);"></span>'+getMetricLabel(m2)+'</span>';
+    }
+    if(activeFactors.length > 0){
+      lHtml += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:8px;background:rgba(255,107,107,0.15);border-radius:2px;"></span>'+activeFactors.join('・')+'</span>';
+    }
+    legend.innerHTML = lHtml;
+  }
+}
 function gatherRecordData(){
   var mealFree = (document.getElementById('rs-meal-free')||{}).value||'';
   var parsed = parseMealMemo(mealFree);
