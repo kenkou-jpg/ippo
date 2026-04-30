@@ -5354,6 +5354,36 @@ function openRecordScreen(){
           if(c.textContent === editRec.menstrualCycle) c.classList.add('selected');
         });
       }
+            // 痛みの詳細を復元
+      if(editRec.painLocation && editRec.painLocation.length){
+        document.querySelectorAll('#rs-pain-location .chip').forEach(function(c){
+          if(editRec.painLocation.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      if(editRec.painType && editRec.painType.length){
+        document.querySelectorAll('#rs-pain-type .chip').forEach(function(c){
+          if(editRec.painType.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
+      if(editRec.painLevel){
+        var pl = document.getElementById('rs-pain-level');
+        var pld = document.getElementById('pain-level-display');
+        if(pl){ pl.value = editRec.painLevel; }
+        if(pld){ pld.textContent = editRec.painLevel; }
+      }
+      // 痛みセクション表示制御
+      var painSection = document.getElementById('pain-detail-section');
+      if(painSection){
+        var hasPain = (editRec.painLocation && editRec.painLocation.length) || (editRec.painLevel && editRec.painLevel > 0);
+        var hasPainSymptom = editRec.symptoms && (editRec.symptoms.indexOf('下腹部痛') !== -1 || editRec.symptoms.indexOf('腰痛') !== -1 || editRec.symptoms.indexOf('頭痛') !== -1);
+        painSection.style.display = (hasPain || hasPainSymptom) ? 'block' : 'none';
+      }
+      // 服薬を復元
+      if(editRec.medication && editRec.medication.length){
+        document.querySelectorAll('#rs-medication .chip').forEach(function(c){
+          if(editRec.medication.indexOf(c.textContent) !== -1) c.classList.add('selected');
+        });
+      }
       if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
     }
     // 編集モードでは下書き復元をスキップ
