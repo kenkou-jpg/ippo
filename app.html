@@ -2276,6 +2276,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="pf-arrow">→</div>
         </div>
+           <div class="pf-card" onclick="premiumGate(openFlareupReport)">
+          <div class="pf-icon">🔥</div>
+          <div class="pf-text">
+            <div class="pf-title">フレアアップ分析<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">体調急変のトリガーを特定</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
       </div>
     </div>
 
@@ -4477,14 +4485,20 @@ function updateHomeSummary(){
       });
       html += '</div>';
     }
-  fetch('https://www.ippo-app.com/app.html?v='+Date.now()).then(r=>r.text()).then(t=>{
-  var lines=t.split('\n');
-  lines.forEach(function(l,i){
-    if(l.includes('content.innerHTML = html') && i>4300 && i<4500){
-      console.log((i+1)+': '+l.trim().substring(0,80));
+     // フレアアップ通知（直近3日以内）
+    var recentFlares = detectFlareups(state.records).filter(function(f){
+      return (Date.now() - new Date(f.date).getTime()) < 3 * 86400000;
+    });
+    if(recentFlares.length > 0){
+      html += '<div onclick="openFlareupReport()" style="margin-top:12px;background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;">';
+      html += '<div style="font-size:22px;">🔥</div>';
+      html += '<div style="flex:1;">';
+      html += '<div style="font-size:12px;font-weight:500;color:var(--rose);">フレアアップを検出</div>';
+      html += '<div style="font-size:11px;color:var(--ink-mid);margin-top:2px;">'+recentFlares[recentFlares.length-1].reasons[0]+'</div>';
+      html += '</div>';
+      html += '<div style="font-size:12px;color:var(--rose);">詳細 →</div>';
+      html += '</div>';
     }
-  });
-});
 
   content.innerHTML = html;
 }
