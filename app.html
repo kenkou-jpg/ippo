@@ -1875,7 +1875,31 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
         <div id="cg-legend" style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--ink-light);"></div>
       </div>
-
+      <!-- Timeline -->
+      <div class="section-card" style="margin:0 20px 20px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">TIMELINE</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">タイムライン</div>
+          </div>
+          <div style="font-size:10px;color:var(--ink-light);" id="tl-count"></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;">
+          <input type="text" id="tl-search" placeholder="🔍 症状・要因・メモで検索" oninput="renderTimeline()" style="flex:1;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);outline:none;">
+          <select id="tl-filter" onchange="renderTimeline()" style="padding:8px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+            <option value="all">すべて</option>
+            <option value="pain">痛みあり</option>
+            <option value="flare">フレアアップ</option>
+            <option value="period">生理中</option>
+            <option value="high-energy">高エネルギー</option>
+            <option value="low-energy">低エネルギー</option>
+          </select>
+        </div>
+        <div id="tl-list" style="max-height:400px;overflow-y:auto;"></div>
+        <div id="tl-more" style="display:none;text-align:center;margin-top:10px;">
+          <button onclick="loadMoreTimeline()" style="padding:8px 20px;background:var(--white);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink-mid);cursor:pointer;">もっと見る</button>
+        </div>
+      </div>
 
             <!-- Community Voice -->
        <div class="section-card" style="margin:0 20px 20px;">
@@ -3404,7 +3428,122 @@ function completeExperiment(idx){
   document.getElementById('expOverlay').remove();
   openExperiments();
 }
+// ===== タイムライン =====
+var _tlPage = 1;
+var _tlPerPage = 15;
 
+function renderTimeline(){
+  _tlPage = 1;
+  updateTimelineView();
+}
+
+function loadMoreTimeline(){
+  _tlPage++;
+  updateTimelineView();
+}
+
+function updateTimelineView(){
+  var list = document.getElementById('tl-list');
+  var countEl = document.getElementById('tl-count');
+  var moreBtn = document.getElementById('tl-more');
+  if(!list) return;
+
+  var search = ((document.getElementById('tl-search')||{}).value||'').trim().toLowerCase();
+  var filter = (document.getElementById('tl-filter')||{}).value || 'all';
+
+  // フレアアップ日を事前計算
+  var flareDates = {};
+  detectFlareups(state.records).forEach(function(f){
+    flareDates[new Date(f.date).toDateString()] = f;
+  });
+
+  // フィルタリング
+  var filtered = state.records.filter(function(r){
+    // 検索
+    if(search){
+      var haystack = (
+        (r.symptoms||[]).join(' ') + ' ' +
+        (r.factors||[]).join(' ') + ' ' +
+        (r.note||'') + ' ' +
+        (r.bowel||'') + ' ' +
+        (r.menstrualCycle||'') + ' ' +
+        (r.medication||[]).join(' ')
+      ).toLowerCase();
+      if(haystack.indexOf(search) === -1) return false;
+    }
+
+    // フィルタ
+    var ds = new Date(r.date).toDateString();
+    if(filter === 'pain') return r.painLevel && r.painLevel > 0;
+    if(filter === 'flare') return !!flareDates[ds];
+    if(filter === 'period') return r.menstrualCycle && r.menstrualCycle !== 'なし';
+    if(filter === 'high-energy') return r.energy && r.energy >= 4;
+    if(filter === 'low-energy') return r.energy && r.energy <= 2;
+    return true;
+  });
+
+  // 日付降順
+  filtered.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+
+  if(countEl) countEl.textContent = filtered.length + '件';
+
+  var show = filtered.slice(0, _tlPage * _tlPerPage);
+  if(moreBtn) moreBtn.style.display = show.length < filtered.length ? 'block' : 'none';
+
+  if(show.length === 0){
+    list.innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--ink-light);font-size:12px;">'+(search||filter!=='all'?'条件に一致する記録がありません':'まだ記録がありません')+'</div>';
+    return;
+  }
+
+  var html = '';
+  show.forEach(function(r){
+    var d = new Date(r.date);
+    var ds = d.toDateString();
+    var dateStr = (d.getMonth()+1)+'/'+d.getDate()+'（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
+    var isFlare = !!flareDates[ds];
+
+    html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px var(--shadow);'+(isFlare?'border-left:3px solid var(--rose);':'')+'cursor:pointer;" onclick="editPastRecord(\''+r.date+'\')">';
+
+    // ヘッダー行
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">'+dateStr+'</div>';
+    html += '<div style="display:flex;gap:4px;">';
+    if(r.wellnessScore !== undefined) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:'+(r.wellnessScore>=70?'#e8f4ec':r.wellnessScore>=40?'var(--warm-light)':'#fde8e8')+';color:'+(r.wellnessScore>=70?'#4a7c5c':r.wellnessScore>=40?'#a07840':'#c4878c')+';">WS:'+r.wellnessScore+'</span>';
+    if(r.energy) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:#e8f4ec;color:#4a7c5c;">⚡'+r.energy+'</span>';
+    if(isFlare) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:#fde8e8;color:var(--rose);">🔥</span>';
+    if(r.menstrualCycle && r.menstrualCycle !== 'なし') html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:var(--rose-pale);color:var(--rose);">🌸'+r.menstrualCycle+'</span>';
+    html += '</div></div>';
+
+    // コンテンツ行
+    var tags = [];
+    if(r.symptoms && r.symptoms.length) tags = tags.concat(r.symptoms.slice(0,4));
+    if(r.painLevel && r.painLevel > 0) tags.push('痛み'+r.painLevel+'/10');
+    if(r.sleepHours) tags.push('😴'+r.sleepHours+'h');
+    if(r.bowel) tags.push('🫧'+r.bowel);
+    if(r.factors && r.factors.length) tags = tags.concat(r.factors.slice(0,3).map(function(f){return '📋'+f;}));
+    if(r.medication && r.medication.length) tags.push('💊'+r.medication.join('・'));
+
+    if(tags.length > 0){
+      html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
+      tags.forEach(function(t){
+        html += '<span style="font-size:9px;background:var(--cream);color:var(--ink-mid);padding:2px 7px;border-radius:6px;">'+t+'</span>';
+      });
+      html += '</div>';
+    }
+
+    if(r.note){
+      html += '<div style="font-size:10px;color:var(--ink-light);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝 '+r.note.substring(0,50)+'</div>';
+    }
+
+    html += '</div>';
+  });
+
+  if(_tlPage === 1){
+    list.innerHTML = html;
+  } else {
+    list.innerHTML += html;
+  }
+}
 
 function toggleDiseaseChip(btn, name){
   var sel = btn.style.borderColor === 'var(--rose)';
