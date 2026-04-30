@@ -2076,6 +2076,37 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="chip" onclick="toggleRsChip(this)">おりもの</div>
       <div class="chip" onclick="toggleRsChip(this)">胸の張り</div>
     </div>
+      <div class="section-card" id="pain-detail-section" style="display:none;">
+    <div class="section-label">PAIN DETAIL</div>
+    <div class="section-title serif">痛みの詳細</div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
+      <div class="chips" id="rs-pain-location">
+        <div class="chip" onclick="toggleRsChip(this)">左下腹部</div>
+        <div class="chip" onclick="toggleRsChip(this)">右下腹部</div>
+        <div class="chip" onclick="toggleRsChip(this)">下腹部全体</div>
+        <div class="chip" onclick="toggleRsChip(this)">腰</div>
+        <div class="chip" onclick="toggleRsChip(this)">骨盤周り</div>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの種類</div>
+      <div class="chips" id="rs-pain-type">
+        <div class="chip" onclick="toggleRsChip(this)">鈍痛</div>
+        <div class="chip" onclick="toggleRsChip(this)">鋭痛</div>
+        <div class="chip" onclick="toggleRsChip(this)">差し込み</div>
+        <div class="chip" onclick="toggleRsChip(this)">圧迫感</div>
+        <div class="chip" onclick="toggleRsChip(this)">張り</div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
+      <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value" style="width:100%;accent-color:var(--rose);">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
+        <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
+      </div>
+    </div>
+  </div>
   </div>
   <div class="section-card">
     <div class="section-label">MENSTRUAL CYCLE</div>
@@ -2086,6 +2117,19 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="chip" onclick="selectRsCycle(this,'normal')">普通</div>
       <div class="chip" onclick="selectRsCycle(this,'heavy')">多い</div>
       <div class="chip" onclick="selectRsCycle(this,'spotting')">不正出血</div>
+    </div>
+  </div>
+    <div class="section-card">
+    <div class="section-label">MEDICATION</div>
+    <div class="section-title serif">服薬・サプリ</div>
+    <div class="chips" id="rs-medication">
+      <div class="chip" onclick="toggleRsChip(this)">低用量ピル</div>
+      <div class="chip" onclick="toggleRsChip(this)">ジエノゲスト</div>
+      <div class="chip" onclick="toggleRsChip(this)">漢方薬</div>
+      <div class="chip" onclick="toggleRsChip(this)">鎮痛剤</div>
+      <div class="chip" onclick="toggleRsChip(this)">鉄剤</div>
+      <div class="chip" onclick="toggleRsChip(this)">サプリメント</div>
+      <div class="chip" onclick="toggleRsChip(this)">その他</div>
     </div>
   </div>
   <div class="section-card">
