@@ -2118,6 +2118,20 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="chip" onclick="selectRsCycle(this,'heavy')">多い</div>
       <div class="chip" onclick="selectRsCycle(this,'spotting')">不正出血</div>
     </div>
+        <div id="cycle-detail-section" style="display:none;margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">経血の状態</div>
+      <div class="chips" id="rs-blood-clot">
+        <div class="chip" onclick="toggleRsChip(this)">塊あり</div>
+        <div class="chip" onclick="toggleRsChip(this)">塊なし</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:12px 0 8px;">経血の色</div>
+      <div class="chips" id="rs-blood-color">
+        <div class="chip" onclick="toggleRsChip(this)">鮮赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">暗赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色</div>
+        <div class="chip" onclick="toggleRsChip(this)">ピンク</div>
+      </div>
+    </div>
   </div>
     <div class="section-card">
     <div class="section-label">MEDICATION</div>
