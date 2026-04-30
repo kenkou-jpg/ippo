@@ -2268,6 +2268,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="pf-arrow">→</div>
         </div>
+                <div class="pf-card" onclick="premiumGate(openCorrelationReport)">
+          <div class="pf-icon">🔬</div>
+          <div class="pf-text">
+            <div class="pf-title">要因効果レポート<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">生活要因と症状の相関を分析</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
       </div>
     </div>
 
@@ -6455,6 +6463,102 @@ function renderComparisonChart(){
     legend.innerHTML = lHtml;
   }
 }
+  // ===== 要因効果レポート =====
+function openCorrelationReport(){
+  var corr = calcFactorCorrelations(state.records);
+  var factors = Object.keys(corr);
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="corrReportOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:92%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+
+  // ヘッダー
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:18px;color:var(--ink);">🔬 要因効果レポート</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-top:4px;">'+state.records.length+'日分のデータから分析</div>';
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'corrReportOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  if(factors.length === 0){
+    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">';
+    html += '📊 まだ十分なデータがありません。<br>生活ファクターを記録した日が各要因3日以上になると<br>相関分析が表示されます。</div>';
+  } else {
+    factors.forEach(function(factor){
+      var data = corr[factor];
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+      html += '<div style="font-size:14px;font-weight:500;color:var(--ink);">'+factor+'</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);background:var(--cream);padding:3px 8px;border-radius:8px;">'+data.days+'日 / '+data.totalDays+'日</div>';
+      html += '</div>';
+
+      // メトリクス比較バー
+      var metrics = ['energy','sleepQuality','painLevel','symptomCount','wellnessScore'];
+      var metricLabels = {energy:'エネルギー',sleepQuality:'睡眠の質',painLevel:'痛み',symptomCount:'症状数',wellnessScore:'ウェルネス'};
+      
+      metrics.forEach(function(m){
+        if(!data[m]) return;
+        var d = data[m];
+        var isNegative = (m === 'painLevel' || m === 'symptomCount');
+        var isGood = isNegative ? d.diff < 0 : d.diff > 0;
+        var color = isGood ? '#6b9e78' : d.diff === 0 ? '#9a8880' : '#c4878c';
+        var arrow = d.diff > 0 ? '↑' : d.diff < 0 ? '↓' : '→';
+        var pctText = d.pct > 0 ? '+'+d.pct+'%' : d.pct+'%';
+
+        html += '<div style="margin-bottom:10px;">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">';
+        html += '<div style="font-size:11px;color:var(--ink-mid);">'+metricLabels[m]+'</div>';
+        html += '<div style="font-size:11px;font-weight:600;color:'+color+';">'+arrow+' '+pctText+'</div>';
+        html += '</div>';
+        html += '<div style="display:flex;gap:8px;align-items:center;">';
+        html += '<div style="flex:1;">';
+        html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:2px;">あり：'+d.with+'</div>';
+        html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+        var maxVal = Math.max(d.with, d.without) || 1;
+        html += '<div style="height:100%;width:'+Math.round(d.with/maxVal*100)+'%;background:'+color+';border-radius:3px;"></div>';
+        html += '</div></div>';
+        html += '<div style="flex:1;">';
+        html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:2px;">なし：'+d.without+'</div>';
+        html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+        html += '<div style="height:100%;width:'+Math.round(d.without/maxVal*100)+'%;background:#b8b0a8;border-radius:3px;"></div>';
+        html += '</div></div>';
+        html += '</div></div>';
+      });
+
+      // 症状影響
+      if(data.symptomEffects){
+        var effects = Object.keys(data.symptomEffects);
+        if(effects.length > 0){
+          html += '<div style="margin-top:8px;padding-top:8px;border-top:1px solid #f0ebe6;">';
+          html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:6px;">症状への影響</div>';
+          effects.sort(function(a,b){
+            var ra = data.symptomEffects[a].ratio === '∞' ? 999 : data.symptomEffects[a].ratio;
+            var rb = data.symptomEffects[b].ratio === '∞' ? 999 : data.symptomEffects[b].ratio;
+            return rb - ra;
+          });
+          effects.slice(0,5).forEach(function(s){
+            var eff = data.symptomEffects[s];
+            var ratioText = eff.ratio === '∞' ? '∞' : eff.ratio + '倍';
+            var ratioColor = (eff.ratio === '∞' || eff.ratio >= 1.5) ? '#c4878c' : eff.ratio >= 1.1 ? '#d4a574' : '#6b9e78';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;">';
+            html += '<div style="font-size:11px;color:var(--ink-mid);">'+s+'</div>';
+            html += '<div style="font-size:11px;font-weight:600;color:'+ratioColor+';">'+ratioText+'<span style="font-size:9px;color:var(--ink-light);margin-left:4px;">('+eff.withRate+'% vs '+eff.withoutRate+'%)</span></div>';
+            html += '</div>';
+          });
+          html += '</div>';
+        }
+      }
+
+      html += '</div>';
+    });
+  }
+
+  html += '<button onclick="document.getElementById(\'corrReportOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">閉じる</button>';
+  html += '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
 function gatherRecordData(){
   var mealFree = (document.getElementById('rs-meal-free')||{}).value||'';
   var parsed = parseMealMemo(mealFree);
