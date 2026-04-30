@@ -4348,7 +4348,39 @@ function updateHomeSummary(){
     });
     html += '</div>';
   }
+    // ウェルネススコア
+    if(rec.wellnessScore !== undefined){
+      var ws = rec.wellnessScore;
+      var wsColor = ws >= 70 ? '#6b9e78' : ws >= 40 ? '#d4a574' : '#c4878c';
+      html += '<div style="margin-top:14px;background:linear-gradient(135deg,#faf6f2,#f0ebe6);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;">';
+      html += '<div style="position:relative;width:56px;height:56px;flex-shrink:0;">';
+      html += '<svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="none" stroke="#e8ddd8" stroke-width="5"/>';
+      var pct = ws / 100;
+      var circ = 2 * Math.PI * 24;
+      html += '<circle cx="28" cy="28" r="24" fill="none" stroke="'+wsColor+'" stroke-width="5" stroke-dasharray="'+Math.round(circ*pct)+' '+Math.round(circ*(1-pct))+'" stroke-linecap="round" transform="rotate(-90 28 28)"/>';
+      html += '</svg>';
+      html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Inter,sans-serif;font-size:16px;font-weight:700;color:'+wsColor+';">'+ws+'</div>';
+      html += '</div>';
+      html += '<div>';
+      html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">ウェルネススコア</div>';
+      html += '<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+(ws>=70?'良好な状態です':ws>=40?'まずまずの状態です':'少し注意が必要です')+'</div>';
+      html += '</div></div>';
+    }
 
+    // エネルギー・睡眠・ファクター・お通じ
+    var newExtras = [];
+    if(rec.energy) newExtras.push('⚡ エネルギー '+rec.energy+'/5');
+    if(rec.sleepHours) newExtras.push('😴 睡眠 '+rec.sleepHours+'h');
+    if(rec.sleepQuality) newExtras.push('💤 質 '+rec.sleepQuality+'/5');
+    if(rec.bowel) newExtras.push('🫧 '+rec.bowel);
+    if(rec.factors && rec.factors.length) newExtras.push('📋 '+rec.factors.join('・'));
+    if(newExtras.length){
+      html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
+      newExtras.forEach(function(e){
+        html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:12px;">'+e+'</span>';
+      });
+      html += '</div>';
+    }
   content.innerHTML = html;
 }
   
