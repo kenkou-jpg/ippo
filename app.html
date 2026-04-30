@@ -2779,39 +2779,94 @@ var DISEASE_CONFIG = {
 };
 
 function openDiseaseSettings(){
-  var current = state.myDisease || '';
+  var currentArr = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
   var diseases = Object.keys(DISEASE_CONFIG);
-  
+  var categories = {};
+  diseases.forEach(function(d){
+    var cat = DISEASE_CONFIG[d].category || '一般';
+    if(!categories[cat]) categories[cat] = [];
+    categories[cat].push(d);
+  });
+
   var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="diseaseOverlay" onclick="if(event.target===this)this.remove()">';
   html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:88%;max-width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
-  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる疾患を選択</div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる疾患を選択<span style="font-size:12px;color:var(--ink-light);margin-left:6px;">（複数可）</span></div>';
   html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
   html += '</div>';
-  html += '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">選択すると記録画面に専用の質問が追加されます。</div>';
-  
-  html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;">';
-  
-  // なし
-  var noneSelected = (current === '');
-  html += '<button onclick="selectDisease(\'\')" style="padding:8px 14px;border-radius:20px;background:'+(noneSelected?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(noneSelected?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(noneSelected?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">なし</button>';
-  
-  // 疾患
-  for(var i=0;i<diseases.length;i++){
-    var d = diseases[i];
-    var sel = (current===d);
-    html += '<button onclick="selectDisease(\''+d+'\')" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
+  html += '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">選択した疾患の専用セルフチェックが記録画面に追加されます。</div>';
+
+  var catKeys = Object.keys(categories);
+  for(var c=0;c<catKeys.length;c++){
+    html += '<div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin:12px 0 8px;text-transform:uppercase;">'+catKeys[c]+'</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">';
+    var catDiseases = categories[catKeys[c]];
+    for(var i=0;i<catDiseases.length;i++){
+      var d = catDiseases[i];
+      var sel = currentArr.indexOf(d) !== -1;
+      html += '<button onclick="toggleDiseaseChip(this,\''+d+'\')" data-disease="'+d+'" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
+    }
+    html += '</div>';
   }
-  
+
+  html += '<div style="margin-top:16px;display:flex;gap:8px;">';
+  html += '<button onclick="clearAllDiseases()" style="flex:1;padding:14px;background:var(--white);color:var(--ink-mid);border:1px solid #e8ddd8;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;cursor:pointer;">クリア</button>';
+  html += '<button onclick="saveDiseaseSettings()" style="flex:2;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
   html += '</div>';
-  html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
   html += '</div></div>';
-  
+
   document.body.insertAdjacentHTML('beforeend', html);
 }
 
+function toggleDiseaseChip(btn, name){
+  var sel = btn.style.borderColor === 'var(--rose)';
+  if(sel){
+    btn.style.background = 'var(--white)';
+    btn.style.borderColor = '#e8ddd8';
+    btn.style.color = 'var(--ink-mid)';
+  } else {
+    btn.style.background = 'var(--rose-pale)';
+    btn.style.borderColor = 'var(--rose)';
+    btn.style.color = 'var(--rose)';
+  }
+}
+
+function clearAllDiseases(){
+  var overlay = document.getElementById('diseaseOverlay');
+  if(!overlay) return;
+  overlay.querySelectorAll('[data-disease]').forEach(function(btn){
+    btn.style.background = 'var(--white)';
+    btn.style.borderColor = '#e8ddd8';
+    btn.style.color = 'var(--ink-mid)';
+  });
+}
+
+function saveDiseaseSettings(){
+  var overlay = document.getElementById('diseaseOverlay');
+  if(!overlay) return;
+  var selected = [];
+  overlay.querySelectorAll('[data-disease]').forEach(function(btn){
+    if(btn.style.borderColor === 'var(--rose)'){
+      selected.push(btn.getAttribute('data-disease'));
+    }
+  });
+  state.myDiseases = selected;
+  delete state.myDisease;
+  saveState();
+  var display = document.getElementById('disease-setting-display');
+  if(display) display.textContent = selected.length ? selected.join('・') : '設定する';
+  overlay.remove();
+  updateDiseaseQuestions();
+}
+
 function selectDisease(name){
-  state.myDisease = name;
+  // 後方互換：単一選択時のショートカット
+  if(name){
+    state.myDiseases = [name];
+  } else {
+    state.myDiseases = [];
+  }
+  delete state.myDisease;
   saveState();
   var display = document.getElementById('disease-setting-display');
   if(display) display.textContent = name || '設定する';
@@ -2823,28 +2878,34 @@ function selectDisease(name){
 function updateDiseaseQuestions(){
   var container = document.getElementById('disease-questions');
   if(!container) return;
-  var disease = state.myDisease || '';
-  if(!disease || !DISEASE_CONFIG[disease]){
+  var diseases = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
+  if(!diseases.length){
     container.style.display = 'none';
     container.innerHTML = '';
     return;
   }
-  var config = DISEASE_CONFIG[disease];
-  var html = '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">'+config.icon+' '+config.label+'</div>';
-  var questions = config.questions;
-  for(var i=0;i<questions.length;i++){
-    var q = questions[i];
-    html += '<div style="margin-bottom:14px;">';
-    html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+q.id+'">';
-    for(var j=0;j<q.options.length;j++){
-      html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
+  var html = '';
+  for(var d=0;d<diseases.length;d++){
+    var disease = diseases[d];
+    var config = DISEASE_CONFIG[disease];
+    if(!config) continue;
+    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin:' + (d>0?'20':'0') + 'px 0 10px;">'+config.icon+' '+config.label+'</div>';
+    var questions = config.questions;
+    for(var i=0;i<questions.length;i++){
+      var q = questions[i];
+      html += '<div style="margin-bottom:14px;">';
+      html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+disease+'__'+q.id+'">';
+      for(var j=0;j<q.options.length;j++){
+        html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
+      }
+      html += '</div></div>';
     }
-    html += '</div></div>';
   }
   container.innerHTML = html;
   container.style.display = 'block';
 }
+
 
 
 
@@ -4191,7 +4252,7 @@ function updateHomeSummary(){
   if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
     html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
     var dc = rec.diseaseCheck;
-    var disease = state.myDisease || '';
+    var disease = (rec.diseases && rec.diseases[0]) || state.myDiseases && state.myDiseases[0] || '';
     var config = DISEASE_CONFIG[disease];
     Object.keys(dc).forEach(function(key){
       var label = key;
@@ -4652,8 +4713,8 @@ function getTimeAgo(dateStr){
 function updateDiseaseSettingDisplay(){
   var display = document.getElementById('disease-setting-display');
   if(!display) return;
-  var saved = state.myDisease || '';
-  display.textContent = saved || '設定する';
+ var saved = state.myDiseases || [];
+display.textContent = saved.length ? saved.join('・') : '設定する';
 }
 function updateSymptomSettingDisplay(){
   var display = document.getElementById('symptom-setting-display');
@@ -5745,42 +5806,6 @@ function updateMealParse() {
   }
 }
 
-
-function selectDisease(name){
-  state.myDisease = name;
-  saveState();
-  var display = document.getElementById('disease-setting-display');
-  if(display) display.textContent = name || '設定する';
-  var overlay = document.getElementById('diseaseOverlay');
-  if(overlay) overlay.remove();
-  updateDiseaseQuestions();
-}
-
-function updateDiseaseQuestions(){
-  var container = document.getElementById('disease-questions');
-  if(!container) return;
-  var disease = state.myDisease || '';
-  if(!disease || !DISEASE_CONFIG[disease]){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    return;
-  }
-  var config = DISEASE_CONFIG[disease];
-  var html = '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">'+config.icon+' '+config.label+'</div>';
-  var questions = config.questions;
-  for(var i=0;i<questions.length;i++){
-    var q = questions[i];
-    html += '<div style="margin-bottom:14px;">';
-    html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+q.id+'">';
-    for(var j=0;j<q.options.length;j++){
-      html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
-    }
-    html += '</div></div>';
-  }
-  container.innerHTML = html;
-  container.style.display = 'block';
-}
 
 function gatherDiseaseData(){
   var container = document.getElementById('disease-questions');
