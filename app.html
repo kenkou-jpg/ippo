@@ -2284,6 +2284,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="pf-arrow">→</div>
         </div>
+                <div class="pf-card" onclick="premiumGate(openCyclePhaseReport)">
+          <div class="pf-icon">🌸</div>
+          <div class="pf-text">
+            <div class="pf-title">周期フェーズ分析<span class="pf-lock-badge">PRO</span></div>
+            <div class="pf-sub">生理周期の各期で体調を比較</div>
+          </div>
+          <div class="pf-arrow">→</div>
+        </div>
       </div>
     </div>
 
@@ -2974,6 +2982,196 @@ function openDiseaseSettings(){
   html += '<button onclick="clearAllDiseases()" style="flex:1;padding:14px;background:var(--white);color:var(--ink-mid);border:1px solid #e8ddd8;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;cursor:pointer;">クリア</button>';
   html += '<button onclick="saveDiseaseSettings()" style="flex:2;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
   html += '</div>';
+  html += '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+// ===== 周期フェーズ連動分析 =====
+function calcCycleDay(recordDate, records){
+  // 直近の生理開始日を探す
+  var sorted = records.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+  var target = new Date(recordDate).getTime();
+  var lastPeriodStart = null;
+
+  for(var i=0; i<sorted.length; i++){
+    var r = sorted[i];
+    var rDate = new Date(r.date).getTime();
+    if(rDate > target) continue;
+    // 生理中の最初の日を探す
+    if(r.menstrualCycle && r.menstrualCycle !== 'なし'){
+      // この日の前日が生理でなければ、この日が開始日
+      var prevDay = null;
+      for(var j=0; j<sorted.length; j++){
+        var diff = rDate - new Date(sorted[j].date).getTime();
+        if(diff === -86400000){ prevDay = sorted[j]; break; }
+      }
+      if(!prevDay || !prevDay.menstrualCycle || prevDay.menstrualCycle === 'なし'){
+        lastPeriodStart = rDate;
+        break;
+      }
+      // 前日も生理なら、さらに遡る
+      continue;
+    }
+  }
+
+  if(!lastPeriodStart) return null;
+  var dayDiff = Math.round((target - lastPeriodStart) / 86400000) + 1;
+  return dayDiff > 0 ? dayDiff : null;
+}
+
+function getCyclePhase(cycleDay){
+  if(!cycleDay) return null;
+  if(cycleDay <= 5) return '月経期';
+  if(cycleDay <= 13) return '卵胞期';
+  if(cycleDay <= 16) return '排卵期';
+  if(cycleDay <= 28) return '黄体期';
+  return '黄体期後期';
+}
+
+function analyzeCyclePhases(records){
+  var phases = {
+    '月経期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
+    '卵胞期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
+    '排卵期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
+    '黄体期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} }
+  };
+
+  records.forEach(function(r){
+    var cd = calcCycleDay(r.date, records);
+    var phase = getCyclePhase(cd);
+    if(!phase || !phases[phase]) return;
+
+    var p = phases[phase];
+    p.days++;
+    if(r.painLevel) p.pain.push(r.painLevel);
+    if(r.energy) p.energy.push(r.energy);
+    if(r.sleepQuality) p.sleep.push(r.sleepQuality);
+    if(r.wellnessScore !== undefined) p.wellness.push(r.wellnessScore);
+    if(r.symptoms){
+      r.symptoms.forEach(function(s){ p.symptoms[s] = (p.symptoms[s]||0) + 1; });
+    }
+    if(r.factors){
+      r.factors.forEach(function(f){ p.factors[f] = (p.factors[f]||0) + 1; });
+    }
+  });
+
+  // 平均計算
+  var result = {};
+  Object.keys(phases).forEach(function(name){
+    var p = phases[name];
+    if(p.days === 0) return;
+    var avg = function(arr){ return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length) : null; };
+    var topItems = function(obj, n){
+      return Object.entries(obj).sort(function(a,b){return b[1]-a[1];}).slice(0,n);
+    };
+    result[name] = {
+      days: p.days,
+      avgPain: avg(p.pain) !== null ? avg(p.pain).toFixed(1) : '-',
+      avgEnergy: avg(p.energy) !== null ? avg(p.energy).toFixed(1) : '-',
+      avgSleep: avg(p.sleep) !== null ? avg(p.sleep).toFixed(1) : '-',
+      avgWellness: avg(p.wellness) !== null ? Math.round(avg(p.wellness)) : '-',
+      topSymptoms: topItems(p.symptoms, 3),
+      topFactors: topItems(p.factors, 3)
+    };
+  });
+
+  return result;
+}
+
+function openCyclePhaseReport(){
+  var analysis = analyzeCyclePhases(state.records);
+  var phaseNames = ['月経期','卵胞期','排卵期','黄体期'];
+  var phaseIcons = {'月経期':'🔴','卵胞期':'🌱','排卵期':'🥚','黄体期':'🌙'};
+  var phaseColors = {'月経期':'#c4878c','卵胞期':'#6b9e78','排卵期':'#d4a574','黄体期':'#7ba3c4'};
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="cyclePhaseOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:92%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+
+  // ヘッダー
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:18px;color:var(--ink);">🌸 周期フェーズ分析</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-top:4px;">生理周期の各フェーズでの体調傾向</div>';
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'cyclePhaseOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  if(Object.keys(analysis).length === 0){
+    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">';
+    html += '🌸 生理周期のデータがまだ不足しています。<br>生理日を記録し続けると、フェーズ別の傾向が見えてきます。</div>';
+  } else {
+    // フェーズ比較バー（横並び）
+    html += '<div style="display:flex;gap:6px;margin-bottom:16px;">';
+    phaseNames.forEach(function(name){
+      var d = analysis[name];
+      var color = phaseColors[name];
+      html += '<div style="flex:1;background:var(--white);border-radius:12px;padding:10px 6px;text-align:center;box-shadow:0 1px 4px var(--shadow);">';
+      html += '<div style="font-size:16px;margin-bottom:4px;">'+phaseIcons[name]+'</div>';
+      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">'+name+'</div>';
+      if(d){
+        html += '<div style="font-size:18px;font-weight:700;color:'+color+';">'+(d.avgWellness!=='-'?d.avgWellness:'-')+'</div>';
+        html += '<div style="font-size:8px;color:var(--ink-light);">WS</div>';
+      } else {
+        html += '<div style="font-size:12px;color:var(--ink-light);">—</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // 各フェーズ詳細
+    phaseNames.forEach(function(name){
+      var d = analysis[name];
+      if(!d) return;
+      var color = phaseColors[name];
+
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);border-left:3px solid '+color+';">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">';
+      html += '<div style="font-size:14px;font-weight:500;color:var(--ink);">'+phaseIcons[name]+' '+name+'</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);background:var(--cream);padding:3px 8px;border-radius:8px;">'+d.days+'日</div>';
+      html += '</div>';
+
+      // 指標グリッド
+      html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">';
+      var metrics = [
+        {label:'エネルギー', val:d.avgEnergy, max:5, unit:'/5'},
+        {label:'睡眠の質', val:d.avgSleep, max:5, unit:'/5'},
+        {label:'痛みレベル', val:d.avgPain, max:10, unit:'/10'},
+        {label:'ウェルネス', val:d.avgWellness, max:100, unit:'/100'}
+      ];
+      metrics.forEach(function(m){
+        var pct = m.val !== '-' ? Math.round(parseFloat(m.val)/m.max*100) : 0;
+        html += '<div style="background:var(--cream);border-radius:10px;padding:8px;">';
+        html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">'+m.label+'</div>';
+        html += '<div style="font-size:14px;font-weight:600;color:'+color+';">'+m.val+'<span style="font-size:9px;color:var(--ink-light);">'+m.unit+'</span></div>';
+        html += '<div style="height:4px;background:#e8ddd8;border-radius:2px;margin-top:4px;overflow:hidden;">';
+        html += '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:2px;"></div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+      // TOP症状
+      if(d.topSymptoms.length > 0){
+        html += '<div style="margin-bottom:6px;"><span style="font-size:10px;color:var(--ink-light);">多い症状：</span>';
+        d.topSymptoms.forEach(function(s){
+          html += '<span style="font-size:10px;background:var(--warm-light);color:var(--ink-mid);padding:2px 8px;border-radius:8px;margin-left:4px;">'+s[0]+' ('+s[1]+')</span>';
+        });
+        html += '</div>';
+      }
+
+      // TOP要因
+      if(d.topFactors.length > 0){
+        html += '<div><span style="font-size:10px;color:var(--ink-light);">多い要因：</span>';
+        d.topFactors.forEach(function(f){
+          html += '<span style="font-size:10px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;margin-left:4px;">'+f[0]+' ('+f[1]+')</span>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div>';
+    });
+  }
+
+  html += '<button onclick="document.getElementById(\'cyclePhaseOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">閉じる</button>';
   html += '</div></div>';
 
   document.body.insertAdjacentHTML('beforeend', html);
