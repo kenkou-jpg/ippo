@@ -7848,7 +7848,8 @@ function updateMealParse() {
     var last = times[times.length - 1].split(':');
     var eating = (parseInt(last[0]) + parseInt(last[1]) / 60) - (parseInt(first[0]) + parseInt(first[1]) / 60);
     var fasting = Math.round((24 - eating) * 10) / 10;
-    document.getElementById('parse-fasting').textContent = fasting;
+    // 7853行を修正
+  var pf2 = document.getElementById('parse-fasting'); if(pf2) pf2.textContent = '0';
   } else {
     document.getElementById('parse-fasting').textContent = '0';
   }
