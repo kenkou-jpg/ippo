@@ -2465,6 +2465,31 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
    </div>
       </div>
+      <div class="settings-section">
+        <div class="settings-section-title">データ管理</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="showDiagnosisUI()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">🔍</div>
+              <div>
+                <div class="settings-row-text">データ診断・復元</div>
+                <div class="settings-row-sub">3箇所のデータを比較・自動修復</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="openRestoreUI()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#e8f0e8">📦</div>
+              <div>
+                <div class="settings-row-text">バックアップ履歴</div>
+                <div class="settings-row-sub">過去のスナップショットから復元</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+        </div>
+      </div>
 
   <script>
     
@@ -4368,7 +4393,201 @@ function saveAndSync(){
     });
   }
 }
+// ===== 第1層：自動復元 =====
+function autoRecoveryCheck(){
+  var lastCount = parseInt(localStorage.getItem('ippo_last_record_count') || '0');
+  var currentCount = state.records.length;
+  if(lastCount > 0 && currentCount < lastCount && lastCount - currentCount >= 2){
+    console.warn('データ減少検知: '+lastCount+'件→'+currentCount+'件');
+    return idbGetAllRecords().then(function(idbRecs){
+      var activeRecs = idbRecs.filter(function(r){ return !r.deleted_at; });
+      if(activeRecs.length > currentCount){
+        state.records = mergeRecords(state.records, activeRecs);
+        saveState();
+        showRecoveryBanner(true, state.records.length);
+        console.log('IndexedDBから自動復元: '+state.records.length+'件');
+        localStorage.setItem('ippo_last_record_count', String(state.records.length));
+        return true;
+      }
+      return manualCloudRestore().then(function(){
+        showRecoveryBanner(true, state.records.length);
+        localStorage.setItem('ippo_last_record_count', String(state.records.length));
+        return true;
+      });
+    }).catch(function(e){
+      console.warn('自動復元失敗:', e);
+      showRecoveryBanner(false, 0);
+      return false;
+    });
+  }
+  localStorage.setItem('ippo_last_record_count', String(currentCount));
+  return Promise.resolve(false);
+}
 
+// ===== 第2層：バナー通知 =====
+function showRecoveryBanner(recovered, count){
+  var banner = document.createElement('div');
+  banner.style.cssText = 'position:fixed;top:0;left:0;right:0;padding:14px 20px;z-index:9999;font-size:13px;text-align:center;transition:opacity 0.3s;';
+  if(recovered){
+    banner.style.background = '#e8f4ec';
+    banner.style.color = '#2d6a3f';
+    banner.innerHTML = '✅ データを自動復元しました（'+count+'件）';
+    setTimeout(function(){ banner.style.opacity='0'; setTimeout(function(){ banner.remove(); },300); }, 5000);
+  } else {
+    banner.style.background = '#fef3f2';
+    banner.style.color = '#c44848';
+    banner.innerHTML = '⚠️ データに問題が検出されました　<span style="text-decoration:underline;cursor:pointer;" onclick="showDiagnosisUI()">復元する</span>';
+  }
+  document.body.appendChild(banner);
+}
+
+// ===== 第3層：復元UI =====
+function openRestoreUI(){
+  supabase.auth.getSession().then(function(res){
+    if(!res.data.session){ alert('ログインが必要です'); return; }
+    var userId = res.data.session.user.id;
+    supabase.from('user_data_history')
+      .select('id,records_count,created_at')
+      .eq('user_id', userId)
+      .order('created_at', {ascending:false})
+      .limit(5)
+      .then(function(r){
+        if(!r.data || r.data.length === 0){ alert('バックアップ履歴がありません'); return; }
+        var msg = 'バックアップ履歴:\n\n';
+        r.data.forEach(function(h,i){
+          msg += (i+1)+'. '+new Date(h.created_at).toLocaleString('ja-JP')+' ('+h.records_count+'件)\n';
+        });
+        msg += '\n最新のバックアップから復元しますか？';
+        if(confirm(msg)){
+          restoreFromHistory(r.data[0].id);
+        }
+      });
+  });
+}
+
+// ===== 第4層：自動診断UI =====
+function showDiagnosisUI(){
+  var overlay = document.createElement('div');
+  overlay.id = 'diagnosis-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:white;border-radius:20px;padding:24px;margin:20px;max-width:360px;width:100%;';
+  box.innerHTML = '<div style="text-align:center;font-size:15px;font-weight:600;margin-bottom:16px;">🔍 データ診断中...</div><div id="diagnosis-result" style="font-size:13px;color:#666;text-align:center;">確認しています...</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  runSelfDiagnosis().then(function(r){
+    var best = Math.max(r.local, r.idb, r.cloud);
+    var source = best === r.cloud ? 'クラウド' : best === r.idb ? 'IndexedDB' : 'ローカル';
+    var needsRepair = (r.local < best);
+    var html = '<div style="text-align:left;margin-bottom:16px;">';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">📱 ローカル: <b>'+r.local+'件</b></div>';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">💾 IndexedDB: <b>'+r.idb+'件</b></div>';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">☁️ クラウド: <b>'+r.cloud+'件</b></div>';
+    html += '<div style="padding:8px 0;">📦 バックアップ: <b>'+r.history.length+'世代</b></div></div>';
+    if(needsRepair){
+      html += '<div style="background:#fef3f2;border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:#c44848;">⚠️ データの不一致を検出。'+source+'に'+best+'件あります。</div>';
+      html += '<button onclick="repairFromBest()" style="width:100%;padding:14px;background:#c4878c;color:white;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;">🔧 自動修復する</button>';
+    } else {
+      html += '<div style="background:#e8f4ec;border-radius:12px;padding:12px;font-size:12px;color:#2d6a3f;">✅ データは正常です。3箇所すべて一致しています。</div>';
+    }
+    if(r.history.length > 0){
+      html += '<div style="margin-top:12px;font-size:12px;color:#888;">過去のバックアップ:';
+      r.history.forEach(function(h){
+        html += '<div style="margin-top:6px;padding:8px;background:#f8f5f0;border-radius:8px;cursor:pointer;" onclick="restoreFromHistory(\''+h.id+'\')">';
+        html += new Date(h.created_at).toLocaleString('ja-JP')+' ('+h.records_count+'件) →復元</div>';
+      });
+      html += '</div>';
+    }
+    html += '<button onclick="document.getElementById(\'diagnosis-overlay\').remove()" style="width:100%;margin-top:12px;padding:12px;background:none;border:1px solid #ddd;border-radius:14px;font-size:13px;color:#888;cursor:pointer;">閉じる</button>';
+    document.getElementById('diagnosis-result').innerHTML = html;
+  });
+}
+
+function runSelfDiagnosis(){
+  var results = {local: state.records.length, idb: 0, cloud: 0, history: []};
+  return idbGetAllRecords().then(function(recs){
+    results.idb = recs.filter(function(r){ return !r.deleted_at; }).length;
+    return supabase.auth.getSession();
+  }).then(function(res){
+    if(!res.data.session) return results;
+    var userId = res.data.session.user.id;
+    return supabase.from('user_records')
+      .select('id', {count:'exact'})
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .then(function(r){
+        results.cloud = r.count || 0;
+        return supabase.from('user_data_history')
+          .select('id,records_count,created_at')
+          .eq('user_id', userId)
+          .order('created_at', {ascending:false})
+          .limit(5);
+      }).then(function(r){
+        results.history = r.data || [];
+        return results;
+      });
+  }).catch(function(e){
+    console.warn('診断エラー:', e);
+    return results;
+  });
+}
+
+function repairFromBest(){
+  runSelfDiagnosis().then(function(r){
+    var best = Math.max(r.local, r.idb, r.cloud);
+    if(best === r.idb && r.idb > r.local){
+      idbGetAllRecords().then(function(recs){
+        state.records = mergeRecords(state.records, recs.filter(function(x){ return !x.deleted_at; }));
+        saveState();
+        showRecoveryBanner(true, state.records.length);
+        var el = document.getElementById('diagnosis-overlay');
+        if(el) el.remove();
+      });
+    } else if(best === r.cloud && r.cloud > r.local){
+      supabase.auth.getSession().then(function(res){
+        var userId = res.data.session.user.id;
+        supabase.from('user_records')
+          .select('data')
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .then(function(result){
+            var cloudRecs = result.data.map(function(row){ return row.data; });
+            state.records = mergeRecords(state.records, cloudRecs);
+            saveState();
+            showRecoveryBanner(true, state.records.length);
+            var el = document.getElementById('diagnosis-overlay');
+            if(el) el.remove();
+          });
+      });
+    } else {
+      alert('ローカルデータが最新です。');
+      var el = document.getElementById('diagnosis-overlay');
+      if(el) el.remove();
+    }
+  });
+}
+
+function restoreFromHistory(historyId){
+  if(!confirm('このバックアップから復元しますか？')) return;
+  supabase.from('user_data_history')
+    .select('state')
+    .eq('id', historyId)
+    .single()
+    .then(function(r){
+      if(r.data && r.data.state && r.data.state.records){
+        state.records = mergeRecords(state.records, r.data.state.records);
+        saveState();
+        buildCalendar();
+        updateHomeSummary();
+        showRecoveryBanner(true, state.records.length);
+        var el = document.getElementById('diagnosis-overlay');
+        if(el) el.remove();
+      } else {
+        alert('バックアップデータが見つかりません');
+      }
+    });
+}
 // ===== localStorageからIndexedDBへの移行 =====
 function migrateToIDB(){
   if(localStorage.getItem('ippo_idb_migrated')) return Promise.resolve();
@@ -4509,6 +4728,8 @@ if (state.name && !state._onboardingDone) {
   // IndexedDB移行 & 初回同期
 migrateToIDB();
 initialCloudSync();
+
+autoRecoveryCheck();
   
  if (state.name) {
   showMain();
