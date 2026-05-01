@@ -4466,15 +4466,6 @@ function saveState() {
   }
 }
 
-function saveAndSync() {
-  saveState();
-  if(typeof cloudBackupAll === 'function'){
-    cloudBackupAll().catch(function(e){
-      console.warn('クラウド同期失敗:', e);
-      setTimeout(function(){ cloudBackupAll().catch(function(){}); }, 3000);
-    });
-  }
-}
 
 
 function init() {
