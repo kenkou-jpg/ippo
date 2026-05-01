@@ -4069,6 +4069,375 @@ function cloudRestore(){
   });
 }
 
+  // ===== IndexedDB データ層 =====
+var IDB_NAME = 'ippo_db';
+var IDB_VERSION = 1;
+var IDB_STORE = 'records';
+
+function openIDB(){
+  return new Promise(function(resolve, reject){
+    var req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = function(e){
+      var db = e.target.result;
+      if(!db.objectStoreNames.contains(IDB_STORE)){
+        var store = db.createObjectStore(IDB_STORE, {keyPath:'id'});
+        store.createIndex('date','record_date',{unique:false});
+        store.createIndex('updated','updatedAt',{unique:false});
+      }
+    };
+    req.onsuccess = function(e){ resolve(e.target.result); };
+    req.onerror = function(e){ reject(e.target.error); };
+  });
+}
+
+function idbPutRecord(record){
+  return openIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).put(record);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(e){ reject(e.target.error); };
+    });
+  });
+}
+
+function idbGetAllRecords(){
+  return openIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction(IDB_STORE,'readonly');
+      var req = tx.objectStore(IDB_STORE).getAll();
+      req.onsuccess = function(){ resolve(req.result || []); };
+      req.onerror = function(e){ reject(e.target.error); };
+    });
+  });
+}
+
+function idbDeleteRecord(id){
+  return openIDB().then(function(db){
+    return new Promise(function(resolve, reject){
+      var tx = db.transaction(IDB_STORE,'readwrite');
+      tx.objectStore(IDB_STORE).delete(id);
+      tx.oncomplete = function(){ resolve(); };
+      tx.onerror = function(e){ reject(e.target.error); };
+    });
+  });
+}
+
+// ===== レコードID生成 =====
+function generateRecordId(){
+  return Date.now().toString(36) + Math.random().toString(36).substr(2,8);
+}
+
+function ensureRecordIds(){
+  var changed = false;
+  state.records.forEach(function(r){
+    if(!r.id){
+      r.id = generateRecordId();
+      changed = true;
+    }
+    if(!r.updatedAt){
+      r.updatedAt = r.date || new Date().toISOString();
+      changed = true;
+    }
+  });
+  return changed;
+}
+
+// ===== レコード個別同期 =====
+var _syncLock = false;
+
+function syncRecordToCloud(record){
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user) return;
+    var userId = session.user.id;
+    var row = {
+      id: record.id,
+      user_id: userId,
+      record_date: record.date ? record.date.slice(0,10) : new Date().toISOString().slice(0,10),
+      data: record,
+      updated_at: record.updatedAt || new Date().toISOString(),
+      deleted_at: record.deleted_at || null
+    };
+    return supabase.from('user_records').upsert(row, {onConflict:'id'}).then(function(result){
+      if(result.error){
+        console.warn('レコード同期失敗:', record.id, result.error.message);
+      }
+    });
+  });
+}
+
+function syncAllRecordsToCloud(){
+  if(_syncLock) return Promise.resolve();
+  _syncLock = true;
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user){
+      _syncLock = false;
+      return;
+    }
+    var userId = session.user.id;
+    ensureRecordIds();
+    var rows = state.records.map(function(r){
+      return {
+        id: r.id,
+        user_id: userId,
+        record_date: r.date ? r.date.slice(0,10) : new Date().toISOString().slice(0,10),
+        data: r,
+        updated_at: r.updatedAt || new Date().toISOString(),
+        deleted_at: r.deleted_at || null
+      };
+    });
+    return supabase.from('user_records').upsert(rows, {onConflict:'id'}).then(function(result){
+      if(result.error){
+        console.warn('一括同期失敗:', result.error.message);
+      } else {
+        console.log('一括同期完了:', rows.length+'件');
+      }
+      _syncLock = false;
+    });
+  }).catch(function(e){
+    console.warn('同期エラー:', e);
+    _syncLock = false;
+  });
+}
+
+function pullRecordsFromCloud(){
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user) return [];
+    var userId = session.user.id;
+    return supabase.from('user_records')
+      .select('*')
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .then(function(result){
+        if(result.error){
+          console.warn('クラウド取得失敗:', result.error.message);
+          return [];
+        }
+        return (result.data || []).map(function(row){ return row.data; });
+      });
+  });
+}
+
+// ===== マージエンジン =====
+function mergeRecords(localRecords, cloudRecords){
+  var merged = {};
+  localRecords.forEach(function(r){
+    if(!r.id) r.id = generateRecordId();
+    merged[r.id] = r;
+  });
+  cloudRecords.forEach(function(r){
+    if(!r.id) return;
+    if(!merged[r.id]){
+      merged[r.id] = r;
+    } else {
+      var localTime = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
+      var cloudTime = new Date(r.updatedAt || r.date || 0).getTime();
+      if(cloudTime > localTime){
+        merged[r.id] = r;
+      }
+    }
+  });
+  var result = [];
+  Object.keys(merged).forEach(function(k){
+    if(!merged[k].deleted_at) result.push(merged[k]);
+  });
+  return result.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
+}
+
+// ===== 安全な同期（マージ方式） =====
+function cloudSyncSafe(){
+  if(_syncLock) return Promise.resolve();
+  _syncLock = true;
+  return supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session || !session.user){
+      _syncLock = false;
+      return;
+    }
+    var userId = session.user.id;
+    ensureRecordIds();
+    return supabase.from('user_records')
+      .select('*')
+      .eq('user_id', userId)
+      .is('deleted_at', null)
+      .then(function(result){
+        var cloudRecords = (result.data || []).map(function(row){ return row.data; });
+        var localCount = state.records.length;
+        var cloudCount = cloudRecords.length;
+        var merged = mergeRecords(state.records, cloudRecords);
+        console.log('マージ同期: ローカル'+localCount+' + クラウド'+cloudCount+' → 結果'+merged.length);
+        if(merged.length < localCount && localCount - merged.length >= 2){
+          console.warn('マージ異常: データ減少のため中止');
+          _syncLock = false;
+          return;
+        }
+        state.records = merged;
+        state.totalDays = Object.keys(merged.reduce(function(acc,r){
+          acc[new Date(r.date).toDateString()]=true; return acc;
+        },{})).length;
+        // バックアップ履歴保存
+        saveBackupHistory(userId);
+        // クラウドにアップロード
+        var rows = merged.map(function(r){
+          return {
+            id: r.id,
+            user_id: userId,
+            record_date: r.date ? r.date.slice(0,10) : new Date().toISOString().slice(0,10),
+            data: r,
+            updated_at: r.updatedAt || new Date().toISOString(),
+            deleted_at: null
+          };
+        });
+        return supabase.from('user_records').upsert(rows, {onConflict:'id'}).then(function(){
+          // IndexedDBにも保存
+          var promises = merged.map(function(r){ return idbPutRecord(r); });
+          return Promise.all(promises);
+        }).then(function(){
+          state.lastSaved = new Date().toISOString();
+          saveState();
+          console.log('安全同期完了: '+merged.length+'件');
+          _syncLock = false;
+        });
+      });
+  }).catch(function(e){
+    console.warn('安全同期エラー:', e);
+    _syncLock = false;
+  });
+}
+
+// ===== バックアップ履歴 =====
+function saveBackupHistory(userId){
+  var snapshot = {
+    name: state.name,
+    records: state.records,
+    totalDays: state.totalDays,
+    myDiseases: state.myDiseases
+  };
+  supabase.from('user_data_history')
+    .insert({user_id: userId, records_count: state.records.length, state: snapshot})
+    .then(function(){
+      // 5世代超えたら古いものを削除
+      supabase.from('user_data_history')
+        .select('id')
+        .eq('user_id', userId)
+        .order('created_at', {ascending:false})
+        .range(5,100)
+        .then(function(old){
+          if(old.data && old.data.length > 0){
+            var ids = old.data.map(function(r){ return r.id; });
+            supabase.from('user_data_history').delete().in('id', ids);
+          }
+        });
+    });
+}
+
+// ===== 論理削除 =====
+function softDeleteRecord(recordId){
+  var found = false;
+  for(var i=0; i<state.records.length; i++){
+    if(state.records[i].id === recordId){
+      state.records[i].deleted_at = new Date().toISOString();
+      state.records[i].updatedAt = new Date().toISOString();
+      syncRecordToCloud(state.records[i]);
+      state.records.splice(i,1);
+      found = true;
+      break;
+    }
+  }
+  if(found){
+    saveState();
+    return true;
+  }
+  return false;
+}
+
+// ===== saveAndSync を新エンジンに接続 =====
+function saveAndSync(){
+  ensureRecordIds();
+  saveState();
+  // 最後に保存/変更されたレコードを個別同期
+  var latest = state.records[state.records.length - 1];
+  if(latest){
+    latest.updatedAt = new Date().toISOString();
+    idbPutRecord(latest);
+    syncRecordToCloud(latest).catch(function(e){
+      console.warn('個別同期失敗:', e);
+    });
+  }
+}
+
+// ===== localStorageからIndexedDBへの移行 =====
+function migrateToIDB(){
+  if(localStorage.getItem('ippo_idb_migrated')) return Promise.resolve();
+  ensureRecordIds();
+  var promises = state.records.map(function(r){ return idbPutRecord(r); });
+  return Promise.all(promises).then(function(){
+    localStorage.setItem('ippo_idb_migrated', '1');
+    console.log('IndexedDB移行完了:', state.records.length+'件');
+  }).catch(function(e){
+    console.warn('IndexedDB移行失敗:', e);
+  });
+}
+
+// ===== 初回の全レコード同期 =====
+function initialCloudSync(){
+  if(localStorage.getItem('ippo_records_synced')) return Promise.resolve();
+  return syncAllRecordsToCloud().then(function(){
+    localStorage.setItem('ippo_records_synced', '1');
+    console.log('初回クラウド同期完了');
+  });
+}
+
+// ===== 手動復元（強化版） =====
+function manualCloudRestore(){
+  supabase.auth.getSession().then(function(res){
+    var session = res.data.session;
+    if(!session) return alert('ログインしてください');
+    var userId = session.user.id;
+    supabase.from('user_data_history')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', {ascending:false})
+      .limit(5)
+      .then(function(result){
+        var histories = result.data || [];
+        var msg = 'どのデータから復元しますか？\n\n0: 最新のクラウドデータ（マージ）\n';
+        histories.forEach(function(h,i){
+          var recs = h.records_count || 0;
+          var date = new Date(h.created_at).toLocaleString('ja-JP');
+          msg += (i+1)+': '+date+' ('+recs+'件)\n';
+        });
+        msg += '\n番号を入力:';
+        var choice = prompt(msg);
+        if(choice === null) return;
+        var idx = parseInt(choice);
+        if(idx === 0){
+          cloudSyncSafe().then(function(){
+            alert('マージ復元完了: '+state.records.length+'件');
+            location.reload();
+          });
+        } else if(idx > 0 && idx <= histories.length){
+          var histState = histories[idx-1].state;
+          var histRecords = histState.records || [];
+          if(confirm(histRecords.length+'件の記録を復元します。現在のデータとマージされます。')){
+            var merged = mergeRecords(state.records, histRecords);
+            state.records = merged;
+            state.totalDays = Object.keys(merged.reduce(function(acc,r){
+              acc[new Date(r.date).toDateString()]=true; return acc;
+            },{})).length;
+            saveState();
+            syncAllRecordsToCloud().then(function(){
+              alert('復元完了: '+merged.length+'件');
+              location.reload();
+            });
+          }
+        }
+      });
+  });
+}
   
 state = {
   name: '',
@@ -4145,6 +4514,10 @@ function init() {
 if (state.name && !state._onboardingDone) {
   state._onboardingDone = true;
 }
+
+  // IndexedDB移行 & 初回同期
+migrateToIDB();
+initialCloudSync();
   
  if (state.name) {
   showMain();
@@ -6396,8 +6769,15 @@ function saveEditRecord(){
 
 function deleteEditRecord(){
   if(!confirm('この日の記録を削除しますか？')) return;
+  var recs = state.records.filter(function(r){
+    return new Date(r.date).toDateString() === editingDateStr;
+  });
+  recs.forEach(function(r){
+    if(r.id) softDeleteRecord(r.id);
+  });
+  // IDがないレコードは旧方式で削除
   state.records = state.records.filter(function(r){
-    return new Date(r.date).toDateString() !== editingDateStr;
+    return new Date(r.date).toDateString() !== editingDateStr || r.id;
   });
   saveState();
   buildCalendar();
