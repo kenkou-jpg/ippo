@@ -5467,6 +5467,91 @@ function updateHomeSummary(){
       html += '</div>';
     }
 
+      // 体温インサイトカード
+    var tempAnalysis = calcTemperaturePhases(state.records);
+    if(tempAnalysis.status === 'ready'){
+      // データ十分：ティーザー表示
+      var biphasicLabel = tempAnalysis.biphasic === 'clear' ? '明確な二相性' : tempAnalysis.biphasic === 'unclear' ? 'やや不明瞭' : '二相性なし';
+      var hasAlerts = tempAnalysis.alerts.length > 0;
+      var alertColor = hasAlerts ? (tempAnalysis.alerts.some(function(a){return a.level==='emergency';}) ? '#c44848' : tempAnalysis.alerts.some(function(a){return a.level==='danger';}) ? '#c4878c' : '#d4a574') : '#6b9e78';
+      var alertIcon = hasAlerts ? '⚠️' : '✅';
+
+      html += '<div style="margin-top:12px;background:linear-gradient(135deg,var(--white),#fdf8f6);border-radius:16px;padding:16px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+      html += '<div style="display:flex;align-items:center;gap:8px;">';
+      html += '<div style="font-size:18px;">🌡️</div>';
+      html += '<div style="font-family:Shippori Mincho,serif;font-size:14px;color:var(--ink);">体温パターン分析</div>';
+      html += '</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'日分</div>';
+      html += '</div>';
+
+      // 無料ユーザー向けティーザー
+      html += '<div style="display:flex;gap:8px;margin-bottom:8px;">';
+      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">二相性</div>';
+      html += '<div style="font-size:12px;font-weight:600;color:'+alertColor+';">判定済み</div>';
+      html += '</div>';
+      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">温度差</div>';
+      html += '<div style="font-size:12px;font-weight:600;color:var(--ink);">'+tempAnalysis.tempDiff+'℃</div>';
+      html += '</div>';
+      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">アラート</div>';
+      html += '<div style="font-size:12px;font-weight:600;color:'+alertColor+';">'+alertIcon+' '+(hasAlerts ? tempAnalysis.alerts.length+'件' : 'なし')+'</div>';
+      html += '</div>';
+      html += '</div>';
+
+      if(hasAlerts){
+        html += '<div style="background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:10px;padding:10px 12px;margin-bottom:8px;">';
+        html += '<div style="font-size:11px;color:#c4878c;font-weight:500;">'+alertIcon+' 気になるパターンが検出されました</div>';
+        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">詳細な分析と医師相談の目安を確認できます</div>';
+        html += '</div>';
+      }
+
+      html += '<div onclick="premiumGate(openTempReport)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--rose-pale);border-radius:10px;cursor:pointer;">';
+      html += '<div style="display:flex;align-items:center;gap:6px;">';
+      html += '<div style="font-size:11px;font-weight:500;color:var(--rose);">詳細レポートを見る</div>';
+      html += '<span style="font-size:9px;background:var(--rose);color:white;padding:1px 6px;border-radius:4px;">PRO</span>';
+      html += '</div>';
+      html += '<div style="font-size:12px;color:var(--rose);">→</div>';
+      html += '</div>';
+
+      html += '</div>';
+
+    } else if(tempAnalysis.status === 'insufficient' && tempAnalysis.count > 0){
+      // データ不足：記録促進カード
+      var progress = Math.round(tempAnalysis.count / 14 * 100);
+      html += '<div style="margin-top:12px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
+      html += '<div style="font-size:18px;">🌡️</div>';
+      html += '<div style="font-family:Shippori Mincho,serif;font-size:14px;color:var(--ink);">体温パターン分析</div>';
+      html += '</div>';
+      html += '<div style="font-size:12px;color:var(--ink-mid);margin-bottom:10px;">'+tempAnalysis.message+'</div>';
+      html += '<div style="height:8px;background:#e8ddd8;border-radius:4px;overflow:hidden;">';
+      html += '<div style="height:100%;width:'+progress+'%;background:linear-gradient(90deg,var(--rose),#e8b4b8);border-radius:4px;transition:width 0.5s;"></div>';
+      html += '</div>';
+      html += '<div style="display:flex;justify-content:space-between;margin-top:6px;">';
+      html += '<div style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'/14日</div>';
+      html += '<div style="font-size:10px;color:var(--rose);">'+progress+'%</div>';
+      html += '</div>';
+
+      // 教育カード
+      var diseases = state.myDiseases || [];
+      var eduMsg = '14日以上の記録で、あなたの低温期と高温期のパターンが見えてきます。';
+      if(diseases.indexOf('卵巣嚢腫') !== -1){
+        eduMsg = '卵巣嚢腫では体温パターンの変化が炎症の指標になります。14日以上記録を続けましょう。';
+      } else if(diseases.indexOf('子宮内膜症') !== -1){
+        eduMsg = '子宮内膜症では月経初日の体温が診断の手がかりになることが報告されています。';
+      } else if(diseases.indexOf('PCOS') !== -1){
+        eduMsg = 'PCOSでは二相性の有無が排卵障害の重要な指標です。毎日の記録が大切です。';
+      } else if(diseases.indexOf('更年期障害') !== -1){
+        eduMsg = '更年期では体温リズムの変化がホルモンバランスを反映します。記録を続けましょう。';
+      }
+      html += '<div style="margin-top:10px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:11px;color:var(--ink-mid);line-height:1.6;">💡 '+eduMsg+'</div>';
+
+      html += '</div>';
+    }
+
   content.innerHTML = html;
 }
   
