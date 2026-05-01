@@ -7718,6 +7718,14 @@ async function generateDoctorSummary() {
     const cycleStatuses = [];
     const mealCounts = [];
     const diseaseChecks = [];
+    const energyLevels = [];
+const sleepData = [];
+const wellnessScores = [];
+const smiScores = [];
+const factorCounts = {};
+const bowelCounts = {};
+const painData = [];
+const medicationCounts = {};
 
     records.forEach(function(r) {
       var d = r.data || {};
@@ -7746,6 +7754,52 @@ async function generateDoctorSummary() {
 
       if (d.diseaseCheck && Object.keys(d.diseaseCheck).length > 0) {
         diseaseChecks.push({ date: r.record_date, check: d.diseaseCheck });
+      }
+            if (d.energy) {
+        energyLevels.push(d.energy);
+      }
+
+      if (d.sleepHours || d.sleepQuality) {
+        sleepData.push({
+          date: r.record_date,
+          hours: d.sleepHours || null,
+          quality: d.sleepQuality || null,
+          bed: d.sleepBed || '',
+          wake: d.sleepWake || ''
+        });
+      }
+
+      if (d.wellnessScore !== undefined) {
+        wellnessScores.push(d.wellnessScore);
+      }
+
+      if (d.smiScore !== undefined) {
+        smiScores.push(d.smiScore);
+      }
+
+      if (d.factors && d.factors.length) {
+        d.factors.forEach(function(f) {
+          factorCounts[f] = (factorCounts[f] || 0) + 1;
+        });
+      }
+
+      if (d.bowel) {
+        bowelCounts[d.bowel] = (bowelCounts[d.bowel] || 0) + 1;
+      }
+
+      if (d.painLevel && d.painLevel > 0) {
+        painData.push({
+          date: r.record_date,
+          level: d.painLevel,
+          location: d.painLocation || '',
+          type: d.painType || ''
+        });
+      }
+
+      if (d.medication && d.medication.length) {
+        d.medication.forEach(function(m) {
+          medicationCounts[m] = (medicationCounts[m] || 0) + 1;
+        });
       }
     });
 
@@ -7876,8 +7930,127 @@ async function generateDoctorSummary() {
     }
     html += '</div>';
     html += '</div>';
+        // ④ エネルギー・睡眠・生活の傾向
+    html += '<div class="ds-section">';
+    html += '<div class="ds-section-title">⚡ エネルギー・睡眠・生活の傾向</div>';
+    html += '<div class="ds-narrative">';
 
-    // ④ 来月のセルフケアヒント
+    if(energyLevels.length > 0){
+      var avgEnergy = (energyLevels.reduce(function(a,b){return a+b;},0) / energyLevels.length).toFixed(1);
+      var lowDays = energyLevels.filter(function(e){return e <= 2;}).length;
+      html += '平均エネルギーレベルは <strong>' + avgEnergy + '/5</strong> です（' + energyLevels.length + '日分）。';
+      if(lowDays > 0) html += '低エネルギー（2以下）の日が <strong>' + lowDays + '日</strong> ありました。';
+      html += '<br>';
+    }
+
+    if(sleepData.length > 0){
+      var sleepHrs = sleepData.filter(function(s){return s.hours;}).map(function(s){return s.hours;});
+      var sleepQuals = sleepData.filter(function(s){return s.quality;}).map(function(s){return s.quality;});
+      if(sleepHrs.length > 0){
+        var avgSH = (sleepHrs.reduce(function(a,b){return a+b;},0) / sleepHrs.length).toFixed(1);
+        var shortDays = sleepHrs.filter(function(h){return h < 6;}).length;
+        html += '平均睡眠時間は <strong>' + avgSH + '時間</strong>（' + sleepHrs.length + '日分）。';
+        if(shortDays > 0) html += '6時間未満の日が <strong>' + shortDays + '日</strong>。';
+      }
+      if(sleepQuals.length > 0){
+        var avgSQ = (sleepQuals.reduce(function(a,b){return a+b;},0) / sleepQuals.length).toFixed(1);
+        html += '睡眠の質の平均は <strong>' + avgSQ + '/5</strong>。';
+      }
+      html += '<br>';
+    }
+
+    if(wellnessScores.length > 0){
+      var avgWS = Math.round(wellnessScores.reduce(function(a,b){return a+b;},0) / wellnessScores.length);
+      var minWS = Math.min.apply(null, wellnessScores);
+      var maxWS = Math.max.apply(null, wellnessScores);
+      html += 'ウェルネススコアは平均 <strong>' + avgWS + '/100</strong>（最低 ' + minWS + '、最高 ' + maxWS + '）。';
+      if(avgWS < 40) html += '全体的に低めの傾向が続いています。';
+      html += '<br>';
+    }
+
+    if(smiScores.length > 0){
+      var avgSMI = Math.round(smiScores.reduce(function(a,b){return a+b;},0) / smiScores.length);
+      html += '更年期指数（SMI）の平均は <strong>' + avgSMI + '/94</strong>（' + smiScores.length + '日分）。';
+      if(avgSMI > 50) html += '症状が強めに出ている傾向があります。';
+      html += '<br>';
+    }
+
+    if(energyLevels.length === 0 && sleepData.length === 0 && wellnessScores.length === 0){
+      html += 'エネルギー・睡眠の記録がまだありません。記録を始めると、ここに傾向が表示されます。';
+    }
+
+    html += '</div>';
+    html += '</div>';
+
+    // ⑤ 痛み・服薬の傾向
+    if(painData.length > 0 || Object.keys(medicationCounts).length > 0){
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">💊 痛み・服薬の傾向</div>';
+      html += '<div class="ds-narrative">';
+
+      if(painData.length > 0){
+        var avgPain = (painData.reduce(function(a,p){return a+p.level;},0) / painData.length).toFixed(1);
+        var maxPain = Math.max.apply(null, painData.map(function(p){return p.level;}));
+        var locationCounts = {};
+        painData.forEach(function(p){
+          if(p.location){
+            var locs = Array.isArray(p.location) ? p.location : [p.location];
+            locs.forEach(function(l){ locationCounts[l] = (locationCounts[l]||0)+1; });
+          }
+        });
+        var topLocations = Object.entries(locationCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
+        html += '痛みの記録が <strong>' + painData.length + '日</strong> あり、平均強度は <strong>' + avgPain + '/10</strong>（最大 ' + maxPain + '）。';
+        if(topLocations.length > 0){
+          html += '主な部位は「' + topLocations.map(function(t){return t[0]+'（'+t[1]+'日）';}).join('、') + '」。';
+        }
+        html += '<br>';
+      }
+
+      if(Object.keys(medicationCounts).length > 0){
+        var sortedMeds = Object.entries(medicationCounts).sort(function(a,b){return b[1]-a[1];});
+        var totalMedDays = new Set(painData.filter(function(p){return p.level>0;}).map(function(p){return p.date;})).size;
+        html += '服薬記録：';
+        sortedMeds.forEach(function(m){
+          html += '「' + m[0] + '」' + m[1] + '日、';
+        });
+        html = html.slice(0,-1) + '。';
+      }
+
+      html += '</div>';
+      html += '</div>';
+    }
+
+    // ⑥ 生活ファクター・お通じの傾向
+    if(Object.keys(factorCounts).length > 0 || Object.keys(bowelCounts).length > 0){
+      html += '<div class="ds-section">';
+      html += '<div class="ds-section-title">📋 生活ファクター・お通じ</div>';
+      html += '<div class="ds-narrative">';
+
+      if(Object.keys(factorCounts).length > 0){
+        var sortedFactors = Object.entries(factorCounts).sort(function(a,b){return b[1]-a[1];});
+        html += '記録された生活ファクター：';
+        sortedFactors.slice(0,5).forEach(function(f){
+          html += '「' + f[0] + '」' + f[1] + '日、';
+        });
+        html = html.slice(0,-1) + '。<br>';
+      }
+
+      if(Object.keys(bowelCounts).length > 0){
+        var sortedBowel = Object.entries(bowelCounts).sort(function(a,b){return b[1]-a[1];});
+        html += 'お通じの傾向：';
+        sortedBowel.forEach(function(b){
+          html += '「' + b[0] + '」' + b[1] + '日、';
+        });
+        html = html.slice(0,-1) + '。';
+        if(bowelCounts['なし'] && bowelCounts['なし'] >= 5){
+          html += '<br>お通じなしの日が多く見られます。';
+        }
+      }
+
+      html += '</div>';
+      html += '</div>';
+    }
+    // ⑦ 来月のセルフケアヒント
     html += '<div class="ds-section">';
     html += '<div class="ds-section-title">💡 来月のセルフケアヒント</div>';
     html += '<div class="ds-narrative">';
@@ -7899,6 +8072,18 @@ async function generateDoctorSummary() {
     if (totalDays < 20) {
       hints.push('記録日数を増やすと、より正確なパターンが見えてきます。毎日1〜2分の記録を習慣にしてみましょう。');
     }
+        if(energyLevels.length > 0){
+      var lowEDays = energyLevels.filter(function(e){return e<=2;}).length;
+      if(lowEDays >= 5) hints.push('低エネルギーの日が目立ちます。睡眠時間や生活ファクターとの関連を確認してみましょう。');
+    }
+    if(sleepData.length > 0){
+      var shortSleep = sleepData.filter(function(s){return s.hours && s.hours<6;}).length;
+      if(shortSleep >= 5) hints.push('睡眠時間が6時間未満の日が多いようです。就寝時間を少し早めることを試してみましょう。');
+    }
+    if(smiScores.length > 0){
+      var highSMI = smiScores.filter(function(s){return s>50;}).length;
+      if(highSMI >= 3) hints.push('更年期症状が強めに出ている日があります。この記録を持って専門医に相談されることも検討してみてください。');
+    }
     if (hints.length === 0) {
       hints.push('今月の記録は充実しています。来月も同じペースで続けると、長期的なパターンが見えてきます。');
     }
@@ -7908,7 +8093,7 @@ async function generateDoctorSummary() {
     html += '</div>';
     html += '</div>';
 
-    // ⑤ PDF保存への案内
+    // ⑧ PDF保存への案内
     html += '<div style="margin-top:20px;padding:14px;background:var(--warm-light);border-radius:12px;font-size:12px;color:var(--ink-light);line-height:1.7;text-align:center;">';
     html += '📄 このサマリーをPDFで保存して、婦人科に持参することもできます。';
     html += '</div>';
@@ -7919,6 +8104,111 @@ async function generateDoctorSummary() {
     console.error('Body summary error:', err);
     body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。<br>もう一度お試しください。</div>';
   }
+}
+function downloadDoctorPDF(){
+  var btn = event.target;
+  var original = btn.textContent;
+  btn.textContent = 'PDF生成中…';
+  btn.style.pointerEvents = 'none';
+
+  try {
+    if(!window.jspdf){
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      script.onload = function(){ _generateDoctorPDF(btn, original); };
+      document.head.appendChild(script);
+    } else {
+      _generateDoctorPDF(btn, original);
+    }
+  } catch(e){
+    console.error('Doctor PDF error:', e);
+    btn.textContent = '生成に失敗しました';
+    setTimeout(function(){ btn.textContent = original; btn.style.pointerEvents = ''; }, 2000);
+  }
+}
+
+function _generateDoctorPDF(btn, original){
+  var body = document.getElementById('doctorSummaryBody');
+  if(!body){ btn.textContent = original; btn.style.pointerEvents = ''; return; }
+
+  var { jsPDF } = window.jspdf;
+  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  var pageW = doc.internal.pageSize.getWidth();
+  var margin = 15;
+  var maxW = pageW - margin * 2;
+  var y = 20;
+
+  // フォント設定
+  doc.setFont('Helvetica');
+
+  // タイトル
+  doc.setFontSize(16);
+  doc.setTextColor(44,36,32);
+  doc.text('ippo からだサマリー（受診用）', margin, y);
+  y += 8;
+
+  doc.setFontSize(9);
+  doc.setTextColor(154,136,128);
+  var today = new Date();
+  doc.text('生成日: ' + today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate(), margin, y);
+  y += 4;
+
+  doc.setDrawColor(232,221,216);
+  doc.line(margin, y, pageW - margin, y);
+  y += 8;
+
+  // セクションを取得して描画
+  var sections = body.querySelectorAll('.ds-section');
+  doc.setFontSize(10);
+
+  sections.forEach(function(section){
+    var title = section.querySelector('.ds-section-title');
+    var narrative = section.querySelector('.ds-narrative');
+
+    if(y > 265){ doc.addPage(); y = 20; }
+
+    if(title){
+      doc.setFontSize(12);
+      doc.setTextColor(44,36,32);
+      var titleText = title.textContent.replace(/[^\x00-\x7F]/g, function(c){ return c; });
+      doc.text(titleText, margin, y);
+      y += 7;
+    }
+
+    if(narrative){
+      doc.setFontSize(9);
+      doc.setTextColor(90,74,68);
+      var text = narrative.innerText || narrative.textContent;
+      var lines = doc.splitTextToSize(text, maxW);
+      lines.forEach(function(line){
+        if(y > 275){ doc.addPage(); y = 20; }
+        doc.text(line, margin, y);
+        y += 4.5;
+      });
+      y += 4;
+    }
+  });
+
+  // フッター
+  if(y > 265){ doc.addPage(); y = 20; }
+  y += 8;
+  doc.setFontSize(7);
+  doc.setTextColor(180,170,165);
+  doc.text('※ このレポートはippoアプリのセルフチェック記録に基づく参考情報です。医学的な診断ではありません。', margin, y);
+  y += 4;
+  doc.text('https://www.ippo-app.com', margin, y);
+
+  // ダウンロード
+  var monthLabel = (today.getMonth()+1) + '月';
+  doc.save('ippo-doctor-summary-' + monthLabel + '.pdf');
+
+  btn.textContent = 'ダウンロード完了 ✓';
+  btn.style.background = '#8aab96';
+  setTimeout(function(){
+    btn.textContent = original;
+    btn.style.background = '';
+    btn.style.pointerEvents = '';
+  }, 2000);
 }
 
 
