@@ -7389,6 +7389,17 @@ function openDayDetail(d){
 
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
+    // 今日の記録が既にある場合は自動的に編集モードにする
+  if(!state.editingDate){
+    var todayStr = new Date().toDateString();
+    var todayExists = state.records.some(function(r){
+      return new Date(r.date).toDateString() === todayStr;
+    });
+    if(todayExists){
+      state.editingDate = new Date().toISOString();
+    }
+  }
+
   var now = new Date();
   var wd = ['日','月','火','水','木','金','土'];
   
