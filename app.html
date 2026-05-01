@@ -7135,6 +7135,197 @@ function calcSMIScore(diseaseCheck){
   if(!found) return null;
   return Math.round(total);
 }
+
+  // ===== 体温フェーズ自動判定エンジン =====
+function calcTemperaturePhases(records) {
+  // 体温データを抽出（14日以上必要）
+  var temps = [];
+  var sorted = records.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
+  sorted.forEach(function(r) {
+    if (r.temperature) {
+      temps.push({ date: r.date, temp: parseFloat(r.temperature) });
+    }
+  });
+
+  if (temps.length < 14) {
+    return {
+      status: 'insufficient',
+      count: temps.length,
+      required: 14,
+      message: 'あと' + (14 - temps.length) + '日分の体温記録が必要です'
+    };
+  }
+
+  // 基本統計
+  var values = temps.map(function(t){ return t.temp; });
+  var minTemp = Math.min.apply(null, values);
+  var maxTemp = Math.max.apply(null, values);
+  var tempDiff = Math.round((maxTemp - minTemp) * 100) / 100;
+  var avgTemp = Math.round(values.reduce(function(a,b){return a+b;},0) / values.length * 100) / 100;
+  var threshold = Math.round((minTemp + tempDiff * 0.5) * 100) / 100;
+
+  // 各日をフェーズ分類
+  var phases = temps.map(function(t) {
+    return {
+      date: t.date,
+      temp: t.temp,
+      phase: t.temp < threshold ? 'low' : 'high'
+    };
+  });
+
+  // 低温期・高温期の平均
+  var lowTemps = phases.filter(function(p){ return p.phase === 'low'; }).map(function(p){ return p.temp; });
+  var highTemps = phases.filter(function(p){ return p.phase === 'high'; }).map(function(p){ return p.temp; });
+  var avgLow = lowTemps.length > 0 ? Math.round(lowTemps.reduce(function(a,b){return a+b;},0) / lowTemps.length * 100) / 100 : null;
+  var avgHigh = highTemps.length > 0 ? Math.round(highTemps.reduce(function(a,b){return a+b;},0) / highTemps.length * 100) / 100 : null;
+
+  // 二相性判定
+  var biphasic = 'none';
+  if (tempDiff >= 0.3) biphasic = 'clear';
+  else if (tempDiff >= 0.2) biphasic = 'unclear';
+  else biphasic = 'none';
+
+  // M字パターン検出（高温期中に0.3℃以上の一時低下）
+  var mPattern = false;
+  var inHighPhase = false;
+  var highStart = -1;
+  for (var i = 0; i < phases.length; i++) {
+    if (phases[i].phase === 'high' && !inHighPhase) {
+      inHighPhase = true;
+      highStart = i;
+    }
+    if (phases[i].phase === 'low' && inHighPhase) {
+      // 高温期中に低温に戻った
+      if (i - highStart >= 3 && i + 1 < phases.length && phases[i+1] && phases[i+1].phase === 'high') {
+        mPattern = true;
+      }
+      inHighPhase = false;
+    }
+  }
+
+  // 高温期の日数
+  var highPhaseDays = 0;
+  var currentHighStreak = 0;
+  var maxHighStreak = 0;
+  phases.forEach(function(p) {
+    if (p.phase === 'high') {
+      currentHighStreak++;
+      if (currentHighStreak > maxHighStreak) maxHighStreak = currentHighStreak;
+    } else {
+      currentHighStreak = 0;
+    }
+  });
+  highPhaseDays = maxHighStreak;
+
+  // 低温期の日数
+  var lowPhaseDays = 0;
+  var currentLowStreak = 0;
+  var maxLowStreak = 0;
+  phases.forEach(function(p) {
+    if (p.phase === 'low') {
+      currentLowStreak++;
+      if (currentLowStreak > maxLowStreak) maxLowStreak = currentLowStreak;
+    } else {
+      currentLowStreak = 0;
+    }
+  });
+  lowPhaseDays = maxLowStreak;
+
+  // 排卵推定日（低温期の最後の日）
+  var ovulationDate = null;
+  for (var j = phases.length - 1; j >= 1; j--) {
+    if (phases[j].phase === 'high' && phases[j-1].phase === 'low') {
+      ovulationDate = phases[j-1].date;
+      break;
+    }
+  }
+
+  // 疾患別警戒値チェック
+  var diseases = state.myDiseases || [];
+  var alerts = [];
+
+  // 共通警戒値
+  if (avgLow !== null && avgLow >= 37.0) {
+    alerts.push({ level: 'danger', message: '低温期の平均が37.0℃以上です。慢性炎症の可能性があります。医師への相談をおすすめします。' });
+  } else if (avgLow !== null && avgLow >= 36.5) {
+    alerts.push({ level: 'warning', message: '低温期の平均が36.5℃以上です。やや高めの傾向です。' });
+  }
+
+  if (avgHigh !== null && avgHigh >= 37.5) {
+    alerts.push({ level: 'danger', message: '高温期の平均が37.5℃以上です。異常な高温期の可能性があります。' });
+  }
+
+  if (maxTemp >= 38.0) {
+    alerts.push({ level: 'emergency', message: '38℃以上の体温が記録されています。感染や嚢腫破裂の可能性があり、早急な受診をおすすめします。' });
+  }
+
+  // 卵巣嚢腫固有
+  if (diseases.indexOf('卵巣嚢腫') !== -1) {
+    if (avgLow !== null && avgLow >= 37.0) {
+      alerts.push({ level: 'disease', disease: '卵巣嚢腫', message: '低温期37℃以上は卵巣嚢腫による慢性炎症を示唆する体温パターンです。' });
+    }
+    if (tempDiff >= 0.8) {
+      alerts.push({ level: 'disease', disease: '卵巣嚢腫', message: '温度差が' + tempDiff + '℃と大きく、炎症の悪化が疑われます。' });
+    }
+  }
+
+  // 子宮内膜症固有
+  if (diseases.indexOf('子宮内膜症') !== -1) {
+    // 月経初日の高体温チェック
+    var cycleRecords = records.filter(function(r){ return r.menstrualCycle && r.menstrualCycle !== 'なし' && r.temperature; });
+    var periodHighTemp = cycleRecords.filter(function(r){ return parseFloat(r.temperature) >= 36.5; });
+    if (periodHighTemp.length >= 2) {
+      alerts.push({ level: 'disease', disease: '子宮内膜症', message: '月経中の体温が36.5℃以上の日が' + periodHighTemp.length + '日あります。骨盤内膜症との関連が報告されているパターンです。' });
+    }
+  }
+
+  // PCOS固有
+  if (diseases.indexOf('PCOS') !== -1) {
+    if (biphasic === 'none') {
+      alerts.push({ level: 'disease', disease: 'PCOS', message: '二相性が不明確です。排卵障害の可能性があります。' });
+    }
+    if (lowPhaseDays >= 18) {
+      alerts.push({ level: 'disease', disease: 'PCOS', message: '低温期が' + lowPhaseDays + '日と長く、LH/FSH比の異常が疑われます。' });
+    }
+  }
+
+  // 黄体機能不全パターン
+  if (highPhaseDays > 0 && highPhaseDays < 10) {
+    alerts.push({ level: 'warning', message: '高温期が' + highPhaseDays + '日と短めです。黄体機能不全の可能性があります。' });
+  }
+  if (mPattern) {
+    alerts.push({ level: 'warning', message: '高温期中に体温が一時低下するM字パターンが検出されました。黄体ホルモンの分泌が不安定な可能性があります。' });
+  }
+
+  // 次回月経予測
+  var nextPeriod = null;
+  if (ovulationDate) {
+    var ovDate = new Date(ovulationDate);
+    ovDate.setDate(ovDate.getDate() + 14);
+    nextPeriod = ovDate.toISOString().split('T')[0];
+  }
+
+  return {
+    status: 'ready',
+    count: temps.length,
+    minTemp: minTemp,
+    maxTemp: maxTemp,
+    tempDiff: tempDiff,
+    avgTemp: avgTemp,
+    threshold: threshold,
+    avgLow: avgLow,
+    avgHigh: avgHigh,
+    biphasic: biphasic,
+    mPattern: mPattern,
+    highPhaseDays: highPhaseDays,
+    lowPhaseDays: lowPhaseDays,
+    ovulationDate: ovulationDate,
+    nextPeriod: nextPeriod,
+    phases: phases,
+    alerts: alerts
+  };
+}
+
 // ===== ウェルネススコア自動計算 =====
 function calcWellnessScore(rec){
   var score = 50; // ベース
