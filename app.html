@@ -32,24 +32,138 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --rose: #FF6B6B;
-  --rose-light: #FFD4D4;
-  --rose-pale: #FFF0F0;
-  --sage: #8aab96;
-  --sage-light: #d6e8dd;
-  --warm: #e8c49a;
-  --warm-light: #f9edd8;
-  --ink: #2c2420;
-  --ink-mid: #5a4a44;
-  --ink-light: #9a8880;
-  --cream: #faf6f2;
+  /* === Primary: Deep Rose === */
+  --rose: #b8707a;
+  --rose-light: #f0d4d8;
+  --rose-pale: #faf0f1;
+  
+  /* === Secondary: Deep Plum === */
+  --plum: #5a2d3d;
+  --plum-light: #8a5a6a;
+  
+  /* === Accent: Warm Gold === */
+  --gold: #c8a96e;
+  --gold-light: #f5ecd8;
+  
+  /* === Nature: Sage === */
+  --sage: #7a9e86;
+  --sage-light: #d0e4d6;
+  
+  /* === Warm === */
+  --warm: #d4a87c;
+  --warm-light: #f5e6d4;
+  
+  /* === Text === */
+  --ink: #2d1f1a;
+  --ink-mid: #4a3830;
+  --ink-light: #8a7a70;
+  
+  /* === Background === */
+  --cream: #faf6f1;
   --white: #ffffff;
-  --shadow: rgba(44,36,32,0.08);
+  --shadow: rgba(45,31,26,0.10);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
+
+  /* === Premium Feel: ナビバー === */
+.nav-bar {
+  background: linear-gradient(180deg, #ffffff 0%, #f8f2ed 100%);
+  border-top: 1px solid rgba(90,45,61,0.08);
+}
+.nav-item.active {
+  color: var(--plum);
+}
+
+/* === Premium Feel: ヘッダー === */
+.home-header {
+  background: linear-gradient(135deg, #5a2d3d 0%, #7a4a5a 100%);
+  color: white;
+}
+.home-header .today-date,
+.home-header .greeting {
+  color: rgba(255,255,255,0.9);
+}
+.app-logo span {
+  color: var(--gold);
+}
+
+/* === Premium Feel: CTAカード === */
+#home-cta-card,
+#home-record-cta {
+  background: linear-gradient(135deg, #5a2d3d 0%, #7a4a5a 60%, #b8707a 100%) !important;
+}
+
+/* === Premium Feel: カレンダー === */
+.cal-day.today {
+  background: var(--plum);
+  color: white;
+  box-shadow: 0 2px 8px rgba(90,45,61,0.3);
+}
+.cal-day.has-record::after {
+  background: var(--gold) !important;
+}
+.cal-day.today.has-record::after {
+  background: white !important;
+}
+
+/* === Premium Feel: チップ選択 === */
+.chip.selected {
+  background: var(--rose-pale);
+  border-color: var(--rose);
+  color: var(--plum);
+}
+
+/* === Premium Feel: ファスティングボタン === */
+.fw-btn.start {
+  background: linear-gradient(135deg, var(--plum) 0%, var(--rose) 100%);
+}
+.fw-pill.active {
+  background: var(--plum);
+  border-color: var(--plum);
+  color: white;
+}
+
+/* === Premium Feel: マイルストーン === */
+.unlock-badge.unlocked {
+  background: var(--gold-light);
+  color: var(--gold);
+}
+
+/* === Premium Feel: ボタン全般 === */
+.record-btn-main {
+  background: linear-gradient(135deg, var(--plum) 0%, var(--rose) 100%);
+  box-shadow: 0 4px 15px rgba(90,45,61,0.25);
+}
+.record-btn-main:hover {
+  background: linear-gradient(135deg, var(--rose) 0%, var(--plum) 100%);
+  box-shadow: 0 6px 20px rgba(90,45,61,0.35);
+}
+
+/* === Premium Feel: タブ === */
+.sg-tab.active {
+  background: var(--plum);
+  color: white;
+}
+
+/* === Premium Feel: ステップドット === */
+.step-dot.active {
+  background: var(--gold);
+}
+
+/* === Premium Feel: タイムライン === */
+.tl-dot {
+  background: var(--gold);
+}
+
+/* === Premium Feel: プレミアム画面差別化 === */
+.premium-lock-btn {
+  background: linear-gradient(135deg, var(--gold) 0%, #d4b878 100%) !important;
+  color: var(--plum) !important;
+  font-weight: 600;
+}
 
 body {
   font-family: 'Noto Sans JP', sans-serif;
