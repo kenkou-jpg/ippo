@@ -4052,18 +4052,20 @@ function cloudRestore(){
         return true;
       }
 
-     if(cloudDate > localDate){
-  // クラウドの方が新しい場合でも、レコード数が大幅に減る場合は警告
-  if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
-    console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
-    return false;
-  }
-  state = Object.assign(state, cloudState);
-  state.lastSaved = cloudDate.toISOString();
-  localStorage.setItem('ippo_state', JSON.stringify(state));
-  console.log('クラウドから復元完了: ' + state.records.length + '件');
-  return true;
-   });
+       if(cloudDate > localDate){
+        if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
+          console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
+          return false;
+        }
+        state = Object.assign(state, cloudState);
+        state.lastSaved = cloudDate.toISOString();
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+        console.log('クラウドから復元完了: ' + state.records.length + '件');
+        return true;
+      }
+      console.log('ローカルが最新のため復元スキップ');
+      return false;
+    });
   });
 }
 
