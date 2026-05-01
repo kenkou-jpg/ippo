@@ -2420,10 +2420,13 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <div class="settings-section">
         <div class="settings-section-title">データ</div>
         <div class="settings-card">
-          <div class="settings-row" onclick="var d=JSON.stringify(state,null,2);var b=new Blob([d],{type:'application/json'});var a=document.createElement('a');var u=window.URL||window.webkitURL;a.href=u.createObjectURL(b);a.download='ippo-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);">
+          <div class="settings-row" onclick="showExportMenu()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6">📤</div>
-              <div><div class="settings-row-text">データをエクスポート</div></div>
+              <div class="settings-row-icon" style="background:#e8f0e8">📤</div>
+              <div>
+                <div class="settings-row-text">データをエクスポート</div>
+                <div class="settings-row-sub">CSV（受診用）/ JSON（バックアップ）</div>
+              </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
@@ -2445,17 +2448,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="exportCSV()">
-  <div class="settings-row-left">
-    <div class="settings-row-icon" style="background:#e8f0e8">📊</div>
-    <div>
-      <div class="settings-row-text">CSVエクスポート</div>
-      <div class="settings-row-sub">全記録をCSVファイルで書き出し</div>
-    </div>
-  </div>
-  <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-</div>
-   </div>
+  　　　 </div>
       </div>
       <div class="settings-section">
         <div class="settings-section-title">データ管理</div>
@@ -9680,6 +9673,43 @@ function _generateDoctorPDF(btn, original){
     btn.style.pointerEvents = '';
   }, 2000);
 }
+  function showExportMenu(){
+  var overlay = document.createElement('div');
+  overlay.id = 'export-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:flex-end;justify-content:center;';
+  
+  var sheet = document.createElement('div');
+  sheet.style.cssText = 'background:white;border-radius:20px 20px 0 0;padding:24px;width:100%;max-width:400px;';
+  
+  sheet.innerHTML = '<div style="font-size:16px;font-weight:600;text-align:center;margin-bottom:20px;">エクスポート形式を選択</div>'
+    + '<div style="display:flex;flex-direction:column;gap:10px;">'
+    + '<button onclick="exportCSV();document.getElementById(\'export-overlay\').remove();" style="padding:16px;background:#e8f4ec;border:none;border-radius:14px;font-size:14px;color:#2d6a3f;cursor:pointer;text-align:left;">'
+    + '<div style="font-weight:600;">📊 CSV形式</div>'
+    + '<div style="font-size:12px;margin-top:4px;color:#666;">Excel・スプレッドシートで開ける表形式。受診時の資料に最適。</div>'
+    + '</button>'
+    + '<button onclick="exportJSON();document.getElementById(\'export-overlay\').remove();" style="padding:16px;background:#f0ebe6;border:none;border-radius:14px;font-size:14px;color:var(--ink);cursor:pointer;text-align:left;">'
+    + '<div style="font-weight:600;">💾 JSON形式</div>'
+    + '<div style="font-size:12px;margin-top:4px;color:#666;">全データのバックアップ。別端末への移行や復元用。</div>'
+    + '</button>'
+    + '</div>'
+    + '<button onclick="document.getElementById(\'export-overlay\').remove();" style="width:100%;margin-top:12px;padding:14px;background:none;border:1px solid #ddd;border-radius:14px;font-size:13px;color:#888;cursor:pointer;">キャンセル</button>';
+  
+  overlay.appendChild(sheet);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+}
+
+function exportJSON(){
+  var d = JSON.stringify(state, null, 2);
+  var b = new Blob([d], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'ippo-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
 // ===== CSVエクスポート =====
 function exportCSV(){
   if(!state.records || state.records.length === 0){
