@@ -2331,6 +2331,16 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="pf-arrow">→</div>
         </div>
+        
+        <div class="pf-card" onclick="premiumGate(openTempReport)">
+  <div class="pf-icon">🌡️</div>
+  <div class="pf-text">
+    <div class="pf-title">体温パターン解析<span class="pf-lock-badge">PRO</span></div>
+    <div class="pf-sub">低温期・高温期の判定と疾患別警戒値</div>
+  </div>
+  <div class="pf-arrow">→</div>
+</div>
+
                 <div class="pf-card" onclick="premiumGate(openExperiments)">
           <div class="pf-icon">🧪</div>
           <div class="pf-text">
@@ -7410,6 +7420,174 @@ function calcTemperaturePhases(records) {
     alerts: alerts
   };
 }
+
+  function openTempReport(){
+  var analysis = calcTemperaturePhases(state.records);
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="tempReportOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:92%;max-width:400px;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
+
+  // ヘッダー
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
+  html += '<div>';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:18px;color:var(--ink);">🌡️ 体温パターン解析</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-top:4px;">'+analysis.count+'日分のデータから分析</div>';
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'tempReportOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
+  html += '</div>';
+
+  if(analysis.status === 'insufficient'){
+    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">🌡️ '+analysis.message+'<br>毎朝の基礎体温記録を続けましょう。</div>';
+  } else {
+
+    // ① 基本統計
+    html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">📊 基本統計</div>';
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+
+    html += '<div style="background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+    html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">低温期平均</div>';
+    html += '<div style="font-size:16px;font-weight:600;color:#7ba3c4;">'+(analysis.avgLow||'-')+'℃</div>';
+    html += '</div>';
+
+    html += '<div style="background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+    html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">高温期平均</div>';
+    html += '<div style="font-size:16px;font-weight:600;color:#c4878c;">'+(analysis.avgHigh||'-')+'℃</div>';
+    html += '</div>';
+
+    html += '<div style="background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+    html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">温度差</div>';
+    var diffColor = analysis.tempDiff >= 0.3 ? '#6b9e78' : analysis.tempDiff >= 0.2 ? '#d4a574' : '#c4878c';
+    html += '<div style="font-size:16px;font-weight:600;color:'+diffColor+';">'+analysis.tempDiff+'℃</div>';
+    html += '</div>';
+
+    html += '<div style="background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
+    html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">二相性</div>';
+    var bLabel = analysis.biphasic === 'clear' ? '明確' : analysis.biphasic === 'unclear' ? 'やや不明瞭' : 'なし';
+    var bColor = analysis.biphasic === 'clear' ? '#6b9e78' : analysis.biphasic === 'unclear' ? '#d4a574' : '#c4878c';
+    html += '<div style="font-size:14px;font-weight:600;color:'+bColor+';">'+bLabel+'</div>';
+    html += '</div>';
+
+    html += '</div></div>';
+
+    // ② 体温カラーマップ
+    html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">🗓️ 体温フェーズマップ</div>';
+    html += '<div style="display:flex;gap:2px;flex-wrap:wrap;">';
+    var recentPhases = analysis.phases.slice(-30);
+    recentPhases.forEach(function(p){
+      var d = new Date(p.date);
+      var dayLabel = (d.getMonth()+1)+'/'+d.getDate();
+      var bgColor = p.phase === 'low' ? '#d4e6f1' : '#f5cdd0';
+      var textColor = p.phase === 'low' ? '#5b8fb9' : '#b85c6a';
+      html += '<div style="width:28px;height:36px;background:'+bgColor+';border-radius:4px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default;" title="'+dayLabel+' '+p.temp+'℃">';
+      html += '<div style="font-size:6px;color:'+textColor+';">'+d.getDate()+'</div>';
+      html += '<div style="font-size:8px;font-weight:600;color:'+textColor+';">'+p.temp.toFixed(1)+'</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+    html += '<div style="display:flex;gap:12px;justify-content:center;margin-top:8px;">';
+    html += '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#d4e6f1;border-radius:2px;"></div><span style="font-size:9px;color:var(--ink-light);">低温期</span></div>';
+    html += '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#f5cdd0;border-radius:2px;"></div><span style="font-size:9px;color:var(--ink-light);">高温期</span></div>';
+    html += '</div></div>';
+
+    // ③ 周期情報
+    html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">📅 周期情報</div>';
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe6;">';
+    html += '<div style="font-size:12px;color:var(--ink-mid);">低温期</div>';
+    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">'+(analysis.lowPhaseDays||'-')+'日間</div>';
+    html += '</div>';
+
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe6;">';
+    html += '<div style="font-size:12px;color:var(--ink-mid);">高温期</div>';
+    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">'+(analysis.highPhaseDays||'-')+'日間</div>';
+    html += '</div>';
+
+    if(analysis.ovulationDate){
+      var ovD = new Date(analysis.ovulationDate);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe6;">';
+      html += '<div style="font-size:12px;color:var(--ink-mid);">排卵推定日</div>';
+      html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">'+(ovD.getMonth()+1)+'/'+ovD.getDate()+'</div>';
+      html += '</div>';
+    }
+
+    if(analysis.nextPeriod){
+      var npD = new Date(analysis.nextPeriod);
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;">';
+      html += '<div style="font-size:12px;color:var(--ink-mid);">次回月経予測</div>';
+      html += '<div style="font-size:12px;font-weight:500;color:var(--rose);">'+(npD.getMonth()+1)+'/'+npD.getDate()+'</div>';
+      html += '</div>';
+    }
+
+    if(analysis.mPattern){
+      html += '<div style="margin-top:8px;padding:8px 10px;background:#fdf3f3;border-radius:8px;">';
+      html += '<div style="font-size:11px;color:#c4878c;font-weight:500;">⚠️ M字パターン検出</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">高温期中に体温が一時低下しています。黄体ホルモンの分泌が不安定な可能性があります。</div>';
+      html += '</div>';
+    }
+
+    html += '</div>';
+
+    // ④ 警戒値・アラート
+    if(analysis.alerts.length > 0){
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+      html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">🚨 警戒値チェック</div>';
+
+      analysis.alerts.forEach(function(alert){
+        var alertBg, alertBorder, alertText;
+        if(alert.level === 'emergency'){
+          alertBg = '#fde0e0'; alertBorder = '#c44848'; alertText = '#c44848';
+        } else if(alert.level === 'danger'){
+          alertBg = '#fde8e8'; alertBorder = '#c4878c'; alertText = '#c4878c';
+        } else if(alert.level === 'disease'){
+          alertBg = '#fdf3e8'; alertBorder = '#d4a574'; alertText = '#a07840';
+        } else {
+          alertBg = '#fdf8e8'; alertBorder = '#d4c474'; alertText = '#8a7a40';
+        }
+
+        html += '<div style="padding:10px 12px;background:'+alertBg+';border-left:3px solid '+alertBorder+';border-radius:8px;margin-bottom:8px;">';
+        if(alert.disease){
+          html += '<div style="font-size:9px;color:'+alertText+';font-weight:600;margin-bottom:4px;">'+alert.disease+'</div>';
+        }
+        html += '<div style="font-size:11px;color:'+alertText+';line-height:1.6;">'+alert.message+'</div>';
+        html += '</div>';
+      });
+
+      html += '<div style="margin-top:8px;padding:8px 10px;background:var(--cream);border-radius:8px;font-size:10px;color:var(--ink-light);line-height:1.6;">※ これらは統計データに基づく参考情報であり、医学的な診断ではありません。気になる場合は医師にご相談ください。</div>';
+      html += '</div>';
+    }
+
+    // ⑤ 正常範囲との比較
+    html += '<div style="background:var(--white);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:12px;">📋 正常範囲との比較</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:10px;">AMED研究（日本人女性31万人）に基づく参考値</div>';
+
+    var compItems = [
+      {label:'低温期平均', yours:analysis.avgLow, normal:'36.2℃', range:'35.9〜36.5℃'},
+      {label:'高温期平均', yours:analysis.avgHigh, normal:'36.7℃', range:'36.5〜36.9℃'},
+      {label:'温度差', yours:analysis.tempDiff, normal:'0.3〜0.5℃', range:'0.3〜0.5℃'}
+    ];
+
+    compItems.forEach(function(item){
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f0ebe6;">';
+      html += '<div style="font-size:11px;color:var(--ink-mid);flex:1;">'+item.label+'</div>';
+      html += '<div style="font-size:11px;font-weight:500;color:var(--ink);flex:1;text-align:center;">'+(item.yours !== null ? item.yours+'℃' : '-')+'</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);flex:1;text-align:right;">正常: '+item.normal+'</div>';
+      html += '</div>';
+    });
+
+    html += '</div>';
+  }
+
+  // 閉じるボタン
+  html += '<button onclick="document.getElementById(\'tempReportOverlay\').remove()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;">閉じる</button>';
+  html += '</div></div>';
+
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
 
 // ===== ウェルネススコア自動計算 =====
 function calcWellnessScore(rec){
