@@ -1777,14 +1777,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
       </div>
 
-      <!-- 最近の記録 -->
-<div style="margin:0 24px 20px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">最近の記録</div>
-    <div style="font-size:11px;color:var(--rose);cursor:pointer;" onclick="switchTab(1)">すべて見る →</div>
-  </div>
-  <div id="home-history-list"></div>
-</div>
       
       <!-- Day Detail Modal -->
       <div class="dm-overlay" id="dmOverlay">
@@ -5362,40 +5354,8 @@ function updateStats() {
     fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
 }
 
-
 function updateHistory(){
-  var container = document.getElementById('home-history-list');
-  if(!container) return;
-  if(!state.records || state.records.length === 0){
-    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-light);font-size:13px;">まだ記録がありません</div>';
-    return;
-  }
-  var sorted = state.records.slice().sort(function(a,b){
-    return new Date(b.date) - new Date(a.date);
-  });
-  var recent = sorted.slice(0, 5);
-  var html = '';
-  recent.forEach(function(r){
-    var d = r.date ? r.date.slice(0,10) : '';
-    var parts = d.split('-');
-    var label = parts.length===3 ? parseInt(parts[1])+'月'+parseInt(parts[2])+'日' : d;
-    var items = [];
-    if(r.temperature) items.push('🌡️ '+r.temperature+'℃');
-    if(r.energy) items.push('⚡ '+r.energy+'/5');
-    if(r.symptoms && r.symptoms.length>0) items.push('💊 症状'+r.symptoms.length+'個');
-    if(r.menstrualCycle && r.menstrualCycle!=='なし') items.push('🩸 '+r.menstrualCycle);
-    if(r.bowel) items.push('🫧 '+r.bowel);
-    if(r.wellnessScore) items.push('💚 WS:'+r.wellnessScore);
-    var detail = items.length>0 ? items.join('　') : '記録あり';
-    html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px var(--shadow);cursor:pointer;" onclick="editPastRecord(\''+r.date+'\')">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
-    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">'+label+'</div>';
-    html += '<div style="font-size:11px;color:var(--ink-light);">›</div>';
-    html += '</div>';
-    html += '<div style="font-size:12px;color:var(--ink-mid);margin-top:6px;">'+detail+'</div>';
-    html += '</div>';
-  });
-  container.innerHTML = html;
+  // 最近の記録セクション削除済み
 }
 
 function updateUnlock(){
