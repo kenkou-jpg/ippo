@@ -3966,40 +3966,61 @@ function checkPremiumRegistered(){
 }
 
   
+var _cloudBackupLock = false;
 function cloudBackupAll(){
-  // ガード：空データでクラウドを上書きしない
+  if(_cloudBackupLock){
+    console.log('クラウド同期中：スキップ');
+    return Promise.resolve();
+  }
   if(!state.records || state.records.length === 0){
     console.warn('記録が空のためクラウド同期をスキップ');
     return Promise.resolve();
   }
+  _cloudBackupLock = true;
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
       console.warn('未ログイン：クラウドバックアップをスキップ');
+      _cloudBackupLock = false;
       return;
     }
     var userId = session.user.id;
+    var stateToSave = {
+      name: state.name,
+      records: state.records,
+      streak: state.streak,
+      totalDays: state.totalDays,
+      fastGoal: state.fastGoal,
+      myVision: state.myVision,
+      fastTimer: state.fastTimer,
+      lastSaved: state.lastSaved,
+      myDiseases: state.myDiseases,
+      reminders: state.reminders,
+      _onboardingDone: state._onboardingDone
+    };
     var payload = {
-      state: state,
+      state: stateToSave,
       updated_at: new Date().toISOString()
     };
-    // まずUPDATEを試みる
     return supabase.from('user_data').update(payload).eq('user_id', userId).select().then(function(result){
+      _cloudBackupLock = false;
       if(result.data && result.data.length > 0){
-        console.log('Cloud backup完了（更新）');
+        console.log('Cloud backup完了（更新）: '+stateToSave.records.length+'件');
         return result.data;
       }
-      // レコードが無い場合はINSERT
       payload.user_id = userId;
       return supabase.from('user_data').insert(payload).select().then(function(result2){
-        if(result2.error){
-          console.warn('Backup失敗:', result2.error.message);
-        } else {
-          console.log('Cloud backup完了（新規）');
-        }
+        if(result2.error) console.warn('Backup失敗:', result2.error.message);
+        else console.log('Cloud backup完了（新規）');
         return result2.data;
       });
+    }).catch(function(e){
+      _cloudBackupLock = false;
+      throw e;
     });
+  }).catch(function(e){
+    _cloudBackupLock = false;
+    throw e;
   });
 }
 
@@ -4031,17 +4052,17 @@ function cloudRestore(){
         return true;
       }
 
-      if(cloudDate > localDate){
-        state = Object.assign(state, cloudState);
-        state.lastSaved = cloudDate.toISOString();
-        localStorage.setItem('ippo_state', JSON.stringify(state));
-        console.log('クラウドから復元完了: ' + state.records.length + '件');
-        return true;
-      }
-      console.log('ローカルが最新のため復元スキップ');
-      return false;
-    });
-  });
+     if(cloudDate > localDate){
+  // クラウドの方が新しい場合でも、レコード数が大幅に減る場合は警告
+  if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
+    console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
+    return false;
+  }
+  state = Object.assign(state, cloudState);
+  state.lastSaved = cloudDate.toISOString();
+  localStorage.setItem('ippo_state', JSON.stringify(state));
+  console.log('クラウドから復元完了: ' + state.records.length + '件');
+  return true;
 }
 
   
@@ -4070,6 +4091,10 @@ function saveState() {
   } catch(e) {
     console.warn('ippo: localStorage save failed', e);
   }
+}
+
+function saveAndSync() {
+  saveState();
   if(typeof cloudBackupAll === 'function'){
     cloudBackupAll().catch(function(e){
       console.warn('クラウド同期失敗:', e);
@@ -4077,6 +4102,7 @@ function saveState() {
     });
   }
 }
+
 
 function init() {
   const saved = localStorage.getItem('ippo_state');
@@ -4087,7 +4113,7 @@ function init() {
     if(state.myDisease && !state.myDiseases){
       state.myDiseases = [state.myDisease];
       delete state.myDisease;
-      saveState();
+      saveState(); // ローカルのみ保存（クラウドには送らない）
     }
    if(!state.myDiseases) state.myDiseases = [];
   updateDate();
@@ -4814,7 +4840,6 @@ let fastInterval = null;
 function setFastGoal(h, el) {
   state.fastGoal = h;
   saveState();
-   cloudBackupAll();
   document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
   el.classList.add('active');
 }
@@ -4828,7 +4853,6 @@ function toggleFast() {
   state.fastingActive = true;
   state.fastingStart = Date.now();
   saveState();
-  cloudBackupAll();
   document.getElementById('fast-start-btn').style.display = 'none';
   document.getElementById('fast-stop-btn').style.display = 'block';
   // 達成予定時刻を表示
@@ -4861,7 +4885,7 @@ function endFast() {
   rec.fastingGoal = state.fastGoal || 16;
 
   saveState();
-  cloudBackupAll();
+  saveAndSync()
   document.getElementById('fast-start-btn').style.display = 'block';
   document.getElementById('fast-stop-btn').style.display = 'none';
   document.getElementById('fast-timer').textContent = '00:00:00';
@@ -5142,7 +5166,7 @@ function saveRecord() {
     
     state.editingDate = null; // 編集モード解除
     
-    saveState();
+    saveAndSync();
     closeModal();
     updateStats();
     updateUnlock();
@@ -5150,7 +5174,6 @@ function saveRecord() {
     buildCalendar();
     document.getElementById('success-message').innerHTML = '記録を更新しました。';
 document.getElementById('success-overlay').classList.add('active');
-    cloudBackupAll();
     return;
   }
   
@@ -5186,7 +5209,7 @@ document.getElementById('success-overlay').classList.add('active');
     else state.records.push(currentRecord);
   }
 
-  saveState();
+  saveAndSync();
   closeModal();
   updateStats();
   updateUnlock();
@@ -8531,7 +8554,7 @@ var todayStr = targetDate.toDateString();
     }
     if(state.editingDate){
       state.editingDate = null;
-      saveState();
+     saveAndSync();
     }
   } catch(e) {
     console.error('saveRecordScreen error:', e);
