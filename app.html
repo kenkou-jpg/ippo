@@ -7839,19 +7839,22 @@ function updateMealParse() {
   });
   
   times.sort();
-  document.getElementById('parse-meal-count').textContent = count;
-  document.getElementById('parse-first-time').textContent = times.length > 0 ? times[0] : '--:--';
-  document.getElementById('parse-last-time').textContent = times.length > 0 ? times[times.length - 1] : '--:--';
+  var countEl = document.getElementById('parse-meal-count');
+  var firstEl = document.getElementById('parse-first-time');
+  var lastEl = document.getElementById('parse-last-time');
+  var fastEl = document.getElementById('parse-fasting');
+  if(countEl) countEl.textContent = count;
+  if(firstEl) firstEl.textContent = times.length > 0 ? times[0] : '--:--';
+  if(lastEl) lastEl.textContent = times.length > 0 ? times[times.length - 1] : '--:--';
   
   if (times.length >= 2) {
     var first = times[0].split(':');
     var last = times[times.length - 1].split(':');
     var eating = (parseInt(last[0]) + parseInt(last[1]) / 60) - (parseInt(first[0]) + parseInt(first[1]) / 60);
     var fasting = Math.round((24 - eating) * 10) / 10;
-    // 7853行を修正
-  var pf2 = document.getElementById('parse-fasting'); if(pf2) pf2.textContent = '0';
+    if(fastEl) fastEl.textContent = fasting;
   } else {
-    document.getElementById('parse-fasting').textContent = '0';
+    if(fastEl) fastEl.textContent = '0';
   }
 }
 
