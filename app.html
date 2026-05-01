@@ -1652,7 +1652,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <input class="welcome-input" id="name-input" type="text" placeholder="（例）さくら">
       <button class="btn-primary" id="btn-start">はじめる →</button>
       <button class="btn-skip" id="btn-skip">スキップ</button>
-    </div>
+      </div>
+
+<!-- 疾患選択ステップ -->
+<div id="onboarding-disease" style="display:none;width:100%;margin-top:0;">
+  <div style="text-align:center;margin-bottom:20px;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:20px;color:var(--ink);margin-bottom:8px;">気になる症状はありますか？</div>
+    <div style="font-size:12px;color:var(--ink-light);line-height:1.6;">選択した疾患に合わせて<br>記録画面が最適化されます（複数選択可）</div>
+  </div>
+
+  <div id="ob-disease-list" style="max-height:50vh;overflow-y:auto;padding:0 4px;"></div>
+
+  <div style="margin-top:20px;">
+    <button class="btn-primary" onclick="completeOnboarding()" style="width:100%;">この設定ではじめる →</button>
+    <button class="btn-skip" onclick="completeOnboarding()" style="width:100%;margin-top:8px;">あとで設定する</button>
+  </div>
+   </div>
   </div>
 
   <!-- ===== MAIN APP ===== -->
@@ -4070,7 +4085,12 @@ function init() {
     }
   }
   checkPremiumRegistered();
-
+  
+// 既存ユーザーはオンボーディング済みとみなす
+if (state.name && !state._onboardingDone) {
+  state._onboardingDone = true;
+}
+  
  if (state.name) {
   showMain();
  
@@ -4408,12 +4428,222 @@ document.addEventListener('visibilitychange', function(){
 
 
 function startApp() {
-  const nameInput = document.getElementById('name-input');
-  state.name = nameInput.value.trim() || 'あなた';
+  var nameInput = document.getElementById('name-input');
+  if (nameInput && nameInput.value.trim()) {
+    state.name = nameInput.value.trim();
+  } else {
+    state.name = 'あなた';
+  }
   saveState();
-  showMain();
-  initVisionUI();
-updateHomeVision();
+
+  // 初回起動時：疾患選択ステップを表示
+  if (!state._onboardingDone) {
+    document.querySelector('.welcome-name-section').style.display = 'none';
+    // ベネフィットカード部分も非表示に
+    var baSection = document.querySelector('.ba-timeline');
+    if (baSection) baSection.style.display = 'none';
+    var baArrow = document.querySelector('.ba-arrow');
+    if (baArrow) baArrow.style.display = 'none';
+
+    showOnboardingDisease();
+    return;
+  }
+
+  finishOnboarding();
+}
+
+function showOnboardingDisease() {
+  var container = document.getElementById('onboarding-disease');
+  if (!container) { finishOnboarding(); return; }
+
+  var categories = {
+    '婦人科疾患': ['卵巣嚢腫', '子宮内膜症', '子宮筋腫', '子宮腺筋症'],
+    'ホルモン・周期': ['PCOS', 'PMS/PMDD', '更年期障害', '不妊症・排卵障害'],
+    '骨盤・外陰': ['骨盤臓器脱', '外陰痛症候群', '慢性骨盤痛']
+  };
+
+  var list = document.getElementById('ob-disease-list');
+  var html = '';
+
+  Object.keys(categories).forEach(function(catName) {
+    html += '<div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);margin:16px 0 8px;text-transform:uppercase;">' + catName + '</div>';
+    categories[catName].forEach(function(d) {
+      var cfg = DISEASE_CONFIG[d];
+      if (!cfg) return;
+      html += '<div class="ob-disease-chip" onclick="toggleObDisease(this,\'' + d.replace(/'/g, "\\'") + '\')" ';
+      html += 'style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--white);border-radius:14px;margin-bottom:6px;cursor:pointer;border:1.5px solid #e8ddd8;transition:all 0.2s;">';
+      html += '<div style="font-size:20px;">' + cfg.icon + '</div>';
+      html += '<div style="flex:1;">';
+      html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + d + '</div>';
+      html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">' + cfg.questions.length + '項目のセルフチェック</div>';
+      html += '</div>';
+      html += '<div class="ob-check" style="width:22px;height:22px;border-radius:50%;border:1.5px solid #e8ddd8;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all 0.2s;">✓</div>';
+      html += '</div>';
+    });
+  });
+
+  list.innerHTML = html;
+  container.style.display = 'block';
+}
+
+function toggleObDisease(el, disease) {
+  var isSelected = el.getAttribute('data-selected') === '1';
+  if (isSelected) {
+    el.setAttribute('data-selected', '0');
+    el.style.borderColor = '#e8ddd8';
+    el.style.background = 'var(--white)';
+    el.querySelector('.ob-check').style.color = 'transparent';
+    el.querySelector('.ob-check').style.background = 'transparent';
+    el.querySelector('.ob-check').style.borderColor = '#e8ddd8';
+  } else {
+    el.setAttribute('data-selected', '1');
+    el.style.borderColor = 'var(--rose)';
+    el.style.background = 'var(--rose-pale)';
+    el.querySelector('.ob-check').style.color = 'white';
+    el.querySelector('.ob-check').style.background = 'var(--rose)';
+    el.querySelector('.ob-check').style.borderColor = 'var(--rose)';
+  }
+}
+
+function completeOnboarding() {
+  // 選択された疾患を収集
+  var selected = [];
+  document.querySelectorAll('.ob-disease-chip[data-selected="1"]').forEach(function(el) {
+    var name = el.querySelector('div > div:first-child').textContent.trim();
+    if (DISEASE_CONFIG[name]) selected.push(name);
+  });
+
+  state.myDiseases = selected;
+  state._onboardingDone = true;
+  saveState();
+
+  // 設定画面の疾患表示を更新
+  var display = document.getElementById('disease-setting-display');
+  if (display) {
+    display.textContent = selected.length > 0 ? selected.join('・') : '設定する';
+  }
+
+  finishOnboarding();
+}
+
+function finishOnboarding() {
+  document.getElementById('screen-welcome').style.display = 'none';
+  document.getElementById('main-app').style.display = 'block';
+  updateGreeting();
+  updateStats();
+  updateUnlock();
+  updateHistory();
+  buildCalendar();
+  document.getElementById('settings-name-display').textContent = state.name;
+
+  // バグ18: ホームバナー非表示フラグを復元
+  try {
+    if (localStorage.getItem('ippo_hide_add_home') === '1') {
+      var banner = document.getElementById('add-home-banner');
+      if (banner) banner.style.display = 'none';
+    }
+  } catch(e) {}
+
+  initReminders();
+
+  // 疾患選択に基づいて記録画面セクションの順序を調整
+  reorderRecordSections();
+}
+function reorderRecordSections() {
+  var diseases = state.myDiseases || [];
+  if (diseases.length === 0) return;
+
+  // 疾患カテゴリに基づく優先セクションID
+  var prioritySections = [];
+
+  var hasUterine = diseases.some(function(d) {
+    return ['子宮内膜症', '子宮筋腫', '子宮腺筋症'].indexOf(d) !== -1;
+  });
+  var hasOvarian = diseases.some(function(d) {
+    return ['卵巣嚢腫', 'PCOS'].indexOf(d) !== -1;
+  });
+  var hasHormonal = diseases.some(function(d) {
+    return ['PMS/PMDD', '更年期障害', '不妊症・排卵障害'].indexOf(d) !== -1;
+  });
+  var hasPelvic = diseases.some(function(d) {
+    return ['骨盤臓器脱', '慢性骨盤痛'].indexOf(d) !== -1;
+  });
+
+  // 疾患チェックセクションを常に上位に移動
+  var diseaseQ = document.getElementById('disease-questions');
+  if (diseaseQ && diseaseQ.parentNode) {
+    var recordScreen = diseaseQ.closest('.screen') || diseaseQ.parentNode;
+    var symptomsSection = document.getElementById('rs-symptoms');
+    if (symptomsSection) {
+      var symptomsCard = symptomsSection.closest('.section-card');
+      if (symptomsCard && symptomsCard.parentNode) {
+        symptomsCard.parentNode.insertBefore(diseaseQ, symptomsCard.nextSibling);
+      }
+    }
+  }
+
+  // 更年期障害選択時：睡眠セクションにハイライトを追加
+  if (hasHormonal && diseases.indexOf('更年期障害') !== -1) {
+    var sleepSection = document.getElementById('rs-sleep-bed');
+    if (sleepSection) {
+      var sleepCard = sleepSection.closest('.section-card');
+      if (sleepCard) {
+        sleepCard.style.borderLeft = '3px solid var(--rose)';
+        var hint = document.createElement('div');
+        hint.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
+        hint.textContent = '💡 更年期障害では睡眠の質の記録が重要です';
+        sleepCard.appendChild(hint);
+      }
+    }
+  }
+
+  // 子宮系疾患選択時：痛み記録にハイライト
+  if (hasUterine) {
+    var painSection = document.querySelector('[data-section="pain"]') || document.getElementById('rs-pain-level');
+    if (painSection) {
+      var painCard = painSection.closest('.section-card');
+      if (painCard) {
+        painCard.style.borderLeft = '3px solid var(--rose)';
+        var hint2 = document.createElement('div');
+        hint2.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
+        hint2.textContent = '💡 痛みの記録が治療経過の把握に役立ちます';
+        painCard.appendChild(hint2);
+      }
+    }
+  }
+
+  // PCOS選択時：生活ファクターにハイライト
+  if (hasOvarian && diseases.indexOf('PCOS') !== -1) {
+    var factorsSection = document.getElementById('rs-factors');
+    if (factorsSection) {
+      var factorsCard = factorsSection.closest('.section-card');
+      if (factorsCard) {
+        factorsCard.style.borderLeft = '3px solid var(--rose)';
+        var hint3 = document.createElement('div');
+        hint3.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
+        hint3.textContent = '💡 食事・運動の記録がPCOS管理に重要です';
+        factorsCard.appendChild(hint3);
+      }
+    }
+  }
+
+  // 骨盤系選択時：排便にハイライト
+  if (hasPelvic) {
+    var bowelSection = document.getElementById('rs-bowel');
+    if (bowelSection) {
+      var bowelCard = bowelSection.closest('.section-card');
+      if (bowelCard) {
+        bowelCard.style.borderLeft = '3px solid var(--rose)';
+        var hint4 = document.createElement('div');
+        hint4.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
+        hint4.textContent = '💡 骨盤臓器脱では排便の記録が参考になります';
+        bowelCard.appendChild(hint4);
+      }
+    }
+  }
+
+  // 疾患チェックセクションを自動表示
+  updateDiseaseQuestions();
 }
 
 function showMain() {
@@ -4433,6 +4663,7 @@ function showMain() {
     }
   } catch(e) {}
    initReminders();
+   reorderRecordSections();  // ← 追加
 }
 
 // ===== DATE/GREETING =====
