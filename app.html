@@ -2418,7 +2418,17 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-        </div>
+          <div class="settings-row" onclick="exportCSV()">
+  <div class="settings-row-left">
+    <div class="settings-row-icon" style="background:#e8f0e8">📊</div>
+    <div>
+      <div class="settings-row-text">CSVエクスポート</div>
+      <div class="settings-row-sub">全記録をCSVファイルで書き出し</div>
+    </div>
+  </div>
+  <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+</div>
+   </div>
       </div>
 // ===== リマインダー =====
 var REMINDER_PRESETS = [
@@ -8209,6 +8219,114 @@ function _generateDoctorPDF(btn, original){
     btn.style.background = '';
     btn.style.pointerEvents = '';
   }, 2000);
+}
+// ===== CSVエクスポート =====
+function exportCSV(){
+  if(!state.records || state.records.length === 0){
+    alert('エクスポートする記録がありません。');
+    return;
+  }
+
+  // ヘッダー定義
+  var headers = [
+    '日付',
+    '基礎体温',
+    'エネルギー',
+    '睡眠_就寝',
+    '睡眠_起床',
+    '睡眠時間',
+    '睡眠の質',
+    'ウェルネススコア',
+    'SMIスコア',
+    '生理周期',
+    '痛みレベル',
+    '痛み部位',
+    '痛みタイプ',
+    '症状',
+    '服薬',
+    '経血_塊',
+    '経血_色',
+    'お通じ',
+    '生活ファクター',
+    '食事メモ',
+    '食事回数',
+    '最初の食事',
+    '最後の食事',
+    'ファスティング時間',
+    '疾患チェック',
+    '疾患',
+    'メモ'
+  ];
+
+  var rows = [headers.join(',')];
+
+  // 日付順にソート
+  var sorted = state.records.slice().sort(function(a,b){
+    return new Date(a.date) - new Date(b.date);
+  });
+
+  sorted.forEach(function(r){
+    var row = [
+      r.date || '',
+      r.temperature || '',
+      r.energy || '',
+      r.sleepBed || '',
+      r.sleepWake || '',
+      r.sleepHours || '',
+      r.sleepQuality || '',
+      r.wellnessScore !== undefined ? r.wellnessScore : '',
+      r.smiScore !== undefined ? r.smiScore : '',
+      r.menstrualCycle || '',
+      r.painLevel || '',
+      csvSafe(Array.isArray(r.painLocation) ? r.painLocation.join('・') : (r.painLocation || '')),
+      csvSafe(Array.isArray(r.painType) ? r.painType.join('・') : (r.painType || '')),
+      csvSafe((r.symptoms || []).join('・')),
+      csvSafe((r.medication || []).join('・')),
+      csvSafe((r.bloodClot || []).join('・')),
+      csvSafe((r.bloodColor || []).join('・')),
+      r.bowel || '',
+      csvSafe((r.factors || []).join('・')),
+      csvSafe(r.mealFree || ''),
+      r.mealCount || '',
+      r.firstTime || '',
+      r.lastTime || '',
+      r.fastingHours || '',
+      csvSafe(formatDiseaseCheck(r.diseaseCheck)),
+      csvSafe((r.diseases || []).join('・')),
+      csvSafe(r.note || '')
+    ];
+    rows.push(row.join(','));
+  });
+
+  var csvContent = '\uFEFF' + rows.join('\n'); // BOM付きUTF-8
+  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var today = new Date();
+  a.download = 'ippo-records-' + today.getFullYear() + (today.getMonth()+1+'').padStart(2,'0') + (today.getDate()+'').padStart(2,'0') + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function csvSafe(str){
+  if(!str) return '';
+  str = String(str);
+  if(str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1){
+    return '"' + str.replace(/"/g, '""') + '"';
+  }
+  return str;
+}
+
+function formatDiseaseCheck(dc){
+  if(!dc || typeof dc !== 'object') return '';
+  var parts = [];
+  Object.keys(dc).forEach(function(key){
+    parts.push(key + ':' + dc[key]);
+  });
+  return parts.join('／');
 }
 
 
