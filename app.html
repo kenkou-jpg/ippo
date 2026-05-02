@@ -66,6 +66,37 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+/* ===== ローディングスピナー ===== */
+@keyframes ippo-spin { to { transform: rotate(360deg); } }
+.ippo-spinner {
+  width: 20px; height: 20px;
+  border: 2.5px solid rgba(184,112,122,0.25);
+  border-top-color: var(--rose);
+  border-radius: 50%;
+  animation: ippo-spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+#ippo-sync-indicator {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+  right: 16px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(200,180,170,0.25);
+  border-radius: 20px;
+  padding: 6px 12px 6px 10px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  box-shadow: 0 2px 12px rgba(45,31,26,0.12);
+  z-index: 200;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
 html { scroll-behavior: smooth; }
 
   /* === Premium Feel: ナビバー === */
@@ -180,7 +211,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 #app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
 
 /* ===== SCREENS ===== */
-.screen { display: none; min-height: 100vh; padding-bottom: 80px; }
+.screen { display: none; min-height: 100vh; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
 .screen.active { display: block; }
 
 /* ===== ONBOARDING ===== */
@@ -376,10 +407,11 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   max-width: 430px;
   background: rgba(250,246,242,0.95);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-top: 1px solid rgba(200,180,170,0.2);
   display: flex;
   z-index: 100;
-  padding: 6px 0 8px;
+  padding: 6px 0 calc(8px + env(safe-area-inset-bottom, 0px));
 }
 .nav-item {
   flex: 1;
@@ -387,6 +419,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   flex-direction: column;
   align-items: center;
   padding: 6px 4px;
+  min-height: 44px;
   cursor: pointer;
   border: none;
   background: none;
@@ -1874,8 +1907,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="cal-header">
           <div class="cal-label" id="calLabel"></div>
           <div class="cal-nav">
-            <button class="cal-nav-btn" id="calPrev">◀</button>
-            <button class="cal-nav-btn" id="calNext">▶</button>
+            <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
+            <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
           </div>
         </div>
         <div class="cal-weekdays">
@@ -1895,7 +1928,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <!-- Day Detail Modal -->
       <div class="dm-overlay" id="dmOverlay">
         <div class="dm-box">
-          <button class="dm-x" id="dmClose">✕</button>
+          <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
           <div class="dm-date" id="dmDate"></div>
           <div id="dmBody"></div>
         </div>
@@ -1936,7 +1969,15 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 </div>
     </div>
 
-          <!-- 食事×体調の相関 -->
+          <!-- 空状態バナー（記録なし時） -->
+      <div id="insights-empty-state" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:20px;padding:28px 24px;text-align:center;">
+        <div style="font-size:40px;margin-bottom:12px;">🌱</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
+        <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
+        <button type="button" onclick="openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
+      </div>
+
+      <!-- 食事×体調の相関 -->
       <div class="section-card" style="margin:0 20px 20px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
           <div>
@@ -2091,26 +2132,32 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
+     <!-- ===== SYNC INDICATOR ===== -->
+     <div id="ippo-sync-indicator" role="status" aria-live="polite">
+       <div class="ippo-spinner"></div>
+       <span id="ippo-sync-text">同期中</span>
+     </div>
+
      <!-- ===== BOTTOM NAV ===== -->
-      <nav class="bottom-nav">
-      <button class="nav-item" onclick="switchTab('home', this)">
-        <span class="nav-icon">🏠</span>
+      <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
+      <button class="nav-item" type="button" onclick="switchTab('home', this)" aria-label="ホーム">
+        <span class="nav-icon" aria-hidden="true">🏠</span>
         <span>ホーム</span>
       </button>
-      <button class="nav-item" onclick="switchTab('insights', this)">
-        <span class="nav-icon">📊</span>
+      <button class="nav-item" type="button" onclick="switchTab('insights', this)" aria-label="インサイト">
+        <span class="nav-icon" aria-hidden="true">📊</span>
         <span>インサイト</span>
       </button>
-      <button class="nav-item" onclick="openRecordScreen()">
-        <span class="nav-icon" style="font-size: 28px; margin-top: -6px;">⊕</span>
+      <button class="nav-item" type="button" onclick="openRecordScreen()" aria-label="今日を記録する">
+        <span class="nav-icon" style="font-size: 28px; margin-top: -6px;" aria-hidden="true">⊕</span>
         <span>記録</span>
       </button>
-      <button class="nav-item" onclick="switchTab('premium', this)">
-        <span class="nav-icon">✨</span>
+      <button class="nav-item" type="button" onclick="switchTab('premium', this)" aria-label="プレミアム機能">
+        <span class="nav-icon" aria-hidden="true">✨</span>
         <span>PRO</span>
       </button>
-      <button class="nav-item" onclick="switchTab('settings', this)">
-        <span class="nav-icon">⚙️</span>
+      <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
+        <span class="nav-icon" aria-hidden="true">⚙️</span>
         <span>設定</span>
       </button>
     </nav>
@@ -2119,6 +2166,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 <div id="screen-record" class="screen">
   <div class="spacer-top"></div>
   <div style="padding:0 24px 24px;">
+    <button type="button" onclick="switchTab('home', document.querySelector('.nav-item'))" aria-label="ホームに戻る" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-light);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0 0 12px;letter-spacing:0.03em;">← 戻る</button>
     <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
     <div class="home-date" id="rec-screen-date"></div>
   </div>
@@ -2374,7 +2422,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
   </div>
   <div style="padding:0 24px 40px;">
-    <button class="btn-primary" onclick="saveRecordScreen()" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
+    <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
     <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
     <div id="draft-indicator" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>
   </div>
@@ -4101,6 +4149,7 @@ function cloudBackupAll(){
     return Promise.resolve();
   }
   _cloudBackupLock = true;
+  if(typeof showSyncIndicator === 'function') showSyncIndicator('バックアップ中');
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
@@ -4128,6 +4177,7 @@ function cloudBackupAll(){
     };
     return supabase.from('user_data').update(payload).eq('user_id', userId).select().then(function(result){
       _cloudBackupLock = false;
+      if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
       if(result.data && result.data.length > 0){
         console.log('Cloud backup完了（更新）: '+stateToSave.records.length+'件');
         return result.data;
@@ -4140,10 +4190,12 @@ function cloudBackupAll(){
       });
     }).catch(function(e){
       _cloudBackupLock = false;
+      if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
       throw e;
     });
   }).catch(function(e){
     _cloudBackupLock = false;
+    if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
     throw e;
   });
 }
@@ -4161,27 +4213,44 @@ function cloudRestore(){
     return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single().then(function(result){
       if(!result.data) return false;
       var cloudState = result.data.state;
+      // cloudStateの整合性チェック
+      if(!cloudState || typeof cloudState !== 'object'){
+        console.warn('クラウドのデータ形式が不正（nullまたは非オブジェクト）');
+        return false;
+      }
+      if(!Array.isArray(cloudState.records)){
+        console.warn('クラウドのrecordsが不正（配列ではない）');
+        return false;
+      }
       var rawDate = result.data.updated_at;
+      if(!rawDate){
+        console.warn('クラウドのupdated_atが不正');
+        return false;
+      }
       var cloudDate = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
-      var localDate = new Date(state.lastSaved || 0);
+      var localDate = state.lastSaved ? new Date(state.lastSaved) : new Date(0);
 
       // ★ ガード②：ローカルが空ならクラウドから強制復元
       var localRecs = state.records ? state.records.length : 0;
-      var cloudRecs = cloudState.records ? cloudState.records.length : 0;
+      var cloudRecs = cloudState.records.length;
       if(localRecs === 0 && cloudRecs > 0){
-        state = Object.assign(state, cloudState);
+        var safeCloud = Object.assign({}, cloudState);
+        safeCloud.records = cloudState.records;
+        state = Object.assign(state, safeCloud);
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
         console.log('ローカルが空のためクラウドから強制復元:', cloudRecs + '件');
         return true;
       }
 
-       if(cloudDate > localDate){
+      if(cloudDate > localDate){
         if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
           console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
           return false;
         }
-        state = Object.assign(state, cloudState);
+        var safeCloud2 = Object.assign({}, cloudState);
+        safeCloud2.records = cloudState.records;
+        state = Object.assign(state, safeCloud2);
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
         console.log('クラウドから復元完了: ' + state.records.length + '件');
@@ -4375,6 +4444,7 @@ function mergeRecords(localRecords, cloudRecords){
 function cloudSyncSafe(){
   if(_syncLock) return Promise.resolve();
   _syncLock = true;
+  if(typeof showSyncIndicator === 'function') showSyncIndicator('データ同期中');
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
@@ -4402,8 +4472,6 @@ function cloudSyncSafe(){
         state.totalDays = Object.keys(merged.reduce(function(acc,r){
           acc[new Date(r.date).toDateString()]=true; return acc;
         },{})).length;
-        // バックアップ履歴保存
-        saveBackupHistory(userId);
         // クラウドにアップロード
         var rows = merged.map(function(r){
           return {
@@ -4422,13 +4490,17 @@ function cloudSyncSafe(){
         }).then(function(){
           state.lastSaved = new Date().toISOString();
           saveState();
+          // upsert成功後にバックアップ履歴保存
+          saveBackupHistory(userId);
           console.log('安全同期完了: '+merged.length+'件');
           _syncLock = false;
+          if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
         });
       });
   }).catch(function(e){
     console.warn('安全同期エラー:', e);
     _syncLock = false;
+    if(typeof showToast === 'function') showToast('データ同期に失敗しました。後で自動リトライします。', 'warn');
   });
 }
 
@@ -4440,21 +4512,24 @@ function saveBackupHistory(userId){
     totalDays: state.totalDays,
     myDiseases: state.myDiseases
   };
-  supabase.from('user_data_history')
+  return supabase.from('user_data_history')
     .insert({user_id: userId, records_count: state.records.length, state: snapshot})
     .then(function(){
       // 5世代超えたら古いものを削除
-      supabase.from('user_data_history')
+      return supabase.from('user_data_history')
         .select('id')
         .eq('user_id', userId)
         .order('created_at', {ascending:false})
-        .range(5,100)
-        .then(function(old){
-          if(old.data && old.data.length > 0){
-            var ids = old.data.map(function(r){ return r.id; });
-            supabase.from('user_data_history').delete().in('id', ids);
-          }
+        .range(5,100);
+    }).then(function(old){
+      if(old.data && old.data.length > 0){
+        var ids = old.data.map(function(r){ return r.id; });
+        return supabase.from('user_data_history').delete().in('id', ids).then(function(){
+          console.log('古いバックアップ履歴を削除:', ids.length + '件');
         });
+      }
+    }).catch(function(e){
+      console.warn('バックアップ履歴保存エラー:', e);
     });
 }
 
@@ -4706,12 +4781,15 @@ function initialCloudSync(){
   return syncAllRecordsToCloud().then(function(){
     localStorage.setItem('ippo_records_synced', '1');
     console.log('初回クラウド同期完了');
+  }).catch(function(e){
+    console.warn('初回クラウド同期失敗（次回再試行）:', e);
+    // フラグを立てないので次回起動時に再試行される
   });
 }
 
 // ===== 手動復元（強化版） =====
 function manualCloudRestore(){
-  supabase.auth.getSession().then(function(res){
+  return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session) return alert('ログインしてください');
     var userId = session.user.id;
@@ -4784,6 +4862,60 @@ function saveState() {
   }
 }
 
+// ===== 同期インジケーター =====
+var _syncIndicatorTimer = null;
+function showSyncIndicator(msg){
+  var el = document.getElementById('ippo-sync-indicator');
+  var txt = document.getElementById('ippo-sync-text');
+  if(!el) return;
+  if(txt) txt.textContent = msg || '同期中';
+  el.style.display = 'flex';
+  if(_syncIndicatorTimer) clearTimeout(_syncIndicatorTimer);
+}
+function hideSyncIndicator(){
+  if(_syncIndicatorTimer) clearTimeout(_syncIndicatorTimer);
+  _syncIndicatorTimer = setTimeout(function(){
+    var el = document.getElementById('ippo-sync-indicator');
+    if(el) el.style.display = 'none';
+  }, 800);
+}
+
+// ===== トースト通知（ユーザー向けメッセージ） =====
+var _toastTimer = null;
+function showToast(msg, type){
+  if(_toastTimer) clearTimeout(_toastTimer);
+  var existing = document.getElementById('ippo-toast');
+  if(existing) existing.remove();
+  var toast = document.createElement('div');
+  toast.id = 'ippo-toast';
+  var bg = type === 'error' ? '#fef3f2' : type === 'warn' ? '#fff8e6' : '#e8f4ec';
+  var color = type === 'error' ? '#c44848' : type === 'warn' ? '#9a6a00' : '#2d6a3f';
+  toast.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);left:50%;transform:translateX(-50%);max-width:390px;width:calc(100% - 32px);padding:12px 16px;background:'+bg+';color:'+color+';border-radius:12px;font-size:13px;font-family:Noto Sans JP,sans-serif;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.1);text-align:center;transition:opacity 0.3s;';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  _toastTimer = setTimeout(function(){
+    toast.style.opacity = '0';
+    setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 300);
+  }, type === 'error' ? 5000 : 3000);
+}
+
+// ===== Escapeキーでモーダルを閉じる =====
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  // カレンダー日付詳細
+  var dm = document.getElementById('dmOverlay');
+  if(dm && dm.classList.contains('dm-open')){ dm.classList.remove('dm-open'); return; }
+  // 編集オーバーレイ
+  var eo = document.getElementById('editOverlay');
+  if(eo && eo.style.display === 'flex'){ eo.style.display = 'none'; return; }
+  // 記録モーダル（ステップ）
+  var rm = document.getElementById('record-modal');
+  if(rm && rm.classList.contains('active')){ if(typeof closeModal === 'function') closeModal(); return; }
+  // 診断オーバーレイ
+  var diag = document.getElementById('diagnosis-overlay');
+  if(diag){ diag.remove(); return; }
+});
+
 
 
 function init() {
@@ -4824,11 +4956,15 @@ if (state.name && !state._onboardingDone) {
   state._onboardingDone = true;
 }
 
-  // IndexedDB移行 & 初回同期
-migrateToIDB();
-initialCloudSync();
-
-autoRecoveryCheck();
+  // IndexedDB移行 & 初回同期（順番に実行）
+  migrateToIDB().then(function(){
+    return initialCloudSync();
+  }).then(function(){
+    return autoRecoveryCheck();
+  }).catch(function(e){
+    console.warn('初期化同期エラー:', e);
+    autoRecoveryCheck();
+  });
   
  if (state.name) {
   showMain();
@@ -4860,14 +4996,18 @@ autoRecoveryCheck();
   updateHomeVision();
 }
 
-// タブが表示されるたびにクラウドから復元
+// タブが表示されるたびにクラウドから復元（30秒以内の重複実行を防ぐ）
+var _lastVisibilitySync = 0;
 document.addEventListener('visibilitychange', function(){
   if(!document.hidden && typeof cloudRestore === 'function'){
+    var now = Date.now();
+    if(now - _lastVisibilitySync < 30000) return; // 30秒以内は再実行しない
+    _lastVisibilitySync = now;
     cloudRestore().then(function(restored){
       if(restored){
         state = JSON.parse(localStorage.getItem('ippo_state'));
-        updateStats(); 
-        updateHistory(); 
+        updateStats();
+        updateHistory();
         buildCalendar();
         if(state.fastingActive && state.fastingStart && (Date.now() - state.fastingStart < 24 * 3600000)){
           resumeFasting();
@@ -4877,8 +5017,8 @@ document.addEventListener('visibilitychange', function(){
           saveState();
         }
       }
-    }).catch(function(e){ 
-      console.log('復元エラー:', e); 
+    }).catch(function(e){
+      console.log('復元エラー:', e);
     });
   }
 });
@@ -5445,10 +5585,13 @@ function updateGreeting() {
 
 // ===== STATS =====
 function updateStats() {
-  document.getElementById('streak-count').textContent = state.streak;
-  document.getElementById('total-count').textContent = state.totalDays;
-  document.getElementById('insight-total').textContent = state.totalDays;
-  document.getElementById('insight-streak').textContent = state.streak;
+  document.getElementById('streak-count').textContent = state.streak || 0;
+  document.getElementById('total-count').textContent = state.totalDays || 0;
+  document.getElementById('insight-total').textContent = state.totalDays || 0;
+  document.getElementById('insight-streak').textContent = state.streak || 0;
+  // 空状態バナー
+  var emptyEl = document.getElementById('insights-empty-state');
+  if(emptyEl) emptyEl.style.display = (state.records.length === 0) ? 'block' : 'none';
 
   // 食事スコア → 平均食事回数に変更
   var mealCounts = state.records.filter(function(r){ return r.mealCount; }).map(function(r){ return r.mealCount; });
@@ -7319,14 +7462,14 @@ function openDayDetail(d){
   var dateObj = new Date(calYear, calMonth, d);
   var ds = dateObj.toDateString();
   var w = dateObj.getDay();
+  var isoDateStr = dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
   var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === ds; });
   document.getElementById('dmDate').textContent = calYear+'年'+(calMonth+1)+'月'+d+'日（'+WDAY[w]+'）';
   var body = document.getElementById('dmBody');
   if(recs.length === 0){
-    var editDateStr = dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
     var emptyHtml = '<div class="dm-empty">この日の記録はありません</div>';
     emptyHtml += '<div style="margin-top:16px;padding:0 4px;">';
-    emptyHtml += '<button onclick="editPastRecord(\''+editDateStr+'\')" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">✏️ この日の記録を作成する</button>';
+    emptyHtml += '<button onclick="editPastRecord(\''+isoDateStr+'\')" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">✏️ この日の記録を作成する</button>';
     emptyHtml += '</div>';
     body.innerHTML = emptyHtml;
     document.getElementById('dmOverlay').classList.add('dm-open');
@@ -7347,12 +7490,12 @@ function openDayDetail(d){
     html += '</div>';
   }
 
-   // ===== 食事内容テキスト =====
+  // ===== 食事内容テキスト =====
   if(rec.mealFree || (rec.meals && rec.meals.free)){
     var freeText = rec.mealFree || rec.meals.free;
     html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
     html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">MEALS</div>';
-    html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.9;white-space:pre-wrap;">'+freeText+'</div>';
+    html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.9;white-space:pre-wrap;">'+escapeHtml(freeText)+'</div>';
     if(rec.mealCount || rec.firstMealTime){
       html += '<div style="display:flex;gap:12px;margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">';
       if(rec.mealCount) html += '<span style="font-size:11px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
@@ -7380,31 +7523,11 @@ function openDayDetail(d){
         html += '<span style="font-size:12px;font-weight:500;color:var(--ink);">'+mr.label+'</span>';
         if(mr.time) html += '<span style="font-size:10px;color:var(--ink-light);">'+mr.time+'</span>';
         html += '</div>';
-        html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.7;margin-top:3px;">'+mr.text+'</div>';
+        html += '<div style="font-size:13px;color:var(--ink-mid);line-height:1.7;margin-top:3px;">'+escapeHtml(mr.text)+'</div>';
         html += '</div></div>';
       }
       html += '</div>';
     }
-  }
-
- 
-  // ===== メモ（体温・ジャーナル統合） =====
-  var memoItems = [];
-  if(rec.temperature) memoItems.push({icon:'🌡', text:'基礎体温 '+rec.temperature+'℃'});
-  if(rec.note) memoItems.push({icon:'📝', text:rec.note});
-
-  if(memoItems.length){
-    html += '<div style="margin-top:14px;background:var(--rose-pale);border-radius:14px;padding:14px;border-left:3px solid var(--rose);">';
-    html += '<div style="font-size:10px;color:var(--rose);letter-spacing:0.15em;margin-bottom:8px;">MEMO</div>';
-    for(var ni=0;ni<memoItems.length;ni++){
-      var item = memoItems[ni];
-      if(ni > 0) html += '<div style="border-top:1px solid var(--rose-light);margin:8px 0;"></div>';
-      html += '<div style="display:flex;align-items:flex-start;gap:8px;">';
-      html += '<span style="font-size:14px;flex-shrink:0;">'+item.icon+'</span>';
-      html += '<div style="font-size:13px;color:var(--ink);line-height:1.8;">'+item.text.replace(/\n/g,'<br>')+'</div>';
-      html += '</div>';
-    }
-    html += '</div>';
   }
 
   // ===== ファスティングセクション =====
@@ -7432,22 +7555,111 @@ function openDayDetail(d){
     html += '</div></div></div>';
   }
 
-  // ===== 食事サマリー（テキスト表示） =====
-  if(rec.mealCount || rec.firstMealTime || rec.fasting){
-    html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid #f0ebe6;">';
-    html += '<div style="display:flex;gap:12px;flex-wrap:wrap;">';
-    if(rec.mealCount) html += '<span style="font-size:12px;color:var(--ink-light);">🍽 '+rec.mealCount+'食</span>';
-    if(rec.firstMealTime && rec.lastMealTime) html += '<span style="font-size:12px;color:var(--ink-light);">⏰ '+rec.firstMealTime+'〜'+rec.lastMealTime+'</span>';
-    if(rec.fasting && rec.fasting >= 12) html += '<span style="font-size:12px;color:var(--ink-light);">🌙 修復 '+rec.fasting+'h</span>';
+  // ===== 生理・痛み・服薬・経血詳細 =====
+  var extras = [];
+  if(rec.temperature) extras.push('🌡 '+rec.temperature+'℃');
+  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') extras.push('🌸 '+rec.menstrualCycle);
+  if(rec.symptoms && rec.symptoms.length) extras.push(rec.symptoms.join('・'));
+  if(rec.painLevel && rec.painLevel > 0){
+    var painText = '痛み '+rec.painLevel+'/10';
+    if(rec.painLocation && rec.painLocation.length) painText += '（'+rec.painLocation.join('・')+'）';
+    if(rec.painType && rec.painType.length) painText += ' '+rec.painType.join('・');
+    extras.push('🔴 '+painText);
+  }
+  if(rec.medication && rec.medication.length) extras.push('💊 '+rec.medication.join('・'));
+  if(rec.bloodClot && rec.bloodClot.length) extras.push('🩸 '+rec.bloodClot.join('・'));
+  if(rec.bloodColor && rec.bloodColor.length) extras.push(rec.bloodColor.join('・'));
+  if(extras.length){
+    html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">生理・症状</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    extras.forEach(function(e){ html += '<span style="font-size:11px;background:var(--warm-light);color:var(--ink-mid);padding:4px 10px;border-radius:12px;">'+e+'</span>'; });
     html += '</div></div>';
+  }
+
+  // ===== 卵巣嚢腫セルフチェック =====
+  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
+    var dc = rec.diseaseCheck;
+    var disease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
+    var config = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
+    html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">セルフチェック</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    Object.keys(dc).forEach(function(key){
+      if(!dc[key] || dc[key] === 'なし') return;
+      var label = key;
+      if(config && config.questions){
+        for(var qi=0;qi<config.questions.length;qi++){
+          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+        }
+      }
+      html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
+    });
+    html += '</div></div>';
+  }
+
+  // ===== エネルギー・睡眠・生活ファクター・お通じ =====
+  var lifeItems = [];
+  if(rec.energy) lifeItems.push({label:'エネルギー', val: rec.energy+'/5 '+'●'.repeat(rec.energy)+'○'.repeat(5-rec.energy)});
+  if(rec.sleepBed || rec.sleepWake){
+    var sleepStr = '';
+    if(rec.sleepBed) sleepStr += '就寝 '+rec.sleepBed;
+    if(rec.sleepWake) sleepStr += (sleepStr?' / ':'')+'起床 '+rec.sleepWake;
+    if(rec.sleepQuality) sleepStr += ' ／ 質'+rec.sleepQuality+'/5';
+    lifeItems.push({label:'睡眠', val: sleepStr});
+  }
+  if(rec.bowel) lifeItems.push({label:'お通じ', val: rec.bowel});
+  if(rec.factors && rec.factors.length) lifeItems.push({label:'生活', val: rec.factors.join('・')});
+  if(lifeItems.length){
+    html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">ライフスタイル</div>';
+    lifeItems.forEach(function(item){
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;">';
+      html += '<span style="font-size:11px;color:var(--ink-light);">'+item.label+'</span>';
+      html += '<span style="font-size:12px;color:var(--ink-mid);">'+item.val+'</span>';
+      html += '</div>';
+    });
+    html += '</div>';
+  }
+
+  // ===== メモ（体温・ジャーナル統合） =====
+  var memoItems = [];
+  if(rec.temperature && extras.indexOf('🌡 '+rec.temperature+'℃') === -1) memoItems.push({icon:'🌡', text:'基礎体温 '+rec.temperature+'℃'});
+  if(rec.note) memoItems.push({icon:'📝', text:rec.note});
+  if(memoItems.length){
+    html += '<div style="margin-top:14px;background:var(--rose-pale);border-radius:14px;padding:14px;border-left:3px solid var(--rose);">';
+    html += '<div style="font-size:10px;color:var(--rose);letter-spacing:0.15em;margin-bottom:8px;">MEMO</div>';
+    for(var ni=0;ni<memoItems.length;ni++){
+      var item = memoItems[ni];
+      if(ni > 0) html += '<div style="border-top:1px solid var(--rose-light);margin:8px 0;"></div>';
+      html += '<div style="display:flex;align-items:flex-start;gap:8px;">';
+      html += '<span style="font-size:14px;flex-shrink:0;">'+item.icon+'</span>';
+      html += '<div style="font-size:13px;color:var(--ink);line-height:1.8;">'+escapeHtml(item.text).replace(/\n/g,'<br>')+'</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+  }
+
+  // ===== ウェルネス / SMIスコア =====
+  if(rec.wellnessScore !== undefined){
+    var ws = rec.wellnessScore;
+    var wsColor = ws >= 70 ? '#6b9e78' : ws >= 40 ? '#d4a574' : '#c4878c';
+    html += '<div style="margin-top:14px;background:linear-gradient(135deg,#faf6f2,#f0ebe6);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;">';
+    html += '<div style="position:relative;width:56px;height:56px;flex-shrink:0;">';
+    html += '<svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="none" stroke="#e8ddd8" stroke-width="5"/>';
+    var pct = ws/100, circ = 2*Math.PI*24;
+    html += '<circle cx="28" cy="28" r="24" fill="none" stroke="'+wsColor+'" stroke-width="5" stroke-dasharray="'+Math.round(circ*pct)+' '+Math.round(circ*(1-pct))+'" stroke-linecap="round" transform="rotate(-90 28 28)"/>';
+    html += '</svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Inter,sans-serif;font-size:16px;font-weight:700;color:'+wsColor+';">'+ws+'</div></div>';
+    html += '<div><div style="font-size:12px;font-weight:500;color:var(--ink);">ウェルネススコア</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+(ws>=70?'良好な状態です':ws>=40?'まずまずの状態です':'少し注意が必要です')+'</div></div></div>';
   }
 
   // ===== 編集ボタン =====
   html += '<div style="margin-top:16px;padding-top:14px;border-top:1px solid #f0ebe6;">';
-  html += '<button onclick="openEditRecord(\''+ds+'\')" style="width:100%;padding:14px;background:var(--ink);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">';
+  html += '<button onclick="editPastRecord(\''+isoDateStr+'\')" style="width:100%;padding:14px;background:var(--ink);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all 0.2s;">';
   html += '<span style="font-size:16px;">✏️</span> この日の記録を編集する</button>';
   html += '</div>';
-  
+
   body.innerHTML = html;
   document.getElementById('dmOverlay').classList.add('dm-open');
 }
@@ -7804,9 +8016,12 @@ function updateMealParse(){
   }
 }
 
-document.addEventListener('input', function(e){
-  if(e.target.id === 'rs-meal-free') updateMealParse();
-});
+if(!window._ippoInputListenerAdded){
+  window._ippoInputListenerAdded = true;
+  document.addEventListener('input', function(e){
+    if(e.target.id === 'rs-meal-free') updateMealParse();
+  });
+}
 
   function insertMealTemplate(type) {
   var ta = document.getElementById('rs-meal-free');
@@ -9188,6 +9403,7 @@ var todayStr = targetDate.toDateString();
       yesterday.setDate(yesterday.getDate() - 1);
       var yStr = yesterday.toDateString();
       var hadYesterday = state.records.some(function(r){ return new Date(r.date).toDateString() === yStr; });
+      state.streak = state.streak || 0;
       if(hadYesterday || state.streak === 0) state.streak++;
       else state.streak = 1;
     }
@@ -9219,7 +9435,11 @@ var todayStr = targetDate.toDateString();
     if(typeof cloudBackupAll === 'function'){
   cloudBackupAll().catch(function(e){
     console.warn('クラウドバックアップ失敗、リトライ中...', e);
-    setTimeout(function(){ cloudBackupAll().catch(function(){}); }, 3000);
+    setTimeout(function(){
+      cloudBackupAll().catch(function(){
+        showToast('クラウド同期に失敗しました。Wi-Fiを確認してください。', 'warn');
+      });
+    }, 3000);
   });
 }
 
@@ -11048,11 +11268,7 @@ async function logoutSync() {
 })();
 
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
+// escapeHtml は line 6809 で定義済み（重複削除）
 
 
 
