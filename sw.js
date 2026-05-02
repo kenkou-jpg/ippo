@@ -1,12 +1,9 @@
-const CACHE_NAME = 'kenkou-kiroku-v3';
+const CACHE_NAME = 'ippo-v1';
 const ASSETS = [
-  '/kenkou-kiroku/kk-app.html',
-  '/kenkou-kiroku/css/app-main.css',
-  '/kenkou-kiroku/js/kk-app.js',
-  '/kenkou-kiroku/manifest.json',
-  '/kenkou-kiroku/images/logo-kenkou-kiroku.png',
-  '/kenkou-kiroku/images/profile-photo.png',
-  '/kenkou-kiroku/images/favicon-32.png'
+  '/app.html',
+  '/manifest.json',
+  '/images/icon-192.png',
+  '/images/icon-512.png'
 ];
 
 self.addEventListener('install', e => {
@@ -29,41 +26,37 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  // ✅ chrome-extension:// など http/https 以外を除外
   if (!e.request.url.startsWith('http')) return;
+  // Supabase APIはキャッシュしない
+  if (e.request.url.includes('supabase.co')) return;
 
-  // ネットワーク優先、失敗時キャッシュ
   e.respondWith(
     fetch(e.request)
       .then(res => {
-        if (!res || res.status !== 200) return res;
+        if (!res || res.status !== 200 || res.type === 'opaque') return res;
         const clone = res.clone();
         caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
         return res;
       })
       .catch(() =>
-        caches.match(e.request)
-          .then(cached => cached || caches.match('/kenkou-kiroku/kk-app.html'))
+        caches.match(e.request).then(cached => cached || caches.match('/app.html'))
       )
   );
 });
+
 self.addEventListener('push', e => {
   const data = e.data ? e.data.json() : {};
   e.waitUntil(
-    self.registration.showNotification(
-      data.title || 'kenkou kiroku', {
-        body: data.body || '今日のからだの記録をしましょう',
-        icon: '/kenkou-kiroku/images/logo-kenkou-kiroku.png',
-        badge: '/kenkou-kiroku/images/logo-kenkou-kiroku.png',
-        data: { url: '/kenkou-kiroku/kk-app.html' }
-      }
-    )
+    self.registration.showNotification(data.title || 'ippo', {
+      body: data.body || '今日のからだの記録をしましょう',
+      icon: '/images/icon-192.png',
+      badge: '/images/icon-192.png',
+      data: { url: '/app.html' }
+    })
   );
 });
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
-  e.waitUntil(
-    clients.openWindow(e.notification.data.url || '/kenkou-kiroku/kk-app.html')
-  );
+  e.waitUntil(clients.openWindow(e.notification.data.url || '/app.html'));
 });
