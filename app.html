@@ -771,26 +771,56 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 }
 .record-btn-main:hover { background: var(--rose); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,36,32,0.2); }
 
-/* ===== CHAKRA SECTION ===== */
+/* ===== SECTION CARD ===== */
 .section-card {
-  margin: 0 24px 20px;
+  margin: 0 20px 16px;
   background: var(--white);
-  border-radius: 20px;
+  border-radius: 22px;
   padding: 20px;
-  box-shadow: 0 2px 12px var(--shadow);
+  box-shadow: 0 2px 16px var(--shadow);
 }
 .section-label {
   font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--ink-light);
-  text-transform: uppercase;
-  margin-bottom: 14px;
+  font-weight: 700;
+  color: var(--rose);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 11px;
+  background: var(--rose);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 .section-title {
   font-family: 'Shippori Mincho', serif;
-  font-size: 17px;
+  font-size: 16px;
   color: var(--ink);
   margin-bottom: 16px;
+  font-weight: 600;
+}
+
+/* ===== NAV CENTER BUTTON ===== */
+.nav-record-btn { flex: 1.3; }
+.nav-record-ring {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--rose-light), var(--rose));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 26px; font-weight: 300;
+  box-shadow: 0 4px 16px rgba(184,112,122,0.38);
+  margin-top: -18px;
+  line-height: 1;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-record-btn:active .nav-record-ring {
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(184,112,122,0.25);
 }
 
 /* ===== SHARE CARD ===== */
@@ -2315,9 +2345,9 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <span class="nav-icon" aria-hidden="true">📊</span>
         <span>インサイト</span>
       </button>
-      <button class="nav-item" type="button" onclick="openRecordScreen()" aria-label="今日を記録する">
-        <span class="nav-icon" style="font-size: 28px; margin-top: -6px;" aria-hidden="true">⊕</span>
-        <span>記録</span>
+      <button class="nav-item nav-record-btn" type="button" onclick="openRecordScreen()" aria-label="今日を記録する">
+        <div class="nav-record-ring" aria-hidden="true">＋</div>
+        <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
       <button class="nav-item" type="button" onclick="switchTab('premium', this)" aria-label="プレミアム機能">
         <span class="nav-icon" aria-hidden="true">✨</span>
@@ -6387,25 +6417,12 @@ function updateHomeSummary(){
 
   if(!rec){
     status.textContent = '未記録';
-    // 未記録時のドーナツグラフ
-    var emptyHtml = '<div style="display:flex;align-items:center;gap:20px;">';
-    emptyHtml += '<div style="position:relative;width:120px;height:120px;flex-shrink:0;">';
-    emptyHtml += '<svg width="120" height="120" viewBox="0 0 120 120">';
-    emptyHtml += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
-    emptyHtml += '</svg>';
-    emptyHtml += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;color:var(--ink-light);text-align:center;">ファスティング</div>';
-    emptyHtml += '</div>';
-    emptyHtml += '<div style="flex:1;">';
-    var labels = [{color:'#d4a574',name:'朝食'},{color:'#6b9e78',name:'昼食'},{color:'#c4878c',name:'夕食'},{color:'#7ba3c4',name:'間食'}];
-    for(var li=0;li<labels.length;li++){
-      emptyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f5f0eb;">';
-      emptyHtml += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+labels[li].color+';"></div><span style="font-size:13px;color:var(--ink);">'+labels[li].name+'</span></div>';
-      emptyHtml += '<span style="font-size:13px;color:var(--ink-light);">—</span>';
-      emptyHtml += '</div>';
-    }
-    emptyHtml += '</div></div>';
-    emptyHtml += '<div style="text-align:center;color:var(--ink-light);font-size:12px;margin-top:14px;">今日の記録後に表示されます</div>';
-    content.innerHTML = emptyHtml;
+    content.innerHTML =
+      '<div style="text-align:center;padding:22px 0 10px;">'
+      + '<div style="font-size:38px;margin-bottom:10px;">📋</div>'
+      + '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:5px;">まだ今日の記録がありません</div>'
+      + '<div style="font-size:11px;color:var(--ink-light);line-height:1.6;">中央の ＋ ボタンから<br>今日の体調を入力しましょう</div>'
+      + '</div>';
     return;
   }
 
@@ -6435,110 +6452,95 @@ function updateHomeSummary(){
   var goalH = state.fastingGoal || 16;
   var eatH = 24 - fastH;
 
-  // ドーナツグラフ計算
-  var circumference = 301.6;
-  var fastArc = fastH > 0 ? Math.round(circumference * (fastH / 24)) : 0;
-  var eatArc = fastH > 0 ? circumference - fastArc : 0;
+  var html = '';
 
-  var html = '<div style="display:flex;align-items:center;gap:20px;">';
-
-  // ドーナツグラフ
-  html += '<div style="position:relative;width:120px;height:120px;flex-shrink:0;">';
-  html += '<svg width="120" height="120" viewBox="0 0 120 120">';
-  // 背景円
-  html += '<circle cx="60" cy="60" r="48" fill="none" stroke="#f0ebe6" stroke-width="10"/>';
-  // 食事アーク（時間帯別色分け）
-  foodSlots.forEach(function(slot){
-    if(!slot.time) return;
-    var parts = slot.time.split(':');
-    var h = parseInt(parts[0]);
-    var m = parseInt(parts[1]) || 0;
-    var hourDecimal = h + m / 60;
-    var mealArc = circumference / 24 * 1;
-    var dashGap = circumference - mealArc;
-    var offset = circumference - (hourDecimal / 24 * circumference) + (circumference / 4);
-    var color;
-    if(h >= 5 && h < 10) color = '#d4a574';
-    else if(h >= 10 && h < 14) color = '#6b9e78';
-    else if(h >= 17 && h < 22) color = '#c4878c';
-    else color = '#7ba3c4';
-    html += '<circle cx="60" cy="60" r="48" fill="none" stroke="'+color+'" stroke-width="10" stroke-dasharray="'+mealArc+' '+dashGap+'" stroke-dashoffset="'+offset+'" stroke-linecap="round"/>';
-  });
-  // 時間ラベル
-  var positions = [{h:0,x:60,y:8},{h:6,x:112,y:62},{h:12,x:60,y:116},{h:18,x:8,y:62}];
-  for(var pi=0;pi<positions.length;pi++){
-    html += '<text x="'+positions[pi].x+'" y="'+positions[pi].y+'" text-anchor="middle" font-size="9" fill="#b0a090">'+positions[pi].h+'</text>';
-  }
-  html += '</svg>';
-  html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;">';
-  if(fastH > 0){
-    html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+fastH+'h</div>';
-    html += '<div style="font-size:9px;color:var(--ink-light);">ファスティング</div>';
-  } else if(mealCount > 0){
-    html += '<div style="font-size:18px;font-weight:700;color:var(--ink);">'+mealCount+'食</div>';
-    html += '<div style="font-size:9px;color:var(--ink-light);">記録済み</div>';
-  } else {
-    html += '<div style="font-size:11px;color:var(--ink-light);">飲み物のみ</div>';
-  }
-  html += '</div></div>';
-
-  // 食事リスト（全件表示、飲み物は薄く）
-  html += '<div style="flex:1;">';
-  var colors = ['#d4a574','#6b9e78','#c4878c','#7ba3c4','#b8a9d4','#d4c474'];
-  if(allSlots.length){
-    for(var si=0;si<allSlots.length;si++){
-      var slot = allSlots[si];
-      var h2 = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
-      var color;
-      if(h2 >= 5 && h2 < 10) color = '#d4a574';
-      else if(h2 >= 10 && h2 < 14) color = '#6b9e78';
-      else if(h2 >= 17 && h2 < 22) color = '#c4878c';
-      else color = '#7ba3c4';
-      var opacity = slot.isDrink ? '0.4' : '1';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f5f0eb;opacity:'+opacity+';">';
-      html += '<div style="display:flex;align-items:center;gap:8px;"><div style="width:10px;height:10px;border-radius:50%;background:'+color+';"></div><span style="font-size:12px;color:var(--ink);">'+slot.time+'</span></div>';
-      html += '<span style="font-size:12px;color:var(--ink-mid);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
+  // ① バイタル指標ピル行
+  var vitals = [];
+  if(rec.temperature) vitals.push({icon:'🌡', label: rec.temperature+'℃', color:'#d4a574', bg:'#fdf5ec'});
+  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') vitals.push({icon:'🌸', label: rec.menstrualCycle, color:'#c4878c', bg:'#fdf0f2'});
+  if(rec.energy) vitals.push({icon:'⚡', label:'元気 '+rec.energy+'/5', color:'#d4a574', bg:'#fdf5ec'});
+  if(rec.sleepHours) vitals.push({icon:'😴', label:'睡眠 '+rec.sleepHours+'h', color:'#7ba3c4', bg:'#eef4fb'});
+  if(vitals.length){
+    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">';
+    vitals.forEach(function(v){
+      html += '<div style="display:flex;align-items:center;gap:5px;background:'+v.bg+';border-radius:20px;padding:6px 12px;">';
+      html += '<span style="font-size:14px;">'+v.icon+'</span>';
+      html += '<span style="font-size:12px;font-weight:600;color:'+v.color+';">'+v.label+'</span>';
       html += '</div>';
-    }
-  }
-  html += '</div></div>';
-
-  // 症状・体温・生理
-  var extras = [];
-  if(rec.temperature) extras.push('🌡 '+rec.temperature+'℃');
-  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') extras.push('🌸 '+rec.menstrualCycle);
-  if(rec.symptoms && rec.symptoms.length) extras.push(rec.symptoms.join('・'));
-    // 痛みの詳細
-  if(rec.painLevel && rec.painLevel > 0){
-    var painText = '痛み ' + rec.painLevel + '/10';
-    if(rec.painLocation && rec.painLocation.length) painText += '（' + rec.painLocation.join('・') + '）';
-    extras.push('🔴 ' + painText);
-  }
-  // 服薬
-  if(rec.medication && rec.medication.length){
-    extras.push('💊 ' + rec.medication.join('・'));
-  }
-  // 経血詳細
-  if(rec.bloodClot && rec.bloodClot.length){
-    extras.push('🩸 ' + rec.bloodClot.join('・'));
-  }
-  if(rec.bloodColor && rec.bloodColor.length){
-    extras.push(rec.bloodColor.join('・'));
-  }
-  if(extras.length){
-    html += '<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:6px;">';
-    extras.forEach(function(e){
-      html += '<span style="font-size:11px;background:var(--warm-light);color:var(--ink-mid);padding:4px 10px;border-radius:12px;">'+e+'</span>';
     });
     html += '</div>';
   }
 
-  // 疾患チェック
+  // ② ファスティングバー
+  if(fastH > 0){
+    var goalH = state.fastingGoal || 16;
+    var pctFast = Math.min(Math.round(fastH / goalH * 100), 100);
+    var fastColor = fastH >= goalH ? '#6b9e78' : '#d4a574';
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
+    html += '<span style="font-size:12px;font-weight:600;color:var(--ink);">ファスティング</span>';
+    html += '<span style="font-size:12px;font-weight:700;color:'+fastColor+';">'+fastH+'h <span style="font-weight:400;color:var(--ink-light);font-size:11px;">/ 目標 '+goalH+'h</span></span>';
+    html += '</div>';
+    html += '<div style="height:8px;background:var(--cream);border-radius:4px;overflow:hidden;">';
+    html += '<div style="height:100%;width:'+pctFast+'%;background:linear-gradient(90deg,'+fastColor+','+fastColor+'cc);border-radius:4px;transition:width 0.6s;"></div>';
+    html += '</div>';
+    if(fastH >= goalH){
+      html += '<div style="font-size:10px;color:#6b9e78;margin-top:4px;">✓ 目標達成！</div>';
+    }
+    html += '</div>';
+  }
+
+  // ③ 食事タイムライン
+  if(allSlots.length){
+    html += '<div style="margin-bottom:14px;">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:8px;">食事記録 '+(mealCount > 0 ? mealCount+'食' : '')+'</div>';
+    for(var si=0;si<allSlots.length;si++){
+      var slot = allSlots[si];
+      var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
+      var dotColor;
+      if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
+      else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
+      else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
+      else dotColor = '#7ba3c4';
+      var rowOpacity = slot.isDrink ? '0.5' : '1';
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
+      html += '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
+      if(slot.time) html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:30px;">'+slot.time+'</span>';
+      html += '<span style="font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
+      html += '</div>';
+    }
+    html += '</div>';
+  } else if(mealCount > 0){
+    html += '<div style="margin-bottom:14px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
+  }
+
+  // ④ 症状チップ
+  var sympChips = [];
+  if(rec.symptoms && rec.symptoms.length) sympChips = sympChips.concat(rec.symptoms);
+  if(rec.painLevel && rec.painLevel > 0){
+    var pText = '痛み '+rec.painLevel+'/10';
+    if(rec.painLocation && rec.painLocation.length) pText += '（'+rec.painLocation.join('・')+'）';
+    sympChips.push('🔴 '+pText);
+  }
+  if(rec.bloodClot && rec.bloodClot.length) sympChips = sympChips.concat(rec.bloodClot.map(function(b){return '🩸 '+b;}));
+  if(rec.bloodColor && rec.bloodColor.length) sympChips = sympChips.concat(rec.bloodColor);
+  if(sympChips.length){
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:7px;">症状</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    sympChips.forEach(function(s){
+      html += '<span style="font-size:11px;background:#fdf0f2;color:#c4878c;padding:4px 10px;border-radius:14px;">'+s+'</span>';
+    });
+    html += '</div></div>';
+  }
+
+  // ⑤ 疾患チェック（なし以外）
   if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
+    var dcEntries = [];
     var dc = rec.diseaseCheck;
     var _fallbackDisease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
     Object.keys(dc).forEach(function(key){
+      if(dc[key] === 'なし') return;
       var parts = key.split('__');
       var dKey = parts.length > 1 ? parts[0] : _fallbackDisease;
       var qId = parts.length > 1 ? parts[1] : key;
@@ -6549,161 +6551,126 @@ function updateHomeSummary(){
           if(qCfg.questions[qi].id === qId){ label = qCfg.questions[qi].text.replace('？',''); break; }
         }
       }
-      html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
+      dcEntries.push(label+': '+dc[key]);
+    });
+    if(dcEntries.length){
+      html += '<div style="margin-bottom:12px;">';
+      html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:7px;">疾患チェック</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+      dcEntries.forEach(function(e){
+        html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:14px;">'+e+'</span>';
+      });
+      html += '</div></div>';
+    }
+  }
+
+  // ⑥ その他（服薬・お通じ・睡眠の質・要因）
+  var otherChips = [];
+  if(rec.medication && rec.medication.length) otherChips.push('💊 '+rec.medication.join('・'));
+  if(rec.sleepQuality) otherChips.push('💤 睡眠の質 '+rec.sleepQuality+'/5');
+  if(rec.bowel) otherChips.push('🫧 '+rec.bowel);
+  if(rec.factors && rec.factors.length) otherChips.push('📋 '+rec.factors.join('・'));
+  if(otherChips.length){
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">';
+    otherChips.forEach(function(e){
+      html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:14px;">'+e+'</span>';
     });
     html += '</div>';
   }
-    // ウェルネススコア
-    if(rec.wellnessScore !== undefined){
+
+  // ⑦ ウェルネス・SMIスコア（横並びコンパクト）
+  var hasWS = rec.wellnessScore !== undefined;
+  var hasSMI = rec.smiScore !== undefined && rec.smiScore !== null;
+  if(hasWS || hasSMI){
+    html += '<div style="display:flex;gap:10px;margin-bottom:14px;">';
+    if(hasWS){
       var ws = rec.wellnessScore;
       var wsColor = ws >= 70 ? '#6b9e78' : ws >= 40 ? '#d4a574' : '#c4878c';
-      html += '<div style="margin-top:14px;background:linear-gradient(135deg,#faf6f2,#f0ebe6);border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:14px;">';
-      html += '<div style="position:relative;width:56px;height:56px;flex-shrink:0;">';
-      html += '<svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="24" fill="none" stroke="#e8ddd8" stroke-width="5"/>';
-      var pct = ws / 100;
-      var circ = 2 * Math.PI * 24;
-      html += '<circle cx="28" cy="28" r="24" fill="none" stroke="'+wsColor+'" stroke-width="5" stroke-dasharray="'+Math.round(circ*pct)+' '+Math.round(circ*(1-pct))+'" stroke-linecap="round" transform="rotate(-90 28 28)"/>';
-      html += '</svg>';
-      html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-family:Inter,sans-serif;font-size:16px;font-weight:700;color:'+wsColor+';">'+ws+'</div>';
+      var wsLabel = ws >= 70 ? '良好' : ws >= 40 ? 'まずまず' : '注意';
+      html += '<div style="flex:1;background:linear-gradient(135deg,#faf6f2,#f0ebe6);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;">';
+      html += '<div style="position:relative;width:44px;height:44px;flex-shrink:0;">';
+      html += '<svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#e8ddd8" stroke-width="4"/>';
+      var pctWS = ws / 100;
+      var circWS = 2 * Math.PI * 18;
+      html += '<circle cx="22" cy="22" r="18" fill="none" stroke="'+wsColor+'" stroke-width="4" stroke-dasharray="'+Math.round(circWS*pctWS)+' '+Math.round(circWS*(1-pctWS))+'" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>';
+      html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:700;color:'+wsColor+';">'+ws+'</div>';
       html += '</div>';
-      html += '<div>';
-      html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">ウェルネススコア</div>';
-      html += '<div style="font-size:11px;color:var(--ink-light);margin-top:2px;">'+(ws>=70?'良好な状態です':ws>=40?'まずまずの状態です':'少し注意が必要です')+'</div>';
-      html += '</div></div>';
+      html += '<div><div style="font-size:10px;color:var(--ink-light);">ウェルネス</div>';
+      html += '<div style="font-size:13px;font-weight:600;color:'+wsColor+';">'+wsLabel+'</div></div>';
+      html += '</div>';
     }
-  
-    // SMIスコア表示
-    if(rec.smiScore !== undefined && rec.smiScore !== null){
+    if(hasSMI){
       var smi = rec.smiScore;
       var smiColor = smi <= 25 ? '#6b9e78' : smi <= 50 ? '#d4a574' : smi <= 75 ? '#c4878c' : '#c44848';
-      var smiLabel = smi <= 25 ? '問題なし' : smi <= 50 ? '注意が必要' : smi <= 75 ? '受診をおすすめ' : '長期的な治療が必要';
-      html += '<div style="margin-top:10px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;">';
-      html += '<div style="font-size:24px;">🌡️</div>';
-      html += '<div style="flex:1;">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
-      html += '<div style="font-size:12px;font-weight:500;color:var(--ink);">更年期指数（SMI）</div>';
-      html += '<div style="font-family:Inter,sans-serif;font-size:18px;font-weight:700;color:'+smiColor+';">'+smi+'<span style="font-size:11px;color:var(--ink-light);">/94</span></div>';
+      var smiLabel = smi <= 25 ? '問題なし' : smi <= 50 ? '注意' : smi <= 75 ? '受診推奨' : '治療必要';
+      html += '<div style="flex:1;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:14px;padding:12px 14px;">';
+      html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">SMI指数</div>';
+      html += '<div style="display:flex;align-items:baseline;gap:4px;">';
+      html += '<span style="font-size:20px;font-weight:700;color:'+smiColor+';">'+smi+'</span>';
+      html += '<span style="font-size:10px;color:var(--ink-light);">/94</span>';
       html += '</div>';
-      html += '<div style="margin-top:4px;height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+      html += '<div style="margin:5px 0;height:5px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
       html += '<div style="height:100%;width:'+Math.min(Math.round(smi/94*100),100)+'%;background:'+smiColor+';border-radius:3px;"></div>';
       html += '</div>';
-      html += '<div style="font-size:10px;color:'+smiColor+';margin-top:3px;">'+smiLabel+'</div>';
-      html += '</div></div>';
-    }
-
-    // エネルギー・睡眠・ファクター・お通じ
-    var newExtras = [];
-    if(rec.energy) newExtras.push('⚡ エネルギー '+rec.energy+'/5');
-    if(rec.sleepHours) newExtras.push('😴 睡眠 '+rec.sleepHours+'h');
-    if(rec.sleepQuality) newExtras.push('💤 質 '+rec.sleepQuality+'/5');
-    if(rec.bowel) newExtras.push('🫧 '+rec.bowel);
-    if(rec.factors && rec.factors.length) newExtras.push('📋 '+rec.factors.join('・'));
-    if(newExtras.length){
-      html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
-      newExtras.forEach(function(e){
-        html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:12px;">'+e+'</span>';
-      });
+      html += '<div style="font-size:10px;color:'+smiColor+';">'+smiLabel+'</div>';
       html += '</div>';
     }
-     // フレアアップ通知（直近3日以内）
-    var recentFlares = detectFlareups(state.records).filter(function(f){
-      return (Date.now() - new Date(f.date).getTime()) < 3 * 86400000;
-    });
-    if(recentFlares.length > 0){
-      html += '<div onclick="openFlareupReport()" style="margin-top:12px;background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:14px;padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;">';
-      html += '<div style="font-size:22px;">🔥</div>';
-      html += '<div style="flex:1;">';
-      html += '<div style="font-size:12px;font-weight:500;color:var(--rose);">フレアアップを検出</div>';
-      html += '<div style="font-size:11px;color:var(--ink-mid);margin-top:2px;">'+recentFlares[recentFlares.length-1].reasons[0]+'</div>';
-      html += '</div>';
-      html += '<div style="font-size:12px;color:var(--rose);">詳細 →</div>';
-      html += '</div>';
+    html += '</div>';
+  }
+
+  // ⑧ フレアアップ通知（直近3日以内）
+  var recentFlares = detectFlareups(state.records).filter(function(f){
+    return (Date.now() - new Date(f.date).getTime()) < 3 * 86400000;
+  });
+  if(recentFlares.length > 0){
+    html += '<div onclick="openFlareupReport()" style="margin-bottom:10px;background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">';
+    html += '<span style="font-size:20px;">🔥</span>';
+    html += '<div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--rose);">フレアアップを検出</div>';
+    html += '<div style="font-size:11px;color:var(--ink-mid);margin-top:2px;">'+recentFlares[recentFlares.length-1].reasons[0]+'</div></div>';
+    html += '<span style="font-size:12px;color:var(--rose);">→</span>';
+    html += '</div>';
+  }
+
+  // ⑨ 体温パターンインサイト
+  var tempAnalysis = calcTemperaturePhases(state.records);
+  if(tempAnalysis.status === 'ready'){
+    var hasAlerts = tempAnalysis.alerts.length > 0;
+    var alertColor = hasAlerts ? (tempAnalysis.alerts.some(function(a){return a.level==='emergency';}) ? '#c44848' : tempAnalysis.alerts.some(function(a){return a.level==='danger';}) ? '#c4878c' : '#d4a574') : '#6b9e78';
+    html += '<div style="background:linear-gradient(135deg,var(--white),#fdf8f6);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
+    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:16px;">🌡️</span><span style="font-size:13px;font-weight:600;color:var(--ink);">体温パターン分析</span></div>';
+    html += '<span style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'日分</span>';
+    html += '</div>';
+    html += '<div style="display:flex;gap:8px;margin-bottom:10px;">';
+    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">二相性</div><div style="font-size:11px;font-weight:600;color:'+alertColor+';">判定済み</div></div>';
+    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">温度差</div><div style="font-size:11px;font-weight:600;color:var(--ink);">'+tempAnalysis.tempDiff+'℃</div></div>';
+    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">アラート</div><div style="font-size:11px;font-weight:600;color:'+alertColor+';">'+(hasAlerts ? tempAnalysis.alerts.length+'件' : 'なし')+'</div></div>';
+    html += '</div>';
+    if(hasAlerts){
+      html += '<div style="background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:#c4878c;">⚠️ 気になるパターンが検出されました</div>';
     }
+    html += '<div onclick="premiumGate(openTempReport)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--rose-pale);border-radius:8px;cursor:pointer;">';
+    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;font-weight:500;color:var(--rose);">詳細レポートを見る</span><span style="font-size:9px;background:var(--rose);color:white;padding:1px 6px;border-radius:4px;">PRO</span></div>';
+    html += '<span style="font-size:12px;color:var(--rose);">→</span>';
+    html += '</div></div>';
 
-      // 体温インサイトカード
-    var tempAnalysis = calcTemperaturePhases(state.records);
-    if(tempAnalysis.status === 'ready'){
-      // データ十分：ティーザー表示
-      var biphasicLabel = tempAnalysis.biphasic === 'clear' ? '明確な二相性' : tempAnalysis.biphasic === 'unclear' ? 'やや不明瞭' : '二相性なし';
-      var hasAlerts = tempAnalysis.alerts.length > 0;
-      var alertColor = hasAlerts ? (tempAnalysis.alerts.some(function(a){return a.level==='emergency';}) ? '#c44848' : tempAnalysis.alerts.some(function(a){return a.level==='danger';}) ? '#c4878c' : '#d4a574') : '#6b9e78';
-      var alertIcon = hasAlerts ? '⚠️' : '✅';
-
-      html += '<div style="margin-top:12px;background:linear-gradient(135deg,var(--white),#fdf8f6);border-radius:16px;padding:16px;box-shadow:0 1px 6px var(--shadow);">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-      html += '<div style="display:flex;align-items:center;gap:8px;">';
-      html += '<div style="font-size:18px;">🌡️</div>';
-      html += '<div style="font-family:Shippori Mincho,serif;font-size:14px;color:var(--ink);">体温パターン分析</div>';
-      html += '</div>';
-      html += '<div style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'日分</div>';
-      html += '</div>';
-
-      // 無料ユーザー向けティーザー
-      html += '<div style="display:flex;gap:8px;margin-bottom:8px;">';
-      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
-      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">二相性</div>';
-      html += '<div style="font-size:12px;font-weight:600;color:'+alertColor+';">判定済み</div>';
-      html += '</div>';
-      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
-      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">温度差</div>';
-      html += '<div style="font-size:12px;font-weight:600;color:var(--ink);">'+tempAnalysis.tempDiff+'℃</div>';
-      html += '</div>';
-      html += '<div style="flex:1;background:var(--cream);border-radius:10px;padding:10px;text-align:center;">';
-      html += '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">アラート</div>';
-      html += '<div style="font-size:12px;font-weight:600;color:'+alertColor+';">'+alertIcon+' '+(hasAlerts ? tempAnalysis.alerts.length+'件' : 'なし')+'</div>';
-      html += '</div>';
-      html += '</div>';
-
-      if(hasAlerts){
-        html += '<div style="background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:10px;padding:10px 12px;margin-bottom:8px;">';
-        html += '<div style="font-size:11px;color:#c4878c;font-weight:500;">'+alertIcon+' 気になるパターンが検出されました</div>';
-        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">詳細な分析と医師相談の目安を確認できます</div>';
-        html += '</div>';
-      }
-
-      html += '<div onclick="premiumGate(openTempReport)" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--rose-pale);border-radius:10px;cursor:pointer;">';
-      html += '<div style="display:flex;align-items:center;gap:6px;">';
-      html += '<div style="font-size:11px;font-weight:500;color:var(--rose);">詳細レポートを見る</div>';
-      html += '<span style="font-size:9px;background:var(--rose);color:white;padding:1px 6px;border-radius:4px;">PRO</span>';
-      html += '</div>';
-      html += '<div style="font-size:12px;color:var(--rose);">→</div>';
-      html += '</div>';
-
-      html += '</div>';
-
-    } else if(tempAnalysis.status === 'insufficient' && tempAnalysis.count > 0){
-      // データ不足：記録促進カード
-      var progress = Math.round(tempAnalysis.count / 14 * 100);
-      html += '<div style="margin-top:12px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 1px 6px var(--shadow);">';
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
-      html += '<div style="font-size:18px;">🌡️</div>';
-      html += '<div style="font-family:Shippori Mincho,serif;font-size:14px;color:var(--ink);">体温パターン分析</div>';
-      html += '</div>';
-      html += '<div style="font-size:12px;color:var(--ink-mid);margin-bottom:10px;">'+tempAnalysis.message+'</div>';
-      html += '<div style="height:8px;background:#e8ddd8;border-radius:4px;overflow:hidden;">';
-      html += '<div style="height:100%;width:'+progress+'%;background:linear-gradient(90deg,var(--rose),#e8b4b8);border-radius:4px;transition:width 0.5s;"></div>';
-      html += '</div>';
-      html += '<div style="display:flex;justify-content:space-between;margin-top:6px;">';
-      html += '<div style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'/14日</div>';
-      html += '<div style="font-size:10px;color:var(--rose);">'+progress+'%</div>';
-      html += '</div>';
-
-      // 教育カード
-      var diseases = state.myDiseases || [];
-      var eduMsg = '14日以上の記録で、あなたの低温期と高温期のパターンが見えてきます。';
-      if(diseases.indexOf('卵巣嚢腫') !== -1){
-        eduMsg = '卵巣嚢腫では体温パターンの変化が炎症の指標になります。14日以上記録を続けましょう。';
-      } else if(diseases.indexOf('子宮内膜症') !== -1){
-        eduMsg = '子宮内膜症では月経初日の体温が診断の手がかりになることが報告されています。';
-      } else if(diseases.indexOf('PCOS') !== -1){
-        eduMsg = 'PCOSでは二相性の有無が排卵障害の重要な指標です。毎日の記録が大切です。';
-      } else if(diseases.indexOf('更年期障害') !== -1){
-        eduMsg = '更年期では体温リズムの変化がホルモンバランスを反映します。記録を続けましょう。';
-      }
-      html += '<div style="margin-top:10px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:11px;color:var(--ink-mid);line-height:1.6;">💡 '+eduMsg+'</div>';
-
-      html += '</div>';
-    }
+  } else if(tempAnalysis.status === 'insufficient' && tempAnalysis.count > 0){
+    var progress = Math.round(tempAnalysis.count / 14 * 100);
+    var diseases2 = state.myDiseases || [];
+    var eduMsg = '14日以上の記録で、あなたの低温期と高温期のパターンが見えてきます。';
+    if(diseases2.indexOf('卵巣嚢腫') !== -1) eduMsg = '卵巣嚢腫では体温パターンの変化が炎症の指標になります。14日以上記録を続けましょう。';
+    else if(diseases2.indexOf('子宮内膜症') !== -1) eduMsg = '子宮内膜症では月経初日の体温が診断の手がかりになることが報告されています。';
+    else if(diseases2.indexOf('PCOS') !== -1) eduMsg = 'PCOSでは二相性の有無が排卵障害の重要な指標です。毎日の記録が大切です。';
+    else if(diseases2.indexOf('更年期障害') !== -1) eduMsg = '更年期では体温リズムの変化がホルモンバランスを反映します。記録を続けましょう。';
+    html += '<div style="background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
+    html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:16px;">🌡️</span><span style="font-size:13px;font-weight:600;color:var(--ink);">体温パターン分析</span></div>';
+    html += '<div style="font-size:11px;color:var(--ink-mid);margin-bottom:8px;">'+tempAnalysis.message+'</div>';
+    html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+progress+'%;background:linear-gradient(90deg,var(--rose),#e8b4b8);border-radius:3px;"></div></div>';
+    html += '<div style="display:flex;justify-content:space-between;margin-top:5px;margin-bottom:10px;">';
+    html += '<span style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'/14日</span><span style="font-size:10px;color:var(--rose);">'+progress+'%</span></div>';
+    html += '<div style="padding:8px 10px;background:var(--cream);border-radius:8px;font-size:11px;color:var(--ink-mid);line-height:1.6;">💡 '+eduMsg+'</div>';
+    html += '</div>';
+  }
 
   content.innerHTML = html;
 }
