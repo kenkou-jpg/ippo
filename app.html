@@ -2243,6 +2243,10 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div class="section-card">
     <div class="section-label">BASAL TEMPERATURE</div>
     <div class="section-title serif">基礎体温(決まった時間帯計測)</div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button id="temp-tab-sublingual" onclick="selectTempMethod('sublingual')" class="chip selected" style="font-size:12px;padding:6px 18px;border-radius:20px;">舌下</button>
+      <button id="temp-tab-axilla" onclick="selectTempMethod('axilla')" class="chip" style="font-size:12px;padding:6px 18px;border-radius:20px;">脇の下</button>
+    </div>
     <div style="display:flex;align-items:center;gap:10px;">
       <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
       <span style="font-size:16px;color:var(--ink-mid);">℃</span>
@@ -2578,9 +2582,9 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-      <!-- Data -->
+      <!-- Data Management (統合) -->
       <div class="settings-section">
-        <div class="settings-section-title">データ</div>
+        <div class="settings-section-title">データ管理</div>
         <div class="settings-card">
           <div class="settings-row" onclick="showExportMenu()">
             <div class="settings-row-left">
@@ -2592,35 +2596,12 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-            <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
-              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
-          <!-- ↓ ここに追加 -->
           <div class="settings-row" onclick="manualCloudRestore()" style="cursor:pointer;">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#e8f4f0;">☁️</div>
               <div>
                 <div class="settings-row-text">クラウドから復元</div>
                 <div class="settings-row-sub">データが消えた場合に使用</div>
-              </div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
-  　　　 </div>
-      </div>
-      <div class="settings-section">
-        <div class="settings-section-title">データ管理</div>
-        <div class="settings-card">
-          <div class="settings-row" onclick="showDiagnosisUI()">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6">🔍</div>
-              <div>
-                <div class="settings-row-text">データ診断・復元</div>
-                <div class="settings-row-sub">3箇所のデータを比較・自動修復</div>
               </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
@@ -2632,6 +2613,23 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
                 <div class="settings-row-text">バックアップ履歴</div>
                 <div class="settings-row-sub">過去のスナップショットから復元</div>
               </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="showDiagnosisUI()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6">🔍</div>
+              <div>
+                <div class="settings-row-text">データ診断・修復</div>
+                <div class="settings-row-sub">3箇所のデータを比較・自動修復</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
+              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
@@ -6165,7 +6163,7 @@ function updateHomeSummary(){
   status.textContent = '記録済み ✓';
 
   // 食事データ解析（飲み物除外）
-  var drinkPattern = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/;
+  var drinkPattern = /飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/;
   var mealLines = (rec.mealFree || '').split('\n').filter(function(l){return l.trim();});
   var allSlots = [];
   var foodSlots = [];
@@ -6290,13 +6288,16 @@ function updateHomeSummary(){
   if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
     html += '<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;">';
     var dc = rec.diseaseCheck;
-    var disease = (rec.diseases && rec.diseases[0]) || state.myDiseases && state.myDiseases[0] || '';
-    var config = DISEASE_CONFIG[disease];
+    var _fallbackDisease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
     Object.keys(dc).forEach(function(key){
-      var label = key;
-      if(config){
-        for(var qi=0;qi<config.questions.length;qi++){
-          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+      var parts = key.split('__');
+      var dKey = parts.length > 1 ? parts[0] : _fallbackDisease;
+      var qId = parts.length > 1 ? parts[1] : key;
+      var qCfg = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[dKey] : null;
+      var label = qId;
+      if(qCfg && qCfg.questions){
+        for(var qi=0;qi<qCfg.questions.length;qi++){
+          if(qCfg.questions[qi].id === qId){ label = qCfg.questions[qi].text.replace('？',''); break; }
         }
       }
       html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
@@ -7262,7 +7263,7 @@ function createMealDonut(meals, fasting, fastingGoal){
       if(match){
         var mh = parseInt(match[1],10) + parseInt(match[2],10)/60;
         var mlabel = match[3].trim();
-        var drinkWords = mlabel.match(/飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/g) || [];
+        var drinkWords = mlabel.match(/飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/g) || [];
         var allItems = mlabel.split(/[、,\/\s]+/).filter(function(s){ return s; });
         var isDrink = drinkWords.length > 0 && drinkWords.length >= allItems.length;
 
@@ -7577,20 +7578,23 @@ function openDayDetail(d){
     html += '</div></div>';
   }
 
-  // ===== 卵巣嚢腫セルフチェック =====
+  // ===== 疾患セルフチェック =====
   if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
     var dc = rec.diseaseCheck;
-    var disease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
-    var config = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[disease] : null;
+    var _fbDisease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
     html += '<div style="margin-top:14px;background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
     html += '<div style="font-size:10px;color:var(--ink-light);letter-spacing:0.15em;margin-bottom:10px;">セルフチェック</div>';
     html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
     Object.keys(dc).forEach(function(key){
       if(!dc[key] || dc[key] === 'なし') return;
-      var label = key;
-      if(config && config.questions){
-        for(var qi=0;qi<config.questions.length;qi++){
-          if(config.questions[qi].id === key){ label = config.questions[qi].text.replace('？',''); break; }
+      var parts = key.split('__');
+      var dKey = parts.length > 1 ? parts[0] : _fbDisease;
+      var qId = parts.length > 1 ? parts[1] : key;
+      var qCfg = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[dKey] : null;
+      var label = qId;
+      if(qCfg && qCfg.questions){
+        for(var qi=0;qi<qCfg.questions.length;qi++){
+          if(qCfg.questions[qi].id === qId){ label = qCfg.questions[qi].text.replace('？',''); break; }
         }
       }
       html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:12px;">'+label+': '+dc[key]+'</span>';
@@ -7839,6 +7843,7 @@ function openRecordScreen(){
           } catch(e){}
         }
       if(d.temp){ var et=document.getElementById('rs-temp'); if(et) et.value=d.temp; }
+      if(d.tempMethod) selectTempMethod(d.tempMethod);
         if(d.note){ var en=document.getElementById('rs-note'); if(en) en.value=d.note; }
         if(d.symptoms && d.symptoms.length){
           document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
@@ -7896,6 +7901,8 @@ function openRecordScreen(){
     var tempEl = document.getElementById('rs-temp');
     if(tempEl && !tempEl.value) tempEl.value = todayRec.temperature;
   }
+  // 体温測定方法を復元
+  selectTempMethod((todayRec && todayRec.tempMethod) ? todayRec.tempMethod : 'sublingual');
   // 既存記録の症状を復元
   if(todayRec && todayRec.symptoms && todayRec.symptoms.length){
     document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
@@ -7908,10 +7915,11 @@ function openRecordScreen(){
       if(c.textContent === todayRec.menstrualCycle || c.getAttribute('data-val') === todayRec.menstrualCycle) c.classList.add('selected');
     });
   }
-  // 既存記録の疾患チェックを復元
-  if(todayRec && todayRec.diseaseCheck){
-    setTimeout(function(){
-      var dc = todayRec.diseaseCheck;
+  var _diseaseCheckToRestore = (todayRec && todayRec.diseaseCheck) ? todayRec.diseaseCheck : null;
+  setTimeout(function(){
+    updateDiseaseQuestions();
+    if(_diseaseCheckToRestore){
+      var dc = _diseaseCheckToRestore;
       Object.keys(dc).forEach(function(key){
         var group = document.querySelector('[data-disease-q="'+key+'"]');
         if(group){
@@ -7920,12 +7928,16 @@ function openRecordScreen(){
           });
         }
       });
-    }, 150);
-  }
-
-  setTimeout(function(){ updateDiseaseQuestions(); }, 300);
+    }
+  }, 300);
 
   window.scrollTo(0, 0);
+}
+
+function selectTempMethod(method){
+  document.getElementById('temp-tab-sublingual').classList.toggle('selected', method === 'sublingual');
+  document.getElementById('temp-tab-axilla').classList.toggle('selected', method === 'axilla');
+  window._tempMethod = method;
 }
 
 function toggleRsChip(el){
@@ -7957,7 +7969,7 @@ function parseMealMemo(text){
   var lines = text.split('\n');
   var allTimes = [];
   var foodTimes = [];
-  var drinkPattern = /飲み物|水|コーヒー|お茶|紅茶|ジュース|牛乳|豆乳/;
+  var drinkPattern = /飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/;
   lines.forEach(function(line){
     line = line.trim();
     if(!line) return;
@@ -7970,10 +7982,10 @@ function parseMealMemo(text){
         allTimes.push(totalMin);
         // 飲み物判定
         var label = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
-        var drinkWords = (label.match(drinkPattern) || []).length > 0;
+        if(!label) return; // 食品名のない行はスキップ
         var items = label.split(/[、,\/\s]+/).filter(function(s){ return s; });
         var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
-        var isDrinkOnly = drinkWords && drinkItems.length >= items.length;
+        var isDrinkOnly = drinkItems.length > 0 && drinkItems.length >= items.length;
         if(!isDrinkOnly){
           foodTimes.push(totalMin);
         }
@@ -8371,12 +8383,38 @@ function calcTemperaturePhases(records) {
     }
   }
 
-  // 黄体機能不全パターン
+  // 黄体機能不全パターン（PDFデータ：高温期10日以下、温度差0.2℃以下）
   if (highPhaseDays > 0 && highPhaseDays < 10) {
-    alerts.push({ level: 'warning', message: '高温期が' + highPhaseDays + '日と短めです。黄体機能不全の可能性があります。' });
+    alerts.push({ level: 'warning', message: '高温期が' + highPhaseDays + '日と短めです（正常12〜14日）。プロゲステロン不足・黄体機能不全の可能性があります。' });
   }
   if (mPattern) {
     alerts.push({ level: 'warning', message: '高温期中に体温が一時低下するM字パターンが検出されました。黄体ホルモンの分泌が不安定な可能性があります。' });
+  }
+  // 温度差が小さい（PDFデータ：0.2℃以下で黄体機能不全）
+  if (tempDiff > 0 && tempDiff < 0.2) {
+    alerts.push({ level: 'warning', message: '低温期と高温期の温度差が' + tempDiff + '℃（正常0.3〜0.5℃）と小さく、黄体機能不全・排卵障害の可能性があります。医師への相談をお勧めします。' });
+  } else if (tempDiff >= 0.2 && tempDiff < 0.3) {
+    alerts.push({ level: 'caution', message: '温度差が' + tempDiff + '℃とやや小さめです（正常0.3〜0.5℃）。プロゲステロン分泌がやや不十分な可能性があります。' });
+  }
+  // 低温期が長い（PDFデータ：20日以上で排卵遅延）
+  if (lowPhaseDays >= 20) {
+    alerts.push({ level: 'warning', message: '低温期が' + lowPhaseDays + '日（正常12〜16日）と長く、排卵遅延の可能性があります。ホルモンバランスの乱れが疑われます。' });
+  }
+  // 全体的な低体温（PDFデータ：甲状腺機能低下症）
+  if (avgLow !== null && avgLow < 35.8) {
+    alerts.push({ level: 'warning', message: '低温期の平均が35.8℃未満と低体温傾向です。甲状腺機能低下症との関連が報告されています。受診をお勧めします。' });
+  }
+  // PMS/PMDDの高温期高体温
+  if (diseases.indexOf('PMS/PMDD') !== -1 && avgHigh !== null && avgHigh >= 37.0) {
+    alerts.push({ level: 'disease', disease: 'PMS/PMDD', message: '高温期の平均が' + avgHigh + '℃と高めです（BMC研究）。メラトニン低下による体温調節異常が関与する可能性があります。睡眠の質改善もお試しください。' });
+  }
+  // 更年期障害の低体温
+  if (diseases.indexOf('更年期障害') !== -1 && avgTemp !== null && avgTemp < 36.0) {
+    alerts.push({ level: 'disease', disease: '更年期障害', message: '平均体温が' + avgTemp + '℃と低め（2025年研究：閉経後女性は中核体温が低下）。代謝低下に注意し、定期的な受診をお勧めします。' });
+  }
+  // 二相性なし（共通：無排卵症）
+  if (biphasic === 'none' && diseases.indexOf('PCOS') === -1) {
+    alerts.push({ level: 'warning', message: '二相性が確認できません。排卵が起こっていない可能性（無排卵症）があります。医師への相談をお勧めします。' });
   }
 
   // 次回月経予測
@@ -8653,6 +8691,87 @@ function showTempEducation(){
       html += '<br>卵巣嚢腫の炎症モニタリングには、できるだけ毎日の記録が重要です。';
     }
 
+    html += '</div>';
+  }
+
+  // 14日以上データあり → 医学的パターン解釈カードを追加
+  if(analysis && tempCount >= 14 && daysSinceLast < 3){
+    var biphasic = analysis.biphasic;
+    var tempDiff = analysis.tempDiff;
+    var avgLow = analysis.avgLow;
+    var avgHigh = analysis.avgHigh;
+    var highDays = analysis.highPhaseDays;
+    var lowDays = analysis.lowPhaseDays;
+
+    // 二相性ラベル
+    var biphasicLabel = biphasic === 'clear' ? '二相性あり（明瞭）' :
+                        biphasic === 'unclear' ? '二相性あり（不明瞭）' : '二相性なし';
+    var biphasicColor = biphasic === 'clear' ? '#4caf80' :
+                        biphasic === 'unclear' ? '#e8a04a' : '#e05c5c';
+
+    // パターン解釈テキスト
+    var interpretation = '';
+    if(biphasic === 'none'){
+      interpretation = '二相性が確認できません。排卵が起こっていない可能性（無排卵症）があります。';
+      if(diseases.indexOf('PCOS') !== -1) interpretation += ' PCOSでは排卵障害が原因となることがあります。';
+    } else if(tempDiff !== null && tempDiff < 0.2){
+      interpretation = '温度差が'+tempDiff.toFixed(2)+'℃と小さく（正常0.3〜0.5℃）、黄体機能不全・排卵障害の可能性があります。';
+    } else if(tempDiff !== null && tempDiff < 0.3){
+      interpretation = '温度差が'+tempDiff.toFixed(2)+'℃とやや小さめです（正常0.3〜0.5℃）。プロゲステロン分泌がやや不十分な可能性があります。';
+    } else if(highDays !== null && highDays < 10){
+      interpretation = '高温期が'+highDays+'日（正常12〜14日）と短め。黄体機能不全の可能性があります。';
+    } else if(lowDays !== null && lowDays >= 20){
+      interpretation = '低温期が'+lowDays+'日（正常12〜16日）と長く、排卵遅延が疑われます。';
+    } else if(avgLow !== null && avgLow < 35.8){
+      interpretation = '低温期の平均が'+avgLow.toFixed(1)+'℃と低体温傾向です。甲状腺機能低下症との関連が報告されています。';
+    } else {
+      interpretation = '体温パターンは概ね正常範囲内です。引き続き記録を続けましょう。';
+    }
+
+    html += '<div style="margin-top:10px;padding:10px;background:rgba(232,176,184,0.12);border-radius:10px;border-left:3px solid var(--rose);">';
+    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px;">📈 現在の体温パターン分析</div>';
+    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
+
+    // 二相性バッジ
+    html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+biphasicColor+';color:#fff;">'+biphasicLabel+'</span>';
+
+    // 温度差バッジ
+    if(tempDiff !== null){
+      var diffColor = tempDiff >= 0.3 ? '#4caf80' : tempDiff >= 0.2 ? '#e8a04a' : '#e05c5c';
+      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+diffColor+';color:#fff;">温度差 '+tempDiff.toFixed(2)+'℃</span>';
+    }
+
+    // 低温期・高温期日数バッジ
+    if(lowDays !== null){
+      var ldColor = (lowDays >= 12 && lowDays <= 16) ? '#4caf80' : '#e8a04a';
+      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+ldColor+';color:#fff;">低温期 '+lowDays+'日</span>';
+    }
+    if(highDays !== null){
+      var hdColor = (highDays >= 12 && highDays <= 14) ? '#4caf80' : '#e8a04a';
+      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+hdColor+';color:#fff;">高温期 '+highDays+'日</span>';
+    }
+
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">'+interpretation+'</div>';
+
+    // 疾患別補足
+    var diseaseNote = '';
+    if(diseases.indexOf('子宮内膜症') !== -1 && avgLow !== null && avgLow >= 36.5){
+      diseaseNote = '子宮内膜症：月経初日の体温が36.5℃以上は骨盤内膜症との関連が報告されています（Fertil Steril 2020）。';
+    } else if(diseases.indexOf('PMS/PMDD') !== -1 && avgHigh !== null && avgHigh >= 37.0){
+      diseaseNote = 'PMS/PMDD：高温期の平均が'+avgHigh.toFixed(1)+'℃と高めです。メラトニン低下による体温調節異常の関与が報告されています（BMC研究）。';
+    } else if(diseases.indexOf('PCOS') !== -1 && biphasic === 'none'){
+      diseaseNote = 'PCOS：二相性がない場合、無排卵の可能性があります。婦人科での検査をお勧めします。';
+    } else if(diseases.indexOf('更年期障害') !== -1){
+      diseaseNote = '更年期障害：ホルモン変動により体温リズムが不規則になりやすい時期です。定期的な受診を継続してください。';
+    } else if(diseases.indexOf('甲状腺疾患') !== -1 && avgLow !== null && avgLow < 36.0){
+      diseaseNote = '甲状腺機能低下症：低体温傾向があります。甲状腺ホルモン値の定期チェックをお勧めします。';
+    }
+    if(diseaseNote){
+      html += '<div style="font-size:10px;color:var(--rose);margin-top:6px;line-height:1.6;">💊 '+diseaseNote+'</div>';
+    }
+
+    html += '<div style="font-size:10px;color:#aaa;margin-top:6px;">※ この情報は参考目的です。診断は医師にご相談ください。</div>';
     html += '</div>';
   }
 
@@ -9319,7 +9438,8 @@ function gatherRecordData(){
       factors: factors,
       bowel: bowel,
       diseaseCheck: diseaseCheck,
-      diseases: state.myDiseases || []
+      diseases: state.myDiseases || [],
+      tempMethod: window._tempMethod || 'sublingual'
     };
 }
 
@@ -9357,6 +9477,7 @@ var todayStr = targetDate.toDateString();
     rec.diseaseCheck = gatherDiseaseData();
     localStorage.removeItem('ippo_meal_draft');
     rec.temperature = data.temp;
+    rec.tempMethod = data.tempMethod || 'sublingual';
     rec.symptoms = data.symptoms;
     rec.menstrualCycle = data.cycle;
     var bodyChoices = {};
@@ -9716,12 +9837,18 @@ const medicationCounts = {};
       });
       var sortedChecks = Object.entries(checkCounts).sort(function(a, b) { return b[1] - a[1]; });
       if (sortedChecks.length > 0) {
-        var checkNames = {
-          'bloating': '膨満感', 'abdom_pain': '腹痛', 'bowel_pain': '排便痛',
-          'pelvic_dull': '骨盤の鈍痛', 'frequent_urine': '頻尿'
-        };
         var topCheck = sortedChecks[0];
-        var checkName = checkNames[topCheck[0]] || topCheck[0];
+        var topKey = topCheck[0];
+        var topParts = topKey.split('__');
+        var topDKey = topParts.length > 1 ? topParts[0] : '';
+        var topQId = topParts.length > 1 ? topParts[1] : topKey;
+        var topQCfg = (typeof DISEASE_CONFIG !== 'undefined' && topDKey) ? DISEASE_CONFIG[topDKey] : null;
+        var checkName = topQId;
+        if(topQCfg && topQCfg.questions){
+          for(var cqi=0;cqi<topQCfg.questions.length;cqi++){
+            if(topQCfg.questions[cqi].id === topQId){ checkName = topQCfg.questions[cqi].text.replace('？',''); break; }
+          }
+        }
         html += '<br>疾患チェックでは「' + checkName + '」が' + topCheck[1] + '日間記録されています。';
       }
     }
