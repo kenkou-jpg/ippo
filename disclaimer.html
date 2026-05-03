@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>免責事項 — ippo</title>
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #FAFAF8;
+      --bg2:       #F3F1EE;
+      --bg3:       #EDE9E4;
+      --text:      #1A1714;
+      --text2:     #6B6460;
+      --text3:     #A09890;
+      --accent:    #E8614A;
+      --accent2:   #F07B63;
+      --accent-bg: rgba(232,97,74,0.08);
+      --border:    rgba(26,23,20,0.08);
+      --shadow:    rgba(26,23,20,0.06);
+      --font-display: 'Playfair Display', 'Noto Sans JP', serif;
+      --font-body:    'DM Sans', 'Noto Sans JP', sans-serif;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── HEADER ── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 0;
+      background: rgba(250,250,248,0.92);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 860px; margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); }
+    .logo span { color: var(--accent); }
+    .back-link {
+      font-size: 0.85rem; color: var(--text2);
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+
+    /* ── MAIN ── */
+    .page-wrap {
+      max-width: 860px; margin: 0 auto; padding: 120px 32px 80px;
+    }
+
+    .page-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 8px;
+    }
+    .page-date {
+      font-size: 0.82rem; color: var(--text3); margin-bottom: 48px;
+    }
+
+    /* ── CONTENT ── */
+    .doc-section { margin-bottom: 48px; }
+    .doc-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text);
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent-bg);
+      margin-bottom: 16px;
+    }
+    .doc-section p {
+      font-size: 0.95rem; color: var(--text2);
+      line-height: 1.9; margin-bottom: 12px;
+    }
+    .doc-section ul {
+      list-style: none; margin: 8px 0 16px;
+    }
+    .doc-section ul li {
+      font-size: 0.95rem; color: var(--text2);
+      line-height: 1.9; padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    .doc-section ul li::before {
+      content: ''; position: absolute; left: 0; top: 14px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); opacity: 0.5;
+    }
+
+    .highlight-box {
+      background: var(--accent-bg);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.85;
+    }
+    .highlight-box strong { color: var(--accent); }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 32px; margin-top: 64px;
+      font-size: 0.78rem; color: var(--text3);
+      text-align: center; line-height: 1.8;
+    }
+    .page-footer a { color: var(--text3); }
+    .page-footer a:hover { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      .page-wrap { padding: 100px 20px 60px; }
+      .header-inner { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">ippo<span>.</span></a>
+    <a href="index.html" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      トップへ戻る
+    </a>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <p class="page-label">Legal</p>
+  <h1 class="page-title">免責事項</h1>
+  <p class="page-date">制定日：2025年1月1日　最終更新：2025年6月1日</p>
+
+  <div class="highlight-box">
+    <strong>ippoは医療機器ではありません。</strong><br>
+    本アプリが提供する情報・分析結果・記録機能は、医師による診断・治療・処方の代替となるものではありません。体調に不安がある場合は、必ず医療機関を受診してください。
+  </div>
+
+  <div class="doc-section">
+    <h2>1. 医療的情報について</h2>
+    <p>当アプリが提供する体温解析・症状の傾向表示・記録の可視化などの機能は、あくまでセルフケアの補助を目的としたものです。以下の点をご理解のうえご利用ください。</p>
+    <ul>
+      <li>当アプリの分析結果は、医師による診断・治療の代替ではありません</li>
+      <li>表示される情報は参考目的であり、正確性・完全性を保証するものではありません</li>
+      <li>当アプリの使用により医療的な意思決定を行うことはお控えください</li>
+      <li>緊急の症状がある場合は、直ちに医療機関を受診してください</li>
+    </ul>
+    <p>当アプリで使用する基礎体温の警戒値は、AMED（日本医療研究開発機構）による31万人規模の研究データに基づいていますが、個人差があり、すべての方に同様に適用されるものではありません。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. 損害への責任の制限</h2>
+    <p>当方は、以下に起因する損害について、法令上の責任を負う場合を除き、一切の責任を負いません。</p>
+    <ul>
+      <li>当アプリの利用または利用不能による損害</li>
+      <li>当アプリの情報・分析結果を参考にしたことによる損害</li>
+      <li>システム障害・データの消失・通信エラーによる損害</li>
+      <li>端末の紛失・盗難・故障による記録データの消失</li>
+      <li>第三者による不正アクセスや情報の改ざん</li>
+      <li>外部サービス（決済・アクセス解析等）に起因する損害</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. サービスの変更・停止について</h2>
+    <p>当方は、ユーザーへの事前通知なく、当アプリの機能の変更・追加・削除、およびサービスの一時停止・終了を行うことがあります。これらによって生じた損害について、当方は責任を負いません。</p>
+    <p>ただし、有料プランをご利用中の方に対しては、重大な変更が生じる場合、可能な範囲で事前にお知らせするよう努めます。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. データの管理について</h2>
+    <p>無料プランの記録データはお使いの端末内にのみ保存されます。端末の初期化・アプリの削除・機種変更などによってデータが消失した場合、当方はデータの復元に応じることができません。大切なデータは定期的にエクスポート機能を使ってバックアップすることをお勧めします。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. 外部リンクについて</h2>
+    <p>当アプリおよびウェブサイトから外部サイトへのリンクが含まれる場合がありますが、リンク先のサービス・コンテンツについて当方は責任を負いません。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. 知的財産権について</h2>
+    <p>当アプリおよびウェブサイトに掲載されているコンテンツ（テキスト・画像・デザイン・ロゴ等）の著作権は、当方または正当な権利者に帰属します。無断での複製・転用・二次利用はお断りします。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. 準拠法・管轄裁判所</h2>
+    <p>本免責事項は日本法に準拠します。当アプリの利用に関して紛争が生じた場合は、当方の所在地を管轄する日本の裁判所を専属的合意管轄とします。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. 免責事項の変更</h2>
+    <p>本免責事項の内容は、必要に応じて変更することがあります。変更後も当アプリを継続してご利用いただいた場合、変更後の内容に同意したものとみなします。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. お問い合わせ</h2>
+    <p>本免責事項に関するご質問は、<a href="https://www.ippo-app.com/contact.html">お問い合わせフォーム</a>よりご連絡ください。</p>
+  </div>
+
+</main>
+
+<footer class="page-footer">
+  <div style="max-width:860px;margin:0 auto;padding:0 32px;">
+    <p>© 2025–2026 ippo. All rights reserved.</p>
+    <p style="margin-top:8px;">
+      <a href="https://www.ippo-app.com/privacy.html">プライバシーポリシー</a>　
+      <a href="https://www.ippo-app.com/contact.html">お問い合わせ</a>
+    </p>
+    <p style="margin-top:12px;">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</p>
+  </div>
+</footer>
+
+</body>
+</html>

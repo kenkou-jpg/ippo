@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>プライバシーポリシー — ippo</title>
+  <link rel="icon" href="images/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #FAFAF8;
+      --bg2:       #F3F1EE;
+      --bg3:       #EDE9E4;
+      --text:      #1A1714;
+      --text2:     #6B6460;
+      --text3:     #A09890;
+      --accent:    #E8614A;
+      --accent2:   #F07B63;
+      --accent-bg: rgba(232,97,74,0.08);
+      --border:    rgba(26,23,20,0.08);
+      --shadow:    rgba(26,23,20,0.06);
+      --font-display: 'Playfair Display', 'Noto Sans JP', serif;
+      --font-body:    'DM Sans', 'Noto Sans JP', sans-serif;
+    }
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 16px;
+      line-height: 1.85;
+      letter-spacing: 0.02em;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── HEADER ── */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      padding: 18px 0;
+      background: rgba(250,250,248,0.92);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+    .header-inner {
+      max-width: 860px; margin: 0 auto; padding: 0 32px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--text); }
+    .logo span { color: var(--accent); }
+    .back-link {
+      font-size: 0.85rem; color: var(--text2);
+      display: flex; align-items: center; gap: 6px;
+      transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--accent); text-decoration: none; }
+
+    /* ── MAIN ── */
+    .page-wrap {
+      max-width: 860px; margin: 0 auto; padding: 120px 32px 80px;
+    }
+
+    .page-label {
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 12px;
+    }
+    .page-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.7rem, 3vw, 2.4rem);
+      font-weight: 700; line-height: 1.2; margin-bottom: 8px;
+    }
+    .page-date {
+      font-size: 0.82rem; color: var(--text3); margin-bottom: 48px;
+    }
+
+    /* ── CONTENT ── */
+    .doc-section { margin-bottom: 48px; }
+    .doc-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.1rem; font-weight: 700;
+      color: var(--text);
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--accent-bg);
+      margin-bottom: 16px;
+    }
+    .doc-section p {
+      font-size: 0.95rem; color: var(--text2);
+      line-height: 1.9; margin-bottom: 12px;
+    }
+    .doc-section ul {
+      list-style: none; margin: 8px 0 16px;
+    }
+    .doc-section ul li {
+      font-size: 0.95rem; color: var(--text2);
+      line-height: 1.9; padding: 4px 0 4px 20px;
+      position: relative;
+    }
+    .doc-section ul li::before {
+      content: ''; position: absolute; left: 0; top: 14px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); opacity: 0.5;
+    }
+
+    .highlight-box {
+      background: var(--accent-bg);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin: 20px 0;
+      font-size: 0.92rem;
+      color: var(--text);
+      line-height: 1.85;
+    }
+    .highlight-box strong { color: var(--accent); }
+
+    /* ── FOOTER ── */
+    .page-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 32px; margin-top: 64px;
+      font-size: 0.78rem; color: var(--text3);
+      text-align: center; line-height: 1.8;
+    }
+    .page-footer a { color: var(--text3); }
+    .page-footer a:hover { color: var(--accent); }
+
+    @media (max-width: 640px) {
+      .page-wrap { padding: 100px 20px 60px; }
+      .header-inner { padding: 0 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo">ippo<span>.</span></a>
+    <a href="index.html" class="back-link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      トップへ戻る
+    </a>
+  </div>
+</header>
+
+<main class="page-wrap">
+
+  <p class="page-label">Legal</p>
+  <h1 class="page-title">プライバシーポリシー</h1>
+  <p class="page-date">制定日：2025年1月1日　最終更新：2025年6月1日</p>
+
+  <div class="highlight-box">
+    <strong>ippoはあなたのプライバシーを最優先に設計されています。</strong><br>
+    無料プランでは、すべての記録データはお使いの端末内にのみ保存されます。サーバーへのアップロードや第三者への提供は行いません。
+  </div>
+
+  <div class="doc-section">
+    <h2>1. 事業者情報</h2>
+    <p>本プライバシーポリシーは、ippo（以下「当アプリ」）の運営者（以下「当方」）が提供するサービスにおける個人情報の取り扱いについて定めるものです。</p>
+    <p>お問い合わせ先：<a href="https://www.ippo-app.com/contact.html">お問い合わせフォーム</a></p>
+  </div>
+
+  <div class="doc-section">
+    <h2>2. 収集する情報</h2>
+    <p>当アプリが収集する情報は、以下の2種類に分類されます。</p>
+
+    <p><strong>ユーザーが入力する記録データ（無料プラン）</strong></p>
+    <ul>
+      <li>基礎体温・体重・生理周期などの身体データ</li>
+      <li>食事・水分・摂取カロリーなどの食事記録</li>
+      <li>症状・感情・睡眠などの体調記録</li>
+      <li>生活習慣に関するメモ</li>
+    </ul>
+    <p>これらのデータは<strong>すべてお使いの端末内にのみ保存</strong>され、当方のサーバーには送信されません。</p>
+
+    <p><strong>自動的に収集される情報（アクセス解析）</strong></p>
+    <ul>
+      <li>ページの閲覧状況（Google Analytics による匿名の集計データ）</li>
+      <li>ブラウザの種類・OS・画面サイズなどの端末情報</li>
+      <li>アクセス元のIPアドレス（個人を特定するためには使用しません）</li>
+    </ul>
+    <p>アクセス解析は、サービス改善のためにのみ使用します。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>3. 情報の利用目的</h2>
+    <p>収集した情報は、以下の目的にのみ使用します。</p>
+    <ul>
+      <li>アプリの機能提供および改善</li>
+      <li>障害・不具合の検知と対応</li>
+      <li>利用状況の統計的な分析（個人を特定しない形での集計）</li>
+      <li>お問い合わせへの対応</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>4. 第三者への情報提供</h2>
+    <p>当方は、以下の場合を除き、ユーザーの情報を第三者に提供・販売・共有しません。</p>
+    <ul>
+      <li>ユーザー本人の同意がある場合</li>
+      <li>法令に基づき開示が必要な場合</li>
+      <li>人の生命・身体・財産の保護のために必要な場合</li>
+    </ul>
+    <p>当アプリは広告を一切掲載しておらず、広告目的での情報提供は行いません。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>5. 利用する外部サービス</h2>
+    <p>当アプリは以下の外部サービスを利用しています。各サービスのプライバシーポリシーもあわせてご確認ください。</p>
+    <ul>
+      <li><strong>Google Analytics</strong>：アクセス解析（匿名の統計データのみ収集）</li>
+      <li><strong>Stripe</strong>：有料プランの決済処理（カード情報は当方では保持しません）</li>
+    </ul>
+  </div>
+
+  <div class="doc-section">
+    <h2>6. Cookie について</h2>
+    <p>当アプリは、アクセス解析（Google Analytics）のためにCookieを使用する場合があります。ブラウザの設定からCookieを無効にすることができますが、一部の機能が正常に動作しなくなる場合があります。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>7. データの削除</h2>
+    <p>無料プランの記録データは端末内に保存されているため、アプリのデータを削除するか、端末を初期化することでいつでも完全に消去できます。アプリ内の「設定 → データを削除」からも削除が可能です。</p>
+    <p>お問い合わせフォームからご連絡いただいた内容に含まれる個人情報の削除をご希望の場合は、<a href="https://www.ippo-app.com/contact.html">お問い合わせ</a>よりご連絡ください。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>8. 未成年者の利用</h2>
+    <p>当アプリは13歳未満の方の利用を対象としていません。13歳未満の方が当アプリを利用していることが判明した場合、速やかに関連情報を削除します。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>9. プライバシーポリシーの変更</h2>
+    <p>本ポリシーの内容は、必要に応じて変更することがあります。重要な変更が生じた場合は、アプリ内またはウェブサイト上でお知らせします。変更後も当アプリを継続してご利用いただいた場合、変更後のポリシーに同意したものとみなします。</p>
+  </div>
+
+  <div class="doc-section">
+    <h2>10. お問い合わせ</h2>
+    <p>本ポリシーに関するご質問・ご意見は、<a href="https://www.ippo-app.com/contact.html">お問い合わせフォーム</a>よりご連絡ください。</p>
+  </div>
+
+</main>
+
+<footer class="page-footer">
+  <div style="max-width:860px;margin:0 auto;padding:0 32px;">
+    <p>© 2025–2026 ippo. All rights reserved.</p>
+    <p style="margin-top:8px;">
+      <a href="https://www.ippo-app.com/disclaimer.html">免責事項</a>　
+      <a href="https://www.ippo-app.com/contact.html">お問い合わせ</a>
+    </p>
+    <p style="margin-top:12px;">本アプリは医療行為の代替ではありません。体調に不安がある場合は医療機関を受診してください。</p>
+  </div>
+</footer>
+
+</body>
+</html>
