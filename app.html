@@ -2122,6 +2122,18 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
       <!-- Fasting Timer Widget -->
       <div class="fasting-widget" style="margin-top: 16px;">
+        <!-- Cycle Phase Banner (shown when cycle data available) -->
+        <div id="fast-phase-info" style="display:none;margin-bottom:12px;padding:9px 12px;background:rgba(255,255,255,0.12);border-radius:12px;border:1px solid rgba(255,255,255,0.18);">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span id="fast-phase-icon" style="font-size:14px;">🌱</span>
+              <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.65);">推奨 <span id="fast-phase-rec" style="font-weight:700;color:white;">—</span></div>
+          </div>
+          <div id="fast-phase-tip" style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:5px;line-height:1.5;"></div>
+        </div>
+
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div class="fw-label">FASTING TIMER</div>
@@ -2138,6 +2150,23 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
           </div>
         </div>
+
+        <!-- 過食衝動サポートボタン（BEDリスク高のフェーズ・疾患時のみ表示） -->
+        <div id="fast-binge-btn-wrap" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
+          <button onclick="showBingeUrgeSupport()" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);border-radius:11px;color:rgba(255,255,255,0.75);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;">
+            <span style="font-size:16px;">🍬</span>
+            <span>食欲が止まらない… サポートを見る</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Post-Fast Recovery Guide Card (shown after fasting ends) -->
+      <div id="fast-recovery-card" style="display:none;margin:0 24px 16px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:14px;color:var(--ink);">✨ 回復食ガイド</div>
+          <button onclick="document.getElementById('fast-recovery-card').style.display='none'" style="background:none;border:none;color:var(--ink-light);font-size:16px;cursor:pointer;padding:0;">✕</button>
+        </div>
+        <div id="fast-recovery-content"></div>
       </div>
 
       
@@ -5993,6 +6022,348 @@ function updateUnlock(){
 }
 
 
+// ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
+
+var FAST_PHASE_CONFIG = {
+  '月経期': {
+    icon: '🔴',
+    rec: '12〜13h',
+    goalMin: 12, goalMax: 13,
+    tip: '月経中は無理をせず。鉄分が失われる時期なので短めが安心です。',
+    safeMax: 14,
+    bedRisk: false
+  },
+  '卵胞期': {
+    icon: '🌱',
+    rec: '14〜16h',
+    goalMin: 14, goalMax: 16,
+    tip: 'エストロゲンが上昇し代謝が活発に。ファスティングの効果が出やすい時期です。',
+    safeMax: 18,
+    bedRisk: false
+  },
+  '排卵期': {
+    icon: '🥚',
+    rec: '14〜16h',
+    goalMin: 14, goalMax: 16,
+    tip: 'エネルギー需要が高まる時期。16h以内を目安にしましょう。',
+    safeMax: 16,
+    bedRisk: false
+  },
+  '黄体期': {
+    icon: '🌙',
+    rec: '12〜14h',
+    goalMin: 12, goalMax: 14,
+    // 研究根拠: 黄体期はエストロゲン低下・プロゲステロン上昇により Hedonic Hunger（糖質・高カロリー食への渇望）が増大
+    tip: '今は食欲が増しやすいホルモン状態です。糖質・甘いものへの渇望を感じても、それはあなたの意志の問題ではなくホルモンの働きです。',
+    safeMax: 14,
+    bedRisk: true  // Hedonic Hunger リスク高
+  },
+  '黄体期後期': {
+    icon: '🌑',
+    rec: '12〜13h',
+    goalMin: 12, goalMax: 13,
+    // 研究根拠: PMDD患者では黄体期に卵胞期比で有意にカロリー摂取増加・過食エピソード増加
+    tip: 'PMS/PMDDの影響で食欲コントロールが難しくなる時期です。過食衝動を感じても自分を責めないで。12hの軽めなファスティングがベストです。',
+    safeMax: 13,
+    bedRisk: true  // PMS/PMDD 過食エピソードリスク最大
+  }
+};
+
+// 疾患別推奨値オーバーライド（研究エビデンスに基づく）
+var FAST_DISEASE_OVERRIDE = {
+  // PCOS: インスリン抵抗性改善が治療の鍵（16hファスティングのエビデンスあり）
+  // ただしBEDリスクOR 1.53（2024メタアナリシス N=287,000）に注意
+  'PCOS': {
+    rec: '14〜16h（インスリン感受性向上）',
+    goalMin: 14, goalMax: 16,
+    bedRisk: true,
+    bedNote: 'PCOSは過食性障害のリスクが約1.5倍高いというデータがあります。食欲の波は意志の問題ではなくインスリン・アンドロゲンの影響です。'
+  },
+  // 更年期: ペリメノポーズ期のBED有病率3.6%（閉経前0.5%の7倍）
+  '更年期障害': {
+    rec: '13〜15h（代謝サポート）',
+    goalMin: 13, goalMax: 15,
+    bedRisk: true,
+    bedNote: '更年期移行期はホルモン変動により食欲が不安定になりやすい時期です。無理な断食より、規則正しい食事リズムを優先しましょう。'
+  },
+  // PMS/PMDDは黄体期と重複するが疾患として選択している場合は明示
+  'PMS/PMDD': {
+    rec: '12〜14h（黄体期に合わせた柔軟な設定）',
+    goalMin: 12, goalMax: 14,
+    bedRisk: true,
+    bedNote: '黄体期には糖質・高カロリー食への渇望（Hedonic Hunger）が増大します。過食衝動は病気の症状であり、あなたのせいではありません。'
+  },
+  // 子宮内膜症: 抗炎症ファスティングに有効性あり
+  // ただし摂食障害リスクOR 2.94（遺伝的相関rg=0.61, 2026年最新レビュー）に注意
+  // 慢性疼痛による感情的過食・エンドベリーによるボディイメージ低下が引き金
+  '子宮内膜症': {
+    rec: '14〜16h（抗炎症・ケトーシス効果）',
+    goalMin: 14, goalMax: 16,
+    bedRisk: true,
+    bedNote: '子宮内膜症のある方は摂食障害のリスクが約3倍高いという最新研究があります。慢性的な痛みやお腹の張り（エンドベリー）が感情的な過食の引き金になりやすいのは自然な反応です。'
+  },
+  // 子宮筋腫: 過食→肥満→エストロゲン過剰→筋腫増大の悪循環を断つ
+  // 体重管理が治療の鍵だが、過度な制限はリバウンドリスクあり
+  '子宮筋腫': {
+    rec: '12〜14h（体重・エストロゲン管理）',
+    goalMin: 12, goalMax: 14,
+    bedRisk: true,
+    bedNote: '過食→体重増加→脂肪組織でのエストロゲン産生増加→筋腫の成長促進という悪循環が研究で示されています。無理な制限よりも、安定したリズムが大切です。'
+  },
+  // 子宮腺筋症: 子宮内膜症に準じた抗炎症アプローチ
+  '子宮腺筋症': {
+    rec: '14〜16h（抗炎症サポート）',
+    goalMin: 14, goalMax: 16,
+    bedRisk: true,
+    bedNote: '慢性的な痛みやストレスが感情的過食につながりやすい傾向があります。断食より、まず痛みの管理を優先してください。'
+  },
+  // 卵巣嚢腫: 代謝改善・インスリン管理
+  '卵巣嚢腫': {
+    rec: '12〜14h（代謝・ホルモンバランス）',
+    goalMin: 12, goalMax: 14,
+    bedRisk: false,
+    bedNote: '規則正しい食事リズムがホルモンバランスと代謝の改善を助けます。'
+  }
+};
+
+// 過食衝動サポート: フェーズ・疾患別の検証メッセージと対処法
+var BINGE_URGE_SUPPORT = {
+  '黄体期': {
+    validation: 'その食欲は本物のホルモン反応です',
+    science: 'エストロゲンが低下し、プロゲステロンが上昇する黄体期には、脳が糖質・高カロリー食を強く求めます（Hedonic Hunger）。これは意志が弱いのではなく、からだのメカニズムです。',
+    color: '#7ba3c4'
+  },
+  '黄体期後期': {
+    validation: 'この衝動はPMSの症状のひとつです',
+    science: '月経前（黄体期後半）は食欲コントロールが最も難しい時期です。研究では黄体期に過食エピソードが有意に増加することが確認されています。あなたは正常な反応を経験しています。',
+    color: '#9b89b4'
+  },
+  'PCOS': {
+    validation: 'インスリン・アンドロゲンが食欲をコントロールしています',
+    science: 'PCOSのある方は過食性障害のリスクが約1.5倍高いことが大規模研究で示されています。これはインスリン抵抗性・アンドロゲン過剰・体重スティグマが複合的に影響しています。',
+    color: '#6b9e78'
+  },
+  '更年期障害': {
+    validation: 'ホルモンの急激な変動が食欲を乱しています',
+    science: '更年期移行期（ペリメノポーズ）は過食性障害の有病率が閉経前の7倍以上になる時期です。あなたの食欲の波には明確な生物学的根拠があります。',
+    color: '#d4a574'
+  },
+  'PMS/PMDD': {
+    validation: 'PMDDの症状として、食欲コントロールの困難は認められています',
+    science: '黄体期には糖質・高カロリー食への渇望が増大し、PMDDの方では過食エピソードが顕著に多くなります。治療が必要な状態のサインかもしれません。',
+    color: '#c4878c'
+  },
+  // 子宮内膜症: 2026年最新ナラティブレビュー（Archives of Gynecology and Obstetrics）
+  // 遺伝的相関 rg=0.61, OR 2.94 — 慢性疼痛・エンドベリーが主要引き金
+  '子宮内膜症': {
+    validation: '慢性的な痛みが「食べること」で和らぐのは、脳の正常な反応です',
+    science: '2026年の最新研究により、子宮内膜症のある方は摂食障害を発症するリスクが約3倍（OR 2.94）高く、遺伝的な関連も確認されています。お腹の張り（エンドベリー）によるボディイメージの悩みが、過食衝動の引き金になることも多いです。これはあなたの意志の問題ではありません。',
+    color: '#c4878c'
+  },
+  // 子宮筋腫: 過食→肥満→エストロゲン→筋腫増大の悪循環
+  '子宮筋腫': {
+    validation: 'その食欲は、からだがエネルギーを求めているサインです',
+    science: '子宮筋腫のある方では、過食→体重増加→脂肪組織でのエストロゲン産生→筋腫の成長促進という悪循環が研究で確認されています。ただし、この知識を自分を責めるために使わないでください。ゆっくりとした変化が身体にとって最も安全です。',
+    color: '#b07ba0'
+  },
+  // 子宮腺筋症: 慢性疼痛 + 子宮内膜症に準じた過食リスク
+  '子宮腺筋症': {
+    validation: '慢性的な痛みを抱えているとき、食べることで楽になろうとするのは自然です',
+    science: '子宮腺筋症による慢性疼痛は、感情的過食の主要なリスク因子です。痛みがひどい日は断食を無理に続けず、体の声を優先してください。',
+    color: '#9b89b4'
+  },
+  'default': {
+    validation: '食欲の波は自然なことです',
+    science: 'ホルモンの変動、ストレス、睡眠不足など、さまざまな要因が食欲に影響します。今この瞬間の感覚に気づいていることが、最初の一歩です。',
+    color: '#a89080'
+  }
+};
+
+// 回復食データ（フェーズ別 + PCOSは低GI優先）
+var FAST_RECOVERY_FOODS = {
+  '月経期':    { color: '#c4878c', icon: '🩸', foods: [['ほうれん草・小松菜','鉄分補給'],['豆腐・納豆','植物性タンパク質'],['あさり・しじみ','ヘム鉄'],['ビタミンCを一緒に','鉄の吸収アップ']] },
+  '卵胞期':    { color: '#6b9e78', icon: '🌿', foods: [['鶏肉・卵','良質タンパク質'],['アボカド','良質な脂質'],['玄米・雑穀','低GI炭水化物'],['ブロッコリー','ビタミンC+食物繊維']] },
+  '排卵期':    { color: '#d4a574', icon: '🫐', foods: [['サーモン・青魚','オメガ3・抗炎症'],['くるみ・アーモンド','良質な脂質'],['ベリー類','抗酸化'],['卵','コリン・タンパク質']] },
+  '黄体期':    { color: '#7ba3c4', icon: '🌙', foods: [['かぼちゃ・さつまいも（少量）','低GI + マグネシウム'],['ダークチョコ70%以上','マグネシウム・血糖安定'],['バナナ・キウイ','セロトニン前駆体'],['温かい味噌汁','腸内環境・精神安定']] },
+  '黄体期後期':{ color: '#9b89b4', icon: '🌑', foods: [['温かいスープ・雑炊','消化を助ける'],['生姜・ターメリック','抗炎症'],['大豆製品','植物性エストロゲン'],['マグネシウム豊富な緑葉野菜','PMSを和らげる']] },
+  'PCOS':      { color: '#6b9e78', icon: '💙', foods: [['卵・鶏肉','血糖を安定させるタンパク質'],['アボカド','インスリン感受性を助ける脂質'],['緑黄色野菜','食物繊維で血糖スパイク抑制'],['シナモン（少量）','インスリン感受性改善の研究あり']] },
+  // 子宮内膜症: 抗炎症・低エストロゲン食（慢性炎症の軽減が目的）
+  '子宮内膜症':{ color: '#c4878c', icon: '🔴', foods: [['サーモン・いわし','オメガ3脂肪酸で炎症を抑制'],['ブロッコリー・キャベツ','エストロゲン代謝を助けるアブラナ科'],['ターメリック・生姜','抗炎症スパイス'],['緑茶','抗酸化・軽度の抗炎症効果']] },
+  // 子宮筋腫: 抗エストロゲン食・食物繊維強化（脂肪→エストロゲン過剰の抑制）
+  '子宮筋腫':  { color: '#b07ba0', icon: '🟤', foods: [['野菜・豆類','食物繊維でエストロゲン排出促進'],['ブロッコリー・カリフラワー','アブラナ科でエストロゲン代謝サポート'],['きのこ類','腸内環境改善・免疫サポート'],['亜麻仁・チアシード','植物性オメガ3・リグナン']] },
+  // 子宮腺筋症: 子宮内膜症に準じた抗炎症
+  '子宮腺筋症':{ color: '#9b89b4', icon: '🟣', foods: [['青魚（さば・いわし）','強力な抗炎症・EPA/DHA'],['緑黄色野菜','ビタミンK・抗酸化'],['温かい野菜スープ','消化を助け炎症を和らげる'],['ベリー類','アントシアニン・抗炎症']] }
+};
+
+function getCurrentCyclePhase() {
+  var today = new Date().toISOString();
+  var cd = calcCycleDay(today, state.records || []);
+  return getCyclePhase(cd);
+}
+
+function updateFastingWidgetPhase() {
+  var infoEl = document.getElementById('fast-phase-info');
+  if (!infoEl) return;
+
+  var phase = getCurrentCyclePhase();
+  var diseases = state.diseases || [];
+
+  // 疾患オーバーライド（優先順位: PCOS > 子宮内膜症 > PMS/PMDD > 子宮腺筋症 > 子宮筋腫 > 更年期 > 卵巣嚢腫）
+  var diseaseOverride = null;
+  var activeDiseaseName = null;
+  ['PCOS', '子宮内膜症', 'PMS/PMDD', '子宮腺筋症', '子宮筋腫', '更年期障害', '卵巣嚢腫'].forEach(function(dk) {
+    if (!diseaseOverride && diseases.indexOf(dk) !== -1 && FAST_DISEASE_OVERRIDE[dk]) {
+      diseaseOverride = FAST_DISEASE_OVERRIDE[dk];
+      activeDiseaseName = dk;
+    }
+  });
+
+  if (!phase && !diseaseOverride) { infoEl.style.display = 'none'; return; }
+
+  infoEl.style.display = 'block';
+  var cfg = (phase && FAST_PHASE_CONFIG[phase]) || {};
+
+  var iconEl  = document.getElementById('fast-phase-icon');
+  var nameEl  = document.getElementById('fast-phase-name');
+  var recEl   = document.getElementById('fast-phase-rec');
+  var tipEl   = document.getElementById('fast-phase-tip');
+
+  if (phase && cfg.icon) {
+    if (iconEl) iconEl.textContent = cfg.icon;
+    if (nameEl) nameEl.textContent = phase + (activeDiseaseName ? ' · ' + activeDiseaseName : '');
+    var recText = diseaseOverride ? diseaseOverride.rec : cfg.rec;
+    if (recEl)  recEl.textContent  = recText;
+    if (tipEl)  tipEl.textContent  = cfg.tip || '';
+  } else if (diseaseOverride) {
+    if (iconEl) iconEl.textContent = '💊';
+    if (nameEl) nameEl.textContent = activeDiseaseName + 'モード';
+    if (recEl)  recEl.textContent  = diseaseOverride.rec;
+    if (tipEl)  tipEl.textContent  = diseaseOverride.bedNote || '';
+  }
+
+  // 過食衝動サポートボタン: BEDリスク高のフェーズ or 疾患の場合に表示
+  var showBingeBtn = (cfg.bedRisk) || (diseaseOverride && diseaseOverride.bedRisk);
+  var bingeBtnWrap = document.getElementById('fast-binge-btn-wrap');
+  if (bingeBtnWrap) bingeBtnWrap.style.display = showBingeBtn ? 'block' : 'none';
+}
+
+function showRecoveryGuide() {
+  var phase = getCurrentCyclePhase();
+  var diseases = state.diseases || [];
+
+  // 疾患別回復食ルーティング（優先順位順）
+  var diseaseRecoveryKey = null;
+  ['PCOS', '子宮内膜症', '子宮腺筋症', '子宮筋腫'].forEach(function(dk) {
+    if (!diseaseRecoveryKey && diseases.indexOf(dk) !== -1 && FAST_RECOVERY_FOODS[dk]) {
+      diseaseRecoveryKey = dk;
+    }
+  });
+
+  var foodKey = diseaseRecoveryKey || (phase || '卵胞期');
+  var foodData = FAST_RECOVERY_FOODS[foodKey] || FAST_RECOVERY_FOODS['卵胞期'];
+
+  var cardEl   = document.getElementById('fast-recovery-card');
+  var contentEl = document.getElementById('fast-recovery-content');
+  if (!cardEl || !contentEl) return;
+
+  // 疾患別表示テキスト定義
+  var diseaseLabels = {
+    'PCOS':    '低GI・血糖安定を意識した回復食です。',
+    '子宮内膜症': '抗炎症・低エストロゲンを意識した回復食です。',
+    '子宮腺筋症': '抗炎症サポートの回復食です。',
+    '子宮筋腫':  'エストロゲン代謝を助ける食物繊維豊富な回復食です。'
+  };
+
+  var html = '';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;">';
+  if (diseaseRecoveryKey) {
+    html += '<strong style="color:var(--rose);">' + diseaseRecoveryKey + (phase ? ' × ' + phase : '') + '</strong> — ';
+    html += diseaseLabels[diseaseRecoveryKey] || '回復食の参考にしてください。';
+  } else if (phase) {
+    html += '今日は <strong style="color:var(--rose);">' + phase + '</strong> です。回復食の参考にしてください。';
+  } else {
+    html += '断食後は消化に優しい食品から始めましょう。';
+  }
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  foodData.foods.forEach(function(f) {
+    html += '<div style="background:var(--bg);border-radius:10px;padding:10px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">' + f[0] + '</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);">' + f[1] + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:10px;padding:8px 10px;background:var(--rose-pale,#f9eced);border-radius:10px;font-size:10px;color:var(--ink-light);line-height:1.6;">';
+  html += '⚠️ このアプリは医療アドバイスを提供するものではありません。体調に合わせて判断してください。';
+  html += '</div>';
+
+  contentEl.innerHTML = html;
+  cardEl.style.display = 'block';
+  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// 過食衝動サポートモーダル（研究エビデンスに基づく）
+function showBingeUrgeSupport() {
+  var phase = getCurrentCyclePhase();
+  var diseases = state.diseases || [];
+
+  // 最も適切なサポートキーを選択（BEDエビデンスが強い順）
+  // 子宮内膜症 OR 2.94 > PCOS OR 1.53 > その他
+  var supportKey = 'default';
+  ['子宮内膜症', 'PCOS', '子宮腺筋症', '子宮筋腫', 'PMS/PMDD', '更年期障害'].forEach(function(dk) {
+    if (supportKey === 'default' && diseases.indexOf(dk) !== -1 && BINGE_URGE_SUPPORT[dk]) supportKey = dk;
+  });
+  if (supportKey === 'default' && (phase === '黄体期後期' || phase === '黄体期')) supportKey = phase;
+
+  var support = BINGE_URGE_SUPPORT[supportKey] || BINGE_URGE_SUPPORT['default'];
+
+  var techniques = [
+    { icon: '🌬️', title: '深呼吸 4-7-8', desc: '4秒吸って・7秒止めて・8秒かけて吐く。これを3回繰り返す。' },
+    { icon: '☕', title: '温かい飲み物', desc: 'ハーブティーや白湯をゆっくり飲む。胃を温め、満足感を高める。' },
+    { icon: '🫧', title: '5分タイマー', desc: '「5分後に再評価する」とルールを決める。衝動のピークは5〜15分で通過することが多い。' },
+    { icon: '✍️', title: '記録する', desc: '今の気持ち・身体の感覚をアプリに記録することで、衝動から観察者の視点に切り替える。' }
+  ];
+
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center;" id="bingeUrgeOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="width:100%;max-width:480px;background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-height:85vh;overflow-y:auto;">';
+
+  // ヘッダー
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
+  html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;color:var(--ink);">🫶 食欲サポート</div>';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove()" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--cream);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;">✕</button>';
+  html += '</div>';
+
+  // 検証メッセージ（エビデンスカード）
+  html += '<div style="background:linear-gradient(135deg,' + support.color + '22,' + support.color + '11);border:1.5px solid ' + support.color + '44;border-radius:16px;padding:16px;margin-bottom:16px;">';
+  html += '<div style="font-size:14px;font-weight:700;color:' + support.color + ';margin-bottom:8px;">' + support.validation + '</div>';
+  html += '<div style="font-size:12px;color:var(--ink-mid);line-height:1.7;">' + support.science + '</div>';
+  html += '</div>';
+
+  // 対処テクニック
+  html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:5px;">';
+  html += '<span style="display:inline-block;width:3px;height:11px;background:var(--rose);border-radius:2px;"></span>今できること';
+  html += '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">';
+  techniques.forEach(function(t) {
+    html += '<div style="display:flex;gap:12px;padding:12px;background:var(--bg);border-radius:12px;align-items:flex-start;">';
+    html += '<span style="font-size:20px;flex-shrink:0;">' + t.icon + '</span>';
+    html += '<div><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;">' + t.title + '</div>';
+    html += '<div style="font-size:11px;color:var(--ink-light);line-height:1.5;">' + t.desc + '</div></div>';
+    html += '</div>';
+  });
+  html += '</div>';
+
+  // 記録ボタン
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();showScreen(\'record\');" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
+  html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:var(--ink-light);">このアプリは医療アドバイスを提供するものではありません。摂食障害が疑われる場合は専門家にご相談ください。</div>';
+
+  html += '</div></div>';
+
+  var overlay = document.createElement('div');
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay.firstChild);
+}
+
 // ===== FASTING TIMER =====
 let fastInterval = null;
 
@@ -6005,6 +6376,40 @@ function setFastGoal(h, el) {
 
 function toggleFast() {
   if (state.fastingActive) return;
+
+  // 安全チェック①：月経期・黄体期で推奨safeMaxを超えた場合
+  var phase = getCurrentCyclePhase();
+  var cfg = phase ? FAST_PHASE_CONFIG[phase] : null;
+  if (cfg && state.fastGoal > cfg.safeMax) {
+    var proceed = confirm(
+      '⚠️ ' + phase + 'のアドバイス\n\n' +
+      '現在の周期フェーズでは ' + cfg.rec + ' が推奨されます。\n\n' +
+      cfg.tip + '\n\n' +
+      '無理せず続けますか？（体調を最優先にしてください）'
+    );
+    if (!proceed) return;
+  }
+
+  // 安全チェック②：BEDリスクの高い疾患ユーザーへの配慮メッセージ
+  var diseases = state.diseases || [];
+  var bedDisease = null;
+  // 子宮内膜症 OR 2.94 → 最優先で警告
+  ['子宮内膜症', '子宮腺筋症', 'PCOS', '子宮筋腫', 'PMS/PMDD', '更年期障害'].forEach(function(dk) {
+    if (!bedDisease && diseases.indexOf(dk) !== -1 && FAST_DISEASE_OVERRIDE[dk] && FAST_DISEASE_OVERRIDE[dk].bedRisk) {
+      bedDisease = dk;
+    }
+  });
+  if (bedDisease && state.fastGoal >= 16 && !state._fastBedWarningShown) {
+    state._fastBedWarningShown = true;
+    var dOverride = FAST_DISEASE_OVERRIDE[bedDisease];
+    alert(
+      '🫶 ' + bedDisease + 'をお持ちの方へ\n\n' +
+      dOverride.bedNote + '\n\n' +
+      '推奨: ' + dOverride.rec + '\n\n' +
+      '断食に過食衝動を感じたら、ウィジェット内の「食欲が止まらない」ボタンでサポートを呼び出せます。'
+    );
+  }
+
   // 通知許可をリクエスト
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
@@ -6049,6 +6454,9 @@ function endFast() {
   document.getElementById('fast-stop-btn').style.display = 'none';
   document.getElementById('fast-timer').textContent = '00:00:00';
   document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
+
+  // 回復食ガイドを表示
+  showRecoveryGuide();
 }
 
 function resumeFasting() {
@@ -7799,6 +8207,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateDiseaseSettingDisplay();
   updateHomeCTA();
   updateHomeSummary();
+  updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
   loadCommunityTopic();
@@ -9899,6 +10308,7 @@ var todayStr = targetDate.toDateString();
     // UI更新（保存成功後のみ）
     updateHomeSummary();
     updateHomeCTA();
+    updateFastingWidgetPhase();
     updateStats();
     updateHistory();
     buildCalendar();
