@@ -1071,6 +1071,26 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 .chip:hover { border-color: var(--rose-light); }
 .chip.selected { background: var(--rose-pale); border-color: var(--rose); color: var(--rose); }
 
+.symp-tab {
+  flex: 1;
+  padding: 7px 4px;
+  border: 1.5px solid var(--cream);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.symp-tab.symp-tab-active {
+  background: var(--rose);
+  color: white;
+  border-color: var(--rose);
+  font-weight: 600;
+}
+
 /* ===== EMOTION SELECTOR ===== */
 .emotion-grid {
   display: grid;
@@ -1195,51 +1215,86 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
 /* ===== SETTINGS ===== */
 #screen-settings { padding: 52px 0 80px; }
-.settings-header { padding: 0 24px 24px; }
+.settings-header { padding: 0 20px 16px; }
 .settings-title { font-family: 'Shippori Mincho', serif; font-size: 24px; color: var(--ink); }
 
-.settings-section { margin: 0 24px 20px; }
+.settings-section { margin: 0 20px 20px; }
 .settings-section-title {
   font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--ink-light);
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--rose);
   margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.settings-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 11px;
+  background: var(--rose);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 .settings-card {
   background: var(--white);
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 2px 10px var(--shadow);
+  box-shadow: 0 2px 16px var(--shadow);
 }
 .settings-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px;
-  border-bottom: 1px solid rgba(200,180,170,0.15);
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(200,180,170,0.12);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.18s;
 }
 .settings-row:last-child { border-bottom: none; }
-.settings-row:hover { background: var(--rose-pale); }
+.settings-row:active { background: var(--rose-pale); }
 .settings-row-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 13px;
 }
 .settings-row-icon {
-  width: 36px; height: 36px;
-  border-radius: 10px;
+  width: 40px; height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
+  flex-shrink: 0;
 }
-.settings-row-text { font-size: 14px; color: var(--ink); }
-.settings-row-sub { font-size: 11px; color: var(--ink-light); margin-top: 1px; }
+.settings-row-text { font-size: 14px; font-weight: 500; color: var(--ink); }
+.settings-row-sub { font-size: 11px; color: var(--ink-light); margin-top: 2px; }
 .settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
-.settings-chevron { font-size: 14px; }
+.settings-chevron { font-size: 18px; color: var(--ink-light); font-weight: 300; }
+.settings-profile-hero {
+  margin: 0 20px 20px;
+  background: linear-gradient(135deg, var(--rose-light, #e8b4b8) 0%, var(--rose) 100%);
+  border-radius: 22px;
+  padding: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.settings-profile-hero::after {
+  content: '';
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.settings-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 16px;
+}
 
 /* ===== PREMIUM SECTION ===== */
 .premium-card {
@@ -2456,25 +2511,39 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <div class="section-card">
     <div class="section-label">SYMPTOMS</div>
     <div class="section-title serif">今日の症状</div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;">
+      <button class="symp-tab symp-tab-active" onclick="switchSymptomTab('all',this)">すべて</button>
+      <button class="symp-tab" onclick="switchSymptomTab('body',this)">🏃 身体</button>
+      <button class="symp-tab" onclick="switchSymptomTab('mind',this)">💭 こころ</button>
+      <button class="symp-tab" onclick="switchSymptomTab('gyneco',this)">🌸 婦人科</button>
+    </div>
     <div class="chips" id="rs-symptoms">
-      <div class="chip" onclick="toggleRsChip(this)">頭痛</div>
-      <div class="chip" onclick="toggleRsChip(this)">腰痛</div>
-      <div class="chip" onclick="toggleRsChip(this)">下腹部痛</div>
-      <div class="chip" onclick="toggleRsChip(this)">むくみ</div>
-      <div class="chip" onclick="toggleRsChip(this)">肌荒れ</div>
-      <div class="chip" onclick="toggleRsChip(this)">便秘</div>
-      <div class="chip" onclick="toggleRsChip(this)">下痢</div>
-      <div class="chip" onclick="toggleRsChip(this)">吐き気</div>
-      <div class="chip" onclick="toggleRsChip(this)">倦怠感</div>
-      <div class="chip" onclick="toggleRsChip(this)">不眠</div>
-      <div class="chip" onclick="toggleRsChip(this)">イライラ</div>
-      <div class="chip" onclick="toggleRsChip(this)">不安感</div>
-      <div class="chip" onclick="toggleRsChip(this)">食欲増加</div>
-      <div class="chip" onclick="toggleRsChip(this)">食欲低下</div>
-      <div class="chip" onclick="toggleRsChip(this)">眠気</div>
-      <div class="chip" onclick="toggleRsChip(this)">冷え</div>
-      <div class="chip" onclick="toggleRsChip(this)">おりもの</div>
-      <div class="chip" onclick="toggleRsChip(this)">胸の張り</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">頭痛</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">腰痛</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">下腹部痛</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">むくみ</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">肌荒れ</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">便秘</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">下痢</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">吐き気</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">倦怠感</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">冷え</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">発熱</div>
+      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">関節痛</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">不眠</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">イライラ</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">不安感</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">食欲増加</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">食欲低下</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">眠気</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">集中力低下</div>
+      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">気分の落ち込み</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">おりもの</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">胸の張り</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">ほてり</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
+      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">膣の乾燥</div>
     </div>
       <div class="section-card" id="pain-detail-section" style="display:none;">
     <div class="section-label">PAIN DETAIL</div>
@@ -2720,70 +2789,84 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="settings-title">設定</div>
       </div>
 
+      <!-- Profile Hero -->
+      <div class="settings-profile-hero">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;">👤</div>
+          <div>
+            <div style="font-size:17px;font-weight:700;" id="settings-name-display">名前未設定</div>
+            <div style="font-size:11px;opacity:0.8;margin-top:2px;" id="settings-premium-badge-text">無料プラン</div>
+          </div>
+          <button onclick="var n=prompt('名前を変更',state.name||'');if(n!==null){state.name=n.trim()||'あなた';document.getElementById('settings-name-display').textContent=state.name;saveState();}" style="margin-left:auto;background:rgba(255,255,255,0.2);border:none;color:white;padding:6px 14px;border-radius:20px;font-size:12px;cursor:pointer;font-family:Noto Sans JP,sans-serif;">編集</button>
+        </div>
+        <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.2);display:flex;gap:20px;">
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;" id="settings-record-count">0</div>
+            <div style="font-size:10px;opacity:0.75;">記録日数</div>
+          </div>
+          <div style="text-align:center;">
+            <div style="font-size:18px;font-weight:700;" id="settings-streak">0</div>
+            <div style="font-size:10px;opacity:0.75;">連続日数</div>
+          </div>
+          <div style="margin-left:auto;display:flex;align-items:center;">
+            <button onclick="showScreen('premium')" style="background:rgba(255,255,255,0.9);border:none;color:var(--rose);padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:Noto Sans JP,sans-serif;" id="settings-upgrade-btn">PRO にアップグレード ✨</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Theme -->
       <div class="settings-section">
         <div class="settings-section-title">テーマカラー</div>
-        <div class="settings-card" style="padding:16px 18px;">
-          <div style="font-size:12px;color:var(--ink-light);margin-bottom:14px;">好みのデザインを選択できます</div>
-          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="theme-picker">
+        <div class="settings-card">
+          <div class="settings-theme-grid" id="theme-picker">
 
             <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sakura"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌸 桜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ロマンティック<br>ウェルネス</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ロマンティック</div>
             </div>
 
             <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f5a080,#d95f3b);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-coral"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🪸 珊瑚</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">エネルギッシュ<br>CLUEインスパイア</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">エネルギッシュ</div>
             </div>
 
             <div onclick="applyTheme('midnight')" id="theme-btn-midnight" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5a1e48,#1a1020);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-midnight"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌙 深夜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">プレミアム<br>ダークモード</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ダークモード</div>
             </div>
 
             <div onclick="applyTheme('forest')" id="theme-btn-forest" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#80c8a0,#3e8b60);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-forest"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌿 若葉</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ナチュラル<br>バランス</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ナチュラル</div>
             </div>
 
             <div onclick="applyTheme('sky')" id="theme-btn-sky" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#78b8e8,#2e82bf);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sky"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🩵 空</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">信頼と集中<br>クリアブルー</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">クリアブルー</div>
             </div>
 
             <div onclick="applyTheme('honey')" id="theme-btn-honey" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
               <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f0c060,#c47b28);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-honey"></div>
               <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🍯 蜂蜜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">温もりと達成感<br>ウォームアンバー</div>
+              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ウォームアンバー</div>
             </div>
 
           </div>
         </div>
       </div>
 
-      <!-- Profile -->
+      <!-- Profile Settings -->
       <div class="settings-section">
-        <div class="settings-section-title">プロフィール</div>
+        <div class="settings-section-title">わたしの健康プロフィール</div>
         <div class="settings-card">
-          <div class="settings-row" onclick="var n=prompt('名前を変更',state.name||'');if(n!==null){state.name=n.trim()||'あなた';document.getElementById('settings-name-display').textContent=state.name;saveState();}">
-            <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f9edd8">👤</div>
-              <div>
-                <div class="settings-row-text" id="settings-name-display">名前未設定</div>
-                <div class="settings-row-sub">タップして変更</div>
-              </div>
-            </div>
-            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
-          </div>
           <div class="settings-row" onclick="openSymptomSettings()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fdf3f3">🌸</div>
+              <div class="settings-row-icon" style="background:#fdf0f2;">🌸</div>
               <div>
                 <div class="settings-row-text">気になる症状</div>
                 <div class="settings-row-sub" id="symptom-setting-display">設定する</div>
@@ -2793,7 +2876,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="settings-row" onclick="openDiseaseSettings()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f3f0fd">🩺</div>
+              <div class="settings-row-icon" style="background:#f3f0fd;">🩺</div>
               <div>
                 <div class="settings-row-text">気になる疾患</div>
                 <div class="settings-row-sub" id="disease-setting-display">設定する</div>
@@ -2803,7 +2886,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="settings-row" onclick="toggleVisionEdit()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fff8f0">🎯</div>
+              <div class="settings-row-icon" style="background:#fff3e0;">🎯</div>
               <div>
                 <div class="settings-row-text">わたしの目標</div>
                 <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
@@ -2813,7 +2896,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
         </div>
         <div id="vision-edit" style="display:none;margin:10px 0 0;">
-          <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:14px;padding:16px;border-left:3px solid var(--rose);">
+          <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:18px;padding:16px;border-left:3px solid var(--rose);">
             <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
             <input type="text" id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
@@ -2822,13 +2905,13 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
-      <!-- Data Management (統合) -->
+      <!-- Data Management -->
       <div class="settings-section">
         <div class="settings-section-title">データ管理</div>
         <div class="settings-card">
           <div class="settings-row" onclick="showExportMenu()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#e8f0e8">📤</div>
+              <div class="settings-row-icon" style="background:#e8f3ee;">📤</div>
               <div>
                 <div class="settings-row-text">データをエクスポート</div>
                 <div class="settings-row-sub">CSV（受診用）/ JSON（バックアップ）</div>
@@ -2836,7 +2919,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="manualCloudRestore()" style="cursor:pointer;">
+          <div class="settings-row" onclick="manualCloudRestore()">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#e8f4f0;">☁️</div>
               <div>
@@ -2848,7 +2931,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="settings-row" onclick="openRestoreUI()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#e8f0e8">📦</div>
+              <div class="settings-row-icon" style="background:#edf0f8;">📦</div>
               <div>
                 <div class="settings-row-text">バックアップ履歴</div>
                 <div class="settings-row-sub">過去のスナップショットから復元</div>
@@ -2858,7 +2941,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="settings-row" onclick="showDiagnosisUI()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6">🔍</div>
+              <div class="settings-row-icon" style="background:#f0ebe6;">🔍</div>
               <div>
                 <div class="settings-row-text">データ診断・修復</div>
                 <div class="settings-row-sub">3箇所のデータを比較・自動修復</div>
@@ -2868,8 +2951,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           </div>
           <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fde8e8">🗑</div>
-              <div><div class="settings-row-text" style="color:#c9747a">すべての記録を削除</div></div>
+              <div class="settings-row-icon" style="background:#fde8e8;">🗑</div>
+              <div><div class="settings-row-text" style="color:#c9747a;">すべての記録を削除</div></div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
@@ -5690,7 +5773,7 @@ function finishOnboarding() {
   updateUnlock();
   updateHistory();
   buildCalendar();
-  document.getElementById('settings-name-display').textContent = state.name;
+  updateSettingsHero();
 
   // バグ18: ホームバナー非表示フラグを復元
   try {
@@ -5810,7 +5893,7 @@ function showMain() {
   updateUnlock();
   updateHistory();
   buildCalendar();            // ← 追加
-  document.getElementById('settings-name-display').textContent = state.name;
+  updateSettingsHero();
   // バグ18: ホームバナー非表示フラグを復元
   try {
     if (localStorage.getItem('ippo_hide_add_home') === '1') {
@@ -6471,7 +6554,69 @@ function updateHomeSummary(){
     html += '</div>';
   }
 
-  // ② ファスティングバー
+  // ② 24時間ドーナツチャート（食事タイムライン）
+  (function(){
+    var circumference = 2 * Math.PI * 46; // r=46
+    html += '<div style="display:flex;align-items:center;gap:18px;margin-bottom:16px;">';
+    // チャート
+    html += '<div style="position:relative;width:108px;height:108px;flex-shrink:0;">';
+    html += '<svg width="108" height="108" viewBox="0 0 108 108" style="transform:rotate(-90deg)">';
+    html += '<circle cx="54" cy="54" r="46" fill="none" stroke="var(--cream)" stroke-width="9"/>';
+    // 食事スロットをアーク表示
+    foodSlots.forEach(function(slot){
+      if(!slot.time) return;
+      var parts = slot.time.split(':');
+      var h = parseInt(parts[0]);
+      var m = parseInt(parts[1]) || 0;
+      var hourDecimal = h + m / 60;
+      var arcLen = circumference / 24 * 1.2;
+      var dashGap = circumference - arcLen;
+      var offset = -(hourDecimal / 24 * circumference);
+      var dotColor;
+      if(h >= 5 && h < 10) dotColor = '#d4a574';
+      else if(h >= 10 && h < 14) dotColor = '#6b9e78';
+      else if(h >= 17 && h < 22) dotColor = '#c4878c';
+      else dotColor = '#7ba3c4';
+      html += '<circle cx="54" cy="54" r="46" fill="none" stroke="'+dotColor+'" stroke-width="9" stroke-dasharray="'+arcLen.toFixed(1)+' '+dashGap.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" stroke-linecap="round"/>';
+    });
+    html += '</svg>';
+    // 中央ラベル
+    html += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
+    if(fastH > 0){
+      html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+fastH+'</div>';
+      html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">時間断食</div>';
+    } else if(mealCount > 0){
+      html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+mealCount+'</div>';
+      html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">食</div>';
+    } else {
+      html += '<div style="font-size:10px;color:var(--ink-light);">飲み物<br>のみ</div>';
+    }
+    html += '</div></div>';
+    // 右側レジェンド
+    html += '<div style="flex:1;">';
+    var legend = [
+      {label:'朝 5–10時', color:'#d4a574', bg:'#fdf5ec'},
+      {label:'昼 10–14時', color:'#6b9e78', bg:'#eef6f1'},
+      {label:'夜 17–22時', color:'#c4878c', bg:'#fdf0f2'},
+      {label:'その他', color:'#7ba3c4', bg:'#eef4fb'}
+    ];
+    legend.forEach(function(l){
+      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">';
+      html += '<div style="width:8px;height:8px;border-radius:50%;background:'+l.color+';flex-shrink:0;"></div>';
+      html += '<span style="font-size:10px;color:var(--ink-light);">'+l.label+'</span>';
+      html += '</div>';
+    });
+    if(mealCount > 0 || fastH > 0){
+      html += '<div style="margin-top:8px;padding:6px 10px;background:var(--cream);border-radius:8px;">';
+      if(mealCount > 0) html += '<div style="font-size:11px;color:var(--ink-mid);">🍽 '+mealCount+'食</div>';
+      if(fastH > 0) html += '<div style="font-size:11px;color:var(--ink-mid);">⏱ '+fastH+'h断食</div>';
+      html += '</div>';
+    }
+    html += '</div>';
+    html += '</div>';
+  })();
+
+  // ③ ファスティングバー
   if(fastH > 0){
     var goalH = state.fastingGoal || 16;
     var pctFast = Math.min(Math.round(fastH / goalH * 100), 100);
@@ -7130,13 +7275,34 @@ function updateSymptomSettingDisplay(){
   display.textContent = saved.length ? saved.join('・') : '設定する';
 }
 
+var SYMPTOM_CATEGORIES = {
+  '頭痛':'body','腰痛':'body','下腹部痛':'body','むくみ':'body',
+  '肌荒れ':'body','便秘':'body','下痢':'body','吐き気':'body',
+  '倦怠感':'body','冷え':'body','発熱':'body','関節痛':'body',
+  '不眠':'mind','イライラ':'mind','不安感':'mind',
+  '食欲増加':'mind','食欲低下':'mind','眠気':'mind',
+  '集中力低下':'mind','気分の落ち込み':'mind',
+  'おりもの':'gyneco','胸の張り':'gyneco','ほてり':'gyneco',
+  '動悸':'gyneco','のぼせ':'gyneco','膣の乾燥':'gyneco'
+};
+var _sympTabCurrent = 'all';
+
+function switchSymptomTab(cat, btn) {
+  _sympTabCurrent = cat;
+  document.querySelectorAll('.symp-tab').forEach(function(b){ b.classList.remove('symp-tab-active'); });
+  if(btn) btn.classList.add('symp-tab-active');
+  document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
+    c.style.display = (cat === 'all' || c.getAttribute('data-sym-cat') === cat) ? '' : 'none';
+  });
+}
+
 function updateRecordSymptoms(){
   var container = document.getElementById('rs-symptoms');
   if(!container) return;
   var saved = state.mySymptoms || [];
   var chips = container.querySelectorAll('.chip');
   var allSymptoms = [];
-  chips.forEach(function(c){ allSymptoms.push(c.textContent); });
+  chips.forEach(function(c){ allSymptoms.push(c.textContent.trim()); });
 
   // 登録済みの症状を先頭に並べ替え
   var sorted = [];
@@ -7154,6 +7320,7 @@ function updateRecordSymptoms(){
     var chip = document.createElement('span');
     chip.className = 'chip';
     chip.textContent = s;
+    chip.setAttribute('data-sym-cat', SYMPTOM_CATEGORIES[s] || 'body');
     if(isMy){
       chip.style.borderColor = 'var(--rose)';
       chip.style.background = 'var(--rose-pale)';
@@ -7161,6 +7328,8 @@ function updateRecordSymptoms(){
     chip.onclick = function(){ this.classList.toggle('selected'); };
     container.appendChild(chip);
   }
+  // re-apply active tab filter after rebuild
+  switchSymptomTab(_sympTabCurrent, null);
 }
 
 function submitFeedback() {
@@ -11725,11 +11894,43 @@ async function checkPremiumStatus() {
   if (typeof checkUpsellNotification === 'function') checkUpsellNotification();
 }
 
+function updateSettingsHero() {
+  var nameEl = document.getElementById('settings-name-display');
+  if (nameEl) nameEl.textContent = state.name || 'ゲスト';
+
+  var badgeEl = document.getElementById('settings-premium-badge-text');
+  if (badgeEl) badgeEl.textContent = isPremium ? 'プレミアム会員 ✨' : '無料プラン';
+
+  var upgradeBtn = document.getElementById('settings-upgrade-btn');
+  if (upgradeBtn) upgradeBtn.style.display = isPremium ? 'none' : '';
+
+  var countEl = document.getElementById('settings-record-count');
+  if (countEl) countEl.textContent = (state.records || []).length;
+
+  var streakEl = document.getElementById('settings-streak');
+  if (streakEl) {
+    var streak = 0;
+    var today = new Date();
+    for (var i = 0; i < 365; i++) {
+      var d = new Date(today);
+      d.setDate(d.getDate() - i);
+      var ds = d.toISOString().slice(0, 10);
+      var found = (state.records || []).some(function(r) {
+        return (r.record_date || (r.date && r.date.slice(0, 10))) === ds;
+      });
+      if (found) streak++;
+      else if (i > 0) break;
+    }
+    streakEl.textContent = streak;
+  }
+}
+
 function updatePremiumBadges() {
   document.querySelectorAll('.pf-lock-badge').forEach(badge => {
     badge.style.display = isPremium ? 'none' : 'inline';
   });
   renderProHero();
+  updateSettingsHero();
 }
 
 function renderProHero() {
