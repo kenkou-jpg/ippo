@@ -2122,6 +2122,18 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
       <!-- Fasting Timer Widget -->
       <div class="fasting-widget" style="margin-top: 16px;">
+        <!-- Cycle Phase Banner (shown when cycle data available) -->
+        <div id="fast-phase-info" style="display:none;margin-bottom:12px;padding:9px 12px;background:rgba(255,255,255,0.12);border-radius:12px;border:1px solid rgba(255,255,255,0.18);">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span id="fast-phase-icon" style="font-size:14px;">🌱</span>
+              <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
+            </div>
+            <div style="font-size:10px;color:rgba(255,255,255,0.65);">推奨 <span id="fast-phase-rec" style="font-weight:700;color:white;">—</span></div>
+          </div>
+          <div id="fast-phase-tip" style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:5px;line-height:1.5;"></div>
+        </div>
+
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div class="fw-label">FASTING TIMER</div>
@@ -2138,6 +2150,15 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
           </div>
         </div>
+      </div>
+
+      <!-- Post-Fast Recovery Guide Card (shown after fasting ends) -->
+      <div id="fast-recovery-card" style="display:none;margin:0 24px 16px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <div style="font-family:'Shippori Mincho',serif;font-size:14px;color:var(--ink);">✨ 回復食ガイド</div>
+          <button onclick="document.getElementById('fast-recovery-card').style.display='none'" style="background:none;border:none;color:var(--ink-light);font-size:16px;cursor:pointer;padding:0;">✕</button>
+        </div>
+        <div id="fast-recovery-content"></div>
       </div>
 
       
@@ -5993,6 +6014,140 @@ function updateUnlock(){
 }
 
 
+// ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
+
+var FAST_PHASE_CONFIG = {
+  '月経期': {
+    icon: '🔴',
+    rec: '12〜13h',
+    goalMin: 12, goalMax: 13,
+    tip: '月経中は無理をせず。鉄分が失われる時期なので短めが安心です。',
+    safeMax: 14
+  },
+  '卵胞期': {
+    icon: '🌱',
+    rec: '14〜16h',
+    goalMin: 14, goalMax: 16,
+    tip: 'エストロゲンが上昇し代謝が活発に。ファスティングの効果が出やすい時期です。',
+    safeMax: 18
+  },
+  '排卵期': {
+    icon: '🥚',
+    rec: '14〜16h',
+    goalMin: 14, goalMax: 16,
+    tip: 'エネルギー需要が高まる時期。16h以内を目安にしましょう。',
+    safeMax: 16
+  },
+  '黄体期': {
+    icon: '🌙',
+    rec: '12〜14h',
+    goalMin: 12, goalMax: 14,
+    tip: 'プロゲステロンの影響で食欲が増加しやすい時期。過度な制限はホルモンバランスを乱す可能性があります。',
+    safeMax: 14
+  },
+  '黄体期後期': {
+    icon: '🌑',
+    rec: '12〜13h',
+    goalMin: 12, goalMax: 13,
+    tip: 'PMS症状が出やすい時期。12hの軽めなファスティングがベストです。',
+    safeMax: 13
+  }
+};
+
+// PCOSユーザー向け追加推奨
+var FAST_DISEASE_OVERRIDE = {
+  'PCOS': { rec: '14〜16h（インスリン感受性向上）', goalMin: 14, goalMax: 16 },
+  '更年期障害': { rec: '13〜15h（代謝サポート）', goalMin: 13, goalMax: 15 }
+};
+
+// RECOVERY FOODS by phase
+var FAST_RECOVERY_FOODS = {
+  '月経期':    { color: '#c4878c', icon: '🩸', foods: [['ほうれん草・小松菜','鉄分補給'],['豆腐・納豆','植物性タンパク質'],['あさり・しじみ','ヘム鉄'],['ビタミンCを一緒に','鉄の吸収アップ']] },
+  '卵胞期':    { color: '#6b9e78', icon: '🌿', foods: [['鶏肉・卵','良質タンパク質'],['アボカド','良質な脂質'],['玄米・雑穀','低GI炭水化物'],['ブロッコリー','ビタミンC+食物繊維']] },
+  '排卵期':    { color: '#d4a574', icon: '🫐', foods: [['サーモン・青魚','オメガ3・抗炎症'],['くるみ・アーモンド','良質な脂質'],['ベリー類','抗酸化'],['卵','コリン・タンパク質']] },
+  '黄体期':    { color: '#7ba3c4', icon: '🌙', foods: [['かぼちゃ・さつまいも','マグネシウム・食物繊維'],['ダークチョコレート（少量）','マグネシウム補給'],['バナナ','セロトニン前駆体'],['ごま・海藻','カルシウム・ミネラル']] },
+  '黄体期後期':{ color: '#9b89b4', icon: '🌑', foods: [['温かいスープ','消化を助ける'],['生姜・ターメリック','抗炎症'],['大豆製品','植物性エストロゲン'],['マグネシウム豊富な緑葉野菜','PMSを和らげる']] }
+};
+
+function getCurrentCyclePhase() {
+  var today = new Date().toISOString();
+  var cd = calcCycleDay(today, state.records || []);
+  return getCyclePhase(cd);
+}
+
+function updateFastingWidgetPhase() {
+  var infoEl = document.getElementById('fast-phase-info');
+  if (!infoEl) return;
+
+  var phase = getCurrentCyclePhase();
+
+  // 疾患オーバーライド（PCOSや更年期の場合は推奨値を上書き）
+  var diseases = state.diseases || [];
+  var diseaseOverride = null;
+  for (var dk in FAST_DISEASE_OVERRIDE) {
+    if (diseases.indexOf(dk) !== -1) { diseaseOverride = FAST_DISEASE_OVERRIDE[dk]; break; }
+  }
+
+  if (!phase && !diseaseOverride) { infoEl.style.display = 'none'; return; }
+
+  infoEl.style.display = 'block';
+  var cfg = FAST_PHASE_CONFIG[phase] || {};
+
+  var iconEl  = document.getElementById('fast-phase-icon');
+  var nameEl  = document.getElementById('fast-phase-name');
+  var recEl   = document.getElementById('fast-phase-rec');
+  var tipEl   = document.getElementById('fast-phase-tip');
+
+  if (phase && cfg.icon) {
+    if (iconEl) iconEl.textContent = cfg.icon;
+    if (nameEl) nameEl.textContent = phase;
+    var recText = diseaseOverride ? diseaseOverride.rec : cfg.rec;
+    if (recEl)  recEl.textContent  = recText;
+    if (tipEl)  tipEl.textContent  = diseaseOverride
+      ? '(' + Object.keys(FAST_DISEASE_OVERRIDE).find(function(k){ return diseases.indexOf(k) !== -1; }) + 'モード) ' + (cfg.tip || '')
+      : (cfg.tip || '');
+  } else if (diseaseOverride) {
+    // 周期データなし、疾患のみ
+    if (iconEl) iconEl.textContent = '💊';
+    var dName = Object.keys(FAST_DISEASE_OVERRIDE).find(function(k){ return diseases.indexOf(k) !== -1; });
+    if (nameEl) nameEl.textContent = dName + 'モード';
+    if (recEl)  recEl.textContent  = diseaseOverride.rec;
+    if (tipEl)  tipEl.textContent  = 'インスリン感受性改善のために継続的な記録が大切です。';
+  }
+}
+
+function showRecoveryGuide() {
+  var phase = getCurrentCyclePhase();
+  var foodData = FAST_RECOVERY_FOODS[phase] || FAST_RECOVERY_FOODS['卵胞期'];
+  var cardEl   = document.getElementById('fast-recovery-card');
+  var contentEl = document.getElementById('fast-recovery-content');
+  if (!cardEl || !contentEl) return;
+
+  var html = '';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;">';
+  if (phase) {
+    html += '今日は <strong style="color:var(--rose);">' + phase + '</strong> です。回復食の参考にしてください。';
+  } else {
+    html += '断食後は消化に優しい食品から始めましょう。';
+  }
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+  foodData.foods.forEach(function(f) {
+    html += '<div style="background:var(--bg);border-radius:10px;padding:10px;">';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">' + f[0] + '</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);">' + f[1] + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  html += '<div style="margin-top:10px;padding:8px 10px;background:var(--rose-pale,#f9eced);border-radius:10px;font-size:10px;color:var(--ink-light);line-height:1.6;">';
+  html += '⚠️ このアプリは医療アドバイスを提供するものではありません。体調に合わせて判断してください。';
+  html += '</div>';
+
+  contentEl.innerHTML = html;
+  cardEl.style.display = 'block';
+  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
 // ===== FASTING TIMER =====
 let fastInterval = null;
 
@@ -6005,6 +6160,20 @@ function setFastGoal(h, el) {
 
 function toggleFast() {
   if (state.fastingActive) return;
+
+  // 安全チェック：月経期・黄体期で16h以上は注意喚起
+  var phase = getCurrentCyclePhase();
+  var cfg = phase ? FAST_PHASE_CONFIG[phase] : null;
+  if (cfg && state.fastGoal > cfg.safeMax) {
+    var proceed = confirm(
+      '⚠️ ' + phase + 'のアドバイス\n\n' +
+      '現在の周期フェーズでは ' + cfg.rec + ' が推奨されます。\n' +
+      cfg.tip + '\n\n' +
+      '続けますか？（体調を優先してください）'
+    );
+    if (!proceed) return;
+  }
+
   // 通知許可をリクエスト
   if ('Notification' in window && Notification.permission === 'default') {
     Notification.requestPermission();
@@ -6049,6 +6218,9 @@ function endFast() {
   document.getElementById('fast-stop-btn').style.display = 'none';
   document.getElementById('fast-timer').textContent = '00:00:00';
   document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
+
+  // 回復食ガイドを表示
+  showRecoveryGuide();
 }
 
 function resumeFasting() {
@@ -7799,6 +7971,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateDiseaseSettingDisplay();
   updateHomeCTA();
   updateHomeSummary();
+  updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
   loadCommunityTopic();
@@ -9899,6 +10072,7 @@ var todayStr = targetDate.toDateString();
     // UI更新（保存成功後のみ）
     updateHomeSummary();
     updateHomeCTA();
+    updateFastingWidgetPhase();
     updateStats();
     updateHistory();
     buildCalendar();
