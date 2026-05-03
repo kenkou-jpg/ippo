@@ -2928,7 +2928,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div style="background:linear-gradient(135deg,#fff8f0,#fef0f0);border-radius:18px;padding:16px;border-left:3px solid var(--rose);">
             <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">選ぶ or 自分の言葉で</div>
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;" id="vision-presets"></div>
-            <input type="text" id="vision-input" placeholder="例: 嚢腫を小さくして不安のない毎日へ" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
+            <input type="text" id="vision-input" placeholder="例: 体調の変化に気づき、自分のリズムを大切にする" style="width:100%;border:1.5px solid #e8e0d8;border-radius:10px;padding:10px 12px;font-size:13px;font-family:Noto Sans JP,sans-serif;background:var(--white);box-sizing:border-box;">
             <button onclick="saveVision()" style="margin-top:8px;width:100%;padding:10px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">保存</button>
           </div>
         </div>
@@ -3646,7 +3646,7 @@ var DISEASE_CONFIG = {
     icon: '🟣',
     category: '子宮',
     specificSymptoms: ['痛み止め無効','経血量極多','レバー状の塊','下腹部膨満','貧血症状','性交痛'],
-    trackingTips: '経血の塊の大きさと頻度を記録すると治療効果の判定に役立ちます。',
+    trackingTips: '経血の塊の大きさと頻度を記録すると、症状の変化の把握に役立ちます。',
     questions: [
       {id:'pain_progress',  text:'生理痛は年々悪化していますか？', options:['変化なし','少し悪化','明らかに悪化','痛み止めが効かない']},
       {id:'heavy_flow',     text:'経血量はどの程度ですか？',       options:['少ない','普通','多い','非常に多い（夜用必須）']},
@@ -3697,7 +3697,7 @@ var DISEASE_CONFIG = {
     icon: '⬇️',
     category: '骨盤',
     specificSymptoms: ['下垂感','頻尿','夜間頻尿','尿漏れ','排便困難','性交時違和感','長時間立位で悪化'],
-    trackingTips: '骨盤底筋トレーニングの実施を要因として記録すると、効果を検証できます。',
+    trackingTips: '骨盤底筋トレーニングの実施を要因として記録すると、継続状況と体調の変化を一緒に確認できます。',
     questions: [
       {id:'prolapse_feel',  text:'下垂感・圧迫感',         options:['なし','軽い','中程度','重い']},
       {id:'urine_leak',     text:'尿漏れ',                 options:['なし','くしゃみ時のみ','日常的','常時パッド必要']},
@@ -3964,12 +3964,12 @@ function openCyclePhaseReport(){
 }
   // ===== ヘルスエクスペリメント =====
 var EXPERIMENT_PRESETS = [
-  {title:'グルテンフリー30日', factor:'グルテン', condition:'avoid', days:30, hypothesis:'グルテンを避けると腹部症状が改善する'},
-  {title:'毎日30分の運動', factor:'運動した', condition:'do', days:30, hypothesis:'運動習慣でエネルギーと睡眠の質が改善する'},
-  {title:'カフェイン断ち14日', factor:'カフェイン', condition:'avoid', days:14, hypothesis:'カフェインを控えると睡眠の質が上がる'},
-  {title:'就寝前スマホなし14日', factor:'夜更かし', condition:'avoid', days:14, hypothesis:'夜更かしを避けると睡眠の質が改善する'},
-  {title:'毎日入浴・半身浴21日', factor:'入浴・半身浴', condition:'do', days:21, hypothesis:'入浴習慣で痛みやストレスが軽減する'},
-  {title:'アルコール断ち30日', factor:'アルコール', condition:'avoid', days:30, hypothesis:'禁酒で睡眠の質とウェルネスが改善する'}
+  {title:'グルテンフリー30日', factor:'グルテン', condition:'avoid', days:30, hypothesis:'グルテンを避けると腹部の不快感に変化があるか試してみる'},
+  {title:'毎日30分の運動', factor:'運動した', condition:'do', days:30, hypothesis:'運動習慣がエネルギーや睡眠の質に与える影響を記録する'},
+  {title:'カフェイン断ち14日', factor:'カフェイン', condition:'avoid', days:14, hypothesis:'カフェインを控えると睡眠の質に変化があるか試してみる'},
+  {title:'就寝前スマホなし14日', factor:'夜更かし', condition:'avoid', days:14, hypothesis:'夜更かしを避けると睡眠の質に変化があるか試してみる'},
+  {title:'毎日入浴・半身浴21日', factor:'入浴・半身浴', condition:'do', days:21, hypothesis:'入浴習慣が痛みやストレスの感じ方に与える影響を記録する'},
+  {title:'アルコール断ち30日', factor:'アルコール', condition:'avoid', days:30, hypothesis:'禁酒が睡眠の質や体調に与える影響を記録する'}
 ];
 
 function openExperiments(){
@@ -6037,7 +6037,7 @@ var FAST_PHASE_CONFIG = {
     icon: '🌱',
     rec: '14〜16h',
     goalMin: 14, goalMax: 16,
-    tip: 'エストロゲンが上昇し代謝が活発に。ファスティングの効果が出やすい時期です。',
+    tip: 'エストロゲンが上昇し代謝が活発に。断食に取り組みやすい時期です。',
     safeMax: 18,
     bedRisk: false
   },
@@ -6124,7 +6124,7 @@ var FAST_DISEASE_OVERRIDE = {
     rec: '13〜15h（オートファジー促進・酸化ストレス軽減）',
     goalMin: 13, goalMax: 15,
     bedRisk: false,
-    bedNote: 'マウス実験で、カロリー制限がチョコレート嚢腫（内膜症性）を最大93%縮小させ、時間制限食（TRF）がPCOS性嚢胞を正常化させることが実証されています。断食によりオートファジー（細胞の自食作用）が活性化され、嚢腫内の酸化ストレス（活性酸素：ROS）と炎症を軽減する可能性があります。'
+    bedNote: '食事リズムを整えることで、インスリンバランスとホルモン環境を安定させるサポートができます。規則的な断食パターンと卵巣の健康との関連は動物実験で研究されており、オートファジー（細胞の自食作用）の活性化や酸化ストレスの軽減が注目されています。※本アプリはセルフケアのサポートを目的としており、医療行為ではありません。'
   }
 };
 
@@ -6177,7 +6177,7 @@ var BINGE_URGE_SUPPORT = {
   // 卵巣嚢腫: 慢性的な下腹部痛・腹部膨満感による感情的過食への配慮
   '卵巣嚢腫': {
     validation: 'お腹の不快感があるとき、食べることで気を紛らわそうとするのは自然な反応です',
-    science: '卵巣嚢腫による慢性的な下腹部痛や腹部膨満感は、感情的過食の引き金になることがあります。研究では、断食（特に時間制限食）が卵巣の嚢胞を縮小させ、ホルモンバランスを整える可能性が示されています。痛みが強い日は無理をせず、まず体を休めることを優先してください。',
+    science: '卵巣嚢腫による慢性的な下腹部痛や腹部膨満感は、感情的過食の引き金になることがあります。規則的な食事リズムはインスリンバランスとホルモン環境を整えるサポートになると考えられています。痛みが強い日は断食を無理に続けず、まず体を休めることを優先してください。',
     color: '#7a9eb0'
   },
   'default': {
