@@ -6592,72 +6592,36 @@ function updateHomeSummary(){
       html += '<div style="font-size:10px;color:var(--ink-light);">飲み物<br>のみ</div>';
     }
     html += '</div></div>';
-    // 右側レジェンド
-    html += '<div style="flex:1;">';
-    var legend = [
-      {label:'朝 5–10時', color:'#d4a574', bg:'#fdf5ec'},
-      {label:'昼 10–14時', color:'#6b9e78', bg:'#eef6f1'},
-      {label:'夜 17–22時', color:'#c4878c', bg:'#fdf0f2'},
-      {label:'その他', color:'#7ba3c4', bg:'#eef4fb'}
-    ];
-    legend.forEach(function(l){
-      html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">';
-      html += '<div style="width:8px;height:8px;border-radius:50%;background:'+l.color+';flex-shrink:0;"></div>';
-      html += '<span style="font-size:10px;color:var(--ink-light);">'+l.label+'</span>';
-      html += '</div>';
-    });
-    if(mealCount > 0 || fastH > 0){
-      html += '<div style="margin-top:8px;padding:6px 10px;background:var(--cream);border-radius:8px;">';
-      if(mealCount > 0) html += '<div style="font-size:11px;color:var(--ink-mid);">🍽 '+mealCount+'食</div>';
-      if(fastH > 0) html += '<div style="font-size:11px;color:var(--ink-mid);">⏱ '+fastH+'h断食</div>';
-      html += '</div>';
+    // 右側：食事タイムライン
+    html += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0;">';
+    if(allSlots.length){
+      var showMax = Math.min(allSlots.length, 6);
+      for(var si=0;si<showMax;si++){
+        var slot = allSlots[si];
+        var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
+        var dotColor;
+        if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
+        else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
+        else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
+        else dotColor = '#7ba3c4';
+        var rowOpacity = slot.isDrink ? '0.45' : '1';
+        html += '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
+        html += '<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
+        html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:36px;">'+(slot.time||'')+'</span>';
+        html += '<span style="font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
+        html += '</div>';
+      }
+      if(allSlots.length > 6){
+        html += '<div style="font-size:10px;color:var(--ink-light);padding-top:4px;">他 '+(allSlots.length-6)+'件</div>';
+      }
+    } else if(mealCount > 0){
+      html += '<div style="font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
+    } else {
+      html += '<div style="font-size:11px;color:var(--ink-light);">食事記録なし</div>';
     }
     html += '</div>';
     html += '</div>';
   })();
-
-  // ③ ファスティングバー
-  if(fastH > 0){
-    var goalH = state.fastingGoal || 16;
-    var pctFast = Math.min(Math.round(fastH / goalH * 100), 100);
-    var fastColor = fastH >= goalH ? '#6b9e78' : '#d4a574';
-    html += '<div style="margin-bottom:14px;">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">';
-    html += '<span style="font-size:12px;font-weight:600;color:var(--ink);">ファスティング</span>';
-    html += '<span style="font-size:12px;font-weight:700;color:'+fastColor+';">'+fastH+'h <span style="font-weight:400;color:var(--ink-light);font-size:11px;">/ 目標 '+goalH+'h</span></span>';
-    html += '</div>';
-    html += '<div style="height:8px;background:var(--cream);border-radius:4px;overflow:hidden;">';
-    html += '<div style="height:100%;width:'+pctFast+'%;background:linear-gradient(90deg,'+fastColor+','+fastColor+'cc);border-radius:4px;transition:width 0.6s;"></div>';
-    html += '</div>';
-    if(fastH >= goalH){
-      html += '<div style="font-size:10px;color:#6b9e78;margin-top:4px;">✓ 目標達成！</div>';
-    }
-    html += '</div>';
-  }
-
-  // ③ 食事タイムライン
-  if(allSlots.length){
-    html += '<div style="margin-bottom:14px;">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:8px;">食事記録 '+(mealCount > 0 ? mealCount+'食' : '')+'</div>';
-    for(var si=0;si<allSlots.length;si++){
-      var slot = allSlots[si];
-      var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
-      var dotColor;
-      if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
-      else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
-      else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
-      else dotColor = '#7ba3c4';
-      var rowOpacity = slot.isDrink ? '0.5' : '1';
-      html += '<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
-      html += '<div style="width:8px;height:8px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
-      if(slot.time) html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:30px;">'+slot.time+'</span>';
-      html += '<span style="font-size:13px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
-      html += '</div>';
-    }
-    html += '</div>';
-  } else if(mealCount > 0){
-    html += '<div style="margin-bottom:14px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
-  }
 
   // ④ 症状チップ
   var sympChips = [];
