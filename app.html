@@ -12035,7 +12035,7 @@ function showLoginForm() {
   `;
 }
 
-let syncMode = 'login'; // 'login' or 'signup'
+var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
 
 function toggleSyncMode() {
   syncMode = syncMode === 'login' ? 'signup' : 'login';
@@ -12592,12 +12592,17 @@ var premiumCheckInterval = setInterval(function(){
       checkPremiumStatus();
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
       // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
+      // ※ 同期モーダルが開いている間（ログイン処理中）は呼ばない
       if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user){
-        var _now = Date.now();
-        var _last = window._lastAuthRestore || 0;
-        if(_now - _last > 30000){
-          window._lastAuthRestore = _now;
-          if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+        var _syncOverlay = document.getElementById('syncOverlay');
+        var _syncModalOpen = _syncOverlay && _syncOverlay.classList.contains('active');
+        if(!_syncModalOpen){
+          var _now = Date.now();
+          var _last = window._lastAuthRestore || 0;
+          if(_now - _last > 30000){
+            window._lastAuthRestore = _now;
+            if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+          }
         }
       }
       // ログアウト時はステータス表示を即時更新
