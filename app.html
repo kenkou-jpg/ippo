@@ -12157,6 +12157,14 @@ async function submitSync() {
 
     // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
     if (result.data.session) {
+      // ★ ログイン直後にsupabaseUserIdを即時反映 → isAdminOrPremium()が即座に正しく動く
+      supabaseUserId = result.data.session.user.id;
+      localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
+      if (result.data.session.user.id === ADMIN_USER_ID) {
+        isPremium = true;
+      }
+      if (typeof updatePremiumBadges === 'function') updatePremiumBadges();
+
       await migrateDataToUser(result.data.session.user.id);
       showMessage('ログインしました。データを同期中...', 'success');
 
