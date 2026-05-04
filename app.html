@@ -1290,11 +1290,15 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   border-radius: 50%;
 }
 .settings-theme-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.settings-theme-grid::-webkit-scrollbar { display: none; }
 
 /* ===== PREMIUM SECTION ===== */
 .premium-card {
@@ -2120,26 +2124,24 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
 
-      <!-- Fasting Timer Widget -->
-      <div class="fasting-widget" style="margin-top: 16px;">
-        <!-- Fasting Advice Accordion (shown when phase/disease data available) -->
-        <div id="fast-phase-info" style="display:none;margin-bottom:12px;">
-          <!-- 常に見えるヘッダー行 -->
-          <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'200px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.16);border-radius:11px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span id="fast-phase-icon" style="font-size:13px;">🌱</span>
-              <span id="fast-phase-name" style="font-size:11px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
-              <span style="font-size:10px;color:rgba(255,255,255,0.6);">推奨</span>
-              <span id="fast-phase-rec" style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);">—</span>
-            </div>
-            <span id="fast-phase-chevron" style="font-size:10px;color:rgba(255,255,255,0.6);transition:transform 0.2s;">▸</span>
-          </button>
-          <!-- 折り畳み本文 -->
-          <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
-            <div id="fast-phase-tip" style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:7px;padding:0 4px;line-height:1.65;"></div>
+      <!-- Fasting Advice Accordion (タイマーウィジェットの外・上部に配置) -->
+      <div id="fast-phase-info" style="display:none;margin:8px 24px 6px;">
+        <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'240px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border:1px solid #f0e8e0;border-radius:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 1px 6px var(--shadow);">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0;">
+            <span id="fast-phase-icon" style="font-size:14px;flex-shrink:0;">🌱</span>
+            <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:var(--ink);letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</span>
+            <span style="font-size:10px;color:var(--ink-light);flex-shrink:0;">推奨</span>
+            <span id="fast-phase-rec" style="font-size:12px;font-weight:700;color:var(--rose);flex-shrink:0;">—</span>
           </div>
+          <span id="fast-phase-chevron" style="font-size:11px;color:var(--ink-light);margin-left:8px;flex-shrink:0;">▸</span>
+        </button>
+        <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
+          <div id="fast-phase-tip" style="font-size:12px;color:var(--ink-mid);margin-top:8px;padding:12px 14px;background:var(--warm-light);border-radius:12px;line-height:1.7;border:1px solid #f0e8e0;"></div>
         </div>
+      </div>
 
+      <!-- Fasting Timer Widget -->
+      <div class="fasting-widget" style="margin-top: 8px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div class="fw-label">FASTING TIMER</div>
@@ -2854,43 +2856,30 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="settings-section-title">テーマカラー</div>
         <div class="settings-card">
           <div class="settings-theme-grid" id="theme-picker">
-
-            <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sakura"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌸 桜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ロマンティック</div>
+            <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌸 桜</span>
             </div>
-
-            <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f5a080,#d95f3b);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-coral"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🪸 珊瑚</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">エネルギッシュ</div>
+            <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f5a080,#d95f3b);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-coral"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🪸 珊瑚</span>
             </div>
-
-            <div onclick="applyTheme('midnight')" id="theme-btn-midnight" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5a1e48,#1a1020);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-midnight"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌙 深夜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ダークモード</div>
+            <div onclick="applyTheme('midnight')" id="theme-btn-midnight" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#5a1e48,#1a1020);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-midnight"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌙 深夜</span>
             </div>
-
-            <div onclick="applyTheme('forest')" id="theme-btn-forest" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#80c8a0,#3e8b60);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-forest"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌿 若葉</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ナチュラル</div>
+            <div onclick="applyTheme('forest')" id="theme-btn-forest" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#80c8a0,#3e8b60);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-forest"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌿 若葉</span>
             </div>
-
-            <div onclick="applyTheme('sky')" id="theme-btn-sky" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#78b8e8,#2e82bf);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sky"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🩵 空</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">クリアブルー</div>
+            <div onclick="applyTheme('sky')" id="theme-btn-sky" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#78b8e8,#2e82bf);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sky"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🩵 空</span>
             </div>
-
-            <div onclick="applyTheme('honey')" id="theme-btn-honey" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f0c060,#c47b28);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-honey"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🍯 蜂蜜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ウォームアンバー</div>
+            <div onclick="applyTheme('honey')" id="theme-btn-honey" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f0c060,#c47b28);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-honey"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🍯 蜂蜜</span>
             </div>
-
           </div>
         </div>
       </div>
@@ -6457,16 +6446,14 @@ function toggleFast() {
   if (state.fastingActive) return;
 
   // 安全チェック①：月経期・黄体期で推奨safeMaxを超えた場合
+  // ※ confirm()はモバイルPWAでブロックされることがあるためトーストに変更
   var phase = getCurrentCyclePhase();
   var cfg = phase ? FAST_PHASE_CONFIG[phase] : null;
   if (cfg && state.fastGoal > cfg.safeMax) {
-    var proceed = confirm(
-      '⚠️ ' + phase + 'のアドバイス\n\n' +
-      '現在の周期フェーズでは ' + cfg.rec + ' が推奨されます。\n\n' +
-      cfg.tip + '\n\n' +
-      '無理せず続けますか？（体調を最優先にしてください）'
-    );
-    if (!proceed) return;
+    if(typeof showToast === 'function'){
+      showToast('⚠️ ' + phase + '中は ' + cfg.rec + ' が推奨です。体調を最優先にしてください。', 'warn');
+    }
+    // 注意を促した上で続行（強制ブロックではなく自己判断を尊重）
   }
 
   // 安全チェック②：BEDリスクの高い疾患ユーザーへの配慮メッセージ
@@ -12334,15 +12321,20 @@ async function checkPremiumStatus() {
       // 旧認証変数にも反映（cloudBackupAll等で参照）
       supabaseToken = session.access_token;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_premium')
-        .eq('user_id', session.user.id)
-        .single();
-      isPremium = profile?.is_premium || false;
+      // 管理者は自動的にPROアクセス付与
+      if (session.user.id === ADMIN_USER_ID) {
+        isPremium = true;
+      } else {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('user_id', session.user.id)
+          .single();
+        isPremium = profile?.is_premium || false;
+      }
       // ログイン状態をヘッダーに反映
       var briefEl = document.getElementById('syncStatusBrief');
-      if (briefEl) briefEl.textContent = session.user.email || 'ログイン済み';
+      if (briefEl) briefEl.textContent = (session.user.id === ADMIN_USER_ID ? '👑 ' : '') + (session.user.email || 'ログイン済み');
     } else {
       isPremium = false;
       supabaseToken = null;
