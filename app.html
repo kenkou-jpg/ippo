@@ -4619,34 +4619,36 @@ function cloudRestore(){
       }
       var cloudDate = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
       var localDate = state.lastSaved ? new Date(state.lastSaved) : new Date(0);
-
-      // ★ ガード②：ローカルが空ならクラウドから強制復元
       var localRecs = state.records ? state.records.length : 0;
       var cloudRecs = cloudState.records.length;
-      if(localRecs === 0 && cloudRecs > 0){
-        var safeCloud = Object.assign({}, cloudState);
-        safeCloud.records = cloudState.records;
-        state = Object.assign(state, safeCloud);
-        state.lastSaved = cloudDate.toISOString();
-        localStorage.setItem('ippo_state', JSON.stringify(state));
-        console.log('ローカルが空のためクラウドから強制復元:', cloudRecs + '件');
-        return true;
-      }
+
+      // ★ records は常にマージ（上書きしない）
+      // どちらか片方にしか存在しないレコードを保護する
+      var mergedRecords = mergeRecords(state.records || [], cloudState.records || []);
+      var mergedCount = mergedRecords.length;
 
       if(cloudDate > localDate){
-        if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
-          console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
-          return false;
-        }
-        var safeCloud2 = Object.assign({}, cloudState);
-        safeCloud2.records = cloudState.records;
-        state = Object.assign(state, safeCloud2);
+        // クラウドが新しい：設定系（name・疾患・reminders等）はクラウドを採用
+        // records だけはマージ結果を使用
+        var safeCloud = Object.assign({}, cloudState);
+        state = Object.assign(state, safeCloud);
+        state.records = mergedRecords;
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
-        console.log('クラウドから復元完了: ' + state.records.length + '件');
+        console.log('クラウド復元完了（マージ）: ローカル'+localRecs+'件 + クラウド'+cloudRecs+'件 → '+mergedCount+'件');
+        return true;
+      } else if(mergedCount > localRecs){
+        // ローカルが新しくてもクラウドに追加レコードがあればマージのみ実施
+        // 設定系はローカルを保持
+        state.records = mergedRecords;
+        state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
+          acc[new Date(r.date).toDateString()]=true; return acc;
+        },{})).length;
+        saveState();
+        console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計'+mergedCount+'件');
         return true;
       }
-      console.log('ローカルが最新のため復元スキップ');
+      console.log('ローカルが最新かつ件数も多いため復元スキップ（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）');
       return false;
     });
   });
@@ -5181,46 +5183,63 @@ function initialCloudSync(){
 function manualCloudRestore(){
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
-    if(!session) return alert('ログインしてください');
+    if(!session || !session.user){
+      if(typeof showToast === 'function') showToast('ログインしてからご利用ください', 'warn');
+      return;
+    }
     var userId = session.user.id;
-    supabase.from('user_data_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', {ascending:false})
-      .limit(5)
+
+    // 診断UIを使う場合は showDiagnosisUI() を呼ぶ
+    // ここでは「最新クラウドデータとマージ」のみをシンプルに実行
+    if(typeof showSyncIndicator === 'function') showSyncIndicator('クラウドから復元中');
+
+    // user_data（最新スナップショット）を取得してマージ
+    return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single()
       .then(function(result){
-        var histories = result.data || [];
-        var msg = 'どのデータから復元しますか？\n\n0: 最新のクラウドデータ（マージ）\n';
-        histories.forEach(function(h,i){
-          var recs = h.records_count || 0;
-          var date = new Date(h.created_at).toLocaleString('ja-JP');
-          msg += (i+1)+': '+date+' ('+recs+'件)\n';
-        });
-        msg += '\n番号を入力:';
-        var choice = prompt(msg);
-        if(choice === null) return;
-        var idx = parseInt(choice);
-        if(idx === 0){
-          cloudSyncSafe().then(function(){
-            alert('マージ復元完了: '+state.records.length+'件');
-            location.reload();
-          });
-        } else if(idx > 0 && idx <= histories.length){
-          var histState = histories[idx-1].state;
-          var histRecords = histState.records || [];
-          if(confirm(histRecords.length+'件の記録を復元します。現在のデータとマージされます。')){
-            var merged = mergeRecords(state.records, histRecords);
-            state.records = merged;
-            state.totalDays = Object.keys(merged.reduce(function(acc,r){
-              acc[new Date(r.date).toDateString()]=true; return acc;
-            },{})).length;
-            saveState();
-            syncAllRecordsToCloud().then(function(){
-              alert('復元完了: '+merged.length+'件');
-              location.reload();
-            });
-          }
+        if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
+        if(!result.data || !result.data.state){
+          if(typeof showToast === 'function') showToast('クラウドにデータが見つかりませんでした', 'warn');
+          return;
         }
+        var cloudState = result.data.state;
+        if(!Array.isArray(cloudState.records)){
+          if(typeof showToast === 'function') showToast('クラウドのデータ形式が不正です', 'warn');
+          return;
+        }
+        var localRecs = state.records ? state.records.length : 0;
+        var cloudRecs = cloudState.records.length;
+
+        // records はマージ（上書きしない）
+        var mergedRecords = mergeRecords(state.records || [], cloudState.records || []);
+        var mergedCount = mergedRecords.length;
+
+        // 設定系（name・疾患・reminders等）はクラウドを採用、recordsはマージ結果
+        var rawDate = result.data.updated_at;
+        var cloudDate = rawDate ? new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z') : new Date(0);
+        state = Object.assign(state, cloudState);
+        state.records = mergedRecords;
+        state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
+          acc[new Date(r.date).toDateString()]=true; return acc;
+        },{})).length;
+        state.lastSaved = cloudDate.toISOString();
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+
+        // UI再描画
+        if(typeof updateStats === 'function') updateStats();
+        if(typeof updateHistory === 'function') updateHistory();
+        if(typeof buildCalendar === 'function') buildCalendar();
+        if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
+        if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
+        if(typeof reorderRecordSections === 'function') reorderRecordSections();
+        if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+
+        var msg = 'クラウドから復元しました ✅\nローカル'+localRecs+'件 + クラウド'+cloudRecs+'件 → '+mergedCount+'件';
+        if(typeof showToast === 'function') showToast(msg, 'success');
+        console.log(msg);
+      }).catch(function(e){
+        if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
+        console.warn('手動復元エラー:', e);
+        if(typeof showToast === 'function') showToast('復元に失敗しました。通信状況を確認してください。', 'warn');
       });
   });
 }
