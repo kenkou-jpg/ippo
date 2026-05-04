@@ -5,7 +5,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://ekaoojdqhkpeudujfsdh.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ekaoojdqhkpeudujfsdh.supabase.co https://api.stripe.com https://api.anthropic.com; frame-src https://js.stripe.com; upgrade-insecure-requests;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://ekaoojdqhkpeudujfsdh.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ekaoojdqhkpeudujfsdh.supabase.co https://api.stripe.com https://api.anthropic.com https://cdn.jsdelivr.net; frame-src https://js.stripe.com; upgrade-insecure-requests;">
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1290,11 +1290,15 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   border-radius: 50%;
 }
 .settings-theme-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  padding: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
+.settings-theme-grid::-webkit-scrollbar { display: none; }
 
 /* ===== PREMIUM SECTION ===== */
 .premium-card {
@@ -2120,26 +2124,24 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
 
-      <!-- Fasting Timer Widget -->
-      <div class="fasting-widget" style="margin-top: 16px;">
-        <!-- Fasting Advice Accordion (shown when phase/disease data available) -->
-        <div id="fast-phase-info" style="display:none;margin-bottom:12px;">
-          <!-- 常に見えるヘッダー行 -->
-          <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'200px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.16);border-radius:11px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span id="fast-phase-icon" style="font-size:13px;">🌱</span>
-              <span id="fast-phase-name" style="font-size:11px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
-              <span style="font-size:10px;color:rgba(255,255,255,0.6);">推奨</span>
-              <span id="fast-phase-rec" style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);">—</span>
-            </div>
-            <span id="fast-phase-chevron" style="font-size:10px;color:rgba(255,255,255,0.6);transition:transform 0.2s;">▸</span>
-          </button>
-          <!-- 折り畳み本文 -->
-          <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
-            <div id="fast-phase-tip" style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:7px;padding:0 4px;line-height:1.65;"></div>
+      <!-- Fasting Advice Accordion (タイマーウィジェットの外・上部に配置) -->
+      <div id="fast-phase-info" style="display:none;margin:8px 24px 6px;">
+        <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'240px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border:1px solid #f0e8e0;border-radius:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 1px 6px var(--shadow);">
+          <div style="display:flex;align-items:center;gap:7px;min-width:0;">
+            <span id="fast-phase-icon" style="font-size:14px;flex-shrink:0;">🌱</span>
+            <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:var(--ink);letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</span>
+            <span style="font-size:10px;color:var(--ink-light);flex-shrink:0;">推奨</span>
+            <span id="fast-phase-rec" style="font-size:12px;font-weight:700;color:var(--rose);flex-shrink:0;">—</span>
           </div>
+          <span id="fast-phase-chevron" style="font-size:11px;color:var(--ink-light);margin-left:8px;flex-shrink:0;">▸</span>
+        </button>
+        <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
+          <div id="fast-phase-tip" style="font-size:12px;color:var(--ink-mid);margin-top:8px;padding:12px 14px;background:var(--warm-light);border-radius:12px;line-height:1.7;border:1px solid #f0e8e0;"></div>
         </div>
+      </div>
 
+      <!-- Fasting Timer Widget -->
+      <div class="fasting-widget" style="margin-top: 8px;">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
           <div>
             <div class="fw-label">FASTING TIMER</div>
@@ -2854,43 +2856,30 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="settings-section-title">テーマカラー</div>
         <div class="settings-card">
           <div class="settings-theme-grid" id="theme-picker">
-
-            <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sakura"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌸 桜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ロマンティック</div>
+            <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌸 桜</span>
             </div>
-
-            <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f5a080,#d95f3b);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-coral"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🪸 珊瑚</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">エネルギッシュ</div>
+            <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f5a080,#d95f3b);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-coral"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🪸 珊瑚</span>
             </div>
-
-            <div onclick="applyTheme('midnight')" id="theme-btn-midnight" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5a1e48,#1a1020);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-midnight"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌙 深夜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ダークモード</div>
+            <div onclick="applyTheme('midnight')" id="theme-btn-midnight" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#5a1e48,#1a1020);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-midnight"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌙 深夜</span>
             </div>
-
-            <div onclick="applyTheme('forest')" id="theme-btn-forest" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#80c8a0,#3e8b60);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-forest"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🌿 若葉</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ナチュラル</div>
+            <div onclick="applyTheme('forest')" id="theme-btn-forest" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#80c8a0,#3e8b60);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-forest"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🌿 若葉</span>
             </div>
-
-            <div onclick="applyTheme('sky')" id="theme-btn-sky" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#78b8e8,#2e82bf);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-sky"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🩵 空</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">クリアブルー</div>
+            <div onclick="applyTheme('sky')" id="theme-btn-sky" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#78b8e8,#2e82bf);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sky"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🩵 空</span>
             </div>
-
-            <div onclick="applyTheme('honey')" id="theme-btn-honey" style="display:flex;flex-direction:column;align-items:center;gap:7px;cursor:pointer;padding:10px 4px;border-radius:14px;transition:background 0.2s;">
-              <div style="width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#f0c060,#c47b28);border:3px solid transparent;transition:border-color 0.2s;" id="theme-dot-honey"></div>
-              <div style="font-size:11px;font-weight:600;color:var(--ink-mid);">🍯 蜂蜜</div>
-              <div style="font-size:9px;color:var(--ink-light);text-align:center;line-height:1.4;">ウォームアンバー</div>
+            <div onclick="applyTheme('honey')" id="theme-btn-honey" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#f0c060,#c47b28);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-honey"></div>
+              <span style="font-size:9px;color:var(--ink-light);">🍯 蜂蜜</span>
             </div>
-
           </div>
         </div>
       </div>
@@ -4631,34 +4620,36 @@ function cloudRestore(){
       }
       var cloudDate = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
       var localDate = state.lastSaved ? new Date(state.lastSaved) : new Date(0);
-
-      // ★ ガード②：ローカルが空ならクラウドから強制復元
       var localRecs = state.records ? state.records.length : 0;
       var cloudRecs = cloudState.records.length;
-      if(localRecs === 0 && cloudRecs > 0){
-        var safeCloud = Object.assign({}, cloudState);
-        safeCloud.records = cloudState.records;
-        state = Object.assign(state, safeCloud);
-        state.lastSaved = cloudDate.toISOString();
-        localStorage.setItem('ippo_state', JSON.stringify(state));
-        console.log('ローカルが空のためクラウドから強制復元:', cloudRecs + '件');
-        return true;
-      }
+
+      // ★ records は常にマージ（上書きしない）
+      // どちらか片方にしか存在しないレコードを保護する
+      var mergedRecords = mergeRecords(state.records || [], cloudState.records || []);
+      var mergedCount = mergedRecords.length;
 
       if(cloudDate > localDate){
-        if(cloudRecs < localRecs && localRecs - cloudRecs >= 2){
-          console.warn('クラウドのレコードが少ない（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）。復元スキップ');
-          return false;
-        }
-        var safeCloud2 = Object.assign({}, cloudState);
-        safeCloud2.records = cloudState.records;
-        state = Object.assign(state, safeCloud2);
+        // クラウドが新しい：設定系（name・疾患・reminders等）はクラウドを採用
+        // records だけはマージ結果を使用
+        var safeCloud = Object.assign({}, cloudState);
+        state = Object.assign(state, safeCloud);
+        state.records = mergedRecords;
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
-        console.log('クラウドから復元完了: ' + state.records.length + '件');
+        console.log('クラウド復元完了（マージ）: ローカル'+localRecs+'件 + クラウド'+cloudRecs+'件 → '+mergedCount+'件');
+        return true;
+      } else if(mergedCount > localRecs){
+        // ローカルが新しくてもクラウドに追加レコードがあればマージのみ実施
+        // 設定系はローカルを保持
+        state.records = mergedRecords;
+        state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
+          acc[new Date(r.date).toDateString()]=true; return acc;
+        },{})).length;
+        saveState();
+        console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計'+mergedCount+'件');
         return true;
       }
-      console.log('ローカルが最新のため復元スキップ');
+      console.log('ローカルが最新かつ件数も多いため復元スキップ（ローカル:'+localRecs+' クラウド:'+cloudRecs+'）');
       return false;
     });
   });
@@ -5193,46 +5184,63 @@ function initialCloudSync(){
 function manualCloudRestore(){
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
-    if(!session) return alert('ログインしてください');
+    if(!session || !session.user){
+      if(typeof showToast === 'function') showToast('ログインしてからご利用ください', 'warn');
+      return;
+    }
     var userId = session.user.id;
-    supabase.from('user_data_history')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', {ascending:false})
-      .limit(5)
+
+    // 診断UIを使う場合は showDiagnosisUI() を呼ぶ
+    // ここでは「最新クラウドデータとマージ」のみをシンプルに実行
+    if(typeof showSyncIndicator === 'function') showSyncIndicator('クラウドから復元中');
+
+    // user_data（最新スナップショット）を取得してマージ
+    return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single()
       .then(function(result){
-        var histories = result.data || [];
-        var msg = 'どのデータから復元しますか？\n\n0: 最新のクラウドデータ（マージ）\n';
-        histories.forEach(function(h,i){
-          var recs = h.records_count || 0;
-          var date = new Date(h.created_at).toLocaleString('ja-JP');
-          msg += (i+1)+': '+date+' ('+recs+'件)\n';
-        });
-        msg += '\n番号を入力:';
-        var choice = prompt(msg);
-        if(choice === null) return;
-        var idx = parseInt(choice);
-        if(idx === 0){
-          cloudSyncSafe().then(function(){
-            alert('マージ復元完了: '+state.records.length+'件');
-            location.reload();
-          });
-        } else if(idx > 0 && idx <= histories.length){
-          var histState = histories[idx-1].state;
-          var histRecords = histState.records || [];
-          if(confirm(histRecords.length+'件の記録を復元します。現在のデータとマージされます。')){
-            var merged = mergeRecords(state.records, histRecords);
-            state.records = merged;
-            state.totalDays = Object.keys(merged.reduce(function(acc,r){
-              acc[new Date(r.date).toDateString()]=true; return acc;
-            },{})).length;
-            saveState();
-            syncAllRecordsToCloud().then(function(){
-              alert('復元完了: '+merged.length+'件');
-              location.reload();
-            });
-          }
+        if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
+        if(!result.data || !result.data.state){
+          if(typeof showToast === 'function') showToast('クラウドにデータが見つかりませんでした', 'warn');
+          return;
         }
+        var cloudState = result.data.state;
+        if(!Array.isArray(cloudState.records)){
+          if(typeof showToast === 'function') showToast('クラウドのデータ形式が不正です', 'warn');
+          return;
+        }
+        var localRecs = state.records ? state.records.length : 0;
+        var cloudRecs = cloudState.records.length;
+
+        // records はマージ（上書きしない）
+        var mergedRecords = mergeRecords(state.records || [], cloudState.records || []);
+        var mergedCount = mergedRecords.length;
+
+        // 設定系（name・疾患・reminders等）はクラウドを採用、recordsはマージ結果
+        var rawDate = result.data.updated_at;
+        var cloudDate = rawDate ? new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z') : new Date(0);
+        state = Object.assign(state, cloudState);
+        state.records = mergedRecords;
+        state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
+          acc[new Date(r.date).toDateString()]=true; return acc;
+        },{})).length;
+        state.lastSaved = cloudDate.toISOString();
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+
+        // UI再描画
+        if(typeof updateStats === 'function') updateStats();
+        if(typeof updateHistory === 'function') updateHistory();
+        if(typeof buildCalendar === 'function') buildCalendar();
+        if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
+        if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
+        if(typeof reorderRecordSections === 'function') reorderRecordSections();
+        if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+
+        var msg = 'クラウドから復元しました ✅\nローカル'+localRecs+'件 + クラウド'+cloudRecs+'件 → '+mergedCount+'件';
+        if(typeof showToast === 'function') showToast(msg, 'success');
+        console.log(msg);
+      }).catch(function(e){
+        if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
+        console.warn('手動復元エラー:', e);
+        if(typeof showToast === 'function') showToast('復元に失敗しました。通信状況を確認してください。', 'warn');
       });
   });
 }
@@ -6457,16 +6465,14 @@ function toggleFast() {
   if (state.fastingActive) return;
 
   // 安全チェック①：月経期・黄体期で推奨safeMaxを超えた場合
+  // ※ confirm()はモバイルPWAでブロックされることがあるためトーストに変更
   var phase = getCurrentCyclePhase();
   var cfg = phase ? FAST_PHASE_CONFIG[phase] : null;
   if (cfg && state.fastGoal > cfg.safeMax) {
-    var proceed = confirm(
-      '⚠️ ' + phase + 'のアドバイス\n\n' +
-      '現在の周期フェーズでは ' + cfg.rec + ' が推奨されます。\n\n' +
-      cfg.tip + '\n\n' +
-      '無理せず続けますか？（体調を最優先にしてください）'
-    );
-    if (!proceed) return;
+    if(typeof showToast === 'function'){
+      showToast('⚠️ ' + phase + '中は ' + cfg.rec + ' が推奨です。体調を最優先にしてください。', 'warn');
+    }
+    // 注意を促した上で続行（強制ブロックではなく自己判断を尊重）
   }
 
   // 安全チェック②：BEDリスクの高い疾患ユーザーへの配慮メッセージ
@@ -7428,18 +7434,29 @@ function loadCommunityTopic(){
   fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.true&order=created_at.desc&limit=1', {
     headers: {'apikey': SUPABASE_KEY}
   })
-  .then(function(r){ return r.json(); })
-  .then(function(data){
-    if(data.length > 0){
-      currentTopicId = data[0].id;
-      var weekEl = document.getElementById('community-week');
-      var qEl = document.getElementById('community-question');
-      if(weekEl) weekEl.textContent = data[0].week_label;
-      if(qEl) qEl.textContent = data[0].question;
-      loadCommunityReplies();
-    }
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
   })
-  .catch(function(e){ console.log('トピック読込エラー:', e); });
+  .then(function(data){
+    if(!Array.isArray(data) || data.length === 0){
+      // テーブル未作成またはトピックなし → フォールバック表示
+      var qEl = document.getElementById('community-question');
+      if(qEl) qEl.textContent = 'コミュニティ機能は準備中です。もうしばらくお待ちください 🌸';
+      return;
+    }
+    currentTopicId = data[0].id;
+    var weekEl = document.getElementById('community-week');
+    var qEl = document.getElementById('community-question');
+    if(weekEl) weekEl.textContent = data[0].week_label || '';
+    if(qEl) qEl.textContent = data[0].question || '';
+    loadCommunityReplies();
+  })
+  .catch(function(e){
+    console.warn('コミュニティトピック読込スキップ:', e.message);
+    var qEl = document.getElementById('community-question');
+    if(qEl) qEl.textContent = 'コミュニティ機能は準備中です 🌸';
+  });
 }
 
   function switchCVTab(tab){
@@ -7475,9 +7492,9 @@ function loadCVArchive(){
   fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.false&order=created_at.desc&limit=20', {
     headers: { 'apikey': SUPABASE_KEY }
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
   .then(function(topics){
-    if(!topics || topics.length === 0){
+    if(!Array.isArray(topics) || topics.length === 0){
       container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">過去のテーマはまだありません</div>';
       return;
     }
@@ -7511,9 +7528,9 @@ function toggleArchiveReplies(el, topicId){
   fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.'+topicId+'&order=created_at.desc&limit=20', {
     headers: { 'apikey': SUPABASE_KEY }
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
   .then(function(replies){
-    if(!replies || replies.length === 0){
+    if(!Array.isArray(replies) || replies.length === 0){
       repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">まだ回答がありません</div>';
       return;
     }
@@ -7527,6 +7544,7 @@ function toggleArchiveReplies(el, topicId){
     repliesDiv.innerHTML = html;
   })
   .catch(function(e){
+    console.warn('アーカイブ回答読込スキップ:', e.message);
     repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込みに失敗しました</div>';
   });
 }
@@ -7536,11 +7554,11 @@ function loadCommunityReplies(){
   fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.' + currentTopicId + '&order=likes.desc,created_at.desc&limit=20', {
     headers: {'apikey': SUPABASE_KEY}
   })
-  .then(function(r){ return r.json(); })
+  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
   .then(function(replies){
     var container = document.getElementById('community-replies');
     if(!container) return;
-    if(replies.length === 0){
+    if(!Array.isArray(replies) || replies.length === 0){
       container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-light);font-size:13px;">まだ回答がありません。最初の声を届けてみませんか？</div>';
       return;
     }
@@ -7573,8 +7591,8 @@ function loadCommunityReplies(){
 function postCommunityReply(){
   var input = document.getElementById('community-input');
   if(!input || !input.value.trim()) return;
-  if(!currentTopicId){ alert('テーマが読み込まれていません'); return; }
-  if(input.value.trim().length < 10){ alert('10文字以上で入力してください'); return; }
+  if(!currentTopicId){ showToast('テーマが読み込まれていません', 'warn'); return; }
+  if(input.value.trim().length < 10){ showToast('10文字以上で入力してください', 'warn'); return; }
 
   var body = {
     topic_id: currentTopicId,
@@ -7596,15 +7614,16 @@ function postCommunityReply(){
     if(r.ok){
       input.value = '';
       loadCommunityReplies();
+      showToast('投稿しました ✓', 'success');
     } else {
-      alert('投稿に失敗しました。もう一度お試しください。');
+      showToast('投稿に失敗しました。もう一度お試しください。', 'warn');
     }
   })
-  .catch(function(e){ alert('通信エラーが発生しました'); });
+  .catch(function(e){ showToast('通信エラーが発生しました', 'warn'); });
 }
 
 function likeCommunityReply(replyId, btn){
-  if(!supabaseUserId){ alert('いいねするにはログインが必要です'); return; }
+  if(!supabaseUserId){ showToast('いいねするにはログインが必要です', 'warn'); return; }
 
   fetch(SUPABASE_URL + '/rest/v1/community_likes', {
     method: 'POST',
@@ -7632,11 +7651,11 @@ function likeCommunityReply(replyId, btn){
 }
 
  function deleteCommunityReply(replyId, btn){
-  if(!confirm('この投稿を削除しますか？')) return;
+  showToast('この投稿を削除しました', 'info');
   supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session){
-      alert('ログインが必要です');
+      showToast('ログインが必要です', 'warn');
       return;
     }
     fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId + '&user_id=eq.' + session.user.id, {
@@ -7651,10 +7670,10 @@ function likeCommunityReply(replyId, btn){
         var card = btn.closest('div[style*="background:var(--white)"]');
         if(card) card.remove();
       } else {
-        alert('削除に失敗しました');
+        showToast('削除に失敗しました', 'warn');
       }
     })
-    .catch(function(e){ alert('通信エラーが発生しました'); });
+    .catch(function(e){ showToast('通信エラーが発生しました', 'warn'); });
   });
 }
 
@@ -8657,6 +8676,21 @@ function openRecordScreen(){
         cycleDetail.style.display = 'block';
       }
       if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
+      // ★ 編集モードでも疾患セルフチェックを表示・復元
+      var _editDiseaseCheck = editRec ? (editRec.diseaseCheck || null) : null;
+      setTimeout(function(){
+        updateDiseaseQuestions();
+        if(_editDiseaseCheck){
+          Object.keys(_editDiseaseCheck).forEach(function(key){
+            var group = document.querySelector('[data-disease-q="'+key+'"]');
+            if(group){
+              group.querySelectorAll('.chip').forEach(function(c){
+                if(c.textContent === _editDiseaseCheck[key]) c.classList.add('selected');
+              });
+            }
+          });
+        }
+      }, 300);
     }
     // 編集モードでは下書き復元をスキップ
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
@@ -12048,7 +12082,7 @@ function showLoginForm() {
   `;
 }
 
-let syncMode = 'login'; // 'login' or 'signup'
+var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
 
 function toggleSyncMode() {
   syncMode = syncMode === 'login' ? 'signup' : 'login';
@@ -12121,14 +12155,34 @@ async function submitSync() {
       if (result.error) throw result.error;
     }
 
-    // ログイン成功 → 既存データをuser_idに紐付け
+    // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
     if (result.data.session) {
       await migrateDataToUser(result.data.session.user.id);
-      showMessage('ログインしました。データの同期が有効になりました。', 'success');
-      
+      showMessage('ログインしました。データを同期中...', 'success');
+
+      // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
+      cloudRestore().then(function(restored) {
+        if (restored) {
+          state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+          if (typeof updateStats === 'function') updateStats();
+          if (typeof updateHistory === 'function') updateHistory();
+          if (typeof buildCalendar === 'function') buildCalendar();
+          if (typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
+          if (typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
+          if (typeof reorderRecordSections === 'function') reorderRecordSections();
+          if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+          showMessage('同期完了！過去のデータを復元しました ✓', 'success');
+        } else {
+          showMessage('ログインしました。データの同期が有効になりました。', 'success');
+        }
+      }).catch(function(e) {
+        console.warn('ログイン後復元エラー:', e);
+        showMessage('ログインしました。データの同期が有効になりました。', 'success');
+      });
+
       setTimeout(() => {
         renderSyncUI();
-      }, 1500);
+      }, 2000);
     }
 
   } catch (err) {
@@ -12318,6 +12372,8 @@ var adminCheckInterval = setInterval(function(){
   if(supabaseUserId){
     clearInterval(adminCheckInterval);
     initAdminPanel();
+    // 管理者ログイン確定後にPROバッジを即時更新
+    if(typeof updatePremiumBadges === 'function') updatePremiumBadges();
   }
 }, 1000);
 
@@ -12334,15 +12390,20 @@ async function checkPremiumStatus() {
       // 旧認証変数にも反映（cloudBackupAll等で参照）
       supabaseToken = session.access_token;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_premium')
-        .eq('user_id', session.user.id)
-        .single();
-      isPremium = profile?.is_premium || false;
+      // 管理者は自動的にPROアクセス付与
+      if (session.user.id === ADMIN_USER_ID) {
+        isPremium = true;
+      } else {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('is_premium')
+          .eq('user_id', session.user.id)
+          .single();
+        isPremium = profile?.is_premium || false;
+      }
       // ログイン状態をヘッダーに反映
       var briefEl = document.getElementById('syncStatusBrief');
-      if (briefEl) briefEl.textContent = session.user.email || 'ログイン済み';
+      if (briefEl) briefEl.textContent = (session.user.id === ADMIN_USER_ID ? '👑 ' : '') + (session.user.email || 'ログイン済み');
     } else {
       isPremium = false;
       supabaseToken = null;
@@ -12361,10 +12422,10 @@ function updateSettingsHero() {
   if (nameEl) nameEl.textContent = state.name || 'ゲスト';
 
   var badgeEl = document.getElementById('settings-premium-badge-text');
-  if (badgeEl) badgeEl.textContent = isPremium ? 'プレミアム会員 ✨' : '無料プラン';
+  if (badgeEl) badgeEl.textContent = isAdminOrPremium() ? 'プレミアム会員 ✨' : '無料プラン';
 
   var upgradeBtn = document.getElementById('settings-upgrade-btn');
-  if (upgradeBtn) upgradeBtn.style.display = isPremium ? 'none' : '';
+  if (upgradeBtn) upgradeBtn.style.display = isAdminOrPremium() ? 'none' : '';
 
   var countEl = document.getElementById('settings-record-count');
   if (countEl) countEl.textContent = (state.records || []).length;
@@ -12387,9 +12448,13 @@ function updateSettingsHero() {
   }
 }
 
+function isAdminOrPremium() {
+  return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
+}
 function updatePremiumBadges() {
+  var unlocked = isAdminOrPremium();
   document.querySelectorAll('.pf-lock-badge').forEach(badge => {
-    badge.style.display = isPremium ? 'none' : 'inline';
+    badge.style.display = unlocked ? 'none' : 'inline';
   });
   renderProHero();
   updateSettingsHero();
@@ -12404,7 +12469,7 @@ function updatePremiumBadges() {
 function renderProHero() {
   var hero = document.getElementById('pro-hero');
   if (!hero) return;
-  if (isPremium) {
+  if (isAdminOrPremium()) {
     hero.innerHTML =
       '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
       + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
@@ -12435,7 +12500,7 @@ function renderProHero() {
 }
 
 function premiumGate(callback) {
-  if (isPremium) {
+  if (isAdminOrPremium()) {
     callback();
   } else {
     // 動的な価値説明を追加
@@ -12600,12 +12665,17 @@ var premiumCheckInterval = setInterval(function(){
       checkPremiumStatus();
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
       // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
+      // ※ 同期モーダルが開いている間（ログイン処理中）は呼ばない
       if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user){
-        var _now = Date.now();
-        var _last = window._lastAuthRestore || 0;
-        if(_now - _last > 30000){
-          window._lastAuthRestore = _now;
-          if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+        var _syncOverlay = document.getElementById('syncOverlay');
+        var _syncModalOpen = _syncOverlay && _syncOverlay.classList.contains('active');
+        if(!_syncModalOpen){
+          var _now = Date.now();
+          var _last = window._lastAuthRestore || 0;
+          if(_now - _last > 30000){
+            window._lastAuthRestore = _now;
+            if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+          }
         }
       }
       // ログアウト時はステータス表示を即時更新
