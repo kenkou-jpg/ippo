@@ -8676,6 +8676,21 @@ function openRecordScreen(){
         cycleDetail.style.display = 'block';
       }
       if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
+      // ★ 編集モードでも疾患セルフチェックを表示・復元
+      var _editDiseaseCheck = editRec ? (editRec.diseaseCheck || null) : null;
+      setTimeout(function(){
+        updateDiseaseQuestions();
+        if(_editDiseaseCheck){
+          Object.keys(_editDiseaseCheck).forEach(function(key){
+            var group = document.querySelector('[data-disease-q="'+key+'"]');
+            if(group){
+              group.querySelectorAll('.chip').forEach(function(c){
+                if(c.textContent === _editDiseaseCheck[key]) c.classList.add('selected');
+              });
+            }
+          });
+        }
+      }, 300);
     }
     // 編集モードでは下書き復元をスキップ
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
@@ -12357,6 +12372,8 @@ var adminCheckInterval = setInterval(function(){
   if(supabaseUserId){
     clearInterval(adminCheckInterval);
     initAdminPanel();
+    // 管理者ログイン確定後にPROバッジを即時更新
+    if(typeof updatePremiumBadges === 'function') updatePremiumBadges();
   }
 }, 1000);
 
@@ -12405,10 +12422,10 @@ function updateSettingsHero() {
   if (nameEl) nameEl.textContent = state.name || 'ゲスト';
 
   var badgeEl = document.getElementById('settings-premium-badge-text');
-  if (badgeEl) badgeEl.textContent = isPremium ? 'プレミアム会員 ✨' : '無料プラン';
+  if (badgeEl) badgeEl.textContent = isAdminOrPremium() ? 'プレミアム会員 ✨' : '無料プラン';
 
   var upgradeBtn = document.getElementById('settings-upgrade-btn');
-  if (upgradeBtn) upgradeBtn.style.display = isPremium ? 'none' : '';
+  if (upgradeBtn) upgradeBtn.style.display = isAdminOrPremium() ? 'none' : '';
 
   var countEl = document.getElementById('settings-record-count');
   if (countEl) countEl.textContent = (state.records || []).length;
@@ -12431,9 +12448,13 @@ function updateSettingsHero() {
   }
 }
 
+function isAdminOrPremium() {
+  return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
+}
 function updatePremiumBadges() {
+  var unlocked = isAdminOrPremium();
   document.querySelectorAll('.pf-lock-badge').forEach(badge => {
-    badge.style.display = isPremium ? 'none' : 'inline';
+    badge.style.display = unlocked ? 'none' : 'inline';
   });
   renderProHero();
   updateSettingsHero();
@@ -12448,7 +12469,7 @@ function updatePremiumBadges() {
 function renderProHero() {
   var hero = document.getElementById('pro-hero');
   if (!hero) return;
-  if (isPremium) {
+  if (isAdminOrPremium()) {
     hero.innerHTML =
       '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
       + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
@@ -12479,7 +12500,7 @@ function renderProHero() {
 }
 
 function premiumGate(callback) {
-  if (isPremium) {
+  if (isAdminOrPremium()) {
     callback();
   } else {
     // 動的な価値説明を追加
