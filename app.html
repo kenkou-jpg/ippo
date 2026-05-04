@@ -2122,16 +2122,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
       <!-- Fasting Timer Widget -->
       <div class="fasting-widget" style="margin-top: 16px;">
-        <!-- Cycle Phase Banner (shown when cycle data available) -->
-        <div id="fast-phase-info" style="display:none;margin-bottom:12px;padding:9px 12px;background:rgba(255,255,255,0.12);border-radius:12px;border:1px solid rgba(255,255,255,0.18);">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
+        <!-- Fasting Advice Accordion (shown when phase/disease data available) -->
+        <div id="fast-phase-info" style="display:none;margin-bottom:12px;">
+          <!-- 常に見えるヘッダー行 -->
+          <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'200px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:rgba(255,255,255,0.10);border:1px solid rgba(255,255,255,0.16);border-radius:11px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
             <div style="display:flex;align-items:center;gap:6px;">
-              <span id="fast-phase-icon" style="font-size:14px;">🌱</span>
-              <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
+              <span id="fast-phase-icon" style="font-size:13px;">🌱</span>
+              <span id="fast-phase-name" style="font-size:11px;font-weight:700;color:white;letter-spacing:0.04em;">—</span>
+              <span style="font-size:10px;color:rgba(255,255,255,0.6);">推奨</span>
+              <span id="fast-phase-rec" style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);">—</span>
             </div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.65);">推奨 <span id="fast-phase-rec" style="font-weight:700;color:white;">—</span></div>
+            <span id="fast-phase-chevron" style="font-size:10px;color:rgba(255,255,255,0.6);transition:transform 0.2s;">▸</span>
+          </button>
+          <!-- 折り畳み本文 -->
+          <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
+            <div id="fast-phase-tip" style="font-size:11px;color:rgba(255,255,255,0.65);margin-top:7px;padding:0 4px;line-height:1.65;"></div>
           </div>
-          <div id="fast-phase-tip" style="font-size:10px;color:rgba(255,255,255,0.6);margin-top:5px;line-height:1.5;"></div>
         </div>
 
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -2255,7 +2261,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div style="font-size:40px;margin-bottom:12px;">🌱</div>
         <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
         <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
-        <button type="button" onclick="openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
+        <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
       </div>
 
       <!-- 食事×体調の相関 -->
@@ -2429,7 +2435,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <span class="nav-icon" aria-hidden="true">📊</span>
         <span>インサイト</span>
       </button>
-      <button class="nav-item nav-record-btn" type="button" onclick="openRecordScreen()" aria-label="今日を記録する">
+      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" aria-hidden="true">＋</div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
@@ -5366,29 +5372,63 @@ if (state.name && !state._onboardingDone) {
  
   if (state.fastingActive && state.fastingStart) {
     if (Date.now() - state.fastingStart > 24 * 3600000) {
+      // 24h超は自動終了
       state.fastingActive = false;
       state.fastingStart = null;
       saveState();
     } else {
       resumeFasting();
     }
+  } else if (state.fastingActive) {
+    // fastingActiveがtrueでもfastingStartがない → 不整合リセット
+    state.fastingActive = false;
+    state.fastingStart = null;
+    saveState();
   }
+  // ゴールピルの active 状態を保存値と同期
+  (function() {
+    var goal = state.fastGoal || 12;
+    document.querySelectorAll('.fw-pill').forEach(function(p) {
+      p.classList.toggle('active', parseInt(p.textContent) === goal);
+    });
+  })();
 }
   // クラウドから復元チェック（Supabase初期化を待つ）
+  // グローバルスコープで参照できるように window に割り当て
+  window._applyCloudRestore = function _applyCloudRestore() {
+    cloudRestore().then(function(restored){
+      if(restored){
+        state = JSON.parse(localStorage.getItem('ippo_state'));
+        updateStats(); updateHistory(); buildCalendar();
+        // 疾患設定UIを復元後の state に合わせて再描画
+        if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
+        if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
+        if(typeof reorderRecordSections === 'function') reorderRecordSections();
+        if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+        // ★ 別デバイスで初めてログインした場合: クラウド復元後に名前があればメイン画面へ
+        var welcomeEl = document.getElementById('screen-welcome');
+        if(state.name && welcomeEl && welcomeEl.style.display !== 'none') {
+          showMain();
+          switchTab('home');
+          if(typeof updateStats === 'function') updateStats();
+          if(typeof setDailyMessage === 'function') setDailyMessage();
+        }
+        // ファスティング状態の再評価
+        if(state.fastingActive && state.fastingStart && (Date.now() - state.fastingStart < 24 * 3600000)){
+          resumeFasting();
+        } else if(state.fastingActive){
+          state.fastingActive = false;
+          state.fastingStart = null;
+          saveState();
+        }
+      }
+    }).catch(function(e){ console.log('復元エラー:', e); });
+  }
+
   var restoreInterval = setInterval(function(){
     if(typeof supabase !== 'undefined' && supabase.auth){
       clearInterval(restoreInterval);
-      cloudRestore().then(function(restored){
-        if(restored){
-          state = JSON.parse(localStorage.getItem('ippo_state'));
-          updateStats(); updateHistory(); buildCalendar();
-          // 疾患設定UIを復元後の state に合わせて再描画
-          if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
-          if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
-          if(typeof reorderRecordSections === 'function') reorderRecordSections();
-          if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
-        }
-      }).catch(function(e){ console.log('復元エラー:', e); });
+      _applyCloudRestore();
     }
   }, 500);
 
@@ -6403,6 +6443,16 @@ function setFastGoal(h, el) {
 }
 
 function toggleFast() {
+  // fastingActiveがtrueでもfastingStartが欠落している不整合状態をリセット
+  if (state.fastingActive && !state.fastingStart) {
+    state.fastingActive = false;
+    state.fastingStart = null;
+    saveState();
+    var sb = document.getElementById('fast-start-btn');
+    var eb = document.getElementById('fast-stop-btn');
+    if (sb) sb.style.display = 'block';
+    if (eb) eb.style.display = 'none';
+  }
   if (state.fastingActive) return;
 
   // 安全チェック①：月経期・黄体期で推奨safeMaxを超えた場合
@@ -12279,15 +12329,24 @@ async function checkPremiumStatus() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
-     supabaseUserId = session.user.id;
+      supabaseUserId = session.user.id;
+      // 旧認証変数にも反映（cloudBackupAll等で参照）
+      supabaseToken = session.access_token;
+      localStorage.setItem('ippo_sb_user_id', session.user.id);
       const { data: profile } = await supabase
         .from('profiles')
         .select('is_premium')
         .eq('user_id', session.user.id)
         .single();
       isPremium = profile?.is_premium || false;
+      // ログイン状態をヘッダーに反映
+      var briefEl = document.getElementById('syncStatusBrief');
+      if (briefEl) briefEl.textContent = session.user.email || 'ログイン済み';
     } else {
       isPremium = false;
+      supabaseToken = null;
+      var briefEl = document.getElementById('syncStatusBrief');
+      if (briefEl) briefEl.textContent = '未ログイン';
     }
   } catch (e) {
     isPremium = false;
@@ -12333,6 +12392,12 @@ function updatePremiumBadges() {
   });
   renderProHero();
   updateSettingsHero();
+  // インサイトタブが表示中ならプレミアム確定後に相関分析を再描画
+  var insightsEl = document.getElementById('screen-insights');
+  if (insightsEl && insightsEl.classList.contains('active')) {
+    if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
+    if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
+  }
 }
 
 function renderProHero() {
@@ -12532,6 +12597,21 @@ var premiumCheckInterval = setInterval(function(){
     clearInterval(premiumCheckInterval);
     supabase.auth.onAuthStateChange(function(event, session){
       checkPremiumStatus();
+      // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
+      // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
+      if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user){
+        var _now = Date.now();
+        var _last = window._lastAuthRestore || 0;
+        if(_now - _last > 30000){
+          window._lastAuthRestore = _now;
+          if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+        }
+      }
+      // ログアウト時はステータス表示を即時更新
+      if(event === 'SIGNED_OUT'){
+        var briefEl = document.getElementById('syncStatusBrief');
+        if(briefEl) briefEl.textContent = '未ログイン';
+      }
     });
     checkPremiumStatus();
   }
