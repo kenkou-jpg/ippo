@@ -12108,14 +12108,34 @@ async function submitSync() {
       if (result.error) throw result.error;
     }
 
-    // ログイン成功 → 既存データをuser_idに紐付け
+    // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
     if (result.data.session) {
       await migrateDataToUser(result.data.session.user.id);
-      showMessage('ログインしました。データの同期が有効になりました。', 'success');
-      
+      showMessage('ログインしました。データを同期中...', 'success');
+
+      // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
+      cloudRestore().then(function(restored) {
+        if (restored) {
+          state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+          if (typeof updateStats === 'function') updateStats();
+          if (typeof updateHistory === 'function') updateHistory();
+          if (typeof buildCalendar === 'function') buildCalendar();
+          if (typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
+          if (typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
+          if (typeof reorderRecordSections === 'function') reorderRecordSections();
+          if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+          showMessage('同期完了！過去のデータを復元しました ✓', 'success');
+        } else {
+          showMessage('ログインしました。データの同期が有効になりました。', 'success');
+        }
+      }).catch(function(e) {
+        console.warn('ログイン後復元エラー:', e);
+        showMessage('ログインしました。データの同期が有効になりました。', 'success');
+      });
+
       setTimeout(() => {
         renderSyncUI();
-      }, 1500);
+      }, 2000);
     }
 
   } catch (err) {
