@@ -2095,6 +2095,17 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
 
+<!-- 周期フェーズバナー（無料） -->
+<div id="home-phase-banner" style="margin:10px 20px 0;display:none;">
+  <div style="background:linear-gradient(135deg,var(--rose-pale),var(--gold-light));border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:12px;">
+    <div id="home-phase-icon" style="font-size:22px;flex-shrink:0;"></div>
+    <div style="flex:1;min-width:0;">
+      <div id="home-phase-name" style="font-size:12px;font-weight:500;color:var(--plum);margin-bottom:2px;"></div>
+      <div id="home-phase-tip" style="font-size:11px;color:var(--ink-light);line-height:1.5;"></div>
+    </div>
+  </div>
+</div>
+
 <!-- クイック症状ログ -->
 <div id="home-quick-log" style="margin:12px 20px 0;">
   <div style="background:var(--white);border-radius:20px;padding:16px 18px;box-shadow:0 2px 12px var(--shadow);">
@@ -2290,6 +2301,17 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         <div class="insights-sub">記録が語るあなたのパターン</div>
       </div>
 
+<!-- フェーズ別症状マップ（PRO） -->
+<div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">
+      🌸 フェーズ別症状マップ
+    </div>
+    <span style="font-size:10px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:2px 8px;border-radius:4px;font-weight:500;">PRO</span>
+  </div>
+  <div id="phase-map-content"></div>
+</div>
+
       <!-- Stats Grid -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -2303,14 +2325,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div class="stat-unit">日</div>
         </div>
         <div class="stat-card">
-  <div class="stat-label">平均食事回数</div>
-  <div class="stat-value" id="insight-food">—</div>
-  <div class="stat-unit">食 / 日</div>
+  <div class="stat-label">今月の無痛み日</div>
+  <div class="stat-value" id="pain-free-days">—</div>
+  <div class="stat-unit">日</div>
 </div>
 <div class="stat-card">
-  <div class="stat-label">平均ファスティング</div>
-  <div class="stat-value" id="insight-wellness">—</div>
-  <div class="stat-unit">時間</div>
+  <div class="stat-label">今月の平均痛み</div>
+  <div class="stat-value" id="avg-pain-score">—</div>
+  <div class="stat-unit">/10</div>
 </div>
     </div>
 
@@ -6120,17 +6142,16 @@ function updateStats() {
   var emptyEl = document.getElementById('insights-empty-state');
   if(emptyEl) emptyEl.style.display = (state.records.length === 0) ? 'block' : 'none';
 
-  // 食事スコア → 平均食事回数に変更
-  var mealCounts = state.records.filter(function(r){ return r.mealCount; }).map(function(r){ return r.mealCount; });
-  document.getElementById('insight-food').textContent =
-    mealCounts.length ? (mealCounts.reduce(function(a,b){ return a+b; }, 0) / mealCounts.length).toFixed(1) : '—';
-
-  // ウェルネス → 平均ファスティングに変更
-  var fastHours = state.records.filter(function(r){ return r.fasting && r.fasting >= 12; }).map(function(r){ return parseFloat(r.fasting); });
-  document.getElementById('insight-wellness').textContent =
-    fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
-  // 今月の無痛み日
+  // 今月の無痛み日数
   calcPainFreeDays();
+  var pfDays = calcPainFreeDaysThisMonth();
+  var pfEl = document.getElementById('pain-free-days');
+  if (pfEl) pfEl.textContent = pfDays > 0 ? pfDays : '—';
+
+  // 今月の平均痛みスコア
+  var avgPain = calcAvgPainThisMonth();
+  var apEl = document.getElementById('avg-pain-score');
+  if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
 }
 
 // 今月の無痛み日数を計算して表示
@@ -6149,6 +6170,40 @@ function calcPainFreeDays() {
   });
   var el = document.getElementById('pain-free-count');
   if (el) el.textContent = count > 0 ? count : '—';
+}
+
+// 今月の無痛み日数を返す（stats-grid用）
+function calcPainFreeDaysThisMonth() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var count = 0;
+  (state.records || []).forEach(function(r) {
+    var d = new Date(r.date || r.record_date || '');
+    if (d.getFullYear() !== year || d.getMonth() !== month) return;
+    var pain = r.painLevel;
+    if (pain === null || pain === undefined || pain === 0) count++;
+  });
+  return count;
+}
+
+// 今月の平均痛みスコアを返す（stats-grid用）
+function calcAvgPainThisMonth() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var total = 0;
+  var count = 0;
+  (state.records || []).forEach(function(r) {
+    var d = new Date(r.date || r.record_date || '');
+    if (d.getFullYear() !== year || d.getMonth() !== month) return;
+    if (r.painLevel !== null && r.painLevel !== undefined && r.painLevel > 0) {
+      total += r.painLevel;
+      count++;
+    }
+  });
+  if (count === 0) return null;
+  return Math.round(total / count * 10) / 10;
 }
 
 function updateHistory(){
@@ -6730,6 +6785,227 @@ function startFastTimer() {
 }
 
 
+// ===== ホーム周期フェーズバナー =====
+var PHASE_BANNER_CONFIG = {
+  '月経期': {
+    icon: '🔴',
+    tips: {
+      'default':    'からだを温めて、ゆっくり過ごしましょう。',
+      '子宮内膜症': '生理痛が強い場合は無理せず休養を。記録を忘れずに。',
+      '子宮筋腫':   '経血量の変化を今日も記録してください。',
+      '子宮腺筋症': '痛みの強さを記録しておくと診察時に役立ちます。',
+      'PMS/PMDD':   '気分の波も正直に記録してみましょう。'
+    }
+  },
+  '卵胞期': {
+    icon: '🌱',
+    tips: {
+      'default':    '体調が上向きの時期。今日の症状も記録してみましょう。',
+      'PCOS':       '血糖値を意識した食事がホルモンバランスに◎。',
+      '不妊症':     'このフェーズの体調変化も記録しておきましょう。'
+    }
+  },
+  '排卵期': {
+    icon: '🥚',
+    tips: {
+      'default':    '排卵期は骨盤痛が出やすい時期です。',
+      '子宮内膜症': '排卵痛が強い場合は部位と強さを記録してください。',
+      '卵巣嚢腫':   '片側の痛みの左右を記録すると診察時に有用です。',
+      '不妊症':     '排卵のサインを体温・おりものとあわせて記録しましょう。',
+      'PCOS':       '排卵の有無を基礎体温で確認しましょう。'
+    }
+  },
+  '黄体期': {
+    icon: '🌙',
+    tips: {
+      'default':    '症状が出やすい時期。無理せず記録を続けましょう。',
+      'PMS/PMDD':   'PMSの症状が出始める時期。気分の変化も記録してください。',
+      '子宮内膜症': '骨盤痛が増えやすい時期です。強さと部位を記録しましょう。',
+      '更年期障害':  'ほてりや不眠が出やすい時期。SMIチェックを忘れずに。',
+      'PCOS':       '基礎体温が上がっているか確認しましょう。'
+    }
+  }
+};
+
+function updateHomePhaseBanner() {
+  var banner = document.getElementById('home-phase-banner');
+  var iconEl  = document.getElementById('home-phase-icon');
+  var nameEl  = document.getElementById('home-phase-name');
+  var tipEl   = document.getElementById('home-phase-tip');
+  if (!banner || !iconEl || !nameEl || !tipEl) return;
+
+  var phase = (typeof getCurrentCyclePhase === 'function') ? getCurrentCyclePhase() : null;
+  if (!phase) { banner.style.display = 'none'; return; }
+
+  var cfg = PHASE_BANNER_CONFIG[phase];
+  if (!cfg) { banner.style.display = 'none'; return; }
+
+  var diseases = state.myDiseases || [];
+  var tip = cfg.tips['default'] || '';
+  // 疾患別tipを優先
+  for (var i = 0; i < diseases.length; i++) {
+    if (cfg.tips[diseases[i]]) {
+      tip = cfg.tips[diseases[i]];
+      break;
+    }
+  }
+
+  iconEl.textContent = cfg.icon;
+  nameEl.textContent = '周期 ' + phase;
+  tipEl.textContent  = tip;
+  banner.style.display = 'block';
+}
+
+// ===== フェーズ別症状マップ =====
+function renderPhaseMap() {
+  var container = document.getElementById('phase-map-content');
+  if (!container) return;
+
+  // PRO以外はロックカードを表示
+  if (!isAdminOrPremium()) {
+    container.innerHTML =
+      '<div onclick="premiumGate(openCyclePhaseReport)" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:18px;padding:18px 20px;cursor:pointer;position:relative;overflow:hidden;">'
+      + '<div style="position:absolute;top:0;right:0;bottom:0;width:50%;background:linear-gradient(135deg,rgba(200,169,110,0.08),transparent);"></div>'
+      + '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;">周期フェーズ × 症状のパターンを見る</div>'
+      + '<div style="font-size:11px;color:var(--ink-light);line-height:1.7;margin-bottom:14px;">どのフェーズで骨盤痛が集中しているか、黄体期のエネルギーレベルはどうかがわかります。診察前の確認にも役立ちます。</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
+      + _buildPhaseBarPreview()
+      + '</div>'
+      + '<div style="background:var(--rose);color:white;border-radius:12px;padding:10px;text-align:center;font-size:13px;font-weight:500;">🔓 PROで全フェーズを確認する</div>'
+      + '</div>';
+    return;
+  }
+
+  // PROユーザー：実データを描画
+  var analysis = analyzeCyclePhases(state.records || []);
+  var phaseNames = ['月経期', '卵胞期', '排卵期', '黄体期'];
+  var phaseColors = { '月経期': '#c4878c', '卵胞期': '#6b9e78', '排卵期': '#d4a574', '黄体期': '#7ba3c4' };
+  var phaseIcons  = { '月経期': '🔴', '卵胞期': '🌱', '排卵期': '🥚', '黄体期': '🌙' };
+
+  if (Object.keys(analysis).length === 0) {
+    container.innerHTML =
+      '<div style="background:var(--white);border-radius:16px;padding:20px;text-align:center;color:var(--ink-light);font-size:12px;line-height:1.8;box-shadow:0 1px 6px var(--shadow);">'
+      + '🌸 生理周期のデータがまだ不足しています。<br>生理日を記録し続けると、フェーズ別の傾向が見えてきます。'
+      + '</div>';
+    return;
+  }
+
+  // フェーズ選択タブ
+  var html = '<div id="phase-tab-row" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;">';
+  phaseNames.forEach(function(name, idx) {
+    var active = idx === 0 ? 'background:var(--rose);color:white;border-color:var(--rose);' : 'background:var(--white);color:var(--ink-light);border-color:#e8ddd8;';
+    html += '<button onclick="selectPhaseTab(\'' + name + '\')" id="phase-tab-' + name + '" style="flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid;font-size:12px;font-family:\'Noto Sans JP\',sans-serif;cursor:pointer;transition:all 0.2s;' + active + '">'
+      + phaseIcons[name] + ' ' + name + '</button>';
+  });
+  html += '</div>';
+
+  // 各フェーズのパネル
+  phaseNames.forEach(function(name) {
+    var d = analysis[name];
+    var color = phaseColors[name];
+    var display = name === '月経期' ? 'block' : 'none';
+
+    html += '<div id="phase-panel-' + name + '" style="display:' + display + ';">';
+    if (!d) {
+      html += '<div style="background:var(--white);border-radius:16px;padding:16px;text-align:center;color:var(--ink-light);font-size:12px;box-shadow:0 1px 6px var(--shadow);">'
+        + 'このフェーズのデータがまだありません。</div>';
+    } else {
+      html += '<div style="background:var(--white);border-radius:18px;padding:18px;box-shadow:0 1px 8px var(--shadow);border-top:3px solid ' + color + ';">';
+
+      // 指標グリッド
+      html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">';
+      var metrics = [
+        { label: '平均痛みレベル', val: d.avgPain,     unit: '/10',  max: 10,  warn: 5    },
+        { label: 'エネルギー',     val: d.avgEnergy,   unit: '/5',   max: 5,   warn: null },
+        { label: '睡眠の質',       val: d.avgSleep,    unit: '/5',   max: 5,   warn: null },
+        { label: 'ウェルネス',     val: d.avgWellness, unit: '/100', max: 100, warn: 40   }
+      ];
+      metrics.forEach(function(m) {
+        var pct = m.val !== '-' ? Math.round(parseFloat(m.val) / m.max * 100) : 0;
+        var valColor = (m.warn && m.val !== '-' && parseFloat(m.val) >= m.warn) ? '#c4878c' : color;
+        html += '<div style="background:var(--cream);border-radius:12px;padding:12px;">';
+        html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">' + m.label + '</div>';
+        html += '<div style="font-size:18px;font-weight:600;color:' + valColor + ';line-height:1;">' + m.val + '<span style="font-size:10px;color:var(--ink-light);">' + m.unit + '</span></div>';
+        html += '<div style="height:4px;background:#e8ddd8;border-radius:2px;margin-top:6px;overflow:hidden;">';
+        html += '<div style="height:100%;width:' + pct + '%;background:' + valColor + ';border-radius:2px;transition:width 0.4s;"></div>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+
+      // 多い症状
+      if (d.topSymptoms && d.topSymptoms.length > 0) {
+        html += '<div style="margin-bottom:12px;">';
+        html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">このフェーズで多い症状</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        d.topSymptoms.slice(0, 5).forEach(function(s) {
+          html += '<span style="font-size:11px;background:#fdf0f2;color:#c4878c;padding:4px 10px;border-radius:12px;">'
+            + s[0] + ' <span style="font-size:10px;opacity:0.7;">(' + s[1] + '日)</span></span>';
+        });
+        html += '</div></div>';
+      }
+
+      // 多い生活要因
+      if (d.topFactors && d.topFactors.length > 0) {
+        html += '<div style="margin-bottom:12px;">';
+        html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">このフェーズで多い要因</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        d.topFactors.slice(0, 4).forEach(function(f) {
+          html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:12px;">'
+            + f[0] + ' <span style="font-size:10px;opacity:0.7;">(' + f[1] + '日)</span></span>';
+        });
+        html += '</div></div>';
+      }
+
+      // 詳細レポートへのリンク
+      html += '<button onclick="openCyclePhaseReport()" style="width:100%;padding:11px;background:var(--cream);border:1.5px solid #e8ddd8;border-radius:12px;font-family:\'Noto Sans JP\',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;margin-top:4px;">全フェーズの詳細比較を見る →</button>';
+
+      html += '</div>';
+    }
+    html += '</div>';
+  });
+
+  container.innerHTML = html;
+}
+
+function selectPhaseTab(name) {
+  var phaseNames = ['月経期', '卵胞期', '排卵期', '黄体期'];
+  var phaseColors = { '月経期': '#c4878c', '卵胞期': '#6b9e78', '排卵期': '#d4a574', '黄体期': '#7ba3c4' };
+  phaseNames.forEach(function(n) {
+    var tab = document.getElementById('phase-tab-' + n);
+    var panel = document.getElementById('phase-panel-' + n);
+    if (tab) {
+      if (n === name) {
+        tab.style.background = phaseColors[n] || 'var(--rose)';
+        tab.style.color = 'white';
+        tab.style.borderColor = phaseColors[n] || 'var(--rose)';
+      } else {
+        tab.style.background = 'var(--white)';
+        tab.style.color = 'var(--ink-light)';
+        tab.style.borderColor = '#e8ddd8';
+      }
+    }
+    if (panel) panel.style.display = n === name ? 'block' : 'none';
+  });
+}
+
+// 非PROユーザー向けのぼかしプレビューバーを生成
+function _buildPhaseBarPreview() {
+  var phases = [
+    { name: '月経期', color: '#c4878c', val: 65 },
+    { name: '卵胞期', color: '#6b9e78', val: 85 },
+    { name: '排卵期', color: '#d4a574', val: 80 },
+    { name: '黄体期', color: '#7ba3c4', val: 60 }
+  ];
+  return phases.map(function(p) {
+    return '<div style="flex:1;text-align:center;">'
+      + '<div style="height:40px;background:' + p.color + '33;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">'
+      + '<div style="width:70%;height:' + p.val + '%;background:' + p.color + '88;border-radius:4px 4px 0 0;filter:blur(1px);"></div>'
+      + '</div>'
+      + '<div style="font-size:9px;color:var(--ink-light);margin-top:4px;">' + p.name + '</div>'
+      + '</div>';
+  }).join('');
+}
+
 // ===== TABS =====
 function switchTab(tab, btn) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -6739,6 +7015,7 @@ function switchTab(tab, btn) {
 
 
     if (tab === 'insights') {
+    if (typeof renderPhaseMap === 'function') renderPhaseMap();
     setTimeout(function(){
       if (typeof updateFoodBodyCorrelation === 'function') {
         updateFoodBodyCorrelation();
@@ -6747,6 +7024,9 @@ function switchTab(tab, btn) {
         updateCycleSymptomCorrelation();
       }
     }, 500);
+  }
+  if (tab === 'home') {
+    if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   }
   }
 　
@@ -8652,6 +8932,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateHomeCTA();
   updateHomeSummary();
   initQuickLog();
+  if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   applyFastingVisibility();
   updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
@@ -12821,6 +13102,7 @@ function updatePremiumBadges() {
     if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
     if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
   }
+  if (typeof renderPhaseMap === 'function') renderPhaseMap();
 }
 
 function renderProHero() {
