@@ -9,13 +9,13 @@
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ippo — 生理周期・卵巣ケア記録アプリ</title>
+<title>ippo — 女性疾患・症状記録アプリ</title>
   <!-- OGP Meta Tags -->
  <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="images/icon-512.png">
 
 <meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
-<meta property="og:description" content="生理周期・食事・ファスティングタイムを毎日1分で記録。30日後、あなただけのからだのパターンが見えてきます。">
+<meta property="og:description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。30日後、あなただけのからだのパターンが見えてきます。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ippo-app.com/app.html">
 <meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
@@ -1506,8 +1506,14 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 .cal-day:hover { background: var(--rose-pale); }
 .cal-day.empty { pointer-events: none; }
 .cal-day.today { background: var(--rose); color: white; font-weight: 600; border-radius: 50%; }
-.cal-day.has-record::after { content: ''; position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--rose); }
-.cal-day.today.has-record::after { background: white; }
+.cal-day.has-record::after { display: none; }
+.cal-day.today.has-record::after { display: none; }
+.cal-day.pain-0 { background: #edf7f1; color: var(--ink); }
+.cal-day.pain-1 { background: #f5e8eb; color: var(--ink); }
+.cal-day.pain-2 { background: #edbed0; color: var(--ink); }
+.cal-day.pain-3 { background: #d4537e; color: white; }
+.cal-day.pain-4 { background: #993556; color: white; }
+.cal-day.has-record-no-pain { background: #e8f4ed; color: var(--ink); }
 
 /* ===== DAY DETAIL MODAL ===== */
 .dm-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(44,36,32,0.5); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; }
@@ -2029,8 +2035,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   <!-- ===== WELCOME ===== -->
   <div id="screen-welcome" class="fade-in">
     <div class="welcome-logo">ippo</div>
-    <div class="welcome-tagline">生理周期・卵巣ケア<br>セルフ記録アプリ</div>
-    <div class="welcome-sub">食事・感情・ファスティングタイムを毎日記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
+    <div class="welcome-tagline">子宮内膜症・PCOS・子宮筋腫<br>症状記録アプリ</div>
+    <div class="welcome-sub">毎日の症状・痛み・体調を記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
 
     <!-- Before/After Cards -->
     <div class="before-after">
@@ -2089,6 +2095,28 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       </div>
 
 
+<!-- クイック症状ログ -->
+<div id="home-quick-log" style="margin:12px 20px 0;">
+  <div style="background:var(--white);border-radius:20px;padding:16px 18px;box-shadow:0 2px 12px var(--shadow);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の症状</div>
+      <div id="quick-log-status" style="font-size:11px;color:var(--ink-light);">未記録</div>
+    </div>
+    <div id="quick-symptom-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;"></div>
+    <div style="margin-bottom:14px;">
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">痛みの強さ</div>
+      <div id="quick-pain-scale" style="display:flex;gap:8px;">
+        <button onclick="selectQuickPain(0,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😊</button>
+        <button onclick="selectQuickPain(1,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">🙂</button>
+        <button onclick="selectQuickPain(2,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😐</button>
+        <button onclick="selectQuickPain(3,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😣</button>
+        <button onclick="selectQuickPain(4,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😭</button>
+      </div>
+    </div>
+    <button id="quick-log-btn" onclick="saveQuickLog()" style="width:100%;padding:13px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;">今日の症状を記録する</button>
+  </div>
+</div>
+
            <!-- Record CTA -->
       <div id="home-record-cta" style="margin:16px 20px;" onclick="handleHomeCTA()">
         <div id="home-cta-card" style="background:var(--cta-default);border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.12);transition:transform 0.15s,box-shadow 0.15s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''">
@@ -2117,9 +2145,9 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div class="mc-unit">日</div>
         </div>
         <div class="milestone-card">
-          <div class="mc-number" id="fast-week">—</div>
-          <div class="mc-label">今週のファスティングタイム</div>
-          <div class="mc-unit">累計</div>
+          <div class="mc-number" id="pain-free-count">—</div>
+          <div class="mc-label">今月の無痛み日</div>
+          <div class="mc-unit">日</div>
         </div>
       </div>
 
@@ -2204,8 +2232,31 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
           <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
         </div>
         <div class="cal-grid" id="calGrid"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
+          <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
+          <div style="display:flex;gap:3px;">
+            <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--ink-light);">強い</span>
+        </div>
       </div>
 
+
+<!-- 医師向けサマリーバナー -->
+<div id="doctor-report-banner" style="display:none;margin:0 20px 16px;">
+  <div onclick="openDoctorSummary()" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 2px 8px var(--shadow);">
+    <div style="width:40px;height:40px;background:var(--rose-pale);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏥</div>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px;">診察レポートを作成</div>
+      <div style="font-size:11px;color:var(--ink-light);">症状の記録を医師に伝えやすい形でまとめます</div>
+    </div>
+    <div style="color:var(--ink-light);font-size:18px;">›</div>
+  </div>
+</div>
 
        <!-- Today Message -->
       <div class="today-msg">
@@ -2227,7 +2278,12 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
      <!-- ===== INSIGHTS SCREEN ===== -->
     <div id="screen-insights" class="screen">
       <div class="spacer-top"></div>
-      
+      <div style="display:flex;justify-content:flex-end;padding:0 20px 4px;">
+        <button onclick="switchTab('premium', document.querySelector('.nav-item:last-child'))"
+          style="font-size:11px;color:var(--rose);background:var(--rose-pale);border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+          ✨ PRO機能を見る
+        </button>
+      </div>
 
       <div class="insights-header">
         <div class="insights-title">インサイト</div>
@@ -2440,10 +2496,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
       <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" aria-hidden="true">＋</div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
-      </button>
-      <button class="nav-item" type="button" onclick="switchTab('premium', this)" aria-label="プレミアム機能">
-        <span class="nav-icon" aria-hidden="true">✨</span>
-        <span>PRO</span>
       </button>
       <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
         <span class="nav-icon" aria-hidden="true">⚙️</span>
@@ -2928,6 +2980,26 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
         </div>
       </div>
 
+      <!-- 機能設定 -->
+      <div class="settings-section">
+        <div class="settings-section-title">機能設定</div>
+        <div class="settings-card">
+          <div class="settings-row" onclick="toggleFastingFeature()">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f5ecd8;">⏱️</div>
+              <div>
+                <div class="settings-row-text">ファスティング機能</div>
+                <div class="settings-row-sub">ホームにタイマーを表示します</div>
+              </div>
+            </div>
+            <div class="settings-row-right">
+              <span id="fasting-toggle-label" style="font-size:12px;color:var(--ink-light);">オフ</span>
+              <span class="settings-chevron">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Data Management -->
       <div class="settings-section">
         <div class="settings-section-title">データ管理</div>
@@ -2972,7 +3044,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="if(confirm('すべての記録を削除しますか？'))clearData()">
+          <div class="settings-row" onclick="showConfirmModal('すべての記録を削除しますか？', clearData)">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#fde8e8;">🗑</div>
               <div><div class="settings-row-text" style="color:#c9747a;">すべての記録を削除</div></div>
@@ -3094,7 +3166,7 @@ function addReminderUI(){
   if(!time) return;
   // 簡易バリデーション
   if(!/^\d{1,2}:\d{2}$/.test(time)){
-    alert('時間の形式が正しくありません（例: 21:00）');
+    showAlertModal('時間の形式が正しくありません（例: 21:00）');
     return;
   }
   var label = prompt('ラベルを入力（例: 今日の記録）', '今日の記録');
@@ -4094,7 +4166,7 @@ function startCustomExperiment(){
   var hypothesis = (document.getElementById('exp-custom-hypothesis')||{}).value||'';
   var days = parseInt((document.getElementById('exp-custom-days')||{}).value) || 30;
   if(!title.trim()){
-    alert('実験名を入力してください');
+    showAlertModal('実験名を入力してください');
     return;
   }
   if(!state.experiments) state.experiments = [];
@@ -4113,11 +4185,12 @@ function startCustomExperiment(){
 }
 
 function cancelExperiment(idx){
-  if(!confirm('この実験を中止しますか？')) return;
-  state.experiments[idx].status = 'cancelled';
-  saveState();
-  document.getElementById('expOverlay').remove();
-  openExperiments();
+  showConfirmModal('この実験を中止しますか？', function() {
+    state.experiments[idx].status = 'cancelled';
+    saveState();
+    document.getElementById('expOverlay').remove();
+    openExperiments();
+  });
 }
 
 function completeExperiment(idx){
@@ -4479,7 +4552,7 @@ function submitPremiumWaitlist(){
   var emailInput = document.getElementById('premium-email');
   var email = emailInput ? emailInput.value.trim() : '';
   if(!email || email.indexOf('@') === -1){
-    alert('メールアドレスを入力してください');
+    showAlertModal('メールアドレスを入力してください');
     return;
   }
   supabaseEnsureAuth().then(function(){
@@ -4501,15 +4574,15 @@ function submitPremiumWaitlist(){
     } else {
       return r.json().then(function(data){
         if(data.code === '23505'){
-          alert('このメールアドレスは既に登録済みです');
+          showAlertModal('このメールアドレスは既に登録済みです');
         } else {
-          alert('送信に失敗しました。もう一度お試しください');
+          showAlertModal('送信に失敗しました。もう一度お試しください');
         }
       });
     }
   }).catch(function(e){
     console.warn('Waitlist error:', e);
-    alert('通信エラーが発生しました');
+    showAlertModal('通信エラーが発生しました');
   });
 }
 
@@ -5010,7 +5083,7 @@ function showRecoveryBanner(recovered, count){
 // ===== 第3層：復元UI =====
 function openRestoreUI(){
   supabase.auth.getSession().then(function(res){
-    if(!res.data.session){ alert('ログインが必要です'); return; }
+    if(!res.data.session){ showAlertModal('ログインが必要です'); return; }
     var userId = res.data.session.user.id;
     supabase.from('user_data_history')
       .select('id,records_count,created_at')
@@ -5018,15 +5091,15 @@ function openRestoreUI(){
       .order('created_at', {ascending:false})
       .limit(5)
       .then(function(r){
-        if(!r.data || r.data.length === 0){ alert('バックアップ履歴がありません'); return; }
+        if(!r.data || r.data.length === 0){ showAlertModal('バックアップ履歴がありません'); return; }
         var msg = 'バックアップ履歴:\n\n';
         r.data.forEach(function(h,i){
           msg += (i+1)+'. '+new Date(h.created_at).toLocaleString('ja-JP')+' ('+h.records_count+'件)\n';
         });
         msg += '\n最新のバックアップから復元しますか？';
-        if(confirm(msg)){
+        showConfirmModal(msg, function() {
           restoreFromHistory(r.data[0].id);
-        }
+        });
       });
   });
 }
@@ -5127,7 +5200,7 @@ function repairFromBest(){
           });
       });
     } else {
-      alert('ローカルデータが最新です。');
+      showAlertModal('ローカルデータが最新です。');
       var el = document.getElementById('diagnosis-overlay');
       if(el) el.remove();
     }
@@ -5135,24 +5208,25 @@ function repairFromBest(){
 }
 
 function restoreFromHistory(historyId){
-  if(!confirm('このバックアップから復元しますか？')) return;
-  supabase.from('user_data_history')
-    .select('state')
-    .eq('id', historyId)
-    .single()
-    .then(function(r){
-      if(r.data && r.data.state && r.data.state.records){
-        state.records = mergeRecords(state.records, r.data.state.records);
-        saveState();
-        buildCalendar();
-        updateHomeSummary();
-        showRecoveryBanner(true, state.records.length);
-        var el = document.getElementById('diagnosis-overlay');
-        if(el) el.remove();
-      } else {
-        alert('バックアップデータが見つかりません');
-      }
-    });
+  showConfirmModal('このバックアップから復元しますか？', function() {
+    supabase.from('user_data_history')
+      .select('state')
+      .eq('id', historyId)
+      .single()
+      .then(function(r){
+        if(r.data && r.data.state && r.data.state.records){
+          state.records = mergeRecords(state.records, r.data.state.records);
+          saveState();
+          buildCalendar();
+          updateHomeSummary();
+          showRecoveryBanner(true, state.records.length);
+          var el = document.getElementById('diagnosis-overlay');
+          if(el) el.remove();
+        } else {
+          showAlertModal('バックアップデータが見つかりません');
+        }
+      });
+  });
 }
 // ===== localStorageからIndexedDBへの移行 =====
 function migrateToIDB(){
@@ -6055,10 +6129,72 @@ function updateStats() {
   var fastHours = state.records.filter(function(r){ return r.fasting && r.fasting >= 12; }).map(function(r){ return parseFloat(r.fasting); });
   document.getElementById('insight-wellness').textContent =
     fastHours.length ? (fastHours.reduce(function(a,b){ return a+b; }, 0) / fastHours.length).toFixed(1) : '—';
+  // 今月の無痛み日
+  calcPainFreeDays();
+}
+
+// 今月の無痛み日数を計算して表示
+function calcPainFreeDays() {
+  var now = new Date();
+  var year = now.getFullYear();
+  var month = now.getMonth();
+  var count = 0;
+  (state.records || []).forEach(function(r) {
+    if (!r.date) return;
+    var d = new Date(r.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      var pain = r.painLevel;
+      if (pain === null || pain === undefined || pain === 0) count++;
+    }
+  });
+  var el = document.getElementById('pain-free-count');
+  if (el) el.textContent = count > 0 ? count : '—';
 }
 
 function updateHistory(){
   // 最近の記録セクション削除済み
+}
+
+// ===== 疾患別症状チップ優先表示 =====
+function buildSymptomChips() {
+  var prioritized = [];
+  var diseases = state.myDiseases || [];
+
+  // 疾患別症状を優先的に追加
+  diseases.forEach(function(d) {
+    var cfg = DISEASE_CONFIG[d];
+    if (!cfg || !cfg.specificSymptoms) return;
+    cfg.specificSymptoms.forEach(function(s) {
+      if (prioritized.indexOf(s) === -1) prioritized.push(s);
+    });
+  });
+
+  // ユーザー設定の症状を次に追加
+  var userSymptoms = state.selectedSymptoms || [];
+  userSymptoms.forEach(function(s) {
+    if (prioritized.indexOf(s) === -1) prioritized.push(s);
+  });
+
+  // デフォルト症状をフォールバックとして追加
+  var defaults = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み','だるさ','不正出血','吐き気','むくみ','気分の落ち込み','イライラ'];
+  defaults.forEach(function(s) {
+    if (prioritized.indexOf(s) === -1) prioritized.push(s);
+  });
+
+  return prioritized;
+}
+
+function applySymptomChipPriority() {
+  var prioritized = buildSymptomChips();
+  var container = document.getElementById('rs-symptoms');
+  if (!container) return;
+  // 疾患優先症状に一致するチップを先頭に移動
+  prioritized.forEach(function(sym) {
+    var chip = Array.prototype.find.call(container.querySelectorAll('.chip'), function(c) {
+      return c.textContent === sym;
+    });
+    if (chip) container.insertBefore(chip, container.firstChild);
+  });
 }
 
 function updateUnlock(){
@@ -6486,10 +6622,10 @@ function toggleFast() {
   if (bedDisease && state.fastGoal >= 16 && !state._fastBedWarningShown) {
     state._fastBedWarningShown = true;
     var dOverride = FAST_DISEASE_OVERRIDE[bedDisease];
-    alert(
-      '🫶 ' + bedDisease + 'をお持ちの方へ\n\n' +
-      dOverride.bedNote + '\n\n' +
-      '推奨: ' + dOverride.rec + '\n\n' +
+    showAlertModal(
+      '🫶 ' + bedDisease + 'をお持ちの方へ<br><br>' +
+      dOverride.bedNote + '<br><br>' +
+      '推奨: ' + dOverride.rec + '<br><br>' +
       '断食に過食衝動を感じたら、ウィジェット内の「食欲が止まらない」ボタンでサポートを呼び出せます。'
     );
   }
@@ -6867,17 +7003,36 @@ document.getElementById('success-overlay').classList.add('active');
   updateHistory();
   buildCalendar();            // ← 追加
 
-  // Success message — cycle through msgs so it never gets stuck
-  const msgs = [
-    `記録${state.totalDays}日目。<br>からだの声を聴いてくれてありがとう。`,
-    `${state.streak}日連続！<br>継続はからだへの最高のギフト。`,
-    `今日も一歩。<br>積み重ねが、あなたのパターンを見せてくれます。`,
-    `${state.streak}日続いています。<br>からだのリズムが、少しずつ見えてきます。`,
-    `記録が積み重なるほど、<br>あなただけのパターンが浮かびあがります。`,
-  ];
-  const msgIdx = (state.totalDays - 1) % msgs.length;
-  document.getElementById('success-message').innerHTML = msgs[msgIdx];
+  // パーソナライズされた成功メッセージ
+  var latestRecord = (state.records || []).slice().reverse().find(function(r) {
+    return r.date && r.date.slice(0, 10) === new Date().toISOString().slice(0, 10);
+  });
+  var successResult = getSuccessMessage(latestRecord);
+  document.getElementById('success-emoji').textContent = successResult.emoji;
+  document.getElementById('success-title').textContent = successResult.title;
+  document.getElementById('success-message').textContent = successResult.msg;
   document.getElementById('success-overlay').classList.add('active');
+}
+
+// ===== パーソナライズされた記録完了メッセージ =====
+function getSuccessMessage(record) {
+  var streak = state.streak || 0;
+  var pain = record && record.painLevel !== undefined ? record.painLevel : -1;
+
+  var emoji = '🌸';
+  var title = '記録できました';
+  var msg = '今日もからだの声を聴いてくれてありがとう。';
+
+  // 連続記録マイルストーン
+  if (streak === 7)  { emoji = '✨'; title = '7日連続達成！'; msg = '1週間、続けられました。パターンが見え始めてきます。'; }
+  else if (streak === 14) { emoji = '🌟'; title = '2週間連続！'; msg = 'この記録が、次の診察を変えてくれます。'; }
+  else if (streak === 30) { emoji = '🏆'; title = '1ヶ月達成！'; msg = 'AIパターン解析でこの30日間を振り返りましょう。'; }
+
+  // 痛みがある日
+  else if (pain >= 3) { emoji = '🫶'; title = '記録できました'; msg = 'つらい日も記録してくれてありがとう。この積み重ねが大切です。'; }
+  else if (pain === 0) { emoji = '☀️'; title = '今日は楽な日ですね'; msg = 'こういう日のデータも、パターン発見に役立ちます。'; }
+
+  return { emoji: emoji, title: title, msg: msg };
 }
 
 function closeSuccess() {
@@ -6895,13 +7050,13 @@ function shareApp() {
     });
   } else {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      alert('URLをコピーしました！友だちに送ってください 🌸');
+      showAlertModal('URLをコピーしました！友だちに送ってください 🌸');
     });
   }
 }
 
 function addToHome() {
-  alert('ブラウザの「ホーム画面に追加」からアプリとして追加できます。\niOS: 共有ボタン → 「ホーム画面に追加」\nAndroid: メニュー → 「ホーム画面に追加」');
+  showAlertModal('ブラウザの「ホーム画面に追加」からアプリとして追加できます。<br>iOS: 共有ボタン → 「ホーム画面に追加」<br>Android: メニュー → 「ホーム画面に追加」');
   // バグ18: フラグを保存してリロード後も非表示を維持
   try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
   document.getElementById('add-home-banner').style.display = 'none';
@@ -7274,8 +7429,14 @@ function updateHomeSummary(){
   }
 
   content.innerHTML = html;
+
+  // 診察レポートバナーの表示制御（7日以上記録で表示）
+  var banner = document.getElementById('doctor-report-banner');
+  if (banner) {
+    banner.style.display = (state.records && state.records.length >= 7) ? 'block' : 'none';
+  }
 }
-  
+
 
 function editPastRecord(dateStr) {
   // オーバーレイを閉じる
@@ -7802,12 +7963,12 @@ function updateRecordSymptoms(){
 }
 
 function submitFeedback() {
-  if (!state.rating) { alert('評価を選んでください'); return; }
+  if (!state.rating) { showAlertModal('評価を選んでください'); return; }
   var comment = document.getElementById('fb-comment') ? document.getElementById('fb-comment').value.trim() : '';
   var subject = encodeURIComponent('ippoフィードバック - ' + state.rating + '星');
   var body = encodeURIComponent('評価: ' + state.rating + '/5\n\n感想:\n' + (comment || '（なし）') + '\n\nユーザー: ' + (state.name || '匿名') + '\n日時: ' + new Date().toLocaleString('ja-JP'));
   window.location.href = 'mailto:YOUR_EMAIL@example.com?subject=' + subject + '&body=' + body;
-  alert('ありがとうございます！メーラーが開きます 🌸');
+  showAlertModal('ありがとうございます！メーラーが開きます 🌸');
   state.rating = 0;
   document.querySelectorAll('.fb-star').forEach(function(s){ s.classList.remove('active'); });
   if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
@@ -8046,22 +8207,23 @@ function saveEditRecord(){
 }
 
 function deleteEditRecord(){
-  if(!confirm('この日の記録を削除しますか？')) return;
-  var recs = state.records.filter(function(r){
-    return new Date(r.date).toDateString() === editingDateStr;
+  showConfirmModal('この日の記録を削除しますか？', function() {
+    var recs = state.records.filter(function(r){
+      return new Date(r.date).toDateString() === editingDateStr;
+    });
+    recs.forEach(function(r){
+      if(r.id) softDeleteRecord(r.id);
+    });
+    // IDがないレコードは旧方式で削除
+    state.records = state.records.filter(function(r){
+      return new Date(r.date).toDateString() !== editingDateStr || r.id;
+    });
+    saveState();
+    buildCalendar();
+    updateHistory();
+    closeEditRecord();
+    document.getElementById('dmOverlay').classList.remove('dm-open');
   });
-  recs.forEach(function(r){
-    if(r.id) softDeleteRecord(r.id);
-  });
-  // IDがないレコードは旧方式で削除
-  state.records = state.records.filter(function(r){
-    return new Date(r.date).toDateString() !== editingDateStr || r.id;
-  });
-  saveState();
-  buildCalendar();
-  updateHistory();
-  closeEditRecord();
-  document.getElementById('dmOverlay').classList.remove('dm-open');
 }
 
 
@@ -8256,6 +8418,176 @@ function createMealDonut(meals, fasting, fastingGoal){
   return html;
 }
 
+// ===== 独自モーダル（alert/confirm代替） =====
+function showConfirmModal(message, onConfirm, onCancel) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
+  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:17px;color:var(--ink);margin-bottom:16px;line-height:1.6;">' + message + '</div>'
+    + '<div style="display:flex;gap:10px;">'
+    + '<button id="_confirm_cancel" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid #e8ddd8;background:var(--white);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:var(--ink-mid);cursor:pointer;">キャンセル</button>'
+    + '<button id="_confirm_ok" style="flex:1;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:white;font-weight:500;cursor:pointer;">確認</button>'
+    + '</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  box.querySelector('#_confirm_ok').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
+  box.querySelector('#_confirm_cancel').onclick = function() { overlay.remove(); if (onCancel) onCancel(); };
+}
+
+function showAlertModal(message, onClose) {
+  var overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
+  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:16px;color:var(--ink);margin-bottom:20px;line-height:1.7;">' + message + '</div>'
+    + '<button style="width:100%;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:14px;color:white;font-weight:500;cursor:pointer;">閉じる</button>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  box.querySelector('button').onclick = function() { overlay.remove(); if (onClose) onClose(); };
+}
+
+// ===== ファスティング機能のオプション化 =====
+function toggleFastingFeature() {
+  state.fastingEnabled = !state.fastingEnabled;
+  saveState();
+  applyFastingVisibility();
+  var label = document.getElementById('fasting-toggle-label');
+  if (label) label.textContent = state.fastingEnabled ? 'オン' : 'オフ';
+}
+
+function applyFastingVisibility() {
+  var widget = document.querySelector('.fasting-widget');
+  var phaseInfo = document.getElementById('fast-phase-info');
+  var recoveryCard = document.getElementById('fast-recovery-card');
+  // 既存ユーザーは fastingEnabled が未定義の場合 true（後方互換）
+  var show = (state.fastingEnabled === undefined) ? true : !!state.fastingEnabled;
+  if (widget) widget.style.display = show ? '' : 'none';
+  if (phaseInfo) phaseInfo.style.display = show ? '' : 'none';
+  if (recoveryCard) recoveryCard.style.display = show ? '' : 'none';
+  // ファスティング中なら強制表示
+  if (state.fastingActive) {
+    if (widget) widget.style.display = '';
+  }
+  // ラベル更新
+  var label = document.getElementById('fasting-toggle-label');
+  if (label) label.textContent = show ? 'オン' : 'オフ';
+}
+
+// ===== クイック症状ログ =====
+var _quickPainLevel = -1;
+var _quickSelectedSymptoms = [];
+
+function initQuickLog() {
+  // 疾患設定から症状チップを生成（最大6個）
+  var chips = [];
+  var diseases = state.myDiseases || [];
+  diseases.forEach(function(d) {
+    var cfg = DISEASE_CONFIG[d];
+    if (!cfg || !cfg.specificSymptoms) return;
+    cfg.specificSymptoms.forEach(function(s) {
+      if (chips.indexOf(s) === -1 && chips.length < 6) chips.push(s);
+    });
+  });
+  // 疾患設定がない場合のデフォルト
+  if (chips.length === 0) {
+    chips = ['下腹部痛', '腰痛', '頭痛', '骨盤周りの痛み', 'だるさ', '気分の落ち込み'];
+  }
+
+  var container = document.getElementById('quick-symptom-chips');
+  if (!container) return;
+  container.innerHTML = '';
+  _quickSelectedSymptoms = [];
+  chips.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.textContent = s;
+    btn.style.cssText = 'padding:6px 13px;border-radius:20px;border:1.5px solid #e8ddd8;background:var(--white);font-size:12px;font-family:\'Noto Sans JP\',sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;';
+    btn.onclick = function() {
+      var idx = _quickSelectedSymptoms.indexOf(s);
+      if (idx !== -1) {
+        _quickSelectedSymptoms.splice(idx, 1);
+        btn.style.background = 'var(--white)';
+        btn.style.borderColor = '#e8ddd8';
+        btn.style.color = 'var(--ink)';
+      } else {
+        _quickSelectedSymptoms.push(s);
+        btn.style.background = 'var(--rose-pale)';
+        btn.style.borderColor = 'var(--rose)';
+        btn.style.color = 'var(--plum)';
+      }
+    };
+    container.appendChild(btn);
+  });
+
+  // 今日すでに記録済みかチェック
+  var today = new Date().toISOString().slice(0, 10);
+  var todayRecord = (state.records || []).find(function(r) {
+    return r.date && r.date.slice(0, 10) === today;
+  });
+  if (todayRecord) {
+    showQuickLogDone();
+  }
+}
+
+function selectQuickPain(level, btn) {
+  _quickPainLevel = level;
+  document.querySelectorAll('#quick-pain-scale button').forEach(function(b) {
+    b.style.background = 'var(--white)';
+    b.style.borderColor = '#e8ddd8';
+  });
+  btn.style.background = 'var(--rose-pale)';
+  btn.style.borderColor = 'var(--rose)';
+}
+
+function saveQuickLog() {
+  var today = new Date().toISOString().slice(0, 10);
+  // 既存の今日のレコードに追記、なければ新規作成
+  var existing = (state.records || []).find(function(r) {
+    return r.date && r.date.slice(0, 10) === today;
+  });
+  if (existing) {
+    if (_quickSelectedSymptoms.length > 0) {
+      existing.symptoms = existing.symptoms || [];
+      _quickSelectedSymptoms.forEach(function(s) {
+        if (existing.symptoms.indexOf(s) === -1) existing.symptoms.push(s);
+      });
+    }
+    if (_quickPainLevel >= 0) existing.painLevel = _quickPainLevel;
+    existing.updatedAt = new Date().toISOString();
+  } else {
+    var rec = {
+      id: generateRecordId(),
+      date: today,
+      symptoms: _quickSelectedSymptoms.slice(),
+      painLevel: _quickPainLevel >= 0 ? _quickPainLevel : null,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    state.records = state.records || [];
+    state.records.push(rec);
+  }
+  saveAndSync();
+  showQuickLogDone();
+  _quickSelectedSymptoms = [];
+  _quickPainLevel = -1;
+  updateHomeSummary();
+  buildCalendar();
+}
+
+function showQuickLogDone() {
+  var btn = document.getElementById('quick-log-btn');
+  var status = document.getElementById('quick-log-status');
+  if (btn) {
+    btn.textContent = '✓ 今日の記録済み';
+    btn.style.background = 'var(--sage)';
+    btn.disabled = true;
+  }
+  if (status) {
+    status.textContent = '記録済み';
+    status.style.color = 'var(--sage)';
+  }
+}
+
 function buildCalendar(){
   var label = document.getElementById('calLabel');
   var grid = document.getElementById('calGrid');
@@ -8278,6 +8610,21 @@ function buildCalendar(){
     var ds = new Date(calYear, calMonth, d).toDateString();
     var hasRec = state.records.some(function(r){ return new Date(r.date).toDateString() === ds; });
     if(hasRec) el.classList.add('has-record');
+    // 痛みレベルに応じたクラスを付与
+    if(hasRec) {
+      var dateStr = new Date(calYear, calMonth, d).toISOString().slice(0, 10);
+      var rec = state.records.find(function(r) {
+        return r.date && r.date.slice(0, 10) === dateStr;
+      });
+      if(rec) {
+        var pain = rec.painLevel;
+        if(pain !== null && pain !== undefined && pain >= 0) {
+          el.classList.add('pain-' + Math.min(pain, 4));
+        } else {
+          el.classList.add('has-record-no-pain');
+        }
+      }
+    }
     el.textContent = d;
     el.addEventListener('click', (function(day){ return function(){ openDayDetail(day); }; })(d));
     grid.appendChild(el);
@@ -8304,6 +8651,8 @@ document.addEventListener('DOMContentLoaded', function(){
   updateDiseaseSettingDisplay();
   updateHomeCTA();
   updateHomeSummary();
+  initQuickLog();
+  applyFastingVisibility();
   updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
@@ -8556,6 +8905,7 @@ function openRecordScreen(){
   var mealFreeEl = document.getElementById('rs-meal-free'); if(mealFreeEl) mealFreeEl.value='';
   document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){ c.classList.remove('selected'); });
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
+  applySymptomChipPriority();
   var di = document.getElementById('draft-indicator');
   if(di) di.style.display = 'none';
     // 追加フォームのリセット
@@ -10404,7 +10754,7 @@ var todayStr = targetDate.toDateString();
     try {
       localStorage.setItem('ippo_state', JSON.stringify(state));
     } catch(storageErr) {
-      alert('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
+      showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
       console.error('Storage error:', storageErr);
       return;
     }
@@ -10413,7 +10763,7 @@ var todayStr = targetDate.toDateString();
     var verify = JSON.parse(localStorage.getItem('ippo_state'));
     var saved = verify.records.some(function(r){ return new Date(r.date).toDateString() === todayStr; });
     if(!saved){
-      alert('記録の保存に失敗しました。もう一度お試しください。');
+      showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
       return;
     }
 
@@ -10449,7 +10799,7 @@ var todayStr = targetDate.toDateString();
     }
   } catch(e) {
     console.error('saveRecordScreen error:', e);
-    alert('記録の保存中にエラーが発生しました。\nもう一度お試しください。\n\nエラー: ' + e.message);
+    showAlertModal('記録の保存中にエラーが発生しました。<br>もう一度お試しください。<br><br>エラー: ' + e.message);
   }
 }
 
@@ -11046,7 +11396,7 @@ function exportJSON(){
 // ===== CSVエクスポート =====
 function exportCSV(){
   if(!state.records || state.records.length === 0){
-    alert('エクスポートする記録がありません。');
+    showAlertModal('エクスポートする記録がありません。');
     return;
   }
 
@@ -12272,15 +12622,15 @@ async function syncNow() {
 }
 
 async function logoutSync() {
-  if (!confirm('ログアウトしますか？\nこの端末のデータは残りますが、他の端末との同期が無効になります。')) return;
-
-  try {
-    await supabase.auth.signOut();
-    document.getElementById('syncStatusBrief').textContent = '未ログイン';
-    renderSyncUI();
-  } catch (err) {
-    console.error('Logout error:', err);
-  }
+  showConfirmModal('ログアウトしますか？<br>この端末のデータは残りますが、他の端末との同期が無効になります。', async function() {
+    try {
+      await supabase.auth.signOut();
+      document.getElementById('syncStatusBrief').textContent = '未ログイン';
+      renderSyncUI();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  });
 }
 
 // ページ読み込み時に同期状態を確認
@@ -12593,7 +12943,7 @@ async function startStripeCheckout(forcePlan) {
   var plan = forcePlan || _selectedPlan;
   var sessionData = (await supabase.auth.getSession()).data?.session;
   if (!sessionData) {
-    alert('決済にはログインが必要です。設定画面からログインしてください。');
+    showAlertModal('決済にはログインが必要です。設定画面からログインしてください。');
     closePremiumLock();
     return;
   }
@@ -12615,7 +12965,7 @@ async function startStripeCheckout(forcePlan) {
       throw new Error(data.error || '決済ページの読み込みに失敗しました');
     }
   } catch (e) {
-    alert('エラーが発生しました: ' + e.message);
+    showAlertModal('エラーが発生しました: ' + e.message);
     if (btn) { btn.textContent = origText; btn.disabled = false; }
   }
 }
@@ -12696,25 +13046,28 @@ var premiumCheckInterval = setInterval(function(){
 }, 500);
 
   function manualCloudRestore(){
-  if(!confirm('クラウドのデータでローカルデータを上書きします。\nよろしいですか？')) return;
-  var sb = window.supabase;
-  sb.auth.getUser().then(function(res){
-    if(!res.data || !res.data.user){
-      alert('ログインしていません。先にログインしてください。');
-      return;
-    }
-    var uid = res.data.user.id;
-    sb.from('user_data').select('*').eq('user_id', uid).order('updated_at', {ascending:false}).limit(1).then(function(r){
-      if(!r.data || r.data.length === 0){
-        alert('クラウドにデータが見つかりません。');
+  showConfirmModal('クラウドのデータでローカルデータを上書きします。<br>よろしいですか？', function() {
+    var sb = window.supabase;
+    sb.auth.getUser().then(function(res){
+      if(!res.data || !res.data.user){
+        showAlertModal('ログインしていません。先にログインしてください。');
         return;
       }
-      var cloudState = r.data[0].state;
-      var recordCount = cloudState.records ? cloudState.records.length : 0;
-      if(!confirm('クラウドに ' + recordCount + ' 件の記録があります。\n復元しますか？')) return;
-      localStorage.setItem('ippo_state', JSON.stringify(cloudState));
-      alert('復元完了！（' + recordCount + ' 件の記録）\nページを再読み込みします。');
-      location.reload();
+      var uid = res.data.user.id;
+      sb.from('user_data').select('*').eq('user_id', uid).order('updated_at', {ascending:false}).limit(1).then(function(r){
+        if(!r.data || r.data.length === 0){
+          showAlertModal('クラウドにデータが見つかりません。');
+          return;
+        }
+        var cloudState = r.data[0].state;
+        var recordCount = cloudState.records ? cloudState.records.length : 0;
+        showConfirmModal('クラウドに ' + recordCount + ' 件の記録があります。<br>復元しますか？', function() {
+          localStorage.setItem('ippo_state', JSON.stringify(cloudState));
+          showAlertModal('復元完了！（' + recordCount + ' 件の記録）<br>ページを再読み込みします。', function() {
+            location.reload();
+          });
+        });
+      });
     });
   });
 }
