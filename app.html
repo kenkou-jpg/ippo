@@ -357,6 +357,65 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   text-transform: uppercase;
 }
 
+/* ===== ONBOARDING STEPS ===== */
+.ob-step { width: 100%; animation: fadeIn 0.25s ease; }
+.ob-question {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.ob-hint {
+  font-size: 12px;
+  color: var(--ink-light);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.ob-chip {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #e8ddd8;
+  background: var(--white);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-family: 'Noto Sans JP', sans-serif;
+  width: 100%;
+}
+.ob-chip:active { transform: scale(0.98); }
+.ob-chip.selected {
+  border-color: var(--rose);
+  background: var(--rose-pale);
+  color: var(--plum);
+}
+.ob-chip-inline {
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e8ddd8;
+  background: var(--white);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.ob-chip-inline.selected {
+  border-color: var(--rose);
+  background: var(--rose-pale);
+  color: var(--plum);
+}
+.ob-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8ddd8;
+  transition: background 0.2s;
+}
+.ob-dot.active { background: var(--rose); }
+
 .welcome-tagline {
   font-family: 'Shippori Mincho', serif;
   font-size: 26px;
@@ -2078,64 +2137,130 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   <!-- ===== WELCOME ===== -->
   <div id="screen-welcome" class="fade-in">
-    <div class="welcome-logo">ippo</div>
-    <div class="welcome-tagline">子宮内膜症・PCOS・子宮筋腫<br>症状記録アプリ</div>
-    <div class="welcome-sub">毎日の症状・痛み・体調を記録して、<br>あなただけのからだのパターンを発見しましょう。</div>
 
-    <!-- Before/After Cards -->
-    <div class="before-after">
-      <div class="ba-label">30日後のあなたへ</div>
-      <div class="ba-cards">
-        <div class="ba-card before">
-          <span class="ba-card-tag">今</span>
-          <div class="ba-card-text">「なんとなく不調が続く」「パターンが分からない」</div>
-        </div>
-        <div class="ba-card after">
-          <span class="ba-card-tag">30日後 ✨</span>
-          <div class="ba-card-text">「排卵前に食欲が増す」「高温期に入ると必ず便秘になる」自分だけのリズムが見えてくる</div>
-        </div>
-      </div>
-      <div class="ba-arrow">↓</div>
-      <div style="text-align:center; font-size: 12px; color: var(--ink-light);">毎日1〜2分の記録でパターン発見</div>
-    </div>
-
-    <div class="welcome-name-section">
-      <div class="welcome-name-label">あなたのお名前を<br>教えてください</div>
-      <input class="welcome-input" id="name-input" type="text" placeholder="（例）さくら">
-      <button class="btn-primary" id="btn-start">はじめる →</button>
-      <button class="btn-skip" id="btn-skip">スキップ</button>
-      </div>
-
-<!-- 疾患選択ステップ -->
-<div id="onboarding-disease" style="display:none;width:100%;margin-top:0;">
-  <div style="text-align:center;margin-bottom:20px;">
-    <div style="font-family:'Shippori Mincho',serif;font-size:20px;color:var(--ink);margin-bottom:8px;">気になる症状はありますか？</div>
-    <div style="font-size:12px;color:var(--ink-light);line-height:1.6;">選択した疾患に合わせて<br>記録画面が最適化されます（複数選択可）</div>
+  <!-- ステップインジケーター -->
+  <div id="ob-indicator" style="display:none;justify-content:center;gap:5px;margin-bottom:20px;padding-top:8px;">
   </div>
 
-  <!-- プライバシー説明 -->
-  <div style="background:var(--cream);border-radius:16px;padding:16px 18px;margin:0 0 16px;border:0.5px solid #e8ddd8;">
-    <div style="display:flex;align-items:flex-start;gap:12px;">
-      <div style="font-size:24px;flex-shrink:0;">🔒</div>
-      <div>
-        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;">あなたの記録はあなただけのもの</div>
-        <div style="font-size:11px;color:var(--ink-light);line-height:1.7;">
-          症状や体調の記録は、あなた以外には見えません。<br>
-          広告への利用・第三者への販売は一切行いません。<br>
-          データはいつでも削除できます。
-        </div>
+  <!-- Step 0: スプラッシュ -->
+  <div id="ob-step-0" class="ob-step">
+    <div style="text-align:center;padding:20px 0 24px;">
+      <div class="welcome-logo">ippo</div>
+      <div style="font-size:13px;color:var(--ink-light);margin-top:6px;line-height:1.7;">
+        疾患と向き合う女性の<br>毎日の記録帳
       </div>
     </div>
+    <div style="background:var(--white);border-radius:16px;padding:16px 18px;margin-bottom:20px;border:0.5px solid #e8ddd8;">
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">記録が続くほど</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);line-height:1.8;">
+        あなただけのからだの<br>パターンが見えてきます
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #f0e8e0;font-size:11px;color:var(--ink-light);line-height:1.7;">
+        症状・痛み・体調を毎日記録して<br>
+        診察に活かせるデータを作りましょう
+      </div>
+    </div>
+    <div style="background:var(--cream);border-radius:14px;padding:13px 16px;margin-bottom:20px;border:0.5px solid #e8ddd8;display:flex;align-items:flex-start;gap:10px;">
+      <div style="font-size:16px;flex-shrink:0;margin-top:1px;">&#128274;</div>
+      <div style="font-size:11px;color:var(--ink-light);line-height:1.7;">
+        あなたの記録はあなただけのものです。<br>
+        広告への利用・第三者への販売は行いません。
+      </div>
+    </div>
+    <button class="btn-primary" onclick="obNext()" style="width:100%;">はじめる</button>
+    <button class="btn-skip" onclick="obSkipAll()" style="width:100%;margin-top:8px;">すでにアカウントをお持ちの方</button>
   </div>
 
-  <div id="ob-disease-list" style="max-height:45vh;overflow-y:auto;padding:0 4px;"></div>
+  <!-- Step 1: 名前 -->
+  <div id="ob-step-1" class="ob-step" style="display:none;">
+    <div class="ob-question">お名前を<br>教えてください</div>
+    <div class="ob-hint">ニックネームでも大丈夫です</div>
+    <input class="welcome-input" id="ob-name-input" type="text" placeholder="例：さくら"
+      style="margin-bottom:8px;"
+      oninput="document.getElementById('ob-name-display').textContent = this.value || 'あなた'">
+    <button class="btn-primary" onclick="obSaveName()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
 
-  <div style="margin-top:20px;">
-    <button class="btn-primary" onclick="completeOnboarding()" style="width:100%;">この設定ではじめる →</button>
-    <button class="btn-skip" onclick="completeOnboarding()" style="width:100%;margin-top:8px;">あとで設定する</button>
+  <!-- Step 2: 生年 -->
+  <div id="ob-step-2" class="ob-step" style="display:none;">
+    <div class="ob-question">生まれた年を<br>教えてください</div>
+    <div class="ob-hint">年齢によって表示するアドバイスが変わります（任意）</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="ob-birth-year" class="welcome-input" style="flex:1;margin-bottom:0;">
+        <option value="">選択してください</option>
+      </select>
+      <div style="display:flex;align-items:center;font-size:13px;color:var(--ink-light);">年</div>
+    </div>
+    <button class="btn-primary" onclick="obSaveBirth()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">スキップ</button>
   </div>
-   </div>
+
+  <!-- Step 3: 最後の生理開始日 -->
+  <div id="ob-step-3" class="ob-step" style="display:none;">
+    <div class="ob-question">最後の生理が<br>始まった日は？</div>
+    <div class="ob-hint">ホームの周期表示に使います。わからない場合はスキップできます</div>
+    <div id="ob-period-calendar" style="background:var(--white);border-radius:14px;border:0.5px solid #e8ddd8;padding:12px;margin-bottom:16px;"></div>
+    <div id="ob-period-selected" style="text-align:center;font-size:12px;color:var(--rose);font-weight:500;margin-bottom:12px;min-height:18px;"></div>
+    <button class="btn-primary" onclick="obSavePeriod()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">わからない・スキップ</button>
   </div>
+
+  <!-- Step 4: 生理周期 -->
+  <div id="ob-step-4" class="ob-step" style="display:none;">
+    <div class="ob-question">生理の周期は<br>だいたい何日ですか？</div>
+    <div class="ob-hint">「だいたい」で大丈夫です</div>
+    <div id="ob-cycle-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" onclick="obSaveCycle()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 5: 疾患選択 -->
+  <div id="ob-step-5" class="ob-step" style="display:none;">
+    <div class="ob-question">気になる症状や<br>疾患はありますか？</div>
+    <div class="ob-hint">選択すると記録する症状が自動で最適化されます（複数選択可）</div>
+    <div id="ob-disease-list-new" style="max-height:42vh;overflow-y:auto;padding:0 2px;margin-bottom:16px;"></div>
+    <button class="btn-primary" onclick="obSaveDiseases()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">まだわからない・スキップ</button>
+  </div>
+
+  <!-- Step 6: 目的 -->
+  <div id="ob-step-6" class="ob-step" style="display:none;">
+    <div class="ob-question">ippoをどのように<br>使いたいですか？</div>
+    <div class="ob-hint">後で設定から変更できます</div>
+    <div id="ob-purpose-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" onclick="obSavePurpose()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obNext()" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 7: リマインダー -->
+  <div id="ob-step-7" class="ob-step" style="display:none;">
+    <div class="ob-question">記録のお知らせを<br>設定しますか？</div>
+    <div class="ob-hint">毎日この時間にお知らせします。継続率が大幅に上がります</div>
+    <div id="ob-reminder-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" onclick="obSaveReminder()" style="width:100%;">次へ</button>
+    <button class="btn-skip" onclick="obComplete()" style="width:100%;margin-top:8px;">リマインダーは不要</button>
+  </div>
+
+  <!-- Step 8: 完了画面 -->
+  <div id="ob-step-8" class="ob-step" style="display:none;">
+    <div style="text-align:center;padding:24px 0;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);margin-bottom:8px;">
+        準備ができました
+      </div>
+      <div id="ob-name-display" style="font-size:14px;color:var(--ink-light);margin-bottom:20px;">あなた</div>
+      <div id="ob-cycle-summary" style="background:var(--rose-pale);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:none;">
+        <div id="ob-cycle-phase" style="font-size:13px;font-weight:500;color:var(--plum);margin-bottom:4px;"></div>
+        <div id="ob-cycle-next" style="font-size:12px;color:var(--ink-light);"></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.8;margin-bottom:24px;">
+        記録するほど、あなただけの<br>パターンが見えてきます。<br>まずは今日の記録から始めましょう。
+      </div>
+      <button class="btn-primary" onclick="completeOnboarding()" style="width:100%;">ippoをはじめる</button>
+    </div>
+  </div>
+
+</div>
 
   <!-- ===== MAIN APP ===== -->
   <div id="main-app" style="display:none;">
@@ -5534,6 +5659,12 @@ state = {
   fastTimer: null,
   rating: 0,
   myVision: '',
+  lastPeriodDate: null,
+  cycleLength: 28,
+  cycleIrregular: false,
+  birthYear: null,
+  purpose: null,
+  reminderTime: null,
 };
 
 // Current record being built
@@ -6039,102 +6170,330 @@ document.addEventListener('visibilitychange', function(){
 
 
 
-function startApp() {
-  var nameInput = document.getElementById('name-input');
-  if (nameInput && nameInput.value.trim()) {
-    state.name = nameInput.value.trim();
-  } else {
-    state.name = 'あなた';
+// ===== オンボーディング管理 =====
+var _obStep = 0;
+var _obTotalSteps = 8;
+var _obPeriodSelected = null;
+var _obCycleSelected = null;
+var _obDiseasesSelected = [];
+var _obPurposeSelected = null;
+var _obReminderSelected = null;
+
+function obInit() {
+  // インジケーター生成
+  var indicator = document.getElementById('ob-indicator');
+  if (indicator) {
+    indicator.innerHTML = '';
+    for (var i = 1; i <= 7; i++) {
+      var dot = document.createElement('div');
+      dot.className = 'ob-dot';
+      dot.id = 'ob-dot-' + i;
+      indicator.appendChild(dot);
+    }
   }
-  saveState();
-
-  // 初回起動時：疾患選択ステップを表示
-  if (!state._onboardingDone) {
-    document.querySelector('.welcome-name-section').style.display = 'none';
-    // ベネフィットカード部分も非表示に
-    var baSection = document.querySelector('.ba-timeline');
-    if (baSection) baSection.style.display = 'none';
-    var baArrow = document.querySelector('.ba-arrow');
-    if (baArrow) baArrow.style.display = 'none';
-
-    showOnboardingDisease();
-    return;
+  // 生年セレクトボックス生成
+  var sel = document.getElementById('ob-birth-year');
+  if (sel) {
+    var currentYear = new Date().getFullYear();
+    for (var y = currentYear - 10; y >= 1955; y--) {
+      var opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = y;
+      sel.appendChild(opt);
+    }
   }
-
-  finishOnboarding();
-}
-
-function showOnboardingDisease() {
-  var container = document.getElementById('onboarding-disease');
-  if (!container) { finishOnboarding(); return; }
-
-  var categories = {
-    '婦人科疾患': ['卵巣嚢腫', '子宮内膜症', '子宮筋腫', '子宮腺筋症'],
-    'ホルモン・周期': ['PCOS', 'PMS/PMDD', '更年期障害', '不妊症・排卵障害'],
-    '骨盤・外陰': ['骨盤臓器脱', '外陰痛症候群', '慢性骨盤痛']
-  };
-
-  var list = document.getElementById('ob-disease-list');
-  var html = '';
-
-  Object.keys(categories).forEach(function(catName) {
-    html += '<div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);margin:16px 0 8px;text-transform:uppercase;">' + catName + '</div>';
-    categories[catName].forEach(function(d) {
-      var cfg = DISEASE_CONFIG[d];
-      if (!cfg) return;
-      html += '<div class="ob-disease-chip" onclick="toggleObDisease(this,\'' + d.replace(/'/g, "\\'") + '\')" ';
-      html += 'style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--white);border-radius:14px;margin-bottom:6px;cursor:pointer;border:1.5px solid #e8ddd8;transition:all 0.2s;">';
-      html += '<div style="font-size:20px;">' + cfg.icon + '</div>';
-      html += '<div style="flex:1;">';
-      html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + d + '</div>';
-      html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">' + cfg.questions.length + '項目のセルフチェック</div>';
-      html += '</div>';
-      html += '<div class="ob-check" style="width:22px;height:22px;border-radius:50%;border:1.5px solid #e8ddd8;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;transition:all 0.2s;">✓</div>';
-      html += '</div>';
+  // 周期チップ生成
+  var cycleChips = document.getElementById('ob-cycle-chips');
+  if (cycleChips) {
+    var cycles = ['21日', '24日', '25日', '28日', '30日', '32日', '35日以上', '不規則'];
+    cycles.forEach(function(c) {
+      var btn = document.createElement('button');
+      btn.className = 'ob-chip-inline';
+      btn.textContent = c;
+      btn.onclick = function() {
+        cycleChips.querySelectorAll('.ob-chip-inline').forEach(function(b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        _obCycleSelected = c;
+      };
+      cycleChips.appendChild(btn);
     });
-  });
-
-  list.innerHTML = html;
-  container.style.display = 'block';
+  }
+  // 疾患リスト生成
+  var diseaseList = document.getElementById('ob-disease-list-new');
+  if (diseaseList) {
+    var categories = {
+      '婦人科疾患':       ['卵巣嚢腫', '子宮内膜症', '子宮筋腫', '子宮腺筋症'],
+      'ホルモン・周期':   ['PCOS', 'PMS/PMDD', '更年期障害', '不妊症・排卵障害'],
+      '骨盤・その他':     ['骨盤臓器脱', '外陰痛症候群', '慢性骨盤痛']
+    };
+    var html = '';
+    Object.keys(categories).forEach(function(cat) {
+      html += '<div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);'
+        + 'margin:14px 0 7px;text-transform:uppercase;">' + cat + '</div>';
+      categories[cat].forEach(function(d) {
+        var cfg = DISEASE_CONFIG[d];
+        if (!cfg) return;
+        html += '<div class="ob-chip" onclick="obToggleDisease(this,\'' + d.replace(/'/g, "\\'") + '\')" '
+          + 'style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
+        html += '<div>';
+        html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + d + '</div>';
+        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'
+          + cfg.questions.length + '項目のセルフチェック対応</div>';
+        html += '</div>';
+        html += '<div class="ob-check-mark" style="width:20px;height:20px;border-radius:50%;'
+          + 'border:1.5px solid #e8ddd8;flex-shrink:0;display:flex;align-items:center;'
+          + 'justify-content:center;font-size:11px;color:transparent;transition:all 0.2s;">✓</div>';
+        html += '</div>';
+      });
+    });
+    diseaseList.innerHTML = html;
+  }
+  // 目的チップ生成
+  var purposeChips = document.getElementById('ob-purpose-chips');
+  if (purposeChips) {
+    var purposes = [
+      { v: 'clinic',  label: '診察前の記録を残したい',     sub: '医師に伝えやすい形でデータを整理します' },
+      { v: 'daily',   label: '毎日の体調を管理したい',     sub: 'からだのパターンを発見するサポートをします' },
+      { v: 'both',    label: '両方使いたい',               sub: '記録と診察サポートの両方に対応します' },
+      { v: 'unknown', label: 'まだわからない',             sub: 'あとで設定から変更できます' }
+    ];
+    purposes.forEach(function(p) {
+      var btn = document.createElement('button');
+      btn.className = 'ob-chip';
+      btn.innerHTML = '<div style="font-weight:500;">' + p.label + '</div>'
+        + '<div style="font-size:11px;color:var(--ink-light);margin-top:3px;">' + p.sub + '</div>';
+      btn.onclick = function() {
+        purposeChips.querySelectorAll('.ob-chip').forEach(function(b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        _obPurposeSelected = p.v;
+      };
+      purposeChips.appendChild(btn);
+    });
+  }
+  // リマインダーチップ生成
+  var reminderChips = document.getElementById('ob-reminder-chips');
+  if (reminderChips) {
+    var reminders = [
+      { v: '08:00', label: '朝 8:00 に通知',    sub: '記録を朝の習慣にする' },
+      { v: '12:00', label: '昼 12:00 に通知',   sub: '昼休みに記録する' },
+      { v: '21:00', label: '夜 21:00 に通知',   sub: '就寝前に今日を振り返る' },
+      { v: 'none',  label: 'リマインダーは不要', sub: 'あとで設定から変更できます' }
+    ];
+    reminders.forEach(function(r) {
+      var btn = document.createElement('button');
+      btn.className = 'ob-chip';
+      btn.innerHTML = '<div style="font-weight:500;">' + r.label + '</div>'
+        + '<div style="font-size:11px;color:var(--ink-light);margin-top:3px;">' + r.sub + '</div>';
+      btn.onclick = function() {
+        reminderChips.querySelectorAll('.ob-chip').forEach(function(b) { b.classList.remove('selected'); });
+        btn.classList.add('selected');
+        _obReminderSelected = r.v;
+      };
+      reminderChips.appendChild(btn);
+    });
+  }
+  // 生理日カレンダー生成
+  obBuildPeriodCalendar();
 }
 
-function toggleObDisease(el, disease) {
+function obBuildPeriodCalendar() {
+  var container = document.getElementById('ob-period-calendar');
+  if (!container) return;
+  var now = new Date();
+  var months = [
+    new Date(now.getFullYear(), now.getMonth() - 1, 1),
+    new Date(now.getFullYear(), now.getMonth(), 1)
+  ];
+  var html = '';
+  months.forEach(function(firstDay) {
+    var year  = firstDay.getFullYear();
+    var month = firstDay.getMonth();
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var startDow = firstDay.getDay();
+    var monthLabel = (month + 1) + '月';
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:11px;font-weight:500;color:var(--ink-light);text-align:center;margin-bottom:6px;">'
+      + year + '年 ' + monthLabel + '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;'
+      + 'text-align:center;font-size:10px;color:var(--ink-light);margin-bottom:4px;">';
+    ['日','月','火','水','木','金','土'].forEach(function(d) {
+      html += '<div>' + d + '</div>';
+    });
+    html += '</div>';
+    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
+    for (var i = 0; i < startDow; i++) html += '<div></div>';
+    for (var day = 1; day <= daysInMonth; day++) {
+      var dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+      var todayStr = now.toISOString().slice(0, 10);
+      var isFuture = dateStr > todayStr;
+      var isSelected = _obPeriodSelected === dateStr;
+      html += '<div onclick="' + (isFuture ? '' : 'obSelectPeriodDay(\'' + dateStr + '\')') + '" '
+        + 'id="ob-cal-' + dateStr + '" '
+        + 'style="aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+        + 'font-size:11px;cursor:' + (isFuture ? 'default' : 'pointer') + ';'
+        + 'transition:all 0.15s;'
+        + (isFuture ? 'color:#e0d0c8;' : isSelected ? 'background:var(--rose);color:white;font-weight:500;' : dateStr === todayStr ? 'border:1.5px solid var(--rose);color:var(--rose);' : 'color:var(--ink);')
+        + '">' + day + '</div>';
+    }
+    html += '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+function obSelectPeriodDay(dateStr) {
+  _obPeriodSelected = dateStr;
+  document.querySelectorAll('[id^="ob-cal-"]').forEach(function(el) {
+    var d = el.id.replace('ob-cal-', '');
+    var now = new Date().toISOString().slice(0, 10);
+    el.style.background = '';
+    el.style.color = d === now ? 'var(--rose)' : 'var(--ink)';
+    el.style.fontWeight = '';
+    if (d === now) el.style.border = '1.5px solid var(--rose)';
+    else el.style.border = '';
+  });
+  var sel = document.getElementById('ob-cal-' + dateStr);
+  if (sel) {
+    sel.style.background = 'var(--rose)';
+    sel.style.color = 'white';
+    sel.style.fontWeight = '500';
+    sel.style.border = '';
+  }
+  var disp = document.getElementById('ob-period-selected');
+  if (disp) {
+    var d = new Date(dateStr + 'T00:00:00');
+    disp.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日を選択中';
+  }
+}
+
+function obToggleDisease(el, disease) {
   var isSelected = el.getAttribute('data-selected') === '1';
   if (isSelected) {
     el.setAttribute('data-selected', '0');
-    el.style.borderColor = '#e8ddd8';
-    el.style.background = 'var(--white)';
-    el.querySelector('.ob-check').style.color = 'transparent';
-    el.querySelector('.ob-check').style.background = 'transparent';
-    el.querySelector('.ob-check').style.borderColor = '#e8ddd8';
+    el.classList.remove('selected');
+    el.querySelector('.ob-check-mark').style.cssText =
+      'width:20px;height:20px;border-radius:50%;border:1.5px solid #e8ddd8;'
+      + 'flex-shrink:0;display:flex;align-items:center;justify-content:center;'
+      + 'font-size:11px;color:transparent;transition:all 0.2s;';
+    _obDiseasesSelected = _obDiseasesSelected.filter(function(d) { return d !== disease; });
   } else {
     el.setAttribute('data-selected', '1');
-    el.style.borderColor = 'var(--rose)';
-    el.style.background = 'var(--rose-pale)';
-    el.querySelector('.ob-check').style.color = 'white';
-    el.querySelector('.ob-check').style.background = 'var(--rose)';
-    el.querySelector('.ob-check').style.borderColor = 'var(--rose)';
+    el.classList.add('selected');
+    el.querySelector('.ob-check-mark').style.cssText =
+      'width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rose);'
+      + 'background:var(--rose);flex-shrink:0;display:flex;align-items:center;'
+      + 'justify-content:center;font-size:11px;color:white;transition:all 0.2s;';
+    if (_obDiseasesSelected.indexOf(disease) === -1) _obDiseasesSelected.push(disease);
   }
 }
 
-function completeOnboarding() {
-  // 選択された疾患を収集
-  var selected = [];
-  document.querySelectorAll('.ob-disease-chip[data-selected="1"]').forEach(function(el) {
-    var name = el.querySelector('div > div:first-child').textContent.trim();
-    if (DISEASE_CONFIG[name]) selected.push(name);
-  });
+function obShowStep(n) {
+  for (var i = 0; i <= 8; i++) {
+    var el = document.getElementById('ob-step-' + i);
+    if (el) el.style.display = 'none';
+  }
+  var target = document.getElementById('ob-step-' + n);
+  if (target) target.style.display = 'block';
+  var indicator = document.getElementById('ob-indicator');
+  if (n >= 1 && n <= 7) {
+    if (indicator) indicator.style.display = 'flex';
+    for (var i = 1; i <= 7; i++) {
+      var dot = document.getElementById('ob-dot-' + i);
+      if (dot) dot.className = 'ob-dot' + (i <= n ? ' active' : '');
+    }
+  } else {
+    if (indicator) indicator.style.display = 'none';
+  }
+  _obStep = n;
+  window.scrollTo(0, 0);
+}
 
-  state.myDiseases = selected;
-  state._onboardingDone = true;
-  saveState();
+function obNext() {
+  obShowStep(_obStep + 1);
+}
 
-  // 設定画面の疾患表示を更新
+function obSkipAll() {
+  completeOnboarding();
+}
+
+function obSaveName() {
+  var val = (document.getElementById('ob-name-input').value || '').trim();
+  if (val) state.name = val;
+  var disp = document.getElementById('ob-name-display');
+  if (disp) disp.textContent = val || 'あなた';
+  obNext();
+}
+
+function obSaveBirth() {
+  var val = document.getElementById('ob-birth-year').value;
+  if (val) state.birthYear = parseInt(val);
+  obNext();
+}
+
+function obSavePeriod() {
+  if (_obPeriodSelected) {
+    state.lastPeriodDate = _obPeriodSelected;
+  }
+  obNext();
+}
+
+function obSaveCycle() {
+  if (_obCycleSelected) {
+    var num = parseInt(_obCycleSelected);
+    state.cycleLength = isNaN(num) ? 28 : num;
+    state.cycleIrregular = _obCycleSelected === '不規則';
+  }
+  obNext();
+}
+
+function obSaveDiseases() {
+  state.myDiseases = _obDiseasesSelected.slice();
   var display = document.getElementById('disease-setting-display');
   if (display) {
-    display.textContent = selected.length > 0 ? selected.join('・') : '設定する';
+    display.textContent = state.myDiseases.length > 0
+      ? state.myDiseases.join('・') : '設定する';
   }
+  obNext();
+}
 
+function obSavePurpose() {
+  if (_obPurposeSelected) state.purpose = _obPurposeSelected;
+  obNext();
+}
+
+function obSaveReminder() {
+  if (_obReminderSelected && _obReminderSelected !== 'none') {
+    state.reminderTime = _obReminderSelected;
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+  }
+  obComplete();
+}
+
+function obComplete() {
+  if (state.lastPeriodDate && state.cycleLength) {
+    var summary = document.getElementById('ob-cycle-summary');
+    var phaseEl = document.getElementById('ob-cycle-phase');
+    var nextEl  = document.getElementById('ob-cycle-next');
+    if (summary && phaseEl && nextEl) {
+      var today  = new Date();
+      var last   = new Date(state.lastPeriodDate + 'T00:00:00');
+      var dayNum = Math.floor((today - last) / 86400000) + 1;
+      var phase  = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : null;
+      phaseEl.textContent = '周期 ' + dayNum + '日目' + (phase ? '（' + phase + '）' : '');
+      var daysLeft = state.cycleLength - dayNum;
+      nextEl.textContent = daysLeft > 0
+        ? '次の生理まで約 ' + daysLeft + ' 日'
+        : '生理が近い時期です';
+      summary.style.display = 'block';
+    }
+  }
+  obShowStep(8);
+}
+
+function completeOnboarding() {
+  state._onboardingDone = true;
+  saveState();
   finishOnboarding();
 }
 
@@ -9890,10 +10249,10 @@ document.addEventListener('DOMContentLoaded', function(){
   var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
   loadCommunityTopic();
-  var btnStart = document.getElementById('btn-start');
-  var btnSkip = document.getElementById('btn-skip');
-  if(btnStart) btnStart.addEventListener('click', function(){ startApp(); });
-  if(btnSkip) btnSkip.addEventListener('click', function(){ startApp(); });
+  var welcomeEl = document.getElementById('screen-welcome');
+  if (welcomeEl && welcomeEl.style.display !== 'none') {
+    if (typeof obInit === 'function') obInit();
+  }
 });
 
 function openDayDetail(d){
