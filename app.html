@@ -906,6 +906,31 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 
 /* ===== INSIGHTS ===== */
 #screen-insights { padding: 52px 0 80px; }
+#screen-calendar { padding: 52px 0 80px; }
+#screen-calendar .cal-tab-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+  position: relative;
+}
+#screen-calendar .cal-tab-day:active { transform: scale(0.92); }
+#screen-calendar .cal-tab-day .cal-tab-date {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+}
+#screen-calendar .cal-tab-day .cal-tab-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rose);
+  margin-top: 2px;
+}
 
 .insights-header {
   padding: 0 24px 24px;
@@ -2404,202 +2429,196 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
    </div>
 
      <!-- ===== INSIGHTS SCREEN ===== -->
+    <!-- ===== CALENDAR TAB ===== -->
+    <div id="screen-calendar" class="screen">
+      <div class="spacer-top"></div>
+
+      <div style="padding:0 20px 16px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);">カレンダー</div>
+        <div style="font-size:12px;color:var(--ink-light);margin-top:2px;">記録した日をタップすると詳細を確認できます</div>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;margin-bottom:12px;">
+        <button id="cal-tab-prev" onclick="calTabPrev()"
+          style="width:36px;height:36px;border-radius:50%;border:0.5px solid #e8ddd8;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;"></button>
+        <div id="cal-tab-label" style="font-size:15px;font-weight:500;color:var(--ink);"></div>
+        <button id="cal-tab-next" onclick="calTabNext()"
+          style="width:36px;height:36px;border-radius:50%;border:0.5px solid #e8ddd8;background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;"></button>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);padding:0 20px;margin-bottom:6px;">
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">日</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">月</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">火</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">水</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">木</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">金</div>
+        <div style="text-align:center;font-size:11px;color:var(--ink-light);">土</div>
+      </div>
+
+      <div id="cal-tab-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;padding:0 20px;margin-bottom:16px;"></div>
+
+      <div style="display:flex;align-items:center;gap:6px;padding:0 20px;margin-bottom:20px;justify-content:flex-end;">
+        <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
+        <div style="display:flex;gap:3px;">
+          <div style="width:10px;height:10px;border-radius:2px;background:#e8f4ed;"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:#f5e8eb;"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:#edbed0;"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:#d4537e;"></div>
+          <div style="width:10px;height:10px;border-radius:2px;background:#993556;"></div>
+        </div>
+        <span style="font-size:10px;color:var(--ink-light);">強い</span>
+      </div>
+
+      <div style="margin:0 20px 20px;">
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;">
+          <div style="font-size:12px;color:var(--ink-light);margin-bottom:12px;font-weight:500;">今月のまとめ</div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="cal-tab-summary"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===== INSIGHTS SCREEN ===== -->
     <div id="screen-insights" class="screen">
       <div class="spacer-top"></div>
-      <div style="display:flex;justify-content:flex-end;padding:0 20px 4px;">
-        <button onclick="switchTab('premium', document.querySelector('.nav-item:last-child'))"
-          style="font-size:11px;color:var(--rose);background:var(--rose-pale);border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-          ✨ PRO機能を見る
-        </button>
+
+      <div style="padding:0 20px 20px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);">インサイト</div>
+        <div style="font-size:12px;color:var(--ink-light);margin-top:2px;">記録が語るあなたのパターン</div>
       </div>
 
-      <div class="insights-header">
-        <div class="insights-title">インサイト</div>
-        <div class="insights-sub">記録が語るあなたのパターン</div>
+      <!-- 無料: からだの発見 -->
+      <div style="margin:0 20px 16px;">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">からだの発見</div>
+        <div id="insights-discovery-cards"></div>
       </div>
 
-<!-- フェーズ別症状マップ（PRO） -->
-<div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">
-      🌸 フェーズ別症状マップ
-    </div>
-    <span style="font-size:10px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:2px 8px;border-radius:4px;font-weight:500;">PRO</span>
-  </div>
-  <div id="phase-map-content"></div>
-</div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">記録日数</div>
-          <div class="stat-value" id="insight-total">0</div>
-          <div class="stat-unit">日</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">最長連続</div>
-          <div class="stat-value" id="insight-streak">0</div>
-          <div class="stat-unit">日</div>
-        </div>
-        <div class="stat-card">
-  <div class="stat-label">今月の無痛み日</div>
-  <div class="stat-value" id="pain-free-days">—</div>
-  <div class="stat-unit">日</div>
-</div>
-<div class="stat-card">
-  <div class="stat-label">今月の平均痛み</div>
-  <div class="stat-value" id="avg-pain-score">—</div>
-  <div class="stat-unit">/10</div>
-</div>
-    </div>
-
-          <!-- 空状態バナー（記録なし時） -->
-      <div id="insights-empty-state" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:20px;padding:28px 24px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:12px;">🌱</div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
-        <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
-        <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
+      <!-- 無料: 医師への報告書 -->
+      <div style="margin:0 20px 32px;">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">医師への報告書（無料）</div>
+        <div id="insights-doctor-report" style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;"></div>
       </div>
 
-      <!-- 食事×体調の相関 -->
-      <div class="section-card" style="margin:0 20px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
-            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">食事とからだの関係</div>
-          </div>
-          <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
-        </div>
-        <div id="food-body-correlation">
-          <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
-        </div>
+      <!-- PRO境界線 -->
+      <div style="margin:0 20px 24px;display:flex;align-items:center;gap:12px;">
+        <div style="flex:1;height:0.5px;background:#e8ddd8;"></div>
+        <div style="font-size:11px;color:var(--ink-light);white-space:nowrap;">ここからPROプラン</div>
+        <div style="flex:1;height:0.5px;background:#e8ddd8;"></div>
       </div>
 
-      <!-- 生理周期×症状パターン -->
-<div class="section-card" style="margin:0 20px 20px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-    <div>
-      <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
-      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">生理周期と症状の関係</div>
-    </div>
-    <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
-  </div>
-  <div id="cycle-symptom-correlation">
-    <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
-  </div>
-</div>
-
-      <!-- 比較グラフ（Comparison Chart） -->
-      <div class="section-card" style="margin:0 20px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMPARISON CHART</div>
-            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">比較グラフ</div>
+      <!-- PRO: 比較グラフ -->
+      <div style="margin:0 20px 16px;" onclick="premiumGate(openComparisonChart)">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">比較グラフ</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;cursor:pointer;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">痛み・エネルギー・睡眠の推移</div>
+          <div style="font-size:11px;color:var(--ink-light);line-height:1.6;">30日・90日・1年のデータで傾向を把握できます</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+            <span id="insights-chart-arrow" style="color:var(--ink-light);"></span>
           </div>
         </div>
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-          <select id="cg-metric1" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
-            <option value="energy">エネルギー</option>
-            <option value="sleepQuality">睡眠の質</option>
-            <option value="sleepHours">睡眠時間</option>
-            <option value="painLevel">痛みレベル</option>
-            <option value="wellnessScore">ウェルネス</option>
-            <option value="smiScore">SMI</option>
-            <option value="symptomCount">症状数</option>
-          </select>
-          <select id="cg-metric2" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
-            <option value="">なし（単独表示）</option>
-            <option value="energy">エネルギー</option>
-            <option value="sleepQuality" selected>睡眠の質</option>
-            <option value="sleepHours">睡眠時間</option>
-            <option value="painLevel">痛みレベル</option>
-            <option value="wellnessScore">ウェルネス</option>
-            <option value="smiScore">SMI</option>
-            <option value="symptomCount">症状数</option>
-          </select>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:12px;">
-          <button class="cg-range-btn" onclick="setCGRange(7,this)" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">7日</button>
-          <button class="cg-range-btn selected" onclick="setCGRange(30,this)" style="padding:5px 12px;border:1px solid var(--rose);border-radius:8px;font-size:10px;background:var(--rose-pale);color:var(--rose);cursor:pointer;">30日</button>
-          <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(90)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">90日<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
-          <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(365)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">1年<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="cg-factor-toggles"></div>
-        <div id="cg-chart-container" style="width:100%;overflow-x:auto;">
-          <svg id="cg-chart" width="100%" height="200" style="min-width:300px;"></svg>
-        </div>
-        <div id="cg-legend" style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--ink-light);"></div>
       </div>
-      <!-- Timeline -->
-      <div class="section-card" style="margin:0 20px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">TIMELINE</div>
-            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">タイムライン</div>
+
+      <!-- PRO: フェーズ別症状マップ -->
+      <div style="margin:0 20px 16px;" onclick="premiumGate(openCyclePhaseReport)">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">フェーズ別症状マップ</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;cursor:pointer;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">周期フェーズ × 症状のパターン</div>
+          <div style="font-size:11px;color:var(--ink-light);line-height:1.6;">どのフェーズで骨盤痛が集中するか、排卵期の体調変化がわかります</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+            <span id="insights-phase-arrow" style="color:var(--ink-light);"></span>
           </div>
-          <div style="font-size:10px;color:var(--ink-light);" id="tl-count"></div>
-        </div>
-        <div style="display:flex;gap:6px;margin-bottom:10px;">
-          <input type="text" id="tl-search" placeholder="🔍 症状・要因・メモで検索" oninput="renderTimeline()" style="flex:1;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);outline:none;">
-          <select id="tl-filter" onchange="renderTimeline()" style="padding:8px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
-            <option value="all">すべて</option>
-            <option value="pain">痛みあり</option>
-            <option value="flare">フレアアップ</option>
-            <option value="period">生理中</option>
-            <option value="high-energy">高エネルギー</option>
-            <option value="low-energy">低エネルギー</option>
-          </select>
-        </div>
-        <div id="tl-list" style="max-height:400px;overflow-y:auto;"></div>
-        <div id="tl-more" style="display:none;text-align:center;margin-top:10px;">
-          <button onclick="loadMoreTimeline()" style="padding:8px 20px;background:var(--white);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink-mid);cursor:pointer;">もっと見る</button>
         </div>
       </div>
 
-            <!-- Community Voice -->
-       <div class="section-card" style="margin:0 20px 20px;">
-  <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.cv-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
-    <div>
-      <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMMUNITY VOICE</div>
-      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">みんなの声</div>
-    </div>
-    <span class="cv-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
-  </div>
-  <div style="display:none;margin-top:14px;">
-    <div style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
-
-    <!-- タブ切り替え -->
-    <div id="cv-tabs" style="display:flex;gap:8px;margin-bottom:14px;">
-      <button onclick="switchCVTab('current')" id="cv-tab-current" style="flex:1;padding:8px;border:1.5px solid var(--rose);border-radius:10px;background:var(--rose);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">今週のテーマ</button>
-      <button onclick="switchCVTab('archive')" id="cv-tab-archive" style="flex:1;padding:8px;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);color:var(--ink-mid);font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">過去のテーマ</button>
-    </div>
-
-    <!-- 今週のテーマ -->
-    <div id="cv-current">
-      <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
-        <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
-        <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
-      </div>
-
-      <div id="community-replies" style="margin-bottom:14px;"></div>
-
-      <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
-        <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
-        <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
-          <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
-          <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
+      <!-- PRO: 体温グラフ -->
+      <div style="margin:0 20px 16px;" onclick="premiumGate(openTempReport)">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">体温グラフ</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;cursor:pointer;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">基礎体温の二相性パターン</div>
+          <div style="font-size:11px;color:var(--ink-light);line-height:1.6;">排卵の有無・黄体機能を体温グラフで確認できます</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+            <span id="insights-temp-arrow" style="color:var(--ink-light);"></span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <!-- 過去のテーマ -->
-    <div id="cv-archive" style="display:none;">
-      <div id="cv-archive-list" style="font-size:13px;color:var(--ink-light);text-align:center;padding:20px 0;">読み込み中...</div>
-    </div>
+      <!-- PRO: AIパターン解析 -->
+      <div style="margin:0 20px 16px;" onclick="premiumGate(openAIAnalysis)">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">AIパターン解析</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;cursor:pointer;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">90日分のデータを言語化</div>
+          <div style="font-size:11px;color:var(--ink-light);line-height:1.6;">AIがあなたの症状パターンを分析して言葉で説明します</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+            <span id="insights-ai-arrow" style="color:var(--ink-light);"></span>
+          </div>
+        </div>
+      </div>
 
-  </div>
-</div>
+      <!-- PRO: 月次レポートPDF -->
+      <div style="margin:0 20px 32px;" onclick="premiumGate(openMonthlyReport)">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">月次レポートPDF</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;cursor:pointer;">
+          <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:4px;">診察に持参できるPDFを作成</div>
+          <div style="font-size:11px;color:var(--ink-light);line-height:1.6;">1ヶ月の記録をまとめたPDFを保存・共有できます</div>
+          <div style="margin-top:12px;display:flex;justify-content:flex-end;">
+            <span id="insights-pdf-arrow" style="color:var(--ink-light);"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- タイムライン -->
+      <div style="margin:0 20px 32px;">
+        <div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);text-transform:uppercase;margin-bottom:10px;">タイムライン</div>
+        <div style="background:var(--white);border-radius:16px;padding:16px;border:0.5px solid #e8ddd8;">
+          <div style="display:flex;gap:6px;margin-bottom:10px;">
+            <input type="text" id="tl-search" placeholder="症状・メモで検索"
+              oninput="renderTimeline()"
+              style="flex:1;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;background:var(--white);color:var(--ink);outline:none;">
+            <select id="tl-filter" onchange="renderTimeline()"
+              style="padding:8px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;background:var(--white);color:var(--ink);">
+              <option value="all">すべて</option>
+              <option value="pain">痛みあり</option>
+              <option value="flare">フレアアップ</option>
+              <option value="period">生理中</option>
+            </select>
+          </div>
+          <div id="tl-list" style="max-height:360px;overflow-y:auto;"></div>
+          <div id="tl-more" style="display:none;text-align:center;margin-top:10px;">
+            <button onclick="loadMoreTimeline()"
+              style="padding:8px 20px;background:var(--white);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:var(--ink-mid);cursor:pointer;">
+              もっと見る
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 非表示にした旧要素（IDを維持してJS互換性を保つ） -->
+      <div style="display:none;">
+        <div id="insight-total">0</div>
+        <div id="insight-streak">0</div>
+        <div id="pain-free-days">—</div>
+        <div id="avg-pain-score">—</div>
+        <div id="food-body-correlation"></div>
+        <div id="cycle-symptom-correlation"></div>
+        <div id="phase-map-content"></div>
+        <div id="insights-empty-state"></div>
+        <svg id="cg-chart"></svg>
+        <select id="cg-metric1"><option value="painLevel">痛みレベル</option></select>
+        <select id="cg-metric2"><option value="">なし</option></select>
+        <div id="cg-factor-toggles"></div>
+        <div id="cg-legend"></div>
+        <div id="tl-count"></div>
+        <div id="community-topic"></div>
+        <div id="community-question"></div>
+        <div id="community-week"></div>
+        <div id="community-replies"></div>
+        <textarea id="community-input"></textarea>
+        <div id="community-form"></div>
+        <div id="cv-current"></div>
+        <div id="cv-archive"></div>
+        <div id="cv-archive-list"></div>
+      </div>
 
     </div> <!-- screen-insights 終了 -->
 
@@ -2628,13 +2647,17 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
         <span>ホーム</span>
       </button>
+      <button class="nav-item" type="button" onclick="switchTab('calendar', this)" aria-label="カレンダー">
+        <span class="nav-icon" id="nav-icon-calendar" aria-hidden="true"></span>
+        <span>カレンダー</span>
+      </button>
+      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="記録する">
+        <span class="nav-icon" id="nav-icon-plus" aria-hidden="true"></span>
+        <span style="font-size:9px;margin-top:2px;">記録</span>
+      </button>
       <button class="nav-item" type="button" onclick="switchTab('insights', this)" aria-label="インサイト">
         <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
         <span>インサイト</span>
-      </button>
-      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
-        <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
-        <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
       <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
         <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
@@ -3960,6 +3983,7 @@ function icon(name, size, color) {
 function initNavIcons() {
   var navIcons = {
     'nav-icon-home':     ICONS.home(20, 'currentColor'),
+    'nav-icon-calendar': ICONS.calendar(20, 'currentColor'),
     'nav-icon-insights': ICONS.insights(20, 'currentColor'),
     'nav-icon-plus':     ICONS.plus(22, 'white'),
     'nav-icon-settings': ICONS.settings(20, 'currentColor')
@@ -7921,16 +7945,18 @@ function switchTab(tab, btn) {
   if (btn) btn.classList.add('active');
 
 
-    if (tab === 'insights') {
-    if (typeof renderPhaseMap === 'function') renderPhaseMap();
-    setTimeout(function(){
-      if (typeof updateFoodBodyCorrelation === 'function') {
-        updateFoodBodyCorrelation();
-      }
-      if (typeof updateCycleSymptomCorrelation === 'function') {
-        updateCycleSymptomCorrelation();
-      }
-    }, 500);
+  if (tab === 'insights') {
+    buildInsightsDiscovery();
+    buildInsightsDoctorReport();
+    if (typeof renderTimeline === 'function') renderTimeline();
+    ['insights-chart-arrow','insights-phase-arrow','insights-temp-arrow',
+     'insights-ai-arrow','insights-pdf-arrow'].forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = ICONS.chevronRight(14, 'var(--ink-light)');
+    });
+  }
+  if (tab === 'calendar') {
+    buildCalendarTab();
   }
   if (tab === 'home') {
     buildHomeWeekRow();
@@ -7940,7 +7966,7 @@ function switchTab(tab, btn) {
     updateHomeCTAState();
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   }
-  }
+}
 　
 
 
@@ -8625,12 +8651,14 @@ function saveRecord() {
 
   // ★ 編集モードの場合は編集対象日を使用
   if (state.editingDate) {
-    currentRecord.date = new Date(state.editingDate).toISOString();
-    currentRecord.record_date = state.editingDate;
-    
+    // editingDate は常に YYYY-MM-DD 形式（タイムゾーンバグ防止のためローカル午前0時を使用）
+    var edStr = state.editingDate.slice(0, 10);
+    currentRecord.date = new Date(edStr + 'T00:00:00').toISOString();
+    currentRecord.record_date = edStr;
+
     // 既存の記録を上書き
     var editIdx = state.records.findIndex(function(r) {
-      return (r.record_date || (r.date && r.date.slice(0,10))) === state.editingDate;
+      return (r.record_date || (r.date && r.date.slice(0,10))) === edStr;
     });
     if (editIdx !== -1) {
       state.records[editIdx] = currentRecord;
@@ -10568,9 +10596,9 @@ function buildCalendar(){
     if(hasRec) el.classList.add('has-record');
     // 痛みレベルに応じたクラスを付与
     if(hasRec) {
-      var dateStr = new Date(calYear, calMonth, d).toISOString().slice(0, 10);
+      var ds2 = new Date(calYear, calMonth, d).toDateString();
       var rec = state.records.find(function(r) {
-        return r.date && r.date.slice(0, 10) === dateStr;
+        return r.date && new Date(r.date).toDateString() === ds2;
       });
       if(rec) {
         var pain = rec.painLevel;
@@ -10632,6 +10660,301 @@ document.addEventListener('DOMContentLoaded', function(){
     if (typeof obInit === 'function') obInit();
   }
 });
+
+// ===== カレンダータブ =====
+var _calTabYear  = new Date().getFullYear();
+var _calTabMonth = new Date().getMonth();
+
+function buildCalendarTab() {
+  var label = document.getElementById('cal-tab-label');
+  var grid  = document.getElementById('cal-tab-grid');
+  if (!label || !grid) return;
+
+  label.textContent = _calTabYear + '年 ' + (_calTabMonth + 1) + '月';
+
+  var firstDay    = new Date(_calTabYear, _calTabMonth, 1);
+  var daysInMonth = new Date(_calTabYear, _calTabMonth + 1, 0).getDate();
+  var startDow    = firstDay.getDay();
+  var todayStr    = new Date().toISOString().slice(0, 10);
+
+  var html = '';
+  for (var i = 0; i < startDow; i++) {
+    html += '<div></div>';
+  }
+
+  for (var day = 1; day <= daysInMonth; day++) {
+    var dateStr = _calTabYear + '-'
+      + String(_calTabMonth + 1).padStart(2, '0') + '-'
+      + String(day).padStart(2, '0');
+    var isToday  = dateStr === todayStr;
+    var isFuture = dateStr > todayStr;
+
+    var rec = (state.records || []).find(function(r) {
+      return (r.date || r.record_date || '').slice(0, 10) === dateStr;
+    });
+
+    var pain = rec ? (rec.painLevel !== null && rec.painLevel !== undefined ? rec.painLevel : -1) : null;
+
+    var bg      = 'transparent';
+    var color   = isFuture ? 'var(--ink-light)' : 'var(--ink)';
+    var opacity = isFuture ? '0.35' : '1';
+
+    if (rec !== undefined && rec !== null) {
+      if (pain >= 4)      bg = '#993556';
+      else if (pain >= 3) bg = '#d4537e';
+      else if (pain >= 2) bg = '#edbed0';
+      else if (pain >= 1) bg = '#f5e8eb';
+      else                bg = '#e8f4ed';
+      if (pain >= 3) color = 'white';
+    }
+
+    var border = isToday ? 'box-shadow:0 0 0 2px var(--rose);' : '';
+
+    html += '<div class="cal-tab-day" style="background:' + bg + ';opacity:' + opacity + ';' + border + '"'
+      + (isFuture ? '' : ' onclick="openDayModal(\'' + dateStr + '\')"')
+      + '>'
+      + '<span class="cal-tab-date" style="color:' + color + ';">' + day + '</span>'
+      + (rec && rec.symptoms && rec.symptoms.length > 0
+          ? '<span class="cal-tab-dot"></span>' : '')
+      + '</div>';
+  }
+  grid.innerHTML = html;
+
+  buildCalTabSummary();
+
+  // ナビアイコン注入
+  var prevBtn = document.getElementById('cal-tab-prev');
+  var nextBtn = document.getElementById('cal-tab-next');
+  if (prevBtn) prevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
+  if (nextBtn) nextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
+}
+
+function buildCalTabSummary() {
+  var container = document.getElementById('cal-tab-summary');
+  if (!container) return;
+
+  var recs = (state.records || []).filter(function(r) {
+    var d = new Date((r.date || r.record_date || '').slice(0, 10) + 'T00:00:00');
+    return d.getFullYear() === _calTabYear && d.getMonth() === _calTabMonth;
+  });
+
+  var totalDays    = recs.length;
+  var painFreeDays = recs.filter(function(r) {
+    return r.painLevel === 0 || r.painLevel === null || r.painLevel === undefined;
+  }).length;
+  var avgPain = recs.length > 0
+    ? (recs.reduce(function(s, r) { return s + (r.painLevel || 0); }, 0) / recs.length).toFixed(1)
+    : '—';
+
+  var items = [
+    { label: '記録日数',       value: totalDays,    unit: '日' },
+    { label: 'らくな日',       value: painFreeDays, unit: '日' },
+    { label: '平均痛みスコア', value: avgPain,       unit: '/4' }
+  ];
+
+  container.innerHTML = items.map(function(item) {
+    return '<div style="text-align:center;">'
+      + '<div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">' + item.label + '</div>'
+      + '<div style="font-size:20px;font-weight:600;color:var(--ink);">' + item.value + '</div>'
+      + '<div style="font-size:10px;color:var(--ink-light);">' + item.unit + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+function calTabPrev() {
+  _calTabMonth--;
+  if (_calTabMonth < 0) { _calTabMonth = 11; _calTabYear--; }
+  buildCalendarTab();
+}
+
+function calTabNext() {
+  var now = new Date();
+  if (_calTabYear > now.getFullYear() ||
+      (_calTabYear === now.getFullYear() && _calTabMonth >= now.getMonth())) return;
+  _calTabMonth++;
+  if (_calTabMonth > 11) { _calTabMonth = 0; _calTabYear++; }
+  buildCalendarTab();
+}
+
+// 日付文字列（YYYY-MM-DD）から日詳細モーダルを開くラッパー
+function openDayModal(dateStr) {
+  var parts = dateStr.split('-');
+  var y = parseInt(parts[0], 10);
+  var m = parseInt(parts[1], 10) - 1;
+  var d = parseInt(parts[2], 10);
+  // calYear/calMonth を一時的に合わせて openDayDetail を呼ぶ
+  var savedYear  = calYear;
+  var savedMonth = calMonth;
+  calYear  = y;
+  calMonth = m;
+  openDayDetail(d);
+  // openDayDetail は dmOverlay を開く（閉じたあとに calYear/calMonth を復元）
+  var overlay = document.getElementById('dmOverlay');
+  if (overlay) {
+    var origClose = overlay.querySelector('[onclick*="dmOverlay"]');
+    // 閉じたときに元の値を戻す（dmOverlay.classList.remove が呼ばれたとき）
+    var observer = new MutationObserver(function(mutations, obs) {
+      mutations.forEach(function(m2) {
+        if (m2.type === 'attributes' && !overlay.classList.contains('dm-open')) {
+          calYear  = savedYear;
+          calMonth = savedMonth;
+          obs.disconnect();
+        }
+      });
+    });
+    observer.observe(overlay, { attributes: true, attributeFilter: ['class'] });
+  }
+}
+
+// 比較グラフを開くラッパー
+function openComparisonChart() {
+  if (typeof setCGRange === 'function') setCGRange(30);
+  var modal = document.getElementById('cgModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    if (typeof renderComparisonChart === 'function') renderComparisonChart();
+  }
+}
+
+// ===== インサイト — からだの発見 =====
+function buildInsightsDiscovery() {
+  var container = document.getElementById('insights-discovery-cards');
+  if (!container) return;
+
+  var records  = state.records || [];
+  var diseases = state.myDiseases || [];
+
+  if (records.length < 7) {
+    container.innerHTML =
+      '<div style="background:var(--white);border-radius:14px;padding:16px;border:0.5px solid #e8ddd8;text-align:center;">'
+      + '<div style="font-size:13px;color:var(--ink-light);line-height:1.8;">7日間記録すると<br>あなたのパターンが見えてきます</div>'
+      + '<div style="margin-top:12px;font-size:11px;color:var(--ink-light);">現在 ' + records.length + ' 日分の記録があります</div>'
+      + '</div>';
+    return;
+  }
+
+  var cards = [];
+  var now    = new Date();
+  var last30 = records.filter(function(r) {
+    var d = new Date((r.date || r.record_date || '').slice(0, 10) + 'T00:00:00');
+    return (now - d) / 86400000 <= 30;
+  });
+
+  // 痛みのパターン
+  var painDays = last30.filter(function(r) { return (r.painLevel || 0) >= 2; }).length;
+  if (painDays > 0) {
+    var avgPain = (last30.reduce(function(s, r) { return s + (r.painLevel || 0); }, 0) / last30.length).toFixed(1);
+    cards.push({
+      category: '痛みのパターン',
+      color: '#FBEAF0',
+      headColor: '#72243E',
+      text: '過去30日間で' + painDays + '日間、中程度以上の痛みを記録しています。平均痛みスコアは' + avgPain + '/4です。'
+    });
+  }
+
+  // らくな日
+  var painFreeDays = last30.filter(function(r) {
+    return r.painLevel === 0 || r.painLevel === null || r.painLevel === undefined;
+  }).length;
+  if (painFreeDays >= 5) {
+    cards.push({
+      category: 'らくな日',
+      color: '#E1F5EE',
+      headColor: '#085041',
+      text: '今月は' + painFreeDays + '日、症状がない日が続いています。記録を続けることで、らくな日と症状の日のパターンが見えてきます。'
+    });
+  }
+
+  // 睡眠との相関
+  var lowSleepPainDays = last30.filter(function(r) {
+    return r.sleepQuality >= 3 && (r.painLevel || 0) >= 2;
+  }).length;
+  if (lowSleepPainDays >= 3) {
+    cards.push({
+      category: '睡眠と痛みの相関',
+      color: '#EEEDFE',
+      headColor: '#3C3489',
+      text: '睡眠の質が低い日の翌日に痛みが強くなるパターンが' + lowSleepPainDays + '回見られます。睡眠の質を記録し続けることで、このパターンがより明確になります。'
+    });
+  }
+
+  // 疾患別の気づき
+  if (diseases.indexOf('PCOS') !== -1) {
+    var irregularDays = last30.filter(function(r) { return r.symptoms && r.symptoms.indexOf('月経不順') !== -1; }).length;
+    if (irregularDays > 0) {
+      cards.push({
+        category: 'PCOS：周期の記録',
+        color: '#FAEEDA',
+        headColor: '#633806',
+        text: '月経不順の記録が今月' + irregularDays + '日あります。基礎体温と合わせて記録することで、排卵のパターンが見えやすくなります。'
+      });
+    }
+  }
+
+  if (cards.length === 0) {
+    cards.push({
+      category: '記録を続けましょう',
+      color: '#F5F0ED',
+      headColor: '#4a3830',
+      text: 'もう少し記録が増えると、あなただけのパターンが見えてきます。毎日の小さな記録が、大きな気づきにつながります。'
+    });
+  }
+
+  container.innerHTML = cards.map(function(c) {
+    return '<div style="background:' + c.color + ';border-radius:14px;padding:14px 16px;margin-bottom:10px;">'
+      + '<div style="font-size:11px;font-weight:500;color:' + c.headColor + ';margin-bottom:6px;">' + c.category + '</div>'
+      + '<div style="font-size:13px;color:var(--ink);line-height:1.7;">' + c.text + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+// ===== インサイト — 医師への報告書（無料） =====
+function buildInsightsDoctorReport() {
+  var container = document.getElementById('insights-doctor-report');
+  if (!container) return;
+
+  var records = state.records || [];
+  var now = new Date();
+  var thisMonth = records.filter(function(r) {
+    var d = new Date((r.date || r.record_date || '').slice(0, 10) + 'T00:00:00');
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+  });
+
+  if (thisMonth.length === 0) {
+    container.innerHTML = '<div style="font-size:12px;color:var(--ink-light);text-align:center;padding:12px 0;">今月の記録がまだありません</div>';
+    return;
+  }
+
+  var painDays = thisMonth.filter(function(r) { return (r.painLevel || 0) >= 1; }).length;
+  var maxPain  = Math.max.apply(null, thisMonth.map(function(r) { return r.painLevel || 0; }));
+  var allSymptoms = [];
+  thisMonth.forEach(function(r) {
+    (r.symptoms || []).forEach(function(s) {
+      if (allSymptoms.indexOf(s) === -1) allSymptoms.push(s);
+    });
+  });
+
+  var periodStart = state.lastPeriodDate || '未記録';
+  var cycleLen    = state.cycleLength   || '未設定';
+
+  var rows = [
+    { label: '記録期間',       value: (now.getMonth() + 1) + '月1日〜' + now.getDate() + '日' },
+    { label: '痛みのあった日', value: painDays + '日 / ' + thisMonth.length + '日' },
+    { label: '最大痛みスコア', value: maxPain + ' / 4' },
+    { label: '記録した症状',   value: allSymptoms.slice(0, 5).join('・') || 'なし' },
+    { label: '最終生理開始日', value: periodStart },
+    { label: '生理周期',       value: cycleLen !== '未設定' ? cycleLen + '日' : '未設定' }
+  ];
+
+  container.innerHTML = rows.map(function(row, i) {
+    return '<div style="display:flex;justify-content:space-between;align-items:flex-start;padding:8px 0;'
+      + (i < rows.length - 1 ? 'border-bottom:0.5px solid #f0e8e0;' : '') + '">'
+      + '<div style="font-size:12px;color:var(--ink-light);">' + row.label + '</div>'
+      + '<div style="font-size:12px;font-weight:500;color:var(--ink);text-align:right;max-width:55%;">' + row.value + '</div>'
+      + '</div>';
+  }).join('')
+  + '<button onclick="openDoctorSummary()" style="width:100%;margin-top:14px;padding:11px;background:var(--rose-pale);border:none;border-radius:12px;font-size:13px;color:var(--plum);font-weight:500;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;">詳細レポートを見る・コピーする</button>';
+}
 
 function openDayDetail(d){
   var WDAY = ['日','月','火','水','木','金','土'];
@@ -10880,7 +11203,7 @@ function openRecordScreen(){
       return new Date(r.date).toDateString() === todayStr;
     });
     if(todayExists){
-      state.editingDate = new Date().toISOString();
+      state.editingDate = new Date().toISOString().slice(0, 10);
     }
   }
 
@@ -12673,8 +12996,10 @@ function draftRecordScreen(){
 function saveRecordScreen(){
   try {
     var data = gatherRecordData();
-   var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
-var todayStr = targetDate.toDateString();
+    // タイムゾーンバグ防止: editingDate は YYYY-MM-DD。ローカル午前0時でDate生成
+    var edStr = state.editingDate ? state.editingDate.slice(0, 10) : null;
+    var targetDate = edStr ? new Date(edStr + 'T00:00:00') : new Date();
+    var todayStr = targetDate.toDateString();
     var rec = null;
     for(var i=0; i<state.records.length; i++){
       if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
