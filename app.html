@@ -2553,7 +2553,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <span class="nav-icon" aria-hidden="true">📊</span>
         <span>インサイト</span>
       </button>
-      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
+      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordModal()" aria-label="今日を記録する">
         <div class="nav-record-ring" aria-hidden="true">＋</div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
@@ -2691,7 +2691,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">ほてり</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">膣の乾燥</div>
     </div>
       <div class="section-card" id="pain-detail-section" style="display:none;">
     <div class="section-label">PAIN DETAIL</div>
@@ -3064,36 +3063,57 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="settings-section">
         <div class="settings-section-title">データ管理</div>
         <div class="settings-card">
-          <div class="settings-row" onclick="showExportMenu()">
+          <!-- CSV書き出し：無料 -->
+          <div class="settings-row" onclick="exportCSV()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#e8f3ee;">📤</div>
+              <div class="settings-row-icon" style="background:#e8f3ee;">📊</div>
               <div>
-                <div class="settings-row-text">データをエクスポート</div>
-                <div class="settings-row-sub">CSV（受診用）/ JSON（バックアップ）</div>
+                <div class="settings-row-text">記録をCSVで書き出す</div>
+                <div class="settings-row-sub">受診時の資料に。Excel・スプレッドシートで開けます</div>
               </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="manualCloudRestore()">
+          <!-- JSON書き出し：PRO -->
+          <div class="settings-row" onclick="premiumGate(exportJSON)">
+            <div class="settings-row-left">
+              <div class="settings-row-icon" style="background:#f0ebe6;">💾</div>
+              <div>
+                <div class="settings-row-text">全データをバックアップ
+                  <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
+                </div>
+                <div class="settings-row-sub">JSON形式。端末移行・完全バックアップ用</div>
+              </div>
+            </div>
+            <div class="settings-row-right"><span class="settings-chevron">›</span></div>
+          </div>
+          <!-- クラウド復元：PRO -->
+          <div class="settings-row" onclick="premiumGate(manualCloudRestore)">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#e8f4f0;">☁️</div>
               <div>
-                <div class="settings-row-text">クラウドから復元</div>
+                <div class="settings-row-text">クラウドから復元
+                  <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
+                </div>
                 <div class="settings-row-sub">データが消えた場合に使用</div>
               </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
-          <div class="settings-row" onclick="openRestoreUI()">
+          <!-- バックアップ履歴：PRO -->
+          <div class="settings-row" onclick="premiumGate(openRestoreUI)">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#edf0f8;">📦</div>
               <div>
-                <div class="settings-row-text">バックアップ履歴</div>
+                <div class="settings-row-text">バックアップ履歴
+                  <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
+                </div>
                 <div class="settings-row-sub">過去のスナップショットから復元</div>
               </div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
+          <!-- データ診断・修復：無料 -->
           <div class="settings-row" onclick="showDiagnosisUI()">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#f0ebe6;">🔍</div>
@@ -3104,6 +3124,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
           </div>
+          <!-- すべて削除：無料 -->
           <div class="settings-row" onclick="showConfirmModal('すべての記録を削除しますか？', clearData)">
             <div class="settings-row-left">
               <div class="settings-row-icon" style="background:#fde8e8;">🗑</div>
@@ -3800,7 +3821,7 @@ var DISEASE_CONFIG = {
     icon: '🌡️',
     category: 'ホルモン',
     scoring: 'SMI',
-    specificSymptoms: ['ホットフラッシュ','寝汗','膣の乾燥','性欲低下','関節のこわばり','記憶力低下','皮膚の乾燥'],
+    specificSymptoms: ['ホットフラッシュ','寝汗','おりもの','性欲低下','関節のこわばり','記憶力低下','皮膚の乾燥'],
     trackingTips: 'SMIスコアの推移をグラフで確認でき、HRTや漢方の効果を可視化できます。',
     questions: [
       {id:'hotflash',       text:'ほてり・のぼせ',         options:['なし','弱い','中程度','強い']},
@@ -7594,9 +7615,11 @@ function appendSymptomDetail(symptomName) {
   var el = document.getElementById(safeId);
   if (el) {
     requestAnimationFrame(function() {
-      el.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
-      el.style.maxHeight = '700px';
-      el.style.opacity = '1';
+      requestAnimationFrame(function() {
+        el.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
+        el.style.maxHeight = '700px';
+        el.style.opacity = '1';
+      });
     });
   }
 }
@@ -7899,109 +7922,136 @@ function updateHomeSummary(){
 
   var html = '';
 
-  // ① バイタル指標ピル行
+  // ① 痛みスコア（最上部・大きく表示）
+  var painLevel = rec.painLevel !== null && rec.painLevel !== undefined ? rec.painLevel : -1;
+  if (painLevel >= 0) {
+    var painEmoji = ['😊','🙂','😐','😣','😭'][Math.min(Math.floor(painLevel / 2), 4)];
+    var painLabels = ['痛みなし','軽い痛み','中程度','強い痛み','とても強い'];
+    var painLabelIdx = painLevel === 0 ? 0 : painLevel <= 2 ? 1 : painLevel <= 5 ? 2 : painLevel <= 8 ? 3 : 4;
+    var painColor = painLevel === 0 ? '#639922' : painLevel <= 2 ? '#ba7517' : painLevel <= 5 ? '#c4878c' : '#993556';
+    html += '<div style="display:flex;align-items:center;gap:12px;background:var(--cream);border-radius:14px;padding:12px 16px;margin-bottom:12px;">';
+    html += '<div style="font-size:28px;">' + painEmoji + '</div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:2px;">今日の痛み</div>';
+    html += '<div style="font-size:15px;font-weight:600;color:' + painColor + ';">' + painLabels[painLabelIdx] + '</div>';
+    html += '</div>';
+    var painPct = Math.round(painLevel / 10 * 100);
+    html += '<div style="width:60px;">';
+    html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
+    html += '<div style="height:100%;width:' + painPct + '%;background:' + painColor + ';border-radius:3px;transition:width 0.5s;"></div>';
+    html += '</div>';
+    html += '<div style="font-size:9px;color:var(--ink-light);text-align:right;margin-top:3px;">' + painLevel + '/10</div>';
+    html += '</div>';
+    html += '</div>';
+  }
+
+  // ② 症状チップ
+  var sympChips = [];
+  if(rec.symptoms && rec.symptoms.length) sympChips = sympChips.concat(rec.symptoms);
+  if(rec.bloodClot && rec.bloodClot.length) sympChips = sympChips.concat(rec.bloodClot.map(function(b){return '🩸 '+b;}));
+  if(rec.bloodColor && rec.bloodColor.length) sympChips = sympChips.concat(rec.bloodColor);
+  if(sympChips.length){
+    html += '<div style="margin-bottom:12px;">';
+    html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:6px;">今日の症状</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">';
+    sympChips.forEach(function(s){
+      html += '<span style="font-size:11px;background:var(--rose-pale);color:var(--rose);border-radius:12px;padding:3px 10px;">'+s+'</span>';
+    });
+    html += '</div></div>';
+  }
+
+  // ③ バイタル指標ピル行
   var vitals = [];
   if(rec.temperature) vitals.push({icon:'🌡', label: rec.temperature+'℃', color:'#d4a574', bg:'#fdf5ec'});
   if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') vitals.push({icon:'🌸', label: rec.menstrualCycle, color:'#c4878c', bg:'#fdf0f2'});
   if(rec.energy) vitals.push({icon:'⚡', label:'元気 '+rec.energy+'/5', color:'#d4a574', bg:'#fdf5ec'});
   if(rec.sleepHours) vitals.push({icon:'😴', label:'睡眠 '+rec.sleepHours+'h', color:'#7ba3c4', bg:'#eef4fb'});
   if(vitals.length){
-    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;">';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
     vitals.forEach(function(v){
-      html += '<div style="display:flex;align-items:center;gap:5px;background:'+v.bg+';border-radius:20px;padding:6px 12px;">';
-      html += '<span style="font-size:14px;">'+v.icon+'</span>';
-      html += '<span style="font-size:12px;font-weight:600;color:'+v.color+';">'+v.label+'</span>';
+      html += '<div style="display:flex;align-items:center;gap:5px;background:'+v.bg+';border-radius:20px;padding:5px 10px;">';
+      html += '<span style="font-size:12px;">'+v.icon+'</span>';
+      html += '<span style="font-size:11px;font-weight:600;color:'+v.color+';">'+v.label+'</span>';
       html += '</div>';
     });
     html += '</div>';
   }
 
-  // ② 24時間ドーナツチャート（食事タイムライン）
-  (function(){
-    var circumference = 2 * Math.PI * 46; // r=46
-    html += '<div style="display:flex;align-items:center;gap:18px;margin-bottom:16px;">';
-    // チャート
-    html += '<div style="position:relative;width:108px;height:108px;flex-shrink:0;">';
-    html += '<svg width="108" height="108" viewBox="0 0 108 108" style="transform:rotate(-90deg)">';
-    html += '<circle cx="54" cy="54" r="46" fill="none" stroke="var(--cream)" stroke-width="9"/>';
-    // 食事スロットをアーク表示
-    foodSlots.forEach(function(slot){
-      if(!slot.time) return;
-      var parts = slot.time.split(':');
-      var h = parseInt(parts[0]);
-      var m = parseInt(parts[1]) || 0;
-      var hourDecimal = h + m / 60;
-      var arcLen = circumference / 24 * 1.2;
-      var dashGap = circumference - arcLen;
-      var offset = -(hourDecimal / 24 * circumference);
-      var dotColor;
-      if(h >= 5 && h < 10) dotColor = '#d4a574';
-      else if(h >= 10 && h < 14) dotColor = '#6b9e78';
-      else if(h >= 17 && h < 22) dotColor = '#c4878c';
-      else dotColor = '#7ba3c4';
-      html += '<circle cx="54" cy="54" r="46" fill="none" stroke="'+dotColor+'" stroke-width="9" stroke-dasharray="'+arcLen.toFixed(1)+' '+dashGap.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" stroke-linecap="round"/>';
-    });
-    html += '</svg>';
-    // 中央ラベル
-    html += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
-    if(fastH > 0){
-      html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+fastH+'</div>';
-      html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">時間断食</div>';
-    } else if(mealCount > 0){
-      html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+mealCount+'</div>';
-      html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">食</div>';
-    } else {
-      html += '<div style="font-size:10px;color:var(--ink-light);">飲み物<br>のみ</div>';
-    }
-    html += '</div></div>';
-    // 右側：食事タイムライン
-    html += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0;">';
-    if(allSlots.length){
-      var showMax = Math.min(allSlots.length, 6);
-      for(var si=0;si<showMax;si++){
-        var slot = allSlots[si];
-        var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
+  // ④ 食事タイムライン（折りたたみ）
+  var hasMealData = !!(rec.mealFree && rec.mealFree.trim());
+  if (hasMealData || state.fastingEnabled) {
+    var mealToggleId = 'meal-acc-' + Date.now();
+    html += '<div style="border-top:0.5px solid var(--rose-light);margin-bottom:12px;padding-top:10px;">';
+    html += '<button onclick="(function(){var c=document.getElementById(\'' + mealToggleId + '\');var a=document.getElementById(\'' + mealToggleId + '-arrow\');if(c.style.display===\'none\'){c.style.display=\'block\';a.textContent=\'▲\';}else{c.style.display=\'none\';a.textContent=\'▼\';}})()" '
+      + 'style="width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;padding:0;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;">';
+    html += '<span style="font-size:12px;color:var(--ink-light);">食事の記録を見る</span>';
+    html += '<span id="' + mealToggleId + '-arrow" style="font-size:10px;color:var(--ink-light);">▼</span>';
+    html += '</button>';
+    html += '<div id="' + mealToggleId + '" style="display:none;margin-top:12px;">';
+    // ドーナツチャート + タイムライン（既存のまま）
+    (function(){
+      var circumference = 2 * Math.PI * 46;
+      html += '<div style="display:flex;align-items:center;gap:18px;margin-bottom:16px;">';
+      html += '<div style="position:relative;width:108px;height:108px;flex-shrink:0;">';
+      html += '<svg width="108" height="108" viewBox="0 0 108 108" style="transform:rotate(-90deg)">';
+      html += '<circle cx="54" cy="54" r="46" fill="none" stroke="var(--cream)" stroke-width="9"/>';
+      foodSlots.forEach(function(slot){
+        if(!slot.time) return;
+        var parts = slot.time.split(':');
+        var h = parseInt(parts[0]);
+        var m = parseInt(parts[1]) || 0;
+        var hourDecimal = h + m / 60;
+        var arcLen = circumference / 24 * 1.2;
+        var dashGap = circumference - arcLen;
+        var offset = -(hourDecimal / 24 * circumference);
         var dotColor;
-        if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
-        else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
-        else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
+        if(h >= 5 && h < 10) dotColor = '#d4a574';
+        else if(h >= 10 && h < 14) dotColor = '#6b9e78';
+        else if(h >= 17 && h < 22) dotColor = '#c4878c';
         else dotColor = '#7ba3c4';
-        var rowOpacity = slot.isDrink ? '0.45' : '1';
-        html += '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
-        html += '<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
-        html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:36px;">'+(slot.time||'')+'</span>';
-        html += '<span style="font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
-        html += '</div>';
+        html += '<circle cx="54" cy="54" r="46" fill="none" stroke="'+dotColor+'" stroke-width="9" stroke-dasharray="'+arcLen.toFixed(1)+' '+dashGap.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" stroke-linecap="round"/>';
+      });
+      html += '</svg>';
+      html += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
+      if(fastH > 0){
+        html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+fastH+'</div>';
+        html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">時間断食</div>';
+      } else if(mealCount > 0){
+        html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+mealCount+'</div>';
+        html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">食</div>';
+      } else {
+        html += '<div style="font-size:10px;color:var(--ink-light);">飲み物<br>のみ</div>';
       }
-      if(allSlots.length > 6){
-        html += '<div style="font-size:10px;color:var(--ink-light);padding-top:4px;">他 '+(allSlots.length-6)+'件</div>';
+      html += '</div></div>';
+      html += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0;">';
+      if(allSlots.length){
+        var showMax = Math.min(allSlots.length, 6);
+        for(var si=0;si<showMax;si++){
+          var slot = allSlots[si];
+          var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
+          var dotColor;
+          if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
+          else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
+          else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
+          else dotColor = '#7ba3c4';
+          var rowOpacity = slot.isDrink ? '0.45' : '1';
+          html += '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
+          html += '<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
+          html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:36px;">'+(slot.time||'')+'</span>';
+          html += '<span style="font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
+          html += '</div>';
+        }
+        if(allSlots.length > 6){
+          html += '<div style="font-size:10px;color:var(--ink-light);padding-top:4px;">他 '+(allSlots.length-6)+'件</div>';
+        }
+      } else if(mealCount > 0){
+        html += '<div style="font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
+      } else {
+        html += '<div style="font-size:11px;color:var(--ink-light);">食事記録なし</div>';
       }
-    } else if(mealCount > 0){
-      html += '<div style="font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
-    } else {
-      html += '<div style="font-size:11px;color:var(--ink-light);">食事記録なし</div>';
-    }
-    html += '</div>';
-    html += '</div>';
-  })();
-
-  // ④ 症状チップ
-  var sympChips = [];
-  if(rec.symptoms && rec.symptoms.length) sympChips = sympChips.concat(rec.symptoms);
-  if(rec.painLevel && rec.painLevel > 0){
-    var pText = '痛み '+rec.painLevel+'/10';
-    if(rec.painLocation && rec.painLocation.length) pText += '（'+rec.painLocation.join('・')+'）';
-    sympChips.push('🔴 '+pText);
-  }
-  if(rec.bloodClot && rec.bloodClot.length) sympChips = sympChips.concat(rec.bloodClot.map(function(b){return '🩸 '+b;}));
-  if(rec.bloodColor && rec.bloodColor.length) sympChips = sympChips.concat(rec.bloodColor);
-  if(sympChips.length){
-    html += '<div style="margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:7px;">症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    sympChips.forEach(function(s){
-      html += '<span style="font-size:11px;background:#fdf0f2;color:#c4878c;padding:4px 10px;border-radius:14px;">'+s+'</span>';
-    });
+      html += '</div>';
+      html += '</div>';
+    })();
     html += '</div></div>';
   }
 
@@ -8779,7 +8829,7 @@ var SYMPTOM_CATEGORIES = {
   '食欲増加':'mind','食欲低下':'mind','眠気':'mind',
   '集中力低下':'mind','気分の落ち込み':'mind',
   'おりもの':'gyneco','胸の張り':'gyneco','ほてり':'gyneco',
-  '動悸':'gyneco','のぼせ':'gyneco','膣の乾燥':'gyneco'
+  '動悸':'gyneco','のぼせ':'gyneco','おりもの':'gyneco'
 };
 var _sympTabCurrent = 'all';
 
