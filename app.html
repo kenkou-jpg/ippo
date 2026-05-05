@@ -2106,27 +2106,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   </div>
 </div>
 
-<!-- クイック症状ログ -->
-<div id="home-quick-log" style="margin:12px 20px 0;">
-  <div style="background:var(--white);border-radius:20px;padding:16px 18px;box-shadow:0 2px 12px var(--shadow);">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の症状</div>
-      <div id="quick-log-status" style="font-size:11px;color:var(--ink-light);">未記録</div>
-    </div>
-    <div id="quick-symptom-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;"></div>
-    <div style="margin-bottom:14px;">
-      <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">痛みの強さ</div>
-      <div id="quick-pain-scale" style="display:flex;gap:8px;">
-        <button onclick="selectQuickPain(0,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😊</button>
-        <button onclick="selectQuickPain(1,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">🙂</button>
-        <button onclick="selectQuickPain(2,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😐</button>
-        <button onclick="selectQuickPain(3,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😣</button>
-        <button onclick="selectQuickPain(4,this)" style="flex:1;padding:8px 4px;border-radius:10px;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;cursor:pointer;">😭</button>
-      </div>
-    </div>
-    <button id="quick-log-btn" onclick="saveQuickLog()" style="width:100%;padding:13px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;transition:all 0.2s;">今日の症状を記録する</button>
-  </div>
-</div>
 
            <!-- Record CTA -->
       <div id="home-record-cta" style="margin:16px 20px;" onclick="handleHomeCTA()">
@@ -7281,7 +7260,11 @@ document.getElementById('success-overlay').classList.add('active');
   updateStats();
   updateUnlock();
   updateHistory();
-  buildCalendar();            // ← 追加
+  buildCalendar();
+  updateHomeCTA();
+  if (typeof updateHomeCTAState === 'function') updateHomeCTAState();
+  if (typeof updateStreakBadge === 'function') updateStreakBadge();
+  if (typeof checkAndShowTempAlert === 'function') checkAndShowTempAlert();
 
   // パーソナライズされた成功メッセージ
   var latestRecord = (state.records || []).slice().reverse().find(function(r) {
@@ -7820,16 +7803,167 @@ function updateHomeCTA(){
 
 
 function handleHomeCTA(){
-  var todayStr = new Date().toDateString();
-  var hasRecord = false;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ hasRecord = true; break; }
-  }
-  if(hasRecord){
+  var today = new Date().toISOString().slice(0, 10);
+  var rec = (state.records || []).find(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === today;
+  });
+  if (rec) {
     openDayDetail(new Date().getDate());
   } else {
-    openRecordScreen();
+    openRecordModal();
   }
+}
+
+// ===== ホーム CTAカード 記録前後状態更新 =====
+function updateHomeCTAState() {
+  var today = new Date().toISOString().slice(0, 10);
+  var rec = (state.records || []).find(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === today;
+  });
+
+  var ctaCard = document.getElementById('home-record-cta');
+  if (!ctaCard) return;
+
+  var title = ctaCard.querySelector('#home-cta-title');
+  var sub   = ctaCard.querySelector('#home-cta-sub');
+  var inner = ctaCard.querySelector('#home-cta-card');
+
+  if (rec) {
+    // 記録後：グリーン系
+    if (inner) inner.style.background = 'linear-gradient(135deg, #b8c4a8, #8a9c78)';
+    if (title) title.textContent = '今日の記録完了';
+    if (sub)   sub.textContent   = buildComparisonComment(rec);
+    ctaCard.onclick = function() { openDayDetail(new Date().getDate()); };
+  } else {
+    // 記録前：ローズ系（デフォルト）
+    if (inner) inner.style.background = '';
+    if (title) title.textContent = '今日を記録する';
+    if (sub)   sub.textContent   = 'まだ今日の記録がありません';
+    ctaCard.onclick = function() { openRecordModal(); };
+  }
+}
+
+// ===== 連続記録バッジ色変化 =====
+function updateStreakBadge() {
+  var badge = document.getElementById('streak-badge');
+  if (!badge) return;
+  var today = new Date().toISOString().slice(0, 10);
+  var recordedToday = (state.records || []).some(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === today;
+  });
+  if (recordedToday) {
+    badge.style.background = 'linear-gradient(135deg, #eaf3de, #d4e8c4)';
+    badge.style.color = '#4a7c5c';
+    var countEl = document.getElementById('streak-badge-count');
+    if (countEl) countEl.nextSibling && (countEl.parentNode.lastChild.textContent = '日連続 ✓');
+  } else {
+    badge.style.background = '';
+    badge.style.color = '';
+  }
+}
+
+// ===== 比較コメント生成 =====
+function buildComparisonComment(todayRec) {
+  var records = state.records || [];
+  var diseases = state.myDiseases || [];
+
+  var recordCount = records.length;
+
+  if (recordCount <= 1) {
+    return '最初の記録ができました。続けるほど見えてくるものがあります';
+  }
+
+  var yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  var yesterdayStr = yesterday.toISOString().slice(0, 10);
+  var yesterdayRec = records.find(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === yesterdayStr;
+  });
+
+  if (recordCount < 7) {
+    if (!yesterdayRec) return '昨日の記録がないため比較できません。毎日記録すると変化がわかります';
+    return buildDayComparison(todayRec, yesterdayRec, diseases);
+  }
+
+  var lastWeek = new Date();
+  lastWeek.setDate(lastWeek.getDate() - 7);
+  var lastWeekStr = lastWeek.toISOString().slice(0, 10);
+  var lastWeekRec = records.find(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === lastWeekStr;
+  });
+
+  if (lastWeekRec) {
+    return buildWeekComparison(todayRec, lastWeekRec, diseases);
+  }
+
+  if (yesterdayRec) {
+    return buildDayComparison(todayRec, yesterdayRec, diseases);
+  }
+
+  return '記録を続けています。パターンが見えてきます';
+}
+
+function buildDayComparison(today, yesterday, diseases) {
+  var todayPain = today.painLevel || 0;
+  var yestPain  = yesterday.painLevel || 0;
+  var diff = todayPain - yestPain;
+
+  if (diseases.indexOf('子宮内膜症') !== -1) {
+    if (diff < -1) return '昨日より骨盤の痛みが和らいでいます';
+    if (diff > 1)  return '昨日より痛みが強めです。無理せず過ごしてください';
+    if (todayPain === 0) return '今日は痛みのない日です。この記録も大切です';
+  }
+  if (diseases.indexOf('PCOS') !== -1) {
+    if (diff < -1) return '昨日より体調が落ち着いています';
+    if (diff > 1)  return '昨日より症状が強めです。記録を続けましょう';
+  }
+  if (diseases.indexOf('子宮筋腫') !== -1) {
+    if (diff < -1) return '昨日より楽な一日でした';
+    if (diff > 1)  return '昨日より経血量や痛みに変化がありますか？';
+  }
+  if (diseases.indexOf('PMS/PMDD') !== -1) {
+    if (diff < -1) return '昨日より気分・痛みが落ち着いています';
+    if (diff > 1)  return '昨日より症状が強めです。ゆっくり過ごしてください';
+  }
+  if (diseases.indexOf('更年期障害') !== -1) {
+    if (diff < -1) return '昨日より体調が穏やかです';
+    if (diff > 1)  return '昨日より症状が強めです。SMIチェックも記録してください';
+  }
+
+  if (diff < -1) return '昨日より痛みが1段階楽でした';
+  if (diff > 1)  return '昨日より痛みが強めです';
+  if (diff === 0 && todayPain === 0) return '今日も痛みのない日でした';
+  return '昨日と同じような状態が続いています';
+}
+
+function buildWeekComparison(today, lastWeek, diseases) {
+  var todayPain = today.painLevel || 0;
+  var lastPain  = lastWeek.painLevel || 0;
+  var diff = todayPain - lastPain;
+
+  var now = new Date();
+  var painFreeDays = (state.records || []).filter(function(r) {
+    var d = new Date(r.date || r.record_date || '');
+    return d.getFullYear() === now.getFullYear()
+      && d.getMonth() === now.getMonth()
+      && (r.painLevel === 0 || r.painLevel === null || r.painLevel === undefined);
+  }).length;
+
+  if (diseases.indexOf('子宮内膜症') !== -1) {
+    if (diff < -1) return '先週の同じ曜日より骨盤の痛みが落ち着いています';
+    if (diff > 1)  return '先週の同じ曜日より痛みが強めです。この変化を記録しておきましょう';
+  }
+  if (diseases.indexOf('PMS/PMDD') !== -1) {
+    if (diff < 0) return '先週より症状が軽めです。周期のパターンが見えてきます';
+    if (diff > 0) return '先週より症状が強めです。生理前のフェーズを確認してみましょう';
+  }
+
+  if (painFreeDays > 0) {
+    return '今月のらくな日が' + painFreeDays + '日になりました';
+  }
+  if (diff < -1) return '先週の同じ曜日より体調が落ち着いています';
+  if (diff > 1)  return '先週の同じ曜日より痛みが強めです';
+  return '記録が7日続きました。パターンが見えてきます';
 }
 
 function isPeriodExpected(){
@@ -8754,7 +8888,90 @@ function applyFastingVisibility() {
   if (label) label.textContent = show ? 'オン' : 'オフ';
 }
 
-// ===== クイック症状ログ =====
+// ===== 体温アラート =====
+function checkSuddenTempRise(records, diseases) {
+  if (diseases.indexOf('卵巣嚢腫') === -1) return null;
+
+  var tempRecords = records
+    .filter(function(r) { return r.temperature; })
+    .sort(function(a, b) {
+      return new Date(a.date || a.record_date) - new Date(b.date || b.record_date);
+    });
+
+  if (tempRecords.length < 2) return null;
+
+  var latest = tempRecords[tempRecords.length - 1];
+  var prev   = tempRecords[tempRecords.length - 2];
+  var diff   = parseFloat(latest.temperature) - parseFloat(prev.temperature);
+
+  if (diff >= 0.8) {
+    return { level: 'caution', diff: diff.toFixed(1), latestTemp: latest.temperature };
+  }
+  if (parseFloat(latest.temperature) >= 38.0) {
+    return { level: 'warning', temp: latest.temperature };
+  }
+  return null;
+}
+
+function checkAndShowTempAlert() {
+  var diseases = state.myDiseases || [];
+  if (!state.records || state.records.length < 2) return;
+
+  // 既存 calcTemperaturePhases alerts チェック
+  var tempCount = state.records.filter(function(r) { return r.temperature; }).length;
+  if (tempCount >= 14) {
+    var analysis = calcTemperaturePhases(state.records);
+    if (analysis && analysis.alerts && analysis.alerts.length > 0) {
+      var hasEmergency = analysis.alerts.some(function(a) {
+        return a.level === 'emergency' || a.level === 'danger';
+      });
+      if (hasEmergency) {
+        showTempAlertBanner('体温に気になるパターンがあります。体温グラフで確認してください', 'warn');
+        return;
+      }
+    }
+  }
+
+  // 急激な体温上昇チェック（卵巣嚢腫ユーザーのみ）
+  var suddenRise = checkSuddenTempRise(state.records, diseases);
+  if (suddenRise) {
+    var msg = suddenRise.level === 'warning'
+      ? '体温が' + suddenRise.temp + '℃と高めです。腹痛や吐き気を伴う場合は医療機関にご相談ください'
+      : '前日より体温が' + suddenRise.diff + '℃上昇しています。腹痛や吐き気を伴う場合は医療機関にご相談ください';
+    showTempAlertBanner(msg, suddenRise.level === 'warning' ? 'danger' : 'caution');
+  }
+}
+
+function showTempAlertBanner(message, level) {
+  var existing = document.getElementById('temp-alert-banner');
+  if (existing) existing.remove();
+
+  var colors = {
+    'danger':  { bg: '#fde8e8', border: '#c4878c', text: '#8a4050', btn: '#c4878c' },
+    'caution': { bg: '#fdf3e8', border: '#d4a574', text: '#7a5020', btn: '#d4a574' },
+    'warn':    { bg: '#fdf8e8', border: '#d4c474', text: '#6a5820', btn: '#d4c474' }
+  };
+  var c = colors[level] || colors['warn'];
+
+  var banner = document.createElement('div');
+  banner.id = 'temp-alert-banner';
+  banner.style.cssText = 'margin:0 20px 12px;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:12px 14px;';
+  banner.innerHTML =
+    '<div style="font-size:12px;color:' + c.text + ';line-height:1.6;margin-bottom:8px;">🌡️ ' + message + '</div>'
+    + '<div style="font-size:10px;color:' + c.text + ';opacity:0.75;margin-bottom:8px;">※ これは記録データに基づく参考情報です。医学的診断ではありません。</div>'
+    + '<div style="display:flex;gap:8px;">'
+    + '<button onclick="premiumGate(openTempReport)" style="flex:1;padding:8px;background:' + c.btn + ';color:white;border:none;border-radius:10px;font-size:11px;font-family:\'Noto Sans JP\',sans-serif;cursor:pointer;">体温グラフを確認する</button>'
+    + '<button onclick="document.getElementById(\'temp-alert-banner\').remove()" style="padding:8px 12px;background:transparent;border:1px solid ' + c.border + ';border-radius:10px;font-size:11px;color:' + c.text + ';cursor:pointer;">閉じる</button>'
+    + '</div>';
+
+  // CTAカード直後に挿入
+  var ctaCard = document.getElementById('home-record-cta');
+  if (ctaCard && ctaCard.parentNode) {
+    ctaCard.parentNode.insertBefore(banner, ctaCard.nextSibling);
+  }
+}
+
+// ===== クイック症状ログ（後方互換のため残す） =====
 var _quickPainLevel = -1;
 var _quickSelectedSymptoms = [];
 
@@ -8930,8 +9147,9 @@ document.addEventListener('DOMContentLoaded', function(){
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
   updateHomeCTA();
+  updateHomeCTAState();
+  updateStreakBadge();
   updateHomeSummary();
-  initQuickLog();
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   applyFastingVisibility();
   updateFastingWidgetPhase();
@@ -9156,6 +9374,32 @@ function openDayDetail(d){
 
 
 
+// ===== 記録モーダル → 詳細記録画面への引き継ぎ =====
+function prefillRecordFromModal() {
+  var today = new Date().toISOString().slice(0, 10);
+  var rec = (state.records || []).find(function(r) {
+    return (r.date || r.record_date || '').slice(0, 10) === today;
+  });
+  if (!rec) return;
+
+  // モーダルで保存された症状を症状チップに反映
+  if (rec.symptoms && rec.symptoms.length > 0) {
+    document.querySelectorAll('#rs-symptoms .chip').forEach(function(chip) {
+      if (rec.symptoms.indexOf(chip.textContent.trim()) !== -1) {
+        chip.classList.add('selected');
+      }
+    });
+  }
+
+  // 痛みレベルをスライダーに反映
+  if (rec.painLevel !== null && rec.painLevel !== undefined) {
+    var painSlider = document.getElementById('rs-pain-level');
+    var painDisplay = document.getElementById('pain-level-display');
+    if (painSlider) painSlider.value = rec.painLevel;
+    if (painDisplay) painDisplay.textContent = rec.painLevel;
+  }
+}
+
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
     // 今日の記録が既にある場合は自動的に編集モードにする
@@ -9199,6 +9443,8 @@ function openRecordScreen(){
   if(painSection){ painSection.style.display = 'none'; }
   var cycleDetail = document.getElementById('cycle-detail-section');
   if(cycleDetail){ cycleDetail.style.display = 'none'; }
+  // 記録モーダルで保存済みの症状・痛みを引き継ぐ（非編集モード時のみ）
+  if(!isEditing){ prefillRecordFromModal(); }
   // ★ 編集モード：既存記録をフォームに復元
   if(isEditing){
     var editDateStr = targetDate.toDateString();
@@ -11051,6 +11297,9 @@ var todayStr = targetDate.toDateString();
     // UI更新（保存成功後のみ）
     updateHomeSummary();
     updateHomeCTA();
+    updateHomeCTAState();
+    updateStreakBadge();
+    checkAndShowTempAlert();
     updateFastingWidgetPhase();
     updateStats();
     updateHistory();
