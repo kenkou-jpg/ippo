@@ -994,8 +994,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   from { transform: translateY(40px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
-/* CTAカードの色変化トランジション */
-#home-cta-card { transition: background 0.5s ease; }
+/* CTAカードのトランジション */
+#home-cta-card { transition: background 0.5s ease, opacity 0.3s ease; }
 /* 症状詳細の展開アニメーション */
 [id^="sd-detail-"] { overflow: hidden; }
 /* 記録完了サクセスオーバーレイのポップイン */
@@ -2553,7 +2553,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <span class="nav-icon" aria-hidden="true">📊</span>
         <span>インサイト</span>
       </button>
-      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordModal()" aria-label="今日を記録する">
+      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" aria-hidden="true">＋</div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
@@ -7413,12 +7413,12 @@ function selectEmotion(key, el) {
 
 // ===== STEPS ビルダー =====
 function buildSteps() {
-  var stepCount = state.fastingEnabled ? 4 : 3;
+  var stepCount = 3 + (state.fastingEnabled ? 1 : 0);
   var steps = [
     {
-      title: '今日のからだの調子は\nどうですか？',
+      title: getBodyCheckTitle(),
       label: '1 / ' + stepCount,
-      render: renderWellness
+      render: renderBodyCheck
     },
     {
       title: '症状と痛みを\n記録しましょう',
@@ -7439,6 +7439,228 @@ function buildSteps() {
     });
   }
   return steps;
+}
+
+// ===== Step1: からだチェック（時間帯・疾患別） =====
+function getBodyCheckTitle() {
+  var hour = new Date().getHours();
+  if (hour >= 5  && hour < 12) return '今朝のからだの\n状態を教えてください';
+  if (hour >= 12 && hour < 17) return '今日のからだは\nどうですか？';
+  if (hour >= 17 && hour < 21) return '今日一日\nお疲れさまでした';
+  return '今夜のからだの\n状態を教えてください';
+}
+
+function renderBodyCheck() {
+  var hour = new Date().getHours();
+  var diseases = state.myDiseases || [];
+  var isMorning = hour >= 5 && hour < 12;
+  var isNight   = hour >= 20 || hour < 5;
+
+  var html = '';
+
+  // --- 睡眠の質（朝のみ表示） ---
+  if (isMorning) {
+    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">昨夜の眠りはどうでしたか？</div>';
+    var sleepOpts = [
+      { v: 1, emoji: '😴', label: 'ぐっすり眠れた' },
+      { v: 2, emoji: '🙂', label: 'まあまあ眠れた' },
+      { v: 3, emoji: '😐', label: 'あまり眠れなかった' },
+      { v: 4, emoji: '😔', label: 'ほとんど眠れなかった' }
+    ];
+    html += '<div class="score-selector">';
+    sleepOpts.forEach(function(s) {
+      var sel = currentRecord.sleepQuality === s.v;
+      html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'sleepQuality\',' + s.v + ',this)">'
+        + s.emoji + '<span class="score-label">' + s.label + '</span></button>';
+    });
+    html += '</div></div>';
+  }
+
+  // --- エネルギー（全時間帯） ---
+  html += '<div style="margin-bottom:18px;">';
+  if (isMorning) {
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今朝、からだはどんな感じですか？</div>';
+  } else if (isNight) {
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日一日、からだはどうでしたか？</div>';
+  } else {
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今の体の状態を教えてください</div>';
+  }
+  var energyOpts = [
+    { v: 5, emoji: '⚡', label: 'エネルギーがある' },
+    { v: 4, emoji: '🙂', label: 'まあまあ元気' },
+    { v: 3, emoji: '😐', label: 'ふつう' },
+    { v: 2, emoji: '🥱', label: '疲れている' },
+    { v: 1, emoji: '😮‍💨', label: 'とても疲れている' }
+  ];
+  html += '<div class="score-selector">';
+  energyOpts.forEach(function(s) {
+    var sel = currentRecord.energy === s.v;
+    html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'energy\',' + s.v + ',this)">'
+      + s.emoji + '<span class="score-label">' + s.label + '</span></button>';
+  });
+  html += '</div></div>';
+
+  // --- 疾患別の追加質問（1問のみ） ---
+  var extraQ = getDiseaseMorningQuestion(diseases, isMorning, isNight);
+  if (extraQ) {
+    html += '<div style="margin-bottom:18px;">';
+    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + extraQ.question + '</div>';
+    html += '<div class="chips">';
+    extraQ.options.forEach(function(opt) {
+      var sel = (currentRecord.extraAnswer || '') === opt;
+      html += '<div class="chip' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckExtra(\'' + opt.replace(/'/g, "\\'") + '\',this)">' + opt + '</div>';
+    });
+    html += '</div></div>';
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+}
+
+function selectBodyCheckItem(field, value, el) {
+  currentRecord[field] = value;
+  var group = el.closest('.score-selector');
+  if (group) group.querySelectorAll('.score-btn').forEach(function(b) { b.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function selectBodyCheckExtra(value, el) {
+  currentRecord.extraAnswer = value;
+  var group = el.closest('.chips');
+  if (group) group.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+// ===== 疾患別追加質問 =====
+function getDiseaseMorningQuestion(diseases, isMorning, isNight) {
+  if (diseases.indexOf('子宮内膜症') !== -1) {
+    if (isMorning) return {
+      question: '朝起きたとき、骨盤周りの痛みはありましたか？',
+      options: ['なかった', '少しあった', 'かなりあった', '起きるのがつらかった']
+    };
+    if (isNight) return {
+      question: '今日一日の骨盤の痛みのピークはいつでしたか？',
+      options: ['なかった', '朝', '午後', '夕方以降', '常にあった']
+    };
+    return {
+      question: '今の骨盤周りの状態は？',
+      options: ['楽', '少し重い', '痛みがある', 'かなり痛い']
+    };
+  }
+  if (diseases.indexOf('PCOS') !== -1) {
+    if (isMorning) return {
+      question: '今朝の基礎体温を計りましたか？',
+      options: ['計った（記録欄に入力）', '忘れた', '今日は計らない']
+    };
+    return {
+      question: '今日の食欲はどうでしたか？',
+      options: ['ふつう', '少し多め', 'かなり多め', '少なめ']
+    };
+  }
+  if (diseases.indexOf('子宮筋腫') !== -1) {
+    if (isMorning) return {
+      question: '今朝、下腹部の圧迫感はありましたか？',
+      options: ['なかった', '少しあった', 'かなりあった']
+    };
+    return {
+      question: '今日の経血量は（生理中の場合）？',
+      options: ['生理中ではない', '少ない', 'ふつう', '多い', 'とても多い']
+    };
+  }
+  if (diseases.indexOf('PMS/PMDD') !== -1) {
+    if (isMorning) return {
+      question: '今朝の気分はどうですか？',
+      options: ['穏やか', 'すこし不安定', 'かなり不安定', 'とても辛い']
+    };
+    return {
+      question: '今日、感情のコントロールは難しかったですか？',
+      options: ['問題なかった', '少し難しかった', 'かなり難しかった', 'とても辛かった']
+    };
+  }
+  if (diseases.indexOf('更年期障害') !== -1) {
+    if (isMorning) return {
+      question: '昨夜、寝汗やほてりで目が覚めましたか？',
+      options: ['なかった', '1回あった', '2〜3回あった', '何度も目が覚めた']
+    };
+    return {
+      question: '今日のほてり・のぼせはありましたか？',
+      options: ['なかった', '少しあった', 'かなりあった', 'とても辛かった']
+    };
+  }
+  if (diseases.indexOf('卵巣嚢腫') !== -1) {
+    return {
+      question: '今日、片側の腹部に違和感はありましたか？',
+      options: ['なかった', '左側に少し', '右側に少し', 'どちらかにかなり', '強い痛みがあった']
+    };
+  }
+  // 疾患未設定のデフォルト
+  if (isMorning) return {
+    question: '今日一日の予定を考えると、からだの状態は？',
+    options: ['問題なさそう', '少し心配', 'かなり心配', '無理せず休みたい']
+  };
+  return null;
+}
+
+// ===== 今日のヒントカード（時間帯・疾患別） =====
+function updateDailyHintCard() {
+  var container = document.getElementById('today-message');
+  if (!container) return;
+
+  var hour     = new Date().getHours();
+  var diseases = state.myDiseases || [];
+  var isMorning = hour >= 5  && hour < 12;
+  var isNight   = hour >= 20 || hour < 5;
+
+  var hint = getDailyHint(diseases, isMorning, isNight);
+  if (!hint) return;
+
+  container.innerHTML =
+    '<div style="border-left:3px solid var(--rose);padding-left:10px;">'
+    + '<div style="font-size:10px;color:var(--rose);font-weight:500;margin-bottom:3px;">' + hint.label + '</div>'
+    + '<div style="font-size:12px;color:var(--ink);line-height:1.7;">' + hint.text + '</div>'
+    + '</div>';
+}
+
+function getDailyHint(diseases, isMorning, isNight) {
+  var d = new Date().getDay();
+
+  if (diseases.indexOf('子宮内膜症') !== -1) {
+    if (isMorning) return { label: '💡 今日のケア', text: '骨盤を温めると血流が改善し、痛みが和らぐことがあります。今日も無理せず過ごしましょう。' };
+    if (isNight)   return { label: '🌙 夜のケア',   text: '就寝前の軽いストレッチが骨盤のこわばりをやわらげます。今日の症状を記録しておきましょう。' };
+    return { label: '📊 記録のヒント', text: '痛みの部位・性質・強さを記録すると、診察時に医師へ正確に伝えられます。' };
+  }
+  if (diseases.indexOf('PCOS') !== -1) {
+    if (isMorning) return { label: '🌡 基礎体温', text: '毎朝同じ時間に基礎体温を測ると、排卵のパターンが見えてきます。' };
+    if (isNight)   return { label: '🍽 食事メモ', text: '血糖値の急上昇を避けると、PCOSの症状管理に役立つことがあります。今日の食事を記録しましょう。' };
+    return { label: '💡 今日のヒント', text: '適度な有酸素運動はインスリン抵抗性の改善に役立つと言われています。' };
+  }
+  if (diseases.indexOf('PMS/PMDD') !== -1) {
+    if (isMorning) return { label: '🌸 今日の気分', text: 'PMSの症状は生理前7〜14日に出やすいです。今日の気分の変化も記録しておきましょう。' };
+    if (isNight)   return { label: '🌙 夜のケア',   text: '生理前は睡眠の質が落ちやすい時期です。スマートフォンの画面は早めに閉じましょう。' };
+    return { label: '💡 気分の記録', text: '気分の波をパターンとして記録すると、PMSとPMDDの違いが見えてきます。' };
+  }
+  if (diseases.indexOf('更年期障害') !== -1) {
+    if (isMorning) return { label: '🌡 今朝のチェック', text: 'ほてりや寝汗の有無を毎朝記録すると、症状の変化のパターンがわかります。' };
+    if (isNight)   return { label: '🌙 夜のケア',       text: '寝室を涼しくしておくと、夜間のほてりや寝汗が軽減されることがあります。' };
+    return { label: '💡 SMIチェック', text: '更年期指数（SMI）の記録を続けると、症状の改善・悪化が数値でわかります。' };
+  }
+
+  var defaults = {
+    morning: [
+      { label: '🌸 今日も一歩', text: '今日の記録が、未来の診察を変えます。まず症状チップをタップしてみましょう。' },
+      { label: '💡 記録のコツ', text: '毎日同じ時間に記録すると、からだのパターンが見えやすくなります。' }
+    ],
+    night: [
+      { label: '🌙 お疲れさまでした', text: '今日の症状を記録して、一日を締めくくりましょう。' },
+      { label: '📊 今日の振り返り',   text: '今日気になったことがあれば、メモ欄に残しておくと診察で役立ちます。' }
+    ],
+    day: [
+      { label: '💡 記録の習慣', text: '30日記録を続けると、あなただけの症状パターンが見えてきます。' },
+      { label: '🏥 診察の準備', text: '症状の記録が7日分たまったら、医師向けレポートを作成できます。' }
+    ]
+  };
+  var pool = isMorning ? defaults.morning : isNight ? defaults.night : defaults.day;
+  return pool[d % pool.length];
 }
 
 // ===== 症状詳細展開UI（Step2） =====
@@ -8323,25 +8545,23 @@ function updateHomeCTAState() {
     return (r.date || r.record_date || '').slice(0, 10) === today;
   });
 
-  var ctaCard = document.getElementById('home-record-cta');
-  if (!ctaCard) return;
-
-  var title = ctaCard.querySelector('#home-cta-title');
-  var sub   = ctaCard.querySelector('#home-cta-sub');
-  var inner = ctaCard.querySelector('#home-cta-card');
+  var card  = document.getElementById('home-cta-card');
+  var title = document.getElementById('home-cta-title');
+  var sub   = document.getElementById('home-cta-sub');
+  if (!card) return;
 
   if (rec) {
-    // 記録後：グリーン系
-    if (inner) inner.style.background = 'linear-gradient(135deg, #b8c4a8, #8a9c78)';
-    if (title) title.textContent = '今日の記録完了';
+    // 記録済み：色変化なし・✓マーク＋半透明
+    card.style.background = '';
+    card.style.opacity = '0.88';
+    if (title) title.textContent = '✓ 今日の記録完了';
     if (sub)   sub.textContent   = buildComparisonComment(rec);
-    ctaCard.onclick = function() { openDayDetail(new Date().getDate()); };
   } else {
-    // 記録前：ローズ系（デフォルト）
-    if (inner) inner.style.background = '';
+    // 未記録：デフォルト状態
+    card.style.background = '';
+    card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = 'まだ今日の記録がありません';
-    ctaCard.onclick = function() { openRecordModal(); };
   }
 }
 
@@ -9663,6 +9883,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateHomeCTAState();
   updateStreakBadge();
   updateHomeSummary();
+  if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   applyFastingVisibility();
   updateFastingWidgetPhase();
@@ -11809,6 +12030,7 @@ var todayStr = targetDate.toDateString();
 
     // UI更新（保存成功後のみ）
     updateHomeSummary();
+    if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
     updateHomeCTA();
     updateHomeCTAState();
     updateStreakBadge();
