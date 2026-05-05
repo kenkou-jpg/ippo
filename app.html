@@ -2267,131 +2267,104 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
     <!-- HOME -->
     <div id="screen-home" class="screen active">
-      <div class="home-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div>
-          <div class="home-greeting" id="greeting-text">こんにちは</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);font-weight:700;margin-top:2px;" id="greeting-name">あなたさん</div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
-          <div id="today-date" style="font-size:13px;color:var(--ink-mid);background:var(--white);padding:4px 14px;border-radius:20px;box-shadow:0 1px 4px var(--shadow);">4月20日（月）</div>
-          <div id="streak-badge" style="font-size:12px;color:var(--rose);background:linear-gradient(135deg,#fdf3f3,#fce8e8);padding:4px 12px;border-radius:20px;"><span id="streak-badge-count">0</span>日連続 🌸</div>
-        </div>
-      </div>
 
-
-<!-- 周期フェーズバナー（無料） -->
-<div id="home-phase-banner" style="margin:10px 20px 0;display:none;">
-  <div style="background:linear-gradient(135deg,var(--rose-pale),var(--gold-light));border-radius:16px;padding:13px 16px;display:flex;align-items:center;gap:12px;">
-    <div id="home-phase-icon" style="font-size:22px;flex-shrink:0;"></div>
-    <div style="flex:1;min-width:0;">
-      <div id="home-phase-name" style="font-size:12px;font-weight:500;color:var(--plum);margin-bottom:2px;"></div>
-      <div id="home-phase-tip" style="font-size:11px;color:var(--ink-light);line-height:1.5;"></div>
+  <!-- ヘッダー：挨拶 + フェーズバッジ -->
+  <div class="home-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
+    <div>
+      <div class="home-greeting" id="greeting-text">おはようございます</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);font-weight:600;margin-top:2px;" id="greeting-name">あなたさん</div>
+      <div id="today-date" style="font-size:12px;color:var(--ink-light);margin-top:3px;"></div>
+    </div>
+    <div id="home-phase-badge" style="display:none;">
+      <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:var(--plum);background:var(--rose-pale);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
     </div>
   </div>
-</div>
 
+  <!-- 週間カレンダーバー -->
+  <div style="margin:0 20px 16px;">
+    <div id="home-phase-bar" style="height:4px;border-radius:2px;background:#e8ddd8;margin-bottom:10px;overflow:hidden;display:flex;"></div>
+    <div id="home-phase-labels" style="display:flex;justify-content:space-between;margin-bottom:8px;"></div>
+    <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+  </div>
 
-           <!-- Record CTA -->
-      <div id="home-record-cta" style="margin:16px 20px;" onclick="handleHomeCTA()">
-        <div id="home-cta-card" style="background:var(--cta-default);border-radius:20px;padding:18px 20px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.12);transition:transform 0.15s,box-shadow 0.15s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''">
-          <div style="width:48px;height:48px;background:#fff;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 1px 4px rgba(0,0,0,0.12);">
-            <img src="images/icon-192.png" style="width:32px;height:32px;border-radius:7px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-            <span style="display:none;font-size:9px;font-weight:700;color:var(--rose);letter-spacing:-0.3px;">ippo</span>
-          </div>
-          <div style="flex:1;min-width:0;">
-            <div id="home-cta-title" style="font-size:15px;font-weight:700;color:#fff;margin-bottom:3px;letter-spacing:0.2px;">今日を記録する</div>
-            <div id="home-cta-sub" style="font-size:12px;color:rgba(255,255,255,0.82);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">まだ今日の記録がありません</div>
-          </div>
-          <div style="font-size:22px;color:rgba(255,255,255,0.75);flex-shrink:0;">›</div>
-        </div>
+  <!-- 今週の気づき -->
+  <div id="home-insight-card" style="margin:0 20px 16px;display:none;">
+    <div style="background:var(--rose-pale);border-radius:14px;padding:13px 16px;">
+      <div style="font-size:11px;color:var(--rose);font-weight:500;margin-bottom:5px;">今週の気づき</div>
+      <div id="home-insight-text" style="font-size:13px;color:var(--ink);line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <!-- 数値 2つ -->
+  <div style="margin:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">記録連続</div>
+      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-streak-num">0</div>
+      <div style="font-size:11px;color:var(--ink-light);">日</div>
+    </div>
+    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;" id="home-next-label">次の生理予測</div>
+      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-next-num">—</div>
+      <div style="font-size:11px;color:var(--ink-light);" id="home-next-unit">日後</div>
+    </div>
+  </div>
+
+  <!-- 疾患別アドバイス -->
+  <div id="home-disease-advice" style="margin:0 20px 16px;display:none;">
+    <div style="background:var(--gold-light);border-radius:14px;padding:12px 16px;border-left:3px solid var(--gold);">
+      <div id="home-disease-advice-text" style="font-size:12px;color:var(--ink);line-height:1.7;"></div>
+    </div>
+  </div>
+
+  <!-- 記録ボタン -->
+  <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
+    <div id="home-cta-card" style="background:var(--cta-default);border-radius:18px;padding:17px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform 0.15s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''">
+      <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
+      <div id="home-cta-sub" style="font-size:12px;color:rgba(255,255,255,0.85);"></div>
+    </div>
+  </div>
+
+  <!-- ファスティングウィジェット（オプション） -->
+  <div class="fasting-widget" id="home-fasting-widget" style="margin:0 20px 16px;display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div class="fw-label">FASTING TIMER</div>
+        <div class="fw-timer" id="fast-timer">00:00:00</div>
+        <div class="fw-status" id="fast-status">開始を押して下さい</div>
       </div>
-
-         <!-- Milestone Row -->
-      <div class="milestone-row" style="margin-top:16px;">
-        <div class="milestone-card">
-          <div class="mc-number" id="streak-count">0</div>
-          <div class="mc-label">連続記録日</div>
-          <div class="mc-unit">日</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <div class="fw-goal-pills">
+          <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
+          <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
+          <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
         </div>
-        <div class="milestone-card">
-          <div class="mc-number" id="total-count">0</div>
-          <div class="mc-label">総記録日数</div>
-          <div class="mc-unit">日</div>
-        </div>
-        <div class="milestone-card">
-          <div class="mc-number" id="pain-free-count">—</div>
-          <div class="mc-label">今月の無痛み日</div>
-          <div class="mc-unit">日</div>
-        </div>
+        <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()" style="padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#e8b4b8,#c4878c);color:#fff;">開始</button>
+        <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
       </div>
+    </div>
+    <div id="fast-binge-btn-wrap" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
+      <button onclick="showBingeUrgeSupport()" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);border-radius:11px;color:rgba(255,255,255,0.75);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:16px;">🍬</span>
+        <span>食欲が止まらない… サポートを見る</span>
+      </button>
+    </div>
+  </div>
 
+  <!-- 回復食ガイド（ファスティング終了後） -->
+  <div id="fast-recovery-card" style="display:none;margin:0 20px 16px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:14px;color:var(--ink);">回復食ガイド</div>
+      <button onclick="document.getElementById('fast-recovery-card').style.display='none'" style="background:none;border:none;color:var(--ink-light);font-size:16px;cursor:pointer;padding:0;">✕</button>
+    </div>
+    <div id="fast-recovery-content"></div>
+  </div>
 
-      <!-- Fasting Advice Accordion (タイマーウィジェットの外・上部に配置) -->
-      <div id="fast-phase-info" style="display:none;margin:8px 24px 6px;">
-        <button onclick="(function(){ var b=document.getElementById('fast-phase-body'); var open=b.style.maxHeight&&b.style.maxHeight!=='0px'; b.style.maxHeight=open?'0px':'240px'; b.style.opacity=open?'0':'1'; document.getElementById('fast-phase-chevron').textContent=open?'▸':'▾'; })()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--white);border:1px solid #f0e8e0;border-radius:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 1px 6px var(--shadow);">
-          <div style="display:flex;align-items:center;gap:7px;min-width:0;">
-            <span id="fast-phase-icon" style="font-size:14px;flex-shrink:0;">🌱</span>
-            <span id="fast-phase-name" style="font-size:12px;font-weight:700;color:var(--ink);letter-spacing:0.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">—</span>
-            <span style="font-size:10px;color:var(--ink-light);flex-shrink:0;">推奨</span>
-            <span id="fast-phase-rec" style="font-size:12px;font-weight:700;color:var(--rose);flex-shrink:0;">—</span>
-          </div>
-          <span id="fast-phase-chevron" style="font-size:11px;color:var(--ink-light);margin-left:8px;flex-shrink:0;">▸</span>
-        </button>
-        <div id="fast-phase-body" style="max-height:0px;opacity:0;overflow:hidden;transition:max-height 0.3s ease,opacity 0.25s ease;">
-          <div id="fast-phase-tip" style="font-size:12px;color:var(--ink-mid);margin-top:8px;padding:12px 14px;background:var(--warm-light);border-radius:12px;line-height:1.7;border:1px solid #f0e8e0;"></div>
-        </div>
-      </div>
-
-      <!-- Fasting Timer Widget -->
-      <div class="fasting-widget" style="margin-top: 8px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <div class="fw-label">FASTING TIMER</div>
-            <div class="fw-timer" id="fast-timer">00:00:00</div>
-            <div class="fw-status" id="fast-status">開始を押して下さい</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-            <div class="fw-goal-pills">
-              <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
-              <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
-              <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
-            </div>
-            <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()" style="padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#e8b4b8,#c4878c);color:#fff;">開始</button>
-            <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
-          </div>
-        </div>
-
-        <!-- 過食衝動サポートボタン（BEDリスク高のフェーズ・疾患時のみ表示） -->
-        <div id="fast-binge-btn-wrap" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
-          <button onclick="showBingeUrgeSupport()" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);border-radius:11px;color:rgba(255,255,255,0.75);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;">
-            <span style="font-size:16px;">🍬</span>
-            <span>食欲が止まらない… サポートを見る</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Post-Fast Recovery Guide Card (shown after fasting ends) -->
-      <div id="fast-recovery-card" style="display:none;margin:0 24px 16px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-          <div style="font-family:'Shippori Mincho',serif;font-size:14px;color:var(--ink);">✨ 回復食ガイド</div>
-          <button onclick="document.getElementById('fast-recovery-card').style.display='none'" style="background:none;border:none;color:var(--ink-light);font-size:16px;cursor:pointer;padding:0;">✕</button>
-        </div>
-        <div id="fast-recovery-content"></div>
-      </div>
-
-      
-            <!-- Today's Summary -->
-      <div id="home-summary" style="margin:0 20px 20px;">
-        <div style="background:var(--white);border-radius:16px;padding:20px;box-shadow:0 1px 8px var(--shadow);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-            <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);">今日の記録サマリー</div>
-            <div id="summary-status" style="font-size:12px;color:var(--ink-light);">未記録</div>
-          </div>
-          <div id="summary-content">
-            <div style="text-align:center;color:var(--ink-light);font-size:13px;padding:20px 0;">記録するとここにサマリーが表示されます</div>
-          </div>
-        </div>
-      </div>
+  <!-- レポートリンク -->
+  <div style="text-align:center;margin:0 20px 24px;">
+    <button onclick="openDoctorSummary()" style="background:none;border:none;font-size:13px;color:var(--ink-light);cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-decoration:underline;text-underline-offset:3px;">
+      先週のレポートを見る
+    </button>
+  </div>
 
               <!-- Calendar -->
       <div class="calendar-section">
@@ -2420,25 +2393,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       </div>
 
 
-<!-- 医師向けサマリーバナー -->
-<div id="doctor-report-banner" style="display:none;margin:0 20px 16px;">
-  <div onclick="openDoctorSummary()" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:16px;padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer;box-shadow:0 2px 8px var(--shadow);">
-    <div style="width:40px;height:40px;background:var(--rose-pale);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🏥</div>
-    <div style="flex:1;">
-      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:2px;">診察レポートを作成</div>
-      <div style="font-size:11px;color:var(--ink-light);">症状の記録を医師に伝えやすい形でまとめます</div>
-    </div>
-    <div style="color:var(--ink-light);font-size:18px;">›</div>
-  </div>
-</div>
-
-       <!-- Today Message -->
-      <div class="today-msg">
-        <div class="tm-label">today's message</div>
-        <div class="tm-text" id="today-message">からだの小さな変化に<br>気づくことが、最初の一歩。</div>
-      </div>
-
-      
       <!-- Day Detail Modal -->
       <div class="dm-overlay" id="dmOverlay">
         <div class="dm-box">
@@ -2671,19 +2625,19 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
      <!-- ===== BOTTOM NAV ===== -->
       <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
       <button class="nav-item" type="button" onclick="switchTab('home', this)" aria-label="ホーム">
-        <span class="nav-icon" aria-hidden="true">🏠</span>
+        <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
         <span>ホーム</span>
       </button>
       <button class="nav-item" type="button" onclick="switchTab('insights', this)" aria-label="インサイト">
-        <span class="nav-icon" aria-hidden="true">📊</span>
+        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
         <span>インサイト</span>
       </button>
       <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
-        <div class="nav-record-ring" aria-hidden="true">＋</div>
+        <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
       <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
-        <span class="nav-icon" aria-hidden="true">⚙️</span>
+        <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
         <span>設定</span>
       </button>
     </nav>
@@ -3125,7 +3079,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <div class="settings-card">
           <div class="settings-row" onclick="openSymptomSettings()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fdf0f2;">🌸</div>
+              <div class="settings-row-icon" style="background:#fdf0f2;" id="settings-icon-symptom"></div>
               <div>
                 <div class="settings-row-text">気になる症状</div>
                 <div class="settings-row-sub" id="symptom-setting-display">設定する</div>
@@ -3135,7 +3089,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           </div>
           <div class="settings-row" onclick="openDiseaseSettings()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f3f0fd;">🩺</div>
+              <div class="settings-row-icon" style="background:#f3f0fd;" id="settings-icon-disease"></div>
               <div>
                 <div class="settings-row-text">気になる疾患</div>
                 <div class="settings-row-sub" id="disease-setting-display">設定する</div>
@@ -3145,7 +3099,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           </div>
           <div class="settings-row" onclick="toggleVisionEdit()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fff3e0;">🎯</div>
+              <div class="settings-row-icon" style="background:#fff3e0;" id="settings-icon-profile"></div>
               <div>
                 <div class="settings-row-text">わたしの目標</div>
                 <div class="settings-row-sub" id="vision-display-text">タップして設定</div>
@@ -3170,7 +3124,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <div class="settings-card">
           <div class="settings-row" onclick="toggleFastingFeature()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f5ecd8;">⏱️</div>
+              <div class="settings-row-icon" style="background:#f5ecd8;" id="settings-icon-reminder"></div>
               <div>
                 <div class="settings-row-text">ファスティング機能</div>
                 <div class="settings-row-sub">ホームにタイマーを表示します</div>
@@ -3191,7 +3145,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- CSV書き出し：無料 -->
           <div class="settings-row" onclick="exportCSV()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#e8f3ee;">📊</div>
+              <div class="settings-row-icon" style="background:#e8f3ee;" id="settings-icon-export"></div>
               <div>
                 <div class="settings-row-text">記録をCSVで書き出す</div>
                 <div class="settings-row-sub">受診時の資料に。Excel・スプレッドシートで開けます</div>
@@ -3202,7 +3156,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- JSON書き出し：PRO -->
           <div class="settings-row" onclick="premiumGate(exportJSON)">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6;">💾</div>
+              <div class="settings-row-icon" style="background:#f0ebe6;" id="settings-icon-backup"></div>
               <div>
                 <div class="settings-row-text">全データをバックアップ
                   <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
@@ -3215,7 +3169,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- クラウド復元：PRO -->
           <div class="settings-row" onclick="premiumGate(manualCloudRestore)">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#e8f4f0;">☁️</div>
+              <div class="settings-row-icon" style="background:#e8f4f0;" id="settings-icon-restore"></div>
               <div>
                 <div class="settings-row-text">クラウドから復元
                   <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
@@ -3228,7 +3182,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- バックアップ履歴：PRO -->
           <div class="settings-row" onclick="premiumGate(openRestoreUI)">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#edf0f8;">📦</div>
+              <div class="settings-row-icon" style="background:#edf0f8;" id="settings-icon-history"></div>
               <div>
                 <div class="settings-row-text">バックアップ履歴
                   <span style="font-size:9px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:500;">PRO</span>
@@ -3241,7 +3195,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- データ診断・修復：無料 -->
           <div class="settings-row" onclick="showDiagnosisUI()">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#f0ebe6;">🔍</div>
+              <div class="settings-row-icon" style="background:#f0ebe6;" id="settings-icon-diagnosis"></div>
               <div>
                 <div class="settings-row-text">データ診断・修復</div>
                 <div class="settings-row-sub">3箇所のデータを比較・自動修復</div>
@@ -3252,7 +3206,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <!-- すべて削除：無料 -->
           <div class="settings-row" onclick="showConfirmModal('すべての記録を削除しますか？', clearData)">
             <div class="settings-row-left">
-              <div class="settings-row-icon" style="background:#fde8e8;">🗑</div>
+              <div class="settings-row-icon" style="background:#fde8e8;" id="settings-icon-delete"></div>
               <div><div class="settings-row-text" style="color:#c9747a;">すべての記録を削除</div></div>
             </div>
             <div class="settings-row-right"><span class="settings-chevron">›</span></div>
@@ -3452,7 +3406,7 @@ function scheduleReminders(){
         <div class="settings-section-title">プライバシー</div>
         <div class="settings-row" onclick="showPrivacyInfo()" style="cursor:pointer;">
           <div class="settings-row-left">
-            <div class="settings-row-icon" style="background:#f0ede8;">🔒</div>
+            <div class="settings-row-icon" style="background:#f0ede8;" id="settings-icon-privacy"></div>
             <div class="settings-row-text">データの取り扱いについて</div>
           </div>
           <div class="settings-row-right">
@@ -3636,8 +3590,8 @@ function scheduleReminders(){
   <!-- ===== SUCCESS OVERLAY ===== -->
   <div class="success-overlay" id="success-overlay">
     <div class="success-card">
-      <span class="success-emoji" id="success-emoji">🌸</span>
-<div class="success-title" id="success-title">記録できました</div>
+      <span class="success-emoji" id="success-emoji"></span>
+      <div class="success-title" id="success-title">記録できました</div>
       <div class="success-sub" id="success-message">今日もからだの声を<br>聴いてくれてありがとう。<br>記録が積み重なるほど、<br>見えてくるものがあります。</div>
       <button class="success-close" onclick="closeSuccess()">閉じる</button>
     </div>
@@ -3849,6 +3803,223 @@ function updateHomeVision(){
 }
 
   
+// ===== SVGアイコンライブラリ =====
+var ICONS = {
+  home: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  },
+  calendar: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  },
+  insights: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  },
+  settings: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+  },
+  plus: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  },
+  pain: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M12 22c5.5-4.5 8-9 8-13A8 8 0 004 9c0 4 2.5 8.5 8 13z"/></svg>';
+  },
+  heart: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+  },
+  thermometer: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>';
+  },
+  activity: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  },
+  moon: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  },
+  sun: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  },
+  faceVeryGood: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceGood: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1 1 4 1 4-1 4-1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceNeutral: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceBad: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceVeryBad: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M16 17s-1.5-3-4-3-4 3-4 3"/><path d="M9 8.5c.5-.5 1.5-.5 2 0"/><path d="M13 8.5c.5-.5 1.5-.5 2 0"/></svg>';
+  },
+  chevronRight: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>';
+  },
+  chevronLeft: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>';
+  },
+  chevronDown: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+  },
+  check: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  },
+  close: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  },
+  info: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  },
+  alert: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
+  },
+  lock: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+  },
+  star: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  },
+  fileText: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  },
+  download: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>';
+  },
+  upload: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
+  },
+  barChart: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>';
+  },
+  trash: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  },
+  edit: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  },
+  shield: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  },
+  user: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+  },
+  bell: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
+  },
+  cloud: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 103 16.29"/><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/></svg>';
+  },
+  search: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  }
+};
+
+function icon(name, size, color) {
+  if (!ICONS[name]) return '';
+  return ICONS[name](size, color);
+}
+
+// ===== ナビアイコン注入 =====
+function initNavIcons() {
+  var navIcons = {
+    'nav-icon-home':     ICONS.home(20, 'currentColor'),
+    'nav-icon-insights': ICONS.insights(20, 'currentColor'),
+    'nav-icon-plus':     ICONS.plus(22, 'white'),
+    'nav-icon-settings': ICONS.settings(20, 'currentColor')
+  };
+  Object.keys(navIcons).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = navIcons[id];
+  });
+}
+
+// ===== 設定画面アイコン注入 =====
+function initSettingsIcons() {
+  var map = {
+    'settings-icon-profile':   ICONS.user(16, 'var(--rose)'),
+    'settings-icon-theme':     ICONS.star(16, 'var(--rose)'),
+    'settings-icon-reminder':  ICONS.bell(16, 'var(--rose)'),
+    'settings-icon-disease':   ICONS.heart(16, 'var(--rose)'),
+    'settings-icon-symptom':   ICONS.activity(16, 'var(--rose)'),
+    'settings-icon-privacy':   ICONS.shield(16, 'var(--rose)'),
+    'settings-icon-export':    ICONS.barChart(16, '#4a7c5c'),
+    'settings-icon-backup':    ICONS.download(16, '#4a7c5c'),
+    'settings-icon-restore':   ICONS.cloud(16, '#4a7c5c'),
+    'settings-icon-history':   ICONS.download(16, '#4a7c5c'),
+    'settings-icon-diagnosis': ICONS.search(16, 'var(--ink-light)'),
+    'settings-icon-delete':    ICONS.trash(16, 'var(--rose)')
+  };
+  Object.keys(map).forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.innerHTML = map[id];
+  });
+}
+
+// ===== 痛みスケールボタン =====
+function renderPainScale(currentValue, fieldName) {
+  var faces = [
+    { icon: 'faceVeryGood', label: '痛みなし', v: 0 },
+    { icon: 'faceGood',     label: '軽い',     v: 1 },
+    { icon: 'faceNeutral',  label: '中程度',   v: 2 },
+    { icon: 'faceBad',      label: '強い',     v: 3 },
+    { icon: 'faceVeryBad',  label: 'とても強い', v: 4 }
+  ];
+  var html = '<div style="display:flex;gap:6px;">';
+  faces.forEach(function(f) {
+    var isSelected = currentValue === f.v;
+    var strokeColor = isSelected ? 'var(--rose)' : '#9a8e88';
+    html += '<button onclick="selectBodyCheckItem(\'' + fieldName + '\',' + f.v + ',this)" '
+      + 'style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;'
+      + 'padding:8px 4px;border-radius:10px;border:1.5px solid '
+      + (isSelected ? 'var(--rose)' : '#e8ddd8') + ';'
+      + 'background:' + (isSelected ? 'var(--rose-pale)' : 'var(--white)') + ';'
+      + 'cursor:pointer;transition:all 0.15s;">'
+      + ICONS[f.icon](22, strokeColor)
+      + '<span style="font-size:8px;color:' + (isSelected ? 'var(--rose)' : 'var(--ink-light)') + ';">'
+      + f.label + '</span>'
+      + '</button>';
+  });
+  html += '</div>';
+  return html;
+}
+
 // ===== 疾患別カスタマイズ =====
 var DISEASE_CONFIG = {
   '卵巣嚢腫': {
@@ -6506,6 +6677,12 @@ function finishOnboarding() {
   updateHistory();
   buildCalendar();
   updateSettingsHero();
+  buildHomeWeekRow();
+  updateHomeInsightCard();
+  updateHomeNumbers();
+  updateHomeDiseaseAdvice();
+  updateHomeCTAState();
+  if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
 
   // バグ18: ホームバナー非表示フラグを復元
   try {
@@ -6682,8 +6859,10 @@ function updateGreeting() {
 
 // ===== STATS =====
 function updateStats() {
-  document.getElementById('streak-count').textContent = state.streak || 0;
-  document.getElementById('total-count').textContent = state.totalDays || 0;
+  var streakEl = document.getElementById('streak-count');
+  if (streakEl) streakEl.textContent = state.streak || 0;
+  var totalEl = document.getElementById('total-count');
+  if (totalEl) totalEl.textContent = state.totalDays || 0;
   document.getElementById('insight-total').textContent = state.totalDays || 0;
   document.getElementById('insight-streak').textContent = state.streak || 0;
   // 空状態バナー
@@ -7376,32 +7555,212 @@ var PHASE_BANNER_CONFIG = {
 };
 
 function updateHomePhaseBanner() {
-  var banner = document.getElementById('home-phase-banner');
-  var iconEl  = document.getElementById('home-phase-icon');
-  var nameEl  = document.getElementById('home-phase-name');
-  var tipEl   = document.getElementById('home-phase-tip');
-  if (!banner || !iconEl || !nameEl || !tipEl) return;
+  // 新デザイン：home-phase-badge に表示
+  var badge     = document.getElementById('home-phase-badge');
+  var badgeText = document.getElementById('home-phase-badge-text');
+  if (!badge || !badgeText) return;
 
   var phase = (typeof getCurrentCyclePhase === 'function') ? getCurrentCyclePhase() : null;
-  if (!phase) { banner.style.display = 'none'; return; }
+  if (!phase) { badge.style.display = 'none'; return; }
 
-  var cfg = PHASE_BANNER_CONFIG[phase];
-  if (!cfg) { banner.style.display = 'none'; return; }
+  var last = state.lastPeriodDate ? new Date(state.lastPeriodDate + 'T00:00:00') : null;
+  var dayNum = last ? Math.floor((new Date() - last) / 86400000) + 1 : null;
 
-  var diseases = state.myDiseases || [];
-  var tip = cfg.tips['default'] || '';
-  // 疾患別tipを優先
-  for (var i = 0; i < diseases.length; i++) {
-    if (cfg.tips[diseases[i]]) {
-      tip = cfg.tips[diseases[i]];
-      break;
-    }
+  badgeText.textContent = phase + (dayNum ? ' ' + dayNum + '日目' : '');
+  badge.style.display = 'block';
+}
+
+// ===== ホーム 週間カレンダーバー =====
+function buildHomeWeekRow() {
+  var weekRow    = document.getElementById('home-week-row');
+  var phaseBar   = document.getElementById('home-phase-bar');
+  var phaseLabels = document.getElementById('home-phase-labels');
+  if (!weekRow) return;
+
+  var today     = new Date();
+  var dayOfWeek = today.getDay();
+  var monday    = new Date(today);
+  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
+
+  var days = ['月','火','水','木','金','土','日'];
+  var html = '';
+
+  var phaseColors = {
+    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
+    '排卵期': '#d4a880', '黄体期': '#a0a8d4', '不明': '#e8ddd8'
+  };
+
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    var dateStr  = d.toISOString().slice(0, 10);
+    var todayStr = today.toISOString().slice(0, 10);
+    var isToday  = dateStr === todayStr;
+    var isFuture = dateStr > todayStr;
+
+    var rec = (state.records || []).find(function(r) {
+      return (r.date || r.record_date || '').slice(0, 10) === dateStr;
+    });
+    var pain = rec ? (rec.painLevel || 0) : null;
+
+    var phase = getPhaseForDate(d);
+    var phaseColor = phaseColors[phase] || phaseColors['不明'];
+
+    var cellBg = isFuture ? 'transparent' :
+                 rec === undefined ? '#f0e8e0' :
+                 pain >= 3 ? '#d4537e' :
+                 pain >= 2 ? '#edbed0' :
+                 pain >= 1 ? '#f5e8eb' : phaseColor;
+    var cellColor = (pain >= 3) ? 'white' : 'var(--ink)';
+
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">';
+    html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
+    html += '<div style="width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;'
+      + 'font-size:12px;font-weight:' + (isToday ? '600' : '400') + ';'
+      + 'color:' + cellColor + ';background:' + cellBg + ';'
+      + (isToday ? 'box-shadow:0 0 0 2px var(--rose);' : '')
+      + '">' + d.getDate() + '</div>';
+    html += '</div>';
+  }
+  weekRow.innerHTML = html;
+  buildPhaseBar(monday);
+}
+
+function getPhaseForDate(date) {
+  if (!state.lastPeriodDate || !state.cycleLength) return '不明';
+  var last     = new Date(state.lastPeriodDate + 'T00:00:00');
+  var dayNum   = Math.floor((date - last) / 86400000) + 1;
+  var cycle    = state.cycleLength || 28;
+  var adjusted = ((dayNum - 1) % cycle) + 1;
+  if (adjusted <= 5)                         return '月経期';
+  if (adjusted <= Math.floor(cycle * 0.46)) return '卵胞期';
+  if (adjusted <= Math.floor(cycle * 0.53)) return '排卵期';
+  return '黄体期';
+}
+
+function buildPhaseBar(monday) {
+  var bar    = document.getElementById('home-phase-bar');
+  var labels = document.getElementById('home-phase-labels');
+  if (!bar || !state.lastPeriodDate) return;
+
+  var phaseColors = {
+    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
+    '排卵期': '#d4a880', '黄体期': '#a0a8d4'
+  };
+
+  var phases = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    phases.push(getPhaseForDate(d));
   }
 
-  iconEl.textContent = cfg.icon;
-  nameEl.textContent = '周期 ' + phase;
-  tipEl.textContent  = tip;
-  banner.style.display = 'block';
+  var barHtml = '';
+  phases.forEach(function(p) {
+    barHtml += '<div style="flex:1;background:' + (phaseColors[p] || '#e8ddd8') + ';"></div>';
+  });
+  bar.innerHTML = barHtml;
+
+  var labelHtml = '<div style="font-size:9px;color:var(--ink-light);">' + phases[0] + '</div>';
+  var lastPhase = phases[0];
+  for (var j = 1; j < 7; j++) {
+    if (phases[j] !== lastPhase) lastPhase = phases[j];
+  }
+  labelHtml += '<div style="font-size:9px;color:var(--ink-light);">' + lastPhase + '</div>';
+  if (labels) labels.innerHTML = labelHtml;
+}
+
+// ===== 今週の気づき =====
+function updateHomeInsightCard() {
+  var card = document.getElementById('home-insight-card');
+  var text = document.getElementById('home-insight-text');
+  if (!card || !text) return;
+
+  var records = state.records || [];
+  if (records.length < 3) { card.style.display = 'none'; return; }
+
+  var today = new Date();
+  var weekRecords = records.filter(function(r) {
+    var d = new Date(r.date || r.record_date || '');
+    var diff = Math.floor((today - d) / 86400000);
+    return diff >= 0 && diff < 7;
+  });
+  if (weekRecords.length === 0) { card.style.display = 'none'; return; }
+
+  var painDays   = weekRecords.filter(function(r) { return r.painLevel >= 2; }).length;
+  var noPainDays = weekRecords.filter(function(r) { return r.painLevel === 0; }).length;
+  var avgPain    = weekRecords.reduce(function(s, r) { return s + (r.painLevel || 0); }, 0) / weekRecords.length;
+
+  var insight = '';
+  var diseases = state.myDiseases || [];
+
+  if (painDays >= 4) {
+    insight = '今週は' + painDays + '日間、痛みの記録があります。';
+    if (diseases.indexOf('子宮内膜症') !== -1) insight += '周期フェーズとの関係をインサイトで確認してみましょう。';
+  } else if (noPainDays >= 5) {
+    insight = '今週は' + noPainDays + '日、らくな日が続いています。';
+  } else if (avgPain > 0) {
+    insight = '今週の平均痛みスコアは ' + avgPain.toFixed(1) + '/4 でした。';
+  }
+
+  var lowSleepPainDays = weekRecords.filter(function(r) {
+    return r.sleepQuality >= 3 && r.painLevel >= 2;
+  }).length;
+  if (lowSleepPainDays >= 2) {
+    insight += '睡眠の質が低い日に痛みが重なるパターンがあります。';
+  }
+
+  if (!insight) { card.style.display = 'none'; return; }
+  text.textContent = insight;
+  card.style.display = 'block';
+}
+
+// ===== 数値2つ（連続・次の生理） =====
+function updateHomeNumbers() {
+  var streakEl = document.getElementById('home-streak-num');
+  if (streakEl) streakEl.textContent = state.streak || 0;
+
+  var nextEl    = document.getElementById('home-next-num');
+  var nextLabel = document.getElementById('home-next-label');
+  var nextUnit  = document.getElementById('home-next-unit');
+  if (!nextEl) return;
+
+  if (state.lastPeriodDate && state.cycleLength) {
+    var last     = new Date(state.lastPeriodDate + 'T00:00:00');
+    var today    = new Date();
+    var dayNum   = Math.floor((today - last) / 86400000) + 1;
+    var daysLeft = state.cycleLength - dayNum;
+    if (daysLeft > 0) {
+      nextEl.textContent = daysLeft;
+      if (nextUnit) nextUnit.textContent = '日後';
+    } else {
+      nextEl.textContent = '今日';
+      if (nextUnit) nextUnit.textContent = '頃';
+    }
+  } else {
+    nextEl.textContent = '—';
+    if (nextLabel) nextLabel.textContent = '次の生理予測';
+    if (nextUnit)  nextUnit.textContent  = '';
+  }
+}
+
+// ===== 疾患別アドバイス =====
+function updateHomeDiseaseAdvice() {
+  var card = document.getElementById('home-disease-advice');
+  var text = document.getElementById('home-disease-advice-text');
+  if (!card || !text) return;
+
+  var diseases = state.myDiseases || [];
+  if (diseases.length === 0) { card.style.display = 'none'; return; }
+
+  var h = new Date().getHours();
+  var isMorning = h >= 5 && h < 12;
+  var isNight   = h >= 20;
+  var hint = (typeof getDailyHint === 'function') ? getDailyHint(diseases, isMorning, isNight) : null;
+  if (!hint) { card.style.display = 'none'; return; }
+
+  text.textContent = diseases[0] + '：' + hint.text;
+  card.style.display = 'block';
 }
 
 // ===== フェーズ別症状マップ =====
@@ -7574,6 +7933,11 @@ function switchTab(tab, btn) {
     }, 500);
   }
   if (tab === 'home') {
+    buildHomeWeekRow();
+    updateHomeInsightCard();
+    updateHomeNumbers();
+    updateHomeDiseaseAdvice();
+    updateHomeCTAState();
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   }
   }
@@ -7630,7 +7994,7 @@ function renderStep() {
   });
 
   document.getElementById('modal-back-btn').style.display = currentStep === 0 ? 'none' : 'block';
-  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する 🌸' : '次へ →';
+  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する' : '次へ →';
 
   step.render();
 }
@@ -7817,26 +8181,33 @@ function renderBodyCheck() {
 
   var html = '';
 
-  // --- 睡眠の質（朝のみ表示） ---
+  // --- 痛みレベル（全時間帯・SVG顔アイコン） ---
+  html += '<div style="margin-bottom:18px;">';
+  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日の痛みレベルはどのくらいですか？</div>';
+  html += renderPainScale(currentRecord.painLevel, 'painLevel');
+  html += '</div>';
+
+  // --- 睡眠の質（朝のみ表示・SVGアイコン） ---
   if (isMorning) {
     html += '<div style="margin-bottom:18px;">';
     html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">昨夜の眠りはどうでしたか？</div>';
     var sleepOpts = [
-      { v: 1, emoji: '😴', label: 'ぐっすり眠れた' },
-      { v: 2, emoji: '🙂', label: 'まあまあ眠れた' },
-      { v: 3, emoji: '😐', label: 'あまり眠れなかった' },
-      { v: 4, emoji: '😔', label: 'ほとんど眠れなかった' }
+      { v: 1, icon: 'moon',        label: 'ぐっすり' },
+      { v: 2, icon: 'faceGood',    label: 'まあまあ' },
+      { v: 3, icon: 'faceNeutral', label: 'あまり眠れず' },
+      { v: 4, icon: 'faceBad',     label: 'ほとんど眠れず' }
     ];
     html += '<div class="score-selector">';
     sleepOpts.forEach(function(s) {
       var sel = currentRecord.sleepQuality === s.v;
+      var c = sel ? 'var(--rose)' : '#9a8e88';
       html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'sleepQuality\',' + s.v + ',this)">'
-        + s.emoji + '<span class="score-label">' + s.label + '</span></button>';
+        + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
     });
     html += '</div></div>';
   }
 
-  // --- エネルギー（全時間帯） ---
+  // --- エネルギー（全時間帯・SVGアイコン） ---
   html += '<div style="margin-bottom:18px;">';
   if (isMorning) {
     html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今朝、からだはどんな感じですか？</div>';
@@ -7846,17 +8217,18 @@ function renderBodyCheck() {
     html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今の体の状態を教えてください</div>';
   }
   var energyOpts = [
-    { v: 5, emoji: '⚡', label: 'エネルギーがある' },
-    { v: 4, emoji: '🙂', label: 'まあまあ元気' },
-    { v: 3, emoji: '😐', label: 'ふつう' },
-    { v: 2, emoji: '🥱', label: '疲れている' },
-    { v: 1, emoji: '😮‍💨', label: 'とても疲れている' }
+    { v: 5, icon: 'sun',          label: 'エネルギーがある' },
+    { v: 4, icon: 'faceGood',     label: 'まあまあ元気' },
+    { v: 3, icon: 'faceNeutral',  label: 'ふつう' },
+    { v: 2, icon: 'faceBad',      label: '疲れている' },
+    { v: 1, icon: 'faceVeryBad',  label: 'とても疲れている' }
   ];
   html += '<div class="score-selector">';
   energyOpts.forEach(function(s) {
     var sel = currentRecord.energy === s.v;
+    var c = sel ? 'var(--rose)' : '#9a8e88';
     html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'energy\',' + s.v + ',this)">'
-      + s.emoji + '<span class="score-label">' + s.label + '</span></button>';
+      + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
   });
   html += '</div></div>';
 
@@ -8327,7 +8699,7 @@ document.getElementById('success-overlay').classList.add('active');
     return r.date && r.date.slice(0, 10) === new Date().toISOString().slice(0, 10);
   });
   var successResult = getSuccessMessage(latestRecord);
-  document.getElementById('success-emoji').textContent = successResult.emoji;
+  document.getElementById('success-emoji').innerHTML = successResult.icon || ICONS.check(32, 'var(--rose)');
   document.getElementById('success-title').textContent = successResult.title;
   document.getElementById('success-message').textContent = successResult.msg;
   document.getElementById('success-overlay').classList.add('active');
@@ -8338,20 +8710,20 @@ function getSuccessMessage(record) {
   var streak = state.streak || 0;
   var pain = record && record.painLevel !== undefined ? record.painLevel : -1;
 
-  var emoji = '🌸';
+  var iconSvg = ICONS.check(32, 'var(--rose)');
   var title = '記録できました';
   var msg = '今日もからだの声を聴いてくれてありがとう。';
 
   // 連続記録マイルストーン
-  if (streak === 7)  { emoji = '✨'; title = '7日連続達成！'; msg = '1週間、続けられました。パターンが見え始めてきます。'; }
-  else if (streak === 14) { emoji = '🌟'; title = '2週間連続！'; msg = 'この記録が、次の診察を変えてくれます。'; }
-  else if (streak === 30) { emoji = '🏆'; title = '1ヶ月達成！'; msg = 'AIパターン解析でこの30日間を振り返りましょう。'; }
+  if (streak === 7)  { iconSvg = ICONS.star(32, 'var(--gold)'); title = '7日連続達成！'; msg = '1週間、続けられました。パターンが見え始めてきます。'; }
+  else if (streak === 14) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '2週間連続！'; msg = 'この記録が、次の診察を変えてくれます。'; }
+  else if (streak === 30) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '1ヶ月達成！'; msg = 'AIパターン解析でこの30日間を振り返りましょう。'; }
 
   // 痛みがある日
-  else if (pain >= 3) { emoji = '🫶'; title = '記録できました'; msg = 'つらい日も記録してくれてありがとう。この積み重ねが大切です。'; }
-  else if (pain === 0) { emoji = '☀️'; title = '今日は楽な日ですね'; msg = 'こういう日のデータも、パターン発見に役立ちます。'; }
+  else if (pain >= 3) { iconSvg = ICONS.heart(32, 'var(--rose)'); title = '記録できました'; msg = 'つらい日も記録してくれてありがとう。この積み重ねが大切です。'; }
+  else if (pain === 0) { iconSvg = ICONS.sun(32, 'var(--gold)'); title = '今日は楽な日ですね'; msg = 'こういう日のデータも、パターン発見に役立ちます。'; }
 
-  return { emoji: emoji, title: title, msg: msg };
+  return { icon: iconSvg, title: title, msg: msg };
 }
 
 function closeSuccess() {
@@ -8369,7 +8741,7 @@ function shareApp() {
     });
   } else {
     navigator.clipboard.writeText(window.location.href).then(() => {
-      showAlertModal('URLをコピーしました！友だちに送ってください 🌸');
+      showAlertModal('URLをコピーしました！友だちに送ってください。');
     });
   }
 }
@@ -8920,7 +9292,7 @@ function updateHomeCTAState() {
     card.style.background = '';
     card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
-    if (sub)   sub.textContent   = 'まだ今日の記録がありません';
+    if (sub)   sub.textContent   = '';
   }
 }
 
@@ -9963,18 +10335,13 @@ function toggleFastingFeature() {
 }
 
 function applyFastingVisibility() {
-  var widget = document.querySelector('.fasting-widget');
-  var phaseInfo = document.getElementById('fast-phase-info');
+  var widget = document.getElementById('home-fasting-widget');
   var recoveryCard = document.getElementById('fast-recovery-card');
-  // 既存ユーザーは fastingEnabled が未定義の場合 true（後方互換）
-  var show = (state.fastingEnabled === undefined) ? true : !!state.fastingEnabled;
-  if (widget) widget.style.display = show ? '' : 'none';
-  if (phaseInfo) phaseInfo.style.display = show ? '' : 'none';
-  if (recoveryCard) recoveryCard.style.display = show ? '' : 'none';
+  var show = !!state.fastingEnabled;
+  if (widget) widget.style.display = show ? 'block' : 'none';
+  if (recoveryCard) recoveryCard.style.display = 'none'; // 終了時のみ表示
   // ファスティング中なら強制表示
-  if (state.fastingActive) {
-    if (widget) widget.style.display = '';
-  }
+  if (state.fastingActive && widget) widget.style.display = 'block';
   // ラベル更新
   var label = document.getElementById('fasting-toggle-label');
   if (label) label.textContent = show ? 'オン' : 'オフ';
@@ -10238,10 +10605,21 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
+  initNavIcons();
+  initSettingsIcons();
+  // カレンダーナビ矢印をSVGに
+  var calPrevBtn = document.getElementById('calPrev');
+  var calNextBtn = document.getElementById('calNext');
+  if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
+  if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
   updateHomeCTA();
   updateHomeCTAState();
   updateStreakBadge();
   updateHomeSummary();
+  buildHomeWeekRow();
+  updateHomeInsightCard();
+  updateHomeNumbers();
+  updateHomeDiseaseAdvice();
   if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   applyFastingVisibility();
@@ -12393,6 +12771,10 @@ var todayStr = targetDate.toDateString();
     updateHomeCTA();
     updateHomeCTAState();
     updateStreakBadge();
+    buildHomeWeekRow();
+    updateHomeInsightCard();
+    updateHomeNumbers();
+    updateHomeDiseaseAdvice();
     checkAndShowTempAlert();
     updateFastingWidgetPhase();
     updateStats();
