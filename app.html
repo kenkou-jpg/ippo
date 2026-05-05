@@ -986,6 +986,46 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+/* モーダルのスプリングアニメーション */
+.modal-overlay.active .modal-sheet {
+  animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes slideUpModal {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+/* CTAカードの色変化トランジション */
+#home-cta-card { transition: background 0.5s ease; }
+/* 症状詳細の展開アニメーション */
+[id^="sd-detail-"] { overflow: hidden; }
+/* 記録完了サクセスオーバーレイのポップイン */
+.success-overlay.active .success-card {
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+/* スライダースタイル */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--rose);
+  box-shadow: 0 2px 6px rgba(184,112,122,0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
 .modal-handle {
   width: 36px; height: 4px;
@@ -1046,6 +1086,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 }
 .score-btn:hover { border-color: var(--rose-light); }
 .score-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.score-btn { transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+.score-btn:active { transform: scale(0.95); }
 .score-label { font-size: 9px; color: var(--ink-light); font-family: 'Noto Sans JP', sans-serif; margin-top: 2px; display: block; }
 
 
@@ -1070,6 +1112,8 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 }
 .chip:hover { border-color: var(--rose-light); }
 .chip.selected { background: var(--rose-pale); border-color: var(--rose); color: var(--rose); }
+.chip { transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
+.chip:active { transform: scale(0.96); }
 
 .symp-tab {
   flex: 1;
@@ -2069,7 +2113,22 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
     <div style="font-size:12px;color:var(--ink-light);line-height:1.6;">選択した疾患に合わせて<br>記録画面が最適化されます（複数選択可）</div>
   </div>
 
-  <div id="ob-disease-list" style="max-height:50vh;overflow-y:auto;padding:0 4px;"></div>
+  <!-- プライバシー説明 -->
+  <div style="background:var(--cream);border-radius:16px;padding:16px 18px;margin:0 0 16px;border:0.5px solid #e8ddd8;">
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:24px;flex-shrink:0;">🔒</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;">あなたの記録はあなただけのもの</div>
+        <div style="font-size:11px;color:var(--ink-light);line-height:1.7;">
+          症状や体調の記録は、あなた以外には見えません。<br>
+          広告への利用・第三者への販売は一切行いません。<br>
+          データはいつでも削除できます。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="ob-disease-list" style="max-height:45vh;overflow-y:auto;padding:0 4px;"></div>
 
   <div style="margin-top:20px;">
     <button class="btn-primary" onclick="completeOnboarding()" style="width:100%;">この設定ではじめる →</button>
@@ -3242,6 +3301,20 @@ function scheduleReminders(){
     </script>
 
 
+      <!-- Privacy -->
+      <div class="settings-section">
+        <div class="settings-section-title">プライバシー</div>
+        <div class="settings-row" onclick="showPrivacyInfo()" style="cursor:pointer;">
+          <div class="settings-row-left">
+            <div class="settings-row-icon" style="background:#f0ede8;">🔒</div>
+            <div class="settings-row-text">データの取り扱いについて</div>
+          </div>
+          <div class="settings-row-right">
+            <span class="settings-chevron">›</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Feedback -->
       <div class="feedback-section">
         <div class="fb-title">感想・フィードバック</div>
@@ -3798,8 +3871,118 @@ var DISEASE_CONFIG = {
       {id:'daily_impact',   text:'日常生活への影響',       options:['軽微','中程度','かなり影響','生活困難']}
     ]
   }
- 
+
 };
+
+// ===== 症状詳細マスターデータ =====
+var SYMPTOM_DETAIL_CONFIG = {
+  '下腹部痛': {
+    positions: ['左下腹部', '右下腹部', '下腹部全体', '腰', '骨盤周り'],
+    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感', '張り'],
+    hasSlider: true
+  },
+  '骨盤痛': {
+    positions: ['左側', '右側', '両側', '仙骨周り', '全体'],
+    types:     ['鈍痛', '鋭痛', '圧迫感', '張り', '重い'],
+    hasSlider: true
+  },
+  '月経外の骨盤痛': {
+    positions: ['左側', '右側', '両側', '仙骨周り'],
+    types:     ['鈍痛', '鋭痛', '圧迫感', '張り'],
+    hasSlider: true
+  },
+  '排卵痛': {
+    positions: ['左下腹部', '右下腹部', '下腹部全体'],
+    types:     ['鋭痛', '鈍痛', '差し込み', '張り'],
+    hasSlider: true
+  },
+  '片側の下腹部痛': {
+    positions: ['左側', '右側'],
+    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感'],
+    hasSlider: true
+  },
+  '腰痛': {
+    positions: ['腰全体', '左側', '右側', '仙骨'],
+    types:     ['鈍痛', '鋭痛', '張り', '重い'],
+    hasSlider: true
+  },
+  '性交痛': {
+    positions: ['入口付近', '奥（深部）', '全体'],
+    types:     ['鈍痛', '鋭痛', '圧迫感', '灼熱感'],
+    hasSlider: true
+  },
+  '排便痛': {
+    positions: ['肛門周り', '腸全体', '左側', '右側'],
+    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感'],
+    hasSlider: true
+  },
+  '頭痛': {
+    positions: ['前頭部', '側頭部（左）', '側頭部（右）', '後頭部', '全体'],
+    types:     ['ズキズキ', '締め付け', '重い', '刺すような'],
+    hasSlider: true
+  },
+  '慢性疲労': { hasSlider: true, sliderLabel: '疲れの強さ' },
+  'だるさ':   { hasSlider: true, sliderLabel: '重さの程度' },
+  '倦怠感':   { hasSlider: true, sliderLabel: '倦怠の程度' },
+  'むくみ': {
+    positions: ['顔', '手', '足（全体）', '足首', 'ふくらはぎ'],
+    hasSlider: true,
+    sliderLabel: 'むくみの程度'
+  },
+  '気分の落ち込み': {
+    types:     ['ゆううつ', '虚無感', '涙が出る', '何もしたくない'],
+    hasSlider: true,
+    sliderLabel: '気分の重さ'
+  },
+  'イライラ': {
+    types:     ['軽いイライラ', 'かなり強い', '怒りが抑えられない'],
+    hasSlider: true,
+    sliderLabel: 'イライラの強さ'
+  },
+  '不安感': {
+    types:     ['漠然とした不安', '動悸を伴う', '眠れない'],
+    hasSlider: true,
+    sliderLabel: '不安の強さ'
+  },
+  '吐き気': {
+    types:     ['軽い吐き気', '食欲がない', '嘔吐あり'],
+    timing:    ['空腹時', '食後', '常時', '動いたとき'],
+    hasSlider: true,
+    sliderLabel: '吐き気の強さ'
+  },
+  '胸の張り': {
+    positions: ['両側', '左側', '右側'],
+    hasSlider: true,
+    sliderLabel: '張りの強さ'
+  },
+  '不正出血': {
+    types:     ['茶色のおりもの', '鮮血', '少量', '中等量'],
+    timing:    ['排卵期', '生理前', '生理後', '性交後', '不定期'],
+    hasSlider: false
+  },
+  '頻尿': {
+    types:     ['少し多い', 'かなり多い', '夜間も起きる'],
+    hasSlider: false
+  },
+  '便秘': {
+    types:     ['数日出ない', '硬くて出にくい', '残便感'],
+    hasSlider: false,
+    bowelCount: true
+  },
+  '腹部膨満感': {
+    types:     ['食後に張る', '一日中張っている', 'ガスが多い'],
+    hasSlider: true,
+    sliderLabel: '張りの程度'
+  },
+  'おりもの': {
+    types:     ['透明・サラサラ', '白・とろみあり', '黄色みがかった', '茶色', 'ピンク・血混じり'],
+    positions: ['量：少ない', '量：普通', '量：多い'],
+    timing:    ['においの変化あり', 'かゆみあり', '膣の乾燥あり'],
+    hasSlider: false,
+    note: '膣の乾燥・においの変化は婦人科受診の参考になります'
+  }
+};
+
 function openDiseaseSettings(){
   var currentArr = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
   var diseases = Object.keys(DISEASE_CONFIG);
@@ -5335,6 +5518,7 @@ state = {
 // Current record being built
 let currentRecord = {};
 let currentStep = 0;
+var STEPS = [];
 
 
 function saveState() {
@@ -6082,11 +6266,16 @@ function updateDate() {
   if (el) el.textContent = date;
 }
 
+function getGreetingText() {
+  var hour = new Date().getHours();
+  if (hour >= 5  && hour < 10) return 'おはようございます';
+  if (hour >= 10 && hour < 17) return 'こんにちは';
+  if (hour >= 17 && hour < 21) return 'こんばんは';
+  return 'おつかれさまです';
+}
+
 function updateGreeting() {
-  const hour = new Date().getHours();
-  let greeting = 'こんにちは';
-  if (hour < 10) greeting = 'おはようございます';
-  else if (hour >= 18) greeting = 'こんばんは';
+  const greeting = getGreetingText();
   const el = document.getElementById('greeting-text');
   if (el) el.textContent = greeting;
   const nameEl = document.getElementById('greeting-name');
@@ -7019,6 +7208,17 @@ function openRecordModal() {
   if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
   currentRecord = {};
   currentStep = 0;
+  window.STEPS = buildSteps();
+  // ステップインジケーターのドットを動的生成
+  var indicator = document.getElementById('step-indicator');
+  if (indicator) {
+    indicator.innerHTML = '';
+    window.STEPS.forEach(function() {
+      var dot = document.createElement('div');
+      dot.className = 'step-dot';
+      indicator.appendChild(dot);
+    });
+  }
   renderStep();
   document.getElementById('record-modal').classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -7074,11 +7274,11 @@ function prevStep() {
 // ===== STEP RENDERERS =====
 function renderWellness() {
   const scores = [
-    { v: 1, emoji: '😔', label: 'つらい' },
-    { v: 2, emoji: '😕', label: '重い' },
+    { v: 1, emoji: '😔', label: 'とてもつらい' },
+    { v: 2, emoji: '😕', label: 'しんどい' },
     { v: 3, emoji: '😐', label: 'ふつう' },
-    { v: 4, emoji: '🙂', label: 'まあまあ' },
-    { v: 5, emoji: '😊', label: '良い' },
+    { v: 4, emoji: '🙂', label: 'わりと元気' },
+    { v: 5, emoji: '😊', label: 'とても元気' },
   ];
   document.getElementById('modal-body').innerHTML = `
     <div class="score-selector">
@@ -7188,6 +7388,258 @@ function selectEmotion(key, el) {
   el.classList.add('selected');
   const note = document.getElementById('journal-note');
   if (note) currentRecord.note = note.value;
+}
+
+// ===== STEPS ビルダー =====
+function buildSteps() {
+  var stepCount = state.fastingEnabled ? 4 : 3;
+  var steps = [
+    {
+      title: '今日のからだの調子は\nどうですか？',
+      label: '1 / ' + stepCount,
+      render: renderWellness
+    },
+    {
+      title: '症状と痛みを\n記録しましょう',
+      label: '2 / ' + stepCount,
+      render: renderSymptomDetail
+    },
+    {
+      title: '今日の気持ちと\nひとことメモ',
+      label: '3 / ' + stepCount,
+      render: renderEmotion
+    }
+  ];
+  if (state.fastingEnabled) {
+    steps.push({
+      title: '今日のファスティング',
+      label: '4 / 4',
+      render: renderFasting
+    });
+  }
+  return steps;
+}
+
+// ===== 症状詳細展開UI（Step2） =====
+function renderSymptomDetail() {
+  var prioritized = [];
+  var diseases = state.myDiseases || [];
+  diseases.forEach(function(d) {
+    var cfg = DISEASE_CONFIG[d];
+    if (!cfg || !cfg.specificSymptoms) return;
+    cfg.specificSymptoms.forEach(function(s) {
+      if (prioritized.indexOf(s) === -1) prioritized.push(s);
+    });
+  });
+  var userSymptoms = state.mySymptoms || [];
+  userSymptoms.forEach(function(s) {
+    if (prioritized.indexOf(s) === -1) prioritized.push(s);
+  });
+  var defaults = ['下腹部痛', '腰痛', '頭痛', '骨盤痛', 'だるさ', '不正出血', '吐き気', 'むくみ', 'おりもの', '気分の落ち込み', 'イライラ'];
+  defaults.forEach(function(s) {
+    if (prioritized.indexOf(s) === -1) prioritized.push(s);
+  });
+
+  if (!currentRecord.symptoms) currentRecord.symptoms = [];
+  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
+
+  var html = '';
+  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">今日の症状（複数選択可）</div>';
+  html += '<div class="chips" id="sd-chips" style="margin-bottom:16px;">';
+  prioritized.slice(0, 12).forEach(function(s) {
+    var sel = currentRecord.symptoms.indexOf(s) !== -1;
+    html += '<div class="chip' + (sel ? ' selected' : '') + '" '
+      + 'onclick="toggleSymptomChip(\'' + s.replace(/'/g, "\\'") + '\', this)" '
+      + 'style="transition:all 0.2s;">'
+      + s + '</div>';
+  });
+  html += '</div>';
+  html += '<div id="sd-details"></div>';
+
+  document.getElementById('modal-body').innerHTML = html;
+
+  // 既に選択済みのものは詳細を展開
+  currentRecord.symptoms.forEach(function(s) {
+    appendSymptomDetail(s);
+  });
+}
+
+function toggleSymptomChip(symptomName, el) {
+  if (!currentRecord.symptoms) currentRecord.symptoms = [];
+  var idx = currentRecord.symptoms.indexOf(symptomName);
+  if (idx !== -1) {
+    currentRecord.symptoms.splice(idx, 1);
+    el.classList.remove('selected');
+    var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
+    var detail = document.getElementById(safeId);
+    if (detail) {
+      detail.style.maxHeight = detail.scrollHeight + 'px';
+      requestAnimationFrame(function() {
+        detail.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
+        detail.style.maxHeight = '0';
+        detail.style.opacity = '0';
+        setTimeout(function() { if (detail.parentNode) detail.remove(); }, 300);
+      });
+    }
+  } else {
+    currentRecord.symptoms.push(symptomName);
+    el.classList.add('selected');
+    appendSymptomDetail(symptomName);
+  }
+}
+
+function appendSymptomDetail(symptomName) {
+  var cfg = SYMPTOM_DETAIL_CONFIG[symptomName];
+  if (!cfg) return;
+
+  var container = document.getElementById('sd-details');
+  if (!container) return;
+  var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
+  if (document.getElementById(safeId)) return;
+
+  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
+  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
+  var detail = currentRecord.symptomDetails[symptomName];
+
+  var html = '<div id="' + safeId + '" style="background:var(--cream);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid var(--rose);max-height:0;opacity:0;overflow:hidden;">';
+  html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:10px;">| DETAIL<br>' + symptomName + 'の詳細</div>';
+
+  // 位置・量選択
+  if (cfg.positions && cfg.positions.length > 0) {
+    var posLabel = symptomName === 'おりもの' ? '量' : '痛みの位置';
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + posLabel + '</div>';
+    html += '<div class="chips" style="margin-bottom:12px;">';
+    cfg.positions.forEach(function(pos) {
+      var sel = (detail.positions || []).indexOf(pos) !== -1;
+      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
+        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'positions\',\'' + pos.replace(/'/g, "\\'") + '\',this)" '
+        + 'style="font-size:11px;transition:all 0.15s;">' + pos + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // 種類選択
+  if (cfg.types && cfg.types.length > 0) {
+    var typesLabel = symptomName === 'おりもの' ? 'おりものの状態' : '痛みの種類';
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + typesLabel + '</div>';
+    html += '<div class="chips" style="margin-bottom:12px;">';
+    cfg.types.forEach(function(type) {
+      var sel = (detail.types || []).indexOf(type) !== -1;
+      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
+        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'types\',\'' + type.replace(/'/g, "\\'") + '\',this)" '
+        + 'style="font-size:11px;transition:all 0.15s;">' + type + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // タイミング選択
+  if (cfg.timing && cfg.timing.length > 0) {
+    var timingLabel = symptomName === 'おりもの' ? 'その他の症状' : 'タイミング';
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + timingLabel + '</div>';
+    html += '<div class="chips" style="margin-bottom:12px;">';
+    cfg.timing.forEach(function(t) {
+      var sel = (detail.timing || []).indexOf(t) !== -1;
+      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
+        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'timing\',\'' + t.replace(/'/g, "\\'") + '\',this)" '
+        + 'style="font-size:11px;transition:all 0.15s;">' + t + '</div>';
+    });
+    html += '</div>';
+  }
+
+  // 注記（おりものなど）
+  if (cfg.note) {
+    html += '<div style="font-size:10px;color:var(--ink-light);background:rgba(184,112,122,0.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;">ℹ️ ' + cfg.note + '</div>';
+  }
+
+  // 排便回数
+  if (cfg.bowelCount) {
+    var bowelVal = detail.bowelCount || 0;
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">今日の排便回数</div>';
+    html += '<div style="display:flex;gap:6px;margin-bottom:12px;">';
+    for (var i = 0; i <= 5; i++) {
+      html += '<button onclick="selectBowelCount(\'' + symptomName.replace(/'/g, "\\'") + '\',' + i + ',this)" '
+        + 'style="width:36px;height:36px;border-radius:50%;border:1.5px solid '
+        + (bowelVal === i ? 'var(--rose)' : '#e8ddd8') + ';'
+        + 'background:' + (bowelVal === i ? 'var(--rose-pale)' : 'var(--white)') + ';'
+        + 'font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;transition:all 0.15s;">'
+        + (i === 0 ? 'なし' : i) + '</button>';
+    }
+    html += '</div>';
+  }
+
+  // 強さスライダー
+  if (cfg.hasSlider) {
+    var sliderLabel = cfg.sliderLabel || '痛みの強さ';
+    var sliderVal = detail.intensity !== undefined ? detail.intensity : 0;
+    var pct = Math.round(sliderVal / 10 * 100);
+    var labels = ['なし', '軽い', '中程度', '強い', '激痛'];
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+    html += '<div style="font-size:11px;color:var(--ink-light);">' + sliderLabel + '</div>';
+    html += '<div style="font-size:13px;font-weight:600;color:var(--rose);" id="slider-val-' + safeId + '">' + sliderVal + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span></div>';
+    html += '</div>';
+    html += '<input type="range" min="0" max="10" value="' + sliderVal + '" '
+      + 'style="width:100%;height:4px;margin-bottom:8px;background:linear-gradient(to right,var(--rose) 0%,var(--rose) ' + pct + '%,#e8ddd8 ' + pct + '%,#e8ddd8 100%);" '
+      + 'oninput="updateSliderDetail(\'' + symptomName.replace(/'/g, "\\'") + '\',this.value,\'' + safeId + '\',this)">';
+    html += '<div style="display:flex;justify-content:space-between;">';
+    labels.forEach(function(l) {
+      html += '<span style="font-size:9px;color:var(--ink-light);">' + l + '</span>';
+    });
+    html += '</div>';
+    html += '<div style="margin-top:10px;background:rgba(184,112,122,0.08);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--ink-light);">💡 ' + symptomName + 'の記録が症状の変化の把握に役立ちます</div>';
+  }
+
+  html += '</div>';
+  container.insertAdjacentHTML('beforeend', html);
+
+  var el = document.getElementById(safeId);
+  if (el) {
+    requestAnimationFrame(function() {
+      el.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
+      el.style.maxHeight = '700px';
+      el.style.opacity = '1';
+    });
+  }
+}
+
+function toggleDetailItem(symptomName, field, value, el) {
+  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
+  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
+  var detail = currentRecord.symptomDetails[symptomName];
+  if (!detail[field]) detail[field] = [];
+  var idx = detail[field].indexOf(value);
+  if (idx !== -1) {
+    detail[field].splice(idx, 1);
+    el.classList.remove('selected');
+  } else {
+    detail[field].push(value);
+    el.classList.add('selected');
+  }
+}
+
+function updateSliderDetail(symptomName, value, safeId, sliderEl) {
+  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
+  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
+  currentRecord.symptomDetails[symptomName].intensity = parseInt(value);
+  var valEl = document.getElementById('slider-val-' + safeId);
+  if (valEl) valEl.innerHTML = value + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span>';
+  // スライダー背景グラデーション更新
+  if (sliderEl) {
+    var pct = Math.round(parseInt(value) / 10 * 100);
+    sliderEl.style.background = 'linear-gradient(to right, var(--rose) 0%, var(--rose) ' + pct + '%, #e8ddd8 ' + pct + '%, #e8ddd8 100%)';
+  }
+}
+
+function selectBowelCount(symptomName, count, el) {
+  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
+  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
+  currentRecord.symptomDetails[symptomName].bowelCount = count;
+  var parent = el.parentNode;
+  parent.querySelectorAll('button').forEach(function(b) {
+    b.style.background = 'var(--white)';
+    b.style.borderColor = '#e8ddd8';
+  });
+  el.style.background = 'var(--rose-pale)';
+  el.style.borderColor = 'var(--rose)';
 }
 
 // ===== SAVE RECORD =====
@@ -8847,6 +9299,17 @@ function showConfirmModal(message, onConfirm, onCancel) {
   document.body.appendChild(overlay);
   box.querySelector('#_confirm_ok').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
   box.querySelector('#_confirm_cancel').onclick = function() { overlay.remove(); if (onCancel) onCancel(); };
+}
+
+function showPrivacyInfo() {
+  showAlertModal(
+    'あなたの記録について\n\n'
+    + '・症状・体調の記録はあなただけが見られます\n'
+    + '・広告配信への利用は行いません\n'
+    + '・第三者へのデータ販売は行いません\n'
+    + '・データはいつでも設定から削除できます\n'
+    + '・クラウド同期はSupabaseの暗号化通信で行われます'
+  );
 }
 
 function showAlertModal(message, onClose) {
