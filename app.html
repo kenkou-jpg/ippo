@@ -33,38 +33,38 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* === Primary: Deep Rose (桜テーマ default) === */
-  --rose: #b8707a;
-  --rose-light: #f0d4d8;
-  --rose-pale: #faf0f1;
-  --plum: #5a2d3d;
-  --plum-light: #8a5a6a;
-  --gold: #c8a96e;
-  --gold-light: #f5ecd8;
-  --sage: #7a9e86;
-  --sage-light: #d0e4d6;
+  /* === Primary: Soft Sakura（画像ベース） === */
+  --rose: #e8919e;
+  --rose-light: #f8d0d8;
+  --rose-pale: #fef0f3;
+  --plum: #b05068;
+  --plum-light: #c87890;
+  --gold: #e8b870;
+  --gold-light: #fdf0d8;
+  --sage: #8abf9a;
+  --sage-light: #d8f0e0;
 
-  /* === Text === */
+  /* === Text（変更なし） === */
   --ink: #2d1f1a;
   --ink-mid: #4a3830;
   --ink-light: #8a7a70;
 
   /* === Background === */
-  --cream: #faf6f1;
+  --cream: #fdf8f6;
   --white: #ffffff;
-  --shadow: rgba(45,31,26,0.10);
+  --shadow: rgba(200,120,140,0.10);
 
-  /* === Layout backgrounds (theme-switchable) === */
-  --header-bg: linear-gradient(160deg, #fdf3f3 0%, #faf6f1 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #f8f2ed 100%);
-  --nav-border: rgba(90,45,61,0.08);
-  --fasting-bg: linear-gradient(135deg, #2c2420 0%, #3d302a 100%);
-  --fasting-spot: rgba(255,107,107,0.20);
+  /* === Layout backgrounds === */
+  --header-bg: linear-gradient(160deg, #fef0f3 0%, #fdf8f6 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef5f7 100%);
+  --nav-border: rgba(200,120,140,0.10);
+  --fasting-bg: linear-gradient(135deg, #2c1820 0%, #3d2830 100%);
+  --fasting-spot: rgba(232,145,158,0.22);
 
   /* === CTA card gradients === */
-  --cta-default: linear-gradient(135deg, #e8b4b8 0%, #c4878c 100%);
-  --cta-done:    linear-gradient(135deg, #b8c4a8 0%, #8a9c78 100%);
-  --cta-period:  linear-gradient(135deg, #d4838a 0%, #b85c6a 100%);
+  --cta-default: linear-gradient(135deg, #f8c0ca 0%, #e8919e 100%);
+  --cta-done:    linear-gradient(135deg, #c0dac8 0%, #8abf9a 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -73,21 +73,21 @@
    色彩心理: 情熱・活力・記録意欲を高める暖色
    ═══════════════════════════════════════════════════════ */
 [data-theme="coral"] {
-  --rose: #d95f3b;
-  --rose-light: #f5c4b0;
-  --rose-pale: #fef2ed;
-  --plum: #8b2e10;
-  --plum-light: #be4e28;
-  --cream: #fdf6f2;
-  --shadow: rgba(90,30,10,0.10);
-  --header-bg: linear-gradient(160deg, #fef2ed 0%, #fdf6f2 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fdf2ee 100%);
-  --nav-border: rgba(180,60,30,0.09);
+  --rose: #f0826a;
+  --rose-light: #fac8b8;
+  --rose-pale: #fef4f0;
+  --plum: #c04830;
+  --plum-light: #e06848;
+  --cream: #fdf8f5;
+  --shadow: rgba(180,80,50,0.10);
+  --header-bg: linear-gradient(160deg, #fef0ea 0%, #fdf8f5 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef4ef 100%);
+  --nav-border: rgba(200,90,60,0.09);
   --fasting-bg: linear-gradient(135deg, #28140c 0%, #3c1e10 100%);
-  --fasting-spot: rgba(217,95,59,0.25);
-  --cta-default: linear-gradient(135deg, #f5a080 0%, #d95f3b 100%);
-  --cta-done:    linear-gradient(135deg, #7abba0 0%, #4a9078 100%);
-  --cta-period:  linear-gradient(135deg, #d45060 0%, #b03040 100%);
+  --fasting-spot: rgba(240,130,106,0.25);
+  --cta-default: linear-gradient(135deg, #fac0a8 0%, #f0826a 100%);
+  --cta-done:    linear-gradient(135deg, #a8d8b8 0%, #68a880 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -96,26 +96,26 @@
    色彩心理: 集中・特別感・夜間使用でも目に優しい
    ═══════════════════════════════════════════════════════ */
 [data-theme="midnight"] {
-  --rose: #ff7aaa;
+  --rose: #ff90bb;
   --rose-light: #5a1e3a;
   --rose-pale: #3a1028;
-  --plum: #ffaad0;
-  --plum-light: #cc70a0;
-  --gold: #d4a870;
-  --ink: #f2eaf6;
-  --ink-mid: #c8b0d8;
-  --ink-light: #907898;
+  --plum: #ffbbd5;
+  --plum-light: #dd88b0;
+  --gold: #e8b870;
+  --ink: #f5eef8;
+  --ink-mid: #d0b8e0;
+  --ink-light: #987898;
   --cream: #1a1020;
   --white: #261830;
   --shadow: rgba(0,0,0,0.35);
   --header-bg: linear-gradient(160deg, #1e1228 0%, #1a1020 100%);
   --nav-bg: linear-gradient(180deg, #261830 0%, #1a1020 100%);
-  --nav-border: rgba(255,122,170,0.12);
+  --nav-border: rgba(255,144,187,0.14);
   --fasting-bg: linear-gradient(135deg, #22103a 0%, #2e1848 100%);
-  --fasting-spot: rgba(255,122,170,0.20);
-  --cta-default: linear-gradient(135deg, #5a1e48 0%, #3a0e30 100%);
+  --fasting-spot: rgba(255,144,187,0.20);
+  --cta-default: linear-gradient(135deg, #6a2858 0%, #48103e 100%);
   --cta-done:    linear-gradient(135deg, #1c4a38 0%, #102e24 100%);
-  --cta-period:  linear-gradient(135deg, #6a1038 0%, #480820 100%);
+  --cta-period:  linear-gradient(135deg, #7a1848 0%, #580a30 100%);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -124,21 +124,21 @@
    色彩心理: 安心・回復・健康的な習慣の継続を促す
    ═══════════════════════════════════════════════════════ */
 [data-theme="forest"] {
-  --rose: #3e8b60;
-  --rose-light: #aad4ba;
-  --rose-pale: #edf7f1;
-  --plum: #1c5a38;
-  --plum-light: #2e7a50;
-  --cream: #f0faf4;
-  --shadow: rgba(20,60,35,0.09);
-  --header-bg: linear-gradient(160deg, #e8f7ee 0%, #f0faf4 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #edf7f2 100%);
-  --nav-border: rgba(30,90,55,0.08);
+  --rose: #5aaa80;
+  --rose-light: #b8e0c8;
+  --rose-pale: #eef8f2;
+  --plum: #2a7a50;
+  --plum-light: #409868;
+  --cream: #f4fbf6;
+  --shadow: rgba(30,90,55,0.09);
+  --header-bg: linear-gradient(160deg, #e8f8ee 0%, #f4fbf6 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #eef8f2 100%);
+  --nav-border: rgba(40,120,70,0.08);
   --fasting-bg: linear-gradient(135deg, #101e14 0%, #182a1e 100%);
-  --fasting-spot: rgba(62,139,96,0.25);
-  --cta-default: linear-gradient(135deg, #80c8a0 0%, #3e8b60 100%);
-  --cta-done:    linear-gradient(135deg, #5aaa7a 0%, #2e7a50 100%);
-  --cta-period:  linear-gradient(135deg, #d4838a 0%, #b85c6a 100%);
+  --fasting-spot: rgba(90,170,128,0.25);
+  --cta-default: linear-gradient(135deg, #a8dfc0 0%, #5aaa80 100%);
+  --cta-done:    linear-gradient(135deg, #78c098 0%, #409868 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -147,21 +147,21 @@
    色彩心理: 信頼感・冷静・明晰な思考を助ける
    ═══════════════════════════════════════════════════════ */
 [data-theme="sky"] {
-  --rose: #2e82bf;
-  --rose-light: #a8d0ee;
-  --rose-pale: #eaf4fb;
-  --plum: #0d4e88;
-  --plum-light: #1a6aaa;
-  --cream: #f0f7fc;
-  --shadow: rgba(10,50,90,0.09);
-  --header-bg: linear-gradient(160deg, #e4f2fb 0%, #f0f7fc 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #eaf4fb 100%);
-  --nav-border: rgba(15,80,140,0.08);
+  --rose: #50a0d8;
+  --rose-light: #b0d8f5;
+  --rose-pale: #eaf5fd;
+  --plum: #1870a8;
+  --plum-light: #2888c8;
+  --cream: #f0f8fd;
+  --shadow: rgba(15,70,120,0.09);
+  --header-bg: linear-gradient(160deg, #e0f0fb 0%, #f0f8fd 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #e8f5fc 100%);
+  --nav-border: rgba(20,100,160,0.08);
   --fasting-bg: linear-gradient(135deg, #0a1828 0%, #10243a 100%);
-  --fasting-spot: rgba(46,130,191,0.25);
-  --cta-default: linear-gradient(135deg, #78b8e8 0%, #2e82bf 100%);
-  --cta-done:    linear-gradient(135deg, #5aa8b8 0%, #2a7888 100%);
-  --cta-period:  linear-gradient(135deg, #d4838a 0%, #b85c6a 100%);
+  --fasting-spot: rgba(80,160,216,0.25);
+  --cta-default: linear-gradient(135deg, #90caf0 0%, #50a0d8 100%);
+  --cta-done:    linear-gradient(135deg, #80c8d0 0%, #3898a8 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -170,21 +170,21 @@
    色彩心理: 親しみやすさ・達成感・記録の喜びを演出
    ═══════════════════════════════════════════════════════ */
 [data-theme="honey"] {
-  --rose: #c47b28;
-  --rose-light: #ecc888;
-  --rose-pale: #fdf5e4;
-  --plum: #7a3e0a;
-  --plum-light: #a86020;
-  --cream: #fdf8ee;
-  --shadow: rgba(80,45,5,0.09);
-  --header-bg: linear-gradient(160deg, #fdf2d8 0%, #fdf8ee 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fdf5e4 100%);
-  --nav-border: rgba(130,70,10,0.08);
+  --rose: #e8983a;
+  --rose-light: #f8d098;
+  --rose-pale: #fef6e8;
+  --plum: #b86010;
+  --plum-light: #d88028;
+  --cream: #fefaf2;
+  --shadow: rgba(100,60,10,0.09);
+  --header-bg: linear-gradient(160deg, #fef2d8 0%, #fefaf2 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef6e8 100%);
+  --nav-border: rgba(160,90,15,0.08);
   --fasting-bg: linear-gradient(135deg, #281808 0%, #3c2410 100%);
-  --fasting-spot: rgba(196,123,40,0.25);
-  --cta-default: linear-gradient(135deg, #f0c060 0%, #c47b28 100%);
-  --cta-done:    linear-gradient(135deg, #b8c4a8 0%, #8a9c78 100%);
-  --cta-period:  linear-gradient(135deg, #d4838a 0%, #b85c6a 100%);
+  --fasting-spot: rgba(232,152,58,0.25);
+  --cta-default: linear-gradient(135deg, #f8d080 0%, #e8983a 100%);
+  --cta-done:    linear-gradient(135deg, #c0dac8 0%, #8abf9a 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -193,7 +193,7 @@
 @keyframes ippo-spin { to { transform: rotate(360deg); } }
 .ippo-spinner {
   width: 20px; height: 20px;
-  border: 2.5px solid rgba(184,112,122,0.25);
+  border: 2.5px solid var(--shadow);
   border-top-color: var(--rose);
   border-radius: 50%;
   animation: ippo-spin 0.7s linear infinite;
@@ -233,7 +233,7 @@ html { scroll-behavior: smooth; }
 
 /* === Premium Feel: ヘッダー === */
 .home-header {
-  background: linear-gradient(135deg, #5a2d3d 0%, #7a4a5a 100%);
+  background: linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
   color: white;
 }
 .home-header .today-date,
@@ -8354,13 +8354,13 @@ function updateStreakBadge() {
     return (r.date || r.record_date || '').slice(0, 10) === today;
   });
   if (recordedToday) {
-    badge.style.background = 'linear-gradient(135deg, #eaf3de, #d4e8c4)';
-    badge.style.color = '#4a7c5c';
+    badge.style.background = 'var(--sage-light)';
+    badge.style.color = 'var(--sage)';
     var countEl = document.getElementById('streak-badge-count');
     if (countEl) countEl.nextSibling && (countEl.parentNode.lastChild.textContent = '日連続 ✓');
   } else {
-    badge.style.background = '';
-    badge.style.color = '';
+    badge.style.background = 'var(--rose-pale)';
+    badge.style.color = 'var(--rose)';
   }
 }
 
