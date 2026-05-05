@@ -34,11 +34,11 @@
 <style>
 :root {
   /* === Primary: Soft Sakura（画像ベース） === */
-  --rose: #e8919e;
-  --rose-light: #f8d0d8;
-  --rose-pale: #fef0f3;
-  --plum: #b05068;
-  --plum-light: #c87890;
+  --rose: #c8747b;  /* 実測値に修正 */
+  --rose-light: #ecd0d2;
+  --rose-pale: #f7f2f2;
+  --plum: #b14e56;
+  --plum-light: #c06870;
   --gold: #e8b870;
   --gold-light: #fdf0d8;
   --sage: #8abf9a;
@@ -73,23 +73,22 @@
    色彩心理: 情熱・活力・記録意欲を高める暖色
    ═══════════════════════════════════════════════════════ */
 [data-theme="coral"] {
-  --rose: #f0826a;
-  --rose-light: #fac8b8;
-  --rose-pale: #fef4f0;
-  --plum: #c04830;
-  --plum-light: #e06848;
-  --cream: #fdf8f5;
-  --shadow: rgba(180,80,50,0.10);
-  --header-bg: linear-gradient(160deg, #fef0ea 0%, #fdf8f5 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef4ef 100%);
-  --nav-border: rgba(200,90,60,0.09);
-  --fasting-bg: linear-gradient(135deg, #28140c 0%, #3c1e10 100%);
-  --fasting-spot: rgba(240,130,106,0.25);
-  --cta-default: linear-gradient(135deg, #fac0a8 0%, #f0826a 100%);
-  --cta-done:    linear-gradient(135deg, #a8d8b8 0%, #68a880 100%);
-  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
+  --rose:        #c78974;
+  --rose-light:  #ecd6cf;
+  --rose-pale:   #f7f3f2;
+  --plum:        #b15b3e;
+  --plum-light:  #c07962;
+  --cream:       #fdf8f5;
+  --shadow:      rgba(160,80,50,0.10);
+  --header-bg:   linear-gradient(160deg, #f7f0ee 0%, #fdf8f5 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f7f3f2 100%);
+  --nav-border:  rgba(180,80,55,0.09);
+  --fasting-bg:  linear-gradient(135deg, #28140c 0%, #3c1e10 100%);
+  --fasting-spot: rgba(199,137,116,0.25);
+  --cta-default: linear-gradient(135deg, #e0c9c1 0%, #c78974 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
 }
-
 /* ═══════════════════════════════════════════════════════
    テーマ 2: 深夜 (Shinya / Midnight)
    「プレミアム・エンパワーメント」— ダークモード
@@ -124,67 +123,65 @@
    色彩心理: 安心・回復・健康的な習慣の継続を促す
    ═══════════════════════════════════════════════════════ */
 [data-theme="forest"] {
-  --rose: #5aaa80;
-  --rose-light: #b8e0c8;
-  --rose-pale: #eef8f2;
-  --plum: #2a7a50;
-  --plum-light: #409868;
-  --cream: #f4fbf6;
-  --shadow: rgba(30,90,55,0.09);
-  --header-bg: linear-gradient(160deg, #e8f8ee 0%, #f4fbf6 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #eef8f2 100%);
-  --nav-border: rgba(40,120,70,0.08);
-  --fasting-bg: linear-gradient(135deg, #101e14 0%, #182a1e 100%);
-  --fasting-spot: rgba(90,170,128,0.25);
-  --cta-default: linear-gradient(135deg, #a8dfc0 0%, #5aaa80 100%);
-  --cta-done:    linear-gradient(135deg, #78c098 0%, #409868 100%);
-  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
+  --rose:        #74c797;
+  --rose-light:  #cfecdb;
+  --rose-pale:   #f2f7f4;
+  --plum:        #3eb16e;
+  --plum-light:  #62c089;
+  --cream:       #f4faf6;
+  --shadow:      rgba(30,100,60,0.09);
+  --header-bg:   linear-gradient(160deg, #eaf7f0 0%, #f4faf6 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f2f7f4 100%);
+  --nav-border:  rgba(40,130,75,0.08);
+  --fasting-bg:  linear-gradient(135deg, #101e14 0%, #182a1e 100%);
+  --fasting-spot: rgba(116,199,151,0.25);
+  --cta-default: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-done:    linear-gradient(135deg, #c1e0ce 0%, #5aaa80 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
 }
-
 /* ═══════════════════════════════════════════════════════
    テーマ 4: 空 (Sora / Sky)
    「信頼と集中」— クリアブルー
    色彩心理: 信頼感・冷静・明晰な思考を助ける
    ═══════════════════════════════════════════════════════ */
 [data-theme="sky"] {
-  --rose: #50a0d8;
-  --rose-light: #b0d8f5;
-  --rose-pale: #eaf5fd;
-  --plum: #1870a8;
-  --plum-light: #2888c8;
-  --cream: #f0f8fd;
-  --shadow: rgba(15,70,120,0.09);
-  --header-bg: linear-gradient(160deg, #e0f0fb 0%, #f0f8fd 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #e8f5fc 100%);
-  --nav-border: rgba(20,100,160,0.08);
-  --fasting-bg: linear-gradient(135deg, #0a1828 0%, #10243a 100%);
-  --fasting-spot: rgba(80,160,216,0.25);
-  --cta-default: linear-gradient(135deg, #90caf0 0%, #50a0d8 100%);
-  --cta-done:    linear-gradient(135deg, #80c8d0 0%, #3898a8 100%);
-  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
+  --rose:        #74a5c7;
+  --rose-light:  #cfe0ec;
+  --rose-pale:   #f2f5f7;
+  --plum:        #3e81b1;
+  --plum-light:  #6299c0;
+  --cream:       #f4f8fc;
+  --shadow:      rgba(20,80,130,0.09);
+  --header-bg:   linear-gradient(160deg, #eaf2f7 0%, #f4f8fc 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f2f5f7 100%);
+  --nav-border:  rgba(30,100,160,0.08);
+  --fasting-bg:  linear-gradient(135deg, #0a1828 0%, #10243a 100%);
+  --fasting-spot: rgba(116,165,199,0.25);
+  --cta-default: linear-gradient(135deg, #c1d3e0 0%, #74a5c7 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
 }
-
 /* ═══════════════════════════════════════════════════════
    テーマ 5: 蜂蜜 (Hachimitsu / Honey)
    「温もりと達成感」— ウォームアンバー
    色彩心理: 親しみやすさ・達成感・記録の喜びを演出
    ═══════════════════════════════════════════════════════ */
 [data-theme="honey"] {
-  --rose: #e8983a;
-  --rose-light: #f8d098;
-  --rose-pale: #fef6e8;
-  --plum: #b86010;
-  --plum-light: #d88028;
-  --cream: #fefaf2;
-  --shadow: rgba(100,60,10,0.09);
-  --header-bg: linear-gradient(160deg, #fef2d8 0%, #fefaf2 100%);
-  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef6e8 100%);
-  --nav-border: rgba(160,90,15,0.08);
-  --fasting-bg: linear-gradient(135deg, #281808 0%, #3c2410 100%);
-  --fasting-spot: rgba(232,152,58,0.25);
-  --cta-default: linear-gradient(135deg, #f8d080 0%, #e8983a 100%);
-  --cta-done:    linear-gradient(135deg, #c0dac8 0%, #8abf9a 100%);
-  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
+  --rose:        #c7a574;
+  --rose-light:  #ece0cf;
+  --rose-pale:   #f7f5f2;
+  --plum:        #b1813e;
+  --plum-light:  #c09962;
+  --cream:       #fdfaf4;
+  --shadow:      rgba(120,80,20,0.09);
+  --header-bg:   linear-gradient(160deg, #f7f2ea 0%, #fdfaf4 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f7f5f2 100%);
+  --nav-border:  rgba(150,100,25,0.08);
+  --fasting-bg:  linear-gradient(135deg, #281808 0%, #3c2410 100%);
+  --fasting-spot: rgba(199,165,116,0.25);
+  --cta-default: linear-gradient(135deg, #e0d3c1 0%, #c7a574 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
