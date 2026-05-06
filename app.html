@@ -2214,6 +2214,11 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   <!-- Step 5: 疾患選択 -->
   <div id="ob-step-5" class="ob-step" style="display:none;">
+    <!-- プライバシーポリシー告知 -->
+    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid #b8707a;">
+      <div style="font-size:13px;font-weight:500;color:#72243E;margin-bottom:6px;">ippoのデータポリシー</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.8;">すべてのデータはあなたの端末内で暗号化されます。<br>第三者への提供・販売は一切行いません。</div>
+    </div>
     <div class="ob-question">気になる症状や<br>疾患はありますか？</div>
     <div class="ob-hint">選択すると記録する症状が自動で最適化されます（複数選択可）</div>
     <div id="ob-disease-list-new" style="max-height:42vh;overflow-y:auto;padding:0 2px;margin-bottom:16px;"></div>
@@ -2282,6 +2287,16 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     <div id="home-phase-bar" style="height:4px;border-radius:2px;background:#e8ddd8;margin-bottom:10px;overflow:hidden;display:flex;"></div>
     <div id="home-phase-labels" style="display:flex;justify-content:space-between;margin-bottom:8px;"></div>
     <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+  </div>
+
+  <!-- 今日のメッセージ（1枚） -->
+  <div id="home-today-message" style="margin:0 20px 16px;display:none;">
+    <div style="background:#FBEAF0;border-radius:12px;padding:14px 16px;border-left:3px solid #b8707a;">
+      <div id="home-today-msg-text" style="font-size:13px;color:var(--ink);line-height:1.7;"></div>
+      <div id="home-today-msg-btn-wrap" style="display:none;margin-top:10px;">
+        <button onclick="state.editingDate=null;openRecordScreen();" style="padding:8px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;">今日を記録する →</button>
+      </div>
+    </div>
   </div>
 
   <!-- 今週の気づき -->
@@ -2415,13 +2430,18 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <div class="insights-sub">記録が語るあなたのパターン</div>
       </div>
 
-<!-- フェーズ別症状マップ（PRO） -->
+<!-- ===== からだの発見カード ===== -->
+<div id="insights-discoveries" style="padding:0 20px;margin-bottom:20px;">
+  <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);margin-bottom:12px;">からだの発見</div>
+  <div id="discoveries-cards"></div>
+</div>
+
+<!-- フェーズ別症状マップ（PRO予告） -->
 <div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-    <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">
-      🌸 フェーズ別症状マップ
-    </div>
-    <span style="font-size:10px;background:linear-gradient(135deg,var(--plum),var(--rose));color:white;padding:2px 8px;border-radius:4px;font-weight:500;">PRO</span>
+  <div style="margin-bottom:12px;">
+    <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">フェーズ別症状マップ</div>
+    <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">生理期・卵胞期・黄体期それぞれで<br>あなたの症状がどう変わるか可視化します。</div>
+    <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
   </div>
   <div id="phase-map-content"></div>
 </div>
@@ -2458,33 +2478,27 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
       </div>
 
-      <!-- 食事×体調の相関 -->
+      <!-- 食事×体調の相関（PRO予告） -->
       <div class="section-card" style="margin:0 20px 20px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-          <div>
-            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
-            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">食事とからだの関係</div>
-          </div>
-          <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">食事とからだの関係</div>
+          <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">食べたものと体調・症状の相関を<br>グラフで可視化します。</div>
+          <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
         </div>
-        <div id="food-body-correlation">
-          <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
-        </div>
+        <div id="food-body-correlation"></div>
       </div>
 
-      <!-- 生理周期×症状パターン -->
-<div class="section-card" style="margin:0 20px 20px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
-    <div>
-      <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
-      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">生理周期と症状の関係</div>
-    </div>
-    <span style="font-size:10px;color:var(--rose);background:var(--rose-pale);padding:2px 8px;border-radius:8px;font-weight:600;">PRO</span>
-  </div>
-  <div id="cycle-symptom-correlation">
-    <div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>
-  </div>
-</div>
+      <!-- 生理周期×症状パターン（PRO予告） -->
+      <div class="section-card" style="margin:0 20px 20px;">
+        <div style="margin-bottom:12px;">
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">生理周期と症状の関係</div>
+          <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">周期のどの時期に症状が出やすいか<br>パターンを分析します。</div>
+          <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+        </div>
+        <div id="cycle-symptom-correlation"></div>
+      </div>
 
       <!-- 比較グラフ（Comparison Chart） -->
       <div class="section-card" style="margin:0 20px 20px;">
@@ -2642,104 +2656,55 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 <!-- ===== RECORD SCREEN ===== -->
 <div id="screen-record" class="screen">
   <div class="spacer-top"></div>
-  <div style="padding:0 24px 24px;">
+  <div style="padding:0 24px 16px;">
     <button type="button" onclick="switchTab('home', document.querySelector('.nav-item'))" aria-label="ホームに戻る" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-light);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0 0 12px;letter-spacing:0.03em;">← 戻る</button>
     <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
     <div class="home-date" id="rec-screen-date"></div>
   </div>
+  <!-- プログレスドット -->
+  <div id="rec-progress-dots" style="display:flex;justify-content:center;gap:8px;padding:0 24px 20px;">
+    <div id="rec-dot-1" style="width:10px;height:10px;border-radius:50%;background:var(--rose);transition:background 0.3s;"></div>
+    <div id="rec-dot-2" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-3" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+  </div>
 
     
-<div class="section-card">
-   <div class="section-label">MEAL TIMELINE</div>
-    <div class="section-title serif">食事の記録</div>
-    <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
-      時間と食べたものを自由に記入してください<br>
-    <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
-    </div>
-     <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
-  <button id="meal-btn-add" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;" onclick="openMealTimePicker()">＋ 時間を追加</button>
-</div>
-<div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-    <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
-    <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
-    <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
-  </div>
-</div>
-<textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
-<div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
-  <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
-  <div style="display:flex;gap:16px;flex-wrap:wrap;">
-    <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
-    <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
-    <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
-  </div>
-</div>
-</div>
-
-    <!-- ===== からだのための選択（参考欄） ===== -->
+<!-- ===== STEP 1: 今日の気分 ===== -->
   <div class="section-card">
-    <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.bc-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
-      <div>
-        <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY-CONSCIOUS CHOICES</div>
-        <div style="font-size:14px;color:var(--ink);font-weight:500;">🌿 からだのための選択ガイド</div>
-      </div>
-      <span class="bc-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
-    </div>
-    <div style="display:none;margin-top:14px;font-size:12px;color:var(--ink-mid);line-height:2.0;">
-      <div style="margin-bottom:12px;padding:12px;background:var(--rose-pale);border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🔥 温めるもの</div>
-        生姜・シナモン・根菜・味噌汁・白湯
-      </div>
-      <div style="margin-bottom:12px;padding:12px;background:var(--sage-light);border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🌱 腸を整えるもの</div>
-        発酵食品・食物繊維・ぬか漬け・キムチ・ヨーグルト
-      </div>
-      <div style="margin-bottom:12px;padding:12px;background:#fef3e6;border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🩸 血を補うもの</div>
-        ほうれん草・小松菜・ひじき・プルーン・黒ごま
-      </div>
-      <div style="margin-bottom:12px;padding:12px;background:var(--warm-light);border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🧘 ホルモンを助けるもの</div>
-        大豆・亜麻仁・ナッツ・豆乳・アボカド
-      </div>
-      <div style="margin-bottom:12px;padding:12px;background:#e8edf6;border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🔄 巡らせるもの</div>
-        くるみ・えごま油・海藻・玉ねぎ・青魚
-      </div>
-      <div style="padding:12px;background:#f5f0f0;border-radius:12px;">
-        <div style="font-weight:500;margin-bottom:6px;">🚫 控えたいもの</div>
-        カフェイン・砂糖・冷たいもの・アルコール・加工食品
-      </div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 1</div>
+    <div class="section-title serif">今日の気分</div>
+    <div style="display:flex;justify-content:space-around;padding:8px 0;" id="rs-mood">
+      <button class="chip" onclick="selectMood(this,1)" data-val="1" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-2 7-2 10 0"/><line x1="8" y1="9" x2="10" y2="11"/><line x1="16" y1="9" x2="18" y2="11"/></svg>
+        <span style="font-size:9px;margin-top:2px;">つらい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,2)" data-val="2" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-1 7-1 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">しんどい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,3)" data-val="3" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><line x1="9" y1="16" x2="17" y2="16"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">ふつう</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,4)" data-val="4" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 14c1.5 2 7 2 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">まあまあ</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,5)" data-val="5" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 13c1 2.5 3.5 4 5 4s4-1.5 5-4"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="17" cy="9" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">よい</span>
+      </button>
     </div>
   </div>
 
+  <!-- ===== STEP 2: 症状・痛み ===== -->
   <div class="section-card">
-    <div class="section-label">BASAL TEMPERATURE</div>
-    <div class="section-title serif">基礎体温(決まった時間帯計測)</div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;">
-      <button id="temp-tab-sublingual" onclick="selectTempMethod('sublingual')" class="chip selected" style="font-size:12px;padding:6px 18px;border-radius:20px;">舌下</button>
-      <button id="temp-tab-axilla" onclick="selectTempMethod('axilla')" class="chip" style="font-size:12px;padding:6px 18px;border-radius:20px;">脇の下</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;">
-      <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
-      <span style="font-size:16px;color:var(--ink-mid);">℃</span>
-    </div>
-    <div id="temp-edu-card" style="display:none;margin-top:12px;padding:12px 14px;background:linear-gradient(135deg,#f8f4f0,#fdf8f6);border-radius:12px;border-left:3px solid var(--rose);"></div>
-  </div>
-    <!-- 疾患別セルフチェック -->
-  <div class="section-card" id="disease-questions" style="display:none;">
-  </div>
-  <div class="section-card">
-    <div class="section-label">SYMPTOMS</div>
-    <div class="section-title serif">今日の症状</div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 2</div>
+    <div class="section-title serif">症状・痛み</div>
     <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <button class="symp-tab" onclick="switchSymptomTab('body',this)">🏃 身体</button>
-      <button class="symp-tab" onclick="switchSymptomTab('mind',this)">💭 こころ</button>
-      <button class="symp-tab" onclick="switchSymptomTab('gyneco',this)">🌸 婦人科</button>
+      <button class="symp-tab" onclick="switchSymptomTab('body',this)">身体</button>
+      <button class="symp-tab" onclick="switchSymptomTab('mind',this)">こころ</button>
+      <button class="symp-tab" onclick="switchSymptomTab('gyneco',this)">婦人科</button>
     </div>
     <div class="chips" id="rs-symptoms">
       <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">頭痛</div>
@@ -2762,55 +2727,57 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">眠気</div>
       <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">集中力低下</div>
       <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">気分の落ち込み</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">おりもの</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">胸の張り</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">ほてり</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
     </div>
-      <div class="section-card" id="pain-detail-section" style="display:none;">
-    <div class="section-label">PAIN DETAIL</div>
-    <div class="section-title serif">痛みの詳細</div>
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
-      <div class="chips" id="rs-pain-location">
-        <div class="chip" onclick="toggleRsChip(this)">左下腹部</div>
-        <div class="chip" onclick="toggleRsChip(this)">右下腹部</div>
-        <div class="chip" onclick="toggleRsChip(this)">下腹部全体</div>
-        <div class="chip" onclick="toggleRsChip(this)">腰</div>
-        <div class="chip" onclick="toggleRsChip(this)">骨盤周り</div>
-      </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの種類</div>
-      <div class="chips" id="rs-pain-type">
-        <div class="chip" onclick="toggleRsChip(this)">鈍痛</div>
-        <div class="chip" onclick="toggleRsChip(this)">鋭痛</div>
-        <div class="chip" onclick="toggleRsChip(this)">差し込み</div>
-        <div class="chip" onclick="toggleRsChip(this)">圧迫感</div>
-        <div class="chip" onclick="toggleRsChip(this)">張り</div>
-      </div>
-    </div>
-    <div>
+    <!-- 痛みスライダー（常時表示） -->
+    <div style="margin-top:14px;">
       <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
-      <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value" style="width:100%;accent-color:var(--rose);">
+      <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
       <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
         <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
       </div>
     </div>
+    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
+      <div class="section-label">PAIN DETAIL</div>
+      <div class="section-title serif">痛みの詳細</div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
+        <div class="chips" id="rs-pain-location">
+          <div class="chip" onclick="toggleRsChip(this)">左下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">右下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">下腹部全体</div>
+          <div class="chip" onclick="toggleRsChip(this)">腰</div>
+          <div class="chip" onclick="toggleRsChip(this)">骨盤周り</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの種類</div>
+        <div class="chips" id="rs-pain-type">
+          <div class="chip" onclick="toggleRsChip(this)">鈍痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">鋭痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">差し込み</div>
+          <div class="chip" onclick="toggleRsChip(this)">圧迫感</div>
+          <div class="chip" onclick="toggleRsChip(this)">張り</div>
+        </div>
+      </div>
+    </div>
   </div>
-  </div>
+
+  <!-- ===== STEP 3: 生理の状態 ===== -->
   <div class="section-card">
-    <div class="section-label">MENSTRUAL CYCLE</div>
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 3</div>
     <div class="section-title serif">生理の状態</div>
     <div class="chips" id="rs-cycle">
-      <div class="chip" onclick="selectRsCycle(this,'none')">なし</div>
-      <div class="chip" onclick="selectRsCycle(this,'light')">少量</div>
-      <div class="chip" onclick="selectRsCycle(this,'normal')">普通</div>
-      <div class="chip" onclick="selectRsCycle(this,'heavy')">多い</div>
-      <div class="chip" onclick="selectRsCycle(this,'spotting')">不正出血</div>
+      <div class="chip" onclick="selectRsCycle(this,'none');updateRecProgressDots();">なし</div>
+      <div class="chip" onclick="selectRsCycle(this,'light');updateRecProgressDots();">少量</div>
+      <div class="chip" onclick="selectRsCycle(this,'normal');updateRecProgressDots();">普通</div>
+      <div class="chip" onclick="selectRsCycle(this,'heavy');updateRecProgressDots();">多い</div>
+      <div class="chip" onclick="selectRsCycle(this,'spotting');updateRecProgressDots();">不正出血</div>
     </div>
-        <div id="cycle-detail-section" style="display:none;margin-top:16px;">
+    <div id="cycle-detail-section" style="display:none;margin-top:16px;">
       <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">経血の状態</div>
       <div class="chips" id="rs-blood-clot">
         <div class="chip" onclick="toggleRsChip(this)">塊あり</div>
@@ -2824,96 +2791,205 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <div class="chip" onclick="toggleRsChip(this)">ピンク</div>
       </div>
     </div>
-  </div>
-    <div class="section-card">
-    <div class="section-label">MEDICATION</div>
-    <div class="section-title serif">服薬・サプリ</div>
-    <div class="chips" id="rs-medication">
-      <div class="chip" onclick="toggleRsChip(this)">低用量ピル</div>
-      <div class="chip" onclick="toggleRsChip(this)">ジエノゲスト</div>
-      <div class="chip" onclick="toggleRsChip(this)">漢方薬</div>
-      <div class="chip" onclick="toggleRsChip(this)">鎮痛剤</div>
-      <div class="chip" onclick="toggleRsChip(this)">鉄剤</div>
-      <div class="chip" onclick="toggleRsChip(this)">サプリメント</div>
-      <div class="chip" onclick="toggleRsChip(this)">その他</div>
+    <!-- おりもの（生理タブ内） -->
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">おりもの</div>
+      <div class="chips" id="rs-discharge-amount">
+        <div class="chip" onclick="toggleRsChip(this)">少ない</div>
+        <div class="chip" onclick="toggleRsChip(this)">普通</div>
+        <div class="chip" onclick="toggleRsChip(this)">多い</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:10px 0 8px;">おりものの状態</div>
+      <div class="chips" id="rs-discharge-type">
+        <div class="chip" onclick="toggleRsChip(this)">透明・水様</div>
+        <div class="chip" onclick="toggleRsChip(this)">白濁・乳白色</div>
+        <div class="chip" onclick="toggleRsChip(this)">クリーム色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色・血混じり</div>
+        <div class="chip" onclick="toggleRsChip(this)">黄色・緑色</div>
+      </div>
     </div>
   </div>
-     <!-- ENERGY LEVEL -->
-      <div class="section-card">
-        <div class="section-label">ENERGY</div>
-        <div class="section-title serif">エネルギーレベル</div>
-        <div style="display:flex;justify-content:center;gap:6px;padding:8px 0;" id="rs-energy">
-          <button class="chip" onclick="selectEnergy(this,1)" data-val="1" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">1<br><span style="font-size:9px;">ぐったり</span></button>
-          <button class="chip" onclick="selectEnergy(this,2)" data-val="2" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">2<br><span style="font-size:9px;">低い</span></button>
-          <button class="chip" onclick="selectEnergy(this,3)" data-val="3" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">3<br><span style="font-size:9px;">普通</span></button>
-          <button class="chip" onclick="selectEnergy(this,4)" data-val="4" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">4<br><span style="font-size:9px;">良い</span></button>
-          <button class="chip" onclick="selectEnergy(this,5)" data-val="5" style="width:52px;height:52px;border-radius:50%;font-size:20px;display:flex;align-items:center;justify-content:center;">5<br><span style="font-size:9px;">絶好調</span></button>
-        </div>
-      </div>
 
-      <!-- SLEEP -->
-      <div class="section-card">
-        <div class="section-label">SLEEP</div>
-        <div class="section-title serif">睡眠</div>
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
-          <div style="flex:1;">
-            <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">就寝</div>
-            <input type="time" id="rs-sleep-bed" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
-          </div>
-          <div style="flex:1;">
-            <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">起床</div>
-            <input type="time" id="rs-sleep-wake" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
-          </div>
-        </div>
-        <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">睡眠の質</div>
-        <div style="display:flex;gap:6px;" id="rs-sleep-quality">
-          <button class="chip" onclick="selectSleepQuality(this,1)" data-val="1" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">1 最悪</button>
-          <button class="chip" onclick="selectSleepQuality(this,2)" data-val="2" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">2 悪い</button>
-          <button class="chip" onclick="selectSleepQuality(this,3)" data-val="3" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">3 普通</button>
-          <button class="chip" onclick="selectSleepQuality(this,4)" data-val="4" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">4 良い</button>
-          <button class="chip" onclick="selectSleepQuality(this,5)" data-val="5" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">5 最高</button>
-        </div>
-      </div>
-
-      <!-- LIFESTYLE FACTORS -->
-      <div class="section-card">
-        <div class="section-label">FACTORS</div>
-        <div class="section-title serif">生活ファクター</div>
-        <div class="chips" id="rs-factors">
-          <div class="chip" onclick="toggleRsChip(this)">カフェイン</div>
-          <div class="chip" onclick="toggleRsChip(this)">アルコール</div>
-          <div class="chip" onclick="toggleRsChip(this)">運動した</div>
-          <div class="chip" onclick="toggleRsChip(this)">ストレス高</div>
-          <div class="chip" onclick="toggleRsChip(this)">仕事が忙しい</div>
-          <div class="chip" onclick="toggleRsChip(this)">外出した</div>
-          <div class="chip" onclick="toggleRsChip(this)">雨・低気圧</div>
-          <div class="chip" onclick="toggleRsChip(this)">夜更かし</div>
-          <div class="chip" onclick="toggleRsChip(this)">入浴・半身浴</div>
-          <div class="chip" onclick="toggleRsChip(this)">瞑想・リラックス</div>
-        </div>
-        <div style="margin-top:8px;">
-          <input type="text" id="rs-factor-custom" placeholder="＋ 自分だけのファクターを追加" style="width:100%;padding:10px 14px;border:1px dashed #e8ddd8;border-radius:12px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:transparent;color:var(--ink);outline:none;" onkeydown="if(event.key==='Enter'){addCustomFactor();event.preventDefault();}">
-        </div>
-      </div>
-
-      <!-- BOWEL -->
-      <div class="section-card">
-        <div class="section-label">BOWEL</div>
-        <div class="section-title serif">お通じ</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rs-bowel">
-          <button class="chip" onclick="selectBowel(this,'なし')">なし</button>
-          <button class="chip" onclick="selectBowel(this,'硬い（コロコロ）')">硬い（コロコロ）</button>
-          <button class="chip" onclick="selectBowel(this,'やや硬い')">やや硬い</button>
-          <button class="chip" onclick="selectBowel(this,'普通')">普通</button>
-          <button class="chip" onclick="selectBowel(this,'やや軟らかい')">やや軟らかい</button>
-          <button class="chip" onclick="selectBowel(this,'軟便・下痢')">軟便・下痢</button>
-        </div>
-      </div>
-  <div class="section-card">
-    <div class="section-label">JOURNAL</div>
-    <div class="section-title serif">今日のメモ</div>
-    <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
+  <!-- ===== 詳しく記録する（折りたたみ） ===== -->
+  <div style="text-align:center;padding:4px 24px 16px;">
+    <button onclick="toggleRecordDetails()" style="background:none;border:none;font-size:14px;color:var(--rose);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:500;display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:20px;border:1px solid var(--rose-light);">
+      詳しく記録する <span id="rec-details-arrow">▾</span>
+    </button>
   </div>
+  <div id="rec-details-section" style="display:none;">
+    <div class="section-card">
+      <div class="section-label">MEAL TIMELINE</div>
+      <div class="section-title serif">食事の記録</div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
+        時間と食べたものを自由に記入してください<br>
+        <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
+      </div>
+      <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="meal-btn-add" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;" onclick="openMealTimePicker()">＋ 時間を追加</button>
+      </div>
+      <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
+          <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
+          <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
+        </div>
+      </div>
+      <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+      <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+        <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- からだのための選択ガイド -->
+    <div class="section-card">
+      <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.bc-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY-CONSCIOUS CHOICES</div>
+          <div style="font-size:14px;color:var(--ink);font-weight:500;">からだのための選択ガイド</div>
+        </div>
+        <span class="bc-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+      </div>
+      <div style="display:none;margin-top:14px;font-size:12px;color:var(--ink-mid);line-height:2.0;">
+        <div style="margin-bottom:12px;padding:12px;background:var(--rose-pale);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">温めるもの</div>生姜・シナモン・根菜・味噌汁・白湯</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--sage-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">腸を整えるもの</div>発酵食品・食物繊維・ぬか漬け・キムチ・ヨーグルト</div>
+        <div style="margin-bottom:12px;padding:12px;background:#fef3e6;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">血を補うもの</div>ほうれん草・小松菜・ひじき・プルーン・黒ごま</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--warm-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">ホルモンを助けるもの</div>大豆・亜麻仁・ナッツ・豆乳・アボカド</div>
+        <div style="padding:12px;background:#f5f0f0;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">控えたいもの</div>カフェイン・砂糖・冷たいもの・アルコール・加工食品</div>
+      </div>
+    </div>
+
+    <!-- 基礎体温 -->
+    <div class="section-card">
+      <div class="section-label">BASAL TEMPERATURE</div>
+      <div class="section-title serif">基礎体温（決まった時間帯計測）</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="temp-tab-sublingual" onclick="selectTempMethod('sublingual')" class="chip selected" style="font-size:12px;padding:6px 18px;border-radius:20px;">舌下</button>
+        <button id="temp-tab-axilla" onclick="selectTempMethod('axilla')" class="chip" style="font-size:12px;padding:6px 18px;border-radius:20px;">脇の下</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
+        <span style="font-size:16px;color:var(--ink-mid);">℃</span>
+      </div>
+      <div id="temp-edu-card" style="display:none;margin-top:12px;padding:12px 14px;background:linear-gradient(135deg,#f8f4f0,#fdf8f6);border-radius:12px;border-left:3px solid var(--rose);"></div>
+    </div>
+
+    <!-- 疾患別セルフチェック -->
+    <div class="section-card" id="disease-questions" style="display:none;"></div>
+
+    <!-- 服薬・サプリ -->
+    <div class="section-card">
+      <div class="section-label">MEDICATION</div>
+      <div class="section-title serif">服薬・サプリ</div>
+      <div class="chips" id="rs-medication">
+        <div class="chip" onclick="toggleRsChip(this)">低用量ピル</div>
+        <div class="chip" onclick="toggleRsChip(this)">ジエノゲスト</div>
+        <div class="chip" onclick="toggleRsChip(this)">漢方薬</div>
+        <div class="chip" onclick="toggleRsChip(this)">鎮痛剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">鉄剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">サプリメント</div>
+        <div class="chip" onclick="toggleRsChip(this)">その他</div>
+      </div>
+    </div>
+
+    <!-- エネルギーレベル -->
+    <div class="section-card">
+      <div class="section-label">ENERGY</div>
+      <div class="section-title serif">エネルギーレベル</div>
+      <div style="display:flex;justify-content:center;gap:6px;padding:8px 0;" id="rs-energy">
+        <button class="chip" onclick="selectEnergy(this,1)" data-val="1" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">1<span style="font-size:9px;">ぐったり</span></button>
+        <button class="chip" onclick="selectEnergy(this,2)" data-val="2" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">2<span style="font-size:9px;">低い</span></button>
+        <button class="chip" onclick="selectEnergy(this,3)" data-val="3" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">3<span style="font-size:9px;">普通</span></button>
+        <button class="chip" onclick="selectEnergy(this,4)" data-val="4" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">4<span style="font-size:9px;">良い</span></button>
+        <button class="chip" onclick="selectEnergy(this,5)" data-val="5" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">5<span style="font-size:9px;">絶好調</span></button>
+      </div>
+    </div>
+
+    <!-- 睡眠 -->
+    <div class="section-card">
+      <div class="section-label">SLEEP</div>
+      <div class="section-title serif">睡眠</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">就寝</div>
+          <input type="time" id="rs-sleep-bed" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">起床</div>
+          <input type="time" id="rs-sleep-wake" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">睡眠の質</div>
+      <div style="display:flex;gap:6px;" id="rs-sleep-quality">
+        <button class="chip" onclick="selectSleepQuality(this,1)" data-val="1" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">1 最悪</button>
+        <button class="chip" onclick="selectSleepQuality(this,2)" data-val="2" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">2 悪い</button>
+        <button class="chip" onclick="selectSleepQuality(this,3)" data-val="3" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">3 普通</button>
+        <button class="chip" onclick="selectSleepQuality(this,4)" data-val="4" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">4 良い</button>
+        <button class="chip" onclick="selectSleepQuality(this,5)" data-val="5" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">5 最高</button>
+      </div>
+    </div>
+
+    <!-- 生活ファクター -->
+    <div class="section-card">
+      <div class="section-label">FACTORS</div>
+      <div class="section-title serif">生活ファクター</div>
+      <div class="chips" id="rs-factors">
+        <div class="chip" onclick="toggleRsChip(this)">カフェイン</div>
+        <div class="chip" onclick="toggleRsChip(this)">アルコール</div>
+        <div class="chip" onclick="toggleRsChip(this)">運動した</div>
+        <div class="chip" onclick="toggleRsChip(this)">ストレス高</div>
+        <div class="chip" onclick="toggleRsChip(this)">仕事が忙しい</div>
+        <div class="chip" onclick="toggleRsChip(this)">外出した</div>
+        <div class="chip" onclick="toggleRsChip(this)">雨・低気圧</div>
+        <div class="chip" onclick="toggleRsChip(this)">夜更かし</div>
+        <div class="chip" onclick="toggleRsChip(this)">入浴・半身浴</div>
+        <div class="chip" onclick="toggleRsChip(this)">瞑想・リラックス</div>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="rs-factor-custom" placeholder="＋ 自分だけのファクターを追加" style="width:100%;padding:10px 14px;border:1px dashed #e8ddd8;border-radius:12px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:transparent;color:var(--ink);outline:none;" onkeydown="if(event.key==='Enter'){addCustomFactor();event.preventDefault();}">
+      </div>
+    </div>
+
+    <!-- お通じ（回数カウント付き） -->
+    <div class="section-card">
+      <div class="section-label">BOWEL</div>
+      <div class="section-title serif">お通じ</div>
+      <!-- 回数カウント -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">回数</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="adjustBowelCount(-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;color:var(--ink-mid);cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+          <span id="bowel-count-display" style="font-size:22px;font-weight:600;color:var(--ink);min-width:32px;text-align:center;">0</span>
+          <button onclick="adjustBowelCount(1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--rose);background:var(--rose-pale);font-size:18px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+          <span style="font-size:13px;color:var(--ink-light);">回</span>
+        </div>
+      </div>
+      <!-- 状態チップ -->
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">状態</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rs-bowel">
+        <button class="chip" onclick="selectBowel(this,'なし')">なし</button>
+        <button class="chip" onclick="selectBowel(this,'硬い（コロコロ）')">硬い（コロコロ）</button>
+        <button class="chip" onclick="selectBowel(this,'やや硬い')">やや硬い</button>
+        <button class="chip" onclick="selectBowel(this,'普通')">普通</button>
+        <button class="chip" onclick="selectBowel(this,'やや軟らかい')">やや軟らかい</button>
+        <button class="chip" onclick="selectBowel(this,'軟便・下痢')">軟便・下痢</button>
+      </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="section-card">
+      <div class="section-label">JOURNAL</div>
+      <div class="section-title serif">今日のメモ</div>
+      <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
+    </div>
+  </div><!-- /rec-details-section -->
   <div style="padding:0 24px 40px;">
     <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
     <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
@@ -3474,8 +3550,9 @@ function scheduleReminders(){
         <p style="font-size:11px;color:var(--ink-light);line-height:1.8;">このアプリは医療アドバイスを提供するものではありません。<br>卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
       </div>
 
-      <div style="text-align:center;padding:10px 0 40px;font-size:11px;color:var(--ink-light);">
-        ippo v1.0 — あなたのからだに寄り添うアプリ
+      <div style="text-align:center;padding:10px 24px 40px;">
+        <p style="font-size:11px;color:var(--ink-light);line-height:1.8;margin-bottom:6px;">データはすべてデバイス内で暗号化保存されます。<br>第三者への提供・広告への利用は行いません。</p>
+        <p style="font-size:11px;color:var(--ink-light);">ippo v1.0 — あなたのからだに寄り添うアプリ</p>
       </div>
     </div>
 
@@ -6680,6 +6757,7 @@ function finishOnboarding() {
   updateHomeDiseaseAdvice();
   updateHomeCTAState();
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
+  if (typeof updateTodayMessage === 'function') updateTodayMessage();
 
   // バグ18: ホームバナー非表示フラグを復元
   try {
@@ -6800,6 +6878,13 @@ function showMain() {
   updateHistory();
   buildCalendar();            // ← 追加
   updateSettingsHero();
+  buildHomeWeekRow();
+  updateHomeInsightCard();
+  updateHomeNumbers();
+  updateHomeDiseaseAdvice();
+  updateHomeCTAState();
+  if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
+  if (typeof updateTodayMessage === 'function') updateTodayMessage();
   // バグ18: ホームバナー非表示フラグを復元
   try {
     if (localStorage.getItem('ippo_hide_add_home') === '1') {
@@ -7760,6 +7845,90 @@ function updateHomeDiseaseAdvice() {
   card.style.display = 'block';
 }
 
+// ===== からだの発見カード =====
+function renderInsightDiscoveries() {
+  var container = document.getElementById('discoveries-cards');
+  if (!container) return;
+  var now = new Date();
+  var records30 = (state.records || []).filter(function(r){
+    var d = new Date(r.date);
+    return (now - d) / 86400000 <= 30;
+  });
+
+  if (records30.length < 3) {
+    container.innerHTML = '<div style="background:#f7f2f2;border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink-light);">記録を続けると発見が表示されます</div>';
+    return;
+  }
+
+  var cards = [];
+
+  // 1. 痛みパターン（ピンク）
+  var painDays = records30.filter(function(r){ return (r.painLevel || 0) >= 4; });
+  if (painDays.length >= 3) {
+    var preLuteal = painDays.filter(function(r){
+      if (!state.lastPeriodDate || !state.cycleLength) return false;
+      var last = new Date(state.lastPeriodDate + 'T00:00:00');
+      var dayNum = Math.floor((new Date(r.date) - last) / 86400000) + 1;
+      var cl = state.cycleLength || 28;
+      return dayNum >= (cl - 7) && dayNum <= cl;
+    });
+    var msg = preLuteal.length >= 2
+      ? '生理前' + preLuteal.length + '日間に痛みが集中しています'
+      : '直近30日で痛みが強い日が' + painDays.length + '日ありました';
+    cards.push({ bg: '#FBEAF0', titleColor: '#72243E', title: '痛みのパターン', msg: msg });
+  }
+
+  // 2. 良い傾向（グリーン）
+  var exerciseDays = records30.filter(function(r){ return r.factors && r.factors.indexOf('運動した') !== -1; });
+  if (exerciseDays.length >= 2) {
+    var avgMoodEx = exerciseDays.reduce(function(s,r){ return s+(r.mood||3); },0) / exerciseDays.length;
+    var nonEx = records30.filter(function(r){ return !r.factors || r.factors.indexOf('運動した') === -1; });
+    var avgMoodNo = nonEx.length ? nonEx.reduce(function(s,r){ return s+(r.mood||3); },0) / nonEx.length : 3;
+    if (avgMoodEx > avgMoodNo + 0.3) {
+      cards.push({ bg: '#E1F5EE', titleColor: '#1D6B4D', title: '良い傾向', msg: '運動した翌日の気分スコアが高い傾向です' });
+    }
+  }
+
+  // 3. 睡眠との相関（パープル）
+  var shortSleepDays = records30.filter(function(r){ return (r.sleepHours || 8) < 6 && r.sleepHours > 0; });
+  if (shortSleepDays.length >= 2) {
+    var nextDayPain = shortSleepDays.map(function(r){
+      var d = new Date(r.date); d.setDate(d.getDate()+1);
+      var nextRec = records30.find(function(r2){ return new Date(r2.date).toDateString() === d.toDateString(); });
+      return nextRec ? (nextRec.painLevel || 0) : null;
+    }).filter(function(v){ return v !== null; });
+    if (nextDayPain.length >= 1) {
+      var avgNextPain = nextDayPain.reduce(function(a,b){ return a+b; },0)/nextDayPain.length;
+      if (avgNextPain >= 2) {
+        cards.push({ bg: '#EEEDFE', titleColor: '#4B3FB5', title: '睡眠との関係', msg: '睡眠が短い翌日、痛みが増える傾向です' });
+      }
+    }
+  }
+
+  // 4. 服薬・生活ファクター（オレンジ）
+  var medCount = {};
+  records30.forEach(function(r){
+    (r.medication||[]).forEach(function(m){ medCount[m] = (medCount[m]||0)+1; });
+  });
+  var topMed = Object.keys(medCount).sort(function(a,b){ return medCount[b]-medCount[a]; })[0];
+  if (topMed && medCount[topMed] >= 3) {
+    cards.push({ bg: '#FAEEDA', titleColor: '#7A4A00', title: '服薬・サプリ', msg: '今月「' + topMed + '」を' + medCount[topMed] + '日記録しました' });
+  }
+
+  if (cards.length === 0) {
+    container.innerHTML = '<div style="background:#f7f2f2;border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink-light);">記録を続けると発見が表示されます</div>';
+    return;
+  }
+
+  var html = cards.slice(0,4).map(function(c){
+    return '<div style="background:'+c.bg+';border-radius:12px;padding:12px 14px;margin-bottom:10px;">'
+      + '<div style="font-weight:700;color:'+c.titleColor+';font-size:13px;margin-bottom:4px;">'+c.title+'</div>'
+      + '<div style="font-size:13px;color:var(--ink);line-height:1.6;">'+c.msg+'</div>'
+      + '</div>';
+  }).join('');
+  container.innerHTML = html;
+}
+
 // ===== フェーズ別症状マップ =====
 function renderPhaseMap() {
   var container = document.getElementById('phase-map-content');
@@ -7920,6 +8089,7 @@ function switchTab(tab, btn) {
 
     if (tab === 'insights') {
     if (typeof renderPhaseMap === 'function') renderPhaseMap();
+    if (typeof renderInsightDiscoveries === 'function') renderInsightDiscoveries();
     setTimeout(function(){
       if (typeof updateFoodBodyCorrelation === 'function') {
         updateFoodBodyCorrelation();
@@ -7936,6 +8106,7 @@ function switchTab(tab, btn) {
     updateHomeDiseaseAdvice();
     updateHomeCTAState();
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
+    if (typeof updateTodayMessage === 'function') updateTodayMessage();
   }
   }
 　
@@ -9267,6 +9438,51 @@ function handleHomeCTA(){
 }
 
 // ===== ホーム CTAカード 記録前後状態更新 =====
+// ===== 今日のメッセージ（ホーム1枚） =====
+function updateTodayMessage() {
+  var wrap = document.getElementById('home-today-message');
+  var textEl = document.getElementById('home-today-msg-text');
+  var btnWrap = document.getElementById('home-today-msg-btn-wrap');
+  if (!wrap || !textEl) return;
+
+  var today = new Date().toISOString().slice(0,10);
+  var todayRec = (state.records||[]).find(function(r){
+    return (r.date||'').slice(0,10) === today;
+  });
+  var streak = state.streak || 0;
+  var msg = '';
+  var showBtn = false;
+
+  // 優先順位1: 未記録
+  if (!todayRec) {
+    msg = '今日の記録がまだです。3タップで完了します。';
+    showBtn = true;
+  } else {
+    // 優先順位2〜5: フェーズ別
+    var phase = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : '';
+    var daysToNext = 99;
+    if (state.lastPeriodDate && state.cycleLength) {
+      var last = new Date(state.lastPeriodDate + 'T00:00:00');
+      var dayNum = Math.floor((new Date() - last) / 86400000) + 1;
+      daysToNext = (state.cycleLength || 28) - dayNum;
+    }
+    if (phase === '生理期') {
+      var dayNum2 = state.lastPeriodDate ? Math.floor((new Date() - new Date(state.lastPeriodDate+'T00:00:00'))/86400000)+1 : 1;
+      msg = '生理' + dayNum2 + '日目です。無理せず過ごしましょう。鎮痛剤の飲みすぎに注意。';
+    } else if (daysToNext <= 3 && daysToNext >= 0) {
+      msg = '生理が近づいています。鎮痛剤を手元に準備しておきましょう。';
+    } else if (phase === '排卵期') {
+      msg = '排卵期です。体温の変化を確認しましょう。';
+    } else {
+      msg = '今日も記録しました。連続' + streak + '日です。';
+    }
+  }
+
+  textEl.textContent = msg;
+  if (btnWrap) btnWrap.style.display = showBtn ? 'block' : 'none';
+  wrap.style.display = 'block';
+}
+
 function updateHomeCTAState() {
   var today = new Date().toISOString().slice(0, 10);
   var rec = (state.records || []).find(function(r) {
@@ -10619,6 +10835,7 @@ document.addEventListener('DOMContentLoaded', function(){
   updateHomeDiseaseAdvice();
   if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
+  if (typeof updateTodayMessage === 'function') updateTodayMessage();
   applyFastingVisibility();
   updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
@@ -10911,6 +11128,20 @@ function openRecordScreen(){
   if(painSection){ painSection.style.display = 'none'; }
   var cycleDetail = document.getElementById('cycle-detail-section');
   if(cycleDetail){ cycleDetail.style.display = 'none'; }
+  // 気分・おりもの・便カウントをリセット
+  document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
+  document.querySelectorAll('#rs-discharge-amount .chip, #rs-discharge-type .chip').forEach(function(c){ c.classList.remove('selected'); });
+  _bowelCount = 0;
+  var _bcd = document.getElementById('bowel-count-display'); if(_bcd) _bcd.textContent = '0';
+  // 詳細セクションの折りたたみ状態をlocalStorageから復元
+  try{
+    var _detailsOpen = localStorage.getItem('ippo_rec_details_open') === '1';
+    var _detailsSec = document.getElementById('rec-details-section');
+    var _detailsArrow = document.getElementById('rec-details-arrow');
+    if(_detailsSec) _detailsSec.style.display = _detailsOpen ? 'block' : 'none';
+    if(_detailsArrow) _detailsArrow.textContent = _detailsOpen ? '▴' : '▾';
+  }catch(e){}
+  setTimeout(function(){ updateRecProgressDots(); }, 100);
   // 記録モーダルで保存済みの症状・痛みを引き継ぐ（非編集モード時のみ）
   if(!isEditing){ prefillRecordFromModal(); }
   // ★ 編集モード：既存記録をフォームに復元
@@ -11382,6 +11613,46 @@ function selectSleepQuality(btn, val){
 function selectBowel(btn, val){
   document.querySelectorAll('#rs-bowel .chip').forEach(function(c){ c.classList.remove('selected'); });
   btn.classList.add('selected');
+}
+
+// ===== 気分選択（Step 1） =====
+var _bowelCount = 0;
+function selectMood(btn, val){
+  document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
+  btn.classList.add('selected');
+  updateRecProgressDots();
+}
+
+// ===== プログレスドット更新 =====
+function updateRecProgressDots(){
+  var dot1 = document.getElementById('rec-dot-1');
+  var dot2 = document.getElementById('rec-dot-2');
+  var dot3 = document.getElementById('rec-dot-3');
+  if(!dot1) return;
+  var step1Done = !!document.querySelector('#rs-mood .chip.selected');
+  var step2Done = !!(document.querySelectorAll('#rs-symptoms .chip.selected').length > 0 || parseInt(document.getElementById('rs-pain-level').value) > 0);
+  var step3Done = !!document.querySelector('#rs-cycle .chip.selected');
+  dot1.style.background = step1Done ? 'var(--rose)' : '#e8ddd8';
+  dot2.style.background = step2Done ? 'var(--rose)' : '#e8ddd8';
+  dot3.style.background = step3Done ? 'var(--rose)' : '#e8ddd8';
+}
+
+// ===== 詳細セクション折りたたみ =====
+function toggleRecordDetails(){
+  var sec = document.getElementById('rec-details-section');
+  var arrow = document.getElementById('rec-details-arrow');
+  if(!sec) return;
+  var isOpen = sec.style.display !== 'none';
+  sec.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▾' : '▴';
+  try{ localStorage.setItem('ippo_rec_details_open', isOpen ? '0' : '1'); }catch(e){}
+}
+
+// ===== 便の回数カウント =====
+function adjustBowelCount(delta){
+  _bowelCount = Math.max(0, (_bowelCount||0) + delta);
+  var el = document.getElementById('bowel-count-display');
+  if(el) el.textContent = _bowelCount;
 }
 
 function addCustomFactor(){
@@ -12623,6 +12894,18 @@ function gatherRecordData(){
     var selBowel = document.querySelector('#rs-bowel .chip.selected');
     if(selBowel) bowel = selBowel.textContent;
 
+    // 気分（Step 1）
+    var mood = 0;
+    var selMood = document.querySelector('#rs-mood .chip.selected');
+    if(selMood) mood = parseInt(selMood.getAttribute('data-val')) || 0;
+
+    // おりもの
+    var dischargeAmount = '';
+    var selDA = document.querySelector('#rs-discharge-amount .chip.selected');
+    if(selDA) dischargeAmount = selDA.textContent;
+    var dischargeType = [];
+    document.querySelectorAll('#rs-discharge-type .chip.selected').forEach(function(c){ dischargeType.push(c.textContent); });
+
     // 疾患セルフチェック（複数疾患対応）
     var diseaseCheck = {};
     document.querySelectorAll('[data-disease-q]').forEach(function(g){
@@ -12638,6 +12921,7 @@ function gatherRecordData(){
       fastingHours: parsed ? parsed.fastingHours : 0,
       temp: temp,
       note: note,
+      mood: mood,
       symptoms: symptoms,
       cycle: cycle,
       painLocation: painLocation,
@@ -12646,6 +12930,9 @@ function gatherRecordData(){
       medication: medication,
       bloodClot: (function(){ var r=[]; document.querySelectorAll('#rs-blood-clot .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
       bloodColor: (function(){ var r=[]; document.querySelectorAll('#rs-blood-color .chip.selected').forEach(function(c){ r.push(c.textContent); }); return r; })(),
+      dischargeAmount: dischargeAmount,
+      dischargeType: dischargeType,
+      bowelCount: _bowelCount || 0,
       energy: energy,
       sleepBed: sleepBed,
       sleepWake: sleepWake,
@@ -12723,6 +13010,10 @@ var todayStr = targetDate.toDateString();
     rec.sleepHours = data.sleepHours;
     rec.factors = data.factors;
     rec.bowel = data.bowel;
+    rec.bowelCount = data.bowelCount || 0;
+    rec.mood = data.mood;
+    rec.dischargeAmount = data.dischargeAmount;
+    rec.dischargeType = data.dischargeType;
     rec.diseases = data.diseases;
     rec.wellnessScore = calcWellnessScore(rec);
         // 更年期SMIスコア
@@ -12767,6 +13058,7 @@ var todayStr = targetDate.toDateString();
     if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
     updateHomeCTA();
     updateHomeCTAState();
+    if (typeof updateTodayMessage === 'function') updateTodayMessage();
     updateStreakBadge();
     buildHomeWeekRow();
     updateHomeInsightCard();
@@ -12793,8 +13085,51 @@ var todayStr = targetDate.toDateString();
     if(so){
       document.getElementById('success-emoji').textContent = '🌿';
       document.getElementById('success-title').textContent = '記録を保存しました';
-      document.getElementById('success-message').innerHTML = '食事・体温・症状の記録が追加されました。<br>お疲れさまです！';
+      // フィードバックカード生成
+      var streak = state.streak || 0;
+      var feedbackHtml = '';
+      // 1. 連続記録日数
+      feedbackHtml += '<div style="background:#FBEAF0;border-radius:14px;padding:14px 16px;margin:12px 0 4px;text-align:left;">';
+      feedbackHtml += '<div style="font-weight:500;color:#72243E;margin-bottom:4px;">今日で' + streak + '日連続記録中</div>';
+      // 2. 先週との比較
+      var now = new Date();
+      var last7 = state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=0&&diff<7; });
+      var prev7 = state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=7&&diff<14; });
+      if(last7.length>0 && prev7.length>0){
+        var lastPain = last7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/last7.length;
+        var prevPain = prev7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/prev7.length;
+        var diff = Math.round((prevPain - lastPain)*10)/10;
+        if(diff > 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週より頭痛が'+diff.toFixed(1)+'ポイント改善の傾向です</div>';
+        else if(diff < 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">記録を続けてパターンを見つけましょう</div>';
+        else feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週と同じペースで記録中です</div>';
+      }
+      // 3. フェーズメッセージ
+      var phaseMsg = '';
+      if(typeof getCurrentCyclePhase === 'function'){
+        var ph = getCurrentCyclePhase();
+        if(ph === '生理期') phaseMsg = '生理期です。無理せず、水分補給を大切に。';
+        else if(ph === '卵胞期') phaseMsg = '卵胞期です。体が軽く動きやすい時期です。';
+        else if(ph === '排卵期') phaseMsg = '排卵期です。体温の変化を確認しましょう。';
+        else if(ph === '黄体期') phaseMsg = '黄体期です。水分補給と早めの睡眠を意識しましょう。';
+        if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
+      }
+      feedbackHtml += '</div>';
+      document.getElementById('success-message').innerHTML = feedbackHtml;
       so.classList.add('active');
+      // 2秒後に自動で閉じる
+      setTimeout(function(){
+        var overlay = document.getElementById('success-overlay');
+        if(overlay && overlay.classList.contains('active')){
+          overlay.style.transition = 'opacity 0.5s ease';
+          overlay.style.opacity = '0';
+          setTimeout(function(){
+            overlay.classList.remove('active');
+            overlay.style.opacity = '';
+            overlay.style.transition = '';
+            switchTab('home', document.querySelector('.nav-item'));
+          }, 500);
+        }
+      }, 2000);
     }
     if(state.editingDate){
       state.editingDate = null;
@@ -14423,6 +14758,7 @@ function showLoginForm() {
       <div class="sync-status-text">データを同期する</div>
       <div class="sync-status-sub">メールアドレスでログインすると、<br>どの端末からでも同じ記録にアクセスできます</div>
     </div>
+    <div style="background:#FBEAF0;border-radius:10px;padding:10px 14px;margin:12px 0 4px;font-size:11px;color:#72243E;line-height:1.7;">同期データはSupabaseで暗号化管理されます。パスワードは暗号化されており、ippoスタッフも閲覧できません。</div>
     <div id="syncMessage" class="sync-message"></div>
     <div class="sync-form" id="syncLoginForm">
       <div class="sync-form-title" id="syncFormTitle">ログイン</div>
