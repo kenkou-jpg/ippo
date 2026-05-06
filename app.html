@@ -2803,7 +2803,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
     </div>
-    <div class="section-card" id="pain-detail-section" style="display:block;margin-top:12px;">
+    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
       <div class="section-label">PAIN DETAIL</div>
       <div class="section-title serif">痛みの詳細</div>
       <!-- 痛みの強さスライダー（痛みの詳細内に移動） -->
@@ -11254,7 +11254,7 @@ function openRecordScreen(){
   var painDisplay = document.getElementById('pain-level-display');
   if(painDisplay){ painDisplay.textContent = '0'; }
   var painSection = document.getElementById('pain-detail-section');
-  if(painSection){ painSection.style.display = 'block'; } // 痛みの強さは常時表示
+  if(painSection){ painSection.style.display = 'none'; } // 痛み症状選択時に展開
   var cycleDetail = document.getElementById('cycle-detail-section');
   if(cycleDetail){ cycleDetail.style.display = 'none'; }
   // 気分・おりもの・便カウントをリセット
@@ -11324,9 +11324,13 @@ function openRecordScreen(){
         if(pl){ pl.value = editRec.painLevel; }
         if(pld){ pld.textContent = editRec.painLevel; }
       }
-      // 痛みの詳細セクションは常時表示
+      // 痛み症状が選択済みなら詳細セクションを表示
+      var hasPainOnEdit = (editRec.painLevel && editRec.painLevel > 0)
+        || (editRec.painLocation && editRec.painLocation.length)
+        || (editRec.painType && editRec.painType.length)
+        || (function(){ var painSyms = ['頭痛','腰痛','下腹部痛','関節痛']; var found = false; document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ if(painSyms.indexOf(c.textContent)!==-1) found=true; }); return found; })();
       var painSection = document.getElementById('pain-detail-section');
-      if(painSection){ painSection.style.display = 'block'; }
+      if(painSection){ painSection.style.display = hasPainOnEdit ? 'block' : 'none'; }
       // 服薬を復元
       if(editRec.medication && editRec.medication.length){
         document.querySelectorAll('#rs-medication .chip').forEach(function(c){
@@ -11514,7 +11518,14 @@ function selectTempMethod(method){
 
 function toggleRsChip(el){
   el.classList.toggle('selected');
-  // 痛みの詳細セクションは常時表示（痛みの強さスライダーを含むため）
+  // 痛み系症状が1つでも選択されていれば痛みの詳細セクションを表示
+  var painSymptoms = ['頭痛','腰痛','下腹部痛','関節痛'];
+  var hasPain = false;
+  document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){
+    if(painSymptoms.indexOf(c.textContent) !== -1) hasPain = true;
+  });
+  var painSection = document.getElementById('pain-detail-section');
+  if(painSection){ painSection.style.display = hasPain ? 'block' : 'none'; }
 }
 
 
