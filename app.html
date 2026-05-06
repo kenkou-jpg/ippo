@@ -2270,23 +2270,29 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     <!-- HOME -->
     <div id="screen-home" class="screen active">
 
-  <!-- ヘッダー：挨拶 + フェーズバッジ -->
-  <div class="home-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-    <div>
-      <div class="home-greeting" id="greeting-text">おはようございます</div>
-      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);font-weight:600;margin-top:2px;" id="greeting-name">あなたさん</div>
-      <div id="today-date" style="font-size:12px;color:var(--ink-light);margin-top:3px;"></div>
-    </div>
-    <div id="home-phase-badge" style="display:none;">
-      <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:var(--plum);background:var(--rose-pale);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
-    </div>
-  </div>
+  <!-- ホームカード：挨拶 + フェーズバー + 週カレンダー -->
+  <div style="margin:0 16px 16px;background:#b8707a;border-radius:22px;padding:20px 18px 16px;box-shadow:0 4px 18px rgba(120,40,55,0.18);">
 
-  <!-- 週間カレンダーバー -->
-  <div style="margin:0 20px 16px;">
-    <div id="home-phase-bar" style="height:4px;border-radius:2px;background:#e8ddd8;margin-bottom:10px;overflow:hidden;display:flex;"></div>
-    <div id="home-phase-labels" style="display:flex;justify-content:space-between;margin-bottom:8px;"></div>
-    <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+    <!-- 挨拶行 -->
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
+        <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
+      </div>
+      <div id="home-phase-badge" style="display:none;padding-top:3px;">
+        <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+      </div>
+    </div>
+
+    <!-- フェーズバー（全周期比例） -->
+    <div id="home-phase-bar" style="height:6px;border-radius:3px;overflow:hidden;display:flex;margin-bottom:7px;"></div>
+
+    <!-- フェーズラベル（4フェーズ） -->
+    <div id="home-phase-labels" style="display:flex;margin-bottom:16px;"></div>
+
+    <!-- 週間カレンダー -->
+    <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
   </div>
 
   <!-- 今日のメッセージ（1枚） -->
@@ -7707,11 +7713,19 @@ function updateHomePhaseBanner() {
   var badgeText = document.getElementById('home-phase-badge-text');
   if (!badge || !badgeText) return;
 
+  // getCurrentCyclePhase が null の場合は getPhaseForDate でフォールバック
   var phase = (typeof getCurrentCyclePhase === 'function') ? getCurrentCyclePhase() : null;
+  if (!phase && state.lastPeriodDate && state.cycleLength) {
+    phase = getPhaseForDate(new Date());
+  }
   if (!phase) { badge.style.display = 'none'; return; }
 
   var last = state.lastPeriodDate ? new Date(state.lastPeriodDate + 'T00:00:00') : null;
   var dayNum = last ? Math.floor((new Date() - last) / 86400000) + 1 : null;
+  // 周期内日数に補正（次の周期になっている場合）
+  if (dayNum && state.cycleLength && dayNum > state.cycleLength) {
+    dayNum = ((dayNum - 1) % state.cycleLength) + 1;
+  }
 
   badgeText.textContent = phase + (dayNum ? ' ' + dayNum + '日目' : '');
   badge.style.display = 'block';
@@ -7720,8 +7734,6 @@ function updateHomePhaseBanner() {
 // ===== ホーム 週間カレンダーバー =====
 function buildHomeWeekRow() {
   var weekRow    = document.getElementById('home-week-row');
-  var phaseBar   = document.getElementById('home-phase-bar');
-  var phaseLabels = document.getElementById('home-phase-labels');
   if (!weekRow) return;
 
   var today     = new Date();
@@ -7732,9 +7744,10 @@ function buildHomeWeekRow() {
   var days = ['月','火','水','木','金','土','日'];
   var html = '';
 
+  // カード内（ダークローズ背景）に合わせた色設定
   var phaseColors = {
-    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
-    '排卵期': '#d4a880', '黄体期': '#a0a8d4', '不明': '#e8ddd8'
+    '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
+    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': 'rgba(255,255,255,0.18)'
   };
 
   for (var i = 0; i < 7; i++) {
@@ -7753,19 +7766,20 @@ function buildHomeWeekRow() {
     var phase = getPhaseForDate(d);
     var phaseColor = phaseColors[phase] || phaseColors['不明'];
 
-    var cellBg = isFuture ? 'transparent' :
-                 rec === undefined ? '#f0e8e0' :
-                 pain >= 3 ? '#d4537e' :
-                 pain >= 2 ? '#edbed0' :
-                 pain >= 1 ? '#f5e8eb' : phaseColor;
-    var cellColor = (pain >= 3) ? 'white' : 'var(--ink)';
+    var cellBg = isFuture ? 'rgba(255,255,255,0.10)' :
+                 rec === undefined ? 'rgba(255,255,255,0.18)' :
+                 pain >= 4 ? '#c04060' :
+                 pain >= 2 ? '#e8809a' :
+                 pain >= 1 ? '#f0a8b8' : phaseColor;
+    var cellColor = (isFuture || rec === undefined) ? 'rgba(255,255,255,0.50)' : 'white';
+    var cellWeight = isToday ? '700' : '500';
 
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">';
-    html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
-    html += '<div style="width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;'
-      + 'font-size:12px;font-weight:' + (isToday ? '600' : '400') + ';'
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
+    html += '<div style="font-size:10px;color:rgba(255,255,255,0.72);">' + days[i] + '</div>';
+    html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
+      + 'font-size:12px;font-weight:' + cellWeight + ';'
       + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px var(--rose);' : '')
+      + (isToday ? 'box-shadow:0 0 0 2px rgba(255,255,255,0.85);' : '')
       + '">' + d.getDate() + '</div>';
     html += '</div>';
   }
@@ -7788,33 +7802,49 @@ function getPhaseForDate(date) {
 function buildPhaseBar(monday) {
   var bar    = document.getElementById('home-phase-bar');
   var labels = document.getElementById('home-phase-labels');
-  if (!bar || !state.lastPeriodDate) return;
+  if (!bar) return;
 
-  var phaseColors = {
-    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
-    '排卵期': '#d4a880', '黄体期': '#a0a8d4'
-  };
+  var cycle = state.cycleLength || 28;
 
-  var phases = [];
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    phases.push(getPhaseForDate(d));
+  // 全周期の比例バー（4フェーズの長さ）
+  var menLen  = 5;
+  var folLen  = Math.floor(cycle * 0.46) - 5;
+  var ovLen   = Math.floor(cycle * 0.53) - Math.floor(cycle * 0.46);
+  var lutLen  = cycle - Math.floor(cycle * 0.53);
+
+  var phaseData = [
+    { name:'月経',  days: menLen,  color:'#e87080' },
+    { name:'卵胞',  days: folLen,  color:'#70b88a' },
+    { name:'排卵',  days: ovLen,   color:'#70a8c0' },
+    { name:'黄体',  days: lutLen,  color:'#d4a060' }
+  ];
+
+  // 今日の周期内フェーズを特定（フォールバック付き）
+  var currentPhase = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : null;
+  if (!currentPhase && state.lastPeriodDate && state.cycleLength) {
+    currentPhase = getPhaseForDate(new Date());
   }
+  var phaseNameMap = { '月経期':'月経', '卵胞期':'卵胞', '排卵期':'排卵', '黄体期':'黄体' };
+  var currentShort = phaseNameMap[currentPhase] || '';
 
-  var barHtml = '';
-  phases.forEach(function(p) {
-    barHtml += '<div style="flex:1;background:' + (phaseColors[p] || '#e8ddd8') + ';"></div>';
-  });
+  // バーHTML
+  var barHtml = phaseData.map(function(p) {
+    return '<div style="flex:' + p.days + ';background:' + p.color + ';"></div>';
+  }).join('');
   bar.innerHTML = barHtml;
 
-  var labelHtml = '<div style="font-size:9px;color:var(--ink-light);">' + phases[0] + '</div>';
-  var lastPhase = phases[0];
-  for (var j = 1; j < 7; j++) {
-    if (phases[j] !== lastPhase) lastPhase = phases[j];
+  // ラベルHTML（フェーズ名＋現在フェーズに▼）
+  if (labels) {
+    var labelHtml = phaseData.map(function(p) {
+      var isCurrent = p.name === currentShort;
+      return '<div style="flex:' + p.days + ';font-size:9px;text-align:center;'
+        + 'color:' + (isCurrent ? 'white' : 'rgba(255,255,255,0.58)') + ';'
+        + 'font-weight:' + (isCurrent ? '600' : '400') + ';">'
+        + p.name + (isCurrent ? ' ▼' : '')
+        + '</div>';
+    }).join('');
+    labels.innerHTML = labelHtml;
   }
-  labelHtml += '<div style="font-size:9px;color:var(--ink-light);">' + lastPhase + '</div>';
-  if (labels) labels.innerHTML = labelHtml;
 }
 
 // ===== 今週の気づき =====
