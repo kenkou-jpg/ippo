@@ -1373,13 +1373,14 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 .settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
 .settings-chevron { font-size: 18px; color: var(--ink-light); font-weight: 300; }
 .settings-profile-hero {
-  margin: 0 20px 20px;
-  background: linear-gradient(135deg, var(--rose-light, #e8b4b8) 0%, var(--rose) 100%);
+  margin: 0 16px 20px;
+  background: #b8707a;
   border-radius: 22px;
   padding: 20px;
   color: white;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 18px rgba(120,40,55,0.18);
 }
 .settings-profile-hero::after {
   content: '';
@@ -2270,33 +2271,33 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     <!-- HOME -->
     <div id="screen-home" class="screen active">
 
-  <!-- ヘッダー：挨拶 + フェーズバッジ -->
-  <div class="home-header" style="display:flex;justify-content:space-between;align-items:flex-start;">
-    <div>
-      <div class="home-greeting" id="greeting-text">おはようございます</div>
-      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);font-weight:600;margin-top:2px;" id="greeting-name">あなたさん</div>
-      <div id="today-date" style="font-size:12px;color:var(--ink-light);margin-top:3px;"></div>
-    </div>
-    <div id="home-phase-badge" style="display:none;">
-      <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:var(--plum);background:var(--rose-pale);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
-    </div>
-  </div>
+  <!-- ホームカード：上段ダークローズ（挨拶）＋下段ホワイト（カレンダー）-->
+  <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);">
 
-  <!-- 週間カレンダーバー -->
-  <div style="margin:0 20px 16px;">
-    <div id="home-phase-bar" style="height:4px;border-radius:2px;background:#e8ddd8;margin-bottom:10px;overflow:hidden;display:flex;"></div>
-    <div id="home-phase-labels" style="display:flex;justify-content:space-between;margin-bottom:8px;"></div>
-    <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
-  </div>
-
-  <!-- 今日のメッセージ（1枚） -->
-  <div id="home-today-message" style="margin:0 20px 16px;display:none;">
-    <div style="background:#FBEAF0;border-radius:12px;padding:14px 16px;border-left:3px solid #b8707a;">
-      <div id="home-today-msg-text" style="font-size:13px;color:var(--ink);line-height:1.7;"></div>
-      <div id="home-today-msg-btn-wrap" style="display:none;margin-top:10px;">
-        <button onclick="state.editingDate=null;openRecordScreen();" style="padding:8px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;">今日を記録する →</button>
+    <!-- 上段：ダークローズ（挨拶 + バッジ） -->
+    <div style="background:#b8707a;padding:20px 18px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
+          <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
+        </div>
+        <div id="home-phase-badge" style="display:none;padding-top:3px;">
+          <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+        </div>
       </div>
     </div>
+
+    <!-- 下段：ホワイト（フェーズバー・ラベル・週カレンダー） -->
+    <div style="padding:14px 16px 16px;background:white;">
+      <!-- フェーズバー（全周期比例） -->
+      <div id="home-phase-bar" style="height:6px;border-radius:3px;overflow:hidden;display:flex;margin-bottom:7px;"></div>
+      <!-- フェーズラベル（4フェーズ） -->
+      <div id="home-phase-labels" style="display:flex;margin-bottom:14px;"></div>
+      <!-- 週間カレンダー -->
+      <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
+    </div>
+
   </div>
 
   <!-- 今週の気づき -->
@@ -2307,17 +2308,22 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     </div>
   </div>
 
-  <!-- 数値 2つ -->
-  <div style="margin:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+  <!-- 数値 2つ（フラット） -->
+  <div style="margin:0 24px 20px;display:flex;gap:0;">
+    <div style="flex:1;">
       <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">記録連続</div>
-      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-streak-num">0</div>
-      <div style="font-size:11px;color:var(--ink-light);">日</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-streak-num">0</span>
+        <span style="font-size:13px;color:var(--ink-light);">日</span>
+        <span id="home-streak-fire" style="font-size:16px;margin-left:2px;"></span>
+      </div>
     </div>
-    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+    <div style="flex:1;">
       <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;" id="home-next-label">次の生理予測</div>
-      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-next-num">—</div>
-      <div style="font-size:11px;color:var(--ink-light);" id="home-next-unit">日後</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-next-num">—</span>
+        <span style="font-size:13px;color:var(--ink-light);" id="home-next-unit">日後</span>
+      </div>
     </div>
   </div>
 
@@ -2330,9 +2336,9 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   <!-- 記録ボタン -->
   <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
-    <div id="home-cta-card" style="background:var(--cta-default);border-radius:18px;padding:17px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform 0.15s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''">
+    <div id="home-cta-card" style="background:#b8707a;border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
       <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
-      <div id="home-cta-sub" style="font-size:12px;color:rgba(255,255,255,0.85);"></div>
+      <div id="home-cta-sub" style="font-size:11px;color:rgba(255,255,255,0.80);margin-top:2px;"></div>
     </div>
   </div>
 
@@ -2418,87 +2424,127 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
      <!-- ===== INSIGHTS SCREEN ===== -->
     <div id="screen-insights" class="screen">
       <div class="spacer-top"></div>
-      <div style="display:flex;justify-content:flex-end;padding:0 20px 4px;">
-        <button onclick="switchTab('premium', document.querySelector('.nav-item:last-child'))"
-          style="font-size:11px;color:var(--rose);background:var(--rose-pale);border:none;border-radius:20px;padding:5px 14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
-          ✨ PRO機能を見る
-        </button>
-      </div>
 
-      <div class="insights-header">
-        <div class="insights-title">インサイト</div>
-        <div class="insights-sub">記録が語るあなたのパターン</div>
-      </div>
-
-<!-- ===== からだの発見カード ===== -->
-<div id="insights-discoveries" style="padding:0 20px;margin-bottom:20px;">
-  <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);margin-bottom:12px;">からだの発見</div>
-  <div id="discoveries-cards"></div>
-</div>
-
-<!-- フェーズ別症状マップ（PRO予告） -->
-<div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
-  <div style="margin-bottom:12px;">
-    <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">フェーズ別症状マップ</div>
-    <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">生理期・卵胞期・黄体期それぞれで<br>あなたの症状がどう変わるか可視化します。</div>
-    <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
-  </div>
-  <div id="phase-map-content"></div>
-</div>
-
-      <!-- Stats Grid -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">記録日数</div>
-          <div class="stat-value" id="insight-total">0</div>
-          <div class="stat-unit">日</div>
+      <!-- ===== インサイト タブバー ===== -->
+      <div style="margin:0 20px 16px;">
+        <div style="display:flex;background:#f2ece8;border-radius:12px;padding:3px;gap:2px;">
+          <button id="ins-tab-btn-free" onclick="switchInsTab('free')"
+            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:600;background:white;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08);transition:all 0.15s;">
+            無料の発見
+          </button>
+          <button id="ins-tab-btn-pro" onclick="switchInsTab('pro')"
+            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
+            ☆ PRO分析
+          </button>
+          <button id="ins-tab-btn-doctor" onclick="switchInsTab('doctor')"
+            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
+            ⬜ 医師レポート
+          </button>
         </div>
-        <div class="stat-card">
-          <div class="stat-label">最長連続</div>
-          <div class="stat-value" id="insight-streak">0</div>
-          <div class="stat-unit">日</div>
-        </div>
-        <div class="stat-card">
-  <div class="stat-label">今月の無痛み日</div>
-  <div class="stat-value" id="pain-free-days">—</div>
-  <div class="stat-unit">日</div>
-</div>
-<div class="stat-card">
-  <div class="stat-label">今月の平均痛み</div>
-  <div class="stat-value" id="avg-pain-score">—</div>
-  <div class="stat-unit">/10</div>
-</div>
-    </div>
-
-          <!-- 空状態バナー（記録なし時） -->
-      <div id="insights-empty-state" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:20px;padding:28px 24px;text-align:center;">
-        <div style="font-size:40px;margin-bottom:12px;">🌱</div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
-        <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
-        <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
       </div>
 
-      <!-- 食事×体調の相関（PRO予告） -->
-      <div class="section-card" style="margin:0 20px 20px;">
-        <div style="margin-bottom:12px;">
-          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">食事とからだの関係</div>
-          <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">食べたものと体調・症状の相関を<br>グラフで可視化します。</div>
-          <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
-        </div>
-        <div id="food-body-correlation"></div>
-      </div>
+      <!-- ===== 無料の発見 タブ ===== -->
+      <div id="ins-pane-free">
 
-      <!-- 生理周期×症状パターン（PRO予告） -->
-      <div class="section-card" style="margin:0 20px 20px;">
-        <div style="margin-bottom:12px;">
-          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">生理周期と症状の関係</div>
-          <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">周期のどの時期に症状が出やすいか<br>パターンを分析します。</div>
-          <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+        <!-- 統計3列 -->
+        <div style="display:flex;gap:8px;margin:0 20px 16px;">
+          <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+            <div style="font-size:22px;font-weight:700;color:var(--ink);line-height:1;" id="insight-total">0</div>
+            <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">記録日数</div>
+          </div>
+          <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+            <div style="font-size:22px;font-weight:700;color:#1D9B6C;line-height:1;" id="pain-free-days">—</div>
+            <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">無痛み日</div>
+          </div>
+          <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+            <div style="font-size:22px;font-weight:700;color:var(--rose);line-height:1;" id="avg-pain-score">—</div>
+            <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">平均痛み</div>
+          </div>
         </div>
-        <div id="cycle-symptom-correlation"></div>
-      </div>
+        <!-- 隠し要素（updateStats用ID保持） -->
+        <span id="insight-streak" style="display:none;">0</span>
+
+        <!-- 空状態バナー（記録なし時） -->
+        <div id="insights-empty-state" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:20px;padding:28px 24px;text-align:center;">
+          <div style="font-size:40px;margin-bottom:12px;">🌱</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
+          <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
+          <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
+        </div>
+
+        <!-- からだの発見カード -->
+        <div id="insights-discoveries" style="padding:0 20px;margin-bottom:20px;">
+          <div id="discoveries-cards"></div>
+        </div>
+
+        <!-- PROで解放される分析 -->
+        <div style="margin:0 20px 32px;">
+          <div style="text-align:center;font-size:11px;color:var(--ink-light);margin-bottom:12px;letter-spacing:0.05em;">PROで解放される分析</div>
+          <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+            <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f5efeb;cursor:pointer;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--ink);">フェーズ別症状マップ</div>
+                <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">月経・卵胞・排卵・黄体期それぞれの症状傾向</div>
+              </div>
+            </div>
+            <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f5efeb;cursor:pointer;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--ink);">食事×からだ相関分析</div>
+                <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">何を食べた翌日に体調が変化するか可視化</div>
+              </div>
+            </div>
+            <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+              <div>
+                <div style="font-size:13px;font-weight:500;color:var(--ink);">90日・1年間の比較グラフ</div>
+                <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">長期トレンドで体の変化を追う</div>
+              </div>
+            </div>
+          </div>
+          <button onclick="switchTab('premium', document.querySelector('.nav-item:last-child'))"
+            style="width:100%;padding:16px;margin-top:14px;background:#3D2020;color:white;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.05em;">
+            PROにする
+          </button>
+        </div>
+
+      </div><!-- /ins-pane-free -->
+
+      <!-- ===== PRO分析 タブ ===== -->
+      <div id="ins-pane-pro" style="display:none;">
+
+        <!-- フェーズ別症状マップ -->
+        <div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
+          <div style="margin-bottom:12px;">
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">フェーズ別症状マップ</div>
+            <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">生理期・卵胞期・黄体期それぞれで<br>あなたの症状がどう変わるか可視化します。</div>
+            <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+          </div>
+          <div id="phase-map-content"></div>
+        </div>
+
+        <!-- 食事×体調の相関（PRO予告） -->
+        <div class="section-card" style="margin:0 20px 20px;">
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">食事とからだの関係</div>
+            <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">食べたものと体調・症状の相関を<br>グラフで可視化します。</div>
+            <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+          </div>
+          <div id="food-body-correlation"></div>
+        </div>
+
+        <!-- 生理周期×症状パターン（PRO予告） -->
+        <div class="section-card" style="margin:0 20px 20px;">
+          <div style="margin-bottom:12px;">
+            <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">生理周期と症状の関係</div>
+            <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">周期のどの時期に症状が出やすいか<br>パターンを分析します。</div>
+            <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+          </div>
+          <div id="cycle-symptom-correlation"></div>
+        </div>
 
       <!-- 比較グラフ（Comparison Chart） -->
       <div class="section-card" style="margin:0 20px 20px;">
@@ -2611,6 +2657,31 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   </div>
 </div>
+
+      </div><!-- /ins-pane-pro -->
+
+      <!-- ===== 医師レポート タブ ===== -->
+      <div id="ins-pane-doctor" style="display:none;">
+        <div style="margin:0 20px 20px;">
+          <div onclick="premiumGate(function(){})" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:18px;padding:22px 20px;cursor:pointer;">
+            <div style="font-size:11px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;">DOCTOR REPORT</div>
+            <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">医師向けレポート</div>
+            <div style="font-size:12px;color:var(--ink-light);line-height:1.8;margin-bottom:16px;">記録データをもとに、産婦人科・内科受診時に活用できるサマリーを生成します。症状の傾向・服薬記録・周期データを1枚にまとめてPDF出力できます。</div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+                <span style="color:var(--rose);">✓</span> 痛みスコア・症状の月次サマリー
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+                <span style="color:var(--rose);">✓</span> 服薬・サプリ記録の一覧
+              </div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+                <span style="color:var(--rose);">✓</span> 生理周期グラフ（直近3ヶ月）
+              </div>
+            </div>
+            <div style="background:var(--rose);color:white;border-radius:12px;padding:12px;text-align:center;font-size:13px;font-weight:500;">🔓 PROで医師レポートを生成する</div>
+          </div>
+        </div>
+      </div><!-- /ins-pane-doctor -->
 
     </div> <!-- screen-insights 終了 -->
 
@@ -2732,17 +2803,17 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
     </div>
-    <!-- 痛みスライダー（常時表示） -->
-    <div style="margin-top:14px;">
-      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
-      <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
-        <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
-      </div>
-    </div>
-    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
+    <div class="section-card" id="pain-detail-section" style="display:block;margin-top:12px;">
       <div class="section-label">PAIN DETAIL</div>
       <div class="section-title serif">痛みの詳細</div>
+      <!-- 痛みの強さスライダー（痛みの詳細内に移動） -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
+        <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
+          <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
+        </div>
+      </div>
       <div style="margin-bottom:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
         <div class="chips" id="rs-pain-location">
@@ -7642,11 +7713,19 @@ function updateHomePhaseBanner() {
   var badgeText = document.getElementById('home-phase-badge-text');
   if (!badge || !badgeText) return;
 
+  // getCurrentCyclePhase が null の場合は getPhaseForDate でフォールバック
   var phase = (typeof getCurrentCyclePhase === 'function') ? getCurrentCyclePhase() : null;
+  if (!phase && state.lastPeriodDate && state.cycleLength) {
+    phase = getPhaseForDate(new Date());
+  }
   if (!phase) { badge.style.display = 'none'; return; }
 
   var last = state.lastPeriodDate ? new Date(state.lastPeriodDate + 'T00:00:00') : null;
   var dayNum = last ? Math.floor((new Date() - last) / 86400000) + 1 : null;
+  // 周期内日数に補正（次の周期になっている場合）
+  if (dayNum && state.cycleLength && dayNum > state.cycleLength) {
+    dayNum = ((dayNum - 1) % state.cycleLength) + 1;
+  }
 
   badgeText.textContent = phase + (dayNum ? ' ' + dayNum + '日目' : '');
   badge.style.display = 'block';
@@ -7655,8 +7734,6 @@ function updateHomePhaseBanner() {
 // ===== ホーム 週間カレンダーバー =====
 function buildHomeWeekRow() {
   var weekRow    = document.getElementById('home-week-row');
-  var phaseBar   = document.getElementById('home-phase-bar');
-  var phaseLabels = document.getElementById('home-phase-labels');
   if (!weekRow) return;
 
   var today     = new Date();
@@ -7667,9 +7744,10 @@ function buildHomeWeekRow() {
   var days = ['月','火','水','木','金','土','日'];
   var html = '';
 
+  // 白背景下段用の色設定
   var phaseColors = {
-    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
-    '排卵期': '#d4a880', '黄体期': '#a0a8d4', '不明': '#e8ddd8'
+    '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
+    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4'
   };
 
   for (var i = 0; i < 7; i++) {
@@ -7688,19 +7766,20 @@ function buildHomeWeekRow() {
     var phase = getPhaseForDate(d);
     var phaseColor = phaseColors[phase] || phaseColors['不明'];
 
-    var cellBg = isFuture ? 'transparent' :
-                 rec === undefined ? '#f0e8e0' :
-                 pain >= 3 ? '#d4537e' :
-                 pain >= 2 ? '#edbed0' :
-                 pain >= 1 ? '#f5e8eb' : phaseColor;
-    var cellColor = (pain >= 3) ? 'white' : 'var(--ink)';
+    var cellBg = isFuture ? '#f0ebe8' :
+                 rec === undefined ? '#ede8e4' :
+                 pain >= 4 ? '#c04060' :
+                 pain >= 2 ? '#e8809a' :
+                 pain >= 1 ? '#f0a8b8' : phaseColor;
+    var cellColor = (pain >= 2) ? 'white' : 'var(--ink)';
+    var cellWeight = isToday ? '700' : '500';
 
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:3px;">';
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
     html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
-    html += '<div style="width:100%;aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;'
-      + 'font-size:12px;font-weight:' + (isToday ? '600' : '400') + ';'
+    html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
+      + 'font-size:12px;font-weight:' + cellWeight + ';'
       + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px var(--rose);' : '')
+      + (isToday ? 'box-shadow:0 0 0 2px #b8707a;' : '')
       + '">' + d.getDate() + '</div>';
     html += '</div>';
   }
@@ -7723,33 +7802,49 @@ function getPhaseForDate(date) {
 function buildPhaseBar(monday) {
   var bar    = document.getElementById('home-phase-bar');
   var labels = document.getElementById('home-phase-labels');
-  if (!bar || !state.lastPeriodDate) return;
+  if (!bar) return;
 
-  var phaseColors = {
-    '月経期': '#e8a0a8', '卵胞期': '#a8c8a0',
-    '排卵期': '#d4a880', '黄体期': '#a0a8d4'
-  };
+  var cycle = state.cycleLength || 28;
 
-  var phases = [];
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    phases.push(getPhaseForDate(d));
+  // 全周期の比例バー（4フェーズの長さ）
+  var menLen  = 5;
+  var folLen  = Math.floor(cycle * 0.46) - 5;
+  var ovLen   = Math.floor(cycle * 0.53) - Math.floor(cycle * 0.46);
+  var lutLen  = cycle - Math.floor(cycle * 0.53);
+
+  var phaseData = [
+    { name:'月経',  days: menLen,  color:'#e87080' },
+    { name:'卵胞',  days: folLen,  color:'#70b88a' },
+    { name:'排卵',  days: ovLen,   color:'#70a8c0' },
+    { name:'黄体',  days: lutLen,  color:'#d4a060' }
+  ];
+
+  // 今日の周期内フェーズを特定（フォールバック付き）
+  var currentPhase = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : null;
+  if (!currentPhase && state.lastPeriodDate && state.cycleLength) {
+    currentPhase = getPhaseForDate(new Date());
   }
+  var phaseNameMap = { '月経期':'月経', '卵胞期':'卵胞', '排卵期':'排卵', '黄体期':'黄体' };
+  var currentShort = phaseNameMap[currentPhase] || '';
 
-  var barHtml = '';
-  phases.forEach(function(p) {
-    barHtml += '<div style="flex:1;background:' + (phaseColors[p] || '#e8ddd8') + ';"></div>';
-  });
+  // バーHTML
+  var barHtml = phaseData.map(function(p) {
+    return '<div style="flex:' + p.days + ';background:' + p.color + ';"></div>';
+  }).join('');
   bar.innerHTML = barHtml;
 
-  var labelHtml = '<div style="font-size:9px;color:var(--ink-light);">' + phases[0] + '</div>';
-  var lastPhase = phases[0];
-  for (var j = 1; j < 7; j++) {
-    if (phases[j] !== lastPhase) lastPhase = phases[j];
+  // ラベルHTML（フェーズ名＋現在フェーズに▼）
+  if (labels) {
+    var labelHtml = phaseData.map(function(p) {
+      var isCurrent = p.name === currentShort;
+      return '<div style="flex:' + p.days + ';font-size:9px;text-align:center;'
+        + 'color:' + (isCurrent ? 'var(--ink)' : 'var(--ink-light)') + ';'
+        + 'font-weight:' + (isCurrent ? '600' : '400') + ';">'
+        + p.name + (isCurrent ? ' ◀' : '')
+        + '</div>';
+    }).join('');
+    labels.innerHTML = labelHtml;
   }
-  labelHtml += '<div style="font-size:9px;color:var(--ink-light);">' + lastPhase + '</div>';
-  if (labels) labels.innerHTML = labelHtml;
 }
 
 // ===== 今週の気づき =====
@@ -7799,8 +7894,12 @@ function updateHomeInsightCard() {
 
 // ===== 数値2つ（連続・次の生理） =====
 function updateHomeNumbers() {
+  var streak = state.streak || 0;
   var streakEl = document.getElementById('home-streak-num');
-  if (streakEl) streakEl.textContent = state.streak || 0;
+  if (streakEl) streakEl.textContent = streak;
+  // 連続7日以上で🔥表示
+  var fireEl = document.getElementById('home-streak-fire');
+  if (fireEl) fireEl.textContent = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
 
   var nextEl    = document.getElementById('home-next-num');
   var nextLabel = document.getElementById('home-next-label');
@@ -7843,6 +7942,39 @@ function updateHomeDiseaseAdvice() {
 
   text.textContent = diseases[0] + '：' + hint.text;
   card.style.display = 'block';
+}
+
+// ===== インサイト タブ切り替え =====
+function switchInsTab(tab) {
+  var panes = ['free','pro','doctor'];
+  panes.forEach(function(p) {
+    var pane = document.getElementById('ins-pane-' + p);
+    var btn  = document.getElementById('ins-tab-btn-' + p);
+    if (!pane || !btn) return;
+    if (p === tab) {
+      pane.style.display = 'block';
+      btn.style.background = 'white';
+      btn.style.color = 'var(--ink)';
+      btn.style.fontWeight = '600';
+      btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+    } else {
+      pane.style.display = 'none';
+      btn.style.background = 'transparent';
+      btn.style.color = 'var(--ink-light)';
+      btn.style.fontWeight = '500';
+      btn.style.boxShadow = 'none';
+    }
+  });
+  // PRO分析タブに切り替えたとき既存コンテンツを描画
+  if (tab === 'pro') {
+    if (typeof renderPhaseMap === 'function') renderPhaseMap();
+    setTimeout(function(){
+      if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
+      if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
+      if (typeof renderComparisonChart === 'function') renderComparisonChart();
+      if (typeof renderTimeline === 'function') renderTimeline();
+    }, 100);
+  }
 }
 
 // ===== からだの発見カード =====
@@ -8088,16 +8220,13 @@ function switchTab(tab, btn) {
 
 
     if (tab === 'insights') {
-    if (typeof renderPhaseMap === 'function') renderPhaseMap();
+    // 現在アクティブなタブのまま再描画（初回は無料の発見）
+    var activePane = document.querySelector('#ins-pane-free, #ins-pane-pro, #ins-pane-doctor');
+    var activePaneName = 'free';
+    if (document.getElementById('ins-pane-pro') && document.getElementById('ins-pane-pro').style.display === 'block') activePaneName = 'pro';
+    if (document.getElementById('ins-pane-doctor') && document.getElementById('ins-pane-doctor').style.display === 'block') activePaneName = 'doctor';
+    if (typeof switchInsTab === 'function') switchInsTab(activePaneName);
     if (typeof renderInsightDiscoveries === 'function') renderInsightDiscoveries();
-    setTimeout(function(){
-      if (typeof updateFoodBodyCorrelation === 'function') {
-        updateFoodBodyCorrelation();
-      }
-      if (typeof updateCycleSymptomCorrelation === 'function') {
-        updateCycleSymptomCorrelation();
-      }
-    }, 500);
   }
   if (tab === 'home') {
     buildHomeWeekRow();
@@ -9495,14 +9624,14 @@ function updateHomeCTAState() {
   if (!card) return;
 
   if (rec) {
-    // 記録済み：色変化なし・✓マーク＋半透明
-    card.style.background = '';
-    card.style.opacity = '0.88';
+    // 記録済み：ダークローズ・✓マーク
+    card.style.background = '#b8707a';
+    card.style.opacity = '0.82';
     if (title) title.textContent = '✓ 今日の記録完了';
     if (sub)   sub.textContent   = buildComparisonComment(rec);
   } else {
-    // 未記録：デフォルト状態
-    card.style.background = '';
+    // 未記録：鮮やかなローズ
+    card.style.background = '#b8707a';
     card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = '';
@@ -11125,7 +11254,7 @@ function openRecordScreen(){
   var painDisplay = document.getElementById('pain-level-display');
   if(painDisplay){ painDisplay.textContent = '0'; }
   var painSection = document.getElementById('pain-detail-section');
-  if(painSection){ painSection.style.display = 'none'; }
+  if(painSection){ painSection.style.display = 'block'; } // 痛みの強さは常時表示
   var cycleDetail = document.getElementById('cycle-detail-section');
   if(cycleDetail){ cycleDetail.style.display = 'none'; }
   // 気分・おりもの・便カウントをリセット
@@ -11195,13 +11324,9 @@ function openRecordScreen(){
         if(pl){ pl.value = editRec.painLevel; }
         if(pld){ pld.textContent = editRec.painLevel; }
       }
-      // 痛みセクション表示制御
+      // 痛みの詳細セクションは常時表示
       var painSection = document.getElementById('pain-detail-section');
-      if(painSection){
-        var hasPain = (editRec.painLocation && editRec.painLocation.length) || (editRec.painLevel && editRec.painLevel > 0);
-        var hasPainSymptom = editRec.symptoms && (editRec.symptoms.indexOf('下腹部痛') !== -1 || editRec.symptoms.indexOf('腰痛') !== -1 || editRec.symptoms.indexOf('頭痛') !== -1);
-        painSection.style.display = (hasPain || hasPainSymptom) ? 'block' : 'none';
-      }
+      if(painSection){ painSection.style.display = 'block'; }
       // 服薬を復元
       if(editRec.medication && editRec.medication.length){
         document.querySelectorAll('#rs-medication .chip').forEach(function(c){
@@ -11389,16 +11514,7 @@ function selectTempMethod(method){
 
 function toggleRsChip(el){
   el.classList.toggle('selected');
-  // 痛み関連チップが選択されたら痛み詳細セクションを表示
-  var painSection = document.getElementById('pain-detail-section');
-  if(painSection){
-    var painChips = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み'];
-    var hasAnyPain = false;
-    document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){
-      if(painChips.indexOf(c.textContent) !== -1) hasAnyPain = true;
-    });
-    painSection.style.display = hasAnyPain ? 'block' : 'none';
-  }
+  // 痛みの詳細セクションは常時表示（痛みの強さスライダーを含むため）
 }
 
 
