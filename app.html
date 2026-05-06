@@ -2737,6 +2737,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     <div id="rec-dot-1" style="width:10px;height:10px;border-radius:50%;background:var(--rose);transition:background 0.3s;"></div>
     <div id="rec-dot-2" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
     <div id="rec-dot-3" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-4" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;display:none;"></div>
   </div>
 
     
@@ -2952,9 +2953,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div id="temp-edu-card" style="display:none;margin-top:12px;padding:12px 14px;background:linear-gradient(135deg,#f8f4f0,#fdf8f6);border-radius:12px;border-left:3px solid var(--rose);"></div>
     </div>
 
-    <!-- 疾患別セルフチェック -->
-    <div class="section-card" id="disease-questions" style="display:none;"></div>
-
     <!-- 服薬・サプリ -->
     <div class="section-card">
       <div class="section-label">MEDICATION</div>
@@ -3061,6 +3059,10 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
     </div>
   </div><!-- /rec-details-section -->
+
+  <!-- ===== STEP 4: 疾患セルフチェック（疾患設定時のみ表示） ===== -->
+  <div class="section-card" id="disease-questions" style="display:none;margin:0 20px 16px;"></div>
+
   <div style="padding:0 24px 40px;">
     <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
     <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
@@ -5076,23 +5078,33 @@ function updateDiseaseQuestions(){
   var container = document.getElementById('disease-questions');
   if(!container) return;
   var diseases = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
+  var dot4 = document.getElementById('rec-dot-4');
   if(!diseases.length){
     container.style.display = 'none';
     container.innerHTML = '';
+    if(dot4) dot4.style.display = 'none';
     return;
   }
+  // 4th dot を表示
+  if(dot4) dot4.style.display = 'block';
   // 再描画前に現在の選択値を保存（記録タブ押下で選択値がリセットされるバグの修正）
   var preserved = {};
   container.querySelectorAll('[data-disease-q]').forEach(function(g){
     var sel = g.querySelector('.chip.selected');
     if(sel) preserved[g.getAttribute('data-disease-q')] = sel.textContent;
   });
-  var html = '';
+  // STEPラベル + タイトル
+  var stepNum = 'STEP 4';
+  var titleNames = diseases.map(function(d){ return DISEASE_CONFIG[d] ? (DISEASE_CONFIG[d].icon+' '+d) : d; }).join(' / ');
+  var html = '<div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">'+stepNum+'</div>';
+  html += '<div class="section-title serif" style="margin-bottom:16px;">疾患セルフチェック</div>';
+  html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:16px;padding:8px 10px;background:var(--rose-pale);border-radius:10px;">'+titleNames+'</div>';
   for(var d=0;d<diseases.length;d++){
     var disease = diseases[d];
     var config = DISEASE_CONFIG[disease];
     if(!config) continue;
-    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin:' + (d>0?'20':'0') + 'px 0 10px;">'+config.icon+' '+config.label+'</div>';
+    if(d > 0) html += '<div style="height:1px;background:#f0e8e4;margin:16px 0;"></div>';
+    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">'+config.icon+' '+config.label+'</div>';
     var questions = config.questions;
     for(var i=0;i<questions.length;i++){
       var q = questions[i];
@@ -5100,7 +5112,7 @@ function updateDiseaseQuestions(){
       html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+disease+'__'+q.id+'">';
       for(var j=0;j<q.options.length;j++){
-        html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\')" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
+        html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\');updateRecProgressDots();" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
       }
       html += '</div></div>';
     }
@@ -5116,6 +5128,7 @@ function updateDiseaseQuestions(){
       });
     }
   });
+  updateRecProgressDots();
 }
 
 
@@ -11755,13 +11768,20 @@ function updateRecProgressDots(){
   var dot1 = document.getElementById('rec-dot-1');
   var dot2 = document.getElementById('rec-dot-2');
   var dot3 = document.getElementById('rec-dot-3');
+  var dot4 = document.getElementById('rec-dot-4');
   if(!dot1) return;
   var step1Done = !!document.querySelector('#rs-mood .chip.selected');
-  var step2Done = !!(document.querySelectorAll('#rs-symptoms .chip.selected').length > 0 || parseInt(document.getElementById('rs-pain-level').value) > 0);
+  var painEl = document.getElementById('rs-pain-level');
+  var step2Done = !!(document.querySelectorAll('#rs-symptoms .chip.selected').length > 0 || (painEl && parseInt(painEl.value) > 0));
   var step3Done = !!document.querySelector('#rs-cycle .chip.selected');
   dot1.style.background = step1Done ? 'var(--rose)' : '#e8ddd8';
   dot2.style.background = step2Done ? 'var(--rose)' : '#e8ddd8';
   dot3.style.background = step3Done ? 'var(--rose)' : '#e8ddd8';
+  // STEP 4: 疾患チェック（疾患設定済みの場合のみ）
+  if(dot4 && dot4.style.display !== 'none'){
+    var step4Done = !!(document.querySelector('#disease-questions .chip.selected'));
+    dot4.style.background = step4Done ? 'var(--rose)' : '#e8ddd8';
+  }
 }
 
 // ===== 詳細セクション折りたたみ =====
