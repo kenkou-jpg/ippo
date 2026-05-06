@@ -1373,13 +1373,14 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 .settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
 .settings-chevron { font-size: 18px; color: var(--ink-light); font-weight: 300; }
 .settings-profile-hero {
-  margin: 0 20px 20px;
-  background: linear-gradient(135deg, var(--rose-light, #e8b4b8) 0%, var(--rose) 100%);
+  margin: 0 16px 20px;
+  background: #b8707a;
   border-radius: 22px;
   padding: 20px;
   color: white;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 18px rgba(120,40,55,0.18);
 }
 .settings-profile-hero::after {
   content: '';
@@ -2299,16 +2300,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   </div>
 
-  <!-- 今日のメッセージ（1枚） -->
-  <div id="home-today-message" style="margin:0 20px 16px;display:none;">
-    <div style="background:#FBEAF0;border-radius:12px;padding:14px 16px;border-left:3px solid #b8707a;">
-      <div id="home-today-msg-text" style="font-size:13px;color:var(--ink);line-height:1.7;"></div>
-      <div id="home-today-msg-btn-wrap" style="display:none;margin-top:10px;">
-        <button onclick="state.editingDate=null;openRecordScreen();" style="padding:8px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;">今日を記録する →</button>
-      </div>
-    </div>
-  </div>
-
   <!-- 今週の気づき -->
   <div id="home-insight-card" style="margin:0 20px 16px;display:none;">
     <div style="background:var(--rose-pale);border-radius:14px;padding:13px 16px;">
@@ -2317,17 +2308,22 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     </div>
   </div>
 
-  <!-- 数値 2つ -->
-  <div style="margin:0 20px 16px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+  <!-- 数値 2つ（フラット） -->
+  <div style="margin:0 24px 20px;display:flex;gap:0;">
+    <div style="flex:1;">
       <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">記録連続</div>
-      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-streak-num">0</div>
-      <div style="font-size:11px;color:var(--ink-light);">日</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-streak-num">0</span>
+        <span style="font-size:13px;color:var(--ink-light);">日</span>
+        <span id="home-streak-fire" style="font-size:16px;margin-left:2px;"></span>
+      </div>
     </div>
-    <div style="background:var(--white);border-radius:14px;padding:14px 16px;border:0.5px solid #e8ddd8;">
+    <div style="flex:1;">
       <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;" id="home-next-label">次の生理予測</div>
-      <div style="font-size:24px;font-weight:600;color:var(--ink);" id="home-next-num">—</div>
-      <div style="font-size:11px;color:var(--ink-light);" id="home-next-unit">日後</div>
+      <div style="display:flex;align-items:baseline;gap:3px;">
+        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-next-num">—</span>
+        <span style="font-size:13px;color:var(--ink-light);" id="home-next-unit">日後</span>
+      </div>
     </div>
   </div>
 
@@ -2340,9 +2336,9 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   <!-- 記録ボタン -->
   <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
-    <div id="home-cta-card" style="background:var(--cta-default);border-radius:18px;padding:17px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform 0.15s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.98)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.98)'" ontouchend="this.style.transform=''">
+    <div id="home-cta-card" style="background:#b8707a;border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
       <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
-      <div id="home-cta-sub" style="font-size:12px;color:rgba(255,255,255,0.85);"></div>
+      <div id="home-cta-sub" style="font-size:11px;color:rgba(255,255,255,0.80);margin-top:2px;"></div>
     </div>
   </div>
 
@@ -2807,17 +2803,17 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
       <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
     </div>
-    <!-- 痛みスライダー（常時表示） -->
-    <div style="margin-top:14px;">
-      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
-      <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
-        <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
-      </div>
-    </div>
-    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
+    <div class="section-card" id="pain-detail-section" style="display:block;margin-top:12px;">
       <div class="section-label">PAIN DETAIL</div>
       <div class="section-title serif">痛みの詳細</div>
+      <!-- 痛みの強さスライダー（痛みの詳細内に移動） -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
+        <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
+          <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
+        </div>
+      </div>
       <div style="margin-bottom:16px;">
         <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
         <div class="chips" id="rs-pain-location">
@@ -7898,8 +7894,12 @@ function updateHomeInsightCard() {
 
 // ===== 数値2つ（連続・次の生理） =====
 function updateHomeNumbers() {
+  var streak = state.streak || 0;
   var streakEl = document.getElementById('home-streak-num');
-  if (streakEl) streakEl.textContent = state.streak || 0;
+  if (streakEl) streakEl.textContent = streak;
+  // 連続7日以上で🔥表示
+  var fireEl = document.getElementById('home-streak-fire');
+  if (fireEl) fireEl.textContent = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
 
   var nextEl    = document.getElementById('home-next-num');
   var nextLabel = document.getElementById('home-next-label');
@@ -9624,14 +9624,14 @@ function updateHomeCTAState() {
   if (!card) return;
 
   if (rec) {
-    // 記録済み：色変化なし・✓マーク＋半透明
-    card.style.background = '';
-    card.style.opacity = '0.88';
+    // 記録済み：ダークローズ・✓マーク
+    card.style.background = '#b8707a';
+    card.style.opacity = '0.82';
     if (title) title.textContent = '✓ 今日の記録完了';
     if (sub)   sub.textContent   = buildComparisonComment(rec);
   } else {
-    // 未記録：デフォルト状態
-    card.style.background = '';
+    // 未記録：鮮やかなローズ
+    card.style.background = '#b8707a';
     card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = '';
@@ -11254,7 +11254,7 @@ function openRecordScreen(){
   var painDisplay = document.getElementById('pain-level-display');
   if(painDisplay){ painDisplay.textContent = '0'; }
   var painSection = document.getElementById('pain-detail-section');
-  if(painSection){ painSection.style.display = 'none'; }
+  if(painSection){ painSection.style.display = 'block'; } // 痛みの強さは常時表示
   var cycleDetail = document.getElementById('cycle-detail-section');
   if(cycleDetail){ cycleDetail.style.display = 'none'; }
   // 気分・おりもの・便カウントをリセット
@@ -11324,13 +11324,9 @@ function openRecordScreen(){
         if(pl){ pl.value = editRec.painLevel; }
         if(pld){ pld.textContent = editRec.painLevel; }
       }
-      // 痛みセクション表示制御
+      // 痛みの詳細セクションは常時表示
       var painSection = document.getElementById('pain-detail-section');
-      if(painSection){
-        var hasPain = (editRec.painLocation && editRec.painLocation.length) || (editRec.painLevel && editRec.painLevel > 0);
-        var hasPainSymptom = editRec.symptoms && (editRec.symptoms.indexOf('下腹部痛') !== -1 || editRec.symptoms.indexOf('腰痛') !== -1 || editRec.symptoms.indexOf('頭痛') !== -1);
-        painSection.style.display = (hasPain || hasPainSymptom) ? 'block' : 'none';
-      }
+      if(painSection){ painSection.style.display = 'block'; }
       // 服薬を復元
       if(editRec.medication && editRec.medication.length){
         document.querySelectorAll('#rs-medication .chip').forEach(function(c){
@@ -11518,16 +11514,7 @@ function selectTempMethod(method){
 
 function toggleRsChip(el){
   el.classList.toggle('selected');
-  // 痛み関連チップが選択されたら痛み詳細セクションを表示
-  var painSection = document.getElementById('pain-detail-section');
-  if(painSection){
-    var painChips = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み'];
-    var hasAnyPain = false;
-    document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){
-      if(painChips.indexOf(c.textContent) !== -1) hasAnyPain = true;
-    });
-    painSection.style.display = hasAnyPain ? 'block' : 'none';
-  }
+  // 痛みの詳細セクションは常時表示（痛みの強さスライダーを含むため）
 }
 
 
