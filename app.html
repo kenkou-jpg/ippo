@@ -2270,29 +2270,33 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     <!-- HOME -->
     <div id="screen-home" class="screen active">
 
-  <!-- ホームカード：挨拶 + フェーズバー + 週カレンダー -->
-  <div style="margin:0 16px 16px;background:#b8707a;border-radius:22px;padding:20px 18px 16px;box-shadow:0 4px 18px rgba(120,40,55,0.18);">
+  <!-- ホームカード：上段ダークローズ（挨拶）＋下段ホワイト（カレンダー）-->
+  <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);">
 
-    <!-- 挨拶行 -->
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
-      <div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
-        <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
-      </div>
-      <div id="home-phase-badge" style="display:none;padding-top:3px;">
-        <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+    <!-- 上段：ダークローズ（挨拶 + バッジ） -->
+    <div style="background:#b8707a;padding:20px 18px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
+          <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
+        </div>
+        <div id="home-phase-badge" style="display:none;padding-top:3px;">
+          <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+        </div>
       </div>
     </div>
 
-    <!-- フェーズバー（全周期比例） -->
-    <div id="home-phase-bar" style="height:6px;border-radius:3px;overflow:hidden;display:flex;margin-bottom:7px;"></div>
+    <!-- 下段：ホワイト（フェーズバー・ラベル・週カレンダー） -->
+    <div style="padding:14px 16px 16px;background:white;">
+      <!-- フェーズバー（全周期比例） -->
+      <div id="home-phase-bar" style="height:6px;border-radius:3px;overflow:hidden;display:flex;margin-bottom:7px;"></div>
+      <!-- フェーズラベル（4フェーズ） -->
+      <div id="home-phase-labels" style="display:flex;margin-bottom:14px;"></div>
+      <!-- 週間カレンダー -->
+      <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
+    </div>
 
-    <!-- フェーズラベル（4フェーズ） -->
-    <div id="home-phase-labels" style="display:flex;margin-bottom:16px;"></div>
-
-    <!-- 週間カレンダー -->
-    <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
   </div>
 
   <!-- 今日のメッセージ（1枚） -->
@@ -7744,10 +7748,10 @@ function buildHomeWeekRow() {
   var days = ['月','火','水','木','金','土','日'];
   var html = '';
 
-  // カード内（ダークローズ背景）に合わせた色設定
+  // 白背景下段用の色設定
   var phaseColors = {
     '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
-    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': 'rgba(255,255,255,0.18)'
+    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4'
   };
 
   for (var i = 0; i < 7; i++) {
@@ -7766,20 +7770,20 @@ function buildHomeWeekRow() {
     var phase = getPhaseForDate(d);
     var phaseColor = phaseColors[phase] || phaseColors['不明'];
 
-    var cellBg = isFuture ? 'rgba(255,255,255,0.10)' :
-                 rec === undefined ? 'rgba(255,255,255,0.18)' :
+    var cellBg = isFuture ? '#f0ebe8' :
+                 rec === undefined ? '#ede8e4' :
                  pain >= 4 ? '#c04060' :
                  pain >= 2 ? '#e8809a' :
                  pain >= 1 ? '#f0a8b8' : phaseColor;
-    var cellColor = (isFuture || rec === undefined) ? 'rgba(255,255,255,0.50)' : 'white';
+    var cellColor = (pain >= 2) ? 'white' : 'var(--ink)';
     var cellWeight = isToday ? '700' : '500';
 
     html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
-    html += '<div style="font-size:10px;color:rgba(255,255,255,0.72);">' + days[i] + '</div>';
+    html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
     html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
       + 'font-size:12px;font-weight:' + cellWeight + ';'
       + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px rgba(255,255,255,0.85);' : '')
+      + (isToday ? 'box-shadow:0 0 0 2px #b8707a;' : '')
       + '">' + d.getDate() + '</div>';
     html += '</div>';
   }
@@ -7838,9 +7842,9 @@ function buildPhaseBar(monday) {
     var labelHtml = phaseData.map(function(p) {
       var isCurrent = p.name === currentShort;
       return '<div style="flex:' + p.days + ';font-size:9px;text-align:center;'
-        + 'color:' + (isCurrent ? 'white' : 'rgba(255,255,255,0.58)') + ';'
+        + 'color:' + (isCurrent ? 'var(--ink)' : 'var(--ink-light)') + ';'
         + 'font-weight:' + (isCurrent ? '600' : '400') + ';">'
-        + p.name + (isCurrent ? ' ▼' : '')
+        + p.name + (isCurrent ? ' ◀' : '')
         + '</div>';
     }).join('');
     labels.innerHTML = labelHtml;
