@@ -2773,37 +2773,8 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   <div class="section-card">
     <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 2</div>
     <div class="section-title serif">症状・痛み</div>
-    <div style="display:flex;gap:6px;margin-bottom:12px;">
-      <button class="symp-tab" onclick="switchSymptomTab('body',this)">身体</button>
-      <button class="symp-tab" onclick="switchSymptomTab('mind',this)">こころ</button>
-      <button class="symp-tab" onclick="switchSymptomTab('gyneco',this)">婦人科</button>
-    </div>
-    <div class="chips" id="rs-symptoms">
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">頭痛</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">腰痛</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">下腹部痛</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">むくみ</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">肌荒れ</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">便秘</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">下痢</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">吐き気</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">倦怠感</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">冷え</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">発熱</div>
-      <div class="chip" data-sym-cat="body" onclick="toggleRsChip(this)">関節痛</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">不眠</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">イライラ</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">不安感</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">食欲増加</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">食欲低下</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">眠気</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">集中力低下</div>
-      <div class="chip" data-sym-cat="mind" onclick="toggleRsChip(this)">気分の落ち込み</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">胸の張り</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">ほてり</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">動悸</div>
-      <div class="chip" data-sym-cat="gyneco" onclick="toggleRsChip(this)">のぼせ</div>
-    </div>
+    <!-- 症状チップは renderSymptomLayers() で動的描画 -->
+    <div id="rs-symptoms"></div>
     <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
       <div class="section-label">PAIN DETAIL</div>
       <div class="section-title serif">痛みの詳細</div>
@@ -10131,21 +10102,155 @@ var SYMPTOM_CATEGORIES = {
   '頭痛':'body','腰痛':'body','下腹部痛':'body','むくみ':'body',
   '肌荒れ':'body','便秘':'body','下痢':'body','吐き気':'body',
   '倦怠感':'body','冷え':'body','発熱':'body','関節痛':'body',
+  '排便痛':'body','腹部膨満':'body',
   '不眠':'mind','イライラ':'mind','不安感':'mind',
   '食欲増加':'mind','食欲低下':'mind','眠気':'mind',
-  '集中力低下':'mind','気分の落ち込み':'mind',
+  '集中力低下':'mind','気分の落ち込み':'mind','ブレインフォグ':'mind',
   'おりもの':'gyneco','胸の張り':'gyneco','ほてり':'gyneco',
-  '動悸':'gyneco','のぼせ':'gyneco','おりもの':'gyneco'
+  '動悸':'gyneco','のぼせ':'gyneco','性交痛':'gyneco'
 };
 var _sympTabCurrent = 'all';
 
-function switchSymptomTab(cat, btn) {
-  _sympTabCurrent = cat;
-  document.querySelectorAll('.symp-tab').forEach(function(b){ b.classList.remove('symp-tab-active'); });
-  if(btn) btn.classList.add('symp-tab-active');
-  document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-    c.style.display = (cat === 'all' || c.getAttribute('data-sym-cat') === cat) ? '' : 'none';
+// ===== 3層症状チップシステム =====
+var SYMPTOM_LAYERS = {
+  layer1: ['下腹部痛','腰痛','頭痛','倦怠感','気分の落ち込み','イライラ','むくみ'],
+  layer2: ['不安感','不眠','集中力低下','吐き気','胸の張り','便秘','下痢','食欲増加','食欲低下','眠気','ブレインフォグ','腹部膨満'],
+  layer3: ['ほてり','のぼせ','動悸','冷え','発熱','関節痛','肌荒れ']
+};
+var SENSITIVE_SYMPTOMS = ['性交痛','排便痛'];
+
+var DISEASE_PRIORITY_SYMPTOMS = {
+  '子宮内膜症': ['下腹部痛','腰痛','排便痛','性交痛','倦怠感'],
+  '子宮腺筋症': ['下腹部痛','腰痛','腹部膨満','排便痛','倦怠感'],
+  '子宮筋腫':   ['下腹部痛','腰痛','腹部膨満','頻尿','倦怠感'],
+  'PCOS':       ['倦怠感','ブレインフォグ','食欲増加','肌荒れ','気分の落ち込み'],
+  'PMDD':       ['イライラ','気分の落ち込み','不安感','食欲増加','集中力低下'],
+  'PMS/PMDD':   ['イライラ','気分の落ち込み','むくみ','胸の張り','頭痛'],
+  '更年期障害':  ['ほてり','のぼせ','動悸','不眠','倦怠感'],
+  '卵巣嚢腫':   ['下腹部痛','腰痛','腹部膨満','吐き気','倦怠感'],
+  '慢性骨盤痛':  ['下腹部痛','腰痛','排便痛','性交痛','倦怠感'],
+  '外陰痛症候群':['性交痛','下腹部痛','不安感','不眠','倦怠感']
+};
+
+function getRecentSymptoms() {
+  try {
+    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
+    var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return recent
+      .filter(function(s){ return s.timestamp > cutoff; })
+      .sort(function(a,b){ return b.count - a.count; })
+      .slice(0, 3)
+      .map(function(s){ return s.name; });
+  } catch(e){ return []; }
+}
+
+function saveSymptomSelection(symptoms) {
+  try {
+    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
+    symptoms.forEach(function(name){
+      var existing = null;
+      for(var i=0;i<recent.length;i++){ if(recent[i].name===name){ existing=recent[i]; break; } }
+      if(existing){ existing.count++; existing.timestamp = Date.now(); }
+      else { recent.push({ name: name, count: 1, timestamp: Date.now() }); }
+    });
+    localStorage.setItem('ippo_recent_symptoms', JSON.stringify(recent));
+  } catch(e){}
+}
+
+function buildEffectiveLayer1() {
+  var diseases = state.myDiseases || [];
+  var priorityArr = [];
+  diseases.forEach(function(disease){
+    var priorities = DISEASE_PRIORITY_SYMPTOMS[disease] || [];
+    priorities.forEach(function(s){
+      if(priorityArr.indexOf(s) === -1) priorityArr.push(s);
+    });
   });
+  getRecentSymptoms().forEach(function(s){
+    if(priorityArr.indexOf(s) === -1) priorityArr.push(s);
+  });
+  var merged = priorityArr.slice(0, 5);
+  SYMPTOM_LAYERS.layer1.forEach(function(s){
+    if(merged.indexOf(s) === -1) merged.push(s);
+  });
+  return merged.slice(0, 10);
+}
+
+function renderSymptomLayers() {
+  var container = document.getElementById('rs-symptoms');
+  if(!container) return;
+  var diseases = state.myDiseases || [];
+  var hasDiseaseWithSensitive = diseases.some(function(d){
+    var p = DISEASE_PRIORITY_SYMPTOMS[d] || [];
+    return p.some(function(s){ return SENSITIVE_SYMPTOMS.indexOf(s) !== -1; });
+  });
+  // 現在選択済み症状を退避
+  var selected = [];
+  container.querySelectorAll('.chip.selected').forEach(function(c){ selected.push(c.textContent); });
+  var layer1 = buildEffectiveLayer1();
+  var baseLayer2 = SYMPTOM_LAYERS.layer2.slice();
+  if(!hasDiseaseWithSensitive){
+    SENSITIVE_SYMPTOMS.forEach(function(s){ if(baseLayer2.indexOf(s)===-1) baseLayer2.push(s); });
+  }
+  var layer2 = baseLayer2.filter(function(s){ return layer1.indexOf(s)===-1; });
+  var layer3 = SYMPTOM_LAYERS.layer3.filter(function(s){ return layer1.indexOf(s)===-1 && layer2.indexOf(s)===-1; });
+  var expandBtnStyle = 'border:.5px dashed #ddd;background:transparent;color:#9a8e88;font-size:11px;padding:5px 14px;border-radius:20px;cursor:pointer;font-family:inherit;margin-top:2px;';
+  function makeChip(name){ return '<div class="chip" onclick="toggleRsChip(this)" style="font-size:11px;padding:6px 12px;">'+name+'</div>'; }
+  var html = '<div id="rs-symp-l1" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;">';
+  layer1.forEach(function(s){ html += makeChip(s); });
+  html += '</div>';
+  html += '<div id="rs-symp-e2" style="margin:0 0 4px;"><button onclick="toggleSympLayer(2)" id="rs-symp-btn2" style="'+expandBtnStyle+'">もっと見る ▾</button></div>';
+  html += '<div id="rs-symp-l2" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:6px;">';
+  layer2.forEach(function(s){ html += makeChip(s); });
+  html += '</div>';
+  html += '<div id="rs-symp-e3" style="display:none;margin:0 0 4px;"><button onclick="toggleSympLayer(3)" id="rs-symp-btn3" style="'+expandBtnStyle+'">さらに見る ▾</button></div>';
+  html += '<div id="rs-symp-l3" style="display:none;flex-wrap:wrap;gap:6px;">';
+  layer3.forEach(function(s){ html += makeChip(s); });
+  html += '</div>';
+  container.innerHTML = html;
+  // 選択状態を復元、下層に選択済みがあれば自動展開
+  if(selected.length){
+    var needL2=false, needL3=false;
+    container.querySelectorAll('.chip').forEach(function(c){
+      if(selected.indexOf(c.textContent) !== -1){
+        c.classList.add('selected');
+        var l2=document.getElementById('rs-symp-l2'), l3=document.getElementById('rs-symp-l3');
+        if(l2 && l2.contains(c)) needL2=true;
+        if(l3 && l3.contains(c)) needL3=true;
+      }
+    });
+    if(needL2) toggleSympLayer(2);
+    if(needL3) toggleSympLayer(3);
+  }
+}
+
+function toggleSympLayer(layerNum) {
+  var layerEl = document.getElementById('rs-symp-l'+layerNum);
+  var btnEl = document.getElementById('rs-symp-btn'+layerNum);
+  if(!layerEl) return;
+  var isOpen = layerEl.style.display !== 'none';
+  if(isOpen){
+    layerEl.style.display = 'none';
+    if(btnEl) btnEl.textContent = layerNum===2 ? 'もっと見る ▾' : 'さらに見る ▾';
+    if(layerNum===2){
+      var e3=document.getElementById('rs-symp-e3'), l3=document.getElementById('rs-symp-l3');
+      if(e3) e3.style.display='none';
+      if(l3) l3.style.display='none';
+      var b3=document.getElementById('rs-symp-btn3'); if(b3) b3.textContent='さらに見る ▾';
+    }
+  } else {
+    layerEl.style.display = 'flex';
+    if(btnEl) btnEl.textContent = '閉じる ▴';
+    if(layerNum===2){
+      var e3=document.getElementById('rs-symp-e3');
+      if(e3) e3.style.display='block';
+    }
+  }
+}
+
+// 後方互換のため残す（呼び出し元が存在する場合のフォールバック）
+function switchSymptomTab(cat, btn) {
+  // 新3層システムでは tab 切替は不使用
 }
 
 function updateRecordSymptoms(){
@@ -11255,9 +11360,8 @@ function openRecordScreen(){
   ['rs-first-time','rs-last-time'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
   var te = document.getElementById('rs-temp'); if(te) te.value='';
   var mealFreeEl = document.getElementById('rs-meal-free'); if(mealFreeEl) mealFreeEl.value='';
-  document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){ c.classList.remove('selected'); });
   document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
-  applySymptomChipPriority();
+  renderSymptomLayers(); // 3層チップを描画（選択リセット込み）
   var di = document.getElementById('draft-indicator');
   if(di) di.style.display = 'none';
     // 追加フォームのリセット
@@ -11492,11 +11596,24 @@ function openRecordScreen(){
   }
   // 体温測定方法を復元
   selectTempMethod((todayRec && todayRec.tempMethod) ? todayRec.tempMethod : 'sublingual');
-  // 既存記録の症状を復元
+  // 既存記録の症状を復元（3層チップ対応: 下層に選択済みがあれば自動展開）
   if(todayRec && todayRec.symptoms && todayRec.symptoms.length){
+    var _needL2=false, _needL3=false;
     document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-      if(todayRec.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
+      if(todayRec.symptoms.indexOf(c.textContent) !== -1){
+        c.classList.add('selected');
+        var l2=document.getElementById('rs-symp-l2'), l3=document.getElementById('rs-symp-l3');
+        if(l2 && l2.contains(c)) _needL2=true;
+        if(l3 && l3.contains(c)) _needL3=true;
+      }
     });
+    if(_needL2) toggleSympLayer(2);
+    if(_needL3) toggleSympLayer(3);
+    // 痛み系症状の復元に応じてPAIN DETAILセクションも展開
+    var painSyms=['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛'];
+    var _hasPain=todayRec.symptoms.some(function(s){ return painSyms.indexOf(s)!==-1; });
+    var ps=document.getElementById('pain-detail-section');
+    if(ps) ps.style.display=_hasPain?'block':'none';
   }
   // 既存記録の生理周期を復元
   if(todayRec && todayRec.menstrualCycle){
@@ -11532,13 +11649,14 @@ function selectTempMethod(method){
 function toggleRsChip(el){
   el.classList.toggle('selected');
   // 痛み系症状が1つでも選択されていれば痛みの詳細セクションを表示
-  var painSymptoms = ['頭痛','腰痛','下腹部痛','関節痛'];
+  var painSymptoms = ['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛'];
   var hasPain = false;
   document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){
     if(painSymptoms.indexOf(c.textContent) !== -1) hasPain = true;
   });
   var painSection = document.getElementById('pain-detail-section');
   if(painSection){ painSection.style.display = hasPain ? 'block' : 'none'; }
+  updateRecProgressDots();
 }
 
 
@@ -13199,6 +13317,9 @@ var todayStr = targetDate.toDateString();
       showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
       return;
     }
+
+    // 最近使った症状を記録（自動昇格ロジック用）
+    if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
 
     // UI更新（保存成功後のみ）
     updateHomeSummary();
