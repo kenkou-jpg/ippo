@@ -10,8 +10,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ippo — 女性疾患・症状記録アプリ</title>
+<meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。生理周期・痛み・気分を可視化し、30日後にあなただけのからだのパターンが見えてきます。">
+<meta name="theme-color" content="#b8707a">
   <!-- OGP Meta Tags -->
- <link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="images/icon-512.png">
 
 <meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
@@ -34,7 +36,8 @@
 <style>
 :root {
   /* === Primary: Soft Sakura（画像ベース） === */
-  --rose: #c8747b;  /* 実測値に修正 */
+  --rose: #c8747b;
+  --rose-dark: #b8707a;   /* カードヘッダー・ヒーロー背景用 */
   --rose-light: #ecd0d2;
   --rose-pale: #f7f2f2;
   --plum: #b14e56;
@@ -1374,7 +1377,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 .settings-chevron { font-size: 18px; color: var(--ink-light); font-weight: 300; }
 .settings-profile-hero {
   margin: 0 16px 20px;
-  background: #b8707a;
+  background: var(--rose-dark);
   border-radius: 22px;
   padding: 20px;
   color: white;
@@ -2216,7 +2219,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   <!-- Step 5: 疾患選択 -->
   <div id="ob-step-5" class="ob-step" style="display:none;">
     <!-- プライバシーポリシー告知 -->
-    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid #b8707a;">
+    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid var(--rose-dark);">
       <div style="font-size:13px;font-weight:500;color:#72243E;margin-bottom:6px;">ippoのデータポリシー</div>
       <div style="font-size:12px;color:var(--ink);line-height:1.8;">すべてのデータはあなたの端末内で暗号化されます。<br>第三者への提供・販売は一切行いません。</div>
     </div>
@@ -2275,7 +2278,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);">
 
     <!-- 上段：ダークローズ（挨拶 + バッジ） -->
-    <div style="background:#b8707a;padding:20px 18px 18px;">
+    <div style="background:var(--rose-dark);padding:20px 18px 18px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
           <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
@@ -2336,7 +2339,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   <!-- 記録ボタン -->
   <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
-    <div id="home-cta-card" style="background:#b8707a;border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+    <div id="home-cta-card" style="background:var(--rose-dark);border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
       <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
       <div id="home-cta-sub" style="font-size:11px;color:rgba(255,255,255,0.80);margin-top:2px;"></div>
     </div>
@@ -2384,29 +2387,39 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     </button>
   </div>
 
-              <!-- Calendar -->
-      <div class="calendar-section">
-        <div class="cal-header">
-          <div class="cal-label" id="calLabel"></div>
-          <div class="cal-nav">
-            <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
-            <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
+      <!-- 月次カレンダー（展開可能） -->
+      <div style="margin:0 20px 20px;">
+        <button onclick="toggleHomeCalendar()" id="home-cal-toggle"
+          style="width:100%;background:none;border:1px dashed var(--rose-light);border-radius:14px;padding:10px 16px;font-family:'Noto Sans JP',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;justify-content:space-between;"
+          aria-expanded="false" aria-controls="home-calendar-panel">
+          <span>📅 月次カレンダーを見る</span>
+          <span id="home-cal-arrow" aria-hidden="true">▾</span>
+        </button>
+        <div id="home-calendar-panel" style="display:none;" role="region" aria-label="月次カレンダー">
+          <div class="calendar-section" style="margin:8px 0 0;">
+            <div class="cal-header">
+              <div class="cal-label" id="calLabel"></div>
+              <div class="cal-nav">
+                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
+                <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
+              </div>
+            </div>
+            <div class="cal-weekdays">
+              <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
+              <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
+              <div style="display:flex;gap:3px;">
+                <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
+                <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
+                <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
+                <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
+                <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
+              </div>
+              <span style="font-size:10px;color:var(--ink-light);">強い</span>
+            </div>
           </div>
-        </div>
-        <div class="cal-weekdays">
-          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
-        </div>
-        <div class="cal-grid" id="calGrid"></div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
-          <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
-          <div style="display:flex;gap:3px;">
-            <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
-            <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
-            <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
-            <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
-            <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
-          </div>
-          <span style="font-size:10px;color:var(--ink-light);">強い</span>
         </div>
       </div>
 
@@ -2690,7 +2703,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   <div style="width:88%;max-width:360px;max-height:82vh;background:var(--cream);border-radius:24px;padding:28px 22px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる症状を選択</div>
-      <button onclick="closeSymptomSettings()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+      <button onclick="closeSymptomSettings()" aria-label="閉じる" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" aria-hidden="false">✕</button>
     </div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">よく気になる症状を選んでおくと、記録画面で優先表示されます。</div>
     <div id="symptomSettingsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
@@ -2873,7 +2886,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
-          <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+          <button onclick="closeMealTimePicker()" aria-label="閉じる" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
@@ -3163,7 +3176,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
         <div class="settings-card">
           <div class="settings-theme-grid" id="theme-picker">
             <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
-              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,var(--rose-dark));border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
               <span style="font-size:9px;color:var(--ink-light);">🌸 桜</span>
             </div>
             <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
@@ -7763,7 +7776,7 @@ function buildHomeWeekRow() {
     html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
       + 'font-size:12px;font-weight:' + cellWeight + ';'
       + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px #b8707a;' : '')
+      + (isToday ? 'box-shadow:0 0 0 2px var(--rose-dark);' : '')
       + '">' + d.getDate() + '</div>';
     html += '</div>';
   }
@@ -9609,13 +9622,13 @@ function updateHomeCTAState() {
 
   if (rec) {
     // 記録済み：ダークローズ・✓マーク
-    card.style.background = '#b8707a';
+    card.style.background = 'var(--rose-dark)';
     card.style.opacity = '0.82';
     if (title) title.textContent = '✓ 今日の記録完了';
     if (sub)   sub.textContent   = buildComparisonComment(rec);
   } else {
     // 未記録：鮮やかなローズ
-    card.style.background = '#b8707a';
+    card.style.background = 'var(--rose-dark)';
     card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = '';
@@ -16089,5 +16102,45 @@ var premiumCheckInterval = setInterval(function(){
 
  　 </div>  <!-- main-app を閉じる -->
 　</div>  <!-- app を閉じる -->
+
+<script>
+// ===== Service Worker 登録 =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+      .then(function(reg) {
+        console.log('[SW] 登録成功:', reg.scope);
+        // 新バージョンがあれば即適用
+        reg.addEventListener('updatefound', function() {
+          var newWorker = reg.installing;
+          if (newWorker) {
+            newWorker.addEventListener('statechange', function() {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                console.log('[SW] 新バージョン利用可能');
+              }
+            });
+          }
+        });
+      })
+      .catch(function(err) {
+        console.warn('[SW] 登録失敗:', err);
+      });
+  });
+}
+
+// ===== ホーム月次カレンダー トグル =====
+function toggleHomeCalendar() {
+  var panel = document.getElementById('home-calendar-panel');
+  var arrow = document.getElementById('home-cal-arrow');
+  var btn   = document.getElementById('home-cal-toggle');
+  if (!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
+  if (btn)   btn.setAttribute('aria-expanded', String(!isOpen));
+  // 初回展開時にカレンダーを描画
+  if (!isOpen && typeof renderCalendar === 'function') renderCalendar();
+}
+</script>
 </body>
 </html>
