@@ -1,52 +1,87 @@
-const CACHE_NAME = 'ippo-v1';
-const ASSETS = [
-  '/app.html',
-  '/manifest.json',
-  '/images/icon-192.png',
-  '/images/icon-512.png'
-];
+// ippo Service Worker
+// 更新時は CACHE_VERSION を上げてください
+const CACHE_VERSION = 'v3';
+const CACHE_NAME = 'ippo-' + CACHE_VERSION;
 
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(c => c.addAll(ASSETS))
-      .catch(() => {})
-  );
-  self.skipWaiting();
-});
+// App Shell: 必ずキャッシュするファイル
+const APP_SHELL = ['/app.html', '/manifest.json'];
 
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
+// 任意キャッシュ（存在しなくてもインストール失敗にしない）
+const OPTIONAL_ASSETS = ['/images/icon-192.png', '/images/icon-512.png'];
 
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  if (!e.request.url.startsWith('http')) return;
-  // Supabase APIはキャッシュしない
-  if (e.request.url.includes('supabase.co')) return;
+// キャッシュしないドメイン
+const BYPASS_DOMAINS = ['supabase.co', 'stripe.com', 'anthropic.com', 'googleapis.com', 'gstatic.com'];
 
-  e.respondWith(
-    fetch(e.request)
-      .then(res => {
-        if (!res || res.status !== 200 || res.type === 'opaque') return res;
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
-        return res;
-      })
-      .catch(() =>
-        caches.match(e.request).then(cached => cached || caches.match('/app.html'))
+// ========== Install ==========
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache =>
+      cache.addAll(APP_SHELL).then(() =>
+        Promise.allSettled(OPTIONAL_ASSETS.map(url => cache.add(url).catch(() => {})))
       )
+    ).then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener('push', e => {
-  const data = e.data ? e.data.json() : {};
-  e.waitUntil(
+// ========== Activate ==========
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys()
+      .then(keys => Promise.all(
+        keys.filter(k => k.startsWith('ippo-') && k !== CACHE_NAME)
+            .map(k => caches.delete(k))
+      ))
+      .then(() => self.clients.claim())
+  );
+});
+
+// ========== Fetch ==========
+self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+  if (!event.request.url.startsWith('http')) return;
+
+  const url = new URL(event.request.url);
+  if (BYPASS_DOMAINS.some(d => url.hostname.includes(d))) return;
+
+  // app.html: Network-First → キャッシュ fallback → 最低限オフラインHTML
+  if (url.pathname.endsWith('app.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request)
+        .then(res => {
+          if (res && res.status === 200) {
+            caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match('/app.html').then(cached =>
+            cached || new Response(offlineFallbackHTML(), {
+              headers: { 'Content-Type': 'text/html; charset=utf-8' }
+            })
+          )
+        )
+    );
+    return;
+  }
+
+  // 静的アセット: Cache-First
+  event.respondWith(
+    caches.match(event.request).then(cached => {
+      if (cached) return cached;
+      return fetch(event.request).then(res => {
+        if (res && res.status === 200 && res.type !== 'opaque') {
+          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+        }
+        return res;
+      }).catch(() => new Response('', { status: 503 }));
+    })
+  );
+});
+
+// ========== Push通知 ==========
+self.addEventListener('push', event => {
+  const data = event.data ? event.data.json() : {};
+  event.waitUntil(
     self.registration.showNotification(data.title || 'ippo', {
       body: data.body || '今日のからだの記録をしましょう',
       icon: '/images/icon-192.png',
@@ -56,7 +91,18 @@ self.addEventListener('push', e => {
   );
 });
 
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  e.waitUntil(clients.openWindow(e.notification.data.url || '/app.html'));
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then(wins => {
+      const existing = wins.find(w => w.url.includes('app.html'));
+      if (existing) return existing.focus();
+      return clients.openWindow(event.notification.data.url || '/app.html');
+    })
+  );
 });
+
+// ========== オフライン fallback ==========
+function offlineFallbackHTML() {
+  return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ippo - オフライン</title><style>body{font-family:sans-serif;background:#fdf8f6;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;color:#2d1f1a;text-align:center;padding:24px}h1{font-size:20px;margin:16px 0 8px}p{font-size:13px;color:#8a7a70;line-height:1.7;max-width:280px}button{margin-top:20px;padding:12px 28px;background:#c8747b;color:white;border:none;border-radius:50px;font-size:14px;cursor:pointer;font-family:inherit}</style></head><body><div style="font-size:48px">🌸</div><h1>オフラインです</h1><p>インターネットに接続されていません。接続後に再度お試しください。</p><button onclick="location.reload()">再読み込み</button></body></html>';
+}
