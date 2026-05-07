@@ -1,0 +1,47 @@
+import { defineConfig } from 'vite'
+
+/**
+ * ippo – Vite 設定
+ *
+ * 移行方針:
+ *  - app.html をそのままエントリーとして使用（変更なし）
+ *  - publicDir: 'public' → sw.js / manifest.json / images をルートで配信
+ *  - appType: 'mpa' → HTML ファイルを直接 URL で開ける
+ *  - Supabase / Stripe など外部ドメインは Vite の処理をバイパス
+ */
+export default defineConfig({
+  // プロジェクトルート（index.html ではなく app.html を使うため '.' のまま）
+  root: '.',
+
+  // static assets: public/ 以下を / にマウント
+  publicDir: 'public',
+
+  // Multi-Page App: /app.html を直接リクエストできる
+  appType: 'mpa',
+
+  server: {
+    port: 5173,
+    // ブラウザを自動で app.html に向ける
+    open: '/app.html',
+    // fs.strict を緩和して worktree 内のファイルを参照可能に
+    fs: {
+      strict: false,
+    },
+  },
+
+  preview: {
+    port: 4173,
+    open: '/app.html',
+  },
+
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    rollupOptions: {
+      // app.html だけをビルドエントリーとする
+      input: {
+        app: './app.html',
+      },
+    },
+  },
+})
