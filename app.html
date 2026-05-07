@@ -1598,6 +1598,25 @@ var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
 var supabaseToken = null;
 var supabaseUserId = null;
+// 移行期間: module 側(src/services/supabase.js)が window.supabase を公開
+// この非moduleスクリプトからも常に同一インスタンスを参照できるようにする
+var supabase = window.supabase || null;
+function getSupabaseClient() {
+  if (!supabase && window.supabase) supabase = window.supabase;
+  if (!window.supabase && supabase) window.supabase = supabase;
+  return supabase;
+}
+function classifySyncError(err) {
+  var msg = String((err && (err.message || err.description)) || err || '').toLowerCase();
+  var status = err && (err.status || (err.response && err.response.status));
+  if (msg.indexOf('not defined') !== -1 || msg.indexOf('undefined') !== -1) return 'undefined';
+  if (msg.indexOf('permission') !== -1 || msg.indexOf('forbidden') !== -1 || status === 401 || status === 403) return '権限/認証';
+  if (msg.indexOf('network') !== -1 || msg.indexOf('failed to fetch') !== -1 || msg.indexOf('fetch') !== -1) return 'ネットワーク';
+  if (msg.indexOf('auth') !== -1 || msg.indexOf('login') !== -1 || msg.indexOf('session') !== -1) return '認証';
+  if (msg.indexOf('promise') !== -1 || msg.indexOf('reject') !== -1) return 'Promise reject';
+  if (msg.indexOf('_synclock') !== -1 || msg.indexOf('lock') !== -1) return '_syncLock';
+  return 'その他';
+}
 
 // ===== 食事クイック入力 =====
 var _mealPendingType = '';
@@ -3013,7 +3032,8 @@ function syncAllRecordsToCloud(){
       _syncLock = false;
     });
   }).catch(function(e){
-    console.warn('同期エラー:', e);
+    console.warn('同期エラー[' + classifySyncError(e) + ']:', e);
+  }).finally(function(){
     _syncLock = false;
   });
 }
@@ -3121,9 +3141,11 @@ function cloudSyncSafe(){
         });
       });
   }).catch(function(e){
-    console.warn('安全同期エラー:', e);
-    _syncLock = false;
+    console.warn('安全同期エラー[' + classifySyncError(e) + ']:', e);
     if(typeof showToast === 'function') showToast('データ同期に失敗しました。後で自動リトライします。', 'warn');
+  }).finally(function(){
+    _syncLock = false;
+    if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
   });
 }
 
@@ -3502,6 +3524,22 @@ let currentRecord = {};
 let currentStep = 0;
 var STEPS = [];
 
+// 部分移行中のため、復元時に欠損した state を局所補正する
+function ensureStateShape() {
+  if (!state || typeof state !== 'object') state = {};
+  if (!Array.isArray(state.records)) state.records = [];
+  if (typeof state.totalDays !== 'number') state.totalDays = state.records.length;
+  if (typeof state.streak !== 'number') state.streak = 0;
+}
+
+function safeCall(fnName) {
+  try {
+    if (typeof window[fnName] === 'function') window[fnName]();
+  } catch (e) {
+    console.warn(fnName + ' failed:', e);
+  }
+}
+
 
 // saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
 // インラインにも定義を維持する。モジュール実行後は window.saveState が上書きされる。
@@ -3576,6 +3614,7 @@ function init() {
   if (saved) {
     try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
   }
+  ensureStateShape();
     // myDisease → myDiseases 自動マイグレーション
     if(state.myDisease && !state.myDiseases){
       state.myDiseases = [state.myDisease];
@@ -3650,7 +3689,8 @@ if (state.name && !state._onboardingDone) {
   window._applyCloudRestore = function _applyCloudRestore() {
     cloudRestore().then(function(restored){
       if(restored){
-        state = JSON.parse(localStorage.getItem('ippo_state'));
+        state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
+        ensureStateShape();
         updateStats(); updateHistory(); buildCalendar();
         // 疾患設定UIを復元後の state に合わせて再描画
         if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
@@ -3678,7 +3718,8 @@ if (state.name && !state._onboardingDone) {
   }
 
   var restoreInterval = setInterval(function(){
-    if(typeof supabase !== 'undefined' && supabase.auth){
+    var sb = getSupabaseClient();
+    if(sb && sb.auth){
       clearInterval(restoreInterval);
       _applyCloudRestore();
     }
@@ -3697,7 +3738,8 @@ document.addEventListener('visibilitychange', function(){
     _lastVisibilitySync = now;
     cloudRestore().then(function(restored){
       if(restored){
-        state = JSON.parse(localStorage.getItem('ippo_state'));
+        state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
+        ensureStateShape();
         updateStats();
         updateHistory();
         buildCalendar();
@@ -5742,6 +5784,7 @@ function _buildPhaseBarPreview() {
 
 // ===== TABS =====
 function switchTab(tab, btn) {
+  ensureStateShape();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`screen-${tab}`).classList.add('active');
@@ -6447,6 +6490,7 @@ function selectBowelCount(symptomName, count, el) {
 
 // ===== SAVE RECORD =====
 function saveRecord() {
+  ensureStateShape();
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
 
@@ -8531,6 +8575,7 @@ function showQuickLogDone() {
 }
 
 function buildCalendar(){
+  ensureStateShape();
   var label = document.getElementById('calLabel');
   var grid = document.getElementById('calGrid');
   if(!label||!grid) return;
@@ -8901,6 +8946,12 @@ function prefillRecordFromModal() {
 
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
+  ensureStateShape();
+  var saveBtn = document.getElementById('save-record-btn');
+  if (saveBtn) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'この内容で記録する';
+  }
     // 今日の記録が既にある場合は自動的に編集モードにする
   if(!state.editingDate){
     var todayStr = new Date().toDateString();
@@ -10788,6 +10839,7 @@ function draftRecordScreen(){
 
 function saveRecordScreen(){
   try {
+    ensureStateShape();
     var data = gatherRecordData();
    var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
 var todayStr = targetDate.toDateString();
@@ -10878,8 +10930,10 @@ var todayStr = targetDate.toDateString();
     }
 
     // 保存成功を検証
-    var verify = JSON.parse(localStorage.getItem('ippo_state'));
-    var saved = verify.records.some(function(r){ return new Date(r.date).toDateString() === todayStr; });
+    var verifyRaw = localStorage.getItem('ippo_state');
+    var verify = verifyRaw ? JSON.parse(verifyRaw) : null;
+    var verifyRecords = (verify && Array.isArray(verify.records)) ? verify.records : [];
+    var saved = verifyRecords.some(function(r){ return r && new Date(r.date).toDateString() === todayStr; });
     if(!saved){
       showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
       return;
@@ -10889,21 +10943,21 @@ var todayStr = targetDate.toDateString();
     if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
 
     // UI更新（保存成功後のみ）
-    updateHomeSummary();
-    if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
-    updateHomeCTA();
-    updateHomeCTAState();
-    if (typeof updateTodayMessage === 'function') updateTodayMessage();
-    updateStreakBadge();
-    buildHomeWeekRow();
-    updateHomeInsightCard();
-    updateHomeNumbers();
-    updateHomeDiseaseAdvice();
-    checkAndShowTempAlert();
-    updateFastingWidgetPhase();
-    updateStats();
-    updateHistory();
-    buildCalendar();
+    safeCall('updateHomeSummary');
+    safeCall('updateDailyHintCard');
+    safeCall('updateHomeCTA');
+    safeCall('updateHomeCTAState');
+    safeCall('updateTodayMessage');
+    safeCall('updateStreakBadge');
+    safeCall('buildHomeWeekRow');
+    safeCall('updateHomeInsightCard');
+    safeCall('updateHomeNumbers');
+    safeCall('updateHomeDiseaseAdvice');
+    safeCall('checkAndShowTempAlert');
+    safeCall('updateFastingWidgetPhase');
+    safeCall('updateStats');
+    safeCall('updateHistory');
+    safeCall('buildCalendar');
     localStorage.removeItem('ippo_draft');
     if(typeof cloudBackupAll === 'function'){
   cloudBackupAll().catch(function(e){
@@ -10918,8 +10972,11 @@ var todayStr = targetDate.toDateString();
 
     var so = document.getElementById('success-overlay');
     if(so){
-      document.getElementById('success-emoji').textContent = '🌿';
-      document.getElementById('success-title').textContent = '記録を保存しました';
+      var successEmojiEl = document.getElementById('success-emoji');
+      var successTitleEl = document.getElementById('success-title');
+      var successMessageEl = document.getElementById('success-message');
+      if (successEmojiEl) successEmojiEl.textContent = '🌿';
+      if (successTitleEl) successTitleEl.textContent = '記録を保存しました';
       // フィードバックカード生成
       var streak = state.streak || 0;
       var feedbackHtml = '';
@@ -10949,7 +11006,7 @@ var todayStr = targetDate.toDateString();
         if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
       }
       feedbackHtml += '</div>';
-      document.getElementById('success-message').innerHTML = feedbackHtml;
+      if (successMessageEl) successMessageEl.innerHTML = feedbackHtml;
       so.classList.add('active');
       // 2秒後に自動で閉じる
       setTimeout(function(){
@@ -12553,9 +12610,14 @@ document.getElementById('syncOverlay').addEventListener('click', function(e) {
 
 async function renderSyncUI() {
   const body = document.getElementById('syncBody');
+  const sb = getSupabaseClient();
+  if (!sb || !sb.auth) {
+    showLoginForm();
+    return;
+  }
   
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
 
     if (session && session.user) {
       // ログイン済み
@@ -12580,7 +12642,7 @@ async function renderSyncUI() {
       showLoginForm();
     }
   } catch (err) {
-    console.error('Sync UI error:', err);
+    console.error('Sync UI error[' + classifySyncError(err) + ']:', err);
     showLoginForm();
   }
 }
@@ -12639,9 +12701,18 @@ function hideMessage() {
 }
 
 async function submitSync() {
+  const sb = getSupabaseClient();
   const email = document.getElementById('syncEmail').value.trim();
   const password = document.getElementById('syncPassword').value;
   const btn = document.getElementById('syncSubmitBtn');
+  if (!sb || !sb.auth) {
+    showMessage('同期機能の初期化中です。数秒後にもう一度お試しください。', 'error');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = syncMode === 'signup' ? '登録する' : 'ログイン';
+    }
+    return;
+  }
   
   if (!email || !password) {
     showMessage('メールアドレスとパスワードを入力してください', 'error');
@@ -12661,7 +12732,7 @@ async function submitSync() {
     
     if (syncMode === 'signup') {
       // 新規登録
-      result = await supabase.auth.signUp({ email, password });
+      result = await sb.auth.signUp({ email, password });
       
       if (result.error) throw result.error;
       
@@ -12674,7 +12745,7 @@ async function submitSync() {
       }
     } else {
       // ログイン
-      result = await supabase.auth.signInWithPassword({ email, password });
+      result = await sb.auth.signInWithPassword({ email, password });
       if (result.error) throw result.error;
     }
 
@@ -12694,7 +12765,8 @@ async function submitSync() {
       // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
       cloudRestore().then(function(restored) {
         if (restored) {
-          state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+          state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
+          ensureStateShape();
           if (typeof updateStats === 'function') updateStats();
           if (typeof updateHistory === 'function') updateHistory();
           if (typeof buildCalendar === 'function') buildCalendar();
@@ -12717,7 +12789,7 @@ async function submitSync() {
     }
 
   } catch (err) {
-    console.error('Auth error:', err);
+    console.error('Auth error[' + classifySyncError(err) + ']:', err);
     let errorMsg = 'エラーが発生しました。';
     if (err.message.includes('Invalid login')) errorMsg = 'メールアドレスまたはパスワードが正しくありません。';
     else if (err.message.includes('already registered')) errorMsg = 'このメールアドレスはすでに登録されています。ログインしてください。';
@@ -12731,19 +12803,21 @@ async function submitSync() {
 }
 
 async function migrateDataToUser(userId) {
+  const sb = getSupabaseClient();
+  if (!sb) return;
   try {
     const deviceId = localStorage.getItem('ippo_device_id');
     if (!deviceId) return;
 
     // records テーブルの device_id のデータに user_id を設定
-    await supabase
+    await sb
       .from('records')
       .update({ user_id: userId })
       .eq('device_id', deviceId)
       .is('user_id', null);
 
     // profiles テーブルも同様
-    await supabase
+    await sb
       .from('profiles')
       .update({ user_id: userId })
       .eq('device_id', deviceId)
@@ -12755,13 +12829,20 @@ async function migrateDataToUser(userId) {
 }
 
 async function syncNow() {
+  const sb = getSupabaseClient();
   const btn = document.querySelector('.sync-action-btn.primary');
+  if (!btn) return;
+  if (!sb || !sb.auth) {
+    btn.textContent = '同期機能の準備中です';
+    setTimeout(() => { btn.textContent = '今すぐ同期'; }, 1500);
+    return;
+  }
   const original = btn.textContent;
   btn.textContent = '同期中...';
   btn.disabled = true;
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     if (!session) throw new Error('Not logged in');
 
     const userId = session.user.id;
@@ -12769,7 +12850,7 @@ async function syncNow() {
 
     // 現在の端末のデータをuser_idに紐付け
     if (deviceId) {
-      await supabase
+      await sb
         .from('records')
         .update({ user_id: userId })
         .eq('device_id', deviceId)
@@ -12786,7 +12867,7 @@ async function syncNow() {
     }, 2000);
 
   } catch (err) {
-    console.error('Sync error:', err);
+    console.error('Sync error[' + classifySyncError(err) + ']:', err);
     btn.textContent = '同期に失敗しました';
     setTimeout(() => {
       btn.textContent = original;
@@ -12797,8 +12878,10 @@ async function syncNow() {
 
 async function logoutSync() {
   showConfirmModal('ログアウトしますか？<br>この端末のデータは残りますが、他の端末との同期が無効になります。', async function() {
+    const sb = getSupabaseClient();
+    if (!sb || !sb.auth) return;
     try {
-      await supabase.auth.signOut();
+      await sb.auth.signOut();
       document.getElementById('syncStatusBrief').textContent = '未ログイン';
       renderSyncUI();
     } catch (err) {
@@ -12809,8 +12892,10 @@ async function logoutSync() {
 
 // ページ読み込み時に同期状態を確認
 (async function checkSyncStatus() {
+  const sb = getSupabaseClient();
+  if (!sb || !sb.auth) return;
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
     const brief = document.getElementById('syncStatusBrief');
     if (brief) {
       brief.textContent = session?.user?.email || '未ログイン';
@@ -13090,9 +13175,10 @@ if (e.target === this) closePremiumLock();
 
 // Supabase認証の準備完了を待ってからプレミアム状態を確認
 var premiumCheckInterval = setInterval(function(){
-  if(typeof supabase !== 'undefined' && supabase.auth){
+  var sb = getSupabaseClient();
+  if(sb && sb.auth){
     clearInterval(premiumCheckInterval);
-    supabase.auth.onAuthStateChange(function(event, session){
+    sb.auth.onAuthStateChange(function(event, session){
       checkPremiumStatus();
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
       // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
