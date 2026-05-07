@@ -4,7 +4,10 @@
 //  CSS は app.html の <link> で読み込み済み
 // ============================================================
 
-import './styles/app.css';
+// CSS は app.html の <link rel="stylesheet"> で読み込み済み。
+// ここで import するとVite以外の環境(npx serve等)でモジュール全体が失敗するため除外。
+
+import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
 
 import { ICONS }              from './constants/icons.js';
 import { DISEASE_CONFIG }     from './constants/disease.js';
@@ -14,6 +17,9 @@ import {
   DISEASE_PRIORITY_SYMPTOMS,
 } from './constants/symptoms.js';
 
-// window アサインは各定数ファイル内で完結
+// window アサインは各ファイル内で完結
 // ここでは re-export として型情報のみ提供（将来の TypeScript 移行用）
-export { ICONS, DISEASE_CONFIG, SYMPTOM_LAYERS, SENSITIVE_SYMPTOMS, DISEASE_PRIORITY_SYMPTOMS };
+export {
+  saveState, loadState, STATE_KEY, INITIAL_STATE,
+  ICONS, DISEASE_CONFIG, SYMPTOM_LAYERS, SENSITIVE_SYMPTOMS, DISEASE_PRIORITY_SYMPTOMS,
+};

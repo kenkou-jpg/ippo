@@ -1838,6 +1838,7 @@ function icon(name, size, color) {
 
 // ===== ナビアイコン注入 =====
 function initNavIcons() {
+  if (typeof ICONS === 'undefined') return;
   var navIcons = {
     'nav-icon-home':         ICONS.home(20, 'currentColor'),
     'nav-icon-calendar':     ICONS.calendar(20, 'currentColor'),
@@ -1853,6 +1854,7 @@ function initNavIcons() {
 
 // ===== 設定画面アイコン注入 =====
 function initSettingsIcons() {
+  if (typeof ICONS === 'undefined') return;
   var map = {
     'settings-icon-profile':   ICONS.user(16, 'var(--rose)'),
     'settings-icon-theme':     ICONS.star(16, 'var(--rose)'),
@@ -3541,24 +3543,7 @@ function manualCloudRestore(){
   });
 }
   
-state = {
-  name: '',
-  records: [],
-  streak: 0,
-  totalDays: 0,
-  fastingActive: false,
-  fastingStart: null,
-  fastGoal: 12,
-  fastTimer: null,
-  rating: 0,
-  myVision: '',
-  lastPeriodDate: null,
-  cycleLength: 28,
-  cycleIrregular: false,
-  birthYear: null,
-  purpose: null,
-  reminderTime: null,
-};
+// state 初期値は src/store/state.js に移設（window.state = INITIAL_STATE）
 
 // Current record being built
 let currentRecord = {};
@@ -3566,14 +3551,7 @@ let currentStep = 0;
 var STEPS = [];
 
 
-function saveState() {
-  try {
-    state.lastSaved = new Date().toISOString();
-    localStorage.setItem('ippo_state', JSON.stringify(state));
-  } catch(e) {
-    console.warn('ippo: localStorage save failed', e);
-  }
-}
+// saveState は src/store/state.js に移設（window.saveState として公開）
 
 // ===== 同期インジケーター =====
 var _syncIndicatorTimer = null;
@@ -5351,7 +5329,11 @@ function buildHomeWeekRow() {
     var cellColor = (pain >= 2) ? 'white' : 'var(--ink)';
     var cellWeight = isToday ? '700' : '500';
 
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
+    var clickable = !isFuture;
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;'
+      + (clickable ? 'cursor:pointer;' : '') + '"'
+      + (clickable ? ' onclick="openDayDetailByDate(\'' + dateStr + '\')"' : '')
+      + '>';
     html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
     html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
       + 'font-size:12px;font-weight:' + cellWeight + ';'
@@ -5362,6 +5344,14 @@ function buildHomeWeekRow() {
   }
   weekRow.innerHTML = html;
   buildPhaseBar(monday);
+}
+
+// ホーム週セルから日付詳細を開くヘルパー（ISO文字列 → calYear/calMonth を設定してから開く）
+function openDayDetailByDate(isoStr) {
+  var d = new Date(isoStr + 'T00:00:00');
+  calYear  = d.getFullYear();
+  calMonth = d.getMonth();
+  openDayDetail(d.getDate());
 }
 
 function getPhaseForDate(date) {
@@ -8678,13 +8668,15 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
-  initNavIcons();
-  initSettingsIcons();
-  // カレンダーナビ矢印をSVGに
-  var calPrevBtn = document.getElementById('calPrev');
-  var calNextBtn = document.getElementById('calNext');
-  if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
-  if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
+  if (typeof ICONS !== 'undefined') {
+    initNavIcons();
+    initSettingsIcons();
+    // カレンダーナビ矢印をSVGに
+    var calPrevBtn = document.getElementById('calPrev');
+    var calNextBtn = document.getElementById('calNext');
+    if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
+    if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
+  }
   updateHomeCTA();
   updateHomeCTAState();
   updateStreakBadge();
