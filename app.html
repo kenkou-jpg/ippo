@@ -3543,7 +3543,26 @@ function manualCloudRestore(){
   });
 }
   
-// state 初期値は src/store/state.js に移設（window.state = INITIAL_STATE）
+// state 初期値（同期アクセスが必要なためインラインで保持。INITIAL_STATE の複製は src/store/state.js を参照）
+// ★ ES モジュールは deferred 実行のため、init() 等インラインスクリプトからは参照できない。
+var state = {
+  name:           '',
+  records:        [],
+  streak:         0,
+  totalDays:      0,
+  fastingActive:  false,
+  fastingStart:   null,
+  fastGoal:       12,
+  fastTimer:      null,
+  rating:         0,
+  myVision:       '',
+  lastPeriodDate: null,
+  cycleLength:    28,
+  cycleIrregular: false,
+  birthYear:      null,
+  purpose:        null,
+  reminderTime:   null,
+};
 
 // Current record being built
 let currentRecord = {};
