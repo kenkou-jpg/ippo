@@ -3570,7 +3570,17 @@ let currentStep = 0;
 var STEPS = [];
 
 
-// saveState は src/store/state.js に移設（window.saveState として公開）
+// saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
+// インラインにも定義を維持する。モジュール実行後は window.saveState が上書きされる。
+function saveState() {
+  try {
+    var s = window.state || state;
+    s.lastSaved = new Date().toISOString();
+    localStorage.setItem('ippo_state', JSON.stringify(s));
+  } catch(e) {
+    console.warn('ippo: saveState failed', e);
+  }
+}
 
 // ===== 同期インジケーター =====
 var _syncIndicatorTimer = null;

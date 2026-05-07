@@ -1,9 +1,13 @@
 // ============================================================
 //  ippo – src/store/state.js
-//  state 初期値 / loadState / saveState を一元管理
+//  state 初期値 / loadState / saveState の型定義・モジュール版
 //
-//  移設元: app.html (state = {...} / function saveState)
-//  ロジック変更なし。構造・キーはすべて原形のまま。
+//  【設計方針】
+//  - app.html の var state / function saveState は ES モジュールが
+//    deferred 実行のためインラインスクリプトから参照できない。
+//    そのため、state の初期宣言と saveState 関数は app.html にも残す。
+//  - このファイルはモジュール読み込み後に window.saveState を上書きし、
+//    ES モジュール環境での型定義・import 用エントリとして機能する。
 // ============================================================
 
 export const STATE_KEY = 'ippo_state';
