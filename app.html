@@ -3543,24 +3543,7 @@ function manualCloudRestore(){
   });
 }
   
-state = {
-  name: '',
-  records: [],
-  streak: 0,
-  totalDays: 0,
-  fastingActive: false,
-  fastingStart: null,
-  fastGoal: 12,
-  fastTimer: null,
-  rating: 0,
-  myVision: '',
-  lastPeriodDate: null,
-  cycleLength: 28,
-  cycleIrregular: false,
-  birthYear: null,
-  purpose: null,
-  reminderTime: null,
-};
+// state 初期値は src/store/state.js に移設（window.state = INITIAL_STATE）
 
 // Current record being built
 let currentRecord = {};
@@ -3568,14 +3551,7 @@ let currentStep = 0;
 var STEPS = [];
 
 
-function saveState() {
-  try {
-    state.lastSaved = new Date().toISOString();
-    localStorage.setItem('ippo_state', JSON.stringify(state));
-  } catch(e) {
-    console.warn('ippo: localStorage save failed', e);
-  }
-}
+// saveState は src/store/state.js に移設（window.saveState として公開）
 
 // ===== 同期インジケーター =====
 var _syncIndicatorTimer = null;
