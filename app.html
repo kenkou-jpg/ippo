@@ -2387,51 +2387,59 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     </button>
   </div>
 
-      <!-- 月次カレンダー（展開可能） -->
+      <!-- カレンダータブへのリンク -->
       <div style="margin:0 20px 20px;">
-        <button onclick="toggleHomeCalendar()" id="home-cal-toggle"
+        <button onclick="switchTab('calendar', document.querySelector('.nav-item[data-tab=calendar]'))"
           style="width:100%;background:none;border:1px dashed var(--rose-light);border-radius:14px;padding:10px 16px;font-family:'Noto Sans JP',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;justify-content:space-between;"
-          aria-expanded="false" aria-controls="home-calendar-panel">
+          aria-label="カレンダータブを開く">
           <span>📅 月次カレンダーを見る</span>
-          <span id="home-cal-arrow" aria-hidden="true">▾</span>
+          <span aria-hidden="true">▸</span>
         </button>
-        <div id="home-calendar-panel" style="display:none;" role="region" aria-label="月次カレンダー">
-          <div class="calendar-section" style="margin:8px 0 0;">
-            <div class="cal-header">
-              <div class="cal-label" id="calLabel"></div>
-              <div class="cal-nav">
-                <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
-                <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
-              </div>
-            </div>
-            <div class="cal-weekdays">
-              <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
-            </div>
-            <div class="cal-grid" id="calGrid"></div>
-            <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
-              <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
-              <div style="display:flex;gap:3px;">
-                <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
-                <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
-                <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
-                <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
-                <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
-              </div>
-              <span style="font-size:10px;color:var(--ink-light);">強い</span>
-            </div>
-          </div>
-        </div>
       </div>
+   </div>
 
+   <!-- ===== CALENDAR SCREEN ===== -->
+   <div id="screen-calendar" class="screen">
+     <div class="spacer-top"></div>
+     <div style="padding:0 24px 16px;">
+       <div class="home-greeting serif">カレンダー</div>
+       <div class="home-date" id="cal-screen-month-label"></div>
+     </div>
+     <div class="calendar-section">
+       <div class="cal-header">
+         <div class="cal-label" id="calLabel"></div>
+         <div class="cal-nav">
+           <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月"></button>
+           <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月"></button>
+         </div>
+       </div>
+       <div class="cal-weekdays">
+         <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+       </div>
+       <div class="cal-grid" id="calGrid"></div>
+       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
+         <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
+         <div style="display:flex;gap:3px;">
+           <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
+           <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
+           <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
+           <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
+           <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
+         </div>
+         <span style="font-size:10px;color:var(--ink-light);">強い</span>
+       </div>
+     </div>
+     <!-- 月別サマリーカード -->
+     <div id="cal-monthly-summary" style="margin:0 24px 20px;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);"></div>
+   </div>
 
-      <!-- Day Detail Modal -->
-      <div class="dm-overlay" id="dmOverlay">
-        <div class="dm-box">
-          <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
-          <div class="dm-date" id="dmDate"></div>
-          <div id="dmBody"></div>
-        </div>
-      </div>
+   <!-- Day Detail Modal（グローバル・固定） -->
+   <div class="dm-overlay" id="dmOverlay">
+     <div class="dm-box">
+       <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
+       <div class="dm-date" id="dmDate"></div>
+       <div id="dmBody"></div>
+     </div>
    </div>
 
      <!-- ===== INSIGHTS SCREEN ===== -->
@@ -2719,19 +2727,23 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
      <!-- ===== BOTTOM NAV ===== -->
       <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
-      <button class="nav-item" type="button" onclick="switchTab('home', this)" aria-label="ホーム">
+      <button class="nav-item" type="button" onclick="switchTab('home', this)" data-tab="home" aria-label="ホーム">
         <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
         <span>ホーム</span>
       </button>
-      <button class="nav-item" type="button" onclick="switchTab('insights', this)" aria-label="インサイト">
-        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
-        <span>インサイト</span>
+      <button class="nav-item" type="button" onclick="switchTab('calendar', this)" data-tab="calendar" aria-label="カレンダー">
+        <span class="nav-icon" id="nav-icon-calendar" aria-hidden="true"></span>
+        <span>カレンダー</span>
       </button>
       <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
-      <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
+      <button class="nav-item" type="button" onclick="switchTab('insights', this)" data-tab="insights" aria-label="インサイト">
+        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
+        <span>インサイト</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchTab('settings', this)" data-tab="settings" aria-label="設定">
         <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
         <span>設定</span>
       </button>
@@ -4091,6 +4103,7 @@ function icon(name, size, color) {
 function initNavIcons() {
   var navIcons = {
     'nav-icon-home':     ICONS.home(20, 'currentColor'),
+    'nav-icon-calendar': ICONS.calendar(20, 'currentColor'),
     'nav-icon-insights': ICONS.insights(20, 'currentColor'),
     'nav-icon-plus':     ICONS.plus(22, 'white'),
     'nav-icon-settings': ICONS.settings(20, 'currentColor')
@@ -8216,9 +8229,7 @@ function switchTab(tab, btn) {
   if (btn) btn.classList.add('active');
 
 
-    if (tab === 'insights') {
-    // 現在アクティブなタブのまま再描画（初回は無料の発見）
-    var activePane = document.querySelector('#ins-pane-free, #ins-pane-pro, #ins-pane-doctor');
+  if (tab === 'insights') {
     var activePaneName = 'free';
     if (document.getElementById('ins-pane-pro') && document.getElementById('ins-pane-pro').style.display === 'block') activePaneName = 'pro';
     if (document.getElementById('ins-pane-doctor') && document.getElementById('ins-pane-doctor').style.display === 'block') activePaneName = 'doctor';
@@ -8234,7 +8245,11 @@ function switchTab(tab, btn) {
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
     if (typeof updateTodayMessage === 'function') updateTodayMessage();
   }
+  if (tab === 'calendar') {
+    buildCalendar();
+    renderCalendarMonthlySummary();
   }
+}
 　
 
 
@@ -11060,11 +11075,50 @@ function buildCalendar(){
   }
 }
 
+// カレンダータブ：月別サマリーカード描画
+function renderCalendarMonthlySummary() {
+  var el = document.getElementById('cal-monthly-summary');
+  if (!el) return;
+  var monthStr = calYear + '-' + String(calMonth + 1).padStart(2, '0');
+  var recs = state.records.filter(function(r) {
+    return r.date && r.date.slice(0, 7) === monthStr;
+  });
+  if (recs.length === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + calYear + '年' + (calMonth + 1) + '月の記録はまだありません</div>';
+    return;
+  }
+  // 集計
+  var painTotal = 0, painCount = 0, symptomMap = {};
+  recs.forEach(function(r) {
+    if (r.painLevel !== null && r.painLevel !== undefined) { painTotal += r.painLevel; painCount++; }
+    if (r.symptoms) r.symptoms.forEach(function(s) { symptomMap[s] = (symptomMap[s] || 0) + 1; });
+  });
+  var avgPain = painCount > 0 ? (painTotal / painCount).toFixed(1) : '—';
+  var topSymptoms = Object.keys(symptomMap).sort(function(a, b) { return symptomMap[b] - symptomMap[a]; }).slice(0, 3);
+  var html = '<div style="display:flex;gap:16px;margin-bottom:10px;">';
+  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + recs.length + '</div><div style="font-size:10px;color:var(--ink-light);">記録日数</div></div>';
+  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + avgPain + '</div><div style="font-size:10px;color:var(--ink-light);">平均痛みレベル</div></div>';
+  html += '</div>';
+  if (topSymptoms.length > 0) {
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">多かった症状</div>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+    topSymptoms.forEach(function(s) {
+      html += '<span style="background:var(--rose-pale);color:var(--rose-dark);border-radius:20px;padding:3px 10px;font-size:11px;">' + s + ' <span style="opacity:0.6;">×' + symptomMap[s] + '</span></span>';
+    });
+    html += '</div>';
+  }
+  // month label サブタイトル更新
+  var subLabel = document.getElementById('cal-screen-month-label');
+  if (subLabel) subLabel.textContent = calYear + '年 ' + (calMonth + 1) + '月 — ' + recs.length + '件の記録';
+  el.innerHTML = html;
+}
+
 function changeMonth(delta){
   calMonth += delta;
   if(calMonth > 11){ calMonth = 0; calYear++; }
   if(calMonth < 0){ calMonth = 11; calYear--; }
   buildCalendar();
+  renderCalendarMonthlySummary();
 }
 
 document.addEventListener('DOMContentLoaded', function(){
