@@ -2285,8 +2285,15 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
           <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
           <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
         </div>
-        <div id="home-phase-badge" style="display:none;padding-top:3px;">
-          <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+          <button type="button" onclick="switchTab('settings')" aria-label="設定を開く"
+            style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
+            id="home-settings-btn">
+            <span id="home-settings-icon" aria-hidden="true"></span>
+          </button>
+          <div id="home-phase-badge" style="display:none;">
+            <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -2387,24 +2394,11 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     </button>
   </div>
 
-      <!-- カレンダータブへのリンク -->
-      <div style="margin:0 20px 20px;">
-        <button onclick="switchTab('calendar', document.querySelector('.nav-item[data-tab=calendar]'))"
-          style="width:100%;background:none;border:1px dashed var(--rose-light);border-radius:14px;padding:10px 16px;font-family:'Noto Sans JP',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;display:flex;align-items:center;justify-content:space-between;"
-          aria-label="カレンダータブを開く">
-          <span>📅 月次カレンダーを見る</span>
-          <span aria-hidden="true">▸</span>
-        </button>
-      </div>
    </div>
 
    <!-- ===== CALENDAR SCREEN ===== -->
    <div id="screen-calendar" class="screen">
      <div class="spacer-top"></div>
-     <div style="padding:0 24px 16px;">
-       <div class="home-greeting serif">カレンダー</div>
-       <div class="home-date" id="cal-screen-month-label"></div>
-     </div>
      <div class="calendar-section">
        <div class="cal-header">
          <div class="cal-label" id="calLabel"></div>
@@ -2417,20 +2411,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
        </div>
        <div class="cal-grid" id="calGrid"></div>
-       <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
-         <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
-         <div style="display:flex;gap:3px;">
-           <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
-           <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
-           <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
-           <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
-           <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
-         </div>
-         <span style="font-size:10px;color:var(--ink-light);">強い</span>
-       </div>
      </div>
-     <!-- 月別サマリーカード -->
-     <div id="cal-monthly-summary" style="margin:0 24px 20px;background:white;border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);"></div>
    </div>
 
    <!-- Day Detail Modal（グローバル・固定） -->
@@ -2742,10 +2723,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       <button class="nav-item" type="button" onclick="switchTab('insights', this)" data-tab="insights" aria-label="インサイト">
         <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
         <span>インサイト</span>
-      </button>
-      <button class="nav-item" type="button" onclick="switchTab('settings', this)" data-tab="settings" aria-label="設定">
-        <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
-        <span>設定</span>
       </button>
     </nav>
 
@@ -3153,7 +3130,11 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
    <!-- SETTINGS -->
     <div id="screen-settings" class="screen">
       <div class="spacer-top"></div>
-      <div class="settings-header">
+      <div class="settings-header" style="display:flex;align-items:center;gap:12px;">
+        <button type="button" onclick="switchTab('home', document.querySelector('.nav-item[data-tab=home]'))" aria-label="ホームに戻る"
+          style="width:36px;height:36px;border-radius:50%;background:var(--rose-pale);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--rose-dark);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
         <div class="settings-title">設定</div>
       </div>
 
@@ -4102,11 +4083,11 @@ function icon(name, size, color) {
 // ===== ナビアイコン注入 =====
 function initNavIcons() {
   var navIcons = {
-    'nav-icon-home':     ICONS.home(20, 'currentColor'),
-    'nav-icon-calendar': ICONS.calendar(20, 'currentColor'),
-    'nav-icon-insights': ICONS.insights(20, 'currentColor'),
-    'nav-icon-plus':     ICONS.plus(22, 'white'),
-    'nav-icon-settings': ICONS.settings(20, 'currentColor')
+    'nav-icon-home':         ICONS.home(20, 'currentColor'),
+    'nav-icon-calendar':     ICONS.calendar(20, 'currentColor'),
+    'nav-icon-insights':     ICONS.insights(20, 'currentColor'),
+    'nav-icon-plus':         ICONS.plus(22, 'white'),
+    'home-settings-icon':    ICONS.settings(18, 'rgba(255,255,255,0.9)')
   };
   Object.keys(navIcons).forEach(function(id) {
     var el = document.getElementById(id);
@@ -8247,7 +8228,6 @@ function switchTab(tab, btn) {
   }
   if (tab === 'calendar') {
     buildCalendar();
-    renderCalendarMonthlySummary();
   }
 }
 　
