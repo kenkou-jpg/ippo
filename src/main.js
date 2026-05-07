@@ -4,7 +4,8 @@
 //  CSS は app.html の <link> で読み込み済み
 // ============================================================
 
-import './styles/app.css';
+// CSS は app.html の <link rel="stylesheet"> で読み込み済み。
+// ここで import するとVite以外の環境(npx serve等)でモジュール全体が失敗するため除外。
 
 import { ICONS }              from './constants/icons.js';
 import { DISEASE_CONFIG }     from './constants/disease.js';
