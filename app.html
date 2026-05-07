@@ -10,10 +10,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ippo — 女性疾患・症状記録アプリ</title>
-<meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。生理周期・痛み・気分を可視化し、30日後にあなただけのからだのパターンが見えてきます。">
-<meta name="theme-color" content="#b8707a">
   <!-- OGP Meta Tags -->
-<link rel="manifest" href="manifest.json">
+ <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="images/icon-512.png">
 
 <meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
@@ -33,8 +31,2104 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/src/styles/app.css">
-<script type="module" src="/src/main.js"></script>
+<style>
+:root {
+  /* === Primary: Soft Sakura（画像ベース） === */
+  --rose: #c8747b;  /* 実測値に修正 */
+  --rose-light: #ecd0d2;
+  --rose-pale: #f7f2f2;
+  --plum: #b14e56;
+  --plum-light: #c06870;
+  --gold: #e8b870;
+  --gold-light: #fdf0d8;
+  --sage: #8abf9a;
+  --sage-light: #d8f0e0;
+
+  /* === Text（変更なし） === */
+  --ink: #2d1f1a;
+  --ink-mid: #4a3830;
+  --ink-light: #8a7a70;
+
+  /* === Background === */
+  --cream: #fdf8f6;
+  --white: #ffffff;
+  --shadow: rgba(200,120,140,0.10);
+
+  /* === Layout backgrounds === */
+  --header-bg: linear-gradient(160deg, #fef0f3 0%, #fdf8f6 100%);
+  --nav-bg: linear-gradient(180deg, #ffffff 0%, #fef5f7 100%);
+  --nav-border: rgba(200,120,140,0.10);
+  --fasting-bg: linear-gradient(135deg, #2c1820 0%, #3d2830 100%);
+  --fasting-spot: rgba(232,145,158,0.22);
+
+  /* === CTA card gradients === */
+  --cta-default: linear-gradient(135deg, #f8c0ca 0%, #e8919e 100%);
+  --cta-done:    linear-gradient(135deg, #c0dac8 0%, #8abf9a 100%);
+  --cta-period:  linear-gradient(135deg, #f0a0a8 0%, #d86878 100%);
+}
+
+/* ═══════════════════════════════════════════════════════
+   テーマ 1: 珊瑚 (Sango / Coral)
+   「エネルギッシュ・ウェルネス」— CLUEインスパイア
+   色彩心理: 情熱・活力・記録意欲を高める暖色
+   ═══════════════════════════════════════════════════════ */
+[data-theme="coral"] {
+  --rose:        #c78974;
+  --rose-light:  #ecd6cf;
+  --rose-pale:   #f7f3f2;
+  --plum:        #b15b3e;
+  --plum-light:  #c07962;
+  --cream:       #fdf8f5;
+  --shadow:      rgba(160,80,50,0.10);
+  --header-bg:   linear-gradient(160deg, #f7f0ee 0%, #fdf8f5 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f7f3f2 100%);
+  --nav-border:  rgba(180,80,55,0.09);
+  --fasting-bg:  linear-gradient(135deg, #28140c 0%, #3c1e10 100%);
+  --fasting-spot: rgba(199,137,116,0.25);
+  --cta-default: linear-gradient(135deg, #e0c9c1 0%, #c78974 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
+}
+/* ═══════════════════════════════════════════════════════
+   テーマ 2: 深夜 (Shinya / Midnight)
+   「プレミアム・エンパワーメント」— ダークモード
+   色彩心理: 集中・特別感・夜間使用でも目に優しい
+   ═══════════════════════════════════════════════════════ */
+[data-theme="midnight"] {
+  --rose: #ff90bb;
+  --rose-light: #5a1e3a;
+  --rose-pale: #3a1028;
+  --plum: #ffbbd5;
+  --plum-light: #dd88b0;
+  --gold: #e8b870;
+  --ink: #f5eef8;
+  --ink-mid: #d0b8e0;
+  --ink-light: #987898;
+  --cream: #1a1020;
+  --white: #261830;
+  --shadow: rgba(0,0,0,0.35);
+  --header-bg: linear-gradient(160deg, #1e1228 0%, #1a1020 100%);
+  --nav-bg: linear-gradient(180deg, #261830 0%, #1a1020 100%);
+  --nav-border: rgba(255,144,187,0.14);
+  --fasting-bg: linear-gradient(135deg, #22103a 0%, #2e1848 100%);
+  --fasting-spot: rgba(255,144,187,0.20);
+  --cta-default: linear-gradient(135deg, #6a2858 0%, #48103e 100%);
+  --cta-done:    linear-gradient(135deg, #1c4a38 0%, #102e24 100%);
+  --cta-period:  linear-gradient(135deg, #7a1848 0%, #580a30 100%);
+}
+
+/* ═══════════════════════════════════════════════════════
+   テーマ 3: 若葉 (Wakaba / Fresh Leaf)
+   「ナチュラル・バランス」— 自然・健康
+   色彩心理: 安心・回復・健康的な習慣の継続を促す
+   ═══════════════════════════════════════════════════════ */
+[data-theme="forest"] {
+  --rose:        #74c797;
+  --rose-light:  #cfecdb;
+  --rose-pale:   #f2f7f4;
+  --plum:        #3eb16e;
+  --plum-light:  #62c089;
+  --cream:       #f4faf6;
+  --shadow:      rgba(30,100,60,0.09);
+  --header-bg:   linear-gradient(160deg, #eaf7f0 0%, #f4faf6 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f2f7f4 100%);
+  --nav-border:  rgba(40,130,75,0.08);
+  --fasting-bg:  linear-gradient(135deg, #101e14 0%, #182a1e 100%);
+  --fasting-spot: rgba(116,199,151,0.25);
+  --cta-default: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-done:    linear-gradient(135deg, #c1e0ce 0%, #5aaa80 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
+}
+/* ═══════════════════════════════════════════════════════
+   テーマ 4: 空 (Sora / Sky)
+   「信頼と集中」— クリアブルー
+   色彩心理: 信頼感・冷静・明晰な思考を助ける
+   ═══════════════════════════════════════════════════════ */
+[data-theme="sky"] {
+  --rose:        #74a5c7;
+  --rose-light:  #cfe0ec;
+  --rose-pale:   #f2f5f7;
+  --plum:        #3e81b1;
+  --plum-light:  #6299c0;
+  --cream:       #f4f8fc;
+  --shadow:      rgba(20,80,130,0.09);
+  --header-bg:   linear-gradient(160deg, #eaf2f7 0%, #f4f8fc 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f2f5f7 100%);
+  --nav-border:  rgba(30,100,160,0.08);
+  --fasting-bg:  linear-gradient(135deg, #0a1828 0%, #10243a 100%);
+  --fasting-spot: rgba(116,165,199,0.25);
+  --cta-default: linear-gradient(135deg, #c1d3e0 0%, #74a5c7 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
+}
+/* ═══════════════════════════════════════════════════════
+   テーマ 5: 蜂蜜 (Hachimitsu / Honey)
+   「温もりと達成感」— ウォームアンバー
+   色彩心理: 親しみやすさ・達成感・記録の喜びを演出
+   ═══════════════════════════════════════════════════════ */
+[data-theme="honey"] {
+  --rose:        #c7a574;
+  --rose-light:  #ece0cf;
+  --rose-pale:   #f7f5f2;
+  --plum:        #b1813e;
+  --plum-light:  #c09962;
+  --cream:       #fdfaf4;
+  --shadow:      rgba(120,80,20,0.09);
+  --header-bg:   linear-gradient(160deg, #f7f2ea 0%, #fdfaf4 100%);
+  --nav-bg:      linear-gradient(180deg, #ffffff 0%, #f7f5f2 100%);
+  --nav-border:  rgba(150,100,25,0.08);
+  --fasting-bg:  linear-gradient(135deg, #281808 0%, #3c2410 100%);
+  --fasting-spot: rgba(199,165,116,0.25);
+  --cta-default: linear-gradient(135deg, #e0d3c1 0%, #c7a574 100%);
+  --cta-done: linear-gradient(135deg, #c1e0ce 0%, #74c797 100%);
+  --cta-period:  linear-gradient(135deg, #e0b8bc 0%, #c8747b 100%);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===== ローディングスピナー ===== */
+@keyframes ippo-spin { to { transform: rotate(360deg); } }
+.ippo-spinner {
+  width: 20px; height: 20px;
+  border: 2.5px solid var(--shadow);
+  border-top-color: var(--rose);
+  border-radius: 50%;
+  animation: ippo-spin 0.7s linear infinite;
+  display: inline-block;
+  flex-shrink: 0;
+}
+#ippo-sync-indicator {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 70px);
+  right: 16px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(200,180,170,0.25);
+  border-radius: 20px;
+  padding: 6px 12px 6px 10px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  box-shadow: 0 2px 12px rgba(45,31,26,0.12);
+  z-index: 200;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+html { scroll-behavior: smooth; }
+
+  /* === Premium Feel: ナビバー === */
+.nav-bar {
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+}
+.nav-item.active {
+  color: var(--plum);
+}
+
+/* === Premium Feel: ヘッダー === */
+.home-header {
+  background: linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
+  color: white;
+}
+.home-header .today-date,
+.home-header .greeting {
+  color: rgba(255,255,255,0.9);
+}
+.app-logo span {
+  color: var(--gold);
+}
+
+/* === Premium Feel: CTAカード === */
+#home-cta-card {
+  background: var(--cta-default);
+}
+
+/* === Premium Feel: カレンダー === */
+.cal-day.today {
+  background: var(--plum);
+  color: white;
+  box-shadow: 0 2px 8px rgba(90,45,61,0.3);
+}
+.cal-day.has-record::after {
+  background: var(--gold) !important;
+}
+.cal-day.today.has-record::after {
+  background: white !important;
+}
+
+/* === Premium Feel: チップ選択 === */
+.chip.selected {
+  background: var(--rose-pale);
+  border-color: var(--rose);
+  color: var(--plum);
+}
+
+/* === Premium Feel: ファスティングボタン === */
+.fw-btn.start {
+  background: linear-gradient(135deg, var(--plum) 0%, var(--rose) 100%);
+}
+.fw-pill.active {
+  background: var(--plum);
+  border-color: var(--plum);
+  color: white;
+}
+
+/* === Premium Feel: マイルストーン === */
+.unlock-badge.unlocked {
+  background: var(--gold-light);
+  color: var(--gold);
+}
+
+/* === Premium Feel: ボタン全般 === */
+.record-btn-main {
+  background: linear-gradient(135deg, var(--plum) 0%, var(--rose) 100%);
+  box-shadow: 0 4px 15px rgba(90,45,61,0.25);
+}
+.record-btn-main:hover {
+  background: linear-gradient(135deg, var(--rose) 0%, var(--plum) 100%);
+  box-shadow: 0 6px 20px rgba(90,45,61,0.35);
+}
+
+/* === Premium Feel: タブ === */
+.sg-tab.active {
+  background: var(--plum);
+  color: white;
+}
+
+/* === Premium Feel: ステップドット === */
+.step-dot.active {
+  background: var(--gold);
+}
+
+/* === Premium Feel: タイムライン === */
+.tl-dot {
+  background: var(--gold);
+}
+
+/* === Premium Feel: プレミアム画面差別化 === */
+.premium-lock-btn {
+  background: linear-gradient(135deg, var(--gold) 0%, #d4b878 100%) !important;
+  color: var(--plum) !important;
+  font-weight: 600;
+}
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== TYPOGRAPHY ===== */
+h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
+
+/* ===== LAYOUT ===== */
+#app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; }
+
+/* ===== SCREENS ===== */
+.screen { display: none; min-height: 100vh; padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)); }
+.screen.active { display: block; }
+
+/* ===== ONBOARDING ===== */
+#screen-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 32px;
+  background: linear-gradient(160deg, #fdf3f3 0%, #faf6f2 50%, #f0ebe6 100%);
+  text-align: center;
+}
+
+.welcome-logo {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--rose);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* ===== ONBOARDING STEPS ===== */
+.ob-step { width: 100%; animation: fadeIn 0.25s ease; }
+.ob-question {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.ob-hint {
+  font-size: 12px;
+  color: var(--ink-light);
+  line-height: 1.7;
+  margin-bottom: 16px;
+}
+.ob-chip {
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1.5px solid #e8ddd8;
+  background: var(--white);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+  font-family: 'Noto Sans JP', sans-serif;
+  width: 100%;
+}
+.ob-chip:active { transform: scale(0.98); }
+.ob-chip.selected {
+  border-color: var(--rose);
+  background: var(--rose-pale);
+  color: var(--plum);
+}
+.ob-chip-inline {
+  padding: 9px 16px;
+  border-radius: 20px;
+  border: 1.5px solid #e8ddd8;
+  background: var(--white);
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.ob-chip-inline.selected {
+  border-color: var(--rose);
+  background: var(--rose-pale);
+  color: var(--plum);
+}
+.ob-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #e8ddd8;
+  transition: background 0.2s;
+}
+.ob-dot.active { background: var(--rose); }
+
+.welcome-tagline {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  line-height: 1.6;
+  color: var(--ink);
+  margin-bottom: 12px;
+}
+
+.welcome-sub {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+/* ===== BEFORE/AFTER CARDS ===== */
+.before-after {
+  width: 100%;
+  margin-bottom: 40px;
+}
+.ba-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--ink-light);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.ba-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.ba-card {
+  background: var(--white);
+  border-radius: 14px;
+  padding: 16px 14px;
+  text-align: left;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.ba-card.after {
+  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
+  border: 1px solid var(--rose-light);
+}
+.ba-card-tag {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-block;
+  margin-bottom: 10px;
+  font-weight: 500;
+}
+.ba-card.before .ba-card-tag { background: #f0ebe6; color: var(--ink-light); }
+.ba-card.after .ba-card-tag { background: var(--rose-light); color: var(--rose); }
+.ba-card-text {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink-mid);
+}
+.ba-card.after .ba-card-text { color: var(--ink); }
+.ba-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0;
+  color: var(--rose);
+  font-size: 18px;
+}
+
+.welcome-name-section { width: 100%; }
+.welcome-name-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 16px;
+  color: var(--ink);
+}
+.welcome-input {
+  width: 100%;
+  border: none;
+  border-bottom: 2px solid var(--rose-light);
+  background: transparent;
+  font-size: 18px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink);
+  padding: 10px 4px;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.3s;
+  margin-bottom: 32px;
+}
+.welcome-input:focus { border-color: var(--rose); }
+.welcome-input::placeholder { color: var(--ink-light); font-size: 14px; }
+
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 0.05em;
+}
+.btn-primary:hover { background: #FF8A8A; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,107,107,0.3); }
+
+.btn-skip {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 8px;
+}
+
+/* ===== APP HEADER BAR ===== */
+.app-header-bar {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: rgba(250,246,242,0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(200,180,170,0.15);
+}
+.app-logo {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+.app-logo span { color: var(--rose); }
+.app-header-link {
+  font-size: 0.7rem;
+  color: var(--ink-light);
+  text-decoration: none;
+  padding: 5px 12px;
+  border: 1px solid rgba(200,180,170,0.3);
+  border-radius: 20px;
+  transition: all 0.2s;
+}
+.app-header-link:hover {
+  color: var(--rose);
+  border-color: var(--rose-light);
+}
+
+  
+/* ===== NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: rgba(250,246,242,0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(200,180,170,0.2);
+  display: flex;
+  z-index: 100;
+  padding: 6px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+}
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 4px;
+  min-height: 44px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--ink-light);
+  font-size: 9px;
+  font-family: 'Noto Sans JP', sans-serif;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  gap: 3px;
+}
+.nav-item.active { color: var(--rose); }
+.nav-icon { font-size: 20px; line-height: 1; }
+
+/* ===== HOME ===== */
+.home-header {
+  padding: max(20px, env(safe-area-inset-top, 20px)) 24px 0;
+  background: var(--header-bg);
+}
+.home-greeting {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.home-date {
+  font-size: 12px;
+  color: var(--ink-light);
+  letter-spacing: 0.05em;
+  margin-bottom: 24px;
+}
+
+/* ===== FASTING TIMER WIDGET ===== */
+.fasting-widget {
+  background: var(--fasting-bg);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 0 24px 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.fasting-widget::before {
+  content: '';
+  position: absolute;
+  top: -20px; right: -20px;
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: var(--fasting-spot);
+}
+.fw-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
+.fw-timer {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin-bottom: 4px;
+}
+.fw-status { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
+.fw-buttons { display: flex; gap: 8px; }
+.fw-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.fw-btn.start { background: var(--rose); color: white; }
+.fw-btn.stop { background: rgba(255,255,255,0.15); color: white; }
+.fw-btn:hover { opacity: 0.85; }
+.fw-goal-pills { display: flex; gap: 6px; margin-bottom: 14px;pointer-events: auto;  /* ← 追加 */ }
+.fw-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.7);
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+  pointer-events: auto;  /* ← 追加 */
+  position: relative;    /* ← 追加 */
+  z-index: 10;           /* ← 追加 */
+}
+.fw-pill.active { background: var(--rose); color: white; border-color: var(--rose); }
+
+/* ===== MILESTONE BADGE ===== */
+.milestone-row {
+  display: flex;
+  gap: 10px;
+  padding: 0 24px;
+  margin-bottom: 20px;
+}
+.milestone-card {
+  flex: 1;
+  background: var(--white);
+  border-radius: 16px;
+  padding: 14px;
+  text-align: center;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.mc-number {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mc-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; }
+.mc-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== UNLOCK PROGRESS ===== */
+.unlock-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.unlock-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.unlock-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.unlock-days {
+  font-size: 12px;
+  color: var(--rose);
+  font-weight: 500;
+}
+.unlock-items { display: flex; flex-direction: column; gap: 10px; }
+.unlock-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.unlock-icon {
+  width: 36px; height: 36px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.unlock-icon.locked { background: #f0ebe6; filter: grayscale(1); }
+.unlock-icon.unlocked { background: var(--rose-light); }
+.unlock-text { flex: 1; }
+.unlock-text-title { font-size: 13px; color: var(--ink); font-weight: 500; }
+.unlock-text-sub { font-size: 11px; color: var(--ink-light); }
+.unlock-badge {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.unlock-badge.unlocked { background: var(--rose-light); color: var(--rose); }
+.unlock-badge.locked { background: #f0ebe6; color: var(--ink-light); }
+.progress-bar-wrap { margin: 14px 0 0; }
+.progress-bar-bg {
+  background: #f0ebe6;
+  border-radius: 10px;
+  height: 6px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--rose-light), var(--rose));
+  transition: width 1s ease;
+}
+.progress-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+.pb-label {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.pb-label.active { color: var(--rose); font-weight: 500; }
+
+/* ===== TODAY MESSAGE ===== */
+.today-msg {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 20px;
+  padding: 20px;
+  border-left: 3px solid var(--rose);
+}
+.tm-label { font-size: 10px; letter-spacing: 0.2em; color: var(--rose); margin-bottom: 8px; text-transform: uppercase; }
+.tm-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+/* ===== RECORD BUTTON ===== */
+.record-cta {
+  margin: 0 24px 24px;
+}
+.record-btn-main {
+  width: 100%;
+  padding: 18px;
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 16px;
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s;
+}
+.record-btn-main:hover { background: var(--rose); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(44,36,32,0.2); }
+
+/* ===== SECTION CARD ===== */
+.section-card {
+  margin: 0 20px 16px;
+  background: var(--white);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.section-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rose);
+  letter-spacing: 0.1em;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.section-label::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 11px;
+  background: var(--rose);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.section-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+/* ===== NAV CENTER BUTTON ===== */
+.nav-record-btn { flex: 1.3; }
+.nav-record-ring {
+  width: 52px; height: 52px;
+  background: linear-gradient(135deg, var(--rose-light), var(--rose));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 26px; font-weight: 300;
+  box-shadow: 0 4px 16px rgba(184,112,122,0.38);
+  margin-top: -18px;
+  line-height: 1;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.nav-record-btn:active .nav-record-ring {
+  transform: scale(0.93);
+  box-shadow: 0 2px 8px rgba(184,112,122,0.25);
+}
+
+/* ===== SHARE CARD ===== */
+.share-section {
+  margin: 0 24px 20px;
+}
+.share-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--white);
+  border: 1.5px solid var(--rose-light);
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: var(--rose);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: var(--rose-pale); }
+
+/* ===== INSIGHTS ===== */
+#screen-insights { padding: 52px 0 80px; }
+
+.insights-header {
+  padding: 0 24px 24px;
+}
+.insights-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 24px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.insights-sub { font-size: 13px; color: var(--ink-light); }
+
+/* ===== SAMPLE GRAPH (demo) ===== */
+.sample-graph-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.sg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+.sg-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.sg-tabs { display: flex; gap: 4px; }
+.sg-tab {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-light);
+  transition: all 0.2s;
+}
+.sg-tab.active { background: var(--rose); color: white; }
+
+.demo-graph { position: relative; }
+.demo-chart-svg { width: 100%; height: 120px; }
+
+.demo-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(250,246,242,0.7);
+  backdrop-filter: blur(3px);
+  border-radius: 8px;
+}
+.demo-overlay-inner { text-align: center; }
+.demo-overlay-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+.demo-overlay-sub { font-size: 11px; color: var(--ink-light); }
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+  margin: 0 24px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-card {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 10px var(--shadow);
+}
+.stat-label { font-size: 10px; color: var(--ink-light); letter-spacing: 0.05em; margin-bottom: 6px; }
+.stat-value {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 26px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.stat-unit { font-size: 11px; color: var(--ink-mid); }
+
+/* ===== PATTERN MESSAGE ===== */
+.pattern-section {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink) 0%, #3d302a 100%);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+}
+.ps-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); margin-bottom: 12px; }
+.ps-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  line-height: 1.9;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 16px;
+}
+.ps-locked {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255,255,255,0.07);
+  border-radius: 12px;
+  font-size: 12px;
+  color: rgba(255,255,255,0.5);
+}
+
+/* ===== RECORD MODAL ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.5);
+  z-index: 200;
+  display: none;
+  align-items: flex-end;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.active { display: flex; }
+
+.modal-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+/* モーダルのスプリングアニメーション */
+.modal-overlay.active .modal-sheet {
+  animation: slideUpModal 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes slideUpModal {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+/* CTAカードのトランジション */
+#home-cta-card { transition: background 0.5s ease, opacity 0.3s ease; }
+/* 症状詳細の展開アニメーション */
+[id^="sd-detail-"] { overflow: hidden; }
+/* 記録完了サクセスオーバーレイのポップイン */
+.success-overlay.active .success-card {
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.85); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+/* スライダースタイル */
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--rose);
+  box-shadow: 0 2px 6px rgba(184,112,122,0.4);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+
+.modal-header {
+  padding: 0 24px 20px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.modal-step-indicator {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.step-dot {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: #f0ebe6;
+  transition: background 0.3s;
+}
+.step-dot.active { background: var(--rose); }
+.step-dot.done { background: var(--sage); }
+
+.modal-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.modal-subtitle { font-size: 12px; color: var(--ink-light); }
+
+.modal-body { padding: 0 24px; }
+
+/* ===== SCORE SELECTOR ===== */
+.score-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.score-btn {
+  flex: 1;
+  padding: 14px 4px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--white);
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.score-btn:hover { border-color: var(--rose-light); }
+.score-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.score-btn { transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease; }
+.score-btn:active { transform: scale(0.95); }
+.score-label { font-size: 9px; color: var(--ink-light); font-family: 'Noto Sans JP', sans-serif; margin-top: 2px; display: block; }
+
+
+
+/* ===== CHIP SELECTORS ===== */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.chip {
+  padding: 8px 14px;
+  border-radius: 20px;
+  background: var(--white);
+  border: 1.5px solid #e8ddd8;
+  font-size: 12px;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+.chip:hover { border-color: var(--rose-light); }
+.chip.selected { background: var(--rose-pale); border-color: var(--rose); color: var(--rose); }
+.chip { transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease; }
+.chip:active { transform: scale(0.96); }
+
+.symp-tab {
+  flex: 1;
+  padding: 7px 4px;
+  border: 1.5px solid var(--cream);
+  border-radius: 10px;
+  background: transparent;
+  font-size: 11px;
+  font-family: 'Noto Sans JP', sans-serif;
+  color: var(--ink-mid);
+  cursor: pointer;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.symp-tab.symp-tab-active {
+  background: var(--rose);
+  color: white;
+  border-color: var(--rose);
+  font-weight: 600;
+}
+
+/* ===== EMOTION SELECTOR ===== */
+.emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.emotion-btn {
+  padding: 14px 8px;
+  border-radius: 16px;
+  background: var(--white);
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px var(--shadow);
+}
+.emotion-btn:hover { border-color: var(--rose-light); }
+.emotion-btn.selected { border-color: var(--rose); background: var(--rose-pale); }
+.emotion-emoji { font-size: 24px; display: block; margin-bottom: 4px; }
+.emotion-label { font-size: 11px; color: var(--ink-mid); line-height: 1.4; }
+
+/* ===== TEXTAREA ===== */
+.modal-textarea {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 14px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  resize: none;
+  outline: none;
+  min-height: 80px;
+  transition: border-color 0.2s;
+  margin-bottom: 24px;
+}
+.modal-textarea:focus { border-color: var(--rose); }
+.modal-textarea::placeholder { color: var(--ink-light); }
+
+/* ===== MODAL FOOTER ===== */
+.modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 20px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.btn-secondary {
+  flex: 1;
+  padding: 14px;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: #e8ddd8; }
+.btn-save {
+  flex: 2;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-save:hover { background: #FF8A8A; }
+
+/* ===== SUCCESS ===== */
+.success-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44,36,32,0.6);
+  z-index: 300;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.success-overlay.active { display: flex; }
+.success-card {
+  background: var(--cream);
+  border-radius: 28px;
+  padding: 40px 32px;
+  text-align: center;
+  width: 85%;
+  max-width: 320px;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes popIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.success-emoji { font-size: 48px; margin-bottom: 16px; display: block; }
+.success-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.success-sub { font-size: 13px; color: var(--ink-light); line-height: 1.7; margin-bottom: 24px; }
+.success-close {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* ===== SETTINGS ===== */
+#screen-settings { padding: 52px 0 80px; }
+.settings-header { padding: 0 20px 16px; }
+.settings-title { font-family: 'Shippori Mincho', serif; font-size: 24px; color: var(--ink); }
+
+.settings-section { margin: 0 20px 20px; }
+.settings-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--rose);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.settings-section-title::before {
+  content: '';
+  display: inline-block;
+  width: 3px; height: 11px;
+  background: var(--rose);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.settings-card {
+  background: var(--white);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px var(--shadow);
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(200,180,170,0.12);
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.settings-row:last-child { border-bottom: none; }
+.settings-row:active { background: var(--rose-pale); }
+.settings-row-left {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+.settings-row-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.settings-row-text { font-size: 14px; font-weight: 500; color: var(--ink); }
+.settings-row-sub { font-size: 11px; color: var(--ink-light); margin-top: 2px; }
+.settings-row-right { font-size: 12px; color: var(--ink-light); display: flex; align-items: center; gap: 6px; }
+.settings-chevron { font-size: 18px; color: var(--ink-light); font-weight: 300; }
+.settings-profile-hero {
+  margin: 0 16px 20px;
+  background: #b8707a;
+  border-radius: 22px;
+  padding: 20px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 18px rgba(120,40,55,0.18);
+}
+.settings-profile-hero::after {
+  content: '';
+  position: absolute;
+  right: -20px; top: -20px;
+  width: 100px; height: 100px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 50%;
+}
+.settings-theme-grid {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.settings-theme-grid::-webkit-scrollbar { display: none; }
+
+/* ===== PREMIUM SECTION ===== */
+.premium-card {
+  margin: 0 24px 20px;
+  background: linear-gradient(135deg, var(--ink), #3d302a);
+  border-radius: 20px;
+  padding: 24px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.premium-card::after {
+  content: '';
+  position: absolute;
+  bottom: -30px; right: -20px;
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: rgba(255,107,107,0.15);
+}
+.pc-badge {
+  display: inline-block;
+  background: var(--rose);
+  color: white;
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  letter-spacing: 0.1em;
+  margin-bottom: 12px;
+}
+.pc-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+.pc-features { margin-bottom: 20px; }
+.pc-feature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 8px;
+}
+.pc-feature-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--rose); flex-shrink: 0; }
+.pc-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+}
+
+
+/* ===== FEEDBACK ===== */
+.feedback-section {
+  margin: 0 24px 20px;
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+}
+.fb-title { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--ink); margin-bottom: 6px; }
+.fb-sub { font-size: 12px; color: var(--ink-light); margin-bottom: 16px; line-height: 1.6; }
+.fb-stars { display: flex; gap: 8px; margin-bottom: 16px; }
+.fb-star {
+  font-size: 28px;
+  cursor: pointer;
+  transition: transform 0.15s;
+  filter: grayscale(1) opacity(0.3);
+}
+.fb-star.active { filter: none; transform: scale(1.15); }
+.fb-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ===== HISTORY ===== */
+.history-list { padding: 0 24px; }
+.history-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--ink-light);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.history-item {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 8px var(--shadow);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.history-date-col {
+  text-align: center;
+  flex-shrink: 0;
+  width: 44px;
+}
+.history-date-day { font-family: 'Shippori Mincho', serif; font-size: 22px; color: var(--ink); line-height: 1; }
+.history-date-month { font-size: 10px; color: var(--ink-light); }
+.history-content { flex: 1; }
+.history-item-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; font-weight: 500; }
+.history-item-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.history-tag {
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  background: var(--rose-pale);
+  color: var(--rose);
+}
+
+/* ===== ANIMATIONS ===== */
+.fade-in { animation: fadeIn 0.4s ease forwards; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 0; }
+
+/* ===== ADD TO HOME ===== */
+.add-home-banner {
+  margin: 0 24px 20px;
+  background: var(--sage-light);
+  border-radius: 16px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.ahb-icon { font-size: 22px; }
+.ahb-text { flex: 1; }
+.ahb-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+.ahb-sub { font-size: 11px; color: var(--ink-light); }
+.ahb-btn {
+  background: var(--sage);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ===== SPACER ===== */
+.spacer-top { height: 56px; }
+/* ===== MEAL INPUT ===== */
+.meal-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meal-input:focus { border-color: var(--rose); }
+.meal-input::placeholder { color: var(--ink-light); font-size: 13px; }
+.meal-time-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.meal-time-input:focus { border-color: var(--rose); }
+
+/* ===== CALENDAR ===== */
+.calendar-section { margin: 0 24px 20px; background: var(--white); border-radius: 20px; padding: 20px; box-shadow: 0 2px 12px var(--shadow); }
+.cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.cal-label { font-family: 'Shippori Mincho', serif; font-size: 16px; color: var(--ink); }
+.cal-nav { display: flex; gap: 6px; }
+.cal-nav-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(200,180,170,0.3); background: var(--white); color: var(--ink-light); font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 8px; }
+.cal-wd { text-align: center; font-size: 10px; color: var(--ink-light); padding: 4px 0; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day { text-align: center; padding: 8px 0; font-size: 13px; color: var(--ink-mid); border-radius: 10px; cursor: pointer; transition: all 0.2s; position: relative; }
+.cal-day:hover { background: var(--rose-pale); }
+.cal-day.empty { pointer-events: none; }
+.cal-day.today { background: var(--rose); color: white; font-weight: 600; border-radius: 50%; }
+.cal-day.has-record::after { display: none; }
+.cal-day.today.has-record::after { display: none; }
+.cal-day.pain-0 { background: #edf7f1; color: var(--ink); }
+.cal-day.pain-1 { background: #f5e8eb; color: var(--ink); }
+.cal-day.pain-2 { background: #edbed0; color: var(--ink); }
+.cal-day.pain-3 { background: #d4537e; color: white; }
+.cal-day.pain-4 { background: #993556; color: white; }
+.cal-day.has-record-no-pain { background: #e8f4ed; color: var(--ink); }
+
+/* ===== DAY DETAIL MODAL ===== */
+.dm-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(44,36,32,0.5); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; }
+.dm-overlay.dm-open { display: flex; }
+.dm-box { width: 88%; max-width: 360px; max-height: 82vh; background: var(--cream); border-radius: 24px; padding: 28px 22px; overflow-y: auto; position: relative; box-shadow: 0 12px 40px rgba(44,36,32,0.15); }
+.dm-x { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(200,180,170,0.3); background: var(--white); color: var(--ink-light); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.dm-date { font-family: 'Shippori Mincho', serif; font-size: 17px; text-align: center; margin-bottom: 20px; color: var(--ink); }
+.dm-empty { text-align: center; padding: 32px 0; font-size: 14px; color: var(--ink-light); line-height: 2; }
+.dm-donut-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 12px; }
+.dm-donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.dm-donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+.dm-donut-num { font-family: 'Shippori Mincho', serif; font-size: 22px; font-weight: 700; color: var(--ink); }
+.dm-donut-label { font-size: 9px; color: var(--ink-light); letter-spacing: 0.15em; }
+.dm-legend { display: flex; justify-content: center; gap: 16px; margin: 4px 0 16px; }
+.dm-legend span { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-mid); }
+.dm-legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dm-summary { display: flex; justify-content: center; gap: 24px; margin: 16px 0 8px; }
+.dm-summary-item { text-align: center; }
+.dm-summary-num { font-family: 'Shippori Mincho', serif; font-size: 16px; font-weight: 700; }
+.dm-summary-lbl { font-size: 10px; color: var(--ink-light); margin-top: 4px; }
+.dm-record-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; justify-content: center; }
+.dm-tag { font-size: 11px; padding: 5px 12px; border-radius: 20px; background: var(--rose-pale); color: var(--rose); }
+/* ===== PREMIUM FEATURES ===== */
+.premium-feature-section {
+  margin: 0 24px 20px;
+}
+.pf-card {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+.pf-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px var(--shadow); }
+.pf-icon {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  background: var(--rose-pale);
+}
+.pf-text { flex: 1; }
+.pf-title { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+.pf-sub { font-size: 11px; color: var(--ink-light); }
+.pf-arrow { color: var(--ink-light); font-size: 16px; }
+
+/* ===== Premium Screen Grid ===== */
+.pf-category-label {
+  font-size: 11px; font-weight: 700; color: var(--ink-mid);
+  letter-spacing: 0.1em; margin: 0 20px 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.pf-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin: 0 20px 20px;
+}
+.pf-grid-card {
+  background: var(--white); border-radius: 18px;
+  padding: 15px 13px 13px;
+  box-shadow: 0 2px 10px var(--shadow);
+  cursor: pointer; transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.pf-grid-card:active { transform: scale(0.96); }
+.pf-grid-icon {
+  width: 40px; height: 40px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 19px; margin-bottom: 10px;
+}
+.pf-grid-title {
+  font-size: 12px; font-weight: 700; color: var(--ink);
+  margin-bottom: 4px; line-height: 1.3;
+}
+.pf-grid-sub {
+  font-size: 10px; color: var(--ink-light); line-height: 1.5;
+}
+.pf-grid-badge {
+  position: absolute; top: 9px; right: 9px;
+  font-size: 8px; font-weight: 700;
+  background: var(--rose); color: white;
+  padding: 2px 6px; border-radius: 6px; letter-spacing: 0.05em;
+}
+.pf-wide-card {
+  margin: 0 20px 10px; background: var(--white); border-radius: 18px;
+  padding: 15px 16px; box-shadow: 0 2px 10px var(--shadow);
+  cursor: pointer; transition: all 0.18s;
+  display: flex; align-items: center; gap: 14px; position: relative;
+}
+.pf-wide-card:active { transform: scale(0.98); }
+
+/* ===== DOCTOR SUMMARY MODAL ===== */
+.ds-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.ds-overlay.active { display: flex; }
+.ds-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.ds-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.ds-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.ds-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.ds-subtitle { font-size: 12px; color: var(--ink-light); }
+.ds-body { padding: 0 24px; }
+.ds-section { margin-bottom: 20px; }
+.ds-section-title {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+}
+.ds-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 13px;
+}
+.ds-row-label { color: var(--ink-light); flex-shrink: 0; width: 40%; }
+.ds-row-value { color: var(--ink); font-weight: 500; text-align: right; flex: 1; }
+.ds-narrative {font-size: 13px;color: var(--ink);line-height: 1.9;padding: 4px 0;}
+.ds-narrative strong {color: var(--rose);font-weight: 600;}
+.ds-tag-list { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
+.ds-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: var(--rose-pale);
+  color: var(--rose);
+}
+.ds-meal-day { margin-bottom: 12px; }
+.ds-meal-date {
+  font-size: 11px;
+  color: var(--ink-light);
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+.ds-meal-items { font-size: 12px; color: var(--ink-mid); line-height: 1.7; }
+.ds-note-item {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(200,180,170,0.1);
+  font-size: 12px;
+}
+.ds-note-date { color: var(--ink-light); font-size: 11px; }
+.ds-note-text { color: var(--ink); margin-top: 2px; }
+.ds-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.ds-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.ds-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ds-btn.primary { background: var(--rose); color: white; }
+.ds-btn.primary:hover { background: #FF8A8A; }
+.ds-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.ds-disclaimer {
+  margin-top: 16px;
+  padding: 12px;
+  background: rgba(200,180,170,0.1);
+  border-radius: 12px;
+  font-size: 10px;
+  color: var(--ink-light);
+  line-height: 1.7;
+  text-align: center;
+}
+
+  /* ===== MONTHLY REPORT MODAL ===== */
+.mr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.mr-overlay.active { display: flex; }
+.mr-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.mr-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.mr-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.mr-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.mr-subtitle { font-size: 12px; color: var(--ink-light); }
+.mr-body { padding: 0 24px; }
+.mr-month-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.mr-month-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,180,170,0.3);
+  background: var(--white);
+  color: var(--ink-light);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.mr-month-btn:hover { border-color: var(--rose); color: var(--rose); }
+.mr-month-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  color: var(--ink);
+  min-width: 140px;
+  text-align: center;
+}
+.mr-preview {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+}
+.mr-preview-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink);
+  text-align: center;
+  margin-bottom: 4px;
+}
+.mr-preview-period {
+  font-size: 11px;
+  color: var(--ink-light);
+  text-align: center;
+  margin-bottom: 20px;
+}
+.mr-stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mr-stat-box {
+  background: var(--rose-pale);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+}
+.mr-stat-num {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.mr-stat-label {
+  font-size: 10px;
+  color: var(--ink-light);
+}
+.mr-chart-section { margin-bottom: 16px; }
+.mr-chart-title {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  color: var(--ink-light);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.mr-bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.mr-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mr-bar-label {
+  font-size: 11px;
+  color: var(--ink-mid);
+  width: 80px;
+  flex-shrink: 0;
+  text-align: right;
+}
+.mr-bar-track {
+  flex: 1;
+  height: 20px;
+  background: #f0ebe6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+.mr-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--rose-light), var(--rose));
+  transition: width 0.8s ease;
+  min-width: 2px;
+}
+.mr-bar-count {
+  font-size: 11px;
+  color: var(--ink-light);
+  width: 30px;
+  flex-shrink: 0;
+}
+.mr-summary-text {
+  font-size: 13px;
+  color: var(--ink-mid);
+  line-height: 1.8;
+  padding: 16px;
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 14px;
+  border-left: 3px solid var(--rose);
+}
+.mr-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.mr-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mr-btn.primary { background: var(--rose); color: white; }
+.mr-btn.primary:hover { background: #FF8A8A; }
+.mr-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.mr-generating {
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+  color: var(--ink-light);
+}
+
+/* ===== PREMIUM LOCK ===== */
+.premium-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.premium-lock-overlay.active { display: flex; }
+.premium-lock-card {
+  background: var(--cream);
+  border-radius: 24px;
+  padding: 40px 28px;
+  text-align: center;
+  width: 88%;
+  max-width: 340px;
+  animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 12px 40px rgba(44,36,32,0.15);
+}
+.premium-lock-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+.premium-lock-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 8px;
+}
+.premium-lock-text {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.8;
+  margin-bottom: 24px;
+}
+.premium-lock-price {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 28px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.premium-lock-price-sub {
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-bottom: 24px;
+}
+.premium-lock-features {
+  text-align: left;
+  margin-bottom: 24px;
+  padding: 0 8px;
+}
+.premium-lock-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--ink-mid);
+  padding: 6px 0;
+}
+.premium-lock-feature .check {
+  color: var(--rose);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.premium-lock-btn {
+  width: 100%;
+  padding: 16px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 10px;
+}
+.premium-lock-btn:hover { background: #FF8A8A; }
+.premium-lock-close {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 8px;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.pf-card .pf-lock-badge {
+  font-size: 9px;
+  background: var(--rose-pale);
+  color: var(--rose);
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 8px;
+  font-weight: 600;
+}
+  
+</style>
 </head>
 <body>
 <div id="app">
@@ -122,7 +2216,7 @@
   <!-- Step 5: 疾患選択 -->
   <div id="ob-step-5" class="ob-step" style="display:none;">
     <!-- プライバシーポリシー告知 -->
-    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid var(--rose-dark);">
+    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid #b8707a;">
       <div style="font-size:13px;font-weight:500;color:#72243E;margin-bottom:6px;">ippoのデータポリシー</div>
       <div style="font-size:12px;color:var(--ink);line-height:1.8;">すべてのデータはあなたの端末内で暗号化されます。<br>第三者への提供・販売は一切行いません。</div>
     </div>
@@ -181,22 +2275,15 @@
   <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);">
 
     <!-- 上段：ダークローズ（挨拶 + バッジ） -->
-    <div style="background:var(--rose-dark);padding:20px 18px 18px;">
+    <div style="background:#b8707a;padding:20px 18px 18px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
           <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
           <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
           <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-          <button type="button" onclick="switchTab('settings')" aria-label="設定を開く"
-            style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
-            id="home-settings-btn">
-            <span id="home-settings-icon" aria-hidden="true"></span>
-          </button>
-          <div id="home-phase-badge" style="display:none;">
-            <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
-          </div>
+        <div id="home-phase-badge" style="display:none;padding-top:3px;">
+          <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
         </div>
       </div>
     </div>
@@ -249,7 +2336,7 @@
 
   <!-- 記録ボタン -->
   <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
-    <div id="home-cta-card" style="background:var(--rose-dark);border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+    <div id="home-cta-card" style="background:#b8707a;border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
       <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
       <div id="home-cta-sub" style="font-size:11px;color:rgba(255,255,255,0.80);margin-top:2px;"></div>
     </div>
@@ -297,33 +2384,41 @@
     </button>
   </div>
 
-   </div>
+              <!-- Calendar -->
+      <div class="calendar-section">
+        <div class="cal-header">
+          <div class="cal-label" id="calLabel"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月">◀</button>
+            <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月">▶</button>
+          </div>
+        </div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:10px;justify-content:flex-end;">
+          <span style="font-size:10px;color:var(--ink-light);">痛みなし</span>
+          <div style="display:flex;gap:3px;">
+            <div style="width:12px;height:12px;border-radius:3px;background:#e8f4ed;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#f5e8eb;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#edbed0;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#d4537e;"></div>
+            <div style="width:12px;height:12px;border-radius:3px;background:#993556;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--ink-light);">強い</span>
+        </div>
+      </div>
 
-   <!-- ===== CALENDAR SCREEN ===== -->
-   <div id="screen-calendar" class="screen">
-     <div class="spacer-top"></div>
-     <div class="calendar-section">
-       <div class="cal-header">
-         <div class="cal-label" id="calLabel"></div>
-         <div class="cal-nav">
-           <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月"></button>
-           <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月"></button>
-         </div>
-       </div>
-       <div class="cal-weekdays">
-         <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
-       </div>
-       <div class="cal-grid" id="calGrid"></div>
-     </div>
-   </div>
 
-   <!-- Day Detail Modal（グローバル・固定） -->
-   <div class="dm-overlay" id="dmOverlay">
-     <div class="dm-box">
-       <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
-       <div class="dm-date" id="dmDate"></div>
-       <div id="dmBody"></div>
-     </div>
+      <!-- Day Detail Modal -->
+      <div class="dm-overlay" id="dmOverlay">
+        <div class="dm-box">
+          <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
+          <div class="dm-date" id="dmDate"></div>
+          <div id="dmBody"></div>
+        </div>
+      </div>
    </div>
 
      <!-- ===== INSIGHTS SCREEN ===== -->
@@ -595,7 +2690,7 @@
   <div style="width:88%;max-width:360px;max-height:82vh;background:var(--cream);border-radius:24px;padding:28px 22px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
       <div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる症状を選択</div>
-      <button onclick="closeSymptomSettings()" aria-label="閉じる" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" aria-hidden="false">✕</button>
+      <button onclick="closeSymptomSettings()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
     </div>
     <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">よく気になる症状を選んでおくと、記録画面で優先表示されます。</div>
     <div id="symptomSettingsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
@@ -611,21 +2706,21 @@
 
      <!-- ===== BOTTOM NAV ===== -->
       <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
-      <button class="nav-item" type="button" onclick="switchTab('home', this)" data-tab="home" aria-label="ホーム">
+      <button class="nav-item" type="button" onclick="switchTab('home', this)" aria-label="ホーム">
         <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
         <span>ホーム</span>
       </button>
-      <button class="nav-item" type="button" onclick="switchTab('calendar', this)" data-tab="calendar" aria-label="カレンダー">
-        <span class="nav-icon" id="nav-icon-calendar" aria-hidden="true"></span>
-        <span>カレンダー</span>
+      <button class="nav-item" type="button" onclick="switchTab('insights', this)" aria-label="インサイト">
+        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
+        <span>インサイト</span>
       </button>
       <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
         <span style="font-size:9px;margin-top:2px;">記録</span>
       </button>
-      <button class="nav-item" type="button" onclick="switchTab('insights', this)" data-tab="insights" aria-label="インサイト">
-        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
-        <span>インサイト</span>
+      <button class="nav-item" type="button" onclick="switchTab('settings', this)" aria-label="設定">
+        <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
+        <span>設定</span>
       </button>
     </nav>
 
@@ -778,7 +2873,7 @@
       <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
           <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
-          <button onclick="closeMealTimePicker()" aria-label="閉じる" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+          <button onclick="closeMealTimePicker()" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
@@ -1033,11 +3128,7 @@
    <!-- SETTINGS -->
     <div id="screen-settings" class="screen">
       <div class="spacer-top"></div>
-      <div class="settings-header" style="display:flex;align-items:center;gap:12px;">
-        <button type="button" onclick="switchTab('home', document.querySelector('.nav-item[data-tab=home]'))" aria-label="ホームに戻る"
-          style="width:36px;height:36px;border-radius:50%;background:var(--rose-pale);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--rose-dark);">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
+      <div class="settings-header">
         <div class="settings-title">設定</div>
       </div>
 
@@ -1072,7 +3163,7 @@
         <div class="settings-card">
           <div class="settings-theme-grid" id="theme-picker">
             <div onclick="applyTheme('sakura')" id="theme-btn-sakura" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
-              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,var(--rose-dark));border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
+              <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#e8b4b8,#b8707a);border:3px solid transparent;transition:border-color 0.2s,transform 0.15s;" id="theme-dot-sakura"></div>
               <span style="font-size:9px;color:var(--ink-light);">🌸 桜</span>
             </div>
             <div onclick="applyTheme('coral')" id="theme-btn-coral" style="display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;flex-shrink:0;">
@@ -1385,8 +3476,45 @@ function removeReminder(idx){
   scheduleReminders();
 }
 
-// requestNotificationPermission / scheduleReminders は src/services/push.js に移設
-// (window.requestNotificationPermission / window.scheduleReminders として公開)
+function requestNotificationPermission(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'default'){
+    Notification.requestPermission();
+  }
+}
+
+var _reminderTimers = [];
+function scheduleReminders(){
+  // 既存タイマーをクリア
+  _reminderTimers.forEach(function(t){ clearTimeout(t); });
+  _reminderTimers = [];
+
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  if(!state.reminders || !state.reminders.length) return;
+
+  var now = new Date();
+  state.reminders.forEach(function(r){
+    if(!r.enabled) return;
+    var parts = r.time.split(':');
+    var target = new Date();
+    target.setHours(parseInt(parts[0]), parseInt(parts[1]), 0, 0);
+
+    // 今日の時間が過ぎていたら翌日にスケジュール
+    if(target <= now) target.setDate(target.getDate() + 1);
+
+    var delay = target.getTime() - now.getTime();
+    var timer = setTimeout(function(){
+      new Notification('ippo リマインダー', {
+        body: r.label + '（' + r.time + '）',
+        icon: 'images/icon-192.png',
+        tag: 'ippo-reminder-' + r.time
+      });
+      // 翌日に再スケジュール
+      scheduleReminders();
+    }, delay);
+    _reminderTimers.push(timer);
+  });
+}
     </script>
 
 
@@ -1589,7 +3717,37 @@ function removeReminder(idx){
 
 </div>
 
-<!-- Supabase 初期化は src/services/supabase.js に移設 (window.supabase は同ファイルで設定) -->
+<script type="module">
+// ===== SUPABASE INITIALIZATION =====
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+const SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_N1aONYfjCsM-AXxBmptkEw_cj5C-0lb';
+
+window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: true,
+    storageKey: 'ippo_sb',
+    storage: {
+      getItem: (key) => {
+        if (key.endsWith('-token')) return localStorage.getItem('ippo_sb_token');
+        if (key.endsWith('-refresh')) return localStorage.getItem('ippo_sb_refresh');
+        return localStorage.getItem(key);
+      },
+      setItem: (key, value) => {
+        if (key.endsWith('-token')) localStorage.setItem('ippo_sb_token', value);
+        else if (key.endsWith('-refresh')) localStorage.setItem('ippo_sb_refresh', value);
+        else localStorage.setItem(key, value);
+      },
+      removeItem: (key) => {
+        if (key.endsWith('-token')) localStorage.removeItem('ippo_sb_token');
+        else if (key.endsWith('-refresh')) localStorage.removeItem('ippo_sb_refresh');
+        else localStorage.removeItem(key);
+      }
+    }
+  }
+});
+</script>
 
 <script>
   
@@ -1598,25 +3756,6 @@ var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';
 var supabaseToken = null;
 var supabaseUserId = null;
-// 移行期間: module 側(src/services/supabase.js)が window.supabase を公開
-// この非moduleスクリプトからも常に同一インスタンスを参照できるようにする
-var supabase = window.supabase || null;
-function getSupabaseClient() {
-  if (!supabase && window.supabase) supabase = window.supabase;
-  if (!window.supabase && supabase) window.supabase = supabase;
-  return supabase;
-}
-function classifySyncError(err) {
-  var msg = String((err && (err.message || err.description)) || err || '').toLowerCase();
-  var status = err && (err.status || (err.response && err.response.status));
-  if (msg.indexOf('not defined') !== -1 || msg.indexOf('undefined') !== -1) return 'undefined';
-  if (msg.indexOf('permission') !== -1 || msg.indexOf('forbidden') !== -1 || status === 401 || status === 403) return '権限/認証';
-  if (msg.indexOf('network') !== -1 || msg.indexOf('failed to fetch') !== -1 || msg.indexOf('fetch') !== -1) return 'ネットワーク';
-  if (msg.indexOf('auth') !== -1 || msg.indexOf('login') !== -1 || msg.indexOf('session') !== -1) return '認証';
-  if (msg.indexOf('promise') !== -1 || msg.indexOf('reject') !== -1) return 'Promise reject';
-  if (msg.indexOf('_synclock') !== -1 || msg.indexOf('lock') !== -1) return '_syncLock';
-  return 'その他';
-}
 
 // ===== 食事クイック入力 =====
 var _mealPendingType = '';
@@ -1782,6 +3921,153 @@ function updateHomeVision(){
 }
 
   
+// ===== SVGアイコンライブラリ =====
+var ICONS = {
+  home: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+  },
+  calendar: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>';
+  },
+  insights: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  },
+  settings: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>';
+  },
+  plus: function(size, color) {
+    size = size || 20; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+  },
+  pain: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M12 22c5.5-4.5 8-9 8-13A8 8 0 004 9c0 4 2.5 8.5 8 13z"/></svg>';
+  },
+  heart: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>';
+  },
+  thermometer: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/></svg>';
+  },
+  activity: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>';
+  },
+  moon: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>';
+  },
+  sun: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>';
+  },
+  faceVeryGood: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 13s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceGood: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1 1 4 1 4-1 4-1"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceNeutral: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceBad: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+  },
+  faceVeryBad: function(size, color) {
+    size = size || 18; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M16 17s-1.5-3-4-3-4 3-4 3"/><path d="M9 8.5c.5-.5 1.5-.5 2 0"/><path d="M13 8.5c.5-.5 1.5-.5 2 0"/></svg>';
+  },
+  chevronRight: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>';
+  },
+  chevronLeft: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>';
+  },
+  chevronDown: function(size, color) {
+    size = size || 14; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+  },
+  check: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  },
+  close: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+  },
+  info: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  },
+  alert: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
+  },
+  lock: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>';
+  },
+  star: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>';
+  },
+  fileText: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>';
+  },
+  download: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0018 9h-1.26A8 8 0 103 16.29"/></svg>';
+  },
+  upload: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0018 9h-1.26A8 8 0 103 16.3"/></svg>';
+  },
+  barChart: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>';
+  },
+  trash: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>';
+  },
+  edit: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+  },
+  shield: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+  },
+  user: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>';
+  },
+  bell: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>';
+  },
+  cloud: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><path d="M18 10h-1.26A8 8 0 103 16.29"/><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/></svg>';
+  },
+  search: function(size, color) {
+    size = size || 16; color = color || 'currentColor';
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+  }
+};
 
 function icon(name, size, color) {
   if (!ICONS[name]) return '';
@@ -1790,13 +4076,11 @@ function icon(name, size, color) {
 
 // ===== ナビアイコン注入 =====
 function initNavIcons() {
-  if (typeof ICONS === 'undefined') return;
   var navIcons = {
-    'nav-icon-home':         ICONS.home(20, 'currentColor'),
-    'nav-icon-calendar':     ICONS.calendar(20, 'currentColor'),
-    'nav-icon-insights':     ICONS.insights(20, 'currentColor'),
-    'nav-icon-plus':         ICONS.plus(22, 'white'),
-    'home-settings-icon':    ICONS.settings(18, 'rgba(255,255,255,0.9)')
+    'nav-icon-home':     ICONS.home(20, 'currentColor'),
+    'nav-icon-insights': ICONS.insights(20, 'currentColor'),
+    'nav-icon-plus':     ICONS.plus(22, 'white'),
+    'nav-icon-settings': ICONS.settings(20, 'currentColor')
   };
   Object.keys(navIcons).forEach(function(id) {
     var el = document.getElementById(id);
@@ -1806,7 +4090,6 @@ function initNavIcons() {
 
 // ===== 設定画面アイコン注入 =====
 function initSettingsIcons() {
-  if (typeof ICONS === 'undefined') return;
   var map = {
     'settings-icon-profile':   ICONS.user(16, 'var(--rose)'),
     'settings-icon-theme':     ICONS.star(16, 'var(--rose)'),
@@ -1855,6 +4138,176 @@ function renderPainScale(currentValue, fieldName) {
   return html;
 }
 
+// ===== 疾患別カスタマイズ =====
+var DISEASE_CONFIG = {
+  '卵巣嚢腫': {
+    label: '卵巣嚢腫セルフチェック',
+    icon: '🩺',
+    category: '卵巣',
+    specificSymptoms: ['片側の下腹部痛','排卵痛','腹部膨満感','頻尿','便秘'],
+    trackingTips: '片側痛の左右を毎日記録すると、受診時に有用です。',
+    questions: [
+      {id:'bloating', text:'お腹の張り具合は？', options:['なし','軽い','中程度','つらい']},
+      {id:'abdom_pain', text:'腹痛は？', options:['なし','軽い','中程度','つらい']},
+      {id:'frequent_urine', text:'頻尿症状は？', options:['なし','少し','頻繁']},
+      {id:'bowel_pain', text:'排便時の痛みは？', options:['なし','軽い','中程度','つらい']},
+      {id:'pelvic_dull', text:'片側の鈍痛は？', options:['なし','左側','右側','両側']}
+    ]
+  },
+ '子宮内膜症': {
+    label: '子宮内膜症セルフチェック',
+    icon: '🔴',
+    category: '子宮',
+    specificSymptoms: ['性交痛','排便痛','慢性疲労','不妊','月経外の骨盤痛'],
+    trackingTips: '排便痛は直腸付近の癒着の指標になります。',
+    questions: [
+      {id:'period_pain',    text:'生理痛の強さは？',     options:['なし','軽い','中程度','つらい','動けない']},
+      {id:'sex_pain',       text:'性交痛はありますか？', options:['なし','時々','毎回','性交できない']},
+      {id:'bowel_pain',     text:'排便時の痛みは？',     options:['なし','軽い','中程度','つらい']},
+      {id:'chronic_pain',   text:'生理以外の骨盤痛は？', options:['なし','時々','頻繁','ほぼ毎日']},
+      {id:'fatigue',        text:'慢性的な疲労感は？',   options:['なし','少し','中程度','ひどい']}
+    ]
+  },
+ 
+  '子宮筋腫': {
+    label: '子宮筋腫セルフチェック',
+    icon: '🟤',
+    category: '子宮',
+    specificSymptoms: ['経血量増加','生理期間延長','頻尿','便秘','下腹部の圧迫感'],
+    trackingTips: '経血量と生理期間の変化を毎月記録すると、筋腫の増大を早期に察知できます。',
+    questions: [
+      {id:'heavy_period',   text:'経血量は多いですか？',   options:['普通','やや多い','多い','非常に多い']},
+      {id:'period_length',  text:'生理の期間は？',         options:['3〜5日','6〜7日','8日以上','不規則']},
+      {id:'pressure',       text:'下腹部の圧迫感は？',     options:['なし','軽い','中程度','つらい']},
+      {id:'frequent_urine', text:'頻尿症状は？',           options:['なし','少し','頻繁']},
+      {id:'constipation',   text:'便秘症状は？',           options:['なし','時々','頻繁']}
+    ]
+  },
+ 
+  'PCOS': {
+    label: 'PCOSセルフチェック',
+    icon: '🔵',
+    category: 'ホルモン',
+    specificSymptoms: ['月経不順','多毛','ニキビ','体重増加','排卵痛'],
+    trackingTips: '食事内容と体重・体調の相関を記録すると、血糖値との関係が見えやすくなります。',
+    questions: [
+      {id:'cycle_irreg',    text:'月経周期の乱れは？',     options:['規則的','少し不規則','不規則','無月経']},
+      {id:'weight_change',  text:'体重の変化は？',         options:['安定','やや増加','増加','急激な増加']},
+      {id:'acne',           text:'ニキビ・肌荒れは？',     options:['なし','少し','中程度','ひどい']},
+      {id:'hair_growth',    text:'多毛（顔・お腹等）は？', options:['なし','少し','気になる','多い']},
+      {id:'mood',           text:'気分の波は？',           options:['安定','少し波がある','波が大きい','つらい']}
+    ]
+  },
+ 
+  'PMS/PMDD': {
+    label: 'PMS/PMDDセルフチェック',
+    icon: '🌙',
+    category: 'ホルモン',
+    specificSymptoms: ['生理前のイライラ','気分の落ち込み','乳房痛','頭痛','むくみ'],
+    trackingTips: '生理前7〜14日の症状を毎日記録すると、PMSとPMDDの区別が明確になります。',
+    questions: [
+      {id:'irritability',   text:'イライラ・怒りっぽさは？', options:['なし','少し','中程度','コントロール困難']},
+      {id:'depression',     text:'気分の落ち込みは？',       options:['なし','少し','中程度','ひどい']},
+      {id:'breast_pain',    text:'胸の張り・痛みは？',       options:['なし','軽い','中程度','つらい']},
+      {id:'headache',       text:'頭痛は？',                 options:['なし','軽い','中程度','つらい']},
+      {id:'swelling',       text:'むくみは？',               options:['なし','少し','中程度','ひどい']}
+    ]
+  },
+ 
+  // ─── Tier 1 新規 ───
+ 
+  '子宮腺筋症': {
+    label: '子宮腺筋症セルフチェック',
+    icon: '🟣',
+    category: '子宮',
+    specificSymptoms: ['痛み止め無効','経血量極多','レバー状の塊','下腹部膨満','貧血症状','性交痛'],
+    trackingTips: '経血の塊の大きさと頻度を記録すると、症状の変化の把握に役立ちます。',
+    questions: [
+      {id:'pain_progress',  text:'生理痛は年々悪化していますか？', options:['変化なし','少し悪化','明らかに悪化','痛み止めが効かない']},
+      {id:'heavy_flow',     text:'経血量はどの程度ですか？',       options:['少ない','普通','多い','非常に多い（夜用必須）']},
+      {id:'non_period_pain',text:'生理以外の下腹部痛はありますか？', options:['なし','時々','頻繁','ほぼ毎日']},
+      {id:'anemia',         text:'貧血の自覚症状はありますか？',   options:['なし','たまにめまい','頻繁にめまい','動悸・息切れあり']}
+    ]
+  },
+ 
+  '更年期障害': {
+    label: '更年期障害セルフチェック（SMI）',
+    icon: '🌡️',
+    category: 'ホルモン',
+    scoring: 'SMI',
+    specificSymptoms: ['ホットフラッシュ','寝汗','おりもの','性欲低下','関節のこわばり','記憶力低下','皮膚の乾燥'],
+    trackingTips: 'SMIスコアの推移をグラフで確認でき、HRTや漢方の効果を可視化できます。',
+    questions: [
+      {id:'hotflash',       text:'ほてり・のぼせ',         options:['なし','弱い','中程度','強い']},
+      {id:'sweating',       text:'発汗（寝汗含む）',       options:['なし','弱い','中程度','強い']},
+      {id:'cold_limbs',     text:'手足の冷え',             options:['なし','弱い','中程度','強い']},
+      {id:'palpitation',    text:'動悸・息切れ',           options:['なし','弱い','中程度','強い']},
+      {id:'insomnia',       text:'不眠・眠りの浅さ',       options:['なし','弱い','中程度','強い']},
+      {id:'irritable',      text:'イライラ・怒りっぽさ',   options:['なし','弱い','中程度','強い']},
+      {id:'depressed',      text:'気分の落ち込み',         options:['なし','弱い','中程度','強い']},
+      {id:'headache',       text:'頭痛・めまい',           options:['なし','弱い','中程度','強い']},
+      {id:'fatigue',        text:'疲れやすさ',             options:['なし','弱い','中程度','強い']},
+      {id:'joint_pain',     text:'肩こり・腰痛・関節痛',  options:['なし','弱い','中程度','強い']}
+    ]
+  },
+ 
+  '不妊症': {
+    label: '不妊症・排卵障害セルフチェック',
+    icon: '🌱',
+    category: '妊活',
+    extraFields: ['hormoneLevels'],
+    specificSymptoms: ['排卵痛','おりもの変化','注射部位の痛み','卵巣過剰刺激の兆候','着床出血'],
+    trackingTips: 'ホルモン値を入力すると、周期ごとの比較グラフが作成されます。',
+    questions: [
+      {id:'treatment_stage',text:'現在の治療ステージ',     options:['タイミング法','人工授精','体外受精','顕微授精','治療休止中']},
+      {id:'ovulation',      text:'排卵の状態',             options:['自然排卵あり','排卵誘発剤使用','無排卵','不明']},
+      {id:'hospital_visit', text:'今周期の通院状況',       options:['未通院','検査のみ','治療中','採卵/移植周期']}
+    ]
+  },
+ 
+  // ─── Tier 2 新規 ───
+ 
+  '骨盤臓器脱': {
+    label: '骨盤臓器脱セルフチェック',
+    icon: '⬇️',
+    category: '骨盤',
+    specificSymptoms: ['下垂感','頻尿','夜間頻尿','尿漏れ','排便困難','性交時違和感','長時間立位で悪化'],
+    trackingTips: '骨盤底筋トレーニングの実施を要因として記録すると、継続状況と体調の変化を一緒に確認できます。',
+    questions: [
+      {id:'prolapse_feel',  text:'下垂感・圧迫感',         options:['なし','軽い','中程度','重い']},
+      {id:'urine_leak',     text:'尿漏れ',                 options:['なし','くしゃみ時のみ','日常的','常時パッド必要']},
+      {id:'urination_diff', text:'排尿困難',               options:['なし','時々','頻繁','毎回']},
+      {id:'defecation_diff',text:'排便困難',               options:['なし','時々','頻繁','指で押さないと出ない']}
+    ]
+  },
+ 
+  '外陰痛症候群': {
+    label: '外陰痛（Vulvodynia）セルフチェック',
+    icon: '🔥',
+    category: '外陰',
+    specificSymptoms: ['灼熱感','刺痛','接触痛','座位痛','性交痛','衣服による悪化'],
+    trackingTips: '痛みの部位を左右・前後で毎日記録すると、パターンが見えてきます。',
+    questions: [
+      {id:'pain_type',      text:'痛みの性質',             options:['灼熱感','刺すような痛み','ズキズキ','圧迫感']},
+      {id:'pain_trigger',   text:'痛みの誘因',             options:['接触時のみ','常時','座位で悪化','性交時','衣服の摩擦']},
+      {id:'pain_frequency', text:'痛みの頻度',             options:['週に数回','ほぼ毎日','1日中','間欠的']}
+    ]
+  },
+ 
+  '慢性骨盤痛': {
+    label: '慢性骨盤痛セルフチェック',
+    icon: '🟠',
+    category: '骨盤',
+    specificSymptoms: ['持続的な骨盤痛','月経関連の増悪','排尿時痛','排便時痛','性交痛','腰痛への放散'],
+    trackingTips: '原因不明の痛みこそ、要因との相関分析が特に有効です。',
+    questions: [
+      {id:'pain_duration',  text:'痛みの持続期間',         options:['6ヶ月未満','6ヶ月〜1年','1〜3年','3年以上']},
+      {id:'diagnosis',      text:'診断状況',               options:['原因特定済み','検査中','原因不明','複数の診断あり']},
+      {id:'daily_impact',   text:'日常生活への影響',       options:['軽微','中程度','かなり影響','生活困難']}
+    ]
+  }
+
+};
 
 // ===== 症状詳細マスターデータ =====
 var SYMPTOM_DETAIL_CONFIG = {
@@ -3032,8 +5485,7 @@ function syncAllRecordsToCloud(){
       _syncLock = false;
     });
   }).catch(function(e){
-    console.warn('同期エラー[' + classifySyncError(e) + ']:', e);
-  }).finally(function(){
+    console.warn('同期エラー:', e);
     _syncLock = false;
   });
 }
@@ -3141,11 +5593,9 @@ function cloudSyncSafe(){
         });
       });
   }).catch(function(e){
-    console.warn('安全同期エラー[' + classifySyncError(e) + ']:', e);
-    if(typeof showToast === 'function') showToast('データ同期に失敗しました。後で自動リトライします。', 'warn');
-  }).finally(function(){
+    console.warn('安全同期エラー:', e);
     _syncLock = false;
-    if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
+    if(typeof showToast === 'function') showToast('データ同期に失敗しました。後で自動リトライします。', 'warn');
   });
 }
 
@@ -3498,25 +5948,23 @@ function manualCloudRestore(){
   });
 }
   
-// state 初期値（同期アクセスが必要なためインラインで保持。INITIAL_STATE の複製は src/store/state.js を参照）
-// ★ ES モジュールは deferred 実行のため、init() 等インラインスクリプトからは参照できない。
-var state = {
-  name:           '',
-  records:        [],
-  streak:         0,
-  totalDays:      0,
-  fastingActive:  false,
-  fastingStart:   null,
-  fastGoal:       12,
-  fastTimer:      null,
-  rating:         0,
-  myVision:       '',
+state = {
+  name: '',
+  records: [],
+  streak: 0,
+  totalDays: 0,
+  fastingActive: false,
+  fastingStart: null,
+  fastGoal: 12,
+  fastTimer: null,
+  rating: 0,
+  myVision: '',
   lastPeriodDate: null,
-  cycleLength:    28,
+  cycleLength: 28,
   cycleIrregular: false,
-  birthYear:      null,
-  purpose:        null,
-  reminderTime:   null,
+  birthYear: null,
+  purpose: null,
+  reminderTime: null,
 };
 
 // Current record being built
@@ -3524,32 +5972,13 @@ let currentRecord = {};
 let currentStep = 0;
 var STEPS = [];
 
-// 部分移行中のため、復元時に欠損した state を局所補正する
-function ensureStateShape() {
-  if (!state || typeof state !== 'object') state = {};
-  if (!Array.isArray(state.records)) state.records = [];
-  if (typeof state.totalDays !== 'number') state.totalDays = state.records.length;
-  if (typeof state.streak !== 'number') state.streak = 0;
-}
 
-function safeCall(fnName) {
-  try {
-    if (typeof window[fnName] === 'function') window[fnName]();
-  } catch (e) {
-    console.warn(fnName + ' failed:', e);
-  }
-}
-
-
-// saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
-// インラインにも定義を維持する。モジュール実行後は window.saveState が上書きされる。
 function saveState() {
   try {
-    var s = window.state || state;
-    s.lastSaved = new Date().toISOString();
-    localStorage.setItem('ippo_state', JSON.stringify(s));
+    state.lastSaved = new Date().toISOString();
+    localStorage.setItem('ippo_state', JSON.stringify(state));
   } catch(e) {
-    console.warn('ippo: saveState failed', e);
+    console.warn('ippo: localStorage save failed', e);
   }
 }
 
@@ -3614,7 +6043,6 @@ function init() {
   if (saved) {
     try { state = { ...state, ...JSON.parse(saved) }; } catch(e) {}
   }
-  ensureStateShape();
     // myDisease → myDiseases 自動マイグレーション
     if(state.myDisease && !state.myDiseases){
       state.myDiseases = [state.myDisease];
@@ -3689,8 +6117,7 @@ if (state.name && !state._onboardingDone) {
   window._applyCloudRestore = function _applyCloudRestore() {
     cloudRestore().then(function(restored){
       if(restored){
-        state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
-        ensureStateShape();
+        state = JSON.parse(localStorage.getItem('ippo_state'));
         updateStats(); updateHistory(); buildCalendar();
         // 疾患設定UIを復元後の state に合わせて再描画
         if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
@@ -3718,8 +6145,7 @@ if (state.name && !state._onboardingDone) {
   }
 
   var restoreInterval = setInterval(function(){
-    var sb = getSupabaseClient();
-    if(sb && sb.auth){
+    if(typeof supabase !== 'undefined' && supabase.auth){
       clearInterval(restoreInterval);
       _applyCloudRestore();
     }
@@ -3738,8 +6164,7 @@ document.addEventListener('visibilitychange', function(){
     _lastVisibilitySync = now;
     cloudRestore().then(function(restored){
       if(restored){
-        state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
-        ensureStateShape();
+        state = JSON.parse(localStorage.getItem('ippo_state'));
         updateStats();
         updateHistory();
         buildCalendar();
@@ -5333,29 +7758,17 @@ function buildHomeWeekRow() {
     var cellColor = (pain >= 2) ? 'white' : 'var(--ink)';
     var cellWeight = isToday ? '700' : '500';
 
-    var clickable = !isFuture;
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;'
-      + (clickable ? 'cursor:pointer;' : '') + '"'
-      + (clickable ? ' onclick="openDayDetailByDate(\'' + dateStr + '\')"' : '')
-      + '>';
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;">';
     html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
     html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
       + 'font-size:12px;font-weight:' + cellWeight + ';'
       + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px var(--rose-dark);' : '')
+      + (isToday ? 'box-shadow:0 0 0 2px #b8707a;' : '')
       + '">' + d.getDate() + '</div>';
     html += '</div>';
   }
   weekRow.innerHTML = html;
   buildPhaseBar(monday);
-}
-
-// ホーム週セルから日付詳細を開くヘルパー（ISO文字列 → calYear/calMonth を設定してから開く）
-function openDayDetailByDate(isoStr) {
-  var d = new Date(isoStr + 'T00:00:00');
-  calYear  = d.getFullYear();
-  calMonth = d.getMonth();
-  openDayDetail(d.getDate());
 }
 
 function getPhaseForDate(date) {
@@ -5784,14 +8197,15 @@ function _buildPhaseBarPreview() {
 
 // ===== TABS =====
 function switchTab(tab, btn) {
-  ensureStateShape();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`screen-${tab}`).classList.add('active');
   if (btn) btn.classList.add('active');
 
 
-  if (tab === 'insights') {
+    if (tab === 'insights') {
+    // 現在アクティブなタブのまま再描画（初回は無料の発見）
+    var activePane = document.querySelector('#ins-pane-free, #ins-pane-pro, #ins-pane-doctor');
     var activePaneName = 'free';
     if (document.getElementById('ins-pane-pro') && document.getElementById('ins-pane-pro').style.display === 'block') activePaneName = 'pro';
     if (document.getElementById('ins-pane-doctor') && document.getElementById('ins-pane-doctor').style.display === 'block') activePaneName = 'doctor';
@@ -5807,10 +8221,7 @@ function switchTab(tab, btn) {
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
     if (typeof updateTodayMessage === 'function') updateTodayMessage();
   }
-  if (tab === 'calendar') {
-    buildCalendar();
   }
-}
 　
 
 
@@ -6490,7 +8901,6 @@ function selectBowelCount(symptomName, count, el) {
 
 // ===== SAVE RECORD =====
 function saveRecord() {
-  ensureStateShape();
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
 
@@ -7199,13 +9609,13 @@ function updateHomeCTAState() {
 
   if (rec) {
     // 記録済み：ダークローズ・✓マーク
-    card.style.background = 'var(--rose-dark)';
+    card.style.background = '#b8707a';
     card.style.opacity = '0.82';
     if (title) title.textContent = '✓ 今日の記録完了';
     if (sub)   sub.textContent   = buildComparisonComment(rec);
   } else {
     // 未記録：鮮やかなローズ
-    card.style.background = 'var(--rose-dark)';
+    card.style.background = '#b8707a';
     card.style.opacity = '1';
     if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = '';
@@ -7701,6 +10111,26 @@ var SYMPTOM_CATEGORIES = {
 };
 var _sympTabCurrent = 'all';
 
+// ===== 3層症状チップシステム =====
+var SYMPTOM_LAYERS = {
+  layer1: ['下腹部痛','腰痛','頭痛','倦怠感','気分の落ち込み','イライラ','むくみ'],
+  layer2: ['不安感','不眠','集中力低下','吐き気','胸の張り','便秘','下痢','食欲増加','食欲低下','眠気','ブレインフォグ','腹部膨満'],
+  layer3: ['ほてり','のぼせ','動悸','冷え','発熱','関節痛','肌荒れ']
+};
+var SENSITIVE_SYMPTOMS = ['性交痛','排便痛'];
+
+var DISEASE_PRIORITY_SYMPTOMS = {
+  '子宮内膜症': ['下腹部痛','腰痛','排便痛','性交痛','倦怠感'],
+  '子宮腺筋症': ['下腹部痛','腰痛','腹部膨満','排便痛','倦怠感'],
+  '子宮筋腫':   ['下腹部痛','腰痛','腹部膨満','頻尿','倦怠感'],
+  'PCOS':       ['倦怠感','ブレインフォグ','食欲増加','肌荒れ','気分の落ち込み'],
+  'PMDD':       ['イライラ','気分の落ち込み','不安感','食欲増加','集中力低下'],
+  'PMS/PMDD':   ['イライラ','気分の落ち込み','むくみ','胸の張り','頭痛'],
+  '更年期障害':  ['ほてり','のぼせ','動悸','不眠','倦怠感'],
+  '卵巣嚢腫':   ['下腹部痛','腰痛','腹部膨満','吐き気','倦怠感'],
+  '慢性骨盤痛':  ['下腹部痛','腰痛','排便痛','性交痛','倦怠感'],
+  '外陰痛症候群':['性交痛','下腹部痛','不安感','不眠','倦怠感']
+};
 
 function getRecentSymptoms() {
   try {
@@ -8575,7 +11005,6 @@ function showQuickLogDone() {
 }
 
 function buildCalendar(){
-  ensureStateShape();
   var label = document.getElementById('calLabel');
   var grid = document.getElementById('calGrid');
   if(!label||!grid) return;
@@ -8618,50 +11047,11 @@ function buildCalendar(){
   }
 }
 
-// カレンダータブ：月別サマリーカード描画
-function renderCalendarMonthlySummary() {
-  var el = document.getElementById('cal-monthly-summary');
-  if (!el) return;
-  var monthStr = calYear + '-' + String(calMonth + 1).padStart(2, '0');
-  var recs = state.records.filter(function(r) {
-    return r.date && r.date.slice(0, 7) === monthStr;
-  });
-  if (recs.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + calYear + '年' + (calMonth + 1) + '月の記録はまだありません</div>';
-    return;
-  }
-  // 集計
-  var painTotal = 0, painCount = 0, symptomMap = {};
-  recs.forEach(function(r) {
-    if (r.painLevel !== null && r.painLevel !== undefined) { painTotal += r.painLevel; painCount++; }
-    if (r.symptoms) r.symptoms.forEach(function(s) { symptomMap[s] = (symptomMap[s] || 0) + 1; });
-  });
-  var avgPain = painCount > 0 ? (painTotal / painCount).toFixed(1) : '—';
-  var topSymptoms = Object.keys(symptomMap).sort(function(a, b) { return symptomMap[b] - symptomMap[a]; }).slice(0, 3);
-  var html = '<div style="display:flex;gap:16px;margin-bottom:10px;">';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + recs.length + '</div><div style="font-size:10px;color:var(--ink-light);">記録日数</div></div>';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + avgPain + '</div><div style="font-size:10px;color:var(--ink-light);">平均痛みレベル</div></div>';
-  html += '</div>';
-  if (topSymptoms.length > 0) {
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">多かった症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    topSymptoms.forEach(function(s) {
-      html += '<span style="background:var(--rose-pale);color:var(--rose-dark);border-radius:20px;padding:3px 10px;font-size:11px;">' + s + ' <span style="opacity:0.6;">×' + symptomMap[s] + '</span></span>';
-    });
-    html += '</div>';
-  }
-  // month label サブタイトル更新
-  var subLabel = document.getElementById('cal-screen-month-label');
-  if (subLabel) subLabel.textContent = calYear + '年 ' + (calMonth + 1) + '月 — ' + recs.length + '件の記録';
-  el.innerHTML = html;
-}
-
 function changeMonth(delta){
   calMonth += delta;
   if(calMonth > 11){ calMonth = 0; calYear++; }
   if(calMonth < 0){ calMonth = 11; calYear--; }
   buildCalendar();
-  renderCalendarMonthlySummary();
 }
 
 document.addEventListener('DOMContentLoaded', function(){
@@ -8675,15 +11065,13 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
-  if (typeof ICONS !== 'undefined') {
-    initNavIcons();
-    initSettingsIcons();
-    // カレンダーナビ矢印をSVGに
-    var calPrevBtn = document.getElementById('calPrev');
-    var calNextBtn = document.getElementById('calNext');
-    if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
-    if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
-  }
+  initNavIcons();
+  initSettingsIcons();
+  // カレンダーナビ矢印をSVGに
+  var calPrevBtn = document.getElementById('calPrev');
+  var calNextBtn = document.getElementById('calNext');
+  if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
+  if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
   updateHomeCTA();
   updateHomeCTAState();
   updateStreakBadge();
@@ -8946,12 +11334,6 @@ function prefillRecordFromModal() {
 
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
-  ensureStateShape();
-  var saveBtn = document.getElementById('save-record-btn');
-  if (saveBtn) {
-    saveBtn.disabled = false;
-    saveBtn.textContent = 'この内容で記録する';
-  }
     // 今日の記録が既にある場合は自動的に編集モードにする
   if(!state.editingDate){
     var todayStr = new Date().toDateString();
@@ -10839,7 +13221,6 @@ function draftRecordScreen(){
 
 function saveRecordScreen(){
   try {
-    ensureStateShape();
     var data = gatherRecordData();
    var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
 var todayStr = targetDate.toDateString();
@@ -10930,10 +13311,8 @@ var todayStr = targetDate.toDateString();
     }
 
     // 保存成功を検証
-    var verifyRaw = localStorage.getItem('ippo_state');
-    var verify = verifyRaw ? JSON.parse(verifyRaw) : null;
-    var verifyRecords = (verify && Array.isArray(verify.records)) ? verify.records : [];
-    var saved = verifyRecords.some(function(r){ return r && new Date(r.date).toDateString() === todayStr; });
+    var verify = JSON.parse(localStorage.getItem('ippo_state'));
+    var saved = verify.records.some(function(r){ return new Date(r.date).toDateString() === todayStr; });
     if(!saved){
       showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
       return;
@@ -10943,21 +13322,21 @@ var todayStr = targetDate.toDateString();
     if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
 
     // UI更新（保存成功後のみ）
-    safeCall('updateHomeSummary');
-    safeCall('updateDailyHintCard');
-    safeCall('updateHomeCTA');
-    safeCall('updateHomeCTAState');
-    safeCall('updateTodayMessage');
-    safeCall('updateStreakBadge');
-    safeCall('buildHomeWeekRow');
-    safeCall('updateHomeInsightCard');
-    safeCall('updateHomeNumbers');
-    safeCall('updateHomeDiseaseAdvice');
-    safeCall('checkAndShowTempAlert');
-    safeCall('updateFastingWidgetPhase');
-    safeCall('updateStats');
-    safeCall('updateHistory');
-    safeCall('buildCalendar');
+    updateHomeSummary();
+    if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
+    updateHomeCTA();
+    updateHomeCTAState();
+    if (typeof updateTodayMessage === 'function') updateTodayMessage();
+    updateStreakBadge();
+    buildHomeWeekRow();
+    updateHomeInsightCard();
+    updateHomeNumbers();
+    updateHomeDiseaseAdvice();
+    checkAndShowTempAlert();
+    updateFastingWidgetPhase();
+    updateStats();
+    updateHistory();
+    buildCalendar();
     localStorage.removeItem('ippo_draft');
     if(typeof cloudBackupAll === 'function'){
   cloudBackupAll().catch(function(e){
@@ -10972,11 +13351,8 @@ var todayStr = targetDate.toDateString();
 
     var so = document.getElementById('success-overlay');
     if(so){
-      var successEmojiEl = document.getElementById('success-emoji');
-      var successTitleEl = document.getElementById('success-title');
-      var successMessageEl = document.getElementById('success-message');
-      if (successEmojiEl) successEmojiEl.textContent = '🌿';
-      if (successTitleEl) successTitleEl.textContent = '記録を保存しました';
+      document.getElementById('success-emoji').textContent = '🌿';
+      document.getElementById('success-title').textContent = '記録を保存しました';
       // フィードバックカード生成
       var streak = state.streak || 0;
       var feedbackHtml = '';
@@ -11006,7 +13382,7 @@ var todayStr = targetDate.toDateString();
         if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
       }
       feedbackHtml += '</div>';
-      if (successMessageEl) successMessageEl.innerHTML = feedbackHtml;
+      document.getElementById('success-message').innerHTML = feedbackHtml;
       so.classList.add('active');
       // 2秒後に自動で閉じる
       setTimeout(function(){
@@ -12610,14 +14986,9 @@ document.getElementById('syncOverlay').addEventListener('click', function(e) {
 
 async function renderSyncUI() {
   const body = document.getElementById('syncBody');
-  const sb = getSupabaseClient();
-  if (!sb || !sb.auth) {
-    showLoginForm();
-    return;
-  }
   
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (session && session.user) {
       // ログイン済み
@@ -12642,7 +15013,7 @@ async function renderSyncUI() {
       showLoginForm();
     }
   } catch (err) {
-    console.error('Sync UI error[' + classifySyncError(err) + ']:', err);
+    console.error('Sync UI error:', err);
     showLoginForm();
   }
 }
@@ -12701,18 +15072,9 @@ function hideMessage() {
 }
 
 async function submitSync() {
-  const sb = getSupabaseClient();
   const email = document.getElementById('syncEmail').value.trim();
   const password = document.getElementById('syncPassword').value;
   const btn = document.getElementById('syncSubmitBtn');
-  if (!sb || !sb.auth) {
-    showMessage('同期機能の初期化中です。数秒後にもう一度お試しください。', 'error');
-    if (btn) {
-      btn.disabled = false;
-      btn.textContent = syncMode === 'signup' ? '登録する' : 'ログイン';
-    }
-    return;
-  }
   
   if (!email || !password) {
     showMessage('メールアドレスとパスワードを入力してください', 'error');
@@ -12732,7 +15094,7 @@ async function submitSync() {
     
     if (syncMode === 'signup') {
       // 新規登録
-      result = await sb.auth.signUp({ email, password });
+      result = await supabase.auth.signUp({ email, password });
       
       if (result.error) throw result.error;
       
@@ -12745,7 +15107,7 @@ async function submitSync() {
       }
     } else {
       // ログイン
-      result = await sb.auth.signInWithPassword({ email, password });
+      result = await supabase.auth.signInWithPassword({ email, password });
       if (result.error) throw result.error;
     }
 
@@ -12765,8 +15127,7 @@ async function submitSync() {
       // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
       cloudRestore().then(function(restored) {
         if (restored) {
-          state = { ...state, ...(JSON.parse(localStorage.getItem('ippo_state') || '{}')) };
-          ensureStateShape();
+          state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
           if (typeof updateStats === 'function') updateStats();
           if (typeof updateHistory === 'function') updateHistory();
           if (typeof buildCalendar === 'function') buildCalendar();
@@ -12789,7 +15150,7 @@ async function submitSync() {
     }
 
   } catch (err) {
-    console.error('Auth error[' + classifySyncError(err) + ']:', err);
+    console.error('Auth error:', err);
     let errorMsg = 'エラーが発生しました。';
     if (err.message.includes('Invalid login')) errorMsg = 'メールアドレスまたはパスワードが正しくありません。';
     else if (err.message.includes('already registered')) errorMsg = 'このメールアドレスはすでに登録されています。ログインしてください。';
@@ -12803,21 +15164,19 @@ async function submitSync() {
 }
 
 async function migrateDataToUser(userId) {
-  const sb = getSupabaseClient();
-  if (!sb) return;
   try {
     const deviceId = localStorage.getItem('ippo_device_id');
     if (!deviceId) return;
 
     // records テーブルの device_id のデータに user_id を設定
-    await sb
+    await supabase
       .from('records')
       .update({ user_id: userId })
       .eq('device_id', deviceId)
       .is('user_id', null);
 
     // profiles テーブルも同様
-    await sb
+    await supabase
       .from('profiles')
       .update({ user_id: userId })
       .eq('device_id', deviceId)
@@ -12829,20 +15188,13 @@ async function migrateDataToUser(userId) {
 }
 
 async function syncNow() {
-  const sb = getSupabaseClient();
   const btn = document.querySelector('.sync-action-btn.primary');
-  if (!btn) return;
-  if (!sb || !sb.auth) {
-    btn.textContent = '同期機能の準備中です';
-    setTimeout(() => { btn.textContent = '今すぐ同期'; }, 1500);
-    return;
-  }
   const original = btn.textContent;
   btn.textContent = '同期中...';
   btn.disabled = true;
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Not logged in');
 
     const userId = session.user.id;
@@ -12850,7 +15202,7 @@ async function syncNow() {
 
     // 現在の端末のデータをuser_idに紐付け
     if (deviceId) {
-      await sb
+      await supabase
         .from('records')
         .update({ user_id: userId })
         .eq('device_id', deviceId)
@@ -12867,7 +15219,7 @@ async function syncNow() {
     }, 2000);
 
   } catch (err) {
-    console.error('Sync error[' + classifySyncError(err) + ']:', err);
+    console.error('Sync error:', err);
     btn.textContent = '同期に失敗しました';
     setTimeout(() => {
       btn.textContent = original;
@@ -12878,10 +15230,8 @@ async function syncNow() {
 
 async function logoutSync() {
   showConfirmModal('ログアウトしますか？<br>この端末のデータは残りますが、他の端末との同期が無効になります。', async function() {
-    const sb = getSupabaseClient();
-    if (!sb || !sb.auth) return;
     try {
-      await sb.auth.signOut();
+      await supabase.auth.signOut();
       document.getElementById('syncStatusBrief').textContent = '未ログイン';
       renderSyncUI();
     } catch (err) {
@@ -12892,10 +15242,8 @@ async function logoutSync() {
 
 // ページ読み込み時に同期状態を確認
 (async function checkSyncStatus() {
-  const sb = getSupabaseClient();
-  if (!sb || !sb.auth) return;
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession();
     const brief = document.getElementById('syncStatusBrief');
     if (brief) {
       brief.textContent = session?.user?.email || '未ログイン';
@@ -12996,8 +15344,7 @@ var adminCheckInterval = setInterval(function(){
 
 
   // ===== PREMIUM LOCK =====
-// ★ var に変更: ES モジュール（services/stripe.js）から window.isPremium として参照するため
-var isPremium = false;
+let isPremium = false;
 
 async function checkPremiumStatus() {
   try {
@@ -13169,16 +15516,117 @@ if(premiumOverlay) premiumOverlay.addEventListener('click', function(e) {
 if (e.target === this) closePremiumLock();
 });
 
-// STRIPE SUBSCRIPTION は src/services/stripe.js に移設
-// (window.selectPremiumPlan / window.startStripeCheckout /
-//  window.checkUpsellNotification / handleStripeReturn IIFE として公開)
+// ===== STRIPE SUBSCRIPTION =====
+// Stripeダッシュボードで作成した Price ID を設定してください
+var STRIPE_PRICE_MONTHLY = 'price_XXXXXXXXXXXXXXXXXX'; // ¥580/月
+var STRIPE_PRICE_ANNUAL  = 'price_YYYYYYYYYYYYYYYYYY'; // ¥4,800/年
+
+var _selectedPlan = 'annual';
+
+function selectPremiumPlan(planType) {
+  _selectedPlan = planType;
+  var mc = document.getElementById('plan-card-monthly');
+  var ac = document.getElementById('plan-card-annual');
+  var mb = document.getElementById('stripe-main-btn');
+  var sb = document.getElementById('stripe-sub-btn');
+  if (!mc || !ac) return;
+  if (planType === 'annual') {
+    ac.style.borderColor = 'var(--rose)';
+    ac.style.background = 'linear-gradient(135deg,#fff8f8,#fdf3f3)';
+    mc.style.borderColor = '#e8ddd8';
+    mc.style.background = 'transparent';
+    if (mb) mb.textContent = '年額プランで始める（¥4,800/年）';
+    if (sb) sb.textContent = '月額プランで始める（¥580/月）';
+  } else {
+    mc.style.borderColor = 'var(--rose)';
+    mc.style.background = 'linear-gradient(135deg,#fff8f8,#fdf3f3)';
+    ac.style.borderColor = '#e8ddd8';
+    ac.style.background = 'transparent';
+    if (mb) mb.textContent = '月額プランで始める（¥580/月）';
+    if (sb) sb.textContent = '年額プランで始める（¥4,800/年）';
+  }
+}
+
+async function startStripeCheckout(forcePlan) {
+  var plan = forcePlan || _selectedPlan;
+  var sessionData = (await supabase.auth.getSession()).data?.session;
+  if (!sessionData) {
+    showAlertModal('決済にはログインが必要です。設定画面からログインしてください。');
+    closePremiumLock();
+    return;
+  }
+  var btn = document.getElementById('stripe-main-btn');
+  var origText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = '処理中...'; btn.disabled = true; }
+  try {
+    var priceId = plan === 'annual' ? STRIPE_PRICE_ANNUAL : STRIPE_PRICE_MONTHLY;
+    var base = window.location.href.split('?')[0];
+    var resp = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + sessionData.access_token },
+      body: JSON.stringify({ price_id: priceId, success_url: base + '?stripe=success&plan=' + plan, cancel_url: base + '?stripe=cancel' })
+    });
+    var data = await resp.json();
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      throw new Error(data.error || '決済ページの読み込みに失敗しました');
+    }
+  } catch (e) {
+    showAlertModal('エラーが発生しました: ' + e.message);
+    if (btn) { btn.textContent = origText; btn.disabled = false; }
+  }
+}
+
+// Stripe決済完了後のリダイレクト処理
+(function handleStripeReturn() {
+  var params = new URLSearchParams(window.location.search);
+  var stripeStatus = params.get('stripe');
+  var plan = params.get('plan');
+  if (!stripeStatus) return;
+  history.replaceState({}, '', window.location.pathname);
+  if (stripeStatus === 'success') {
+    showToast('💳 決済が完了しました。プレミアム機能を有効化中...');
+    var attempts = 0;
+    var poll = setInterval(function() {
+      attempts++;
+      checkPremiumStatus();
+      if (isPremium || attempts >= 12) {
+        clearInterval(poll);
+        if (isPremium) showToast('🎉 ' + (plan === 'annual' ? '年額' : '月額') + 'プランへようこそ！');
+      }
+    }, 2500);
+  }
+})();
+
+// 3ヶ月後アップセル通知
+function checkUpsellNotification() {
+  if (isPremium) return;
+  var lastShown = localStorage.getItem('ippo_upsell_ts');
+  if (lastShown && Date.now() - parseInt(lastShown) < 7 * 24 * 60 * 60 * 1000) return;
+  if (!state.records || state.records.length < 10) return;
+  var firstDate = state.records.slice().sort(function(a, b){ return a.date < b.date ? -1 : 1; })[0].date;
+  var daysSince = (Date.now() - new Date(firstDate).getTime()) / 86400000;
+  if (daysSince < 90) return;
+  localStorage.setItem('ippo_upsell_ts', Date.now().toString());
+  var banner = document.createElement('div');
+  banner.id = 'upsell-banner';
+  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:420px;background:var(--cream);border:1.5px solid var(--rose-light);border-radius:16px;padding:14px 16px;z-index:400;box-shadow:0 4px 20px rgba(184,112,122,0.2);animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);';
+  banner.innerHTML = '<div style="display:flex;align-items:center;gap:12px;">'
+    + '<div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">ippoを3ヶ月以上続けています ✨</div>'
+    + '<div style="font-size:11px;color:var(--ink-mid);">年額プランで月400円（31%オフ）— より深い分析が使えます</div></div>'
+    + '<button onclick="closePremiumLock();document.getElementById(\'upsell-banner\').remove();document.getElementById(\'premiumLockOverlay\').classList.add(\'active\');" style="background:var(--rose);color:white;border:none;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">詳細を見る</button>'
+    + '<button onclick="document.getElementById(\'upsell-banner\').remove();" style="background:none;border:none;color:var(--ink-light);font-size:18px;cursor:pointer;line-height:1;">✕</button>'
+    + '</div>';
+  document.body.appendChild(banner);
+  setTimeout(function() { var b = document.getElementById('upsell-banner'); if (b) b.remove(); }, 12000);
+}
 
 // Supabase認証の準備完了を待ってからプレミアム状態を確認
 var premiumCheckInterval = setInterval(function(){
-  var sb = getSupabaseClient();
-  if(sb && sb.auth){
+  if(typeof supabase !== 'undefined' && supabase.auth){
     clearInterval(premiumCheckInterval);
-    sb.auth.onAuthStateChange(function(event, session){
+    supabase.auth.onAuthStateChange(function(event, session){
       checkPremiumStatus();
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
       // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
@@ -13233,7 +15681,371 @@ var premiumCheckInterval = setInterval(function(){
 }
   </script>
 
+  <style>  
+  /* ===== AI ANALYSIS MODAL ===== */
+.ai-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.ai-overlay.active { display: flex; }
+.ai-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.ai-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.ai-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.ai-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.ai-subtitle { font-size: 12px; color: var(--ink-light); }
+.ai-body { padding: 0 24px; }
+.ai-loading {
+  text-align: center;
+  padding: 40px 20px;
+}
+.ai-loading-icon {
+  font-size: 32px;
+  margin-bottom: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+.ai-loading-text {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.7;
+}
+.ai-result {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 16px;
+}
+.ai-result-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(200,180,170,0.15);
+}
+.ai-result-icon { font-size: 20px; }
+.ai-result-label {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+}
+.ai-result-date {
+  font-size: 10px;
+  color: var(--ink-light);
+  margin-left: auto;
+}
+.ai-result-text {
+  font-size: 14px;
+  color: var(--ink);
+  line-height: 2;
+}
+.ai-result-text p {
+  margin-bottom: 12px;
+}
+.ai-result-text p:last-child { margin-bottom: 0; }
+.ai-data-summary {
+  background: linear-gradient(135deg, var(--rose-pale), var(--warm-light));
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border-left: 3px solid var(--rose);
+}
+.ai-data-title {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--rose);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.ai-data-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  padding: 3px 0;
+}
+.ai-data-label { color: var(--ink-light); }
+.ai-data-value { color: var(--ink); font-weight: 500; }
+.ai-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+  display: flex;
+  gap: 10px;
+}
+.ai-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ai-btn.primary { background: var(--rose); color: white; }
+.ai-btn.primary:hover { background: #FF8A8A; }
+.ai-btn.secondary { background: #f0ebe6; color: var(--ink-mid); }
+.ai-error {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.8;
+}
+.ai-retry-btn {
+  margin-top: 16px;
+  padding: 10px 24px;
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+}
 
+
+  /* ===== SYNC / AUTH MODAL ===== */
+.sync-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(44,36,32,0.5);
+  backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+}
+.sync-overlay.active { display: flex; }
+.sync-sheet {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background: var(--cream);
+  border-radius: 24px 24px 0 0;
+  padding: 0 0 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+.sync-handle {
+  width: 36px; height: 4px;
+  background: rgba(44,36,32,0.15);
+  border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.sync-header {
+  padding: 0 24px 16px;
+  border-bottom: 1px solid rgba(200,180,170,0.2);
+  margin-bottom: 20px;
+}
+.sync-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.sync-subtitle { font-size: 12px; color: var(--ink-light); }
+.sync-body { padding: 0 24px; }
+
+.sync-status {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+  text-align: center;
+}
+.sync-status-icon { font-size: 32px; margin-bottom: 12px; }
+.sync-status-text {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink);
+  margin-bottom: 4px;
+}
+.sync-status-sub { font-size: 12px; color: var(--ink-light); }
+.sync-email-display {
+  font-size: 13px;
+  color: var(--rose);
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.sync-form {
+  background: var(--white);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px var(--shadow);
+  margin-bottom: 20px;
+}
+.sync-form-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 15px;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.sync-input {
+  width: 100%;
+  border: 1.5px solid #e8ddd8;
+  border-radius: 12px;
+  padding: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--cream);
+  outline: none;
+  transition: border-color 0.2s;
+  margin-bottom: 12px;
+}
+.sync-input:focus { border-color: var(--rose); }
+.sync-input::placeholder { color: var(--ink-light); font-size: 13px; }
+.sync-form-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--rose);
+  color: white;
+  margin-bottom: 8px;
+}
+.sync-form-btn:hover { background: #FF8A8A; }
+.sync-form-btn:disabled {
+  background: #e8ddd8;
+  color: var(--ink-light);
+  cursor: not-allowed;
+}
+.sync-form-toggle {
+  background: none;
+  border: none;
+  color: var(--ink-light);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 8px;
+  width: 100%;
+  text-align: center;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+.sync-form-toggle:hover { color: var(--rose); }
+
+.sync-message {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  line-height: 1.6;
+  display: none;
+}
+.sync-message.success {
+  display: block;
+  background: var(--sage-light);
+  color: #2d6a4f;
+}
+.sync-message.error {
+  display: block;
+  background: var(--rose-pale);
+  color: #c9747a;
+}
+.sync-message.info {
+  display: block;
+  background: var(--warm-light);
+  color: var(--ink-mid);
+}
+
+.sync-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+.sync-action-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.sync-action-btn.primary { background: var(--rose); color: white; }
+.sync-action-btn.primary:hover { background: #FF8A8A; }
+.sync-action-btn.danger {
+  background: none;
+  border: 1px solid #e8ddd8;
+  color: var(--ink-light);
+}
+.sync-action-btn.danger:hover { border-color: var(--rose); color: var(--rose); }
+
+.sync-footer {
+  padding: 16px 24px 0;
+  border-top: 1px solid rgba(200,180,170,0.2);
+  margin-top: 8px;
+}
+.sync-close-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: #f0ebe6;
+  color: var(--ink-mid);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+
+ #screen-settings .feedback-section {
+  margin: 0 20px 28px;
+  text-align: center;
+}
+#screen-settings .fb-stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+  
+</style> 
 
   <!-- Premium Lock Modal -->
 <div class="premium-lock-overlay" id="premiumLockOverlay">
@@ -13277,23 +16089,5 @@ var premiumCheckInterval = setInterval(function(){
 
  　 </div>  <!-- main-app を閉じる -->
 　</div>  <!-- app を閉じる -->
-
-<script>
-// Service Worker 登録は src/services/push.js に移設
-
-// ===== ホーム月次カレンダー トグル =====
-function toggleHomeCalendar() {
-  var panel = document.getElementById('home-calendar-panel');
-  var arrow = document.getElementById('home-cal-arrow');
-  var btn   = document.getElementById('home-cal-toggle');
-  if (!panel) return;
-  var isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
-  if (btn)   btn.setAttribute('aria-expanded', String(!isOpen));
-  // 初回展開時にカレンダーを描画
-  if (!isOpen && typeof renderCalendar === 'function') renderCalendar();
-}
-</script>
 </body>
 </html>
