@@ -3,6 +3,7 @@
 //  Phase 3-E: edit record hydration guard
 //  Phase 3-E-1: edit route trace / reset-after hydrate guard
 //  Phase 3-F-2: record repository 読み取り層へ移行
+//  Hotfix: stabilize edit intent date and hydration
 //
 //  目的:
 //  - 記録編集時に保存済みrecordの内容をフォームへ復元する
@@ -46,7 +47,7 @@ function toCamel(value) {
 
 function getDateFromDom() {
   try {
-    const input = document.querySelector('[name="record_date"], [name="date"], #record-date, #recordDate, #recordDateInput');
+    const input = document.querySelector('[name="record_date"], [name="recordDate"], [name="date"], #record-date, #recordDate, #recordDateInput');
     if (input && input.value) return normalizeRecordDate(input.value);
   } catch(e) {}
 
@@ -55,16 +56,59 @@ function getDateFromDom() {
     if (dmDate && dmDate.textContent) return normalizeRecordDate(dmDate.textContent);
   } catch(e) {}
 
+  try {
+    const active = document.querySelector('[data-date].active, [data-record-date].active, [aria-selected="true"][data-date], [aria-selected="true"][data-record-date]');
+    const activeDate = normalizeRecordDate(active?.getAttribute('data-record-date')) || normalizeRecordDate(active?.getAttribute('data-date'));
+    if (activeDate) return activeDate;
+  } catch(e) {}
+
   return '';
 }
 
+function isRecentEditIntent() {
+  return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 15000);
+}
+
+function persistEditingDate(date) {
+  const normalized = normalizeRecordDate(date);
+  if (!normalized) return '';
+
+  if (window.state && typeof window.state === 'object') {
+    try { window.state.editingDate = normalized; } catch(e) {}
+    try { window.state.currentEditingDate = normalized; } catch(e) {}
+    try { window.state.recordDate = normalized; } catch(e) {}
+  }
+
+  try { window.currentEditingDate = normalized; } catch(e) {}
+  try { window.editingDate = normalized; } catch(e) {}
+  try { window.__ippoActiveEditDate = normalized; } catch(e) {}
+
+  return normalized;
+}
+
 function getEditingDate() {
-  const stateDate = window.state?.editingDate || window.state?.selectedDate || window.state?.recordDate;
-  if (stateDate) return normalizeRecordDate(stateDate) || String(stateDate).slice(0, 10);
+  if (isRecentEditIntent() && lastEditIntent.date) return lastEditIntent.date;
+
+  const directDate =
+    window.__ippoActiveEditDate ||
+    window.currentEditingDate ||
+    window.editingDate ||
+    window.state?.currentEditingDate ||
+    window.state?.editingDate ||
+    window.state?.recordDate;
+
+  const normalizedDirect = normalizeRecordDate(directDate);
+  if (normalizedDirect) return normalizedDirect;
+
+  const domDate = getDateFromDom();
+  if (domDate) return domDate;
+
+  const selectedDate = normalizeRecordDate(window.state?.selectedDate);
+  if (selectedDate) return selectedDate;
 
   if (lastEditIntent.date) return lastEditIntent.date;
 
-  return getDateFromDom();
+  return '';
 }
 
 function getEditingRecord() {
@@ -73,8 +117,19 @@ function getEditingRecord() {
   return findRecordByDate(targetDate);
 }
 
+function dateFromRecordLike(value) {
+  if (!value || typeof value !== 'object') return '';
+  return normalizeRecordDate(value.record_date) ||
+    normalizeRecordDate(value.recordDate) ||
+    normalizeRecordDate(value.date) ||
+    normalizeRecordDate(value.id) ||
+    normalizeRecordDate(value.targetDate) ||
+    normalizeRecordDate(value.selectedDate) ||
+    normalizeRecordDate(value.editingDate);
+}
+
 function markEditIntent(source, date) {
-  const normalized = normalizeRecordDate(date) || getDateFromDom() || getEditingDate();
+  const normalized = normalizeRecordDate(date) || dateFromRecordLike(date) || getDateFromDom() || getEditingDate();
 
   lastEditIntent = {
     at: Date.now(),
@@ -82,23 +137,16 @@ function markEditIntent(source, date) {
     source: source || 'unknown',
   };
 
-  if (normalized && window.state && typeof window.state === 'object') {
-    try {
-      window.state.editingDate = normalized;
-    } catch(e) {}
-  }
+  persistEditingDate(normalized);
 
   debug('edit-intent', {
     source: lastEditIntent.source,
     date: lastEditIntent.date,
     stateEditingDate: window.state?.editingDate,
+    stateCurrentEditingDate: window.state?.currentEditingDate,
     stateSelectedDate: window.state?.selectedDate,
     stateRecordDate: window.state?.recordDate,
   });
-}
-
-function isRecentEditIntent() {
-  return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 8000);
 }
 
 function candidateKeysForElement(el) {
@@ -200,14 +248,19 @@ function hydrateChips(record) {
 }
 
 function hydrateRecordForm() {
+  const targetDate = getEditingDate();
   const record = getEditingRecord();
   if (!record) {
     debug('skip:no-record', {
-      editingDate: getEditingDate(),
+      editingDate: targetDate,
       lastEditIntent: lastEditIntent,
+      recordsLength: getRecords().length,
     });
     return false;
   }
+
+  const recordDate = getRecordDate(record);
+  persistEditingDate(recordDate || targetDate);
 
   let filled = 0;
   const fields = document.querySelectorAll('input, textarea, select');
@@ -220,7 +273,8 @@ function hydrateRecordForm() {
 
   const chips = hydrateChips(record);
   debug('hydrated', {
-    date: getRecordDate(record),
+    requestedDate: targetDate,
+    date: recordDate,
     fields: filled,
     chips: chips,
     source: lastEditIntent.source,
@@ -232,16 +286,14 @@ function hydrateRecordForm() {
 function scheduleHydration(source, date) {
   if (source) markEditIntent(source, date);
 
-  window.setTimeout(hydrateRecordForm, 0);
-  window.setTimeout(hydrateRecordForm, 100);
-  window.setTimeout(hydrateRecordForm, 300);
-  window.setTimeout(hydrateRecordForm, 700);
-  window.setTimeout(hydrateRecordForm, 1200);
+  [0, 80, 180, 350, 700, 1200, 2000].forEach(function(delay) {
+    window.setTimeout(hydrateRecordForm, delay);
+  });
 }
 
 function firstDateFromArgs(args) {
   for (const arg of Array.from(args || [])) {
-    const normalized = normalizeRecordDate(arg);
+    const normalized = normalizeRecordDate(arg) || dateFromRecordLike(arg);
     if (normalized) return normalized;
   }
   return '';
@@ -256,13 +308,15 @@ function wrapFunction(name, options) {
     const argsDate = firstDateFromArgs(arguments);
     const isEditRoute = !!(options && options.editIntent);
     const shouldHydrateRecord = !!(options && options.hydrateOnRecordTab && arguments[0] === 'record');
+    const beforeDate = getEditingDate();
 
     if (isEditRoute) {
-      markEditIntent(name, argsDate);
+      markEditIntent(name, argsDate || beforeDate);
     }
 
     debug('route:start:' + name, {
       argsDate: argsDate,
+      beforeDate: beforeDate,
       isEditRoute: isEditRoute,
       shouldHydrateRecord: shouldHydrateRecord,
       stateEditingDate: window.state?.editingDate,
@@ -272,8 +326,12 @@ function wrapFunction(name, options) {
 
     const result = original.apply(this, arguments);
 
+    if (isEditRoute) {
+      persistEditingDate(argsDate || lastEditIntent.date || beforeDate);
+    }
+
     if (isEditRoute || shouldHydrateRecord || (options && options.alwaysAfter)) {
-      scheduleHydration(name, argsDate);
+      scheduleHydration(name, argsDate || lastEditIntent.date || beforeDate);
     }
 
     return result;
@@ -292,15 +350,17 @@ function wrapResetRecordForm() {
   if (original.__ippoHydrateWrapped === true) return true;
 
   function wrappedResetRecordForm() {
+    const editDate = getEditingDate();
     debug('resetRecordForm:start', {
       recentEditIntent: isRecentEditIntent(),
-      editingDate: getEditingDate(),
+      editingDate: editDate,
     });
 
     const result = original.apply(this, arguments);
 
     if (isRecentEditIntent()) {
-      scheduleHydration('resetRecordForm:after', getEditingDate());
+      persistEditingDate(editDate);
+      scheduleHydration('resetRecordForm:after', editDate);
     }
 
     return result;
@@ -313,18 +373,35 @@ function wrapResetRecordForm() {
   return true;
 }
 
+function dateFromElementTree(target) {
+  let node = target;
+  while (node && node !== document.body) {
+    const date = normalizeRecordDate(node.getAttribute?.('data-record-date')) ||
+      normalizeRecordDate(node.getAttribute?.('data-date')) ||
+      normalizeRecordDate(node.getAttribute?.('aria-label')) ||
+      normalizeRecordDate(node.textContent);
+    if (date) return date;
+    node = node.parentElement;
+  }
+  return '';
+}
+
 function installEditClickCapture() {
   if (window.__ippoEditClickCaptureInstalled === true) return;
   window.__ippoEditClickCaptureInstalled = true;
 
   document.addEventListener('click', function(event) {
-    const target = event.target && event.target.closest ? event.target.closest('button, a, [role="button"], [onclick]') : null;
+    const target = event.target && event.target.closest ? event.target.closest('button, a, [role="button"], [onclick], [data-date], [data-record-date]') : null;
     if (!target) return;
 
-    const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + (target.getAttribute('onclick') || ''));
-    if (!/(編集|editRecord|openRecordEditor)/i.test(label)) return;
+    const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + (target.getAttribute('onclick') || '') + ' ' + (target.className || ''));
+    if (!/(編集|editRecord|openRecordEditor|edit|record)/i.test(label)) return;
 
-    const date = normalizeRecordDate(target.getAttribute('data-date')) || normalizeRecordDate(target.getAttribute('data-record-date')) || getDateFromDom() || getEditingDate();
+    const date = normalizeRecordDate(target.getAttribute('data-date')) ||
+      normalizeRecordDate(target.getAttribute('data-record-date')) ||
+      dateFromElementTree(target) ||
+      getDateFromDom() ||
+      getEditingDate();
     markEditIntent('edit-click', date);
     scheduleHydration('edit-click', date);
   }, true);
@@ -356,3 +433,12 @@ const timer = window.setInterval(function() {
 
 window.hydrateRecordForm = hydrateRecordForm;
 window.ippoMarkRecordEditIntent = markEditIntent;
+window.ippoRecordEditHydrationSummary = function() {
+  return {
+    lastEditIntent: { ...lastEditIntent },
+    recentEditIntent: isRecentEditIntent(),
+    editingDate: getEditingDate(),
+    recordFound: !!getEditingRecord(),
+    recordsLength: getRecords().length,
+  };
+};
