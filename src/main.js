@@ -63,6 +63,12 @@ import {
   debugRecordSavePipeline,
 } from './modules/record-save-pipeline.js';
 
+// record draft normalization preview
+import './modules/record-draft.js';
+
+// record save target preview
+import './modules/record-save-target.js';
+
 // record date branch observability
 import './modules/record-date-branch-observability.js';
 
