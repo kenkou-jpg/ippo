@@ -1,11 +1,12 @@
 // ============================================================
 //  ippo – src/modules/record-draft.js
-//  Phase 3-J-2: record draft normalization preview
+//  Phase 3-J-2/3: record draft normalization scaffold
 //
 //  目的:
 //  - saveRecordScreen 薄型化に向けて draft 生成責務の受け皿を作る
 //  - buildDraftFromUI の返却draftを normalize preview する
-//  - この段階では draft / state.records / localStorage / Supabase は変更しない
+//  - createRecordDraft() を将来の置換入口として公開する
+//  - この段階では既存保存フローに返す draft は変更しない
 // ============================================================
 
 import {
@@ -49,6 +50,15 @@ function getLastRecordSaveContext() {
   return window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ || null;
 }
 
+function cloneDraft(draft) {
+  if (!draft || typeof draft !== 'object') return draft;
+  try {
+    return JSON.parse(JSON.stringify(draft));
+  } catch(e) {
+    return { ...draft };
+  }
+}
+
 function normalizeDraftValue(value) {
   if (Array.isArray(value)) {
     return value.filter(function(item) {
@@ -61,6 +71,25 @@ function normalizeDraftValue(value) {
   }
 
   return value;
+}
+
+function normalizeRecordDraft(draft) {
+  const safeDraft = draft && typeof draft === 'object' ? draft : null;
+  const normalized = {};
+
+  if (!safeDraft) return normalized;
+
+  Object.keys(safeDraft).forEach(function(key) {
+    normalized[key] = normalizeDraftValue(safeDraft[key]);
+  });
+
+  const recordDate = normalizeRecordDate(normalized.record_date || '');
+  const idDate = normalizeRecordDate(normalized.id || '');
+
+  if (recordDate) normalized.record_date = recordDate;
+  if (idDate) normalized.id = idDate;
+
+  return normalized;
 }
 
 function summarizeRecordDraft(draft) {
@@ -98,7 +127,7 @@ function summarizeRecordDraft(draft) {
 function buildRecordDraftPreview(draft, context) {
   const safeContext = context || getActiveRecordSaveContext() || {};
   const safeDraft = draft && typeof draft === 'object' ? draft : null;
-  const normalizedPreview = {};
+  const normalizedPreview = normalizeRecordDraft(safeDraft);
   const warnings = [];
   const blockedBy = [];
 
@@ -107,12 +136,6 @@ function buildRecordDraftPreview(draft, context) {
   }
   if (!safeDraft) {
     blockedBy.push('draft-not-object');
-  }
-
-  if (safeDraft) {
-    Object.keys(safeDraft).forEach(function(key) {
-      normalizedPreview[key] = normalizeDraftValue(safeDraft[key]);
-    });
   }
 
   const summary = summarizeRecordDraft(normalizedPreview);
@@ -136,7 +159,29 @@ function buildRecordDraftPreview(draft, context) {
     normalizedPreview: normalizedPreview,
     warnings: Array.from(new Set(warnings)),
     blockedBy: Array.from(new Set(blockedBy)),
-    note: 'Phase 3-J-2 previews draft normalization only. It does not mutate the real draft or persisted records.',
+    note: 'Phase 3-J previews draft normalization only. It does not mutate the real draft or persisted records.',
+  };
+}
+
+function createRecordDraft(options) {
+  const opts = options || {};
+  const saveContext = opts.context || getActiveRecordSaveContext();
+  const sourceDraft = opts.draft !== undefined ? opts.draft : (
+    typeof window.buildDraftFromUI === 'function' ? window.buildDraftFromUI() : null
+  );
+  const originalDraft = cloneDraft(sourceDraft);
+  const normalizedDraft = normalizeRecordDraft(sourceDraft);
+  const preview = buildRecordDraftPreview(sourceDraft, saveContext);
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'create-record-draft-scaffold',
+    draft: sourceDraft,
+    originalDraft: originalDraft,
+    normalizedDraft: normalizedDraft,
+    preview: preview,
+    canUseNormalizedDraft: preview.canUsePreview === true && preview.warnings.length === 0,
+    note: 'Scaffold only. Existing save flow still receives the original draft from buildDraftFromUI.',
   };
 }
 
@@ -279,9 +324,12 @@ function installRecordDraftPreview() {
 }
 
 export {
+  cloneDraft,
   normalizeDraftValue,
+  normalizeRecordDraft,
   summarizeRecordDraft,
   buildRecordDraftPreview,
+  createRecordDraft,
   recordDraftPreview,
   summarizeRecordDraftPreview,
   getRecordDraftPreviewHistory,
@@ -291,9 +339,12 @@ export {
 };
 
 window.ippoRecordDraft = Object.freeze({
+  cloneDraft,
   normalizeDraftValue,
+  normalizeRecordDraft,
   summarizeRecordDraft,
   buildRecordDraftPreview,
+  createRecordDraft,
   recordDraftPreview,
   summarizeRecordDraftPreview,
   getRecordDraftPreviewHistory,
@@ -302,6 +353,8 @@ window.ippoRecordDraft = Object.freeze({
   installRecordDraftPreview,
 });
 
+window.ippoCreateRecordDraft = createRecordDraft;
+window.ippoNormalizeRecordDraft = normalizeRecordDraft;
 window.ippoRecordDraftPreviewHistory = getRecordDraftPreviewHistory;
 window.ippoRecordDraftPreviewSummary = getRecordDraftPreviewSummary;
 window.ippoClearRecordDraftPreviewHistory = clearRecordDraftPreviewHistory;
