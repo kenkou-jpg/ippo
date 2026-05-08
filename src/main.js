@@ -63,6 +63,9 @@ import {
   debugRecordSavePipeline,
 } from './modules/record-save-pipeline.js';
 
+// record save core facade
+import './modules/record-save-core.js';
+
 // record draft normalization preview
 import './modules/record-draft.js';
 
