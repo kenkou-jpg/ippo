@@ -51,9 +51,44 @@ function getCallArguments(options, fallbackArguments) {
   return [];
 }
 
+function getActionContext(options) {
+  if (options && options.context && Array.isArray(options.context.actions)) {
+    return options.context;
+  }
+  return null;
+}
+
+function summarizeActionValue(value) {
+  if (value === undefined) return { type: 'undefined' };
+  if (value === null) return { type: 'null' };
+  if (typeof value === 'boolean') return { type: 'boolean', value: value };
+  if (typeof value === 'number') return { type: 'number', value: value };
+  if (typeof value === 'string') return { type: 'string', length: value.length };
+  if (Array.isArray(value)) return { type: 'array', length: value.length };
+  if (typeof value === 'object') return { type: 'object', keys: Object.keys(value).slice(0, 12) };
+  return { type: typeof value };
+}
+
+function recordActionResult(context, action) {
+  if (!context || !Array.isArray(context.actions)) return;
+
+  context.actions.push({
+    type: action.type,
+    name: action.name,
+    status: action.status,
+    async: action.async === true,
+    startedAt: action.startedAt,
+    finishedAt: action.finishedAt,
+    failedAt: action.failedAt,
+    result: action.result,
+    error: action.error,
+  });
+}
+
 export function runRecordSaveAction(type, name, callback, options) {
   const label = String(type || 'action') + ':' + String(name || 'unknown');
   const startedAt = new Date().toISOString();
+  const context = getActionContext(options);
 
   trace('action:start:' + label, {
     type: type,
@@ -67,45 +102,105 @@ export function runRecordSaveAction(type, name, callback, options) {
 
     if (result && typeof result.then === 'function') {
       return result.then(function(value) {
+        const finishedAt = new Date().toISOString();
+        const summary = summarizeActionValue(value);
+
+        recordActionResult(context, {
+          type: type,
+          name: name,
+          status: 'fulfilled',
+          async: true,
+          startedAt: startedAt,
+          finishedAt: finishedAt,
+          result: summary,
+        });
+
         trace('action:done:' + label, {
           type: type,
           name: name,
           async: true,
           startedAt: startedAt,
-          finishedAt: new Date().toISOString(),
+          finishedAt: finishedAt,
+          result: summary,
           snapshot: getRecordsSnapshot(),
         });
         return value;
       }).catch(function(error) {
+        const failedAt = new Date().toISOString();
+        const errorSummary = {
+          message: error && error.message,
+          name: error && error.name,
+        };
+
+        recordActionResult(context, {
+          type: type,
+          name: name,
+          status: 'rejected',
+          async: true,
+          startedAt: startedAt,
+          failedAt: failedAt,
+          error: errorSummary,
+        });
+
         trace('action:error:' + label, {
           type: type,
           name: name,
           async: true,
           startedAt: startedAt,
-          failedAt: new Date().toISOString(),
+          failedAt: failedAt,
           message: error && error.message,
         });
         throw error;
       });
     }
 
+    const finishedAt = new Date().toISOString();
+    const summary = summarizeActionValue(result);
+
+    recordActionResult(context, {
+      type: type,
+      name: name,
+      status: 'fulfilled',
+      async: false,
+      startedAt: startedAt,
+      finishedAt: finishedAt,
+      result: summary,
+    });
+
     trace('action:done:' + label, {
       type: type,
       name: name,
       async: false,
       startedAt: startedAt,
-      finishedAt: new Date().toISOString(),
+      finishedAt: finishedAt,
+      result: summary,
       snapshot: getRecordsSnapshot(),
     });
 
     return result;
   } catch(error) {
+    const failedAt = new Date().toISOString();
+    const errorSummary = {
+      message: error && error.message,
+      name: error && error.name,
+    };
+
+    recordActionResult(context, {
+      type: type,
+      name: name,
+      status: 'rejected',
+      async: false,
+      startedAt: startedAt,
+      failedAt: failedAt,
+      error: errorSummary,
+    });
+
     trace('action:error:' + label, {
       type: type,
       name: name,
       async: false,
       startedAt: startedAt,
-      failedAt: new Date().toISOString(),
+      failedAt: failedAt,
       message: error && error.message,
     });
     throw error;
@@ -118,6 +213,7 @@ export function createRecordSaveContext(label) {
     createdAt: new Date().toISOString(),
     beforeSnapshot: getRecordsSnapshot(),
     beforeDiagnostics: getRecordStorageDiagnostics(label ? label + ':before' : 'before'),
+    actions: [],
   };
 
   trace('context:create', context);
@@ -156,7 +252,7 @@ export function persistRecordState(options) {
         const result = saveState.apply((options && options.thisArg) || window, getCallArguments(options));
         trace('persist:saveState:done', getRecordsSnapshot());
         return result === undefined ? true : result;
-      });
+      }, options);
     }
   } catch(error) {
     trace('persist:saveState:error', error && error.message);
@@ -176,7 +272,7 @@ export function syncRecordCloud(options) {
         const result = cloudBackupAll.apply((options && options.thisArg) || window, getCallArguments(options));
         trace('sync:cloudBackupAll:called', getRecordsSnapshot());
         return result;
-      });
+      }, options);
     }
   } catch(error) {
     trace('sync:cloudBackupAll:error', error && error.message);
@@ -210,7 +306,7 @@ export function notifyRecordUpdated(options) {
       if (typeof fn === 'function') {
         runRecordSaveAction(RECORD_SAVE_ACTION_TYPES.NOTIFY, name, function() {
           return fn.apply((options && options.thisArg) || window, getCallArguments(options));
-        });
+        }, options);
         called.push(name);
       }
     } catch(error) {
@@ -231,6 +327,14 @@ export function finalizeRecordSaveContext(context, label) {
     afterSnapshot: getRecordsSnapshot(),
     afterDiagnostics: afterDiagnostics,
     activeRecordsLength: getRecords().length,
+    actionCount: Array.isArray(context?.actions) ? context.actions.length : 0,
+    actionSummary: Array.isArray(context?.actions)
+      ? context.actions.reduce(function(summary, action) {
+          const key = action.type || 'unknown';
+          summary[key] = (summary[key] || 0) + 1;
+          return summary;
+        }, {})
+      : {},
   };
 
   trace('context:finalize', result);
