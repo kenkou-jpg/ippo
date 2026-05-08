@@ -69,6 +69,9 @@ import './modules/record-save-core.js';
 // record save core persistence delegation gate
 import './modules/record-save-core-persistence.js';
 
+// guarded core persistence executor
+import './modules/record-save-core-executor.js';
+
 // record draft normalization preview
 import './modules/record-draft.js';
 
