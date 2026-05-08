@@ -1,12 +1,19 @@
 // ============================================================
 //  ippo – src/modules/record-edit-hydrate.js
 //  Phase 3-E: edit record hydration guard
+//  Phase 3-E-1: edit route trace / reset-after hydrate guard
 //
 //  目的:
 //  - 記録編集時に保存済みrecordの内容をフォームへ復元する
 //  - app.html の巨大関数本体は変更しない
 //  - saveRecordScreen の保存ロジックは変更しない
 // ============================================================
+
+let lastEditIntent = {
+  at: 0,
+  date: '',
+  source: '',
+};
 
 function debug(label, detail) {
   try {
@@ -34,6 +41,34 @@ function dateOf(record) {
   return String(record.record_date || record.date || record.id || '').slice(0, 10);
 }
 
+function normalizeDate(value) {
+  if (!value) return '';
+
+  if (typeof value === 'object') {
+    const recordDate = dateOf(value);
+    if (recordDate) return recordDate;
+  }
+
+  const text = String(value);
+  const iso = text.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+  if (iso) {
+    return [iso[1], iso[2].padStart(2, '0'), iso[3].padStart(2, '0')].join('-');
+  }
+
+  const jp = text.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
+  if (jp) {
+    return [jp[1], jp[2].padStart(2, '0'), jp[3].padStart(2, '0')].join('-');
+  }
+
+  const jpNoYear = text.match(/(\d{1,2})月\s*(\d{1,2})日/);
+  if (jpNoYear) {
+    const year = new Date().getFullYear();
+    return [year, jpNoYear[1].padStart(2, '0'), jpNoYear[2].padStart(2, '0')].join('-');
+  }
+
+  return '';
+}
+
 function recordsFromLocalStorage() {
   const candidates = ['kk_records', 'records', 'ippo_state'];
 
@@ -55,16 +90,27 @@ function getRecords() {
   return recordsFromLocalStorage();
 }
 
-function getEditingDate() {
-  const stateDate = window.state?.editingDate || window.state?.selectedDate || window.state?.recordDate;
-  if (stateDate) return String(stateDate).slice(0, 10);
-
+function getDateFromDom() {
   try {
     const input = document.querySelector('[name="record_date"], [name="date"], #record-date, #recordDate, #recordDateInput');
-    if (input && input.value) return String(input.value).slice(0, 10);
+    if (input && input.value) return normalizeDate(input.value);
+  } catch(e) {}
+
+  try {
+    const dmDate = document.getElementById('dmDate');
+    if (dmDate && dmDate.textContent) return normalizeDate(dmDate.textContent);
   } catch(e) {}
 
   return '';
+}
+
+function getEditingDate() {
+  const stateDate = window.state?.editingDate || window.state?.selectedDate || window.state?.recordDate;
+  if (stateDate) return normalizeDate(stateDate) || String(stateDate).slice(0, 10);
+
+  if (lastEditIntent.date) return lastEditIntent.date;
+
+  return getDateFromDom();
 }
 
 function getEditingRecord() {
@@ -76,6 +122,34 @@ function getEditingRecord() {
   });
 
   return record || null;
+}
+
+function markEditIntent(source, date) {
+  const normalized = normalizeDate(date) || getDateFromDom() || getEditingDate();
+
+  lastEditIntent = {
+    at: Date.now(),
+    date: normalized,
+    source: source || 'unknown',
+  };
+
+  if (normalized && window.state && typeof window.state === 'object') {
+    try {
+      window.state.editingDate = normalized;
+    } catch(e) {}
+  }
+
+  debug('edit-intent', {
+    source: lastEditIntent.source,
+    date: lastEditIntent.date,
+    stateEditingDate: window.state?.editingDate,
+    stateSelectedDate: window.state?.selectedDate,
+    stateRecordDate: window.state?.recordDate,
+  });
+}
+
+function isRecentEditIntent() {
+  return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 8000);
 }
 
 function candidateKeysForElement(el) {
@@ -179,7 +253,10 @@ function hydrateChips(record) {
 function hydrateRecordForm() {
   const record = getEditingRecord();
   if (!record) {
-    debug('skip:no-record', { editingDate: getEditingDate() });
+    debug('skip:no-record', {
+      editingDate: getEditingDate(),
+      lastEditIntent: lastEditIntent,
+    });
     return false;
   }
 
@@ -193,53 +270,129 @@ function hydrateRecordForm() {
   });
 
   const chips = hydrateChips(record);
-  debug('hydrated', { date: dateOf(record), fields: filled, chips: chips });
+  debug('hydrated', {
+    date: dateOf(record),
+    fields: filled,
+    chips: chips,
+    source: lastEditIntent.source,
+  });
   return true;
 }
 
-function scheduleHydration() {
+function scheduleHydration(source, date) {
+  if (source) markEditIntent(source, date);
+
   window.setTimeout(hydrateRecordForm, 0);
   window.setTimeout(hydrateRecordForm, 100);
   window.setTimeout(hydrateRecordForm, 300);
+  window.setTimeout(hydrateRecordForm, 700);
+  window.setTimeout(hydrateRecordForm, 1200);
 }
 
-function wrapOpenRecordScreen() {
-  const original = window.openRecordScreen;
+function firstDateFromArgs(args) {
+  for (const arg of Array.from(args || [])) {
+    const normalized = normalizeDate(arg);
+    if (normalized) return normalized;
+  }
+  return '';
+}
+
+function wrapFunction(name, options) {
+  const original = window[name];
   if (typeof original !== 'function') return false;
   if (original.__ippoHydrateWrapped === true) return true;
 
-  function wrappedOpenRecordScreen() {
+  function wrappedFunction() {
+    const argsDate = firstDateFromArgs(arguments);
+    const isEditRoute = !!(options && options.editIntent);
+    const shouldHydrateRecord = !!(options && options.hydrateOnRecordTab && arguments[0] === 'record');
+
+    if (isEditRoute) {
+      markEditIntent(name, argsDate);
+    }
+
+    debug('route:start:' + name, {
+      argsDate: argsDate,
+      isEditRoute: isEditRoute,
+      shouldHydrateRecord: shouldHydrateRecord,
+      stateEditingDate: window.state?.editingDate,
+      stateSelectedDate: window.state?.selectedDate,
+      stateRecordDate: window.state?.recordDate,
+    });
+
     const result = original.apply(this, arguments);
-    scheduleHydration();
+
+    if (isEditRoute || shouldHydrateRecord || (options && options.alwaysAfter)) {
+      scheduleHydration(name, argsDate);
+    }
+
     return result;
   }
 
-  wrappedOpenRecordScreen.__ippoHydrateWrapped = true;
-  wrappedOpenRecordScreen.__ippoOriginal = original;
-  window.openRecordScreen = wrappedOpenRecordScreen;
+  wrappedFunction.__ippoHydrateWrapped = true;
+  wrappedFunction.__ippoOriginal = original;
+  window[name] = wrappedFunction;
+  debug('wrap:installed:' + name);
   return true;
 }
 
-function wrapSwitchTab() {
-  const original = window.switchTab;
+function wrapResetRecordForm() {
+  const original = window.resetRecordForm;
   if (typeof original !== 'function') return false;
   if (original.__ippoHydrateWrapped === true) return true;
 
-  function wrappedSwitchTab(tab) {
+  function wrappedResetRecordForm() {
+    debug('resetRecordForm:start', {
+      recentEditIntent: isRecentEditIntent(),
+      editingDate: getEditingDate(),
+    });
+
     const result = original.apply(this, arguments);
-    if (tab === 'record') scheduleHydration();
+
+    if (isRecentEditIntent()) {
+      scheduleHydration('resetRecordForm:after', getEditingDate());
+    }
+
     return result;
   }
 
-  wrappedSwitchTab.__ippoHydrateWrapped = true;
-  wrappedSwitchTab.__ippoOriginal = original;
-  window.switchTab = wrappedSwitchTab;
+  wrappedResetRecordForm.__ippoHydrateWrapped = true;
+  wrappedResetRecordForm.__ippoOriginal = original;
+  window.resetRecordForm = wrappedResetRecordForm;
+  debug('wrap:installed:resetRecordForm');
   return true;
+}
+
+function installEditClickCapture() {
+  if (window.__ippoEditClickCaptureInstalled === true) return;
+  window.__ippoEditClickCaptureInstalled = true;
+
+  document.addEventListener('click', function(event) {
+    const target = event.target && event.target.closest ? event.target.closest('button, a, [role="button"], [onclick]') : null;
+    if (!target) return;
+
+    const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + (target.getAttribute('onclick') || ''));
+    if (!/(編集|editRecord|openRecordEditor)/i.test(label)) return;
+
+    const date = normalizeDate(target.getAttribute('data-date')) || normalizeDate(target.getAttribute('data-record-date')) || getDateFromDom() || getEditingDate();
+    markEditIntent('edit-click', date);
+    scheduleHydration('edit-click', date);
+  }, true);
 }
 
 function install() {
-  wrapOpenRecordScreen();
-  wrapSwitchTab();
+  wrapFunction('openRecordScreen', { alwaysAfter: true });
+  wrapFunction('switchTab', { hydrateOnRecordTab: true });
+  wrapFunction('showScreen', { hydrateOnRecordTab: true });
+
+  wrapFunction('openDayDetail', { alwaysAfter: true });
+  wrapFunction('editRecord', { editIntent: true });
+  wrapFunction('openRecordEditor', { editIntent: true });
+  wrapFunction('handleEditRecord', { editIntent: true });
+  wrapFunction('startEditRecord', { editIntent: true });
+
+  wrapResetRecordForm();
+  installEditClickCapture();
 }
 
 install();
@@ -248,7 +401,8 @@ let attempts = 0;
 const timer = window.setInterval(function() {
   attempts++;
   install();
-  if (attempts >= 20) window.clearInterval(timer);
+  if (attempts >= 40) window.clearInterval(timer);
 }, 250);
 
 window.hydrateRecordForm = hydrateRecordForm;
+window.ippoMarkRecordEditIntent = markEditIntent;
