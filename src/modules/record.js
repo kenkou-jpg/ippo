@@ -22,6 +22,7 @@ import {
 } from './record-save-pipeline.js';
 
 let lastRecordSaveContext = null;
+let activeRecordSaveContext = null;
 
 function isRecordTraceEnabled() {
   try {
@@ -167,15 +168,33 @@ function withRecordSavePipelineDelegates(callback, context) {
   }
 }
 
+function setActiveRecordSaveContext(context) {
+  activeRecordSaveContext = context || null;
+  window.__IPPO_ACTIVE_RECORD_SAVE_CONTEXT__ = activeRecordSaveContext;
+  return activeRecordSaveContext;
+}
+
+function clearActiveRecordSaveContext(context) {
+  if (!context || activeRecordSaveContext === context) {
+    activeRecordSaveContext = null;
+    try { delete window.__IPPO_ACTIVE_RECORD_SAVE_CONTEXT__; } catch(e) { window.__IPPO_ACTIVE_RECORD_SAVE_CONTEXT__ = null; }
+  }
+}
+
 function finalizeAndStoreRecordSaveContext(context, label) {
   const finalized = finalizeRecordSaveContext(context, label);
   lastRecordSaveContext = finalized;
   window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = finalized;
+  clearActiveRecordSaveContext(context);
   return finalized;
 }
 
 export function getLastRecordSaveContext() {
   return lastRecordSaveContext;
+}
+
+export function getActiveRecordSaveContext() {
+  return activeRecordSaveContext || window.__IPPO_ACTIVE_RECORD_SAVE_CONTEXT__ || null;
 }
 
 export function verifyLastRecordSaveContext() {
@@ -200,6 +219,7 @@ function wrapSaveRecordScreen() {
     const args = arguments;
     const self = this;
     traceRecord('saveRecordScreen:start', getRecordTraceSnapshot());
+    setActiveRecordSaveContext(context);
 
     try {
       const result = withRecordSavePipelineDelegates(function() {
@@ -347,6 +367,7 @@ const exportedFunctions = {
   enableRecordTrace,
   disableRecordTrace,
   getLastRecordSaveContext,
+  getActiveRecordSaveContext,
   verifyLastRecordSaveContext,
 };
 
@@ -355,6 +376,7 @@ window.openRecordScreen = openRecordScreen;
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
 window.ippoLastRecordSaveContext = getLastRecordSaveContext;
+window.ippoActiveRecordSaveContext = getActiveRecordSaveContext;
 window.ippoVerifyLastRecordSave = verifyLastRecordSaveContext;
 
 installSaveRecordScreenTrace();
