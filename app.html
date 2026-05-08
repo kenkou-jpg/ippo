@@ -3693,11 +3693,17 @@ if (state.name && !state._onboardingDone) {
   }
 
   var restoreInterval = setInterval(function(){
-    if(typeof supabase !== 'undefined' && supabase.auth){
-      clearInterval(restoreInterval);
-      _applyCloudRestore();
-    }
-  }, 500);
+
+  const auth = window.supabase?.auth;
+
+  if(!auth){
+    return;
+  }
+
+  clearInterval(restoreInterval);
+  _applyCloudRestore();
+
+}, 500);
 
     initVisionUI();
   updateHomeVision();
@@ -13105,10 +13111,20 @@ if (e.target === this) closePremiumLock();
 
 // Supabase認証の準備完了を待ってからプレミアム状態を確認
 var premiumCheckInterval = setInterval(function(){
-  if(typeof supabase !== 'undefined' && supabase.auth){
-    clearInterval(premiumCheckInterval);
-    supabase.auth.onAuthStateChange(function(event, session){
-      checkPremiumStatus();
+
+  const auth = window.supabase?.auth;
+
+  if(!auth){
+    return;
+  }
+
+  clearInterval(premiumCheckInterval);
+
+  auth.onAuthStateChange(function(event, session){
+    checkPremiumStatus();
+  });
+
+}, 500);
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
       // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
       // ※ 同期モーダルが開いている間（ログイン処理中）は呼ばない
