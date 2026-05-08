@@ -2,6 +2,7 @@
 //  ippo – src/modules/record-repository.js
 //  Phase 3-F-1: readonly record repository
 //  Phase 3-F-3: storage/sync diagnostics
+//  Hotfix: resilient edit-date record resolution
 //
 //  目的:
 //  - record読み取り処理を段階的に共通化する
@@ -18,22 +19,54 @@ export const RECORD_STORAGE_KEYS = Object.freeze({
 
 export function getRecordDate(record) {
   if (!record) return '';
-  return String(record.record_date || record.date || record.id || '').slice(0, 10);
+  const candidates = [
+    record.record_date,
+    record.recordDate,
+    record.date,
+    record.id,
+    record.targetDate,
+    record.selectedDate,
+    record.editingDate,
+    record.created_at,
+    record.createdAt,
+    record.updated_at,
+    record.updatedAt,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeRecordDate(candidate);
+    if (normalized) return normalized;
+  }
+
+  return '';
 }
 
 export function normalizeRecordDate(value) {
   if (!value) return '';
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return [
+      String(value.getFullYear()),
+      String(value.getMonth() + 1).padStart(2, '0'),
+      String(value.getDate()).padStart(2, '0'),
+    ].join('-');
+  }
 
   if (typeof value === 'object') {
     const recordDate = getRecordDate(value);
     if (recordDate) return recordDate;
   }
 
-  const text = String(value);
+  const text = String(value).trim();
 
   const iso = text.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
   if (iso) {
     return [iso[1], iso[2].padStart(2, '0'), iso[3].padStart(2, '0')].join('-');
+  }
+
+  const compact = text.match(/^(\d{4})(\d{2})(\d{2})$/);
+  if (compact) {
+    return [compact[1], compact[2], compact[3]].join('-');
   }
 
   const jp = text.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
@@ -57,6 +90,7 @@ function parseRecordsFromStorageValue(raw) {
     const parsed = JSON.parse(raw);
     if (Array.isArray(parsed)) return parsed;
     if (Array.isArray(parsed.records)) return parsed.records;
+    if (parsed.state && Array.isArray(parsed.state.records)) return parsed.state.records;
   } catch(e) {}
 
   return [];
@@ -128,15 +162,53 @@ export function getRecords() {
   return getRecordsFromLocalStorage();
 }
 
+function getRecordDateCandidates(record) {
+  if (!record) return [];
+
+  const raw = [
+    record.record_date,
+    record.recordDate,
+    record.date,
+    record.id,
+    record.targetDate,
+    record.selectedDate,
+    record.editingDate,
+    record.created_at,
+    record.createdAt,
+    record.updated_at,
+    record.updatedAt,
+  ];
+
+  const candidates = new Set();
+  raw.forEach(function(value) {
+    const normalized = normalizeRecordDate(value);
+    if (normalized) candidates.add(normalized);
+  });
+
+  const primary = getRecordDate(record);
+  if (primary) candidates.add(primary);
+
+  return Array.from(candidates);
+}
+
 export function findRecordByDate(date) {
   const targetDate = normalizeRecordDate(date);
   if (!targetDate) return null;
 
   const found = getRecords().find(function(record) {
-    return getRecordDate(record) === targetDate;
+    return getRecordDateCandidates(record).includes(targetDate);
   });
 
   return found || null;
+}
+
+export function findRecordIndexByDate(date) {
+  const targetDate = normalizeRecordDate(date);
+  if (!targetDate) return -1;
+
+  return getRecords().findIndex(function(record) {
+    return getRecordDateCandidates(record).includes(targetDate);
+  });
 }
 
 export function getRecordsSnapshot() {
@@ -234,6 +306,7 @@ window.ippoRecordRepository = Object.freeze({
   getRecordsFromLocalStorage,
   getRecords,
   findRecordByDate,
+  findRecordIndexByDate,
   getRecordsSnapshot,
   getRecordStorageDiagnostics,
   logRecordStorageDiagnostics,
