@@ -26,6 +26,14 @@ export const RECORD_SAVE_ACTION_TYPES = Object.freeze({
   NOTIFY: 'notify',
 });
 
+export const RECORD_SAVE_NOTIFY_CANDIDATES = Object.freeze([
+  'buildCalendar',
+  'renderCalendar',
+  'renderHome',
+  'updateHome',
+  'updateStats',
+]);
+
 function trace(label, detail) {
   try {
     if (localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true) {
@@ -282,18 +290,14 @@ export function syncRecordCloud(options) {
   return undefined;
 }
 
-export function notifyRecordUpdated(options) {
-  const defaultCandidates = [
-    'buildCalendar',
-    'renderCalendar',
-    'renderHome',
-    'updateHome',
-    'updateStats',
-  ];
+export function getRecordSaveNotifyCandidates() {
+  return RECORD_SAVE_NOTIFY_CANDIDATES.slice();
+}
 
+export function notifyRecordUpdated(options) {
   const renderCandidates = (options && Array.isArray(options.candidates) && options.candidates.length)
     ? options.candidates
-    : defaultCandidates;
+    : getRecordSaveNotifyCandidates();
 
   const called = [];
 
@@ -467,12 +471,14 @@ export function debugRecordSavePipeline(label) {
 
 window.ippoRecordSavePipeline = Object.freeze({
   RECORD_SAVE_ACTION_TYPES,
+  RECORD_SAVE_NOTIFY_CANDIDATES,
   createRecordSaveContext,
   runRecordSaveAction,
   prepareRecordUpsert,
   prepareRecordUpsertInPlace,
   persistRecordState,
   syncRecordCloud,
+  getRecordSaveNotifyCandidates,
   notifyRecordUpdated,
   finalizeRecordSaveContext,
   verifyRecordSaveContext,
