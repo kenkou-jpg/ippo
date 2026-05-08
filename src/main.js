@@ -17,9 +17,16 @@ import {
   DISEASE_PRIORITY_SYMPTOMS,
 } from './constants/symptoms.js';
 
+import {
+  buildCalendar,
+  changeMonth,
+  renderCalendarMonthlySummary,
+} from './modules/calendar.js';
+
 // window アサインは各ファイル内で完結
 // ここでは re-export として型情報のみ提供（将来の TypeScript 移行用）
 export {
   saveState, loadState, STATE_KEY, INITIAL_STATE,
   ICONS, DISEASE_CONFIG, SYMPTOM_LAYERS, SENSITIVE_SYMPTOMS, DISEASE_PRIORITY_SYMPTOMS,
+  buildCalendar, changeMonth, renderCalendarMonthlySummary,
 };
