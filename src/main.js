@@ -87,6 +87,9 @@ import './modules/record-date-draft-candidate.js';
 // record save delegation readiness must run after all save observers
 import './modules/record-save-delegation.js';
 
+// module payload adoption candidate must run after delegation plan
+import './modules/record-save-adoption.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
