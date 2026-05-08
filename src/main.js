@@ -63,6 +63,9 @@ import {
   debugRecordSavePipeline,
 } from './modules/record-save-pipeline.js';
 
+// record date branch observability
+import './modules/record-date-branch-observability.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
