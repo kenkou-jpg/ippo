@@ -2,9 +2,10 @@
 //  ippo – src/modules/record.js
 //  Phase 3-C: record モジュール分離 / 接続復旧
 //  Phase 3-D-0: saveRecord runtime trace
+//  Phase 3-D-2: saveRecordScreen runtime trace
 //
 //  方針:
-//  - saveRecord の既存ロジックは変更しない
+//  - saveRecord / saveRecordScreen の既存ロジックは変更しない
 //  - このファイルでは移行期間用の window 互換を提供する
 //  - 旧インライン onclick から参照される関数名を維持する
 //  - trace は console 出力のみで保存処理へ介入しない
@@ -53,6 +54,66 @@ function callExistingFunction(name, args) {
 
   traceRecord(name + ':delegate:missing', getRecordTraceSnapshot());
   return undefined;
+}
+
+function wrapSaveRecordScreen() {
+  const fn = window.saveRecordScreen;
+  if (typeof fn !== 'function') {
+    traceRecord('saveRecordScreen:wrap:missing', getRecordTraceSnapshot());
+    return false;
+  }
+
+  if (fn.__ippoTraced === true) {
+    return true;
+  }
+
+  function tracedSaveRecordScreen() {
+    traceRecord('saveRecordScreen:start', getRecordTraceSnapshot());
+
+    try {
+      const result = fn.apply(this, arguments);
+
+      if (result && typeof result.then === 'function') {
+        return result.then(function(value) {
+          traceRecord('saveRecordScreen:resolved', getRecordTraceSnapshot());
+          return value;
+        }).catch(function(error) {
+          traceRecord('saveRecordScreen:rejected', {
+            snapshot: getRecordTraceSnapshot(),
+            message: error && error.message,
+          });
+          throw error;
+        });
+      }
+
+      traceRecord('saveRecordScreen:end', getRecordTraceSnapshot());
+      return result;
+    } catch(error) {
+      traceRecord('saveRecordScreen:thrown', {
+        snapshot: getRecordTraceSnapshot(),
+        message: error && error.message,
+      });
+      throw error;
+    }
+  }
+
+  tracedSaveRecordScreen.__ippoTraced = true;
+  tracedSaveRecordScreen.__ippoOriginal = fn;
+  window.saveRecordScreen = tracedSaveRecordScreen;
+  traceRecord('saveRecordScreen:wrap:installed', getRecordTraceSnapshot());
+  return true;
+}
+
+function installSaveRecordScreenTrace() {
+  if (wrapSaveRecordScreen()) return;
+
+  let attempts = 0;
+  const timer = window.setInterval(function() {
+    attempts++;
+    if (wrapSaveRecordScreen() || attempts >= 20) {
+      window.clearInterval(timer);
+    }
+  }, 250);
 }
 
 export function openRecordScreen() {
@@ -129,6 +190,7 @@ export function buildDraftFromUI() {
 export function enableRecordTrace() {
   window.__IPPO_DEBUG_RECORD__ = true;
   try { localStorage.setItem('ippo_debug_record', '1'); } catch(e) {}
+  installSaveRecordScreenTrace();
   traceRecord('trace:enabled', getRecordTraceSnapshot());
 }
 
@@ -153,6 +215,8 @@ const exportedFunctions = {
 window.openRecordScreen = openRecordScreen;
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
+
+installSaveRecordScreenTrace();
 
 // saveRecord は既存実装が window にある場合、それを優先して保持する。
 // 既存実装がまだ無い場合のみ、互換ラッパーを公開する。
