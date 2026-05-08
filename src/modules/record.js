@@ -3,6 +3,7 @@
 //  Phase 3-C: record モジュール分離 / 接続復旧
 //  Phase 3-D-0: saveRecord runtime trace
 //  Phase 3-D-2: saveRecordScreen runtime trace
+//  Phase 3-N-2: thin orchestrator facade 接続
 //
 //  方針:
 //  - saveRecord / saveRecordScreen の既存ロジックは変更しない
@@ -20,6 +21,10 @@ import {
   verifyRecordSaveContext,
   getRecordSaveNotifyCandidates,
 } from './record-save-pipeline.js';
+
+import {
+  runRecordSaveThinOrchestrator,
+} from './record-save-orchestrator.js';
 
 let lastRecordSaveContext = null;
 let activeRecordSaveContext = null;
@@ -223,7 +228,13 @@ function wrapSaveRecordScreen() {
 
     try {
       const result = withRecordSavePipelineDelegates(function() {
-        return fn.apply(self, args);
+        return runRecordSaveThinOrchestrator({
+          label: 'saveRecordScreen',
+          context: context,
+          execute: function executeOriginalSaveRecordScreen() {
+            return fn.apply(self, args);
+          },
+        });
       }, context);
 
       if (result && typeof result.then === 'function') {
