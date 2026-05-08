@@ -1,11 +1,11 @@
 // ============================================================
 //  ippo – src/modules/record-date-rollout-trace.js
-//  Phase 3-I-1/2: date resolution guarded rollout trace only
+//  Phase 3-I-1/2/3: date resolution guarded rollout trace only
 //
 //  目的:
 //  - dateResolutionAdoptionGate の結果をもとに「採用するなら何を使うか」を記録する
 //  - saveRecordScreen 本体・保存順・state.records 書き込みには介入しない
-//  - Phase 3-I-2 では限定採用実験ゲートを追加するが、既定では無効
+//  - Phase 3-I-3 では dry-run field injection 候補を context にだけ記録する
 // ============================================================
 
 const WRAP_FLAG = '__ippoDateRolloutTraceObserved';
@@ -13,6 +13,7 @@ const ROLLOUT_TRACE_LIMIT = 20;
 const LIMITED_ADOPTION_FLAG = 'ippo_enable_limited_date_adoption_experiment';
 const rolloutTraceHistory = [];
 const limitedAdoptionHistory = [];
+const dryRunInjectionHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -120,6 +121,41 @@ function buildLimitedDateAdoptionExperiment(context, rolloutTrace) {
   };
 }
 
+function buildDateDryRunFieldInjection(context, limitedExperiment) {
+  const safeContext = context || getLastRecordSaveContext() || {};
+  const dateBranch = safeContext.dateBranch || safeContext.meta?.dateBranch || null;
+  const rolloutTrace = safeContext.dateResolutionRolloutTrace || safeContext.meta?.dateResolutionRolloutTrace || null;
+  const blockedBy = [];
+
+  if (limitedExperiment?.canExperimentallyAdopt !== true) {
+    blockedBy.push('limited-experiment-not-adoptable');
+  }
+  if (!limitedExperiment?.wouldAdoptDate) {
+    blockedBy.push('missing-dry-run-date');
+  }
+  if (dateBranch?.branch && limitedExperiment?.branch && dateBranch.branch !== limitedExperiment.branch) {
+    blockedBy.push('branch-mismatch');
+  }
+  if (rolloutTrace?.actualDate && limitedExperiment?.wouldAdoptDate && rolloutTrace.actualDate !== limitedExperiment.wouldAdoptDate) {
+    blockedBy.push('actual-date-mismatch');
+  }
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'dry-run-field-injection',
+    enabled: limitedExperiment?.enabled === true,
+    canDryRunInject: blockedBy.length === 0,
+    fields: {
+      __dryRunResolvedDate: limitedExperiment?.wouldAdoptDate || '',
+      __dryRunResolvedDateSource: limitedExperiment?.source || 'none',
+      __dryRunResolvedDateBranch: limitedExperiment?.branch || 'unknown',
+      __dryRunResolvedDateConfidence: limitedExperiment?.confidence || 'low',
+    },
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Phase 3-I-3 records candidate fields on save context only. It does not write these fields into records, draft, localStorage, or Supabase.',
+  };
+}
+
 function summarizeDateResolutionRolloutTrace(history) {
   const list = Array.isArray(history) ? history : [];
   const blockerCounts = {};
@@ -183,6 +219,33 @@ function summarizeLimitedDateAdoptionExperiment(history) {
   };
 }
 
+function summarizeDateDryRunFieldInjection(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const sourceCounts = {};
+  const branchCounts = {};
+
+  list.forEach(function(item) {
+    const source = item.fields?.__dryRunResolvedDateSource || 'none';
+    const branch = item.fields?.__dryRunResolvedDateBranch || 'unknown';
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+    branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    injectableCount: list.filter(function(item) { return item.canDryRunInject === true; }).length,
+    blockedCount: list.filter(function(item) { return item.canDryRunInject !== true; }).length,
+    blockedByCounts: blockedByCounts,
+    sourceCounts: sourceCounts,
+    branchCounts: branchCounts,
+    recent: list.slice(-5),
+  };
+}
+
 function recordDateResolutionRolloutTrace(context) {
   const entry = buildDateResolutionRolloutTrace(context);
   rolloutTraceHistory.push(entry);
@@ -199,6 +262,12 @@ function recordDateResolutionRolloutTrace(context) {
     limitedAdoptionHistory.shift();
   }
   const limitedSummary = summarizeLimitedDateAdoptionExperiment(limitedAdoptionHistory);
+  const dryRunInjection = buildDateDryRunFieldInjection(saveContext, limitedExperiment);
+  dryRunInjectionHistory.push(dryRunInjection);
+  while (dryRunInjectionHistory.length > ROLLOUT_TRACE_LIMIT) {
+    dryRunInjectionHistory.shift();
+  }
+  const dryRunSummary = summarizeDateDryRunFieldInjection(dryRunInjectionHistory);
 
   if (saveContext && typeof saveContext === 'object') {
     if (!saveContext.meta || typeof saveContext.meta !== 'object') {
@@ -208,10 +277,14 @@ function recordDateResolutionRolloutTrace(context) {
     saveContext.meta.dateResolutionRolloutSummary = summary;
     saveContext.meta.limitedDateAdoptionExperiment = limitedExperiment;
     saveContext.meta.limitedDateAdoptionExperimentSummary = limitedSummary;
+    saveContext.meta.dateDryRunFieldInjection = dryRunInjection;
+    saveContext.meta.dateDryRunFieldInjectionSummary = dryRunSummary;
     saveContext.dateResolutionRolloutTrace = entry;
     saveContext.dateResolutionRolloutSummary = summary;
     saveContext.limitedDateAdoptionExperiment = limitedExperiment;
     saveContext.limitedDateAdoptionExperimentSummary = limitedSummary;
+    saveContext.dateDryRunFieldInjection = dryRunInjection;
+    saveContext.dateDryRunFieldInjectionSummary = dryRunSummary;
 
     if (saveContext.healthSummary && typeof saveContext.healthSummary === 'object') {
       saveContext.healthSummary.dateResolutionWouldUseProposal = entry.wouldUseProposal === true;
@@ -220,11 +293,14 @@ function recordDateResolutionRolloutTrace(context) {
       saveContext.healthSummary.limitedDateAdoptionEnabled = limitedExperiment.enabled === true;
       saveContext.healthSummary.limitedDateAdoptionWouldAdopt = limitedExperiment.canExperimentallyAdopt === true;
       saveContext.healthSummary.limitedDateAdoptionBlockedCount = limitedSummary.blockedCount;
+      saveContext.healthSummary.dateDryRunFieldInjectable = dryRunInjection.canDryRunInject === true;
+      saveContext.healthSummary.dateDryRunFieldInjectionBlockedCount = dryRunSummary.blockedCount;
     }
   }
 
   trace('rollout-trace:recorded', entry);
   trace('limited-adoption-experiment:recorded', limitedExperiment);
+  trace('date-dry-run-field-injection:recorded', dryRunInjection);
   return entry;
 }
 
@@ -254,6 +330,19 @@ function clearLimitedDateAdoptionExperimentHistory() {
   return getLimitedDateAdoptionExperimentSummary();
 }
 
+function getDateDryRunFieldInjectionHistory() {
+  return dryRunInjectionHistory.slice();
+}
+
+function getDateDryRunFieldInjectionSummary() {
+  return summarizeDateDryRunFieldInjection(dryRunInjectionHistory);
+}
+
+function clearDateDryRunFieldInjectionHistory() {
+  dryRunInjectionHistory.splice(0, dryRunInjectionHistory.length);
+  return getDateDryRunFieldInjectionSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoDateRolloutTraceObserved === true) return;
@@ -265,12 +354,16 @@ function wrapVerifyLastRecordSave() {
     const rolloutSummary = getDateResolutionRolloutTraceSummary();
     const limitedExperiment = context?.limitedDateAdoptionExperiment || context?.meta?.limitedDateAdoptionExperiment || null;
     const limitedSummary = getLimitedDateAdoptionExperimentSummary();
+    const dryRunInjection = context?.dateDryRunFieldInjection || context?.meta?.dateDryRunFieldInjection || null;
+    const dryRunSummary = getDateDryRunFieldInjectionSummary();
 
     if (result && typeof result === 'object') {
       result.dateResolutionRolloutTrace = rolloutTrace;
       result.dateResolutionRolloutSummary = rolloutSummary;
       result.limitedDateAdoptionExperiment = limitedExperiment;
       result.limitedDateAdoptionExperimentSummary = limitedSummary;
+      result.dateDryRunFieldInjection = dryRunInjection;
+      result.dateDryRunFieldInjectionSummary = dryRunSummary;
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateResolutionWouldUseProposal = rolloutTrace?.wouldUseProposal === true;
         result.healthSummary.dateResolutionRolloutBlockedCount = rolloutSummary.blockedCount;
@@ -278,6 +371,8 @@ function wrapVerifyLastRecordSave() {
         result.healthSummary.limitedDateAdoptionEnabled = limitedExperiment?.enabled === true;
         result.healthSummary.limitedDateAdoptionWouldAdopt = limitedExperiment?.canExperimentallyAdopt === true;
         result.healthSummary.limitedDateAdoptionBlockedCount = limitedSummary.blockedCount;
+        result.healthSummary.dateDryRunFieldInjectable = dryRunInjection?.canDryRunInject === true;
+        result.healthSummary.dateDryRunFieldInjectionBlockedCount = dryRunSummary.blockedCount;
       }
     }
 
@@ -337,15 +432,20 @@ function installDateResolutionRolloutTrace() {
 export {
   buildDateResolutionRolloutTrace,
   buildLimitedDateAdoptionExperiment,
+  buildDateDryRunFieldInjection,
   recordDateResolutionRolloutTrace,
   summarizeDateResolutionRolloutTrace,
   summarizeLimitedDateAdoptionExperiment,
+  summarizeDateDryRunFieldInjection,
   getDateResolutionRolloutTraceHistory,
   getDateResolutionRolloutTraceSummary,
   clearDateResolutionRolloutTraceHistory,
   getLimitedDateAdoptionExperimentHistory,
   getLimitedDateAdoptionExperimentSummary,
   clearLimitedDateAdoptionExperimentHistory,
+  getDateDryRunFieldInjectionHistory,
+  getDateDryRunFieldInjectionSummary,
+  clearDateDryRunFieldInjectionHistory,
   isLimitedDateAdoptionExperimentEnabled,
   setLimitedDateAdoptionExperimentEnabled,
   installDateResolutionRolloutTrace,
@@ -354,15 +454,20 @@ export {
 window.ippoRecordDateRolloutTrace = Object.freeze({
   buildDateResolutionRolloutTrace,
   buildLimitedDateAdoptionExperiment,
+  buildDateDryRunFieldInjection,
   recordDateResolutionRolloutTrace,
   summarizeDateResolutionRolloutTrace,
   summarizeLimitedDateAdoptionExperiment,
+  summarizeDateDryRunFieldInjection,
   getDateResolutionRolloutTraceHistory,
   getDateResolutionRolloutTraceSummary,
   clearDateResolutionRolloutTraceHistory,
   getLimitedDateAdoptionExperimentHistory,
   getLimitedDateAdoptionExperimentSummary,
   clearLimitedDateAdoptionExperimentHistory,
+  getDateDryRunFieldInjectionHistory,
+  getDateDryRunFieldInjectionSummary,
+  clearDateDryRunFieldInjectionHistory,
   isLimitedDateAdoptionExperimentEnabled,
   setLimitedDateAdoptionExperimentEnabled,
   installDateResolutionRolloutTrace,
@@ -374,6 +479,9 @@ window.ippoClearDateResolutionRolloutTraceHistory = clearDateResolutionRolloutTr
 window.ippoLimitedDateAdoptionExperimentHistory = getLimitedDateAdoptionExperimentHistory;
 window.ippoLimitedDateAdoptionExperimentSummary = getLimitedDateAdoptionExperimentSummary;
 window.ippoClearLimitedDateAdoptionExperimentHistory = clearLimitedDateAdoptionExperimentHistory;
+window.ippoDateDryRunFieldInjectionHistory = getDateDryRunFieldInjectionHistory;
+window.ippoDateDryRunFieldInjectionSummary = getDateDryRunFieldInjectionSummary;
+window.ippoClearDateDryRunFieldInjectionHistory = clearDateDryRunFieldInjectionHistory;
 window.ippoIsLimitedDateAdoptionExperimentEnabled = isLimitedDateAdoptionExperimentEnabled;
 window.ippoSetLimitedDateAdoptionExperimentEnabled = setLimitedDateAdoptionExperimentEnabled;
 
