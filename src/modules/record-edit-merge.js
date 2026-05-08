@@ -2,6 +2,7 @@
 //  ippo – src/modules/record-edit-merge.js
 //  Phase 3-D-3: 編集保存時の既存record保護
 //  Phase 3-F-2: record repository 読み取り層へ移行
+//  Hotfix: protect edit save from accidental insert/empty overwrite
 //
 //  目的:
 //  - 食事など一部項目の編集保存時に、未編集項目が空値で消えるのを防ぐ
@@ -11,7 +12,9 @@
 
 import {
   getRecordDate,
+  normalizeRecordDate,
   getRecords,
+  findRecordByDate,
 } from './record-repository.js';
 
 function trace(label, detail) {
@@ -68,11 +71,111 @@ function persist() {
   }
 }
 
+function getActiveEditDate() {
+  const candidates = [
+    window.__ippoActiveEditDate,
+    window.currentEditingDate,
+    window.editingDate,
+    window.state?.currentEditingDate,
+    window.state?.editingDate,
+    window.state?.recordDate,
+  ];
+
+  for (const candidate of candidates) {
+    const normalized = normalizeRecordDate(candidate);
+    if (normalized) return normalized;
+  }
+
+  try {
+    const summary = typeof window.ippoRecordEditHydrationSummary === 'function'
+      ? window.ippoRecordEditHydrationSummary()
+      : null;
+    const summaryDate = normalizeRecordDate(summary?.editingDate) || normalizeRecordDate(summary?.lastEditIntent?.date);
+    if (summaryDate) return summaryDate;
+  } catch(e) {}
+
+  return '';
+}
+
+function findBeforeRecord(beforeRecords, date) {
+  const targetDate = normalizeRecordDate(date);
+  if (!targetDate || !Array.isArray(beforeRecords)) return null;
+  return beforeRecords.find(function(record) {
+    return getRecordDate(record) === targetDate;
+  }) || null;
+}
+
+function findCurrentIndexesByDate(current, date) {
+  const targetDate = normalizeRecordDate(date);
+  if (!targetDate || !Array.isArray(current)) return [];
+
+  const indexes = [];
+  current.forEach(function(record, index) {
+    if (getRecordDate(record) === targetDate) indexes.push(index);
+  });
+  return indexes;
+}
+
+function repairDuplicateEditInsert(current, beforeRecords, editDate) {
+  const oldRecord = findBeforeRecord(beforeRecords, editDate);
+  if (!oldRecord) return false;
+
+  const indexes = findCurrentIndexesByDate(current, editDate);
+  if (indexes.length <= 1) return false;
+
+  const merged = indexes.reduce(function(acc, index) {
+    return mergePreservingExisting(acc, current[index]);
+  }, oldRecord);
+
+  current[indexes[0]] = merged;
+  indexes.slice(1).reverse().forEach(function(index) {
+    current.splice(index, 1);
+  });
+
+  trace('duplicate-edit-insert:repaired', {
+    date: editDate,
+    removed: indexes.length - 1,
+  });
+  return true;
+}
+
+function repairAccidentalDateDrift(current, beforeRecords, editDate) {
+  const oldRecord = findBeforeRecord(beforeRecords, editDate);
+  if (!oldRecord) return false;
+
+  const exactIndexes = findCurrentIndexesByDate(current, editDate);
+  if (exactIndexes.length > 0) return false;
+
+  const beforeDates = new Set((beforeRecords || []).map(getRecordDate).filter(Boolean));
+  const insertedIndex = current.findIndex(function(record) {
+    const date = getRecordDate(record);
+    return date && !beforeDates.has(date);
+  });
+
+  if (insertedIndex < 0) return false;
+
+  const driftRecord = current[insertedIndex];
+  const merged = mergePreservingExisting(oldRecord, {
+    ...driftRecord,
+    record_date: editDate,
+    date: editDate,
+    id: oldRecord.id || editDate,
+  });
+
+  current[insertedIndex] = merged;
+  trace('date-drift:repaired', {
+    editDate,
+    driftDate: getRecordDate(driftRecord),
+  });
+  return true;
+}
+
 function repairAfterSave(beforeRecords) {
   const current = records();
   if (!current || !Array.isArray(beforeRecords)) return;
 
   let changed = false;
+  const activeEditDate = getActiveEditDate();
 
   current.forEach(function(newRecord, index) {
     const d = getRecordDate(newRecord);
@@ -92,11 +195,16 @@ function repairAfterSave(beforeRecords) {
     }
   });
 
+  if (activeEditDate) {
+    if (repairDuplicateEditInsert(current, beforeRecords, activeEditDate)) changed = true;
+    if (repairAccidentalDateDrift(current, beforeRecords, activeEditDate)) changed = true;
+  }
+
   if (changed) {
     persist();
-    trace('done', { records: current.length });
+    trace('done', { records: current.length, activeEditDate });
   } else {
-    trace('noop', { records: current.length });
+    trace('noop', { records: current.length, activeEditDate });
   }
 }
 
