@@ -38,7 +38,8 @@ Phase 3-G までで、保存パイプラインの外側には以下の観測レ�
 - DOM IDは変更しない
 - window互換は維持する
 - `record-date-rollout-trace.js` は proposal を実保存には使わない
-- Phase 3-I-2 の limited adoption experiment は「判定記録のみ」であり保存値を書き換えない
+- limited adoption experiment は「判定記録のみ」であり保存値を書き換えない
+- dry-run field injection は context にだけ候補フィールドを記録し、record/draft/localStorage/Supabase へは書かない
 
 ## 現在の関係図
 
@@ -66,6 +67,8 @@ record-date-branch-observability.js が外側から保存前後を比較
 record-date-rollout-trace.js が「もし採用するなら」を trace-only で記録
   ↓
 limited adoption experiment gate が「採用可能か」を判定だけ記録
+  ↓
+dry-run field injection が候補フィールドを context にだけ記録
 ```
 
 ## 追加した観測レイヤー
@@ -91,98 +94,16 @@ limited adoption experiment gate が「採用可能か」を判定だけ記録
 3. 実保存には proposal を使わない
 4. rollout trace の履歴を実行中メモリに最大20件保持する
 5. limited adoption experiment の有効/無効と採用可否を記録する
+6. dry-run field injection の候補フィールドを context にだけ記録する
 
 ## 主要API
 
-### `resolveRecordSaveDateCandidate(input)`
+### `ippoDateDryRunFieldInjectionSummary()`
 
-pure helper。
-
-入力:
+dry-run field injection の判定履歴を集計する。
 
 ```js
-{
-  editingDate,
-  selectedDate,
-  draftDate,
-  changedDates,
-  fallbackDate,
-}
-```
-
-出力:
-
-```js
-{
-  resolvedDate,
-  source,
-  confidence,
-  candidates,
-  uniqueDates,
-  warnings,
-}
-```
-
-### `buildDateResolutionAdoptionGate(proposal, shadowCompare, dateBranch)`
-
-本番置換へ進めるかどうかを判定する。
-
-出力:
-
-```js
-{
-  status,
-  canAdopt,
-  proposedDate,
-  proposedSource,
-  proposedBranch,
-  confidence,
-  blockers,
-  warnings,
-}
-```
-
-### `ippoDateAdoptionGateSummary()`
-
-直近最大20件の保存結果から adoption gate の傾向を集計する。
-
-```js
-ippoDateAdoptionGateSummary()
-```
-
-### `ippoDateResolutionRolloutTraceSummary()`
-
-trace-only rollout の傾向を集計する。
-
-```js
-ippoDateResolutionRolloutTraceSummary()
-```
-
-### `ippoIsLimitedDateAdoptionExperimentEnabled()`
-
-limited adoption experiment が有効かどうかを返す。
-
-```js
-ippoIsLimitedDateAdoptionExperimentEnabled()
-```
-
-### `ippoSetLimitedDateAdoptionExperimentEnabled(enabled)`
-
-limited adoption experiment の明示ON/OFF。
-
-```js
-ippoSetLimitedDateAdoptionExperimentEnabled(true)
-ippoSetLimitedDateAdoptionExperimentEnabled(false)
-```
-
-ONにしても、このPRでは保存値は書き換えない。採用可能判定を `limitedDateAdoptionExperiment` として記録するだけ。
-
-### `ippoLimitedDateAdoptionExperimentSummary()`
-
-limited adoption experiment の判定履歴を集計する。
-
-```js
-ippoLimitedDateAdoptionExperimentSummary()
+ippoDateDryRunFieldInjectionSummary()
 ```
 
 主な出力:
@@ -190,95 +111,83 @@ ippoLimitedDateAdoptionExperimentSummary()
 ```js
 {
   count,
-  enabledCount,
-  experimentallyAdoptableCount,
+  injectableCount,
   blockedCount,
   blockedByCounts,
-  branchCounts,
   sourceCounts,
+  branchCounts,
   recent,
 }
 ```
 
-### `ippoLimitedDateAdoptionExperimentHistory()`
+### `ippoDateDryRunFieldInjectionHistory()`
 
-limited adoption experiment の詳細履歴を返す。
-
-```js
-ippoLimitedDateAdoptionExperimentHistory()
-```
-
-### `ippoClearLimitedDateAdoptionExperimentHistory()`
-
-limited adoption experiment の履歴をクリアする。
+dry-run field injection の詳細履歴を返す。
 
 ```js
-ippoClearLimitedDateAdoptionExperimentHistory()
+ippoDateDryRunFieldInjectionHistory()
 ```
+
+### `ippoClearDateDryRunFieldInjectionHistory()`
+
+dry-run field injection の履歴をクリアする。
+
+```js
+ippoClearDateDryRunFieldInjectionHistory()
+```
+
+## dry-run fields
+
+以下の候補フィールドを save context にだけ記録する。
+
+```js
+{
+  __dryRunResolvedDate,
+  __dryRunResolvedDateSource,
+  __dryRunResolvedDateBranch,
+  __dryRunResolvedDateConfidence,
+}
+```
+
+重要:
+
+- record本体には入れない
+- draftには入れない
+- localStorageには入れない
+- Supabaseには送らない
+- 保存対象dateとして使わない
 
 ## DevTools確認
 
-新規保存・編集保存のあとに確認する。
-
 ```js
-ippoLastRecordSaveContext()?.dateBranch
+ippoLastRecordSaveContext()?.dateDryRunFieldInjection
 ```
 
 ```js
-ippoLastRecordSaveContext()?.dateResolutionAdoptionGate
-```
-
-```js
-ippoLastRecordSaveContext()?.dateResolutionRolloutTrace
-```
-
-```js
-ippoLastRecordSaveContext()?.limitedDateAdoptionExperiment
+ippoDateDryRunFieldInjectionSummary()
 ```
 
 ```js
 ippoVerifyLastRecordSave()
 ```
 
-複数回保存した後に確認する。
+## dry-run injection のゲート
 
-```js
-ippoDateAdoptionGateSummary()
-```
+`canDryRunInject` が true になる条件は以下すべて。
 
-```js
-ippoDateResolutionRolloutTraceSummary()
-```
+1. limited adoption experiment が adoptable
+2. `wouldAdoptDate` が存在する
+3. branch mismatch がない
+4. actualDate mismatch がない
 
-```js
-ippoLimitedDateAdoptionExperimentSummary()
-```
-
-## limited adoption experiment のゲート
-
-`canExperimentallyAdopt` が true になる条件は以下すべて。
-
-1. `ippoSetLimitedDateAdoptionExperimentEnabled(true)` で明示ON
-2. `dateResolutionAdoptionGate.canAdopt === true`
-3. rollout trace が proposal を使える状態
-4. branch が `create-by-selectedDate` または `create-by-detected-date`
-5. proposedDate が存在する
-6. rollout blockers が空
-7. rollout warnings が空
-
-ただし、このPRでは true になっても保存値は書き換えない。
-
-## limited adoption blocker
+## dry-run blocker
 
 | blocker | 意味 |
 |---|---|
-| `experiment-disabled` | 明示ONされていない。デフォルト状態 |
-| `adoption-gate-blocked` | adoption gate が通っていない |
-| `rollout-trace-not-usable` | rollout trace 上 proposal が使えない |
-| `not-new-record-branch` | 新規保存branchではない |
-| `missing-proposed-date` | 提案dateがない |
-| `rollout-blockers-present` | rollout trace に blocker がある |
-| `rollout-warnings-present` | rollout trace に warning がある |
+| `limited-experiment-not-adoptable` | limited adoption experiment が通っていない |
+| `missing-dry-run-date` | dry-run候補dateがない |
+| `branch-mismatch` | branch判定が一致しない |
+| `actual-date-mismatch` | 現行保存結果のdateと候補dateが一致しない |
 
 ## 複数回テスト例
 
@@ -286,22 +195,21 @@ ippoLimitedDateAdoptionExperimentSummary()
 1. ippoClearDateAdoptionGateHistory()
 2. ippoClearDateResolutionRolloutTraceHistory()
 3. ippoClearLimitedDateAdoptionExperimentHistory()
-4. ippoSetLimitedDateAdoptionExperimentEnabled(false)
-5. 新規recordを保存
-6. ippoLimitedDateAdoptionExperimentSummary()
-7. ippoSetLimitedDateAdoptionExperimentEnabled(true)
-8. 新規recordを保存
-9. ippoLimitedDateAdoptionExperimentSummary()
-10. 既存recordを編集保存
-11. ippoLimitedDateAdoptionExperimentSummary()
+4. ippoClearDateDryRunFieldInjectionHistory()
+5. ippoSetLimitedDateAdoptionExperimentEnabled(true)
+6. 新規recordを保存
+7. ippoDateDryRunFieldInjectionSummary()
+8. ippoVerifyLastRecordSave()
+9. 既存recordを編集保存
+10. ippoDateDryRunFieldInjectionSummary()
 ```
 
 見たいもの:
 
-- OFF時は `experiment-disabled` が出る
-- ON時でも編集保存では `not-new-record-branch` が出る
-- 新規保存かつadoptableな場合のみ `experimentallyAdoptableCount` が増える
-- `shadow-date-mismatch` が出ない
+- 新規保存の安定ケースで `injectableCount` が増える
+- 編集保存では dry-run injection が blocked になる
+- `actual-date-mismatch` が出ない
+- `branch-mismatch` が出ない
 - 保存結果そのものは従来通り
 
 ## まだやらないこと
@@ -311,7 +219,7 @@ ippoLimitedDateAdoptionExperimentSummary()
 - `state.records` の更新処理を置換しない
 - `record-upsert.js` を本番経路に差し替えない
 - 編集完了後の `editingDate` clear 挙動を変更しない
-- limited adoption experiment の proposal を実保存に使わない
+- dry-run fields を record / draft / storage / Supabase に入れない
 
 ## 動作確認チェックリスト
 
@@ -322,24 +230,26 @@ ippoLimitedDateAdoptionExperimentSummary()
 - 新規保存時に古いeditingDateが使われない
 - カレンダー該当日に反映される
 - `ippoVerifyLastRecordSave()` の既存warningsが悪化しない
-- `ippoLimitedDateAdoptionExperimentSummary()` が確認できる
-- ON/OFFで blocker が想定通り変わる
-- ONにしても保存結果が変わらない
+- `ippoDateDryRunFieldInjectionSummary()` が確認できる
+- `canDryRunInject` が想定条件でだけ true になる
+- 保存結果が変わらない
 
 ## 次PRの推奨内容
 
-Phase 3-I-3 — dry-run field injection experiment
+Phase 3-I-4 — first limited real adoption behind explicit flag
 
 まだ全面置換はしない。
 
 次にやること:
 
-1. limited adoption experiment で新規保存ケースの判定が安定することを確認する
-2. proposal date を保存には使わず、draft candidate として別フィールドに dry-run 記録する案を検討する
-3. 編集保存はまだ置換しない
+1. 新規保存のみ
+2. explicit flag ON のみ
+3. dry-run injectable のみ
+4. proposal date と actualDate が一致する場合のみ
+5. それでも最初は `context` / `draft candidate` への限定反映から始める
 
 ## 判断
 
-Phase 3-H / 3-Iでは、保存本体の薄型化へ入る前に date branch を観測可能にする。
+Phase 3-I-3では、実採用の直前段階として dry-run candidate fields を save context にだけ記録する。
 
-このPRでは、limited adoption experiment の判定ゲートまで追加するが、保存本体変更・保存値変更・upsert置換は行わない。
+このPRでは、保存本体変更・保存値変更・upsert置換・storage変更は行わない。
