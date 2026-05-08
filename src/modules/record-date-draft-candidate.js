@@ -1,6 +1,6 @@
 // ============================================================
 //  ippo – src/modules/record-date-draft-candidate.js
-//  Phase 3-I-4/5: draft candidate injection layer
+//  Phase 3-I-4/5/7: draft candidate injection layer
 //
 //  目的:
 //  - limited real adoption candidate から draft candidate を生成する
@@ -8,6 +8,7 @@
 //  - explicit flag ON の限定ケースだけ buildDraftFromUI の返却draftへ実注入する
 //  - 実注入は active save context がある保存中だけ許可する
 //  - 保存完了後に injected draft と persisted record を shadow compare する
+//  - inject成功 + persist一致 の場合だけ limited adoption success として集計する
 //  - saveRecordScreen / state.records / localStorage / Supabase の保存経路は直接変更しない
 // ============================================================
 
@@ -21,10 +22,12 @@ const BUILD_DRAFT_WRAP_FLAG = '__ippoDateDraftCandidateBuildDraftWrapped';
 const HISTORY_LIMIT = 20;
 const INJECTION_HISTORY_LIMIT = 20;
 const SHADOW_COMPARE_HISTORY_LIMIT = 20;
+const ADOPTION_OUTCOME_HISTORY_LIMIT = 20;
 const ACTUAL_INJECTION_FLAG = 'ippo_enable_date_draft_candidate_actual_injection';
 const draftCandidateHistory = [];
 const actualInjectionHistory = [];
 const shadowCompareHistory = [];
+const adoptionOutcomeHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -188,6 +191,47 @@ function buildDraftPersistShadowCompare(context) {
   };
 }
 
+function buildLimitedDateAdoptionOutcome(context) {
+  const safeContext = context || getLastRecordSaveContext() || {};
+  const candidate = safeContext.limitedDateRealAdoptionCandidate
+    || safeContext.meta?.limitedDateRealAdoptionCandidate
+    || null;
+  const injection = safeContext.dateDraftCandidateActualInjection
+    || safeContext.meta?.dateDraftCandidateActualInjection
+    || null;
+  const shadowCompare = safeContext.dateDraftPersistShadowCompare
+    || safeContext.meta?.dateDraftPersistShadowCompare
+    || null;
+  const blockedBy = [];
+
+  if (!candidate) blockedBy.push('missing-candidate');
+  if (candidate && candidate.canUseCandidate !== true) blockedBy.push('candidate-not-usable');
+  if (!injection) blockedBy.push('missing-actual-injection');
+  if (injection && injection.didInject !== true) blockedBy.push('draft-not-injected');
+  if (!shadowCompare) blockedBy.push('missing-shadow-compare');
+  if (shadowCompare && shadowCompare.comparable !== true) blockedBy.push('shadow-not-comparable');
+  if (shadowCompare && shadowCompare.matched !== true) blockedBy.push('shadow-not-matched');
+
+  const adopted = candidate?.canUseCandidate === true
+    && injection?.didInject === true
+    && shadowCompare?.matched === true;
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'limited-date-adoption-outcome',
+    adopted: adopted,
+    candidateDate: candidate?.candidateDate || injection?.candidateDate || shadowCompare?.candidateDate || '',
+    persistedDate: shadowCompare?.persistedDate || '',
+    candidateSource: candidate?.candidateSource || injection?.candidateSource || 'none',
+    candidateBranch: candidate?.candidateBranch || injection?.candidateBranch || 'unknown',
+    preflight: candidate?.preflight === true,
+    didInject: injection?.didInject === true,
+    shadowMatched: shadowCompare?.matched === true,
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Success means the limited candidate was injected into the draft and the persisted record matched the injected date. It is summary-only and does not mutate records.',
+  };
+}
+
 function summarizeDateDraftCandidate(history) {
   const list = Array.isArray(history) ? history : [];
   const blockedByCounts = {};
@@ -267,6 +311,37 @@ function summarizeDraftPersistShadowCompare(history) {
   };
 }
 
+function summarizeLimitedDateAdoptionOutcome(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const branchCounts = {};
+  const sourceCounts = {};
+
+  list.forEach(function(item) {
+    const branch = item.candidateBranch || 'unknown';
+    const source = item.candidateSource || 'none';
+    branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    adoptedCount: list.filter(function(item) { return item.adopted === true; }).length,
+    blockedCount: list.filter(function(item) { return item.adopted !== true; }).length,
+    preflightCount: list.filter(function(item) { return item.preflight === true; }).length,
+    injectedCount: list.filter(function(item) { return item.didInject === true; }).length,
+    shadowMatchedCount: list.filter(function(item) { return item.shadowMatched === true; }).length,
+    blockedByCounts: blockedByCounts,
+    branchCounts: branchCounts,
+    sourceCounts: sourceCounts,
+    recent: list.slice(-5),
+  };
+}
+
 function attachDraftCandidateToContext(saveContext, preview) {
   const summary = summarizeDateDraftCandidate(draftCandidateHistory);
 
@@ -336,6 +411,29 @@ function attachDraftPersistShadowCompareToContext(saveContext, compare) {
   return summary;
 }
 
+function attachLimitedDateAdoptionOutcomeToContext(saveContext, outcome) {
+  const summary = summarizeLimitedDateAdoptionOutcome(adoptionOutcomeHistory);
+
+  if (saveContext && typeof saveContext === 'object') {
+    if (!saveContext.meta || typeof saveContext.meta !== 'object') {
+      saveContext.meta = {};
+    }
+
+    saveContext.meta.limitedDateAdoptionOutcome = outcome;
+    saveContext.meta.limitedDateAdoptionOutcomeSummary = summary;
+    saveContext.limitedDateAdoptionOutcome = outcome;
+    saveContext.limitedDateAdoptionOutcomeSummary = summary;
+
+    if (saveContext.healthSummary && typeof saveContext.healthSummary === 'object') {
+      saveContext.healthSummary.limitedDateAdoptionSucceeded = outcome.adopted === true;
+      saveContext.healthSummary.limitedDateAdoptionBlockedCount = summary.blockedCount;
+      saveContext.healthSummary.limitedDateAdoptionSuccessCount = summary.adoptedCount;
+    }
+  }
+
+  return summary;
+}
+
 function recordDateDraftCandidate(context) {
   const saveContext = context || getLastRecordSaveContext();
   const preview = buildDateDraftCandidate(saveContext);
@@ -373,6 +471,19 @@ function recordDraftPersistShadowCompare(context) {
   attachDraftPersistShadowCompareToContext(saveContext, compare);
   trace('draft-persist-shadow-compare:recorded', compare);
   return compare;
+}
+
+function recordLimitedDateAdoptionOutcome(context) {
+  const saveContext = context || getLastRecordSaveContext();
+  const outcome = buildLimitedDateAdoptionOutcome(saveContext);
+  adoptionOutcomeHistory.push(outcome);
+  while (adoptionOutcomeHistory.length > ADOPTION_OUTCOME_HISTORY_LIMIT) {
+    adoptionOutcomeHistory.shift();
+  }
+
+  attachLimitedDateAdoptionOutcomeToContext(saveContext, outcome);
+  trace('limited-date-adoption-outcome:recorded', outcome);
+  return outcome;
 }
 
 function applyActualDateDraftCandidateInjection(draft, context) {
@@ -429,6 +540,19 @@ function clearDraftPersistShadowCompareHistory() {
   return getDraftPersistShadowCompareSummary();
 }
 
+function getLimitedDateAdoptionOutcomeHistory() {
+  return adoptionOutcomeHistory.slice();
+}
+
+function getLimitedDateAdoptionOutcomeSummary() {
+  return summarizeLimitedDateAdoptionOutcome(adoptionOutcomeHistory);
+}
+
+function clearLimitedDateAdoptionOutcomeHistory() {
+  adoptionOutcomeHistory.splice(0, adoptionOutcomeHistory.length);
+  return getLimitedDateAdoptionOutcomeSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoDateDraftCandidateObserved === true) return;
@@ -442,6 +566,8 @@ function wrapVerifyLastRecordSave() {
     const actualInjectionSummary = getActualDateDraftCandidateInjectionSummary();
     const shadowCompare = context?.dateDraftPersistShadowCompare || context?.meta?.dateDraftPersistShadowCompare || null;
     const shadowCompareSummary = getDraftPersistShadowCompareSummary();
+    const adoptionOutcome = context?.limitedDateAdoptionOutcome || context?.meta?.limitedDateAdoptionOutcome || null;
+    const adoptionOutcomeSummary = getLimitedDateAdoptionOutcomeSummary();
 
     if (result && typeof result === 'object') {
       result.dateDraftCandidate = preview;
@@ -450,6 +576,8 @@ function wrapVerifyLastRecordSave() {
       result.dateDraftCandidateActualInjectionSummary = actualInjectionSummary;
       result.dateDraftPersistShadowCompare = shadowCompare;
       result.dateDraftPersistShadowCompareSummary = shadowCompareSummary;
+      result.limitedDateAdoptionOutcome = adoptionOutcome;
+      result.limitedDateAdoptionOutcomeSummary = adoptionOutcomeSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateDraftCandidateInjectable = preview?.canInjectDraftCandidate === true;
@@ -461,6 +589,9 @@ function wrapVerifyLastRecordSave() {
         result.healthSummary.dateDraftPersistShadowComparable = shadowCompare?.comparable === true;
         result.healthSummary.dateDraftPersistShadowMatched = shadowCompare?.matched === true;
         result.healthSummary.dateDraftPersistShadowBlockedCount = shadowCompareSummary.blockedCount;
+        result.healthSummary.limitedDateAdoptionSucceeded = adoptionOutcome?.adopted === true;
+        result.healthSummary.limitedDateAdoptionBlockedCount = adoptionOutcomeSummary.blockedCount;
+        result.healthSummary.limitedDateAdoptionSuccessCount = adoptionOutcomeSummary.adoptedCount;
       }
     }
 
@@ -479,24 +610,24 @@ function wrapSaveRecordScreen() {
   function dateDraftCandidateSaveRecordScreen() {
     const result = current.apply(this, arguments);
 
+    const recordPostSaveObservations = function(value, shouldThrow) {
+      const context = getLastRecordSaveContext();
+      recordDateDraftCandidate(context);
+      recordDraftPersistShadowCompare(context);
+      recordLimitedDateAdoptionOutcome(context);
+      if (shouldThrow) throw value;
+      return value;
+    };
+
     if (result && typeof result.then === 'function') {
       return result.then(function(value) {
-        const context = getLastRecordSaveContext();
-        recordDateDraftCandidate(context);
-        recordDraftPersistShadowCompare(context);
-        return value;
+        return recordPostSaveObservations(value, false);
       }).catch(function(error) {
-        const context = getLastRecordSaveContext();
-        recordDateDraftCandidate(context);
-        recordDraftPersistShadowCompare(context);
-        throw error;
+        return recordPostSaveObservations(error, true);
       });
     }
 
-    const context = getLastRecordSaveContext();
-    recordDateDraftCandidate(context);
-    recordDraftPersistShadowCompare(context);
-    return result;
+    return recordPostSaveObservations(result, false);
   }
 
   dateDraftCandidateSaveRecordScreen[WRAP_FLAG] = true;
@@ -548,12 +679,15 @@ export {
   buildDateDraftCandidate,
   buildActualDateDraftCandidateInjection,
   buildDraftPersistShadowCompare,
+  buildLimitedDateAdoptionOutcome,
   recordDateDraftCandidate,
   recordDraftPersistShadowCompare,
+  recordLimitedDateAdoptionOutcome,
   applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
   summarizeActualDateDraftCandidateInjection,
   summarizeDraftPersistShadowCompare,
+  summarizeLimitedDateAdoptionOutcome,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
@@ -563,6 +697,9 @@ export {
   getDraftPersistShadowCompareHistory,
   getDraftPersistShadowCompareSummary,
   clearDraftPersistShadowCompareHistory,
+  getLimitedDateAdoptionOutcomeHistory,
+  getLimitedDateAdoptionOutcomeSummary,
+  clearLimitedDateAdoptionOutcomeHistory,
   isDateDraftCandidateActualInjectionEnabled,
   setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
@@ -572,12 +709,15 @@ window.ippoRecordDateDraftCandidate = Object.freeze({
   buildDateDraftCandidate,
   buildActualDateDraftCandidateInjection,
   buildDraftPersistShadowCompare,
+  buildLimitedDateAdoptionOutcome,
   recordDateDraftCandidate,
   recordDraftPersistShadowCompare,
+  recordLimitedDateAdoptionOutcome,
   applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
   summarizeActualDateDraftCandidateInjection,
   summarizeDraftPersistShadowCompare,
+  summarizeLimitedDateAdoptionOutcome,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
@@ -587,6 +727,9 @@ window.ippoRecordDateDraftCandidate = Object.freeze({
   getDraftPersistShadowCompareHistory,
   getDraftPersistShadowCompareSummary,
   clearDraftPersistShadowCompareHistory,
+  getLimitedDateAdoptionOutcomeHistory,
+  getLimitedDateAdoptionOutcomeSummary,
+  clearLimitedDateAdoptionOutcomeHistory,
   isDateDraftCandidateActualInjectionEnabled,
   setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
@@ -601,6 +744,9 @@ window.ippoClearActualDateDraftCandidateInjectionHistory = clearActualDateDraftC
 window.ippoDraftPersistShadowCompareHistory = getDraftPersistShadowCompareHistory;
 window.ippoDraftPersistShadowCompareSummary = getDraftPersistShadowCompareSummary;
 window.ippoClearDraftPersistShadowCompareHistory = clearDraftPersistShadowCompareHistory;
+window.ippoLimitedDateAdoptionOutcomeHistory = getLimitedDateAdoptionOutcomeHistory;
+window.ippoLimitedDateAdoptionOutcomeSummary = getLimitedDateAdoptionOutcomeSummary;
+window.ippoClearLimitedDateAdoptionOutcomeHistory = clearLimitedDateAdoptionOutcomeHistory;
 window.ippoIsDateDraftCandidateActualInjectionEnabled = isDateDraftCandidateActualInjectionEnabled;
 window.ippoSetDateDraftCandidateActualInjectionEnabled = setDateDraftCandidateActualInjectionEnabled;
 
