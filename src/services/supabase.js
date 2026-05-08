@@ -2,30 +2,23 @@
 //  ippo – src/services/supabase.js
 //  Supabase SDK 初期化
 //
-//  【移設元】app.html の <script type="module"> ブロック
-//           (createClient / window.supabase 設定)
-//
-//  【設計方針】
-//  - CDN import を npm パッケージ (@supabase/supabase-js) へ移行
+//  方針:
+//  - app.html が /src/main.js をブラウザで直接読み込む現行構成に合わせ、
+//    bare import ではなく CDN ESM import を使用する
 //  - window.supabase を維持（移行期間中: 非モジュール <script> との共存）
-//  - SUPABASE_URL を re-export して services/stripe.js で共有
-//
-//  【注意】
-//  - var SUPABASE_URL / var SUPABASE_KEY (anon JWT) は REST API ヘルパー用に
-//    app.html のインラインスクリプトに残存。そちらとは別物。
-//  - この SDK_KEY は publishable key (sb_publishable_...)。
+//  - 公開キーは app.html 側の既存グローバル値を優先して参照する
 // ============================================================
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// ─── 定数 ────────────────────────────────────────────────────
-export const SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+const SUPABASE_SDK_KEY = window.SUPABASE_KEY;
 
-// Publishable key: Supabase SDK 専用（REST API の anon JWT とは別）
-const SUPABASE_SDK_KEY = 'sb_publishable_N1aONYfjCsM-AXxBmptkEw_cj5C-0lb';
+if (!SUPABASE_SDK_KEY) {
+  console.warn('ippo: SUPABASE_KEY is not available. Supabase client was not initialized.');
+}
 
-// ─── Supabase クライアント ────────────────────────────────────
-export const supabase = createClient(SUPABASE_URL, SUPABASE_SDK_KEY, {
+export const supabase = SUPABASE_SDK_KEY ? createClient(SUPABASE_URL, SUPABASE_SDK_KEY, {
   auth: {
     persistSession: true,
     storageKey: 'ippo_sb',
@@ -47,7 +40,6 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_SDK_KEY, {
       },
     },
   },
-});
+}) : null;
 
-// ─── window 互換（移行期間: 非モジュール <script> との共存） ──
 window.supabase = supabase;
