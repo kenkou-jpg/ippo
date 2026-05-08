@@ -69,6 +69,9 @@ import './modules/record-date-branch-observability.js';
 // guarded rollout trace only
 import './modules/record-date-rollout-trace.js';
 
+// limited real adoption candidate only
+import './modules/record-date-limited-adoption-candidate.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
