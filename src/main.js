@@ -111,6 +111,9 @@ import './modules/record-edit-merge.js';
 // 編集画面 hydration 補正
 import './modules/record-edit-hydrate.js';
 
+// 編集保存 identity guard
+import './modules/record-edit-save-identity-guard.js';
+
 // onboarding / welcome reset guard
 import './modules/welcome-reset-guard.js';
 
