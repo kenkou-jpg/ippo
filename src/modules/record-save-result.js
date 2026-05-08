@@ -1,9 +1,10 @@
 // ============================================================
 //  ippo – src/modules/record-save-result.js
-//  Phase 3-M-3: record save result normalization
+//  Phase 3-M/N: record save result normalization
 //
 //  目的:
 //  - saveRecordScreen の保存後処理を薄型化するため、persist / sync / notify / verify の結果を標準化する
+//  - core payload adoption / core persistence delegation readiness を post-save result に統合する
 //  - 既存の保存経路は変更しない
 //  - post-save result を一枚の normalized result として観測する
 // ============================================================
@@ -65,6 +66,9 @@ function buildRecordSaveResult(context) {
   const preSaveDelegation = getContextArtifact(safeContext, 'preSaveModulePayloadDelegation');
   const postSaveVerification = getContextArtifact(safeContext, 'modulePayloadPostSaveVerification');
   const shadowOutcome = getContextArtifact(safeContext, 'recordSaveShadowOutcome');
+  const recordSaveCore = getContextArtifact(safeContext, 'recordSaveCore');
+  const corePayloadAdoption = getContextArtifact(safeContext, 'corePayloadAdoptionDecision');
+  const corePersistenceDelegation = getContextArtifact(safeContext, 'corePersistenceDelegationDecision');
 
   if (!safeContext || typeof safeContext !== 'object' || !safeContext.createdAt) blockedBy.push('missing-save-context');
   if (healthSummary.ok !== true) warnings.push('health-summary-not-ok');
@@ -76,6 +80,12 @@ function buildRecordSaveResult(context) {
   }
   if (shellDecision?.didUseShellPayload === true && shadowOutcome?.matched === false) {
     blockedBy.push('shell-payload-shadow-not-matched');
+  }
+  if (corePayloadAdoption?.didAdoptCorePayload === true && shadowOutcome?.matched === false) {
+    blockedBy.push('core-payload-shadow-not-matched');
+  }
+  if (corePersistenceDelegation?.enabled === true && corePersistenceDelegation?.canDelegateCorePersistence !== true) {
+    warnings.push('core-persistence-delegation-not-ready');
   }
 
   const ok = blockedBy.length === 0 && healthSummary.ok === true;
@@ -104,6 +114,16 @@ function buildRecordSaveResult(context) {
       postSaveVerified: postSaveVerification?.verified === true,
       shadowMatched: shadowOutcome?.matched === true,
     },
+    core: {
+      usable: recordSaveCore?.usable === true,
+      payloadAdoptionEnabled: corePayloadAdoption?.enabled === true,
+      payloadAdopted: corePayloadAdoption?.didAdoptCorePayload === true,
+      persistenceDelegationEnabled: corePersistenceDelegation?.enabled === true,
+      persistenceDelegationReady: corePersistenceDelegation?.canDelegateCorePersistence === true,
+      persistenceStrategy: corePersistenceDelegation?.persistenceStrategy || recordSaveCore?.persistence?.persistenceStrategy || 'unknown',
+      saveMode: corePersistenceDelegation?.saveMode || recordSaveCore?.persistence?.saveMode || 'unknown',
+      targetDate: corePersistenceDelegation?.targetDate || recordSaveCore?.persistence?.targetDate || '',
+    },
     blockedBy: Array.from(new Set(blockedBy)),
     warnings: Array.from(new Set(warnings)),
     note: 'Normalized post-save result. It does not mutate records, storage, or cloud sync.',
@@ -131,6 +151,9 @@ function summarizeRecordSaveResult(history) {
     shellUsedCount: list.filter(function(item) { return item.orchestration?.shellUsed === true; }).length,
     preSaveDelegatedCount: list.filter(function(item) { return item.orchestration?.preSaveDelegated === true; }).length,
     postSaveVerifiedCount: list.filter(function(item) { return item.orchestration?.postSaveVerified === true; }).length,
+    coreUsableCount: list.filter(function(item) { return item.core?.usable === true; }).length,
+    corePayloadAdoptedCount: list.filter(function(item) { return item.core?.payloadAdopted === true; }).length,
+    corePersistenceReadyCount: list.filter(function(item) { return item.core?.persistenceDelegationReady === true; }).length,
     blockedByCounts: blockedByCounts,
     warningCounts: warningCounts,
     recent: list.slice(-5),
@@ -154,6 +177,8 @@ function attachRecordSaveResultToContext(context, result) {
       context.healthSummary.recordSaveResultOk = result.ok === true;
       context.healthSummary.recordSaveResultBlockedCount = summary.blockedCount;
       context.healthSummary.recordSaveResultWarningCount = result.warnings.length;
+      context.healthSummary.recordSaveResultCoreUsable = result.core.usable === true;
+      context.healthSummary.recordSaveResultCorePersistenceReady = result.core.persistenceDelegationReady === true;
     }
   }
 
@@ -205,6 +230,8 @@ function wrapVerifyLastRecordSave() {
         result.healthSummary.recordSaveResultOk = saveResult?.ok === true;
         result.healthSummary.recordSaveResultBlockedCount = summary.blockedCount;
         result.healthSummary.recordSaveResultWarningCount = (saveResult?.warnings || []).length;
+        result.healthSummary.recordSaveResultCoreUsable = saveResult?.core?.usable === true;
+        result.healthSummary.recordSaveResultCorePersistenceReady = saveResult?.core?.persistenceDelegationReady === true;
       }
     }
 
