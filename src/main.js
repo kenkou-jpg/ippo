@@ -93,6 +93,9 @@ import './modules/record-save-adoption.js';
 // post-save verification must run after module payload adoption delegation
 import './modules/record-save-adoption-verify.js';
 
+// orchestrator preview must run after all save layers
+import './modules/record-save-orchestrator.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
