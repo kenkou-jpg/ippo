@@ -37,7 +37,8 @@ Phase 3-G までで、保存パイプラインの外側には以下の観測レ�
 - localStorage保存順は変更しない
 - DOM IDは変更しない
 - window互換は維持する
-- `record-date-rollout-trace.js` は trace-only であり、proposal を保存には使わない
+- `record-date-rollout-trace.js` は proposal を実保存には使わない
+- Phase 3-I-2 の limited adoption experiment は「判定記録のみ」であり保存値を書き換えない
 
 ## 現在の関係図
 
@@ -63,6 +64,8 @@ saveState / cloudBackupAll / notify
 record-date-branch-observability.js が外側から保存前後を比較
   ↓
 record-date-rollout-trace.js が「もし採用するなら」を trace-only で記録
+  ↓
+limited adoption experiment gate が「採用可能か」を判定だけ記録
 ```
 
 ## 追加した観測レイヤー
@@ -87,6 +90,7 @@ record-date-rollout-trace.js が「もし採用するなら」を trace-only で
 2. `canAdopt === true` の場合に「もし採用するなら使う値」を trace する
 3. 実保存には proposal を使わない
 4. rollout trace の履歴を実行中メモリに最大20件保持する
+5. limited adoption experiment の有効/無効と採用可否を記録する
 
 ## 主要API
 
@@ -119,42 +123,6 @@ pure helper。
 }
 ```
 
-### `buildDateResolutionShadowCompare(dateResolution, changedDates)`
-
-現行保存結果と pure helper の提案値を比較する。
-
-出力:
-
-```js
-{
-  actualDate,
-  actualChangedDates,
-  resolvedDate,
-  resolvedSource,
-  matched,
-  comparable,
-  warnings,
-}
-```
-
-### `buildDateResolutionProposal(dateResolution, branch, shadowCompare)`
-
-将来置換時の提案値を作る。
-
-出力:
-
-```js
-{
-  proposedDate,
-  proposedSource,
-  proposedBranch,
-  confidence,
-  canPromote,
-  promotionBlockedBy,
-  candidates,
-}
-```
-
 ### `buildDateResolutionAdoptionGate(proposal, shadowCompare, dateBranch)`
 
 本番置換へ進めるかどうかを判定する。
@@ -182,39 +150,6 @@ pure helper。
 ippoDateAdoptionGateSummary()
 ```
 
-主な出力:
-
-```js
-{
-  count,
-  adoptableCount,
-  blockedCount,
-  matchedCount,
-  comparableCount,
-  blockerCounts,
-  warningCounts,
-  branchCounts,
-  sourceCounts,
-  recent,
-}
-```
-
-### `ippoDateAdoptionGateHistory()`
-
-直近最大20件の詳細履歴を返す。
-
-```js
-ippoDateAdoptionGateHistory()
-```
-
-### `ippoClearDateAdoptionGateHistory()`
-
-履歴をクリアする。
-
-```js
-ippoClearDateAdoptionGateHistory()
-```
-
 ### `ippoDateResolutionRolloutTraceSummary()`
 
 trace-only rollout の傾向を集計する。
@@ -223,37 +158,62 @@ trace-only rollout の傾向を集計する。
 ippoDateResolutionRolloutTraceSummary()
 ```
 
+### `ippoIsLimitedDateAdoptionExperimentEnabled()`
+
+limited adoption experiment が有効かどうかを返す。
+
+```js
+ippoIsLimitedDateAdoptionExperimentEnabled()
+```
+
+### `ippoSetLimitedDateAdoptionExperimentEnabled(enabled)`
+
+limited adoption experiment の明示ON/OFF。
+
+```js
+ippoSetLimitedDateAdoptionExperimentEnabled(true)
+ippoSetLimitedDateAdoptionExperimentEnabled(false)
+```
+
+ONにしても、このPRでは保存値は書き換えない。採用可能判定を `limitedDateAdoptionExperiment` として記録するだけ。
+
+### `ippoLimitedDateAdoptionExperimentSummary()`
+
+limited adoption experiment の判定履歴を集計する。
+
+```js
+ippoLimitedDateAdoptionExperimentSummary()
+```
+
 主な出力:
 
 ```js
 {
   count,
-  wouldUseProposalCount,
+  enabledCount,
+  experimentallyAdoptableCount,
   blockedCount,
-  shadowMatchedCount,
-  shadowComparableCount,
-  blockerCounts,
-  warningCounts,
+  blockedByCounts,
   branchCounts,
   sourceCounts,
   recent,
 }
 ```
 
-### `ippoDateResolutionRolloutTraceHistory()`
+### `ippoLimitedDateAdoptionExperimentHistory()`
 
-trace-only rollout の詳細履歴を返す。
+limited adoption experiment の詳細履歴を返す。
 
 ```js
-ippoDateResolutionRolloutTraceHistory()
+ippoLimitedDateAdoptionExperimentHistory()
 ```
 
-### `ippoClearDateResolutionRolloutTraceHistory()`
+### `ippoClearLimitedDateAdoptionExperimentHistory()`
 
-trace-only rollout 履歴をクリアする。
+limited adoption experiment の履歴をクリアする。
 
 ```js
-ippoClearDateResolutionRolloutTraceHistory()
+ippoClearLimitedDateAdoptionExperimentHistory()
 ```
 
 ## DevTools確認
@@ -265,19 +225,15 @@ ippoLastRecordSaveContext()?.dateBranch
 ```
 
 ```js
-ippoLastRecordSaveContext()?.dateShadowCompare
-```
-
-```js
-ippoLastRecordSaveContext()?.dateResolutionProposal
-```
-
-```js
 ippoLastRecordSaveContext()?.dateResolutionAdoptionGate
 ```
 
 ```js
 ippoLastRecordSaveContext()?.dateResolutionRolloutTrace
+```
+
+```js
+ippoLastRecordSaveContext()?.limitedDateAdoptionExperiment
 ```
 
 ```js
@@ -294,88 +250,59 @@ ippoDateAdoptionGateSummary()
 ippoDateResolutionRolloutTraceSummary()
 ```
 
-## adoption gate の見方
-
-### 置換検討OK
-
 ```js
-ippoVerifyLastRecordSave()?.dateResolutionAdoptionGate?.status === 'adoptable'
+ippoLimitedDateAdoptionExperimentSummary()
 ```
 
-かつ:
+## limited adoption experiment のゲート
 
-```js
-ippoVerifyLastRecordSave()?.dateResolutionAdoptionGate?.blockers?.length === 0
-```
+`canExperimentallyAdopt` が true になる条件は以下すべて。
 
-さらに複数回確認で:
+1. `ippoSetLimitedDateAdoptionExperimentEnabled(true)` で明示ON
+2. `dateResolutionAdoptionGate.canAdopt === true`
+3. rollout trace が proposal を使える状態
+4. branch が `create-by-selectedDate` または `create-by-detected-date`
+5. proposedDate が存在する
+6. rollout blockers が空
+7. rollout warnings が空
 
-```js
-ippoDateAdoptionGateSummary()?.blockedCount === 0
-```
+ただし、このPRでは true になっても保存値は書き換えない。
 
-### trace-only rollout の見方
-
-```js
-ippoDateResolutionRolloutTraceSummary()?.wouldUseProposalCount
-```
-
-が保存回数に近いほど、proposal採用候補が安定している。
-
-ただし、この値が増えてもこのPRでは実保存に proposal を使っていない。
-
-### 置換禁止
-
-以下の blocker が1つでも出る場合は、まだ本番置換しない。
+## limited adoption blocker
 
 | blocker | 意味 |
 |---|---|
-| `missing-proposed-date` | helper が提案dateを出せない |
-| `proposal-not-promotable` | proposal 側で昇格不可 |
-| `shadow-not-comparable` | 現行保存結果と比較できない |
-| `shadow-not-matched` | 現行保存dateと helper 推定dateが一致しない |
-| `date-warnings-present` | date関連warningが残っている |
-| `unknown-branch` | 新規/編集分岐が外側から判断できない |
-| `low-confidence` | 推定信頼度が低い |
-
-## warning 候補
-
-| warning | 意味 |
-|---|---|
-| `missing-save-date` | 保存対象dateが外側から確認できない |
-| `editing-selected-mismatch` | `editingDate` と `selectedDate` が異なる |
-| `editing-draft-mismatch` | `editingDate` と draft date が異なる |
-| `selected-draft-mismatch` | `selectedDate` と draft date が異なる |
-| `date-candidate-mismatch` | 複数date候補が一致しない |
-| `editing-date-stale` | 編集完了後もeditingDateが残っている可能性 |
-| `duplicate-date-candidate` | 同じdateのrecordが複数存在する可能性 |
-| `shadow-date-mismatch` | 現行保存dateと helper 推定dateが一致しない |
-| `shadow-multiple-actual-dates` | 保存後に複数dateが変化した |
-| `shadow-no-changed-date` | 保存前後で変更dateを検出できない |
+| `experiment-disabled` | 明示ONされていない。デフォルト状態 |
+| `adoption-gate-blocked` | adoption gate が通っていない |
+| `rollout-trace-not-usable` | rollout trace 上 proposal が使えない |
+| `not-new-record-branch` | 新規保存branchではない |
+| `missing-proposed-date` | 提案dateがない |
+| `rollout-blockers-present` | rollout trace に blocker がある |
+| `rollout-warnings-present` | rollout trace に warning がある |
 
 ## 複数回テスト例
 
 ```text
 1. ippoClearDateAdoptionGateHistory()
 2. ippoClearDateResolutionRolloutTraceHistory()
-3. 新規recordを保存
-4. ippoDateAdoptionGateSummary()
-5. ippoDateResolutionRolloutTraceSummary()
-6. 既存recordを編集保存
-7. ippoDateAdoptionGateSummary()
-8. ippoDateResolutionRolloutTraceSummary()
-9. もう一度別日で新規保存
-10. ippoDateAdoptionGateSummary()
-11. ippoDateResolutionRolloutTraceSummary()
+3. ippoClearLimitedDateAdoptionExperimentHistory()
+4. ippoSetLimitedDateAdoptionExperimentEnabled(false)
+5. 新規recordを保存
+6. ippoLimitedDateAdoptionExperimentSummary()
+7. ippoSetLimitedDateAdoptionExperimentEnabled(true)
+8. 新規recordを保存
+9. ippoLimitedDateAdoptionExperimentSummary()
+10. 既存recordを編集保存
+11. ippoLimitedDateAdoptionExperimentSummary()
 ```
 
 見たいもの:
 
-- `matchedCount` が保存回数に近い
-- `blockedCount` が通常ケースで増えない
-- `wouldUseProposalCount` が通常ケースで増える
-- `blockerCounts` に同じ blocker が連続して出ない
-- `warningCounts` に `shadow-date-mismatch` が出ない
+- OFF時は `experiment-disabled` が出る
+- ON時でも編集保存では `not-new-record-branch` が出る
+- 新規保存かつadoptableな場合のみ `experimentallyAdoptableCount` が増える
+- `shadow-date-mismatch` が出ない
+- 保存結果そのものは従来通り
 
 ## まだやらないこと
 
@@ -384,7 +311,7 @@ ippoDateResolutionRolloutTraceSummary()?.wouldUseProposalCount
 - `state.records` の更新処理を置換しない
 - `record-upsert.js` を本番経路に差し替えない
 - 編集完了後の `editingDate` clear 挙動を変更しない
-- trace-only rollout の proposal を実保存に使わない
+- limited adoption experiment の proposal を実保存に使わない
 
 ## 動作確認チェックリスト
 
@@ -395,28 +322,24 @@ ippoDateResolutionRolloutTraceSummary()?.wouldUseProposalCount
 - 新規保存時に古いeditingDateが使われない
 - カレンダー該当日に反映される
 - `ippoVerifyLastRecordSave()` の既存warningsが悪化しない
-- `dateShadowCompare.matched` が通常ケースで true になる
-- `dateResolutionAdoptionGate.status` が通常ケースで `adoptable` または blocker理由つき `blocked` になる
-- `ippoDateAdoptionGateSummary()` で複数回の傾向を確認できる
-- `ippoDateResolutionRolloutTraceSummary()` で trace-only の wouldUseProposal 傾向を確認できる
+- `ippoLimitedDateAdoptionExperimentSummary()` が確認できる
+- ON/OFFで blocker が想定通り変わる
+- ONにしても保存結果が変わらない
 
 ## 次PRの推奨内容
 
-Phase 3-I-2 — very limited guarded adoption experiment
+Phase 3-I-3 — dry-run field injection experiment
 
 まだ全面置換はしない。
 
 次にやること:
 
-1. `dateResolutionAdoptionGate.canAdopt === true` のケースを複数手動確認する
-2. `ippoDateResolutionRolloutTraceSummary().blockedCount === 0` を確認する
-3. 新規保存のみ、かつ proposal と現行保存結果が一致するケースだけで guarded adoption を検討する
-4. 編集保存はまだ置換しない
+1. limited adoption experiment で新規保存ケースの判定が安定することを確認する
+2. proposal date を保存には使わず、draft candidate として別フィールドに dry-run 記録する案を検討する
+3. 編集保存はまだ置換しない
 
 ## 判断
 
 Phase 3-H / 3-Iでは、保存本体の薄型化へ入る前に date branch を観測可能にする。
 
-ここを飛ばして draft/upsert 移行へ進むと、編集保存・新規保存・カレンダー反映のどこかで日付ずれが起きても原因が追いにくい。
-
-したがってこのPRでは、本体変更ではなく date branch observability / shadow compare / adoption gate / history summary / trace-only rollout までに留める。
+このPRでは、limited adoption experiment の判定ゲートまで追加するが、保存本体変更・保存値変更・upsert置換は行わない。
