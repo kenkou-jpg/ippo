@@ -182,6 +182,43 @@ export function getLastRecordSaveContext() {
   return lastRecordSaveContext;
 }
 
+function buildRecordStorageDrift(storageDiagnostics) {
+  const summaries = storageDiagnostics?.summaries || {};
+  const consistency = storageDiagnostics?.consistency || {};
+
+  const state = summaries.state || {};
+  const ippoState = summaries.ippoState || {};
+  const kkRecords = summaries.kkRecords || {};
+  const legacyRecords = summaries.legacyRecords || {};
+
+  return {
+    hasWarnings: Array.isArray(storageDiagnostics?.warnings) && storageDiagnostics.warnings.length > 0,
+    lengthDrift: {
+      stateVsIppoState: state.length !== ippoState.length,
+      stateVsKkRecords: kkRecords.length > 0 && state.length !== kkRecords.length,
+      stateVsLegacyRecords: legacyRecords.length > 0 && state.length !== legacyRecords.length,
+    },
+    hashDrift: {
+      stateVsIppoState: consistency.stateMatchesIppoState === false,
+      stateVsKkRecords: kkRecords.length > 0 && consistency.stateMatchesKkRecords === false,
+      ippoStateVsKkRecords: kkRecords.length > 0 && consistency.ippoStateMatchesKkRecords === false,
+      stateVsLegacyRecords: legacyRecords.length > 0 && consistency.legacyRecordsMatchesState === false,
+    },
+    lengths: {
+      state: state.length || 0,
+      ippoState: ippoState.length || 0,
+      kkRecords: kkRecords.length || 0,
+      legacyRecords: legacyRecords.length || 0,
+    },
+    hashes: {
+      state: state.hash || '',
+      ippoState: ippoState.hash || '',
+      kkRecords: kkRecords.hash || '',
+      legacyRecords: legacyRecords.hash || '',
+    },
+  };
+}
+
 function buildRecordSaveVerificationWarnings(result) {
   const warnings = [];
 
@@ -227,6 +264,7 @@ export function verifyLastRecordSaveContext() {
   const storageWarnings = Array.isArray(storageDiagnostics?.warnings)
     ? storageDiagnostics.warnings
     : [];
+  const storageDrift = buildRecordStorageDrift(storageDiagnostics);
 
   const result = {
     ok: false,
@@ -249,6 +287,7 @@ export function verifyLastRecordSaveContext() {
     storageDiagnostics: storageDiagnostics,
     storageWarningCount: storageWarnings.length,
     storageWarnings: storageWarnings,
+    storageDrift: storageDrift,
     warnings: [],
   };
 
