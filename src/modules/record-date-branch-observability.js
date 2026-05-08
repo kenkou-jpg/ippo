@@ -132,6 +132,65 @@ function createDateBranchSnapshot(label) {
   };
 }
 
+function resolveRecordSaveDateCandidate(input) {
+  const warnings = [];
+  const sources = [];
+  const editingDate = normalizeRecordDate(input?.editingDate || '');
+  const selectedDate = normalizeRecordDate(input?.selectedDate || '');
+  const draftDate = normalizeRecordDate(input?.draftDate || '');
+  const changedDates = Array.isArray(input?.changedDates)
+    ? input.changedDates.map(normalizeRecordDate).filter(Boolean)
+    : [];
+  const fallbackDate = normalizeRecordDate(input?.fallbackDate || '');
+
+  if (editingDate) sources.push({ source: 'editingDate', date: editingDate, priority: 10 });
+  if (draftDate) sources.push({ source: 'draftDate', date: draftDate, priority: 8 });
+  if (changedDates.length === 1) sources.push({ source: 'changedDates', date: changedDates[0], priority: 7 });
+  if (selectedDate) sources.push({ source: 'selectedDate', date: selectedDate, priority: 5 });
+  if (fallbackDate) sources.push({ source: 'fallbackDate', date: fallbackDate, priority: 1 });
+
+  const uniqueDates = Array.from(new Set(sources.map(function(item) { return item.date; }).filter(Boolean)));
+  const sortedSources = sources.slice().sort(function(a, b) {
+    return b.priority - a.priority;
+  });
+  const primary = sortedSources[0] || null;
+
+  if (!primary) {
+    warnings.push('missing-save-date');
+  }
+
+  if (editingDate && selectedDate && editingDate !== selectedDate) {
+    warnings.push('editing-selected-mismatch');
+  }
+  if (editingDate && draftDate && editingDate !== draftDate) {
+    warnings.push('editing-draft-mismatch');
+  }
+  if (selectedDate && draftDate && selectedDate !== draftDate) {
+    warnings.push('selected-draft-mismatch');
+  }
+  if (changedDates.length > 1) {
+    warnings.push('multiple-record-dates-changed');
+  }
+  if (uniqueDates.length > 1) {
+    warnings.push('date-candidate-mismatch');
+  }
+
+  return {
+    resolvedDate: primary ? primary.date : '',
+    source: primary ? primary.source : 'none',
+    confidence: primary && uniqueDates.length <= 1 ? 'high' : (primary ? 'medium' : 'low'),
+    candidates: sources.map(function(item) {
+      return {
+        source: item.source,
+        date: item.date,
+        priority: item.priority,
+      };
+    }),
+    uniqueDates: uniqueDates,
+    warnings: Array.from(new Set(warnings)),
+  };
+}
+
 function inferDateBranch(before, after) {
   const warnings = [];
   const editingDateBefore = before.editingDate || '';
@@ -142,24 +201,19 @@ function inferDateBranch(before, after) {
   const createdCount = Math.max(0, after.recordsLength - before.recordsLength);
   const removedCount = Math.max(0, before.recordsLength - after.recordsLength);
   const duplicateDates = Array.from(new Set([...(before.duplicateDates || []), ...(after.duplicateDates || [])]));
+  const dateResolution = resolveRecordSaveDateCandidate({
+    editingDate: editingDateBefore,
+    selectedDate: selectedDateBefore,
+    draftDate: '',
+    changedDates: changedDates,
+    fallbackDate: changedDates.length === 1 ? changedDates[0] : '',
+  });
 
-  let resolvedSaveDate = changedDates.length === 1 ? changedDates[0] : '';
+  let resolvedSaveDate = dateResolution.resolvedDate;
   let branch = 'unknown';
-  let confidence = 'low';
+  let confidence = dateResolution.confidence;
 
-  if (editingDateBefore && selectedDateBefore && editingDateBefore !== selectedDateBefore) {
-    warnings.push('editing-selected-mismatch');
-  }
-
-  if (!resolvedSaveDate && editingDateBefore) {
-    resolvedSaveDate = editingDateBefore;
-  } else if (!resolvedSaveDate && selectedDateBefore) {
-    resolvedSaveDate = selectedDateBefore;
-  }
-
-  if (!resolvedSaveDate) {
-    warnings.push('missing-save-date');
-  }
+  warnings.push.apply(warnings, dateResolution.warnings);
 
   if (editingDateBefore && resolvedSaveDate && editingDateBefore !== resolvedSaveDate) {
     warnings.push('editing-save-date-mismatch');
@@ -197,10 +251,6 @@ function inferDateBranch(before, after) {
     confidence = 'medium';
   }
 
-  if (changedDates.length > 1) {
-    warnings.push('multiple-record-dates-changed');
-  }
-
   if (removedCount > 0) {
     warnings.push('record-count-decreased');
   }
@@ -214,6 +264,7 @@ function inferDateBranch(before, after) {
     normalizedDraftDate: '',
     existingRecordDate: editingDateBefore || '',
     resolvedSaveDate: resolvedSaveDate,
+    dateResolution: dateResolution,
     changedDates: changedDates,
     createdCount: createdCount,
     removedCount: removedCount,
@@ -344,6 +395,7 @@ function installRecordDateBranchObservability() {
 
 export {
   createDateBranchSnapshot,
+  resolveRecordSaveDateCandidate,
   inferDateBranch,
   observeDateBranch,
   installRecordDateBranchObservability,
@@ -351,6 +403,7 @@ export {
 
 window.ippoRecordDateBranchObservability = Object.freeze({
   createDateBranchSnapshot,
+  resolveRecordSaveDateCandidate,
   inferDateBranch,
   observeDateBranch,
   installRecordDateBranchObservability,
