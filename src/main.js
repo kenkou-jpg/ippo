@@ -15,6 +15,8 @@ import './modules/bootstrap-shell.js';
 import './modules/startup-boundary-adapter.js';
 import './modules/runtime-sequencing.js';
 import './modules/deferred-hydration-prep.js';
+import './modules/render-boundary-prep.js';
+import './modules/screen-activation-prep.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -154,6 +156,8 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
+    hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
+    hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
   });
 }
 
@@ -166,6 +170,8 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
+    hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
+    hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
   });
 }
 
@@ -218,6 +224,34 @@ if (typeof window.ippoRunDeferredHydrationPrepCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('deferred-hydration-prep-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunRenderBoundaryCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunRenderBoundaryCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('render-boundary-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunScreenActivationPrepCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunScreenActivationPrepCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('screen-activation-prep-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
