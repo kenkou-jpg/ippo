@@ -12,6 +12,7 @@ import './modules/boot-stability.js';
 import './modules/legacy-window-bridge.js';
 import './modules/startup-verify.js';
 import './modules/bootstrap-shell.js';
+import './modules/startup-boundary-adapter.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -148,6 +149,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasSupabase: !!supabase,
     hasState: typeof window.state === 'object',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
+    hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
   });
 }
 
@@ -157,6 +159,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasSaveRecord: typeof saveRecord === 'function',
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
+    hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
   });
 }
 
@@ -167,6 +170,20 @@ if (typeof window.ippoRunBootstrapShellCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('bootstrap-shell-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunStartupBoundaryCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunStartupBoundaryCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('startup-boundary-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
