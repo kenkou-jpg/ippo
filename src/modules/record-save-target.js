@@ -5,7 +5,7 @@
 //  目的:
 //  - saveRecordScreen 薄型化の受け皿を作る
 //  - resolveSaveTarget() を orchestration API として公開する
-//  - prepareRecordPersistence() scaffold を追加する
+//  - prepareRecordPersistence() で pure upsert preview を作る
 //  - この段階では draft / state.records / localStorage / Supabase は変更しない
 // ============================================================
 
@@ -13,11 +13,19 @@ import {
   normalizeRecordDate,
   findRecordByDate,
   getRecordDate,
+  getRecords,
 } from './record-repository.js';
+
+import {
+  cloneRecordValue,
+  upsertRecord,
+} from './record-upsert.js';
 
 const BUILD_DRAFT_WRAP_FLAG = '__ippoRecordSaveTargetBuildDraftWrapped';
 const HISTORY_LIMIT = 20;
+const PERSISTENCE_HISTORY_LIMIT = 20;
 const saveTargetHistory = [];
+const persistencePreviewHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -60,6 +68,18 @@ function getStateDateCandidate(name) {
   }
 }
 
+function summarizeRecordPayload(record) {
+  const safeRecord = record && typeof record === 'object' ? record : null;
+  const keys = safeRecord ? Object.keys(safeRecord) : [];
+  return {
+    hasRecord: !!safeRecord,
+    keyCount: keys.length,
+    keys: keys.slice(0, 40),
+    recordDate: normalizeRecordDate(safeRecord?.record_date || ''),
+    idDate: normalizeRecordDate(safeRecord?.id || ''),
+  };
+}
+
 function summarizeDraftForSaveTarget(draft) {
   const safeDraft = draft && typeof draft === 'object' ? draft : null;
   const recordDate = normalizeRecordDate(safeDraft?.record_date || '');
@@ -74,6 +94,18 @@ function summarizeDraftForSaveTarget(draft) {
     hasRecordDate: !!recordDate,
     hasIdDate: !!idDate,
   };
+}
+
+function buildRecordPayload(draft, resolvedTarget) {
+  const safeDraft = draft && typeof draft === 'object' ? cloneRecordValue(draft) : {};
+  const targetDate = normalizeRecordDate(resolvedTarget?.targetDate || safeDraft.record_date || safeDraft.id || '');
+
+  if (targetDate) {
+    safeDraft.record_date = targetDate;
+    safeDraft.id = targetDate;
+  }
+
+  return safeDraft;
 }
 
 function resolveSaveTargetFromDraft(draft, context) {
@@ -181,15 +213,35 @@ function prepareRecordPersistence(options) {
   const opts = options || {};
   const saveContext = opts.context || getActiveRecordSaveContext();
   const draft = opts.draft || null;
+  const sourceRecords = Array.isArray(opts.records) ? opts.records : getRecords();
   const resolvedTarget = opts.resolvedTarget || resolveSaveTarget({
     draft: draft,
     context: saveContext,
   });
+  const payload = buildRecordPayload(draft, resolvedTarget);
+  const upsertPreview = upsertRecord(sourceRecords, payload, {
+    preserveExisting: true,
+  });
+  const blockedBy = [];
+  const warnings = [];
+
+  if (!saveContext || typeof saveContext !== 'object' || !saveContext.createdAt) {
+    blockedBy.push('missing-active-save-context');
+  }
+  if (resolvedTarget.canResolve !== true) blockedBy.push('save-target-not-resolved');
+  if (!payload.record_date) blockedBy.push('payload-missing-record-date');
+  if (upsertPreview.mode === 'invalid') blockedBy.push(upsertPreview.reason || 'upsert-invalid');
+  if (resolvedTarget.saveMode === 'create' && upsertPreview.mode !== 'insert') {
+    warnings.push('create-preview-did-not-insert');
+  }
+  if ((resolvedTarget.saveMode === 'edit' || resolvedTarget.saveMode === 'update-existing-date') && upsertPreview.mode !== 'update') {
+    warnings.push('update-preview-did-not-update');
+  }
 
   return {
     recordedAt: new Date().toISOString(),
-    mode: 'prepare-record-persistence-scaffold',
-    canPrepare: resolvedTarget.canResolve === true,
+    mode: 'prepare-record-persistence-preview',
+    canPrepare: blockedBy.length === 0,
     saveMode: resolvedTarget.saveMode,
     targetDate: resolvedTarget.targetDate,
     targetSource: resolvedTarget.targetSource,
@@ -197,7 +249,19 @@ function prepareRecordPersistence(options) {
     persistenceStrategy: resolvedTarget.saveMode === 'edit'
       ? 'merge-existing-record'
       : (resolvedTarget.existingRecordFound ? 'safe-upsert-existing-date' : 'safe-create-record'),
-    note: 'Scaffold only. Existing persistence still runs inside saveRecordScreen and record-save-pipeline.',
+    payloadSummary: summarizeRecordPayload(payload),
+    payload: payload,
+    sourceRecordsLength: Array.isArray(sourceRecords) ? sourceRecords.length : 0,
+    previewRecordsLength: Array.isArray(upsertPreview.records) ? upsertPreview.records.length : 0,
+    upsertPreview: {
+      changed: upsertPreview.changed,
+      index: upsertPreview.index,
+      mode: upsertPreview.mode,
+      reason: upsertPreview.reason,
+    },
+    warnings: Array.from(new Set(warnings)),
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Preview only. It uses pure upsertRecord and does not mutate state.records, localStorage, or Supabase.',
   };
 }
 
@@ -235,6 +299,40 @@ function summarizeRecordSaveTarget(history) {
   };
 }
 
+function summarizeRecordPersistencePreview(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const warningCounts = {};
+  const strategyCounts = {};
+  const upsertModeCounts = {};
+
+  list.forEach(function(item) {
+    const strategy = item.persistenceStrategy || 'unknown';
+    const upsertMode = item.upsertPreview?.mode || 'unknown';
+    strategyCounts[strategy] = (strategyCounts[strategy] || 0) + 1;
+    upsertModeCounts[upsertMode] = (upsertModeCounts[upsertMode] || 0) + 1;
+
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+    (item.warnings || []).forEach(function(reason) {
+      warningCounts[reason] = (warningCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    preparableCount: list.filter(function(item) { return item.canPrepare === true; }).length,
+    blockedCount: list.filter(function(item) { return item.canPrepare !== true; }).length,
+    changedCount: list.filter(function(item) { return item.upsertPreview?.changed === true; }).length,
+    blockedByCounts: blockedByCounts,
+    warningCounts: warningCounts,
+    strategyCounts: strategyCounts,
+    upsertModeCounts: upsertModeCounts,
+    recent: list.slice(-5),
+  };
+}
+
 function attachRecordSaveTargetPreviewToContext(context, preview) {
   const summary = summarizeRecordSaveTarget(saveTargetHistory);
 
@@ -258,6 +356,29 @@ function attachRecordSaveTargetPreviewToContext(context, preview) {
   return summary;
 }
 
+function attachRecordPersistencePreviewToContext(context, preview) {
+  const summary = summarizeRecordPersistencePreview(persistencePreviewHistory);
+
+  if (context && typeof context === 'object') {
+    if (!context.meta || typeof context.meta !== 'object') {
+      context.meta = {};
+    }
+
+    context.meta.recordPersistencePreview = preview;
+    context.meta.recordPersistencePreviewSummary = summary;
+    context.recordPersistencePreview = preview;
+    context.recordPersistencePreviewSummary = summary;
+
+    if (context.healthSummary && typeof context.healthSummary === 'object') {
+      context.healthSummary.recordPersistencePreviewPreparable = preview.canPrepare === true;
+      context.healthSummary.recordPersistencePreviewChanged = preview.upsertPreview?.changed === true;
+      context.healthSummary.recordPersistencePreviewBlockedCount = summary.blockedCount;
+    }
+  }
+
+  return summary;
+}
+
 function recordSaveTargetPreview(draft, context) {
   const saveContext = context || getActiveRecordSaveContext();
   const preview = resolveSaveTargetFromDraft(draft, saveContext);
@@ -269,6 +390,25 @@ function recordSaveTargetPreview(draft, context) {
 
   attachRecordSaveTargetPreviewToContext(saveContext, preview);
   trace('save-target-preview:recorded', preview);
+  return preview;
+}
+
+function recordPersistencePreview(draft, context) {
+  const saveContext = context || getActiveRecordSaveContext();
+  const resolvedTarget = resolveSaveTarget({ draft: draft, context: saveContext });
+  const preview = prepareRecordPersistence({
+    draft: draft,
+    context: saveContext,
+    resolvedTarget: resolvedTarget,
+  });
+
+  persistencePreviewHistory.push(preview);
+  while (persistencePreviewHistory.length > PERSISTENCE_HISTORY_LIMIT) {
+    persistencePreviewHistory.shift();
+  }
+
+  attachRecordPersistencePreviewToContext(saveContext, preview);
+  trace('persistence-preview:recorded', preview);
   return preview;
 }
 
@@ -285,6 +425,19 @@ function clearRecordSaveTargetHistory() {
   return getRecordSaveTargetSummary();
 }
 
+function getRecordPersistencePreviewHistory() {
+  return persistencePreviewHistory.slice();
+}
+
+function getRecordPersistencePreviewSummary() {
+  return summarizeRecordPersistencePreview(persistencePreviewHistory);
+}
+
+function clearRecordPersistencePreviewHistory() {
+  persistencePreviewHistory.splice(0, persistencePreviewHistory.length);
+  return getRecordPersistencePreviewSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoRecordSaveTargetObserved === true) return;
@@ -294,15 +447,22 @@ function wrapVerifyLastRecordSave() {
     const context = getLastRecordSaveContext();
     const preview = context?.recordSaveTargetPreview || context?.meta?.recordSaveTargetPreview || null;
     const summary = getRecordSaveTargetSummary();
+    const persistencePreview = context?.recordPersistencePreview || context?.meta?.recordPersistencePreview || null;
+    const persistenceSummary = getRecordPersistencePreviewSummary();
 
     if (result && typeof result === 'object') {
       result.recordSaveTargetPreview = preview;
       result.recordSaveTargetPreviewSummary = summary;
+      result.recordPersistencePreview = persistencePreview;
+      result.recordPersistencePreviewSummary = persistenceSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.recordSaveTargetPreviewUsable = preview?.canUsePreview === true;
         result.healthSummary.recordSaveTargetPreviewWarningCount = (preview?.warnings || []).length;
         result.healthSummary.recordSaveTargetPreviewBlockedCount = summary.blockedCount;
+        result.healthSummary.recordPersistencePreviewPreparable = persistencePreview?.canPrepare === true;
+        result.healthSummary.recordPersistencePreviewChanged = persistencePreview?.upsertPreview?.changed === true;
+        result.healthSummary.recordPersistencePreviewBlockedCount = persistenceSummary.blockedCount;
       }
     }
 
@@ -321,6 +481,7 @@ function wrapBuildDraftFromUI() {
   function recordSaveTargetBuildDraftFromUI() {
     const draft = current.apply(this, arguments);
     recordSaveTargetPreview(draft, getActiveRecordSaveContext());
+    recordPersistencePreview(draft, getActiveRecordSaveContext());
     return draft;
   }
 
@@ -349,35 +510,53 @@ function installRecordSaveTargetPreview() {
 }
 
 export {
+  summarizeRecordPayload,
+  buildRecordPayload,
   summarizeDraftForSaveTarget,
   resolveSaveTargetFromDraft,
   resolveSaveTarget,
   prepareRecordPersistence,
   recordSaveTargetPreview,
+  recordPersistencePreview,
   summarizeRecordSaveTarget,
+  summarizeRecordPersistencePreview,
   getRecordSaveTargetHistory,
   getRecordSaveTargetSummary,
   clearRecordSaveTargetHistory,
+  getRecordPersistencePreviewHistory,
+  getRecordPersistencePreviewSummary,
+  clearRecordPersistencePreviewHistory,
   installRecordSaveTargetPreview,
 };
 
 window.ippoRecordSaveTarget = Object.freeze({
+  summarizeRecordPayload,
+  buildRecordPayload,
   summarizeDraftForSaveTarget,
   resolveSaveTargetFromDraft,
   resolveSaveTarget,
   prepareRecordPersistence,
   recordSaveTargetPreview,
+  recordPersistencePreview,
   summarizeRecordSaveTarget,
+  summarizeRecordPersistencePreview,
   getRecordSaveTargetHistory,
   getRecordSaveTargetSummary,
   clearRecordSaveTargetHistory,
+  getRecordPersistencePreviewHistory,
+  getRecordPersistencePreviewSummary,
+  clearRecordPersistencePreviewHistory,
   installRecordSaveTargetPreview,
 });
 
 window.ippoResolveSaveTarget = resolveSaveTarget;
 window.ippoPrepareRecordPersistence = prepareRecordPersistence;
+window.ippoRecordPersistencePreview = recordPersistencePreview;
 window.ippoRecordSaveTargetHistory = getRecordSaveTargetHistory;
 window.ippoRecordSaveTargetSummary = getRecordSaveTargetSummary;
 window.ippoClearRecordSaveTargetHistory = clearRecordSaveTargetHistory;
+window.ippoRecordPersistencePreviewHistory = getRecordPersistencePreviewHistory;
+window.ippoRecordPersistencePreviewSummary = getRecordPersistencePreviewSummary;
+window.ippoClearRecordPersistencePreviewHistory = clearRecordPersistencePreviewHistory;
 
 installRecordSaveTargetPreview();
