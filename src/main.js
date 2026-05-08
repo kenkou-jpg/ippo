@@ -72,6 +72,9 @@ import './modules/record-save-target.js';
 // record save shadow outcome
 import './modules/record-save-shadow.js';
 
+// record save delegation readiness
+import './modules/record-save-delegation.js';
+
 // record date branch observability
 import './modules/record-date-branch-observability.js';
 
