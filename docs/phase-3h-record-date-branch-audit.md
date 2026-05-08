@@ -1,4 +1,4 @@
-# Phase 3-H-0 — record date / edit branch audit
+# Phase 3-H — record date / edit branch observability
 
 ## 目的
 
@@ -58,79 +58,160 @@ UIからdraft作成
 既存record更新 or 新規record追加
   ↓
 saveState / cloudBackupAll / notify
+  ↓
+record-date-branch-observability.js が外側から保存前後を比較
 ```
 
-## 監査対象
+## 追加した観測レイヤー
 
-### 1. editingDate
+### `src/modules/record-date-branch-observability.js`
 
-役割候補:
+保存本体に介入せず、以下を行う。
 
-- 編集中recordの日付
-- hydrate対象recordのキー
-- 編集保存時の既存record検索キー
+1. `saveRecordScreen` 実行前に snapshot を取る
+2. `saveRecordScreen` 実行後に snapshot を取る
+3. records差分から changedDates を推定する
+4. editingDate / selectedDate / changedDates から保存対象dateを pure helper で推定する
+5. 現行保存結果と helper 推定値を shadow compare する
+6. 置換候補が採用可能か adoption gate で判定する
 
-リスク:
+## 主要API
 
-- hydrate用の日付と保存用の日付が一致しない
-- 編集完了後に残留して次回新規保存へ影響する
-- selectedDateより優先される条件が不明瞭になる
+### `resolveRecordSaveDateCandidate(input)`
 
-### 2. selectedDate
+pure helper。
 
-役割候補:
-
-- カレンダーで選択中の日付
-- 新規保存時の初期date
-- 詳細画面からrecord画面へ遷移したときのdate候補
-
-リスク:
-
-- 編集中なのにselectedDateが優先される
-- 新規保存なのに古いselectedDateが残る
-- タイムゾーンやYYYY-MM-DD形式のずれで別日保存になる
-
-### 3. record_date / date field
-
-役割候補:
-
-- draftに含まれる保存対象日
-- record repository の `getRecordDate()` で正規化される日付
-- Supabase同期時のrecord key
-
-リスク:
-
-- `date`, `record_date`, `created_at` など複数フィールドが混在する
-- UI由来の空値が既存recordの日付を上書きする
-- Supabase側とlocal state側でdate keyがずれる
-
-## 保存分岐で観測したい項目
-
-次PR以降で、保存本体を変更せずに以下を context に追加する。
+入力:
 
 ```js
-context.meta.dateBranch = {
-  editingDateBefore,
-  selectedDateBefore,
+{
+  editingDate,
+  selectedDate,
   draftDate,
-  normalizedDraftDate,
-  existingRecordDate,
-  resolvedSaveDate,
-  branch,
+  changedDates,
+  fallbackDate,
+}
+```
+
+出力:
+
+```js
+{
+  resolvedDate,
+  source,
   confidence,
+  candidates,
+  uniqueDates,
   warnings,
 }
 ```
 
-### branch 候補
+### `buildDateResolutionShadowCompare(dateResolution, changedDates)`
 
-| branch | 意味 |
+現行保存結果と pure helper の提案値を比較する。
+
+出力:
+
+```js
+{
+  actualDate,
+  actualChangedDates,
+  resolvedDate,
+  resolvedSource,
+  matched,
+  comparable,
+  warnings,
+}
+```
+
+### `buildDateResolutionProposal(dateResolution, branch, shadowCompare)`
+
+将来置換時の提案値を作る。
+
+出力:
+
+```js
+{
+  proposedDate,
+  proposedSource,
+  proposedBranch,
+  confidence,
+  canPromote,
+  promotionBlockedBy,
+  candidates,
+}
+```
+
+### `buildDateResolutionAdoptionGate(proposal, shadowCompare, dateBranch)`
+
+本番置換へ進めるかどうかを判定する。
+
+出力:
+
+```js
+{
+  status,
+  canAdopt,
+  proposedDate,
+  proposedSource,
+  proposedBranch,
+  confidence,
+  blockers,
+  warnings,
+}
+```
+
+## DevTools確認
+
+新規保存・編集保存のあとに確認する。
+
+```js
+ippoLastRecordSaveContext()?.dateBranch
+```
+
+```js
+ippoLastRecordSaveContext()?.dateShadowCompare
+```
+
+```js
+ippoLastRecordSaveContext()?.dateResolutionProposal
+```
+
+```js
+ippoLastRecordSaveContext()?.dateResolutionAdoptionGate
+```
+
+```js
+ippoVerifyLastRecordSave()
+```
+
+## adoption gate の見方
+
+### 置換検討OK
+
+```js
+ippoVerifyLastRecordSave()?.dateResolutionAdoptionGate?.status === 'adoptable'
+```
+
+かつ:
+
+```js
+ippoVerifyLastRecordSave()?.dateResolutionAdoptionGate?.blockers?.length === 0
+```
+
+### 置換禁止
+
+以下の blocker が1つでも出る場合は、まだ本番置換しない。
+
+| blocker | 意味 |
 |---|---|
-| `edit-by-editingDate` | `editingDate` を基準に既存recordを更新した可能性 |
-| `edit-by-draft-date` | draft内dateを基準に既存recordを更新した可能性 |
-| `create-by-selectedDate` | `selectedDate` を基準に新規recordを作った可能性 |
-| `create-by-draft-date` | draft内dateを基準に新規recordを作った可能性 |
-| `unknown` | 外側から判断不可 |
+| `missing-proposed-date` | helper が提案dateを出せない |
+| `proposal-not-promotable` | proposal 側で昇格不可 |
+| `shadow-not-comparable` | 現行保存結果と比較できない |
+| `shadow-not-matched` | 現行保存dateと helper 推定dateが一致しない |
+| `date-warnings-present` | date関連warningが残っている |
+| `unknown-branch` | 新規/編集分岐が外側から判断できない |
+| `low-confidence` | 推定信頼度が低い |
 
 ## warning 候補
 
@@ -140,9 +221,12 @@ context.meta.dateBranch = {
 | `editing-selected-mismatch` | `editingDate` と `selectedDate` が異なる |
 | `editing-draft-mismatch` | `editingDate` と draft date が異なる |
 | `selected-draft-mismatch` | `selectedDate` と draft date が異なる |
-| `date-format-unknown` | date形式がYYYY-MM-DDへ正規化できない |
+| `date-candidate-mismatch` | 複数date候補が一致しない |
 | `editing-date-stale` | 編集完了後もeditingDateが残っている可能性 |
 | `duplicate-date-candidate` | 同じdateのrecordが複数存在する可能性 |
+| `shadow-date-mismatch` | 現行保存dateと helper 推定dateが一致しない |
+| `shadow-multiple-actual-dates` | 保存後に複数dateが変化した |
+| `shadow-no-changed-date` | 保存前後で変更dateを検出できない |
 
 ## まだやらないこと
 
@@ -151,30 +235,6 @@ context.meta.dateBranch = {
 - `state.records` の更新処理を置換しない
 - `record-upsert.js` を本番経路に差し替えない
 - 編集完了後の `editingDate` clear 挙動を変更しない
-
-## 次PRの推奨内容
-
-Phase 3-H-1 — record date branch observability
-
-対象:
-
-- `src/modules/record-save-pipeline.js`
-- `src/modules/record.js`
-
-内容:
-
-1. `record-save-pipeline.js` に date branch 用の pure helper を追加する
-2. `record.js` の save wrapper 外側で、保存前後の date候補を context.meta に記録する
-3. `verifyRecordSaveContext()` に dateBranch / dateWarnings を追加する
-4. 保存順・保存内容・DOMには一切触らない
-
-## DevTools確認案
-
-```js
-ippoLastRecordSaveContext()?.meta?.dateBranch
-ippoVerifyLastRecordSave()?.dateWarnings
-ippoVerifyLastRecordSave()?.healthSummary
-```
 
 ## 動作確認チェックリスト
 
@@ -185,6 +245,21 @@ ippoVerifyLastRecordSave()?.healthSummary
 - 新規保存時に古いeditingDateが使われない
 - カレンダー該当日に反映される
 - `ippoVerifyLastRecordSave()` の既存warningsが悪化しない
+- `dateShadowCompare.matched` が通常ケースで true になる
+- `dateResolutionAdoptionGate.status` が通常ケースで `adoptable` または blocker理由つき `blocked` になる
+
+## 次PRの推奨内容
+
+Phase 3-H-6 / 3-I-0 — date resolution guarded rollout prep
+
+まだ本番置換はしない。
+
+次にやること:
+
+1. `dateResolutionAdoptionGate.canAdopt === true` のケースを複数手動確認する
+2. 編集保存・新規保存・日付変更なし保存で warning の出方を確認する
+3. blocker が安定してゼロになる条件を整理する
+4. その後、saveRecordScreen 内の date 判定置換ではなく、まず wrapper で proposal を trace するだけの guarded rollout を検討する
 
 ## 判断
 
@@ -192,4 +267,4 @@ Phase 3-Hでは、保存本体の薄型化へ入る前に date branch を観測�
 
 ここを飛ばして draft/upsert 移行へ進むと、編集保存・新規保存・カレンダー反映のどこかで日付ずれが起きても原因が追いにくい。
 
-したがって次は、本体変更ではなく date branch observability を追加する。
+したがってこのPRでは、本体変更ではなく date branch observability / shadow compare / adoption gate までに留める。
