@@ -15,6 +15,8 @@ import {
 } from './record-repository.js';
 
 const WRAP_FLAG = '__ippoDateBranchObserved';
+const ADOPTION_HISTORY_LIMIT = 20;
+const dateAdoptionGateHistory = [];
 
 function trace(label, detail) {
   try {
@@ -372,6 +374,76 @@ function inferDateBranch(before, after) {
   };
 }
 
+function summarizeDateAdoptionGateHistory(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockerCounts = {};
+  const warningCounts = {};
+  const branchCounts = {};
+  const sourceCounts = {};
+
+  list.forEach(function(item) {
+    const gate = item.adoptionGate || {};
+    const proposal = item.proposal || {};
+    const branch = proposal.proposedBranch || 'unknown';
+    const source = proposal.proposedSource || 'none';
+
+    branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
+
+    (gate.blockers || []).forEach(function(blocker) {
+      blockerCounts[blocker] = (blockerCounts[blocker] || 0) + 1;
+    });
+    (gate.warnings || []).forEach(function(warning) {
+      warningCounts[warning] = (warningCounts[warning] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    adoptableCount: list.filter(function(item) { return item.adoptionGate?.canAdopt === true; }).length,
+    blockedCount: list.filter(function(item) { return item.adoptionGate?.canAdopt !== true; }).length,
+    matchedCount: list.filter(function(item) { return item.shadowCompare?.matched === true; }).length,
+    comparableCount: list.filter(function(item) { return item.shadowCompare?.comparable === true; }).length,
+    blockerCounts: blockerCounts,
+    warningCounts: warningCounts,
+    branchCounts: branchCounts,
+    sourceCounts: sourceCounts,
+    recent: list.slice(-5),
+  };
+}
+
+function recordDateAdoptionGateHistory(dateBranch) {
+  const entry = {
+    recordedAt: new Date().toISOString(),
+    branch: dateBranch?.branch || 'unknown',
+    confidence: dateBranch?.confidence || 'low',
+    warnings: dateBranch?.warnings || [],
+    proposal: dateBranch?.dateResolutionProposal || null,
+    adoptionGate: dateBranch?.dateResolutionAdoptionGate || null,
+    shadowCompare: dateBranch?.shadowCompare || null,
+  };
+
+  dateAdoptionGateHistory.push(entry);
+  while (dateAdoptionGateHistory.length > ADOPTION_HISTORY_LIMIT) {
+    dateAdoptionGateHistory.shift();
+  }
+
+  return summarizeDateAdoptionGateHistory(dateAdoptionGateHistory);
+}
+
+function getDateAdoptionGateHistory() {
+  return dateAdoptionGateHistory.slice();
+}
+
+function getDateAdoptionGateSummary() {
+  return summarizeDateAdoptionGateHistory(dateAdoptionGateHistory);
+}
+
+function clearDateAdoptionGateHistory() {
+  dateAdoptionGateHistory.splice(0, dateAdoptionGateHistory.length);
+  return getDateAdoptionGateSummary();
+}
+
 function attachDateBranchToLastContext(dateBranch) {
   let context = null;
 
@@ -383,6 +455,8 @@ function attachDateBranchToLastContext(dateBranch) {
     context = window.__IPPO_LAST_RECORD_SAVE_CONTEXT__;
   }
 
+  const adoptionSummary = recordDateAdoptionGateHistory(dateBranch);
+
   if (!context || typeof context !== 'object') return null;
   if (!context.meta || typeof context.meta !== 'object') {
     context.meta = {};
@@ -391,17 +465,21 @@ function attachDateBranchToLastContext(dateBranch) {
   context.meta.dateBranch = dateBranch;
   context.meta.dateResolutionProposal = dateBranch.dateResolutionProposal || null;
   context.meta.dateResolutionAdoptionGate = dateBranch.dateResolutionAdoptionGate || null;
+  context.meta.dateAdoptionGateSummary = adoptionSummary;
   context.dateBranch = dateBranch;
   context.dateWarnings = dateBranch.warnings || [];
   context.dateShadowCompare = dateBranch.shadowCompare || null;
   context.dateResolutionProposal = dateBranch.dateResolutionProposal || null;
   context.dateResolutionAdoptionGate = dateBranch.dateResolutionAdoptionGate || null;
+  context.dateAdoptionGateSummary = adoptionSummary;
 
   if (context.healthSummary && typeof context.healthSummary === 'object') {
     context.healthSummary.dateWarningCount = context.dateWarnings.length;
     context.healthSummary.dateShadowMatched = dateBranch.shadowCompare?.matched === true;
     context.healthSummary.dateResolutionPromotable = dateBranch.dateResolutionProposal?.canPromote === true;
     context.healthSummary.dateResolutionAdoptable = dateBranch.dateResolutionAdoptionGate?.canAdopt === true;
+    context.healthSummary.dateAdoptionGateAdoptableCount = adoptionSummary.adoptableCount;
+    context.healthSummary.dateAdoptionGateBlockedCount = adoptionSummary.blockedCount;
   }
 
   window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = context;
@@ -430,6 +508,7 @@ function wrapVerifyLastRecordSave() {
     const shadowCompare = dateBranch?.shadowCompare || context?.dateShadowCompare || null;
     const proposal = dateBranch?.dateResolutionProposal || context?.dateResolutionProposal || null;
     const adoptionGate = dateBranch?.dateResolutionAdoptionGate || context?.dateResolutionAdoptionGate || null;
+    const adoptionSummary = getDateAdoptionGateSummary();
 
     if (result && typeof result === 'object') {
       result.dateBranch = dateBranch;
@@ -438,11 +517,14 @@ function wrapVerifyLastRecordSave() {
       result.dateShadowCompare = shadowCompare;
       result.dateResolutionProposal = proposal;
       result.dateResolutionAdoptionGate = adoptionGate;
+      result.dateAdoptionGateSummary = adoptionSummary;
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateWarningCount = dateWarnings.length;
         result.healthSummary.dateShadowMatched = shadowCompare?.matched === true;
         result.healthSummary.dateResolutionPromotable = proposal?.canPromote === true;
         result.healthSummary.dateResolutionAdoptable = adoptionGate?.canAdopt === true;
+        result.healthSummary.dateAdoptionGateAdoptableCount = adoptionSummary.adoptableCount;
+        result.healthSummary.dateAdoptionGateBlockedCount = adoptionSummary.blockedCount;
       }
     }
 
@@ -515,6 +597,10 @@ export {
   buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
+  summarizeDateAdoptionGateHistory,
+  getDateAdoptionGateHistory,
+  getDateAdoptionGateSummary,
+  clearDateAdoptionGateHistory,
   installRecordDateBranchObservability,
 };
 
@@ -526,7 +612,15 @@ window.ippoRecordDateBranchObservability = Object.freeze({
   buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
+  summarizeDateAdoptionGateHistory,
+  getDateAdoptionGateHistory,
+  getDateAdoptionGateSummary,
+  clearDateAdoptionGateHistory,
   installRecordDateBranchObservability,
 });
+
+window.ippoDateAdoptionGateHistory = getDateAdoptionGateHistory;
+window.ippoDateAdoptionGateSummary = getDateAdoptionGateSummary;
+window.ippoClearDateAdoptionGateHistory = clearDateAdoptionGateHistory;
 
 installRecordDateBranchObservability();
