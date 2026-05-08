@@ -17,11 +17,8 @@ import {
   syncRecordCloud,
   notifyRecordUpdated,
   finalizeRecordSaveContext,
+  verifyRecordSaveContext,
 } from './record-save-pipeline.js';
-
-import {
-  getRecordStorageDiagnostics,
-} from './record-repository.js';
 
 let lastRecordSaveContext = null;
 
@@ -182,118 +179,8 @@ export function getLastRecordSaveContext() {
   return lastRecordSaveContext;
 }
 
-function buildRecordStorageDrift(storageDiagnostics) {
-  const summaries = storageDiagnostics?.summaries || {};
-  const consistency = storageDiagnostics?.consistency || {};
-
-  const state = summaries.state || {};
-  const ippoState = summaries.ippoState || {};
-  const kkRecords = summaries.kkRecords || {};
-  const legacyRecords = summaries.legacyRecords || {};
-
-  return {
-    hasWarnings: Array.isArray(storageDiagnostics?.warnings) && storageDiagnostics.warnings.length > 0,
-    lengthDrift: {
-      stateVsIppoState: state.length !== ippoState.length,
-      stateVsKkRecords: kkRecords.length > 0 && state.length !== kkRecords.length,
-      stateVsLegacyRecords: legacyRecords.length > 0 && state.length !== legacyRecords.length,
-    },
-    hashDrift: {
-      stateVsIppoState: consistency.stateMatchesIppoState === false,
-      stateVsKkRecords: kkRecords.length > 0 && consistency.stateMatchesKkRecords === false,
-      ippoStateVsKkRecords: kkRecords.length > 0 && consistency.ippoStateMatchesKkRecords === false,
-      stateVsLegacyRecords: legacyRecords.length > 0 && consistency.legacyRecordsMatchesState === false,
-    },
-    lengths: {
-      state: state.length || 0,
-      ippoState: ippoState.length || 0,
-      kkRecords: kkRecords.length || 0,
-      legacyRecords: legacyRecords.length || 0,
-    },
-    hashes: {
-      state: state.hash || '',
-      ippoState: ippoState.hash || '',
-      kkRecords: kkRecords.hash || '',
-      legacyRecords: legacyRecords.hash || '',
-    },
-  };
-}
-
-function buildRecordSaveVerificationWarnings(result) {
-  const warnings = [];
-
-  if (!result.hasContext) {
-    warnings.push('missing-context');
-  }
-  if (result.rejectedCount > 0) {
-    warnings.push('rejected-actions');
-  }
-  if (!result.hasPersist) {
-    warnings.push('missing-persist');
-  }
-  if (!result.hasSync) {
-    warnings.push('missing-sync');
-  }
-  if (!result.hasNotify) {
-    warnings.push('missing-notify');
-  }
-  if (result.actionCount === 0) {
-    warnings.push('no-actions-recorded');
-  }
-  if (result.storageWarningCount > 0) {
-    warnings.push('storage-diagnostics-warnings');
-  }
-
-  return warnings;
-}
-
 export function verifyLastRecordSaveContext() {
-  const context = getLastRecordSaveContext();
-  const actions = Array.isArray(context?.actions) ? context.actions : [];
-  const rejected = actions.filter(function(action) {
-    return action && action.status === 'rejected';
-  });
-
-  const summary = actions.reduce(function(result, action) {
-    const type = action && action.type ? action.type : 'unknown';
-    result[type] = (result[type] || 0) + 1;
-    return result;
-  }, {});
-
-  const storageDiagnostics = getRecordStorageDiagnostics('verifyLastRecordSave');
-  const storageWarnings = Array.isArray(storageDiagnostics?.warnings)
-    ? storageDiagnostics.warnings
-    : [];
-  const storageDrift = buildRecordStorageDrift(storageDiagnostics);
-
-  const result = {
-    ok: false,
-    hasContext: !!context,
-    label: context?.label || null,
-    finalizedAt: context?.finalizedAt || null,
-    actionCount: actions.length,
-    actionSummary: summary,
-    rejectedCount: rejected.length,
-    rejectedActions: rejected.map(function(action) {
-      return {
-        type: action.type,
-        name: action.name,
-        error: action.error,
-      };
-    }),
-    hasPersist: !!summary.persist,
-    hasSync: !!summary.sync,
-    hasNotify: !!summary.notify,
-    storageDiagnostics: storageDiagnostics,
-    storageWarningCount: storageWarnings.length,
-    storageWarnings: storageWarnings,
-    storageDrift: storageDrift,
-    warnings: [],
-  };
-
-  result.warnings = buildRecordSaveVerificationWarnings(result);
-  result.ok = result.hasContext && result.rejectedCount === 0 && result.warnings.length === 0;
-
+  const result = verifyRecordSaveContext(getLastRecordSaveContext());
   traceRecord('saveRecordScreen:verify:last', result);
   return result;
 }
