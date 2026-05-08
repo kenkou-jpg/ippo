@@ -178,6 +178,31 @@ export function getLastRecordSaveContext() {
   return lastRecordSaveContext;
 }
 
+function buildRecordSaveVerificationWarnings(result) {
+  const warnings = [];
+
+  if (!result.hasContext) {
+    warnings.push('missing-context');
+  }
+  if (result.rejectedCount > 0) {
+    warnings.push('rejected-actions');
+  }
+  if (!result.hasPersist) {
+    warnings.push('missing-persist');
+  }
+  if (!result.hasSync) {
+    warnings.push('missing-sync');
+  }
+  if (!result.hasNotify) {
+    warnings.push('missing-notify');
+  }
+  if (result.actionCount === 0) {
+    warnings.push('no-actions-recorded');
+  }
+
+  return warnings;
+}
+
 export function verifyLastRecordSaveContext() {
   const context = getLastRecordSaveContext();
   const actions = Array.isArray(context?.actions) ? context.actions : [];
@@ -192,7 +217,7 @@ export function verifyLastRecordSaveContext() {
   }, {});
 
   const result = {
-    ok: !!context && rejected.length === 0,
+    ok: false,
     hasContext: !!context,
     label: context?.label || null,
     finalizedAt: context?.finalizedAt || null,
@@ -209,7 +234,11 @@ export function verifyLastRecordSaveContext() {
     hasPersist: !!summary.persist,
     hasSync: !!summary.sync,
     hasNotify: !!summary.notify,
+    warnings: [],
   };
+
+  result.warnings = buildRecordSaveVerificationWarnings(result);
+  result.ok = result.hasContext && result.rejectedCount === 0 && result.warnings.length === 0;
 
   traceRecord('saveRecordScreen:verify:last', result);
   return result;
