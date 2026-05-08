@@ -63,11 +63,38 @@ import {
   debugRecordSavePipeline,
 } from './modules/record-save-pipeline.js';
 
+// record draft normalization preview
+import './modules/record-draft.js';
+
+// record save target preview
+import './modules/record-save-target.js';
+
+// record save shadow outcome
+import './modules/record-save-shadow.js';
+
 // record date branch observability
 import './modules/record-date-branch-observability.js';
 
 // guarded rollout trace only
 import './modules/record-date-rollout-trace.js';
+
+// limited real adoption candidate only
+import './modules/record-date-limited-adoption-candidate.js';
+
+// guarded draft candidate preview / actual injection
+import './modules/record-date-draft-candidate.js';
+
+// record save delegation readiness must run after all save observers
+import './modules/record-save-delegation.js';
+
+// module payload adoption candidate must run after delegation plan
+import './modules/record-save-adoption.js';
+
+// post-save verification must run after module payload adoption delegation
+import './modules/record-save-adoption-verify.js';
+
+// orchestrator preview must run after all save layers
+import './modules/record-save-orchestrator.js';
 
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
