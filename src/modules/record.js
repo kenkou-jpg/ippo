@@ -19,6 +19,8 @@ import {
   finalizeRecordSaveContext,
 } from './record-save-pipeline.js';
 
+let lastRecordSaveContext = null;
+
 function isRecordTraceEnabled() {
   try {
     return localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true;
@@ -106,13 +108,14 @@ function restoreRecordSaveDelegates(originals) {
   });
 }
 
-function installRecordSaveDelegates(originals) {
+function installRecordSaveDelegates(originals, context) {
   if (typeof originals.saveState === 'function') {
     window.saveState = function delegatedSaveState() {
       return persistRecordState({
         saveState: originals.saveState,
         thisArg: this,
         arguments: arguments,
+        context: context,
       });
     };
   }
@@ -123,6 +126,7 @@ function installRecordSaveDelegates(originals) {
         cloudBackupAll: originals.cloudBackupAll,
         thisArg: this,
         arguments: arguments,
+        context: context,
       });
     };
   }
@@ -136,14 +140,15 @@ function installRecordSaveDelegates(originals) {
         functions: originals,
         thisArg: this,
         arguments: arguments,
+        context: context,
       });
     };
   });
 }
 
-function withRecordSavePipelineDelegates(callback) {
+function withRecordSavePipelineDelegates(callback, context) {
   const originals = captureRecordSaveDelegates();
-  installRecordSaveDelegates(originals);
+  installRecordSaveDelegates(originals, context);
 
   try {
     const result = callback();
@@ -160,6 +165,17 @@ function withRecordSavePipelineDelegates(callback) {
     restoreRecordSaveDelegates(originals);
     throw error;
   }
+}
+
+function finalizeAndStoreRecordSaveContext(context, label) {
+  const finalized = finalizeRecordSaveContext(context, label);
+  lastRecordSaveContext = finalized;
+  window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = finalized;
+  return finalized;
+}
+
+export function getLastRecordSaveContext() {
+  return lastRecordSaveContext;
 }
 
 function wrapSaveRecordScreen() {
@@ -182,32 +198,32 @@ function wrapSaveRecordScreen() {
     try {
       const result = withRecordSavePipelineDelegates(function() {
         return fn.apply(self, args);
-      });
+      }, context);
 
       if (result && typeof result.then === 'function') {
         return result.then(function(value) {
           traceRecord('saveRecordScreen:resolved', getRecordTraceSnapshot());
-          finalizeRecordSaveContext(context, 'saveRecordScreen:resolved');
+          finalizeAndStoreRecordSaveContext(context, 'saveRecordScreen:resolved');
           return value;
         }).catch(function(error) {
           traceRecord('saveRecordScreen:rejected', {
             snapshot: getRecordTraceSnapshot(),
             message: error && error.message,
           });
-          finalizeRecordSaveContext(context, 'saveRecordScreen:rejected');
+          finalizeAndStoreRecordSaveContext(context, 'saveRecordScreen:rejected');
           throw error;
         });
       }
 
       traceRecord('saveRecordScreen:end', getRecordTraceSnapshot());
-      finalizeRecordSaveContext(context, 'saveRecordScreen:end');
+      finalizeAndStoreRecordSaveContext(context, 'saveRecordScreen:end');
       return result;
     } catch(error) {
       traceRecord('saveRecordScreen:thrown', {
         snapshot: getRecordTraceSnapshot(),
         message: error && error.message,
       });
-      finalizeRecordSaveContext(context, 'saveRecordScreen:thrown');
+      finalizeAndStoreRecordSaveContext(context, 'saveRecordScreen:thrown');
       throw error;
     }
   }
@@ -324,12 +340,14 @@ const exportedFunctions = {
   buildDraftFromUI,
   enableRecordTrace,
   disableRecordTrace,
+  getLastRecordSaveContext,
 };
 
 // window 互換維持
 window.openRecordScreen = openRecordScreen;
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
+window.ippoLastRecordSaveContext = getLastRecordSaveContext;
 
 installSaveRecordScreenTrace();
 
