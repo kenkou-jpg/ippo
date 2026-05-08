@@ -31,6 +31,16 @@ import {
   disableRecordTrace,
 } from './modules/record.js';
 
+// readonly record repository
+import {
+  RECORD_STORAGE_KEYS,
+  getRecordDate,
+  normalizeRecordDate,
+  getRecords,
+  findRecordByDate,
+  getRecordsSnapshot,
+} from './modules/record-repository.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
@@ -65,6 +75,12 @@ export {
   buildDraftFromUI,
   enableRecordTrace,
   disableRecordTrace,
+  RECORD_STORAGE_KEYS,
+  getRecordDate,
+  normalizeRecordDate,
+  getRecords,
+  findRecordByDate,
+  getRecordsSnapshot,
   supabase, SUPABASE_URL,
   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
