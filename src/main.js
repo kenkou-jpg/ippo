@@ -51,6 +51,18 @@ import {
   upsertRecordInPlace,
 } from './modules/record-upsert.js';
 
+// record save orchestration helpers
+import {
+  createRecordSaveContext,
+  prepareRecordUpsert,
+  prepareRecordUpsertInPlace,
+  persistRecordState,
+  syncRecordCloud,
+  notifyRecordUpdated,
+  finalizeRecordSaveContext,
+  debugRecordSavePipeline,
+} from './modules/record-save-pipeline.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
@@ -97,6 +109,14 @@ export {
   mergeRecordPreservingExisting,
   upsertRecord,
   upsertRecordInPlace,
+  createRecordSaveContext,
+  prepareRecordUpsert,
+  prepareRecordUpsertInPlace,
+  persistRecordState,
+  syncRecordCloud,
+  notifyRecordUpdated,
+  finalizeRecordSaveContext,
+  debugRecordSavePipeline,
   supabase, SUPABASE_URL,
   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
