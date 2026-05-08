@@ -19,6 +19,18 @@ import {
   DISEASE_PRIORITY_SYMPTOMS,
 } from './constants/symptoms.js';
 
+// ─── Modules ─────────────────────────────────────────────
+import {
+  openRecordScreen,
+  saveRecord,
+  resetRecordForm,
+  updateDiseaseQuestions,
+  renderRecordHeader,
+  buildDraftFromUI,
+  enableRecordTrace,
+  disableRecordTrace,
+} from './modules/record.js';
+
 // ─── Services ────────────────────────────────────────────
 // supabase は stripe より先に import（stripe が supabase に依存）
 import { supabase, SUPABASE_URL } from './services/supabase.js';
@@ -39,6 +51,14 @@ import {
 export {
   saveState, loadState, STATE_KEY, INITIAL_STATE,
   ICONS, DISEASE_CONFIG, SYMPTOM_LAYERS, SENSITIVE_SYMPTOMS, DISEASE_PRIORITY_SYMPTOMS,
+  openRecordScreen,
+  saveRecord,
+  resetRecordForm,
+  updateDiseaseQuestions,
+  renderRecordHeader,
+  buildDraftFromUI,
+  enableRecordTrace,
+  disableRecordTrace,
   supabase, SUPABASE_URL,
   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
