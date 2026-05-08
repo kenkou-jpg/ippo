@@ -4,9 +4,11 @@
 //  Phase 3-E-1: edit route trace / reset-after hydrate guard
 //  Phase 3-F-2: record repository 読み取り層へ移行
 //  Hotfix: stabilize edit intent date and hydration
+//  Hotfix: preserve edit identity during save draft build
 //
 //  目的:
 //  - 記録編集時に保存済みrecordの内容をフォームへ復元する
+//  - 編集保存時に新規record扱いへ落ちないよう target identity を維持する
 //  - app.html の巨大関数本体は変更しない
 //  - saveRecordScreen の保存ロジックは変更しない
 // ============================================================
@@ -66,7 +68,7 @@ function getDateFromDom() {
 }
 
 function isRecentEditIntent() {
-  return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 15000);
+  return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 30000);
 }
 
 function persistEditingDate(date) {
@@ -283,6 +285,32 @@ function hydrateRecordForm() {
   return true;
 }
 
+function protectDraftForEdit(draft) {
+  if (!draft || typeof draft !== 'object') return draft;
+
+  const editDate = getEditingDate();
+  const existing = editDate ? findRecordByDate(editDate) : null;
+  if (!editDate || !existing) return draft;
+
+  const beforeDate = normalizeRecordDate(draft.record_date || draft.recordDate || draft.date || draft.id || '');
+  draft.record_date = editDate;
+  draft.date = editDate;
+  draft.id = existing.id || editDate;
+
+  try {
+    window.__ippoProtectedEditSaveTarget = {
+      at: Date.now(),
+      editDate,
+      beforeDate,
+      existingRecordDate: getRecordDate(existing),
+      existingId: existing.id || '',
+    };
+  } catch(e) {}
+
+  debug('draft-edit-identity-protected', window.__ippoProtectedEditSaveTarget);
+  return draft;
+}
+
 function scheduleHydration(source, date) {
   if (source) markEditIntent(source, date);
 
@@ -341,6 +369,23 @@ function wrapFunction(name, options) {
   wrappedFunction.__ippoOriginal = original;
   window[name] = wrappedFunction;
   debug('wrap:installed:' + name);
+  return true;
+}
+
+function wrapBuildDraftFromUI() {
+  const original = window.buildDraftFromUI;
+  if (typeof original !== 'function') return false;
+  if (original.__ippoEditIdentityGuard === true) return true;
+
+  function wrappedBuildDraftFromUI() {
+    const draft = original.apply(this, arguments);
+    return protectDraftForEdit(draft);
+  }
+
+  wrappedBuildDraftFromUI.__ippoEditIdentityGuard = true;
+  wrappedBuildDraftFromUI.__ippoOriginal = original;
+  window.buildDraftFromUI = wrappedBuildDraftFromUI;
+  debug('wrap:installed:buildDraftFromUI');
   return true;
 }
 
@@ -418,6 +463,7 @@ function install() {
   wrapFunction('handleEditRecord', { editIntent: true });
   wrapFunction('startEditRecord', { editIntent: true });
 
+  wrapBuildDraftFromUI();
   wrapResetRecordForm();
   installEditClickCapture();
 }
@@ -439,6 +485,7 @@ window.ippoRecordEditHydrationSummary = function() {
     recentEditIntent: isRecentEditIntent(),
     editingDate: getEditingDate(),
     recordFound: !!getEditingRecord(),
+    protectedEditSaveTarget: window.__ippoProtectedEditSaveTarget || null,
     recordsLength: getRecords().length,
   };
 };
