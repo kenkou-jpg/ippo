@@ -1,12 +1,18 @@
 // ============================================================
 //  ippo – src/modules/record-edit-merge.js
 //  Phase 3-D-3: 編集保存時の既存record保護
+//  Phase 3-F-2: record repository 読み取り層へ移行
 //
 //  目的:
 //  - 食事など一部項目の編集保存時に、未編集項目が空値で消えるのを防ぐ
 //  - 既存 saveRecordScreen の中身は変更しない
 //  - 保存後に同じ日付の既存recordとmerge補正する
 // ============================================================
+
+import {
+  getRecordDate,
+  getRecords,
+} from './record-repository.js';
 
 function trace(label, detail) {
   try {
@@ -21,12 +27,8 @@ function clone(value) {
 }
 
 function records() {
-  return Array.isArray(window.state?.records) ? window.state.records : null;
-}
-
-function dateOf(record) {
-  if (!record) return '';
-  return String(record.record_date || record.date || record.id || '').slice(0, 10);
+  const current = getRecords();
+  return Array.isArray(current) ? current : null;
 }
 
 function empty(value) {
@@ -73,11 +75,11 @@ function repairAfterSave(beforeRecords) {
   let changed = false;
 
   current.forEach(function(newRecord, index) {
-    const d = dateOf(newRecord);
+    const d = getRecordDate(newRecord);
     if (!d) return;
 
     const oldRecord = beforeRecords.find(function(record) {
-      return dateOf(record) === d;
+      return getRecordDate(record) === d;
     });
 
     if (!oldRecord) return;
