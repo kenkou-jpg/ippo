@@ -72,6 +72,9 @@ import './modules/record-date-rollout-trace.js';
 // limited real adoption candidate only
 import './modules/record-date-limited-adoption-candidate.js';
 
+// guarded draft candidate preview / actual injection
+import './modules/record-date-draft-candidate.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
