@@ -66,6 +66,9 @@ import {
 // record save core facade
 import './modules/record-save-core.js';
 
+// record save core persistence delegation gate
+import './modules/record-save-core-persistence.js';
+
 // record draft normalization preview
 import './modules/record-draft.js';
 
