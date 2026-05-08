@@ -72,9 +72,6 @@ import './modules/record-save-target.js';
 // record save shadow outcome
 import './modules/record-save-shadow.js';
 
-// record save delegation readiness
-import './modules/record-save-delegation.js';
-
 // record date branch observability
 import './modules/record-date-branch-observability.js';
 
@@ -86,6 +83,9 @@ import './modules/record-date-limited-adoption-candidate.js';
 
 // guarded draft candidate preview / actual injection
 import './modules/record-date-draft-candidate.js';
+
+// record save delegation readiness must run after all save observers
+import './modules/record-save-delegation.js';
 
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
