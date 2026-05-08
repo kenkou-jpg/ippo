@@ -66,6 +66,14 @@ function getActionContext(options) {
   return null;
 }
 
+function ensureContextMeta(context) {
+  if (!context || typeof context !== 'object') return null;
+  if (!context.meta || typeof context.meta !== 'object') {
+    context.meta = {};
+  }
+  return context.meta;
+}
+
 function summarizeActionValue(value) {
   if (value === undefined) return { type: 'undefined' };
   if (value === null) return { type: 'null' };
@@ -90,6 +98,23 @@ function recordActionResult(context, action) {
     failedAt: action.failedAt,
     result: action.result,
     error: action.error,
+  });
+}
+
+function recordNotifyResult(context, notifyResult) {
+  const meta = ensureContextMeta(context);
+  if (!meta) return;
+
+  if (!Array.isArray(meta.notifyResults)) {
+    meta.notifyResults = [];
+  }
+
+  meta.notifyResults.push({
+    candidates: notifyResult.candidates || [],
+    called: notifyResult.called || [],
+    skipped: notifyResult.skipped || [],
+    startedAt: notifyResult.startedAt,
+    finishedAt: notifyResult.finishedAt,
   });
 }
 
@@ -222,6 +247,9 @@ export function createRecordSaveContext(label) {
     beforeSnapshot: getRecordsSnapshot(),
     beforeDiagnostics: getRecordStorageDiagnostics(label ? label + ':before' : 'before'),
     actions: [],
+    meta: {
+      notifyResults: [],
+    },
   };
 
   trace('context:create', context);
@@ -295,11 +323,14 @@ export function getRecordSaveNotifyCandidates() {
 }
 
 export function notifyRecordUpdated(options) {
+  const startedAt = new Date().toISOString();
+  const context = getActionContext(options);
   const renderCandidates = (options && Array.isArray(options.candidates) && options.candidates.length)
     ? options.candidates
     : getRecordSaveNotifyCandidates();
 
   const called = [];
+  const skipped = [];
 
   renderCandidates.forEach(function(name) {
     try {
@@ -312,6 +343,8 @@ export function notifyRecordUpdated(options) {
           return fn.apply((options && options.thisArg) || window, getCallArguments(options));
         }, options);
         called.push(name);
+      } else {
+        skipped.push({ name: name, reason: 'missing-function' });
       }
     } catch(error) {
       trace('notify:error:' + name, error && error.message);
@@ -319,12 +352,24 @@ export function notifyRecordUpdated(options) {
     }
   });
 
-  trace('notify:done', { called: called });
+  const notifyResult = {
+    candidates: renderCandidates.slice(),
+    called: called,
+    skipped: skipped,
+    startedAt: startedAt,
+    finishedAt: new Date().toISOString(),
+  };
+
+  recordNotifyResult(context, notifyResult);
+  trace('notify:done', notifyResult);
   return called;
 }
 
 export function finalizeRecordSaveContext(context, label) {
   const afterDiagnostics = getRecordStorageDiagnostics(label || context?.label || 'after');
+  const notifyResults = Array.isArray(context?.meta?.notifyResults)
+    ? context.meta.notifyResults
+    : [];
   const result = {
     ...(context || {}),
     finalizedAt: new Date().toISOString(),
@@ -339,6 +384,12 @@ export function finalizeRecordSaveContext(context, label) {
           return summary;
         }, {})
       : {},
+    notifySummary: {
+      count: notifyResults.length,
+      candidates: notifyResults.flatMap(function(item) { return item.candidates || []; }),
+      called: notifyResults.flatMap(function(item) { return item.called || []; }),
+      skipped: notifyResults.flatMap(function(item) { return item.skipped || []; }),
+    },
   };
 
   trace('context:finalize', result);
@@ -403,6 +454,9 @@ function buildRecordSaveVerificationWarnings(result) {
   if (result.actionCount === 0) {
     warnings.push('no-actions-recorded');
   }
+  if (result.notifySkippedCount > 0) {
+    warnings.push('notify-skipped');
+  }
   if (result.storageWarningCount > 0) {
     warnings.push('storage-diagnostics-warnings');
   }
@@ -421,6 +475,12 @@ export function verifyRecordSaveContext(context) {
     result[type] = (result[type] || 0) + 1;
     return result;
   }, {});
+
+  const notifyResults = Array.isArray(context?.meta?.notifyResults)
+    ? context.meta.notifyResults
+    : [];
+  const notifyCalled = notifyResults.flatMap(function(item) { return item.called || []; });
+  const notifySkipped = notifyResults.flatMap(function(item) { return item.skipped || []; });
 
   const storageDiagnostics = getRecordStorageDiagnostics('verifyRecordSaveContext');
   const storageWarnings = Array.isArray(storageDiagnostics?.warnings)
@@ -446,6 +506,10 @@ export function verifyRecordSaveContext(context) {
     hasPersist: !!summary.persist,
     hasSync: !!summary.sync,
     hasNotify: !!summary.notify,
+    notifyResults: notifyResults,
+    notifyCalled: notifyCalled,
+    notifySkipped: notifySkipped,
+    notifySkippedCount: notifySkipped.length,
     storageDiagnostics: storageDiagnostics,
     storageWarningCount: storageWarnings.length,
     storageWarnings: storageWarnings,
