@@ -191,6 +191,38 @@ function resolveRecordSaveDateCandidate(input) {
   };
 }
 
+function buildDateResolutionShadowCompare(dateResolution, changedDates) {
+  const normalizedChangedDates = Array.isArray(changedDates)
+    ? changedDates.map(normalizeRecordDate).filter(Boolean)
+    : [];
+  const actualDate = normalizedChangedDates.length === 1 ? normalizedChangedDates[0] : '';
+  const resolvedDate = normalizeRecordDate(dateResolution?.resolvedDate || '');
+  const warnings = [];
+
+  if (!resolvedDate) {
+    warnings.push('shadow-missing-resolved-date');
+  }
+  if (!actualDate && normalizedChangedDates.length === 0) {
+    warnings.push('shadow-no-changed-date');
+  }
+  if (normalizedChangedDates.length > 1) {
+    warnings.push('shadow-multiple-actual-dates');
+  }
+  if (actualDate && resolvedDate && actualDate !== resolvedDate) {
+    warnings.push('shadow-date-mismatch');
+  }
+
+  return {
+    actualDate: actualDate,
+    actualChangedDates: normalizedChangedDates,
+    resolvedDate: resolvedDate,
+    resolvedSource: dateResolution?.source || 'none',
+    matched: !!actualDate && !!resolvedDate && actualDate === resolvedDate,
+    comparable: normalizedChangedDates.length === 1 && !!resolvedDate,
+    warnings: Array.from(new Set(warnings)),
+  };
+}
+
 function inferDateBranch(before, after) {
   const warnings = [];
   const editingDateBefore = before.editingDate || '';
@@ -208,12 +240,14 @@ function inferDateBranch(before, after) {
     changedDates: changedDates,
     fallbackDate: changedDates.length === 1 ? changedDates[0] : '',
   });
+  const shadowCompare = buildDateResolutionShadowCompare(dateResolution, changedDates);
 
   let resolvedSaveDate = dateResolution.resolvedDate;
   let branch = 'unknown';
   let confidence = dateResolution.confidence;
 
   warnings.push.apply(warnings, dateResolution.warnings);
+  warnings.push.apply(warnings, shadowCompare.warnings);
 
   if (editingDateBefore && resolvedSaveDate && editingDateBefore !== resolvedSaveDate) {
     warnings.push('editing-save-date-mismatch');
@@ -265,6 +299,7 @@ function inferDateBranch(before, after) {
     existingRecordDate: editingDateBefore || '',
     resolvedSaveDate: resolvedSaveDate,
     dateResolution: dateResolution,
+    shadowCompare: shadowCompare,
     changedDates: changedDates,
     createdCount: createdCount,
     removedCount: removedCount,
@@ -294,9 +329,11 @@ function attachDateBranchToLastContext(dateBranch) {
   context.meta.dateBranch = dateBranch;
   context.dateBranch = dateBranch;
   context.dateWarnings = dateBranch.warnings || [];
+  context.dateShadowCompare = dateBranch.shadowCompare || null;
 
   if (context.healthSummary && typeof context.healthSummary === 'object') {
     context.healthSummary.dateWarningCount = context.dateWarnings.length;
+    context.healthSummary.dateShadowMatched = dateBranch.shadowCompare?.matched === true;
   }
 
   window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = context;
@@ -322,13 +359,16 @@ function wrapVerifyLastRecordSave() {
       : window.__IPPO_LAST_RECORD_SAVE_CONTEXT__;
     const dateBranch = context?.meta?.dateBranch || context?.dateBranch || null;
     const dateWarnings = dateBranch?.warnings || [];
+    const shadowCompare = dateBranch?.shadowCompare || context?.dateShadowCompare || null;
 
     if (result && typeof result === 'object') {
       result.dateBranch = dateBranch;
       result.dateWarnings = dateWarnings;
       result.dateWarningCount = dateWarnings.length;
+      result.dateShadowCompare = shadowCompare;
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateWarningCount = dateWarnings.length;
+        result.healthSummary.dateShadowMatched = shadowCompare?.matched === true;
       }
     }
 
@@ -396,6 +436,7 @@ function installRecordDateBranchObservability() {
 export {
   createDateBranchSnapshot,
   resolveRecordSaveDateCandidate,
+  buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
   installRecordDateBranchObservability,
@@ -404,6 +445,7 @@ export {
 window.ippoRecordDateBranchObservability = Object.freeze({
   createDateBranchSnapshot,
   resolveRecordSaveDateCandidate,
+  buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
   installRecordDateBranchObservability,
