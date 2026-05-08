@@ -1,10 +1,11 @@
 // ============================================================
 //  ippo – src/modules/record-save-core.js
-//  Phase 3-N-3: record save core facade
+//  Phase 3-N-3/4: record save core facade
 //
 //  目的:
 //  - saveRecordScreen 内部から安全に呼べる core facade を用意する
 //  - draft生成 / target解決 / persistence準備を1つのAPIに束ねる
+//  - buildDraftFromUI 後に core facade を自動記録する
 //  - この段階では saveRecordScreen 本体・state.records・localStorage・Supabase を変更しない
 // ============================================================
 
@@ -19,6 +20,8 @@ import {
   prepareRecordPersistence,
 } from './record-save-target.js';
 
+const BUILD_DRAFT_WRAP_FLAG = '__ippoRecordSaveCoreBuildDraftWrapped';
+const VERIFY_WRAP_FLAG = '__ippoRecordSaveCoreVerifyWrapped';
 const HISTORY_LIMIT = 20;
 const coreHistory = [];
 
@@ -196,6 +199,72 @@ function clearRecordSaveCoreHistory() {
   return getRecordSaveCoreSummary();
 }
 
+function wrapVerifyLastRecordSave() {
+  const originalVerify = window.ippoVerifyLastRecordSave;
+  if (typeof originalVerify !== 'function' || originalVerify[VERIFY_WRAP_FLAG] === true) return;
+
+  window.ippoVerifyLastRecordSave = function recordSaveCoreVerifyLastRecordSave() {
+    const result = originalVerify.apply(this, arguments);
+    const context = getLastRecordSaveContext();
+    const core = context?.recordSaveCore || context?.meta?.recordSaveCore || null;
+    const summary = getRecordSaveCoreSummary();
+
+    if (result && typeof result === 'object') {
+      result.recordSaveCore = core;
+      result.recordSaveCoreSummary = summary;
+
+      if (result.healthSummary && typeof result.healthSummary === 'object') {
+        result.healthSummary.recordSaveCoreUsable = core?.usable === true;
+        result.healthSummary.recordSaveCoreBlockedCount = summary.blockedCount;
+        result.healthSummary.recordSaveCoreWarningCount = (core?.warnings || []).length;
+      }
+    }
+
+    return result;
+  };
+
+  window.ippoVerifyLastRecordSave[VERIFY_WRAP_FLAG] = true;
+  window.ippoVerifyLastRecordSave.__ippoOriginal = originalVerify;
+}
+
+function wrapBuildDraftFromUI() {
+  const current = window.buildDraftFromUI;
+  if (typeof current !== 'function') return false;
+  if (current[BUILD_DRAFT_WRAP_FLAG] === true) return true;
+
+  function recordSaveCoreBuildDraftFromUI() {
+    const draft = current.apply(this, arguments);
+    recordSaveCore({
+      draft: draft,
+      context: getActiveRecordSaveContext(),
+    });
+    return draft;
+  }
+
+  recordSaveCoreBuildDraftFromUI[BUILD_DRAFT_WRAP_FLAG] = true;
+  recordSaveCoreBuildDraftFromUI.__ippoOriginal = current;
+  window.buildDraftFromUI = recordSaveCoreBuildDraftFromUI;
+  trace('buildDraftFromUI:core:installed');
+  return true;
+}
+
+function installRecordSaveCore() {
+  wrapVerifyLastRecordSave();
+
+  if (wrapBuildDraftFromUI()) return true;
+
+  let attempts = 0;
+  const timer = window.setInterval(function() {
+    attempts++;
+    wrapVerifyLastRecordSave();
+    if (wrapBuildDraftFromUI() || attempts >= 20) {
+      window.clearInterval(timer);
+    }
+  }, 250);
+
+  return false;
+}
+
 export {
   buildRecordSaveCore,
   recordSaveCore,
@@ -203,6 +272,7 @@ export {
   getRecordSaveCoreHistory,
   getRecordSaveCoreSummary,
   clearRecordSaveCoreHistory,
+  installRecordSaveCore,
 };
 
 window.ippoRecordSaveCore = Object.freeze({
@@ -212,9 +282,12 @@ window.ippoRecordSaveCore = Object.freeze({
   getRecordSaveCoreHistory,
   getRecordSaveCoreSummary,
   clearRecordSaveCoreHistory,
+  installRecordSaveCore,
 });
 
 window.ippoBuildRecordSaveCore = buildRecordSaveCore;
 window.ippoRecordSaveCoreSummary = getRecordSaveCoreSummary;
 window.ippoRecordSaveCoreHistory = getRecordSaveCoreHistory;
 window.ippoClearRecordSaveCoreHistory = clearRecordSaveCoreHistory;
+
+installRecordSaveCore();
