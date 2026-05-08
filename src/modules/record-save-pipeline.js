@@ -20,6 +20,12 @@ import {
   upsertRecordInPlace,
 } from './record-upsert.js';
 
+export const RECORD_SAVE_ACTION_TYPES = Object.freeze({
+  PERSIST: 'persist',
+  SYNC: 'sync',
+  NOTIFY: 'notify',
+});
+
 function trace(label, detail) {
   try {
     if (localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true) {
@@ -43,6 +49,67 @@ function getCallArguments(options, fallbackArguments) {
     return Array.prototype.slice.call(fallbackArguments);
   }
   return [];
+}
+
+export function runRecordSaveAction(type, name, callback, options) {
+  const label = String(type || 'action') + ':' + String(name || 'unknown');
+  const startedAt = new Date().toISOString();
+
+  trace('action:start:' + label, {
+    type: type,
+    name: name,
+    startedAt: startedAt,
+    snapshot: getRecordsSnapshot(),
+  });
+
+  try {
+    const result = callback();
+
+    if (result && typeof result.then === 'function') {
+      return result.then(function(value) {
+        trace('action:done:' + label, {
+          type: type,
+          name: name,
+          async: true,
+          startedAt: startedAt,
+          finishedAt: new Date().toISOString(),
+          snapshot: getRecordsSnapshot(),
+        });
+        return value;
+      }).catch(function(error) {
+        trace('action:error:' + label, {
+          type: type,
+          name: name,
+          async: true,
+          startedAt: startedAt,
+          failedAt: new Date().toISOString(),
+          message: error && error.message,
+        });
+        throw error;
+      });
+    }
+
+    trace('action:done:' + label, {
+      type: type,
+      name: name,
+      async: false,
+      startedAt: startedAt,
+      finishedAt: new Date().toISOString(),
+      snapshot: getRecordsSnapshot(),
+    });
+
+    return result;
+  } catch(error) {
+    trace('action:error:' + label, {
+      type: type,
+      name: name,
+      async: false,
+      startedAt: startedAt,
+      failedAt: new Date().toISOString(),
+      message: error && error.message,
+    });
+    throw error;
+  }
 }
 
 export function createRecordSaveContext(label) {
@@ -85,9 +152,11 @@ export function persistRecordState(options) {
   try {
     const saveState = getCallable(options, 'saveState');
     if (typeof saveState === 'function') {
-      const result = saveState.apply((options && options.thisArg) || window, getCallArguments(options));
-      trace('persist:saveState:done', getRecordsSnapshot());
-      return result === undefined ? true : result;
+      return runRecordSaveAction(RECORD_SAVE_ACTION_TYPES.PERSIST, 'saveState', function() {
+        const result = saveState.apply((options && options.thisArg) || window, getCallArguments(options));
+        trace('persist:saveState:done', getRecordsSnapshot());
+        return result === undefined ? true : result;
+      });
     }
   } catch(error) {
     trace('persist:saveState:error', error && error.message);
@@ -103,9 +172,11 @@ export function syncRecordCloud(options) {
   try {
     const cloudBackupAll = getCallable(options, 'cloudBackupAll');
     if (typeof cloudBackupAll === 'function') {
-      const result = cloudBackupAll.apply((options && options.thisArg) || window, getCallArguments(options));
-      trace('sync:cloudBackupAll:called', getRecordsSnapshot());
-      return result;
+      return runRecordSaveAction(RECORD_SAVE_ACTION_TYPES.SYNC, 'cloudBackupAll', function() {
+        const result = cloudBackupAll.apply((options && options.thisArg) || window, getCallArguments(options));
+        trace('sync:cloudBackupAll:called', getRecordsSnapshot());
+        return result;
+      });
     }
   } catch(error) {
     trace('sync:cloudBackupAll:error', error && error.message);
@@ -137,7 +208,9 @@ export function notifyRecordUpdated(options) {
         : window[name];
 
       if (typeof fn === 'function') {
-        fn.apply((options && options.thisArg) || window, getCallArguments(options));
+        runRecordSaveAction(RECORD_SAVE_ACTION_TYPES.NOTIFY, name, function() {
+          return fn.apply((options && options.thisArg) || window, getCallArguments(options));
+        });
         called.push(name);
       }
     } catch(error) {
@@ -174,7 +247,9 @@ export function debugRecordSavePipeline(label) {
 }
 
 window.ippoRecordSavePipeline = Object.freeze({
+  RECORD_SAVE_ACTION_TYPES,
   createRecordSaveContext,
+  runRecordSaveAction,
   prepareRecordUpsert,
   prepareRecordUpsertInPlace,
   persistRecordState,
