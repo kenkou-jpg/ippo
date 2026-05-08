@@ -178,6 +178,43 @@ export function getLastRecordSaveContext() {
   return lastRecordSaveContext;
 }
 
+export function verifyLastRecordSaveContext() {
+  const context = getLastRecordSaveContext();
+  const actions = Array.isArray(context?.actions) ? context.actions : [];
+  const rejected = actions.filter(function(action) {
+    return action && action.status === 'rejected';
+  });
+
+  const summary = actions.reduce(function(result, action) {
+    const type = action && action.type ? action.type : 'unknown';
+    result[type] = (result[type] || 0) + 1;
+    return result;
+  }, {});
+
+  const result = {
+    ok: !!context && rejected.length === 0,
+    hasContext: !!context,
+    label: context?.label || null,
+    finalizedAt: context?.finalizedAt || null,
+    actionCount: actions.length,
+    actionSummary: summary,
+    rejectedCount: rejected.length,
+    rejectedActions: rejected.map(function(action) {
+      return {
+        type: action.type,
+        name: action.name,
+        error: action.error,
+      };
+    }),
+    hasPersist: !!summary.persist,
+    hasSync: !!summary.sync,
+    hasNotify: !!summary.notify,
+  };
+
+  traceRecord('saveRecordScreen:verify:last', result);
+  return result;
+}
+
 function wrapSaveRecordScreen() {
   const fn = window.saveRecordScreen;
   if (typeof fn !== 'function') {
@@ -341,6 +378,7 @@ const exportedFunctions = {
   enableRecordTrace,
   disableRecordTrace,
   getLastRecordSaveContext,
+  verifyLastRecordSaveContext,
 };
 
 // window 互換維持
@@ -348,6 +386,7 @@ window.openRecordScreen = openRecordScreen;
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
 window.ippoLastRecordSaveContext = getLastRecordSaveContext;
+window.ippoVerifyLastRecordSave = verifyLastRecordSaveContext;
 
 installSaveRecordScreenTrace();
 
