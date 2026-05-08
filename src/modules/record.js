@@ -19,6 +19,10 @@ import {
   finalizeRecordSaveContext,
 } from './record-save-pipeline.js';
 
+import {
+  getRecordStorageDiagnostics,
+} from './record-repository.js';
+
 let lastRecordSaveContext = null;
 
 function isRecordTraceEnabled() {
@@ -199,6 +203,9 @@ function buildRecordSaveVerificationWarnings(result) {
   if (result.actionCount === 0) {
     warnings.push('no-actions-recorded');
   }
+  if (result.storageWarningCount > 0) {
+    warnings.push('storage-diagnostics-warnings');
+  }
 
   return warnings;
 }
@@ -215,6 +222,11 @@ export function verifyLastRecordSaveContext() {
     result[type] = (result[type] || 0) + 1;
     return result;
   }, {});
+
+  const storageDiagnostics = getRecordStorageDiagnostics('verifyLastRecordSave');
+  const storageWarnings = Array.isArray(storageDiagnostics?.warnings)
+    ? storageDiagnostics.warnings
+    : [];
 
   const result = {
     ok: false,
@@ -234,6 +246,9 @@ export function verifyLastRecordSaveContext() {
     hasPersist: !!summary.persist,
     hasSync: !!summary.sync,
     hasNotify: !!summary.notify,
+    storageDiagnostics: storageDiagnostics,
+    storageWarningCount: storageWarnings.length,
+    storageWarnings: storageWarnings,
     warnings: [],
   };
 
