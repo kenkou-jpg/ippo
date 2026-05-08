@@ -7,6 +7,15 @@
 // CSS は app.html の <link rel="stylesheet"> で読み込み済み。
 // ここで import するとVite以外の環境(npx serve等)でモジュール全体が失敗するため除外。
 
+// ─── Boot stability ───────────────────────────────────────
+import './modules/boot-stability.js';
+import './modules/legacy-window-bridge.js';
+import './modules/startup-verify.js';
+
+if (typeof window.ippoMarkBootEvent === 'function') {
+  window.ippoMarkBootEvent('main-entry-start');
+}
+
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
 
@@ -131,6 +140,36 @@ import {
   requestNotificationPermission,
   scheduleReminders,
 } from './services/push.js';
+
+if (typeof window.ippoMarkServiceReady === 'function') {
+  window.ippoMarkServiceReady('main-entry', {
+    ready: true,
+    hasSupabase: !!supabase,
+    hasState: typeof window.state === 'object',
+  });
+}
+
+if (typeof window.ippoMarkViteReady === 'function') {
+  window.ippoMarkViteReady({
+    hasSupabase: !!supabase,
+    hasSaveRecord: typeof saveRecord === 'function',
+    hasOpenRecordScreen: typeof openRecordScreen === 'function',
+  });
+}
+
+if (typeof window.ippoRunStartupVerify === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunStartupVerify();
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('startup-verify-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
 
 // ─── Re-exports（将来の TypeScript 移行用） ───────────────
 // window アサインは各ファイル内で完結
