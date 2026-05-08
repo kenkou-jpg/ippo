@@ -1,9 +1,10 @@
 // ============================================================
 //  ippo – src/modules/record-save-core-persistence.js
-//  Phase 3-N-6: core persistence delegation gate
+//  Phase 3-N/O: core persistence delegation gate + execution plan
 //
 //  目的:
 //  - record-save-core.persistence を保存準備の source of truth にできるか判定する
+//  - core.persistence から future upsert/persist execution plan を作る
 //  - state.records / localStorage / Supabase は直接変更しない
 //  - 巨大 save callback の persistence 部分を置換する前の安全 gate
 // ============================================================
@@ -11,8 +12,10 @@
 const WRAP_FLAG = '__ippoRecordSaveCorePersistenceObserved';
 const VERIFY_WRAP_FLAG = '__ippoRecordSaveCorePersistenceVerifyWrapped';
 const HISTORY_LIMIT = 20;
+const PLAN_HISTORY_LIMIT = 20;
 const CORE_PERSISTENCE_DELEGATION_FLAG = 'ippo_enable_record_save_core_persistence_delegation';
 const persistenceDelegationHistory = [];
+const persistencePlanHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -140,6 +143,45 @@ function buildCorePersistenceDelegationDecision(context) {
   };
 }
 
+function buildCorePersistenceExecutionPlan(context, decision) {
+  const safeContext = context || getActiveRecordSaveContext() || getLastRecordSaveContext() || {};
+  const core = getContextArtifact(safeContext, 'recordSaveCore');
+  const finalDecision = decision || getContextArtifact(safeContext, 'corePersistenceDelegationDecision') || buildCorePersistenceDelegationDecision(safeContext);
+  const persistence = core?.persistence || null;
+  const blockedBy = [];
+  const rollbackBlockers = [];
+
+  if (finalDecision.canDelegateCorePersistence !== true) blockedBy.push('core-persistence-not-delegatable');
+  if (!persistence) blockedBy.push('missing-core-persistence');
+  if (!persistence?.payload || typeof persistence.payload !== 'object') blockedBy.push('missing-persistence-payload');
+  if (!persistence?.upsertPreview || typeof persistence.upsertPreview !== 'object') blockedBy.push('missing-upsert-preview');
+  if (persistence?.upsertPreview?.mode !== 'insert') rollbackBlockers.push('not-insert-upsert');
+  if (persistence?.saveMode !== 'create') rollbackBlockers.push('not-create-only');
+  if (persistence?.previewRecordsLength && persistence?.sourceRecordsLength && persistence.previewRecordsLength <= persistence.sourceRecordsLength) {
+    rollbackBlockers.push('insert-preview-does-not-grow-records');
+  }
+
+  const canUseExecutionPlan = blockedBy.length === 0 && rollbackBlockers.length === 0;
+
+  return {
+    recordedAt: getTimestamp(),
+    mode: 'core-persistence-execution-plan',
+    canUseExecutionPlan: canUseExecutionPlan,
+    didExecutePlan: false,
+    targetDate: persistence?.targetDate || '',
+    saveMode: persistence?.saveMode || 'unknown',
+    persistenceStrategy: persistence?.persistenceStrategy || 'unknown',
+    payloadSummary: persistence?.payloadSummary || null,
+    payload: persistence?.payload ? cloneValue(persistence.payload) : null,
+    upsertPreview: persistence?.upsertPreview ? cloneValue(persistence.upsertPreview) : null,
+    sourceRecordsLength: persistence?.sourceRecordsLength || 0,
+    previewRecordsLength: persistence?.previewRecordsLength || 0,
+    blockedBy: Array.from(new Set(blockedBy)),
+    rollbackBlockers: Array.from(new Set(rollbackBlockers)),
+    note: 'Execution plan only. It does not mutate records/storage/cloud yet.',
+  };
+}
+
 function summarizeCorePersistenceDelegation(history) {
   const list = Array.isArray(history) ? history : [];
   const blockedByCounts = {};
@@ -176,6 +218,35 @@ function summarizeCorePersistenceDelegation(history) {
   };
 }
 
+function summarizeCorePersistenceExecutionPlan(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const rollbackBlockerCounts = {};
+  const strategyCounts = {};
+
+  list.forEach(function(item) {
+    const strategy = item.persistenceStrategy || 'unknown';
+    strategyCounts[strategy] = (strategyCounts[strategy] || 0) + 1;
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+    (item.rollbackBlockers || []).forEach(function(reason) {
+      rollbackBlockerCounts[reason] = (rollbackBlockerCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    usableCount: list.filter(function(item) { return item.canUseExecutionPlan === true; }).length,
+    executedCount: list.filter(function(item) { return item.didExecutePlan === true; }).length,
+    blockedCount: list.filter(function(item) { return item.canUseExecutionPlan !== true; }).length,
+    blockedByCounts: blockedByCounts,
+    rollbackBlockerCounts: rollbackBlockerCounts,
+    strategyCounts: strategyCounts,
+    recent: list.slice(-5),
+  };
+}
+
 function attachCorePersistenceDelegationToContext(context, decision) {
   const summary = summarizeCorePersistenceDelegation(persistenceDelegationHistory);
 
@@ -199,17 +270,48 @@ function attachCorePersistenceDelegationToContext(context, decision) {
   return summary;
 }
 
+function attachCorePersistenceExecutionPlanToContext(context, plan) {
+  const summary = summarizeCorePersistenceExecutionPlan(persistencePlanHistory);
+
+  if (context && typeof context === 'object') {
+    if (!context.meta || typeof context.meta !== 'object') {
+      context.meta = {};
+    }
+
+    context.meta.corePersistenceExecutionPlan = plan;
+    context.meta.corePersistenceExecutionPlanSummary = summary;
+    context.corePersistenceExecutionPlan = plan;
+    context.corePersistenceExecutionPlanSummary = summary;
+
+    if (context.healthSummary && typeof context.healthSummary === 'object') {
+      context.healthSummary.corePersistenceExecutionPlanUsable = plan.canUseExecutionPlan === true;
+      context.healthSummary.corePersistenceExecutionPlanExecuted = plan.didExecutePlan === true;
+      context.healthSummary.corePersistenceExecutionPlanBlockedCount = summary.blockedCount;
+    }
+  }
+
+  return summary;
+}
+
 function recordCorePersistenceDelegationDecision(context) {
   const saveContext = context || getLastRecordSaveContext() || getActiveRecordSaveContext();
   const decision = buildCorePersistenceDelegationDecision(saveContext);
+  const plan = buildCorePersistenceExecutionPlan(saveContext, decision);
 
   persistenceDelegationHistory.push(decision);
   while (persistenceDelegationHistory.length > HISTORY_LIMIT) {
     persistenceDelegationHistory.shift();
   }
 
+  persistencePlanHistory.push(plan);
+  while (persistencePlanHistory.length > PLAN_HISTORY_LIMIT) {
+    persistencePlanHistory.shift();
+  }
+
   attachCorePersistenceDelegationToContext(saveContext, decision);
+  attachCorePersistenceExecutionPlanToContext(saveContext, plan);
   trace('core-persistence-delegation:recorded', decision);
+  trace('core-persistence-execution-plan:recorded', plan);
   return decision;
 }
 
@@ -226,6 +328,19 @@ function clearCorePersistenceDelegationHistory() {
   return getCorePersistenceDelegationSummary();
 }
 
+function getCorePersistenceExecutionPlanHistory() {
+  return persistencePlanHistory.slice();
+}
+
+function getCorePersistenceExecutionPlanSummary() {
+  return summarizeCorePersistenceExecutionPlan(persistencePlanHistory);
+}
+
+function clearCorePersistenceExecutionPlanHistory() {
+  persistencePlanHistory.splice(0, persistencePlanHistory.length);
+  return getCorePersistenceExecutionPlanSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify[VERIFY_WRAP_FLAG] === true) return;
@@ -237,15 +352,24 @@ function wrapVerifyLastRecordSave() {
       || context?.meta?.corePersistenceDelegationDecision
       || null;
     const summary = getCorePersistenceDelegationSummary();
+    const plan = context?.corePersistenceExecutionPlan
+      || context?.meta?.corePersistenceExecutionPlan
+      || null;
+    const planSummary = getCorePersistenceExecutionPlanSummary();
 
     if (result && typeof result === 'object') {
       result.corePersistenceDelegationDecision = decision;
       result.corePersistenceDelegationSummary = summary;
+      result.corePersistenceExecutionPlan = plan;
+      result.corePersistenceExecutionPlanSummary = planSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.corePersistenceDelegationEnabled = decision?.enabled === true;
         result.healthSummary.corePersistenceDelegationReady = decision?.canDelegateCorePersistence === true;
         result.healthSummary.corePersistenceDelegationBlockedCount = summary.blockedCount;
+        result.healthSummary.corePersistenceExecutionPlanUsable = plan?.canUseExecutionPlan === true;
+        result.healthSummary.corePersistenceExecutionPlanExecuted = plan?.didExecutePlan === true;
+        result.healthSummary.corePersistenceExecutionPlanBlockedCount = planSummary.blockedCount;
       }
     }
 
@@ -306,11 +430,16 @@ export {
   isCorePersistenceDelegationEnabled,
   setCorePersistenceDelegationEnabled,
   buildCorePersistenceDelegationDecision,
+  buildCorePersistenceExecutionPlan,
   recordCorePersistenceDelegationDecision,
   summarizeCorePersistenceDelegation,
+  summarizeCorePersistenceExecutionPlan,
   getCorePersistenceDelegationHistory,
   getCorePersistenceDelegationSummary,
   clearCorePersistenceDelegationHistory,
+  getCorePersistenceExecutionPlanHistory,
+  getCorePersistenceExecutionPlanSummary,
+  clearCorePersistenceExecutionPlanHistory,
   installCorePersistenceDelegation,
 };
 
@@ -318,11 +447,16 @@ window.ippoRecordSaveCorePersistence = Object.freeze({
   isCorePersistenceDelegationEnabled,
   setCorePersistenceDelegationEnabled,
   buildCorePersistenceDelegationDecision,
+  buildCorePersistenceExecutionPlan,
   recordCorePersistenceDelegationDecision,
   summarizeCorePersistenceDelegation,
+  summarizeCorePersistenceExecutionPlan,
   getCorePersistenceDelegationHistory,
   getCorePersistenceDelegationSummary,
   clearCorePersistenceDelegationHistory,
+  getCorePersistenceExecutionPlanHistory,
+  getCorePersistenceExecutionPlanSummary,
+  clearCorePersistenceExecutionPlanHistory,
   installCorePersistenceDelegation,
 });
 
@@ -331,5 +465,8 @@ window.ippoIsCorePersistenceDelegationEnabled = isCorePersistenceDelegationEnabl
 window.ippoCorePersistenceDelegationSummary = getCorePersistenceDelegationSummary;
 window.ippoCorePersistenceDelegationHistory = getCorePersistenceDelegationHistory;
 window.ippoClearCorePersistenceDelegationHistory = clearCorePersistenceDelegationHistory;
+window.ippoCorePersistenceExecutionPlanSummary = getCorePersistenceExecutionPlanSummary;
+window.ippoCorePersistenceExecutionPlanHistory = getCorePersistenceExecutionPlanHistory;
+window.ippoClearCorePersistenceExecutionPlanHistory = clearCorePersistenceExecutionPlanHistory;
 
 installCorePersistenceDelegation();
