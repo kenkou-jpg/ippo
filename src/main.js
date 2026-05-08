@@ -41,6 +41,16 @@ import {
   getRecordsSnapshot,
 } from './modules/record-repository.js';
 
+// safe record upsert utilities
+import {
+  isEmptyRecordValue,
+  cloneRecordValue,
+  findRecordIndexByDate,
+  mergeRecordPreservingExisting,
+  upsertRecord,
+  upsertRecordInPlace,
+} from './modules/record-upsert.js';
+
 // 編集保存時の既存record保護
 import './modules/record-edit-merge.js';
 
@@ -81,6 +91,12 @@ export {
   getRecords,
   findRecordByDate,
   getRecordsSnapshot,
+  isEmptyRecordValue,
+  cloneRecordValue,
+  findRecordIndexByDate,
+  mergeRecordPreservingExisting,
+  upsertRecord,
+  upsertRecordInPlace,
   supabase, SUPABASE_URL,
   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
