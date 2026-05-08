@@ -4,13 +4,18 @@
 //
 //  目的:
 //  - limited real adoption candidate から draft candidate を生成する
-//  - この段階では draft 本体を書き換えない
-//  - save context にだけ injection preview を記録する
+//  - preview は save context に記録する
+//  - explicit flag ON の限定ケースだけ buildDraftFromUI の返却draftへ実注入する
+//  - saveRecordScreen / state.records / localStorage / Supabase の保存経路は直接変更しない
 // ============================================================
 
 const WRAP_FLAG = '__ippoDateDraftCandidateObserved';
+const BUILD_DRAFT_WRAP_FLAG = '__ippoDateDraftCandidateBuildDraftWrapped';
 const HISTORY_LIMIT = 20;
+const INJECTION_HISTORY_LIMIT = 20;
+const ACTUAL_INJECTION_FLAG = 'ippo_enable_date_draft_candidate_actual_injection';
 const draftCandidateHistory = [];
+const actualInjectionHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -36,12 +41,36 @@ function getLastRecordSaveContext() {
   return window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ || null;
 }
 
-function buildDateDraftCandidate(context) {
+function isDateDraftCandidateActualInjectionEnabled() {
+  try {
+    return localStorage.getItem(ACTUAL_INJECTION_FLAG) === '1'
+      || window.__IPPO_ENABLE_DATE_DRAFT_CANDIDATE_ACTUAL_INJECTION__ === true;
+  } catch(e) {
+    return window.__IPPO_ENABLE_DATE_DRAFT_CANDIDATE_ACTUAL_INJECTION__ === true;
+  }
+}
+
+function setDateDraftCandidateActualInjectionEnabled(enabled) {
+  window.__IPPO_ENABLE_DATE_DRAFT_CANDIDATE_ACTUAL_INJECTION__ = enabled === true;
+  try {
+    if (enabled === true) {
+      localStorage.setItem(ACTUAL_INJECTION_FLAG, '1');
+    } else {
+      localStorage.removeItem(ACTUAL_INJECTION_FLAG);
+    }
+  } catch(e) {}
+  return isDateDraftCandidateActualInjectionEnabled();
+}
+
+function getCandidateFromContext(context) {
   const safeContext = context || getLastRecordSaveContext() || {};
-  const candidate = safeContext.limitedDateRealAdoptionCandidate
+  return safeContext.limitedDateRealAdoptionCandidate
     || safeContext.meta?.limitedDateRealAdoptionCandidate
     || null;
+}
 
+function buildDateDraftCandidate(context) {
+  const candidate = getCandidateFromContext(context);
   const blockedBy = [];
 
   if (candidate?.canUseCandidate !== true) {
@@ -63,7 +92,42 @@ function buildDateDraftCandidate(context) {
       confidence: candidate?.candidateConfidence || 'low',
     },
     blockedBy: Array.from(new Set(blockedBy)),
-    note: 'Phase 3-I-4 previews draft injection only. It does not mutate actual draft or persisted records.',
+    note: 'Phase 3-I-4 previews draft injection. Actual draft mutation requires an explicit separate flag.',
+  };
+}
+
+function buildActualDateDraftCandidateInjection(draft, context) {
+  const safeDraft = draft && typeof draft === 'object' ? draft : null;
+  const candidate = getCandidateFromContext(context);
+  const preview = buildDateDraftCandidate(context);
+  const blockedBy = [];
+  const enabled = isDateDraftCandidateActualInjectionEnabled();
+  const candidateDate = preview.draftCandidate?.record_date || '';
+  const candidateBranch = preview.draftCandidate?.branch || 'unknown';
+
+  if (!enabled) blockedBy.push('draft-actual-injection-flag-disabled');
+  if (!safeDraft) blockedBy.push('draft-not-object');
+  if (preview.canInjectDraftCandidate !== true) blockedBy.push('draft-candidate-not-injectable');
+  if (candidate?.canUseCandidate !== true) blockedBy.push('candidate-not-usable');
+  if (!candidateDate) blockedBy.push('missing-candidate-date');
+  if (candidateBranch !== 'create-by-selectedDate' && candidateBranch !== 'create-by-detected-date') {
+    blockedBy.push('not-new-record-branch');
+  }
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'draft-candidate-actual-injection',
+    enabled: enabled,
+    didInject: false,
+    canInject: blockedBy.length === 0,
+    candidateDate: candidateDate,
+    candidateSource: preview.draftCandidate?.source || 'none',
+    candidateBranch: candidateBranch,
+    candidateConfidence: preview.draftCandidate?.confidence || 'low',
+    previousRecordDate: safeDraft?.record_date || '',
+    previousId: safeDraft?.id || '',
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Mutates only the draft returned by buildDraftFromUI when every guard passes. Persist/sync paths remain unchanged.',
   };
 }
 
@@ -95,15 +159,37 @@ function summarizeDateDraftCandidate(history) {
   };
 }
 
-function recordDateDraftCandidate(context) {
-  const saveContext = context || getLastRecordSaveContext();
-  const preview = buildDateDraftCandidate(saveContext);
+function summarizeActualDateDraftCandidateInjection(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const branchCounts = {};
+  const sourceCounts = {};
 
-  draftCandidateHistory.push(preview);
-  while (draftCandidateHistory.length > HISTORY_LIMIT) {
-    draftCandidateHistory.shift();
-  }
+  list.forEach(function(item) {
+    const branch = item.candidateBranch || 'unknown';
+    const source = item.candidateSource || 'none';
+    branchCounts[branch] = (branchCounts[branch] || 0) + 1;
+    sourceCounts[source] = (sourceCounts[source] || 0) + 1;
 
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    enabledCount: list.filter(function(item) { return item.enabled === true; }).length,
+    injectableCount: list.filter(function(item) { return item.canInject === true; }).length,
+    injectedCount: list.filter(function(item) { return item.didInject === true; }).length,
+    blockedCount: list.filter(function(item) { return item.didInject !== true; }).length,
+    blockedByCounts: blockedByCounts,
+    branchCounts: branchCounts,
+    sourceCounts: sourceCounts,
+    recent: list.slice(-5),
+  };
+}
+
+function attachDraftCandidateToContext(saveContext, preview) {
   const summary = summarizeDateDraftCandidate(draftCandidateHistory);
 
   if (saveContext && typeof saveContext === 'object') {
@@ -122,8 +208,71 @@ function recordDateDraftCandidate(context) {
     }
   }
 
+  return summary;
+}
+
+function attachActualInjectionToContext(saveContext, injection) {
+  const summary = summarizeActualDateDraftCandidateInjection(actualInjectionHistory);
+
+  if (saveContext && typeof saveContext === 'object') {
+    if (!saveContext.meta || typeof saveContext.meta !== 'object') {
+      saveContext.meta = {};
+    }
+
+    saveContext.meta.dateDraftCandidateActualInjection = injection;
+    saveContext.meta.dateDraftCandidateActualInjectionSummary = summary;
+    saveContext.dateDraftCandidateActualInjection = injection;
+    saveContext.dateDraftCandidateActualInjectionSummary = summary;
+
+    if (saveContext.healthSummary && typeof saveContext.healthSummary === 'object') {
+      saveContext.healthSummary.dateDraftCandidateActualInjectionEnabled = injection.enabled === true;
+      saveContext.healthSummary.dateDraftCandidateActualInjectionDidInject = injection.didInject === true;
+      saveContext.healthSummary.dateDraftCandidateActualInjectionBlockedCount = summary.blockedCount;
+    }
+  }
+
+  return summary;
+}
+
+function recordDateDraftCandidate(context) {
+  const saveContext = context || getLastRecordSaveContext();
+  const preview = buildDateDraftCandidate(saveContext);
+
+  draftCandidateHistory.push(preview);
+  while (draftCandidateHistory.length > HISTORY_LIMIT) {
+    draftCandidateHistory.shift();
+  }
+
+  attachDraftCandidateToContext(saveContext, preview);
   trace('draft-candidate:recorded', preview);
   return preview;
+}
+
+function recordActualDateDraftCandidateInjection(injection, context) {
+  const saveContext = context || getLastRecordSaveContext();
+  actualInjectionHistory.push(injection);
+  while (actualInjectionHistory.length > INJECTION_HISTORY_LIMIT) {
+    actualInjectionHistory.shift();
+  }
+
+  attachActualInjectionToContext(saveContext, injection);
+  trace('draft-candidate:actual-injection:recorded', injection);
+  return injection;
+}
+
+function applyActualDateDraftCandidateInjection(draft, context) {
+  const saveContext = context || getLastRecordSaveContext();
+  const injection = buildActualDateDraftCandidateInjection(draft, saveContext);
+
+  if (injection.canInject === true) {
+    draft.record_date = injection.candidateDate;
+    draft.id = injection.candidateDate;
+    injection.didInject = true;
+    injection.injectedFields = ['record_date', 'id'];
+  }
+
+  recordActualDateDraftCandidateInjection(injection, saveContext);
+  return draft;
 }
 
 function getDateDraftCandidateHistory() {
@@ -139,6 +288,19 @@ function clearDateDraftCandidateHistory() {
   return getDateDraftCandidateSummary();
 }
 
+function getActualDateDraftCandidateInjectionHistory() {
+  return actualInjectionHistory.slice();
+}
+
+function getActualDateDraftCandidateInjectionSummary() {
+  return summarizeActualDateDraftCandidateInjection(actualInjectionHistory);
+}
+
+function clearActualDateDraftCandidateInjectionHistory() {
+  actualInjectionHistory.splice(0, actualInjectionHistory.length);
+  return getActualDateDraftCandidateInjectionSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoDateDraftCandidateObserved === true) return;
@@ -148,14 +310,21 @@ function wrapVerifyLastRecordSave() {
     const context = getLastRecordSaveContext();
     const preview = context?.dateDraftCandidate || context?.meta?.dateDraftCandidate || null;
     const summary = getDateDraftCandidateSummary();
+    const actualInjection = context?.dateDraftCandidateActualInjection || context?.meta?.dateDraftCandidateActualInjection || null;
+    const actualInjectionSummary = getActualDateDraftCandidateInjectionSummary();
 
     if (result && typeof result === 'object') {
       result.dateDraftCandidate = preview;
       result.dateDraftCandidateSummary = summary;
+      result.dateDraftCandidateActualInjection = actualInjection;
+      result.dateDraftCandidateActualInjectionSummary = actualInjectionSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateDraftCandidateInjectable = preview?.canInjectDraftCandidate === true;
         result.healthSummary.dateDraftCandidateBlockedCount = summary.blockedCount;
+        result.healthSummary.dateDraftCandidateActualInjectionEnabled = actualInjection?.enabled === true;
+        result.healthSummary.dateDraftCandidateActualInjectionDidInject = actualInjection?.didInject === true;
+        result.healthSummary.dateDraftCandidateActualInjectionBlockedCount = actualInjectionSummary.blockedCount;
       }
     }
 
@@ -195,16 +364,37 @@ function wrapSaveRecordScreen() {
   return true;
 }
 
+function wrapBuildDraftFromUI() {
+  const current = window.buildDraftFromUI;
+  if (typeof current !== 'function') return false;
+  if (current[BUILD_DRAFT_WRAP_FLAG] === true) return true;
+
+  function dateDraftCandidateBuildDraftFromUI() {
+    const draft = current.apply(this, arguments);
+    return applyActualDateDraftCandidateInjection(draft, getLastRecordSaveContext());
+  }
+
+  dateDraftCandidateBuildDraftFromUI[BUILD_DRAFT_WRAP_FLAG] = true;
+  dateDraftCandidateBuildDraftFromUI.__ippoOriginal = current;
+  window.buildDraftFromUI = dateDraftCandidateBuildDraftFromUI;
+  trace('buildDraftFromUI:draft-candidate-actual-injection:installed');
+  return true;
+}
+
 function installDateDraftCandidate() {
   wrapVerifyLastRecordSave();
 
-  if (wrapSaveRecordScreen()) return true;
+  const saveWrapped = wrapSaveRecordScreen();
+  const draftWrapped = wrapBuildDraftFromUI();
+  if (saveWrapped && draftWrapped) return true;
 
   let attempts = 0;
   const timer = window.setInterval(function() {
     attempts++;
     wrapVerifyLastRecordSave();
-    if (wrapSaveRecordScreen() || attempts >= 20) {
+    const didWrapSave = wrapSaveRecordScreen();
+    const didWrapDraft = wrapBuildDraftFromUI();
+    if ((didWrapSave && didWrapDraft) || attempts >= 20) {
       window.clearInterval(timer);
     }
   }, 250);
@@ -214,26 +404,47 @@ function installDateDraftCandidate() {
 
 export {
   buildDateDraftCandidate,
+  buildActualDateDraftCandidateInjection,
   recordDateDraftCandidate,
+  applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
+  summarizeActualDateDraftCandidateInjection,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
+  getActualDateDraftCandidateInjectionHistory,
+  getActualDateDraftCandidateInjectionSummary,
+  clearActualDateDraftCandidateInjectionHistory,
+  isDateDraftCandidateActualInjectionEnabled,
+  setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
 };
 
 window.ippoRecordDateDraftCandidate = Object.freeze({
   buildDateDraftCandidate,
+  buildActualDateDraftCandidateInjection,
   recordDateDraftCandidate,
+  applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
+  summarizeActualDateDraftCandidateInjection,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
+  getActualDateDraftCandidateInjectionHistory,
+  getActualDateDraftCandidateInjectionSummary,
+  clearActualDateDraftCandidateInjectionHistory,
+  isDateDraftCandidateActualInjectionEnabled,
+  setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
 });
 
 window.ippoDateDraftCandidateHistory = getDateDraftCandidateHistory;
 window.ippoDateDraftCandidateSummary = getDateDraftCandidateSummary;
 window.ippoClearDateDraftCandidateHistory = clearDateDraftCandidateHistory;
+window.ippoActualDateDraftCandidateInjectionHistory = getActualDateDraftCandidateInjectionHistory;
+window.ippoActualDateDraftCandidateInjectionSummary = getActualDateDraftCandidateInjectionSummary;
+window.ippoClearActualDateDraftCandidateInjectionHistory = clearActualDateDraftCandidateInjectionHistory;
+window.ippoIsDateDraftCandidateActualInjectionEnabled = isDateDraftCandidateActualInjectionEnabled;
+window.ippoSetDateDraftCandidateActualInjectionEnabled = setDateDraftCandidateActualInjectionEnabled;
 
 installDateDraftCandidate();
