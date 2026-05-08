@@ -111,6 +111,9 @@ import './modules/record-edit-merge.js';
 // 編集画面 hydration 補正
 import './modules/record-edit-hydrate.js';
 
+// onboarding / welcome reset guard
+import './modules/welcome-reset-guard.js';
+
 // ─── Services ────────────────────────────────────────────
 // supabase は stripe より先に import（stripe が supabase に依存）
 import { supabase, SUPABASE_URL } from './services/supabase.js';
