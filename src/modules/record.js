@@ -18,6 +18,7 @@ import {
   notifyRecordUpdated,
   finalizeRecordSaveContext,
   verifyRecordSaveContext,
+  getRecordSaveNotifyCandidates,
 } from './record-save-pipeline.js';
 
 let lastRecordSaveContext = null;
@@ -75,24 +76,22 @@ const RECORD_SYNC_DELEGATE_NAMES = [
   'cloudBackupAll',
 ];
 
-const RECORD_NOTIFY_DELEGATE_NAMES = [
-  'buildCalendar',
-  'renderCalendar',
-  'renderHome',
-  'updateHome',
-  'updateStats',
-];
+function getRecordNotifyDelegateNames() {
+  return getRecordSaveNotifyCandidates();
+}
 
-const RECORD_SAVE_DELEGATE_NAMES = [
-  ...RECORD_PERSIST_DELEGATE_NAMES,
-  ...RECORD_SYNC_DELEGATE_NAMES,
-  ...RECORD_NOTIFY_DELEGATE_NAMES,
-];
+function getRecordSaveDelegateNames() {
+  return [
+    ...RECORD_PERSIST_DELEGATE_NAMES,
+    ...RECORD_SYNC_DELEGATE_NAMES,
+    ...getRecordNotifyDelegateNames(),
+  ];
+}
 
 function captureRecordSaveDelegates() {
   const originals = {};
 
-  RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
+  getRecordSaveDelegateNames().forEach(function(name) {
     originals[name] = window[name];
   });
 
@@ -100,7 +99,7 @@ function captureRecordSaveDelegates() {
 }
 
 function restoreRecordSaveDelegates(originals) {
-  RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
+  getRecordSaveDelegateNames().forEach(function(name) {
     if (originals[name] === undefined) {
       try { delete window[name]; } catch(e) { window[name] = undefined; }
     } else {
@@ -132,7 +131,7 @@ function installRecordSaveDelegates(originals, context) {
     };
   }
 
-  RECORD_NOTIFY_DELEGATE_NAMES.forEach(function(name) {
+  getRecordNotifyDelegateNames().forEach(function(name) {
     if (typeof originals[name] !== 'function') return;
 
     window[name] = function delegatedRecordUpdateNotify() {
