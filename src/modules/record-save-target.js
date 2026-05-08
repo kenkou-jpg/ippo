@@ -1,11 +1,11 @@
 // ============================================================
 //  ippo – src/modules/record-save-target.js
-//  Phase 3-J-1: saveRecordScreen thin-orchestrator scaffold
+//  Phase 3-J: saveRecordScreen thin-orchestrator scaffold
 //
 //  目的:
-//  - saveRecordScreen 薄型化の最初の受け皿を作る
-//  - buildDraftFromUI の返却draftを観測する
-//  - resolveSaveTarget の preview を active save context に記録する
+//  - saveRecordScreen 薄型化の受け皿を作る
+//  - resolveSaveTarget() を orchestration API として公開する
+//  - prepareRecordPersistence() scaffold を追加する
 //  - この段階では draft / state.records / localStorage / Supabase は変更しない
 // ============================================================
 
@@ -153,7 +153,51 @@ function resolveSaveTargetFromDraft(draft, context) {
     uniqueDates: uniqueDates,
     blockedBy: Array.from(new Set(blockedBy)),
     warnings: Array.from(new Set(warnings)),
-    note: 'Phase 3-J-1 previews resolveSaveTarget only. It does not mutate draft, records, localStorage, or Supabase.',
+    note: 'Phase 3-J previews resolveSaveTarget only. It does not mutate draft, records, localStorage, or Supabase.',
+  };
+}
+
+function resolveSaveTarget(options) {
+  const opts = options || {};
+  const saveContext = opts.context || getActiveRecordSaveContext();
+  const draft = opts.draft;
+  const preview = resolveSaveTargetFromDraft(draft, saveContext);
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'resolve-save-target-scaffold',
+    targetDate: preview.targetDate,
+    targetSource: preview.targetSource,
+    saveMode: preview.saveMode,
+    existingRecordFound: preview.existingRecordFound,
+    existingRecordDate: preview.existingRecordDate,
+    preview: preview,
+    canResolve: preview.canUsePreview === true,
+    note: 'Scaffold only. Existing save flow still resolves save target inside saveRecordScreen.',
+  };
+}
+
+function prepareRecordPersistence(options) {
+  const opts = options || {};
+  const saveContext = opts.context || getActiveRecordSaveContext();
+  const draft = opts.draft || null;
+  const resolvedTarget = opts.resolvedTarget || resolveSaveTarget({
+    draft: draft,
+    context: saveContext,
+  });
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'prepare-record-persistence-scaffold',
+    canPrepare: resolvedTarget.canResolve === true,
+    saveMode: resolvedTarget.saveMode,
+    targetDate: resolvedTarget.targetDate,
+    targetSource: resolvedTarget.targetSource,
+    existingRecordFound: resolvedTarget.existingRecordFound,
+    persistenceStrategy: resolvedTarget.saveMode === 'edit'
+      ? 'merge-existing-record'
+      : (resolvedTarget.existingRecordFound ? 'safe-upsert-existing-date' : 'safe-create-record'),
+    note: 'Scaffold only. Existing persistence still runs inside saveRecordScreen and record-save-pipeline.',
   };
 }
 
@@ -307,6 +351,8 @@ function installRecordSaveTargetPreview() {
 export {
   summarizeDraftForSaveTarget,
   resolveSaveTargetFromDraft,
+  resolveSaveTarget,
+  prepareRecordPersistence,
   recordSaveTargetPreview,
   summarizeRecordSaveTarget,
   getRecordSaveTargetHistory,
@@ -318,6 +364,8 @@ export {
 window.ippoRecordSaveTarget = Object.freeze({
   summarizeDraftForSaveTarget,
   resolveSaveTargetFromDraft,
+  resolveSaveTarget,
+  prepareRecordPersistence,
   recordSaveTargetPreview,
   summarizeRecordSaveTarget,
   getRecordSaveTargetHistory,
@@ -326,6 +374,8 @@ window.ippoRecordSaveTarget = Object.freeze({
   installRecordSaveTargetPreview,
 });
 
+window.ippoResolveSaveTarget = resolveSaveTarget;
+window.ippoPrepareRecordPersistence = prepareRecordPersistence;
 window.ippoRecordSaveTargetHistory = getRecordSaveTargetHistory;
 window.ippoRecordSaveTargetSummary = getRecordSaveTargetSummary;
 window.ippoClearRecordSaveTargetHistory = clearRecordSaveTargetHistory;
