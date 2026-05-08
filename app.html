@@ -34,6 +34,21 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/src/styles/app.css">
+
+<script>
+  // Legacy boot guard: app.html inline scripts run before Vite modules.
+  window.DISEASE_CONFIG = window.DISEASE_CONFIG || {};
+  window.supabase = window.supabase || null;
+  window.SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+
+  window.__ippoViteReady = false;
+  window.addEventListener('DOMContentLoaded', function() {
+    window.setTimeout(function() {
+      window.__ippoViteReady = !!window.ippoWelcomeResetGuardSummary;
+    }, 0);
+  });
+</script>
+  
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
