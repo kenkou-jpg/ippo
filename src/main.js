@@ -31,6 +31,9 @@ import {
   disableRecordTrace,
 } from './modules/record.js';
 
+// 編集保存時の既存record保護
+import './modules/record-edit-merge.js';
+
 // ─── Services ────────────────────────────────────────────
 // supabase は stripe より先に import（stripe が supabase に依存）
 import { supabase, SUPABASE_URL } from './services/supabase.js';
