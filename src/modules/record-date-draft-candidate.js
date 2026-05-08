@@ -1,21 +1,30 @@
 // ============================================================
 //  ippo – src/modules/record-date-draft-candidate.js
-//  Phase 3-I-4: draft candidate injection layer
+//  Phase 3-I-4/5: draft candidate injection layer
 //
 //  目的:
 //  - limited real adoption candidate から draft candidate を生成する
 //  - preview は save context に記録する
 //  - explicit flag ON の限定ケースだけ buildDraftFromUI の返却draftへ実注入する
+//  - 実注入は active save context がある保存中だけ許可する
+//  - 保存完了後に injected draft と persisted record を shadow compare する
 //  - saveRecordScreen / state.records / localStorage / Supabase の保存経路は直接変更しない
 // ============================================================
+
+import {
+  findRecordByDate,
+  getRecordDate,
+} from './record-repository.js';
 
 const WRAP_FLAG = '__ippoDateDraftCandidateObserved';
 const BUILD_DRAFT_WRAP_FLAG = '__ippoDateDraftCandidateBuildDraftWrapped';
 const HISTORY_LIMIT = 20;
 const INJECTION_HISTORY_LIMIT = 20;
+const SHADOW_COMPARE_HISTORY_LIMIT = 20;
 const ACTUAL_INJECTION_FLAG = 'ippo_enable_date_draft_candidate_actual_injection';
 const draftCandidateHistory = [];
 const actualInjectionHistory = [];
+const shadowCompareHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -41,6 +50,15 @@ function getLastRecordSaveContext() {
   return window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ || null;
 }
 
+function getActiveRecordSaveContext() {
+  try {
+    if (typeof window.ippoActiveRecordSaveContext === 'function') {
+      return window.ippoActiveRecordSaveContext();
+    }
+  } catch(e) {}
+  return window.__IPPO_ACTIVE_RECORD_SAVE_CONTEXT__ || null;
+}
+
 function isDateDraftCandidateActualInjectionEnabled() {
   try {
     return localStorage.getItem(ACTUAL_INJECTION_FLAG) === '1'
@@ -63,14 +81,14 @@ function setDateDraftCandidateActualInjectionEnabled(enabled) {
 }
 
 function getCandidateFromContext(context) {
-  const safeContext = context || getLastRecordSaveContext() || {};
+  const safeContext = context || {};
   return safeContext.limitedDateRealAdoptionCandidate
     || safeContext.meta?.limitedDateRealAdoptionCandidate
     || null;
 }
 
 function buildDateDraftCandidate(context) {
-  const candidate = getCandidateFromContext(context);
+  const candidate = getCandidateFromContext(context || getLastRecordSaveContext());
   const blockedBy = [];
 
   if (candidate?.canUseCandidate !== true) {
@@ -92,20 +110,22 @@ function buildDateDraftCandidate(context) {
       confidence: candidate?.candidateConfidence || 'low',
     },
     blockedBy: Array.from(new Set(blockedBy)),
-    note: 'Phase 3-I-4 previews draft injection. Actual draft mutation requires an explicit separate flag.',
+    note: 'Phase 3-I-4 previews draft injection. Actual draft mutation requires active save context and an explicit separate flag.',
   };
 }
 
 function buildActualDateDraftCandidateInjection(draft, context) {
   const safeDraft = draft && typeof draft === 'object' ? draft : null;
-  const candidate = getCandidateFromContext(context);
-  const preview = buildDateDraftCandidate(context);
+  const activeContext = context || null;
+  const candidate = getCandidateFromContext(activeContext);
+  const preview = buildDateDraftCandidate(activeContext || {});
   const blockedBy = [];
   const enabled = isDateDraftCandidateActualInjectionEnabled();
   const candidateDate = preview.draftCandidate?.record_date || '';
   const candidateBranch = preview.draftCandidate?.branch || 'unknown';
 
   if (!enabled) blockedBy.push('draft-actual-injection-flag-disabled');
+  if (!activeContext) blockedBy.push('missing-active-save-context');
   if (!safeDraft) blockedBy.push('draft-not-object');
   if (preview.canInjectDraftCandidate !== true) blockedBy.push('draft-candidate-not-injectable');
   if (candidate?.canUseCandidate !== true) blockedBy.push('candidate-not-usable');
@@ -118,6 +138,7 @@ function buildActualDateDraftCandidateInjection(draft, context) {
     recordedAt: new Date().toISOString(),
     mode: 'draft-candidate-actual-injection',
     enabled: enabled,
+    hasActiveContext: !!activeContext,
     didInject: false,
     canInject: blockedBy.length === 0,
     candidateDate: candidateDate,
@@ -127,7 +148,43 @@ function buildActualDateDraftCandidateInjection(draft, context) {
     previousRecordDate: safeDraft?.record_date || '',
     previousId: safeDraft?.id || '',
     blockedBy: Array.from(new Set(blockedBy)),
-    note: 'Mutates only the draft returned by buildDraftFromUI when every guard passes. Persist/sync paths remain unchanged.',
+    note: 'Mutates only the draft returned by buildDraftFromUI during an active save when every guard passes. Persist/sync paths remain unchanged.',
+  };
+}
+
+function buildDraftPersistShadowCompare(context) {
+  const safeContext = context || getLastRecordSaveContext() || {};
+  const injection = safeContext.dateDraftCandidateActualInjection
+    || safeContext.meta?.dateDraftCandidateActualInjection
+    || null;
+  const blockedBy = [];
+  const candidateDate = injection?.candidateDate || '';
+  const didInject = injection?.didInject === true;
+  let persistedRecord = null;
+  let persistedDate = '';
+
+  if (!injection) blockedBy.push('missing-actual-injection');
+  if (!didInject) blockedBy.push('draft-not-injected');
+  if (!candidateDate) blockedBy.push('missing-candidate-date');
+
+  if (candidateDate) {
+    persistedRecord = findRecordByDate(candidateDate);
+    persistedDate = getRecordDate(persistedRecord);
+    if (!persistedRecord) blockedBy.push('persisted-record-not-found');
+    if (persistedRecord && persistedDate !== candidateDate) blockedBy.push('persisted-date-mismatch');
+  }
+
+  return {
+    recordedAt: new Date().toISOString(),
+    mode: 'draft-persist-shadow-compare',
+    comparable: didInject && !!candidateDate,
+    matched: didInject && !!candidateDate && !!persistedRecord && persistedDate === candidateDate,
+    candidateDate: candidateDate,
+    persistedDate: persistedDate,
+    persistedRecordFound: !!persistedRecord,
+    injection: injection,
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Compares the injected draft date with the record visible through record repository after save. It does not mutate records.',
   };
 }
 
@@ -179,12 +236,33 @@ function summarizeActualDateDraftCandidateInjection(history) {
   return {
     count: list.length,
     enabledCount: list.filter(function(item) { return item.enabled === true; }).length,
+    activeContextCount: list.filter(function(item) { return item.hasActiveContext === true; }).length,
     injectableCount: list.filter(function(item) { return item.canInject === true; }).length,
     injectedCount: list.filter(function(item) { return item.didInject === true; }).length,
     blockedCount: list.filter(function(item) { return item.didInject !== true; }).length,
     blockedByCounts: blockedByCounts,
     branchCounts: branchCounts,
     sourceCounts: sourceCounts,
+    recent: list.slice(-5),
+  };
+}
+
+function summarizeDraftPersistShadowCompare(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+
+  list.forEach(function(item) {
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    comparableCount: list.filter(function(item) { return item.comparable === true; }).length,
+    matchedCount: list.filter(function(item) { return item.matched === true; }).length,
+    blockedCount: list.filter(function(item) { return item.matched !== true; }).length,
+    blockedByCounts: blockedByCounts,
     recent: list.slice(-5),
   };
 }
@@ -226,8 +304,32 @@ function attachActualInjectionToContext(saveContext, injection) {
 
     if (saveContext.healthSummary && typeof saveContext.healthSummary === 'object') {
       saveContext.healthSummary.dateDraftCandidateActualInjectionEnabled = injection.enabled === true;
+      saveContext.healthSummary.dateDraftCandidateActualInjectionHasActiveContext = injection.hasActiveContext === true;
       saveContext.healthSummary.dateDraftCandidateActualInjectionDidInject = injection.didInject === true;
       saveContext.healthSummary.dateDraftCandidateActualInjectionBlockedCount = summary.blockedCount;
+    }
+  }
+
+  return summary;
+}
+
+function attachDraftPersistShadowCompareToContext(saveContext, compare) {
+  const summary = summarizeDraftPersistShadowCompare(shadowCompareHistory);
+
+  if (saveContext && typeof saveContext === 'object') {
+    if (!saveContext.meta || typeof saveContext.meta !== 'object') {
+      saveContext.meta = {};
+    }
+
+    saveContext.meta.dateDraftPersistShadowCompare = compare;
+    saveContext.meta.dateDraftPersistShadowCompareSummary = summary;
+    saveContext.dateDraftPersistShadowCompare = compare;
+    saveContext.dateDraftPersistShadowCompareSummary = summary;
+
+    if (saveContext.healthSummary && typeof saveContext.healthSummary === 'object') {
+      saveContext.healthSummary.dateDraftPersistShadowComparable = compare.comparable === true;
+      saveContext.healthSummary.dateDraftPersistShadowMatched = compare.matched === true;
+      saveContext.healthSummary.dateDraftPersistShadowBlockedCount = summary.blockedCount;
     }
   }
 
@@ -249,7 +351,7 @@ function recordDateDraftCandidate(context) {
 }
 
 function recordActualDateDraftCandidateInjection(injection, context) {
-  const saveContext = context || getLastRecordSaveContext();
+  const saveContext = context || getActiveRecordSaveContext();
   actualInjectionHistory.push(injection);
   while (actualInjectionHistory.length > INJECTION_HISTORY_LIMIT) {
     actualInjectionHistory.shift();
@@ -260,9 +362,22 @@ function recordActualDateDraftCandidateInjection(injection, context) {
   return injection;
 }
 
-function applyActualDateDraftCandidateInjection(draft, context) {
+function recordDraftPersistShadowCompare(context) {
   const saveContext = context || getLastRecordSaveContext();
-  const injection = buildActualDateDraftCandidateInjection(draft, saveContext);
+  const compare = buildDraftPersistShadowCompare(saveContext);
+  shadowCompareHistory.push(compare);
+  while (shadowCompareHistory.length > SHADOW_COMPARE_HISTORY_LIMIT) {
+    shadowCompareHistory.shift();
+  }
+
+  attachDraftPersistShadowCompareToContext(saveContext, compare);
+  trace('draft-persist-shadow-compare:recorded', compare);
+  return compare;
+}
+
+function applyActualDateDraftCandidateInjection(draft, context) {
+  const activeContext = context || getActiveRecordSaveContext();
+  const injection = buildActualDateDraftCandidateInjection(draft, activeContext);
 
   if (injection.canInject === true) {
     draft.record_date = injection.candidateDate;
@@ -271,7 +386,7 @@ function applyActualDateDraftCandidateInjection(draft, context) {
     injection.injectedFields = ['record_date', 'id'];
   }
 
-  recordActualDateDraftCandidateInjection(injection, saveContext);
+  recordActualDateDraftCandidateInjection(injection, activeContext);
   return draft;
 }
 
@@ -301,6 +416,19 @@ function clearActualDateDraftCandidateInjectionHistory() {
   return getActualDateDraftCandidateInjectionSummary();
 }
 
+function getDraftPersistShadowCompareHistory() {
+  return shadowCompareHistory.slice();
+}
+
+function getDraftPersistShadowCompareSummary() {
+  return summarizeDraftPersistShadowCompare(shadowCompareHistory);
+}
+
+function clearDraftPersistShadowCompareHistory() {
+  shadowCompareHistory.splice(0, shadowCompareHistory.length);
+  return getDraftPersistShadowCompareSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoDateDraftCandidateObserved === true) return;
@@ -312,19 +440,27 @@ function wrapVerifyLastRecordSave() {
     const summary = getDateDraftCandidateSummary();
     const actualInjection = context?.dateDraftCandidateActualInjection || context?.meta?.dateDraftCandidateActualInjection || null;
     const actualInjectionSummary = getActualDateDraftCandidateInjectionSummary();
+    const shadowCompare = context?.dateDraftPersistShadowCompare || context?.meta?.dateDraftPersistShadowCompare || null;
+    const shadowCompareSummary = getDraftPersistShadowCompareSummary();
 
     if (result && typeof result === 'object') {
       result.dateDraftCandidate = preview;
       result.dateDraftCandidateSummary = summary;
       result.dateDraftCandidateActualInjection = actualInjection;
       result.dateDraftCandidateActualInjectionSummary = actualInjectionSummary;
+      result.dateDraftPersistShadowCompare = shadowCompare;
+      result.dateDraftPersistShadowCompareSummary = shadowCompareSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateDraftCandidateInjectable = preview?.canInjectDraftCandidate === true;
         result.healthSummary.dateDraftCandidateBlockedCount = summary.blockedCount;
         result.healthSummary.dateDraftCandidateActualInjectionEnabled = actualInjection?.enabled === true;
+        result.healthSummary.dateDraftCandidateActualInjectionHasActiveContext = actualInjection?.hasActiveContext === true;
         result.healthSummary.dateDraftCandidateActualInjectionDidInject = actualInjection?.didInject === true;
         result.healthSummary.dateDraftCandidateActualInjectionBlockedCount = actualInjectionSummary.blockedCount;
+        result.healthSummary.dateDraftPersistShadowComparable = shadowCompare?.comparable === true;
+        result.healthSummary.dateDraftPersistShadowMatched = shadowCompare?.matched === true;
+        result.healthSummary.dateDraftPersistShadowBlockedCount = shadowCompareSummary.blockedCount;
       }
     }
 
@@ -345,15 +481,21 @@ function wrapSaveRecordScreen() {
 
     if (result && typeof result.then === 'function') {
       return result.then(function(value) {
-        recordDateDraftCandidate(getLastRecordSaveContext());
+        const context = getLastRecordSaveContext();
+        recordDateDraftCandidate(context);
+        recordDraftPersistShadowCompare(context);
         return value;
       }).catch(function(error) {
-        recordDateDraftCandidate(getLastRecordSaveContext());
+        const context = getLastRecordSaveContext();
+        recordDateDraftCandidate(context);
+        recordDraftPersistShadowCompare(context);
         throw error;
       });
     }
 
-    recordDateDraftCandidate(getLastRecordSaveContext());
+    const context = getLastRecordSaveContext();
+    recordDateDraftCandidate(context);
+    recordDraftPersistShadowCompare(context);
     return result;
   }
 
@@ -371,7 +513,7 @@ function wrapBuildDraftFromUI() {
 
   function dateDraftCandidateBuildDraftFromUI() {
     const draft = current.apply(this, arguments);
-    return applyActualDateDraftCandidateInjection(draft, getLastRecordSaveContext());
+    return applyActualDateDraftCandidateInjection(draft, getActiveRecordSaveContext());
   }
 
   dateDraftCandidateBuildDraftFromUI[BUILD_DRAFT_WRAP_FLAG] = true;
@@ -405,16 +547,22 @@ function installDateDraftCandidate() {
 export {
   buildDateDraftCandidate,
   buildActualDateDraftCandidateInjection,
+  buildDraftPersistShadowCompare,
   recordDateDraftCandidate,
+  recordDraftPersistShadowCompare,
   applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
   summarizeActualDateDraftCandidateInjection,
+  summarizeDraftPersistShadowCompare,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
   getActualDateDraftCandidateInjectionHistory,
   getActualDateDraftCandidateInjectionSummary,
   clearActualDateDraftCandidateInjectionHistory,
+  getDraftPersistShadowCompareHistory,
+  getDraftPersistShadowCompareSummary,
+  clearDraftPersistShadowCompareHistory,
   isDateDraftCandidateActualInjectionEnabled,
   setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
@@ -423,16 +571,22 @@ export {
 window.ippoRecordDateDraftCandidate = Object.freeze({
   buildDateDraftCandidate,
   buildActualDateDraftCandidateInjection,
+  buildDraftPersistShadowCompare,
   recordDateDraftCandidate,
+  recordDraftPersistShadowCompare,
   applyActualDateDraftCandidateInjection,
   summarizeDateDraftCandidate,
   summarizeActualDateDraftCandidateInjection,
+  summarizeDraftPersistShadowCompare,
   getDateDraftCandidateHistory,
   getDateDraftCandidateSummary,
   clearDateDraftCandidateHistory,
   getActualDateDraftCandidateInjectionHistory,
   getActualDateDraftCandidateInjectionSummary,
   clearActualDateDraftCandidateInjectionHistory,
+  getDraftPersistShadowCompareHistory,
+  getDraftPersistShadowCompareSummary,
+  clearDraftPersistShadowCompareHistory,
   isDateDraftCandidateActualInjectionEnabled,
   setDateDraftCandidateActualInjectionEnabled,
   installDateDraftCandidate,
@@ -444,6 +598,9 @@ window.ippoClearDateDraftCandidateHistory = clearDateDraftCandidateHistory;
 window.ippoActualDateDraftCandidateInjectionHistory = getActualDateDraftCandidateInjectionHistory;
 window.ippoActualDateDraftCandidateInjectionSummary = getActualDateDraftCandidateInjectionSummary;
 window.ippoClearActualDateDraftCandidateInjectionHistory = clearActualDateDraftCandidateInjectionHistory;
+window.ippoDraftPersistShadowCompareHistory = getDraftPersistShadowCompareHistory;
+window.ippoDraftPersistShadowCompareSummary = getDraftPersistShadowCompareSummary;
+window.ippoClearDraftPersistShadowCompareHistory = clearDraftPersistShadowCompareHistory;
 window.ippoIsDateDraftCandidateActualInjectionEnabled = isDateDraftCandidateActualInjectionEnabled;
 window.ippoSetDateDraftCandidateActualInjectionEnabled = setDateDraftCandidateActualInjectionEnabled;
 
