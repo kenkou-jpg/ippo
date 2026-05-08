@@ -11,6 +11,14 @@
 //  - trace は console 出力のみで保存処理へ介入しない
 // ============================================================
 
+import {
+  createRecordSaveContext,
+  persistRecordState,
+  syncRecordCloud,
+  notifyRecordUpdated,
+  finalizeRecordSaveContext,
+} from './record-save-pipeline.js';
+
 function isRecordTraceEnabled() {
   try {
     return localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true;
@@ -56,6 +64,75 @@ function callExistingFunction(name, args) {
   return undefined;
 }
 
+const RECORD_SAVE_DELEGATE_NAMES = [
+  'saveState',
+  'cloudBackupAll',
+  'buildCalendar',
+  'renderCalendar',
+  'renderHome',
+  'updateHome',
+  'updateStats',
+];
+
+function withRecordSavePipelineDelegates(callback) {
+  const originals = {};
+
+  RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
+    originals[name] = window[name];
+  });
+
+  if (typeof originals.saveState === 'function') {
+    window.saveState = function delegatedSaveState() {
+      return persistRecordState({
+        saveState: originals.saveState,
+        thisArg: this,
+        arguments: arguments,
+      });
+    };
+  }
+
+  if (typeof originals.cloudBackupAll === 'function') {
+    window.cloudBackupAll = function delegatedCloudBackupAll() {
+      return syncRecordCloud({
+        cloudBackupAll: originals.cloudBackupAll,
+        thisArg: this,
+        arguments: arguments,
+      });
+    };
+  }
+
+  [
+    'buildCalendar',
+    'renderCalendar',
+    'renderHome',
+    'updateHome',
+    'updateStats',
+  ].forEach(function(name) {
+    if (typeof originals[name] !== 'function') return;
+
+    window[name] = function delegatedRecordUpdateNotify() {
+      return notifyRecordUpdated({
+        candidates: [name],
+        functions: originals,
+        thisArg: this,
+        arguments: arguments,
+      });
+    };
+  });
+
+  try {
+    return callback();
+  } finally {
+    RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
+      if (originals[name] === undefined) {
+        try { delete window[name]; } catch(e) { window[name] = undefined; }
+      } else {
+        window[name] = originals[name];
+      }
+    });
+  }
+}
+
 function wrapSaveRecordScreen() {
   const fn = window.saveRecordScreen;
   if (typeof fn !== 'function') {
@@ -68,31 +145,38 @@ function wrapSaveRecordScreen() {
   }
 
   function tracedSaveRecordScreen() {
+    const context = createRecordSaveContext('saveRecordScreen');
     traceRecord('saveRecordScreen:start', getRecordTraceSnapshot());
 
     try {
-      const result = fn.apply(this, arguments);
+      const result = withRecordSavePipelineDelegates(function() {
+        return fn.apply(this, arguments);
+      }.bind(this, ...arguments));
 
       if (result && typeof result.then === 'function') {
         return result.then(function(value) {
           traceRecord('saveRecordScreen:resolved', getRecordTraceSnapshot());
+          finalizeRecordSaveContext(context, 'saveRecordScreen:resolved');
           return value;
         }).catch(function(error) {
           traceRecord('saveRecordScreen:rejected', {
             snapshot: getRecordTraceSnapshot(),
             message: error && error.message,
           });
+          finalizeRecordSaveContext(context, 'saveRecordScreen:rejected');
           throw error;
         });
       }
 
       traceRecord('saveRecordScreen:end', getRecordTraceSnapshot());
+      finalizeRecordSaveContext(context, 'saveRecordScreen:end');
       return result;
     } catch(error) {
       traceRecord('saveRecordScreen:thrown', {
         snapshot: getRecordTraceSnapshot(),
         message: error && error.message,
       });
+      finalizeRecordSaveContext(context, 'saveRecordScreen:thrown');
       throw error;
     }
   }

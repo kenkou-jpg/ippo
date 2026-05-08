@@ -28,6 +28,23 @@ function trace(label, detail) {
   } catch(e) {}
 }
 
+function getCallable(options, name) {
+  if (options && typeof options[name] === 'function') {
+    return options[name];
+  }
+  return window[name];
+}
+
+function getCallArguments(options, fallbackArguments) {
+  if (options && options.arguments) {
+    return Array.prototype.slice.call(options.arguments);
+  }
+  if (fallbackArguments) {
+    return Array.prototype.slice.call(fallbackArguments);
+  }
+  return [];
+}
+
 export function createRecordSaveContext(label) {
   const context = {
     label: label || '',
@@ -62,40 +79,44 @@ export function prepareRecordUpsertInPlace(records, nextRecord, options) {
   return result;
 }
 
-export function persistRecordState() {
+export function persistRecordState(options) {
   trace('persist:start', getRecordsSnapshot());
 
   try {
-    if (typeof window.saveState === 'function') {
-      window.saveState();
+    const saveState = getCallable(options, 'saveState');
+    if (typeof saveState === 'function') {
+      const result = saveState.apply((options && options.thisArg) || window, getCallArguments(options));
       trace('persist:saveState:done', getRecordsSnapshot());
-      return true;
+      return result === undefined ? true : result;
     }
   } catch(error) {
     trace('persist:saveState:error', error && error.message);
+    throw error;
   }
 
   return false;
 }
 
-export function syncRecordCloud() {
+export function syncRecordCloud(options) {
   trace('sync:start', getRecordsSnapshot());
 
   try {
-    if (typeof window.cloudBackupAll === 'function') {
-      const result = window.cloudBackupAll();
+    const cloudBackupAll = getCallable(options, 'cloudBackupAll');
+    if (typeof cloudBackupAll === 'function') {
+      const result = cloudBackupAll.apply((options && options.thisArg) || window, getCallArguments(options));
       trace('sync:cloudBackupAll:called', getRecordsSnapshot());
       return result;
     }
   } catch(error) {
     trace('sync:cloudBackupAll:error', error && error.message);
+    throw error;
   }
 
   return undefined;
 }
 
-export function notifyRecordUpdated() {
-  const renderCandidates = [
+export function notifyRecordUpdated(options) {
+  const defaultCandidates = [
     'buildCalendar',
     'renderCalendar',
     'renderHome',
@@ -103,16 +124,25 @@ export function notifyRecordUpdated() {
     'updateStats',
   ];
 
+  const renderCandidates = (options && Array.isArray(options.candidates) && options.candidates.length)
+    ? options.candidates
+    : defaultCandidates;
+
   const called = [];
 
   renderCandidates.forEach(function(name) {
     try {
-      if (typeof window[name] === 'function') {
-        window[name]();
+      const fn = options && options.functions && typeof options.functions[name] === 'function'
+        ? options.functions[name]
+        : window[name];
+
+      if (typeof fn === 'function') {
+        fn.apply((options && options.thisArg) || window, getCallArguments(options));
         called.push(name);
       }
     } catch(error) {
       trace('notify:error:' + name, error && error.message);
+      throw error;
     }
   });
 
