@@ -6,15 +6,12 @@
 // - 利用開始済みユーザーを welcome へ戻さない
 // - load/sync/render後の accidental reset を防ぐ
 // - onboarding未完了ユーザーだけ welcome を許可
-// - hotfix guard群を確実に読み込む
+// - optional record guards の 404 で welcome guard 自体が止まらないようにする
 // ============================================================
 
 import {
   getRecords,
 } from './record-repository.js';
-
-import './record-edit-save-identity-guard.js';
-import './daily-record-card-guard.js';
 
 function debug(label, detail) {
   try {
@@ -187,6 +184,7 @@ window.ippoWelcomeResetGuardSummary = function() {
     welcomeVisible: document.getElementById('screen-welcome')?.style.display !== 'none',
     mainAppVisible: document.getElementById('main-app')?.style.display !== 'none',
     editSaveIdentityGuardLoaded: typeof window.ippoEditSaveIdentityGuardSummary === 'function',
+    postSaveEditGuardLoaded: typeof window.ippoPostSaveEditGuardSummary === 'function',
     dailyRecordCardGuardLoaded: typeof window.ippoDailyRecordCardSummary === 'function',
   };
 };
