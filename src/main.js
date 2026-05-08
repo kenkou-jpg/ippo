@@ -18,6 +18,7 @@ import './modules/deferred-hydration-prep.js';
 import './modules/render-boundary-prep.js';
 import './modules/screen-activation-prep.js';
 import './modules/runtime-ownership-graph.js';
+import './modules/persistence-boundary-prep.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -160,6 +161,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
     hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
+    hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
   });
 }
 
@@ -175,6 +177,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
     hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
+    hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
   });
 }
 
@@ -269,6 +272,20 @@ if (typeof window.ippoRunRuntimeOwnershipGraphCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('runtime-ownership-graph-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunPersistenceBoundaryPrepCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunPersistenceBoundaryPrepCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('persistence-boundary-prep-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
