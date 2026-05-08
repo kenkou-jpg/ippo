@@ -1,13 +1,15 @@
 // ============================================================
 //  ippo – src/modules/record-save-delegation.js
-//  Phase 3-K-2: limited delegation readiness layer
+//  Phase 3-K-2/3: limited delegation readiness layer
 //
 //  目的:
 //  - module pipeline へ委譲可能かを strict 条件で判定する
+//  - 保存完了後に delegation readiness を自動記録する
 //  - まだ saveRecordScreen の実保存には委譲しない
 //  - thin orchestrator 化の readiness を観測する
 // ============================================================
 
+const WRAP_FLAG = '__ippoRecordSaveDelegationObserved';
 const HISTORY_LIMIT = 20;
 const delegationHistory = [];
 
@@ -39,6 +41,11 @@ function isDelegationExperimentEnabled() {
   return window.__IPPO_RECORD_SAVE_DELEGATION_EXPERIMENT__ === true;
 }
 
+function setDelegationExperimentEnabled(value) {
+  window.__IPPO_RECORD_SAVE_DELEGATION_EXPERIMENT__ = value === true;
+  return window.__IPPO_RECORD_SAVE_DELEGATION_EXPERIMENT__;
+}
+
 function buildRecordSaveDelegationReadiness(context) {
   const safeContext = context || getLastRecordSaveContext() || {};
   const draftPreview = safeContext.recordDraftPreview
@@ -67,8 +74,8 @@ function buildRecordSaveDelegationReadiness(context) {
     && (persistencePreview?.warnings || []).length === 0
     && (shadowOutcome?.warnings || []).length === 0;
   const candidateUsable = candidate?.canUseCandidate === true;
-  const payloadConsistent = persistencePreview?.payloadSummary?.recordDate
-    && persistencePreview?.payloadSummary?.recordDate === persistencePreview?.payloadSummary?.idDate;
+  const payloadConsistent = !!persistencePreview?.payloadSummary?.recordDate
+    && persistencePreview.payloadSummary.recordDate === persistencePreview.payloadSummary.idDate;
   const shadowMatched = shadowOutcome?.matched === true;
   const preparable = persistencePreview?.canPrepare === true;
 
@@ -177,12 +184,82 @@ function clearRecordSaveDelegationHistory() {
   return getRecordSaveDelegationSummary();
 }
 
-function installRecordSaveDelegation() {
+function wrapVerifyLastRecordSave() {
+  const originalVerify = window.ippoVerifyLastRecordSave;
+  if (typeof originalVerify !== 'function' || originalVerify.__ippoRecordSaveDelegationObserved === true) return;
+
+  window.ippoVerifyLastRecordSave = function recordSaveDelegationVerifyLastRecordSave() {
+    const result = originalVerify.apply(this, arguments);
+    const context = getLastRecordSaveContext();
+    const readiness = context?.recordSaveDelegationReadiness || context?.meta?.recordSaveDelegationReadiness || null;
+    const summary = getRecordSaveDelegationSummary();
+
+    if (result && typeof result === 'object') {
+      result.recordSaveDelegationReadiness = readiness;
+      result.recordSaveDelegationSummary = summary;
+
+      if (result.healthSummary && typeof result.healthSummary === 'object') {
+        result.healthSummary.recordSaveDelegationReady = readiness?.delegationReady === true;
+        result.healthSummary.recordSaveDelegationBlockedCount = summary.blockedCount;
+      }
+    }
+
+    return result;
+  };
+
+  window.ippoVerifyLastRecordSave.__ippoRecordSaveDelegationObserved = true;
+  window.ippoVerifyLastRecordSave.__ippoOriginal = originalVerify;
+}
+
+function wrapSaveRecordScreen() {
+  const current = window.saveRecordScreen;
+  if (typeof current !== 'function') return false;
+  if (current[WRAP_FLAG] === true) return true;
+
+  function recordSaveDelegationSaveRecordScreen() {
+    const result = current.apply(this, arguments);
+
+    if (result && typeof result.then === 'function') {
+      return result.then(function(value) {
+        recordSaveDelegationReadiness(getLastRecordSaveContext());
+        return value;
+      }).catch(function(error) {
+        recordSaveDelegationReadiness(getLastRecordSaveContext());
+        throw error;
+      });
+    }
+
+    recordSaveDelegationReadiness(getLastRecordSaveContext());
+    return result;
+  }
+
+  recordSaveDelegationSaveRecordScreen[WRAP_FLAG] = true;
+  recordSaveDelegationSaveRecordScreen.__ippoOriginal = current;
+  window.saveRecordScreen = recordSaveDelegationSaveRecordScreen;
+  trace('saveRecordScreen:delegation-readiness:installed');
   return true;
+}
+
+function installRecordSaveDelegation() {
+  wrapVerifyLastRecordSave();
+
+  if (wrapSaveRecordScreen()) return true;
+
+  let attempts = 0;
+  const timer = window.setInterval(function() {
+    attempts++;
+    wrapVerifyLastRecordSave();
+    if (wrapSaveRecordScreen() || attempts >= 20) {
+      window.clearInterval(timer);
+    }
+  }, 250);
+
+  return false;
 }
 
 export {
   isDelegationExperimentEnabled,
+  setDelegationExperimentEnabled,
   buildRecordSaveDelegationReadiness,
   recordSaveDelegationReadiness,
   summarizeRecordSaveDelegation,
@@ -194,6 +271,7 @@ export {
 
 window.ippoRecordSaveDelegation = Object.freeze({
   isDelegationExperimentEnabled,
+  setDelegationExperimentEnabled,
   buildRecordSaveDelegationReadiness,
   recordSaveDelegationReadiness,
   summarizeRecordSaveDelegation,
@@ -203,11 +281,8 @@ window.ippoRecordSaveDelegation = Object.freeze({
   installRecordSaveDelegation,
 });
 
-window.ippoSetRecordSaveDelegationExperimentEnabled = function(value) {
-  window.__IPPO_RECORD_SAVE_DELEGATION_EXPERIMENT__ = value === true;
-  return window.__IPPO_RECORD_SAVE_DELEGATION_EXPERIMENT__;
-};
-
+window.ippoSetRecordSaveDelegationExperimentEnabled = setDelegationExperimentEnabled;
+window.ippoIsRecordSaveDelegationExperimentEnabled = isDelegationExperimentEnabled;
 window.ippoRecordSaveDelegationSummary = getRecordSaveDelegationSummary;
 window.ippoRecordSaveDelegationHistory = getRecordSaveDelegationHistory;
 window.ippoClearRecordSaveDelegationHistory = clearRecordSaveDelegationHistory;
