@@ -1,11 +1,12 @@
 // ============================================================
 //  ippo – src/modules/record-save-orchestrator.js
-//  Phase 3-M-1/2: thin save orchestrator preview + guarded shell
+//  Phase 3-M/N: thin save orchestrator preview + guarded facade
 //
 //  目的:
 //  - saveRecordScreen を薄い orchestrator にするための統合入口を作る
 //  - draft / target / persistence / delegation / verification の状態を一枚の結果に束ねる
 //  - explicit flag ON の場合のみ、既存saveに渡す draft/payload を orchestration shell で正規化する
+//  - runRecordSaveThinOrchestrator() を saveRecordScreen wrapper から呼べる facade として提供する
 //  - state.records / localStorage / Supabase は直接変更しない
 // ============================================================
 
@@ -23,9 +24,12 @@ const WRAP_FLAG = '__ippoRecordSaveOrchestratorObserved';
 const BUILD_DRAFT_WRAP_FLAG = '__ippoRecordSaveOrchestratorBuildDraftWrapped';
 const HISTORY_LIMIT = 20;
 const SHELL_HISTORY_LIMIT = 20;
+const FACADE_HISTORY_LIMIT = 20;
 const ORCHESTRATOR_SHELL_FLAG = 'ippo_enable_record_save_thin_orchestrator_shell';
+const ORCHESTRATOR_FACADE_FLAG = 'ippo_enable_record_save_thin_orchestrator_facade';
 const orchestrationHistory = [];
 const orchestrationShellHistory = [];
+const facadeHistory = [];
 
 function isTraceEnabled() {
   try {
@@ -40,6 +44,10 @@ function trace(label, detail) {
   try {
     console.debug('[ippo:record-save-orchestrator]', label, detail || '');
   } catch(e) {}
+}
+
+function getTimestamp() {
+  return new Date().toISOString();
 }
 
 function getActiveRecordSaveContext() {
@@ -60,30 +68,63 @@ function getLastRecordSaveContext() {
   return window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ || null;
 }
 
-function isThinOrchestratorShellEnabled() {
+function getBooleanFlag(storageKey, globalKey) {
   try {
-    return localStorage.getItem(ORCHESTRATOR_SHELL_FLAG) === '1'
-      || window.__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_SHELL__ === true;
+    return localStorage.getItem(storageKey) === '1' || window[globalKey] === true;
   } catch(e) {
-    return window.__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_SHELL__ === true;
+    return window[globalKey] === true;
   }
 }
 
-function setThinOrchestratorShellEnabled(value) {
-  window.__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_SHELL__ = value === true;
+function setBooleanFlag(storageKey, globalKey, value) {
+  window[globalKey] = value === true;
   try {
     if (value === true) {
-      localStorage.setItem(ORCHESTRATOR_SHELL_FLAG, '1');
+      localStorage.setItem(storageKey, '1');
     } else {
-      localStorage.removeItem(ORCHESTRATOR_SHELL_FLAG);
+      localStorage.removeItem(storageKey);
     }
   } catch(e) {}
-  return isThinOrchestratorShellEnabled();
+  return getBooleanFlag(storageKey, globalKey);
+}
+
+function isThinOrchestratorShellEnabled() {
+  return getBooleanFlag(ORCHESTRATOR_SHELL_FLAG, '__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_SHELL__');
+}
+
+function setThinOrchestratorShellEnabled(value) {
+  return setBooleanFlag(ORCHESTRATOR_SHELL_FLAG, '__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_SHELL__', value);
+}
+
+function isThinOrchestratorFacadeEnabled() {
+  return getBooleanFlag(ORCHESTRATOR_FACADE_FLAG, '__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_FACADE__');
+}
+
+function setThinOrchestratorFacadeEnabled(value) {
+  return setBooleanFlag(ORCHESTRATOR_FACADE_FLAG, '__IPPO_RECORD_SAVE_THIN_ORCHESTRATOR_FACADE__', value);
 }
 
 function getContextArtifact(context, name) {
   const safeContext = context || {};
   return safeContext[name] || safeContext.meta?.[name] || null;
+}
+
+function summarizeValue(value) {
+  if (value === undefined) return { type: 'undefined' };
+  if (value === null) return { type: 'null' };
+  if (typeof value === 'boolean') return { type: 'boolean', value: value };
+  if (typeof value === 'number') return { type: 'number', value: value };
+  if (typeof value === 'string') return { type: 'string', length: value.length };
+  if (Array.isArray(value)) return { type: 'array', length: value.length };
+  if (typeof value === 'object') return { type: 'object', keys: Object.keys(value).slice(0, 20) };
+  return { type: typeof value };
+}
+
+function summarizeError(error) {
+  return {
+    name: error?.name || '',
+    message: error?.message || '',
+  };
 }
 
 function buildRecordSaveOrchestrationPreview(options) {
@@ -126,7 +167,7 @@ function buildRecordSaveOrchestrationPreview(options) {
   const canUseAsThinOrchestrator = blockedBy.length === 0 && warnings.length === 0;
 
   return {
-    recordedAt: new Date().toISOString(),
+    recordedAt: getTimestamp(),
     mode: 'record-save-orchestration-preview',
     canUseAsThinOrchestrator: canUseAsThinOrchestrator,
     draft: {
@@ -176,7 +217,7 @@ function buildThinOrchestratorShellDecision(draft, context) {
   const canUseShellPayload = blockedBy.length === 0 && warnings.length === 0 && rollbackBlockers.length === 0;
 
   return {
-    recordedAt: new Date().toISOString(),
+    recordedAt: getTimestamp(),
     mode: 'thin-orchestrator-shell-decision',
     enabled: enabled,
     canUseShellPayload: canUseShellPayload,
@@ -192,6 +233,29 @@ function buildThinOrchestratorShellDecision(draft, context) {
     warnings: Array.from(new Set(warnings)),
     rollbackBlockers: Array.from(new Set(rollbackBlockers)),
     note: 'Guarded shell only. When didUseShellPayload is true, buildDraftFromUI returns the orchestrator payload to the existing save path.',
+  };
+}
+
+function buildThinOrchestratorFacadeDecision(options) {
+  const opts = options || {};
+  const context = opts.context || getActiveRecordSaveContext();
+  const blockedBy = [];
+  const enabled = isThinOrchestratorFacadeEnabled();
+
+  if (!enabled) blockedBy.push('thin-orchestrator-facade-disabled');
+  if (!context || typeof context !== 'object' || !context.createdAt) blockedBy.push('missing-active-save-context');
+  if (typeof opts.execute !== 'function') blockedBy.push('missing-execute-callback');
+
+  return {
+    recordedAt: getTimestamp(),
+    mode: 'thin-orchestrator-facade-decision',
+    enabled: enabled,
+    canRunThroughFacade: blockedBy.length === 0,
+    didRunThroughFacade: false,
+    status: 'pending',
+    label: opts.label || 'saveRecordScreen',
+    blockedBy: Array.from(new Set(blockedBy)),
+    note: 'Facade only. It centralizes execution/result shape while preserving the existing save callback.',
   };
 }
 
@@ -264,6 +328,33 @@ function summarizeThinOrchestratorShell(history) {
   };
 }
 
+function summarizeThinOrchestratorFacade(history) {
+  const list = Array.isArray(history) ? history : [];
+  const blockedByCounts = {};
+  const statusCounts = {};
+
+  list.forEach(function(item) {
+    const status = item.status || 'unknown';
+    statusCounts[status] = (statusCounts[status] || 0) + 1;
+    (item.blockedBy || []).forEach(function(reason) {
+      blockedByCounts[reason] = (blockedByCounts[reason] || 0) + 1;
+    });
+  });
+
+  return {
+    count: list.length,
+    enabledCount: list.filter(function(item) { return item.enabled === true; }).length,
+    runnableCount: list.filter(function(item) { return item.canRunThroughFacade === true; }).length,
+    ranCount: list.filter(function(item) { return item.didRunThroughFacade === true; }).length,
+    fulfilledCount: list.filter(function(item) { return item.status === 'fulfilled'; }).length,
+    rejectedCount: list.filter(function(item) { return item.status === 'rejected'; }).length,
+    blockedCount: list.filter(function(item) { return item.didRunThroughFacade !== true; }).length,
+    blockedByCounts: blockedByCounts,
+    statusCounts: statusCounts,
+    recent: list.slice(-5),
+  };
+}
+
 function attachRecordSaveOrchestrationToContext(context, preview) {
   const summary = summarizeRecordSaveOrchestration(orchestrationHistory);
 
@@ -310,6 +401,29 @@ function attachThinOrchestratorShellToContext(context, decision) {
   return summary;
 }
 
+function attachThinOrchestratorFacadeToContext(context, decision) {
+  const summary = summarizeThinOrchestratorFacade(facadeHistory);
+
+  if (context && typeof context === 'object') {
+    if (!context.meta || typeof context.meta !== 'object') {
+      context.meta = {};
+    }
+
+    context.meta.thinOrchestratorFacadeDecision = decision;
+    context.meta.thinOrchestratorFacadeSummary = summary;
+    context.thinOrchestratorFacadeDecision = decision;
+    context.thinOrchestratorFacadeSummary = summary;
+
+    if (context.healthSummary && typeof context.healthSummary === 'object') {
+      context.healthSummary.thinOrchestratorFacadeEnabled = decision.enabled === true;
+      context.healthSummary.thinOrchestratorFacadeDidRun = decision.didRunThroughFacade === true;
+      context.healthSummary.thinOrchestratorFacadeBlockedCount = summary.blockedCount;
+    }
+  }
+
+  return summary;
+}
+
 function recordSaveOrchestrationPreview(options) {
   const opts = options || {};
   const saveContext = opts.context || getLastRecordSaveContext() || getActiveRecordSaveContext();
@@ -340,6 +454,18 @@ function recordThinOrchestratorShellDecision(decision, context) {
   return decision;
 }
 
+function recordThinOrchestratorFacadeDecision(decision, context) {
+  const saveContext = context || getActiveRecordSaveContext();
+  facadeHistory.push(decision);
+  while (facadeHistory.length > FACADE_HISTORY_LIMIT) {
+    facadeHistory.shift();
+  }
+
+  attachThinOrchestratorFacadeToContext(saveContext, decision);
+  trace('thin-orchestrator-facade:recorded', decision);
+  return decision;
+}
+
 function applyThinOrchestratorShell(draft, context) {
   const saveContext = context || getActiveRecordSaveContext();
   const decision = buildThinOrchestratorShellDecision(draft, saveContext);
@@ -353,6 +479,57 @@ function applyThinOrchestratorShell(draft, context) {
 
   recordThinOrchestratorShellDecision(decision, saveContext);
   return draft;
+}
+
+function runRecordSaveThinOrchestrator(options) {
+  const opts = options || {};
+  const context = opts.context || getActiveRecordSaveContext();
+  const decision = buildThinOrchestratorFacadeDecision({
+    context: context,
+    execute: opts.execute,
+    label: opts.label || 'saveRecordScreen',
+  });
+
+  if (decision.canRunThroughFacade !== true) {
+    recordThinOrchestratorFacadeDecision(decision, context);
+    return opts.execute();
+  }
+
+  decision.didRunThroughFacade = true;
+  decision.startedAt = getTimestamp();
+  recordThinOrchestratorFacadeDecision(decision, context);
+
+  try {
+    const result = opts.execute();
+
+    if (result && typeof result.then === 'function') {
+      return result.then(function(value) {
+        decision.status = 'fulfilled';
+        decision.finishedAt = getTimestamp();
+        decision.result = summarizeValue(value);
+        recordThinOrchestratorFacadeDecision(decision, context);
+        return value;
+      }).catch(function(error) {
+        decision.status = 'rejected';
+        decision.failedAt = getTimestamp();
+        decision.error = summarizeError(error);
+        recordThinOrchestratorFacadeDecision(decision, context);
+        throw error;
+      });
+    }
+
+    decision.status = 'fulfilled';
+    decision.finishedAt = getTimestamp();
+    decision.result = summarizeValue(result);
+    recordThinOrchestratorFacadeDecision(decision, context);
+    return result;
+  } catch(error) {
+    decision.status = 'rejected';
+    decision.failedAt = getTimestamp();
+    decision.error = summarizeError(error);
+    recordThinOrchestratorFacadeDecision(decision, context);
+    throw error;
+  }
 }
 
 function getRecordSaveOrchestrationHistory() {
@@ -381,6 +558,19 @@ function clearThinOrchestratorShellHistory() {
   return getThinOrchestratorShellSummary();
 }
 
+function getThinOrchestratorFacadeHistory() {
+  return facadeHistory.slice();
+}
+
+function getThinOrchestratorFacadeSummary() {
+  return summarizeThinOrchestratorFacade(facadeHistory);
+}
+
+function clearThinOrchestratorFacadeHistory() {
+  facadeHistory.splice(0, facadeHistory.length);
+  return getThinOrchestratorFacadeSummary();
+}
+
 function wrapVerifyLastRecordSave() {
   const originalVerify = window.ippoVerifyLastRecordSave;
   if (typeof originalVerify !== 'function' || originalVerify.__ippoRecordSaveOrchestratorObserved === true) return;
@@ -392,12 +582,16 @@ function wrapVerifyLastRecordSave() {
     const summary = getRecordSaveOrchestrationSummary();
     const shellDecision = context?.thinOrchestratorShellDecision || context?.meta?.thinOrchestratorShellDecision || null;
     const shellSummary = getThinOrchestratorShellSummary();
+    const facadeDecision = context?.thinOrchestratorFacadeDecision || context?.meta?.thinOrchestratorFacadeDecision || null;
+    const facadeSummary = getThinOrchestratorFacadeSummary();
 
     if (result && typeof result === 'object') {
       result.recordSaveOrchestrationPreview = preview;
       result.recordSaveOrchestrationSummary = summary;
       result.thinOrchestratorShellDecision = shellDecision;
       result.thinOrchestratorShellSummary = shellSummary;
+      result.thinOrchestratorFacadeDecision = facadeDecision;
+      result.thinOrchestratorFacadeSummary = facadeSummary;
 
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.recordSaveOrchestrationUsable = preview?.canUseAsThinOrchestrator === true;
@@ -406,6 +600,9 @@ function wrapVerifyLastRecordSave() {
         result.healthSummary.thinOrchestratorShellEnabled = shellDecision?.enabled === true;
         result.healthSummary.thinOrchestratorShellDidUsePayload = shellDecision?.didUseShellPayload === true;
         result.healthSummary.thinOrchestratorShellBlockedCount = shellSummary.blockedCount;
+        result.healthSummary.thinOrchestratorFacadeEnabled = facadeDecision?.enabled === true;
+        result.healthSummary.thinOrchestratorFacadeDidRun = facadeDecision?.didRunThroughFacade === true;
+        result.healthSummary.thinOrchestratorFacadeBlockedCount = facadeSummary.blockedCount;
       }
     }
 
@@ -486,43 +683,64 @@ function installRecordSaveOrchestratorPreview() {
 export {
   isThinOrchestratorShellEnabled,
   setThinOrchestratorShellEnabled,
+  isThinOrchestratorFacadeEnabled,
+  setThinOrchestratorFacadeEnabled,
   buildRecordSaveOrchestrationPreview,
   buildThinOrchestratorShellDecision,
+  buildThinOrchestratorFacadeDecision,
   applyThinOrchestratorShell,
+  runRecordSaveThinOrchestrator,
   recordSaveOrchestrationPreview,
   recordThinOrchestratorShellDecision,
+  recordThinOrchestratorFacadeDecision,
   summarizeRecordSaveOrchestration,
   summarizeThinOrchestratorShell,
+  summarizeThinOrchestratorFacade,
   getRecordSaveOrchestrationHistory,
   getRecordSaveOrchestrationSummary,
   clearRecordSaveOrchestrationHistory,
   getThinOrchestratorShellHistory,
   getThinOrchestratorShellSummary,
   clearThinOrchestratorShellHistory,
+  getThinOrchestratorFacadeHistory,
+  getThinOrchestratorFacadeSummary,
+  clearThinOrchestratorFacadeHistory,
   installRecordSaveOrchestratorPreview,
 };
 
 window.ippoRecordSaveOrchestrator = Object.freeze({
   isThinOrchestratorShellEnabled,
   setThinOrchestratorShellEnabled,
+  isThinOrchestratorFacadeEnabled,
+  setThinOrchestratorFacadeEnabled,
   buildRecordSaveOrchestrationPreview,
   buildThinOrchestratorShellDecision,
+  buildThinOrchestratorFacadeDecision,
   applyThinOrchestratorShell,
+  runRecordSaveThinOrchestrator,
   recordSaveOrchestrationPreview,
   recordThinOrchestratorShellDecision,
+  recordThinOrchestratorFacadeDecision,
   summarizeRecordSaveOrchestration,
   summarizeThinOrchestratorShell,
+  summarizeThinOrchestratorFacade,
   getRecordSaveOrchestrationHistory,
   getRecordSaveOrchestrationSummary,
   clearRecordSaveOrchestrationHistory,
   getThinOrchestratorShellHistory,
   getThinOrchestratorShellSummary,
   clearThinOrchestratorShellHistory,
+  getThinOrchestratorFacadeHistory,
+  getThinOrchestratorFacadeSummary,
+  clearThinOrchestratorFacadeHistory,
   installRecordSaveOrchestratorPreview,
 });
 
 window.ippoSetThinOrchestratorShellEnabled = setThinOrchestratorShellEnabled;
 window.ippoIsThinOrchestratorShellEnabled = isThinOrchestratorShellEnabled;
+window.ippoSetThinOrchestratorFacadeEnabled = setThinOrchestratorFacadeEnabled;
+window.ippoIsThinOrchestratorFacadeEnabled = isThinOrchestratorFacadeEnabled;
+window.ippoRunRecordSaveThinOrchestrator = runRecordSaveThinOrchestrator;
 window.ippoRecordSaveOrchestrationPreview = recordSaveOrchestrationPreview;
 window.ippoRecordSaveOrchestrationSummary = getRecordSaveOrchestrationSummary;
 window.ippoRecordSaveOrchestrationHistory = getRecordSaveOrchestrationHistory;
@@ -530,5 +748,8 @@ window.ippoClearRecordSaveOrchestrationHistory = clearRecordSaveOrchestrationHis
 window.ippoThinOrchestratorShellSummary = getThinOrchestratorShellSummary;
 window.ippoThinOrchestratorShellHistory = getThinOrchestratorShellHistory;
 window.ippoClearThinOrchestratorShellHistory = clearThinOrchestratorShellHistory;
+window.ippoThinOrchestratorFacadeSummary = getThinOrchestratorFacadeSummary;
+window.ippoThinOrchestratorFacadeHistory = getThinOrchestratorFacadeHistory;
+window.ippoClearThinOrchestratorFacadeHistory = clearThinOrchestratorFacadeHistory;
 
 installRecordSaveOrchestratorPreview();
