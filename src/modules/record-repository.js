@@ -1,11 +1,13 @@
 // ============================================================
 //  ippo – src/modules/record-repository.js
 //  Phase 3-F-1: readonly record repository
+//  Phase 3-F-3: storage/sync diagnostics
 //
 //  目的:
 //  - record読み取り処理を段階的に共通化する
 //  - saveRecordScreen / Supabase / localStorage書き込みは変更しない
 //  - 旧キー互換を維持しつつ、state.recordsを正本候補として扱う
+//  - state/localStorage間のズレを診断できるようにする
 // ============================================================
 
 export const RECORD_STORAGE_KEYS = Object.freeze({
@@ -60,6 +62,52 @@ function parseRecordsFromStorageValue(raw) {
   return [];
 }
 
+function stableStringify(value) {
+  try {
+    return JSON.stringify(value || [], function(key, val) {
+      if (!val || typeof val !== 'object' || Array.isArray(val)) return val;
+      return Object.keys(val).sort().reduce(function(sorted, itemKey) {
+        sorted[itemKey] = val[itemKey];
+        return sorted;
+      }, {});
+    });
+  } catch(e) {
+    return '';
+  }
+}
+
+function simpleHash(text) {
+  const value = String(text || '');
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = ((hash << 5) - hash) + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return String(hash);
+}
+
+function summarizeRecords(records) {
+  const list = Array.isArray(records) ? records : [];
+  const dates = list.map(getRecordDate).filter(Boolean).sort();
+  const stable = stableStringify(list);
+
+  return {
+    length: list.length,
+    firstDate: dates[0] || '',
+    lastDate: dates[dates.length - 1] || '',
+    dates: dates,
+    hash: simpleHash(stable),
+  };
+}
+
+function recordsFromKey(key) {
+  try {
+    return parseRecordsFromStorageValue(localStorage.getItem(key));
+  } catch(e) {
+    return [];
+  }
+}
+
 export function getRecordsFromLocalStorage() {
   const sources = [
     RECORD_STORAGE_KEYS.state,
@@ -68,10 +116,8 @@ export function getRecordsFromLocalStorage() {
   ];
 
   for (const key of sources) {
-    try {
-      const records = parseRecordsFromStorageValue(localStorage.getItem(key));
-      if (records.length > 0) return records;
-    } catch(e) {}
+    const records = recordsFromKey(key);
+    if (records.length > 0) return records;
   }
 
   return [];
@@ -95,21 +141,9 @@ export function findRecordByDate(date) {
 
 export function getRecordsSnapshot() {
   const stateRecords = Array.isArray(window.state?.records) ? window.state.records : null;
-  let ippoStateRecords = [];
-  let kkRecords = [];
-  let legacyRecords = [];
-
-  try {
-    ippoStateRecords = parseRecordsFromStorageValue(localStorage.getItem(RECORD_STORAGE_KEYS.state));
-  } catch(e) {}
-
-  try {
-    kkRecords = parseRecordsFromStorageValue(localStorage.getItem(RECORD_STORAGE_KEYS.legacyKkRecords));
-  } catch(e) {}
-
-  try {
-    legacyRecords = parseRecordsFromStorageValue(localStorage.getItem(RECORD_STORAGE_KEYS.legacyRecords));
-  } catch(e) {}
+  const ippoStateRecords = recordsFromKey(RECORD_STORAGE_KEYS.state);
+  const kkRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyKkRecords);
+  const legacyRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyRecords);
 
   return {
     source: stateRecords ? 'state.records' : 'localStorage',
@@ -119,6 +153,73 @@ export function getRecordsSnapshot() {
     legacyRecordsLength: legacyRecords.length,
     activeRecordsLength: getRecords().length,
   };
+}
+
+export function getRecordStorageDiagnostics(label) {
+  const stateRecords = Array.isArray(window.state?.records) ? window.state.records : [];
+  const ippoStateRecords = recordsFromKey(RECORD_STORAGE_KEYS.state);
+  const kkRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyKkRecords);
+  const legacyRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyRecords);
+
+  const summaries = {
+    state: summarizeRecords(stateRecords),
+    ippoState: summarizeRecords(ippoStateRecords),
+    kkRecords: summarizeRecords(kkRecords),
+    legacyRecords: summarizeRecords(legacyRecords),
+  };
+
+  const stateHash = summaries.state.hash;
+  const ippoHash = summaries.ippoState.hash;
+  const kkHash = summaries.kkRecords.hash;
+  const legacyHash = summaries.legacyRecords.hash;
+
+  return {
+    label: label || '',
+    checkedAt: new Date().toISOString(),
+    activeSource: Array.isArray(window.state?.records) ? 'state.records' : 'localStorage',
+    hasWindowState: !!window.state,
+    hasSaveState: typeof window.saveState === 'function',
+    hasCloudBackupAll: typeof window.cloudBackupAll === 'function',
+    hasCloudRestore: typeof window.cloudRestore === 'function',
+    summaries: summaries,
+    consistency: {
+      stateMatchesIppoState: stateHash === ippoHash,
+      stateMatchesKkRecords: stateHash === kkHash,
+      ippoStateMatchesKkRecords: ippoHash === kkHash,
+      legacyRecordsMatchesState: legacyHash === stateHash,
+    },
+    warnings: buildDiagnosticsWarnings(summaries),
+  };
+}
+
+function buildDiagnosticsWarnings(summaries) {
+  const warnings = [];
+
+  if (summaries.state.length !== summaries.ippoState.length) {
+    warnings.push('state.records and ippo_state.records length differ');
+  }
+
+  if (summaries.state.hash !== summaries.ippoState.hash) {
+    warnings.push('state.records and ippo_state.records hash differ');
+  }
+
+  if (summaries.kkRecords.length > 0 && summaries.kkRecords.hash !== summaries.state.hash) {
+    warnings.push('legacy kk_records differs from state.records');
+  }
+
+  if (summaries.legacyRecords.length > 0 && summaries.legacyRecords.hash !== summaries.state.hash) {
+    warnings.push('legacy records differs from state.records');
+  }
+
+  return warnings;
+}
+
+export function logRecordStorageDiagnostics(label) {
+  const diagnostics = getRecordStorageDiagnostics(label);
+  try {
+    console.debug('[ippo:record-storage]', diagnostics);
+  } catch(e) {}
+  return diagnostics;
 }
 
 export function enableRecordRepositoryDebug() {
@@ -134,6 +235,10 @@ window.ippoRecordRepository = Object.freeze({
   getRecords,
   findRecordByDate,
   getRecordsSnapshot,
+  getRecordStorageDiagnostics,
+  logRecordStorageDiagnostics,
 });
 
 window.ippoRecordStorageSnapshot = getRecordsSnapshot;
+window.ippoRecordStorageDiagnostics = getRecordStorageDiagnostics;
+window.ippoLogRecordStorageDiagnostics = logRecordStorageDiagnostics;
