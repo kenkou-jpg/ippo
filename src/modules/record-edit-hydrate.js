@@ -2,12 +2,20 @@
 //  ippo – src/modules/record-edit-hydrate.js
 //  Phase 3-E: edit record hydration guard
 //  Phase 3-E-1: edit route trace / reset-after hydrate guard
+//  Phase 3-F-2: record repository 読み取り層へ移行
 //
 //  目的:
 //  - 記録編集時に保存済みrecordの内容をフォームへ復元する
 //  - app.html の巨大関数本体は変更しない
 //  - saveRecordScreen の保存ロジックは変更しない
 // ============================================================
+
+import {
+  getRecordDate,
+  normalizeRecordDate,
+  getRecords,
+  findRecordByDate,
+} from './record-repository.js';
 
 let lastEditIntent = {
   at: 0,
@@ -26,7 +34,7 @@ function debug(label, detail) {
 function toSnake(value) {
   return String(value || '')
     .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    .replace(/[-\s]+/g, '_')
+    .replace(/[-\\s]+/g, '_')
     .toLowerCase();
 }
 
@@ -36,69 +44,15 @@ function toCamel(value) {
   });
 }
 
-function dateOf(record) {
-  if (!record) return '';
-  return String(record.record_date || record.date || record.id || '').slice(0, 10);
-}
-
-function normalizeDate(value) {
-  if (!value) return '';
-
-  if (typeof value === 'object') {
-    const recordDate = dateOf(value);
-    if (recordDate) return recordDate;
-  }
-
-  const text = String(value);
-  const iso = text.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-  if (iso) {
-    return [iso[1], iso[2].padStart(2, '0'), iso[3].padStart(2, '0')].join('-');
-  }
-
-  const jp = text.match(/(\d{4})年\s*(\d{1,2})月\s*(\d{1,2})日/);
-  if (jp) {
-    return [jp[1], jp[2].padStart(2, '0'), jp[3].padStart(2, '0')].join('-');
-  }
-
-  const jpNoYear = text.match(/(\d{1,2})月\s*(\d{1,2})日/);
-  if (jpNoYear) {
-    const year = new Date().getFullYear();
-    return [year, jpNoYear[1].padStart(2, '0'), jpNoYear[2].padStart(2, '0')].join('-');
-  }
-
-  return '';
-}
-
-function recordsFromLocalStorage() {
-  const candidates = ['kk_records', 'records', 'ippo_state'];
-
-  for (const key of candidates) {
-    try {
-      const raw = localStorage.getItem(key);
-      if (!raw) continue;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) return parsed;
-      if (Array.isArray(parsed.records)) return parsed.records;
-    } catch(e) {}
-  }
-
-  return [];
-}
-
-function getRecords() {
-  if (Array.isArray(window.state?.records)) return window.state.records;
-  return recordsFromLocalStorage();
-}
-
 function getDateFromDom() {
   try {
     const input = document.querySelector('[name="record_date"], [name="date"], #record-date, #recordDate, #recordDateInput');
-    if (input && input.value) return normalizeDate(input.value);
+    if (input && input.value) return normalizeRecordDate(input.value);
   } catch(e) {}
 
   try {
     const dmDate = document.getElementById('dmDate');
-    if (dmDate && dmDate.textContent) return normalizeDate(dmDate.textContent);
+    if (dmDate && dmDate.textContent) return normalizeRecordDate(dmDate.textContent);
   } catch(e) {}
 
   return '';
@@ -106,7 +60,7 @@ function getDateFromDom() {
 
 function getEditingDate() {
   const stateDate = window.state?.editingDate || window.state?.selectedDate || window.state?.recordDate;
-  if (stateDate) return normalizeDate(stateDate) || String(stateDate).slice(0, 10);
+  if (stateDate) return normalizeRecordDate(stateDate) || String(stateDate).slice(0, 10);
 
   if (lastEditIntent.date) return lastEditIntent.date;
 
@@ -116,16 +70,11 @@ function getEditingDate() {
 function getEditingRecord() {
   const targetDate = getEditingDate();
   if (!targetDate) return null;
-
-  const record = getRecords().find(function(item) {
-    return dateOf(item) === targetDate;
-  });
-
-  return record || null;
+  return findRecordByDate(targetDate);
 }
 
 function markEditIntent(source, date) {
-  const normalized = normalizeDate(date) || getDateFromDom() || getEditingDate();
+  const normalized = normalizeRecordDate(date) || getDateFromDom() || getEditingDate();
 
   lastEditIntent = {
     at: Date.now(),
@@ -271,10 +220,11 @@ function hydrateRecordForm() {
 
   const chips = hydrateChips(record);
   debug('hydrated', {
-    date: dateOf(record),
+    date: getRecordDate(record),
     fields: filled,
     chips: chips,
     source: lastEditIntent.source,
+    recordsLength: getRecords().length,
   });
   return true;
 }
@@ -291,7 +241,7 @@ function scheduleHydration(source, date) {
 
 function firstDateFromArgs(args) {
   for (const arg of Array.from(args || [])) {
-    const normalized = normalizeDate(arg);
+    const normalized = normalizeRecordDate(arg);
     if (normalized) return normalized;
   }
   return '';
@@ -374,7 +324,7 @@ function installEditClickCapture() {
     const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + (target.getAttribute('onclick') || ''));
     if (!/(編集|editRecord|openRecordEditor)/i.test(label)) return;
 
-    const date = normalizeDate(target.getAttribute('data-date')) || normalizeDate(target.getAttribute('data-record-date')) || getDateFromDom() || getEditingDate();
+    const date = normalizeRecordDate(target.getAttribute('data-date')) || normalizeRecordDate(target.getAttribute('data-record-date')) || getDateFromDom() || getEditingDate();
     markEditIntent('edit-click', date);
     scheduleHydration('edit-click', date);
   }, true);
