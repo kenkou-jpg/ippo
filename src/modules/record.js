@@ -64,9 +64,15 @@ function callExistingFunction(name, args) {
   return undefined;
 }
 
-const RECORD_SAVE_DELEGATE_NAMES = [
+const RECORD_PERSIST_DELEGATE_NAMES = [
   'saveState',
+];
+
+const RECORD_SYNC_DELEGATE_NAMES = [
   'cloudBackupAll',
+];
+
+const RECORD_NOTIFY_DELEGATE_NAMES = [
   'buildCalendar',
   'renderCalendar',
   'renderHome',
@@ -74,13 +80,33 @@ const RECORD_SAVE_DELEGATE_NAMES = [
   'updateStats',
 ];
 
-function withRecordSavePipelineDelegates(callback) {
+const RECORD_SAVE_DELEGATE_NAMES = [
+  ...RECORD_PERSIST_DELEGATE_NAMES,
+  ...RECORD_SYNC_DELEGATE_NAMES,
+  ...RECORD_NOTIFY_DELEGATE_NAMES,
+];
+
+function captureRecordSaveDelegates() {
   const originals = {};
 
   RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
     originals[name] = window[name];
   });
 
+  return originals;
+}
+
+function restoreRecordSaveDelegates(originals) {
+  RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
+    if (originals[name] === undefined) {
+      try { delete window[name]; } catch(e) { window[name] = undefined; }
+    } else {
+      window[name] = originals[name];
+    }
+  });
+}
+
+function installRecordSaveDelegates(originals) {
   if (typeof originals.saveState === 'function') {
     window.saveState = function delegatedSaveState() {
       return persistRecordState({
@@ -101,13 +127,7 @@ function withRecordSavePipelineDelegates(callback) {
     };
   }
 
-  [
-    'buildCalendar',
-    'renderCalendar',
-    'renderHome',
-    'updateHome',
-    'updateStats',
-  ].forEach(function(name) {
+  RECORD_NOTIFY_DELEGATE_NAMES.forEach(function(name) {
     if (typeof originals[name] !== 'function') return;
 
     window[name] = function delegatedRecordUpdateNotify() {
@@ -119,17 +139,26 @@ function withRecordSavePipelineDelegates(callback) {
       });
     };
   });
+}
+
+function withRecordSavePipelineDelegates(callback) {
+  const originals = captureRecordSaveDelegates();
+  installRecordSaveDelegates(originals);
 
   try {
-    return callback();
-  } finally {
-    RECORD_SAVE_DELEGATE_NAMES.forEach(function(name) {
-      if (originals[name] === undefined) {
-        try { delete window[name]; } catch(e) { window[name] = undefined; }
-      } else {
-        window[name] = originals[name];
-      }
-    });
+    const result = callback();
+
+    if (result && typeof result.then === 'function') {
+      return result.finally(function() {
+        restoreRecordSaveDelegates(originals);
+      });
+    }
+
+    restoreRecordSaveDelegates(originals);
+    return result;
+  } catch(error) {
+    restoreRecordSaveDelegates(originals);
+    throw error;
   }
 }
 
@@ -146,12 +175,14 @@ function wrapSaveRecordScreen() {
 
   function tracedSaveRecordScreen() {
     const context = createRecordSaveContext('saveRecordScreen');
+    const args = arguments;
+    const self = this;
     traceRecord('saveRecordScreen:start', getRecordTraceSnapshot());
 
     try {
       const result = withRecordSavePipelineDelegates(function() {
-        return fn.apply(this, arguments);
-      }.bind(this, ...arguments));
+        return fn.apply(self, args);
+      });
 
       if (result && typeof result.then === 'function') {
         return result.then(function(value) {
