@@ -14,6 +14,14 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 const SUPABASE_SDK_KEY = window.SUPABASE_KEY;
 
+window.__ippoSupabaseStatus = {
+  ready: false,
+  url: SUPABASE_URL,
+  hasKey: !!SUPABASE_SDK_KEY,
+  initializedAt: null,
+  reason: SUPABASE_SDK_KEY ? null : 'missing-supabase-key',
+};
+
 if (!SUPABASE_SDK_KEY) {
   console.warn('ippo: SUPABASE_KEY is not available. Supabase client was not initialized.');
 }
@@ -43,3 +51,14 @@ export const supabase = SUPABASE_SDK_KEY ? createClient(SUPABASE_URL, SUPABASE_S
 }) : null;
 
 window.supabase = supabase;
+window.__ippoSupabaseStatus = {
+  ready: !!supabase,
+  url: SUPABASE_URL,
+  hasKey: !!SUPABASE_SDK_KEY,
+  initializedAt: new Date().toISOString(),
+  reason: supabase ? null : 'client-not-created',
+};
+
+if (typeof window.ippoMarkServiceReady === 'function') {
+  window.ippoMarkServiceReady('supabase', window.__ippoSupabaseStatus);
+}
