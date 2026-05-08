@@ -69,6 +69,9 @@ import './modules/record-draft.js';
 // record save target preview
 import './modules/record-save-target.js';
 
+// record save shadow outcome
+import './modules/record-save-shadow.js';
+
 // record date branch observability
 import './modules/record-date-branch-observability.js';
 
