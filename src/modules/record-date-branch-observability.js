@@ -191,6 +191,26 @@ function resolveRecordSaveDateCandidate(input) {
   };
 }
 
+function buildDateResolutionProposal(dateResolution, branch, shadowCompare) {
+  const warningSet = new Set([
+    ...(dateResolution?.warnings || []),
+    ...(shadowCompare?.warnings || []),
+  ]);
+  const canPromote = shadowCompare?.matched === true
+    && (dateResolution?.warnings || []).length === 0
+    && (shadowCompare?.warnings || []).length === 0;
+
+  return {
+    proposedDate: normalizeRecordDate(dateResolution?.resolvedDate || ''),
+    proposedSource: dateResolution?.source || 'none',
+    proposedBranch: branch || 'unknown',
+    confidence: dateResolution?.confidence || 'low',
+    canPromote: canPromote,
+    promotionBlockedBy: Array.from(warningSet),
+    candidates: dateResolution?.candidates || [],
+  };
+}
+
 function buildDateResolutionShadowCompare(dateResolution, changedDates) {
   const normalizedChangedDates = Array.isArray(changedDates)
     ? changedDates.map(normalizeRecordDate).filter(Boolean)
@@ -289,6 +309,8 @@ function inferDateBranch(before, after) {
     warnings.push('record-count-decreased');
   }
 
+  const dateResolutionProposal = buildDateResolutionProposal(dateResolution, branch, shadowCompare);
+
   return {
     editingDateBefore: editingDateBefore,
     selectedDateBefore: selectedDateBefore,
@@ -299,6 +321,7 @@ function inferDateBranch(before, after) {
     existingRecordDate: editingDateBefore || '',
     resolvedSaveDate: resolvedSaveDate,
     dateResolution: dateResolution,
+    dateResolutionProposal: dateResolutionProposal,
     shadowCompare: shadowCompare,
     changedDates: changedDates,
     createdCount: createdCount,
@@ -327,13 +350,16 @@ function attachDateBranchToLastContext(dateBranch) {
   }
 
   context.meta.dateBranch = dateBranch;
+  context.meta.dateResolutionProposal = dateBranch.dateResolutionProposal || null;
   context.dateBranch = dateBranch;
   context.dateWarnings = dateBranch.warnings || [];
   context.dateShadowCompare = dateBranch.shadowCompare || null;
+  context.dateResolutionProposal = dateBranch.dateResolutionProposal || null;
 
   if (context.healthSummary && typeof context.healthSummary === 'object') {
     context.healthSummary.dateWarningCount = context.dateWarnings.length;
     context.healthSummary.dateShadowMatched = dateBranch.shadowCompare?.matched === true;
+    context.healthSummary.dateResolutionPromotable = dateBranch.dateResolutionProposal?.canPromote === true;
   }
 
   window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = context;
@@ -360,15 +386,18 @@ function wrapVerifyLastRecordSave() {
     const dateBranch = context?.meta?.dateBranch || context?.dateBranch || null;
     const dateWarnings = dateBranch?.warnings || [];
     const shadowCompare = dateBranch?.shadowCompare || context?.dateShadowCompare || null;
+    const proposal = dateBranch?.dateResolutionProposal || context?.dateResolutionProposal || null;
 
     if (result && typeof result === 'object') {
       result.dateBranch = dateBranch;
       result.dateWarnings = dateWarnings;
       result.dateWarningCount = dateWarnings.length;
       result.dateShadowCompare = shadowCompare;
+      result.dateResolutionProposal = proposal;
       if (result.healthSummary && typeof result.healthSummary === 'object') {
         result.healthSummary.dateWarningCount = dateWarnings.length;
         result.healthSummary.dateShadowMatched = shadowCompare?.matched === true;
+        result.healthSummary.dateResolutionPromotable = proposal?.canPromote === true;
       }
     }
 
@@ -436,6 +465,7 @@ function installRecordDateBranchObservability() {
 export {
   createDateBranchSnapshot,
   resolveRecordSaveDateCandidate,
+  buildDateResolutionProposal,
   buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
@@ -445,6 +475,7 @@ export {
 window.ippoRecordDateBranchObservability = Object.freeze({
   createDateBranchSnapshot,
   resolveRecordSaveDateCandidate,
+  buildDateResolutionProposal,
   buildDateResolutionShadowCompare,
   inferDateBranch,
   observeDateBranch,
