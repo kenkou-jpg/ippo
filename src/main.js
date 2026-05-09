@@ -19,11 +19,18 @@ import './modules/runtime-sequencing.js';
 import './modules/deferred-hydration-prep.js';
 import './modules/render-boundary-prep.js';
 import './modules/screen-activation-prep.js';
-import './modules/runtime-ownership-graph.js';
 import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
-import './modules/persistence-candidate-execution.js';
 import './modules/persistence-guarded-execution.js';
+
+// ─── Optional infrastructure observability runtimes ───────
+// Bundle 3:
+// Keep boundary/readiness/guarded persistence layers boot-critical, but move
+// graph/candidate observability out of the initial static import chain.
+const OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES = [
+  ['runtime-ownership-graph', () => import('./modules/runtime-ownership-graph.js')],
+  ['persistence-candidate-execution', () => import('./modules/persistence-candidate-execution.js')],
+];
 
 // ─── Optional startup / migration assurance runtimes ──────
 // These are not required for first render. They are loaded through the guarded
@@ -71,8 +78,9 @@ if (typeof window.ippoMarkBootEvent === 'function') {
 }
 
 window.setTimeout(() => {
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 600, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 900, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 450, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 700, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 1000, 150, 2500);
 }, 600);
 
 // ─── State ───────────────────────────────────────────────
