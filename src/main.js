@@ -21,6 +21,7 @@ import './modules/runtime-ownership-graph.js';
 import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
 import './modules/persistence-candidate-execution.js';
+import './modules/persistence-guarded-execution.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -166,6 +167,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
+    hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
   });
 }
 
@@ -184,6 +186,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
+    hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
   });
 }
 
@@ -320,6 +323,20 @@ if (typeof window.ippoRunPersistenceCandidateShadow === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('persistence-candidate-shadow-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunPersistenceGuardedExecutionCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunPersistenceGuardedExecutionCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('persistence-guarded-execution-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
