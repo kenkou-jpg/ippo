@@ -24,6 +24,17 @@ import './modules/persistence-execution-readiness.js';
 import './modules/persistence-candidate-execution.js';
 import './modules/persistence-guarded-execution.js';
 
+// ─── Startup extraction / actual startup inline removal ───
+// guarded / fallback-required
+// hydration/render/screen/persistence removal remains disabled
+import './modules/legacy-bootstrap-fallback-isolation.js';
+import './modules/startup-sequencing-candidate-orchestration.js';
+import './modules/startup-extraction-candidate-shell.js';
+import './modules/startup-extraction-guarded-gate.js';
+import './modules/limited-startup-extraction-rehearsal.js';
+import './modules/startup-extraction-adoption-candidate-runtime.js';
+import './modules/actual-startup-inline-removal-runtime.js';
+
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
@@ -170,6 +181,13 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
+    hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
+    hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
+    hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
+    hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
+    hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
+    hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
   });
 }
 
@@ -190,6 +208,13 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
+    hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
+    hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
+    hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
+    hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
+    hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
+    hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
   });
 }
 
@@ -283,7 +308,7 @@ if (typeof window.ippoRunScreenActivationPrepCheck === 'function') {
       window.ippoRunScreenActivationPrepCheck('main-entry-post-module-load');
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('screen-activation-prep-check-failed', {
+        window.ippoMarkBootError('screen-activation-prep-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
@@ -354,6 +379,62 @@ if (typeof window.ippoRunPersistenceGuardedExecutionCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('persistence-guarded-execution-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunStartupExtractionGuardedGateCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunStartupExtractionGuardedGateCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('startup-extraction-guarded-gate-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunLimitedStartupExtractionRehearsalCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunLimitedStartupExtractionRehearsalCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('limited-startup-extraction-rehearsal-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunStartupExtractionAdoptionCandidateRuntimeCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunStartupExtractionAdoptionCandidateRuntimeCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('startup-extraction-adoption-candidate-runtime-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunActualStartupInlineRemovalCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunActualStartupInlineRemovalCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('actual-startup-inline-removal-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
