@@ -146,16 +146,42 @@ function runDeferredHydrationPrepCheck(reason) {
   return summarizeDeferredHydrationPrep();
 }
 
+function connectHydrationInlineInventoryRuntime(reason) {
+  window.setTimeout(() => {
+    import('./hydration-inline-inventory-runtime.js')
+      .then(() => {
+        if (typeof window.ippoMarkBootEvent === 'function') {
+          window.ippoMarkBootEvent('hydration-inline-inventory-runtime-connected', {
+            reason: reason || 'post-deferred-hydration-prep',
+          });
+        }
+
+        if (typeof window.ippoRunHydrationInlineInventoryCheck === 'function') {
+          window.ippoRunHydrationInlineInventoryCheck(reason || 'post-deferred-hydration-prep');
+        }
+      })
+      .catch((error) => {
+        if (typeof window.ippoMarkBootError === 'function') {
+          window.ippoMarkBootError('hydration-inline-inventory-runtime-connect-failed', {
+            message: error && error.message ? error.message : String(error),
+          });
+        }
+      });
+  }, 0);
+}
+
 window.ippoDeferredHydrationPrepSummary = summarizeDeferredHydrationPrep;
 window.ippoRunDeferredHydrationPrepCheck = runDeferredHydrationPrepCheck;
 
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     runDeferredHydrationPrepCheck('dom-content-loaded');
+    connectHydrationInlineInventoryRuntime('dom-content-loaded');
   }, { once: true });
 } else {
   window.setTimeout(() => {
     runDeferredHydrationPrepCheck('module-loaded-after-dom');
+    connectHydrationInlineInventoryRuntime('module-loaded-after-dom');
   }, 0);
 }
 
@@ -167,4 +193,5 @@ export {
   HYDRATION_TARGETS,
   summarizeDeferredHydrationPrep,
   runDeferredHydrationPrepCheck,
+  connectHydrationInlineInventoryRuntime,
 };
