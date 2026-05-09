@@ -9,6 +9,7 @@
 
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
+import './modules/guarded-optional-runtime-loader.js';
 import './modules/legacy-window-bridge.js';
 import './modules/startup-verify.js';
 import './modules/bootstrap-shell.js';
@@ -24,23 +25,72 @@ import './modules/persistence-execution-readiness.js';
 import './modules/persistence-candidate-execution.js';
 import './modules/persistence-guarded-execution.js';
 
-// ─── Startup extraction / actual startup inline removal ───
-// guarded / fallback-required
-// hydration/render/screen/persistence removal remains disabled
-import './modules/startup-guard-candidate.js';
-import './modules/main-entry-startup-observer-wiring.js';
-import './modules/legacy-bootstrap-fallback-isolation.js';
-import './modules/startup-sequencing-candidate-orchestration.js';
-import './modules/startup-extraction-candidate-shell.js';
-import './modules/startup-extraction-guarded-gate.js';
-import './modules/limited-startup-extraction-rehearsal.js';
-import './modules/startup-extraction-adoption-candidate-runtime.js';
-import './modules/final-app-shell-cleanup-runtime.js';
-import './modules/actual-startup-inline-removal-runtime.js';
+// ─── Startup extraction / migration assurance runtimes ───
+// Phase I-3:
+// These runtimes are no longer boot-critical. They are loaded after the first
+// visible shell through the guarded optional runtime loader so a diagnostics /
+// migration runtime failure cannot block startup rendering.
+const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
+  {
+    label: 'startup-guard-candidate',
+    importer: () => import('./modules/startup-guard-candidate.js'),
+  },
+  {
+    label: 'main-entry-startup-observer-wiring',
+    importer: () => import('./modules/main-entry-startup-observer-wiring.js'),
+  },
+  {
+    label: 'legacy-bootstrap-fallback-isolation',
+    importer: () => import('./modules/legacy-bootstrap-fallback-isolation.js'),
+  },
+  {
+    label: 'startup-sequencing-candidate-orchestration',
+    importer: () => import('./modules/startup-sequencing-candidate-orchestration.js'),
+  },
+  {
+    label: 'startup-extraction-candidate-shell',
+    importer: () => import('./modules/startup-extraction-candidate-shell.js'),
+  },
+  {
+    label: 'startup-extraction-guarded-gate',
+    importer: () => import('./modules/startup-extraction-guarded-gate.js'),
+  },
+  {
+    label: 'limited-startup-extraction-rehearsal',
+    importer: () => import('./modules/limited-startup-extraction-rehearsal.js'),
+  },
+  {
+    label: 'startup-extraction-adoption-candidate-runtime',
+    importer: () => import('./modules/startup-extraction-adoption-candidate-runtime.js'),
+  },
+  {
+    label: 'final-app-shell-cleanup-runtime',
+    importer: () => import('./modules/final-app-shell-cleanup-runtime.js'),
+  },
+  {
+    label: 'actual-startup-inline-removal-runtime',
+    importer: () => import('./modules/actual-startup-inline-removal-runtime.js'),
+  },
+];
+
+function scheduleOptionalStartupMigrationRuntimes() {
+  if (typeof window.ippoScheduleOptionalRuntime !== 'function') {
+    return;
+  }
+
+  OPTIONAL_STARTUP_MIGRATION_RUNTIMES.forEach((runtime, index) => {
+    window.ippoScheduleOptionalRuntime(runtime.label, runtime.importer, {
+      delayMs: 600 + index * 150,
+      timeoutMs: 2500,
+    });
+  });
+}
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
+
+window.setTimeout(scheduleOptionalStartupMigrationRuntimes, 600);
 
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
