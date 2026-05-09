@@ -74,6 +74,30 @@ function shouldSuppressNavigationReplay(target, source) {
   return false;
 }
 
+function shouldSuppressHydrationReplay(target, source) {
+  try {
+    if (typeof window.ippoShouldSuppressHydrationReplay === 'function') {
+      return !!window.ippoShouldSuppressHydrationReplay({
+        target,
+        source: source || 'welcome-reset-guard',
+      });
+    }
+  } catch(e) {}
+  return false;
+}
+
+function shouldSuppressTabReplay(target, source) {
+  try {
+    if (typeof window.ippoShouldSuppressTabReplay === 'function') {
+      return !!window.ippoShouldSuppressTabReplay({
+        target,
+        source: source || 'welcome-reset-guard',
+      });
+    }
+  } catch(e) {}
+  return false;
+}
+
 function hasRecords() {
   try {
     return Array.isArray(getRecords()) && getRecords().length > 0;
@@ -170,6 +194,30 @@ function wrapFunction(name) {
         },
       });
       markFreshness('welcome-guard:navigation-replay-suppressed');
+      return;
+    }
+
+    if (target && shouldSuppressHydrationReplay(target, source)) {
+      markUiTransition('transition-suppressed', {
+        target,
+        source,
+        detail: {
+          reason: 'hydration-replay-suppression',
+        },
+      });
+      markFreshness('welcome-guard:hydration-replay-suppressed');
+      return;
+    }
+
+    if (target && shouldSuppressTabReplay(target, source)) {
+      markUiTransition('transition-suppressed', {
+        target,
+        source,
+        detail: {
+          reason: 'tab-replay-suppression',
+        },
+      });
+      markFreshness('welcome-guard:tab-replay-suppressed');
       return;
     }
 
