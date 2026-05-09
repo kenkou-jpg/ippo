@@ -5,6 +5,8 @@
 // 既存の init / save / persistence 経路は変更しない。
 // ============================================================
 
+import './persistence-trace-runtime.js';
+
 const BOOT_KEY = '__ippoBoot';
 
 function nowIso() {
@@ -102,6 +104,7 @@ function summarizeBoot() {
     supabaseStatus: window.__ippoSupabaseStatus || null,
     legacyBridgeReady: typeof window.ippoLegacyWindowBridgeSummary === 'function',
     startupVerifyReady: typeof window.ippoStartupVerifySummary === 'function',
+    persistenceTraceReady: typeof window.ippoPersistenceTraceRuntimeSummary === 'function',
     warnings: boot.warnings.slice(-10),
     errors: boot.errors.slice(-10),
     recentEvents: boot.events.slice(-15),
@@ -121,15 +124,33 @@ function markViteReady(detail) {
 getBootState();
 markBootEvent('boot-stability-module-loaded');
 
+if (typeof window.ippoTraceHydrationPhase === 'function') {
+  window.ippoTraceHydrationPhase('startup-enter', {
+    readyState: document.readyState,
+  });
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     const boot = getBootState();
     boot.domContentLoaded = true;
     markBootEvent('dom-content-loaded');
+
+    if (typeof window.ippoTraceHydrationPhase === 'function') {
+      window.ippoTraceHydrationPhase('dom-content-loaded', {
+        readyState: document.readyState,
+      });
+    }
   }, { once: true });
 } else {
   getBootState().domContentLoaded = true;
   markBootEvent('dom-already-loaded');
+
+  if (typeof window.ippoTraceHydrationPhase === 'function') {
+    window.ippoTraceHydrationPhase('dom-already-loaded', {
+      readyState: document.readyState,
+    });
+  }
 }
 
 window.addEventListener('error', (event) => {
