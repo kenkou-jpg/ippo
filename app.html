@@ -20,9 +20,183 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="/src/styles/app.css">
+
+  <style>
+    #ippo-boot-fallback[hidden] { display: none !important; }
+    #ippo-boot-fallback {
+      min-height: 100vh;
+      padding: 40px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fdf8f6;
+      color: #2d1f1a;
+      font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    .ippo-boot-fallback-card {
+      width: min(100%, 360px);
+      padding: 28px 24px;
+      border-radius: 24px;
+      background: #ffffff;
+      box-shadow: 0 12px 36px rgba(200,120,140,0.14);
+      text-align: center;
+    }
+    .ippo-boot-fallback-logo {
+      margin-bottom: 12px;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 24px;
+      letter-spacing: 0.08em;
+      color: #b8707a;
+    }
+    .ippo-boot-fallback-title {
+      margin-bottom: 10px;
+      font-family: 'Shippori Mincho', serif;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+    .ippo-boot-fallback-text {
+      margin-bottom: 20px;
+      color: #8a7a70;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+    .ippo-boot-fallback-button {
+      width: 100%;
+      padding: 13px 16px;
+      border: 0;
+      border-radius: 999px;
+      background: #b8707a;
+      color: #ffffff;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .ippo-boot-fallback-note {
+      margin-top: 14px;
+      color: #8a7a70;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+  </style>
+
+  <script>
+    (function installIppoBootFallbackWatchdog() {
+      var state = window.__IPPO_BOOT_FALLBACK__ = window.__IPPO_BOOT_FALLBACK__ || {
+        installedAt: new Date().toISOString(),
+        errors: [],
+        fallbackShown: false,
+        checks: []
+      };
+
+      function recordError(type, event) {
+        try {
+          var message = '';
+          if (event && event.reason) {
+            message = event.reason.message || String(event.reason);
+          } else if (event && event.message) {
+            message = event.message;
+          } else {
+            message = String(event || type);
+          }
+          state.errors.push({
+            type: type,
+            message: message,
+            at: new Date().toISOString()
+          });
+          if (state.errors.length > 20) state.errors.shift();
+        } catch (_) {}
+      }
+
+      window.addEventListener('error', function(event) {
+        recordError('error', event);
+      });
+
+      window.addEventListener('unhandledrejection', function(event) {
+        recordError('unhandledrejection', event);
+      });
+
+      function hasRenderedApp() {
+        var app = document.getElementById('app');
+        if (!app) return false;
+        if (app.children && app.children.length > 0) return true;
+        if ((app.textContent || '').trim().length > 0) return true;
+        if (document.querySelector('.screen.active, .app-screen.active, #main-app, #screen-welcome')) return true;
+        return false;
+      }
+
+      function showFallback(reason) {
+        if (hasRenderedApp()) return;
+        var fallback = document.getElementById('ippo-boot-fallback');
+        if (!fallback) return;
+        fallback.hidden = false;
+        state.fallbackShown = true;
+        state.fallbackReason = reason || 'blank-screen-timeout';
+        state.fallbackShownAt = new Date().toISOString();
+      }
+
+      function runCheck(reason) {
+        var rendered = hasRenderedApp();
+        state.checks.push({
+          reason: reason || 'manual',
+          rendered: rendered,
+          fallbackShown: state.fallbackShown,
+          at: new Date().toISOString()
+        });
+        if (state.checks.length > 30) state.checks.shift();
+        if (rendered) {
+          var fallback = document.getElementById('ippo-boot-fallback');
+          if (fallback) fallback.hidden = true;
+          return true;
+        }
+        return false;
+      }
+
+      window.ippoBootFailureSummary = function ippoBootFailureSummary() {
+        return {
+          installedAt: state.installedAt,
+          fallbackShown: state.fallbackShown,
+          fallbackReason: state.fallbackReason || null,
+          fallbackShownAt: state.fallbackShownAt || null,
+          rendered: hasRenderedApp(),
+          viteReady: !!window.__ippoViteReady,
+          bootSummaryReady: typeof window.ippoBootSummary === 'function',
+          startupVerifyReady: typeof window.ippoStartupVerifySummary === 'function',
+          errors: state.errors.slice(),
+          checks: state.checks.slice(),
+          url: String(window.location.href)
+        };
+      };
+
+      window.ippoRunBootFallbackCheck = runCheck;
+
+      window.setTimeout(function() { runCheck('boot-watchdog-1500ms'); }, 1500);
+      window.setTimeout(function() {
+        if (!runCheck('boot-watchdog-5000ms')) {
+          showFallback('blank-screen-timeout-5000ms');
+        }
+      }, 5000);
+    })();
+  </script>
 </head>
 <body>
   <div id="app"></div>
+
+  <div id="ippo-boot-fallback" hidden aria-live="polite">
+    <div class="ippo-boot-fallback-card">
+      <div class="ippo-boot-fallback-logo">ippo</div>
+      <div class="ippo-boot-fallback-title">アプリの表示に時間がかかっています</div>
+      <p class="ippo-boot-fallback-text">
+        通信状況や更新直後のキャッシュが影響している可能性があります。<br>
+        ページを再読み込みしてください。
+      </p>
+      <button class="ippo-boot-fallback-button" type="button" onclick="window.location.reload()">
+        再読み込みする
+      </button>
+      <p class="ippo-boot-fallback-note">
+        何度も表示される場合は、ブラウザのキャッシュを削除してからもう一度お試しください。
+      </p>
+    </div>
+  </div>
 
   <noscript>
     JavaScript required.
