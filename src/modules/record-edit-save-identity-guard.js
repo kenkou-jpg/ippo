@@ -44,6 +44,14 @@ function markSyncEvent(phase, detail) {
   } catch(e) {}
 }
 
+function markFreshness(label) {
+  try {
+    if (typeof window.ippoMarkRecordFreshness === 'function') {
+      window.ippoMarkRecordFreshness(label);
+    }
+  } catch(e) {}
+}
+
 function clone(value) {
   try { return JSON.parse(JSON.stringify(value)); } catch(e) { return value; }
 }
@@ -297,6 +305,8 @@ function repairDuplicateDatesAfterSave() {
     recordsLength: list.length,
   };
 
+  markFreshness('record-edit-save:duplicate-repair');
+
   debug('duplicate-dates-repaired-after-save', window.__ippoEditSaveIdentityDuplicateRepairLast);
   return true;
 }
@@ -316,11 +326,13 @@ function wrapSaveRecordScreen() {
     if (result && typeof result.then === 'function') {
       return result.then(function(value) {
         repairDuplicateAfterSave();
+        markFreshness('record-edit-save:after-save');
         return value;
       });
     }
 
     repairDuplicateAfterSave();
+    markFreshness('record-edit-save:after-save-sync');
     return result;
   }
 
