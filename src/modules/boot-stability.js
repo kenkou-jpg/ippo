@@ -10,6 +10,7 @@ import './duplicate-sync-detector-runtime.js';
 import './record-save-trace-runtime.js';
 import './calendar-reflection-trace-runtime.js';
 import './persistence-drift-visibility-runtime.js';
+import './reconnect-lifecycle-trace-runtime.js';
 
 const BOOT_KEY = '__ippoBoot';
 
@@ -113,6 +114,7 @@ function summarizeBoot() {
     recordSaveTraceReady: typeof window.ippoRecordSaveTraceRuntimeSummary === 'function',
     calendarReflectionTraceReady: typeof window.ippoCalendarReflectionTraceRuntimeSummary === 'function',
     persistenceDriftVisibilityReady: typeof window.ippoPersistenceDriftVisibilityRuntimeSummary === 'function',
+    reconnectLifecycleTraceReady: typeof window.ippoReconnectLifecycleTraceRuntimeSummary === 'function',
     warnings: boot.warnings.slice(-10),
     errors: boot.errors.slice(-10),
     recentEvents: boot.events.slice(-15),
@@ -133,6 +135,10 @@ function markViteReady(detail) {
 
   if (typeof window.ippoCapturePersistenceDrift === 'function') {
     window.ippoCapturePersistenceDrift('vite-ready');
+  }
+
+  if (typeof window.ippoInstallReconnectLifecycleListeners === 'function') {
+    window.ippoInstallReconnectLifecycleListeners();
   }
 
   return summarizeBoot();
