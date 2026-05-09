@@ -42,6 +42,27 @@ function trace(label, detail) {
   } catch(e) {}
 }
 
+function traceCalendarNotification(phase, detail) {
+  try {
+    if (typeof window.ippoMarkCalendarReflectionPhase === 'function') {
+      window.ippoMarkCalendarReflectionPhase(phase, {
+        source: 'record-save-pipeline',
+        detail: detail || null,
+      });
+    }
+  } catch(e) {}
+}
+
+function traceSaveNotification(phase, detail) {
+  try {
+    if (typeof window.ippoMarkRecordSavePhase === 'function') {
+      window.ippoMarkRecordSavePhase(phase, {
+        detail: detail || null,
+      });
+    }
+  } catch(e) {}
+}
+
 function getCallable(options, name) {
   if (options && typeof options[name] === 'function') {
     return options[name];
@@ -578,6 +599,16 @@ export function notifyRecordUpdated(options) {
     candidates: renderCandidates.slice(),
     startedAt: startedAt,
   });
+  traceSaveNotification('notify-start', {
+    candidates: renderCandidates.slice(),
+    snapshot: getRecordsSnapshot(),
+  });
+  traceCalendarNotification('calendar-notify-start', {
+    candidates: renderCandidates.filter(function(name) {
+      return /calendar/i.test(name);
+    }),
+    snapshot: getRecordsSnapshot(),
+  });
 
   renderCandidates.forEach(function(name) {
     try {
@@ -586,15 +617,40 @@ export function notifyRecordUpdated(options) {
         : window[name];
 
       if (typeof fn === 'function') {
+        if (/calendar/i.test(name)) {
+          traceCalendarNotification('calendar-notify-call', {
+            name: name,
+            snapshot: getRecordsSnapshot(),
+          });
+        }
+
         runRecordSaveAction(RECORD_SAVE_ACTION_TYPES.NOTIFY, name, function() {
           return fn.apply((options && options.thisArg) || window, getCallArguments(options));
         }, options);
         called.push(name);
+
+        if (/calendar/i.test(name)) {
+          traceCalendarNotification('calendar-notify-called', {
+            name: name,
+            snapshot: getRecordsSnapshot(),
+          });
+        }
       } else {
-        skipped.push({ name: name, reason: 'missing-function' });
+        const skippedItem = { name: name, reason: 'missing-function' };
+        skipped.push(skippedItem);
+
+        if (/calendar/i.test(name)) {
+          traceCalendarNotification('calendar-notify-skipped', skippedItem);
+        }
       }
     } catch(error) {
       trace('notify:error:' + name, error && error.message);
+      if (/calendar/i.test(name)) {
+        traceCalendarNotification('calendar-notify-error', {
+          name: name,
+          error: summarizeError(error),
+        });
+      }
       recordTimelineEvent(context, 'notify:error', {
         name: name,
         error: summarizeError(error),
@@ -614,6 +670,12 @@ export function notifyRecordUpdated(options) {
 
   recordNotifyResult(context, notifyResult);
   recordTimelineEvent(context, 'notify:done', notifyResult);
+  traceSaveNotification('notify-done', notifyResult);
+  traceCalendarNotification('calendar-notify-done', {
+    called: called.filter(function(name) { return /calendar/i.test(name); }),
+    skipped: skipped.filter(function(item) { return item && /calendar/i.test(item.name); }),
+    snapshot: getRecordsSnapshot(),
+  });
   trace('notify:done', notifyResult);
   return called;
 }
