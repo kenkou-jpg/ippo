@@ -31,6 +31,7 @@ function getState() {
       scheduled: [],
       imports: [],
       waits: [],
+      containments: [],
     };
   }
   return window[OPTIONAL_RUNTIME_LOADER_KEY];
@@ -68,6 +69,20 @@ function timeoutPromise(label, timeoutMs) {
       });
     }, timeoutMs || DEFAULT_TIMEOUT_MS);
   });
+}
+
+function recordOptionalRuntimeContainment(label, reason, detail) {
+  const state = getState();
+  const entry = Object.assign({
+    label,
+    reason,
+    at: nowIso(),
+    contained: true,
+  }, detail || {});
+
+  pushBounded(state.containments, entry);
+  markBootTimeline('optional-runtime-contained', entry);
+  return entry;
 }
 
 function recordOptionalRuntimeSchedule(label, options, delayMs, waitForInteractionReady) {
@@ -175,9 +190,14 @@ async function importOptionalRuntime(label, importer, options) {
         status: 'timeout',
         timeoutMs,
         durationMs,
+        contained: true,
         at: nowIso(),
       };
       pushBounded(state.imports, entry);
+      recordOptionalRuntimeContainment(label, 'timeout', {
+        timeoutMs,
+        durationMs,
+      });
       markBootTimeline('optional-runtime-import-timeout', entry);
       markBootError('optional-runtime-import-timeout', entry);
       return null;
@@ -200,9 +220,15 @@ async function importOptionalRuntime(label, importer, options) {
       timeoutMs,
       durationMs: Date.now() - startedAtMs,
       message: error && error.message ? error.message : String(error),
+      contained: true,
       at: nowIso(),
     };
     pushBounded(state.imports, entry);
+    recordOptionalRuntimeContainment(label, 'failed', {
+      timeoutMs,
+      durationMs: entry.durationMs,
+      message: entry.message,
+    });
     markBootTimeline('optional-runtime-import-failed', entry);
     markBootError('optional-runtime-import-failed', entry);
     return null;
@@ -219,9 +245,17 @@ function scheduleOptionalRuntime(label, importer, options) {
 
   window.setTimeout(() => {
     if (shouldWaitForInteractionReady) {
-      waitForInteractionReady(label, options).then(() => {
-        importOptionalRuntime(label, importer, options);
-      });
+      waitForInteractionReady(label, options)
+        .then(() => {
+          importOptionalRuntime(label, importer, options);
+        })
+        .catch((error) => {
+          const message = error && error.message ? error.message : String(error);
+          recordOptionalRuntimeContainment(label, 'interaction-ready-wait-failed', {
+            message,
+          });
+          importOptionalRuntime(label, importer, options);
+        });
       return;
     }
 
@@ -234,11 +268,13 @@ function summarizeGuardedOptionalRuntimeLoader() {
   const scheduled = state.scheduled.slice();
   const imports = state.imports.slice();
   const waits = state.waits.slice();
+  const containments = state.containments.slice();
   return {
     loadedAt: state.loadedAt,
     checkedAt: nowIso(),
     scheduledTotal: scheduled.length,
     waitTotal: waits.length,
+    containmentTotal: containments.length,
     total: imports.length,
     loaded: imports.filter((entry) => entry.status === 'loaded').length,
     failed: imports.filter((entry) => entry.status === 'failed').length,
@@ -247,8 +283,13 @@ function summarizeGuardedOptionalRuntimeLoader() {
       counts[entry.status] = (counts[entry.status] || 0) + 1;
       return counts;
     }, {}),
+    containmentsByReason: containments.reduce((counts, entry) => {
+      counts[entry.reason] = (counts[entry.reason] || 0) + 1;
+      return counts;
+    }, {}),
     scheduled,
     waits,
+    containments,
     imports,
   };
 }
