@@ -33,6 +33,7 @@ import './modules/startup-extraction-candidate-shell.js';
 import './modules/startup-extraction-guarded-gate.js';
 import './modules/limited-startup-extraction-rehearsal.js';
 import './modules/startup-extraction-adoption-candidate-runtime.js';
+import './modules/final-app-shell-cleanup-runtime.js';
 import './modules/actual-startup-inline-removal-runtime.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
@@ -187,6 +188,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
     hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
     hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
+    hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
     hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
   });
 }
@@ -214,6 +216,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
     hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
     hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
+    hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
     hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
   });
 }
@@ -421,6 +424,20 @@ if (typeof window.ippoRunStartupExtractionAdoptionCandidateRuntimeCheck === 'fun
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('startup-extraction-adoption-candidate-runtime-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunFinalAppShellCleanupCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunFinalAppShellCleanupCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('final-app-shell-cleanup-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
