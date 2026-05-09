@@ -25,63 +25,43 @@ import './modules/persistence-execution-readiness.js';
 import './modules/persistence-candidate-execution.js';
 import './modules/persistence-guarded-execution.js';
 
-// ─── Startup extraction / migration assurance runtimes ───
-// Phase I-3:
-// These runtimes are no longer boot-critical. They are loaded after the first
-// visible shell through the guarded optional runtime loader so a diagnostics /
-// migration runtime failure cannot block startup rendering.
+// ─── Optional startup / migration assurance runtimes ──────
+// These are not required for first render. They are loaded through the guarded
+// optional runtime loader so diagnostics/migration failures do not block boot.
 const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
-  {
-    label: 'startup-guard-candidate',
-    importer: () => import('./modules/startup-guard-candidate.js'),
-  },
-  {
-    label: 'main-entry-startup-observer-wiring',
-    importer: () => import('./modules/main-entry-startup-observer-wiring.js'),
-  },
-  {
-    label: 'legacy-bootstrap-fallback-isolation',
-    importer: () => import('./modules/legacy-bootstrap-fallback-isolation.js'),
-  },
-  {
-    label: 'startup-sequencing-candidate-orchestration',
-    importer: () => import('./modules/startup-sequencing-candidate-orchestration.js'),
-  },
-  {
-    label: 'startup-extraction-candidate-shell',
-    importer: () => import('./modules/startup-extraction-candidate-shell.js'),
-  },
-  {
-    label: 'startup-extraction-guarded-gate',
-    importer: () => import('./modules/startup-extraction-guarded-gate.js'),
-  },
-  {
-    label: 'limited-startup-extraction-rehearsal',
-    importer: () => import('./modules/limited-startup-extraction-rehearsal.js'),
-  },
-  {
-    label: 'startup-extraction-adoption-candidate-runtime',
-    importer: () => import('./modules/startup-extraction-adoption-candidate-runtime.js'),
-  },
-  {
-    label: 'final-app-shell-cleanup-runtime',
-    importer: () => import('./modules/final-app-shell-cleanup-runtime.js'),
-  },
-  {
-    label: 'actual-startup-inline-removal-runtime',
-    importer: () => import('./modules/actual-startup-inline-removal-runtime.js'),
-  },
+  ['startup-guard-candidate', () => import('./modules/startup-guard-candidate.js')],
+  ['main-entry-startup-observer-wiring', () => import('./modules/main-entry-startup-observer-wiring.js')],
+  ['legacy-bootstrap-fallback-isolation', () => import('./modules/legacy-bootstrap-fallback-isolation.js')],
+  ['startup-sequencing-candidate-orchestration', () => import('./modules/startup-sequencing-candidate-orchestration.js')],
+  ['startup-extraction-candidate-shell', () => import('./modules/startup-extraction-candidate-shell.js')],
+  ['startup-extraction-guarded-gate', () => import('./modules/startup-extraction-guarded-gate.js')],
+  ['limited-startup-extraction-rehearsal', () => import('./modules/limited-startup-extraction-rehearsal.js')],
+  ['startup-extraction-adoption-candidate-runtime', () => import('./modules/startup-extraction-adoption-candidate-runtime.js')],
+  ['final-app-shell-cleanup-runtime', () => import('./modules/final-app-shell-cleanup-runtime.js')],
+  ['actual-startup-inline-removal-runtime', () => import('./modules/actual-startup-inline-removal-runtime.js')],
 ];
 
-function scheduleOptionalStartupMigrationRuntimes() {
-  if (typeof window.ippoScheduleOptionalRuntime !== 'function') {
-    return;
-  }
+// ─── Optional record observability runtimes ────────────────
+// Bundle 2:
+// Keep the save/edit primitives boot-critical, but move trace/shadow/candidate
+// verification layers behind guarded dynamic imports.
+const OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES = [
+  ['record-save-shadow', () => import('./modules/record-save-shadow.js')],
+  ['record-date-branch-observability', () => import('./modules/record-date-branch-observability.js')],
+  ['record-date-rollout-trace', () => import('./modules/record-date-rollout-trace.js')],
+  ['record-date-limited-adoption-candidate', () => import('./modules/record-date-limited-adoption-candidate.js')],
+  ['record-date-draft-candidate', () => import('./modules/record-date-draft-candidate.js')],
+  ['record-save-adoption-verify', () => import('./modules/record-save-adoption-verify.js')],
+  ['record-save-orchestrator', () => import('./modules/record-save-orchestrator.js')],
+];
 
-  OPTIONAL_STARTUP_MIGRATION_RUNTIMES.forEach((runtime, index) => {
-    window.ippoScheduleOptionalRuntime(runtime.label, runtime.importer, {
-      delayMs: 600 + index * 150,
-      timeoutMs: 2500,
+function scheduleOptionalRuntimes(list, baseDelayMs, stepMs, timeoutMs) {
+  if (typeof window.ippoScheduleOptionalRuntime !== 'function') return;
+
+  list.forEach(([label, importer], index) => {
+    window.ippoScheduleOptionalRuntime(label, importer, {
+      delayMs: baseDelayMs + index * stepMs,
+      timeoutMs,
     });
   });
 }
@@ -90,7 +70,10 @@ if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
 
-window.setTimeout(scheduleOptionalStartupMigrationRuntimes, 600);
+window.setTimeout(() => {
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 600, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 900, 150, 2500);
+}, 600);
 
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
@@ -160,32 +143,11 @@ import './modules/record-draft.js';
 // record save target preview
 import './modules/record-save-target.js';
 
-// record save shadow outcome
-import './modules/record-save-shadow.js';
-
-// record date branch observability
-import './modules/record-date-branch-observability.js';
-
-// guarded rollout trace only
-import './modules/record-date-rollout-trace.js';
-
-// limited real adoption candidate only
-import './modules/record-date-limited-adoption-candidate.js';
-
-// guarded draft candidate preview / actual injection
-import './modules/record-date-draft-candidate.js';
-
 // record save delegation readiness must run after all save observers
 import './modules/record-save-delegation.js';
 
 // module payload adoption candidate must run after delegation plan
 import './modules/record-save-adoption.js';
-
-// post-save verification must run after module payload adoption delegation
-import './modules/record-save-adoption-verify.js';
-
-// orchestrator preview must run after all save layers
-import './modules/record-save-orchestrator.js';
 
 // normalized save result must run after orchestration / verification
 import './modules/record-save-result.js';
@@ -244,6 +206,13 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
     hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
     hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
+    hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
+    hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
+    hasRecordDateRolloutTrace: typeof window.ippoRecordDateRolloutTraceSummary === 'function',
+    hasRecordDateLimitedAdoptionCandidate: typeof window.ippoRecordDateLimitedAdoptionCandidateSummary === 'function',
+    hasRecordDateDraftCandidate: typeof window.ippoRecordDateDraftCandidateSummary === 'function',
+    hasRecordSaveAdoptionVerify: typeof window.ippoRecordSaveAdoptionVerifySummary === 'function',
+    hasRecordSaveOrchestrator: typeof window.ippoRecordSaveOrchestratorSummary === 'function',
   });
 }
 
@@ -274,16 +243,24 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
     hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
     hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
+    hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
+    hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
+    hasRecordDateRolloutTrace: typeof window.ippoRecordDateRolloutTraceSummary === 'function',
+    hasRecordDateLimitedAdoptionCandidate: typeof window.ippoRecordDateLimitedAdoptionCandidateSummary === 'function',
+    hasRecordDateDraftCandidate: typeof window.ippoRecordDateDraftCandidateSummary === 'function',
+    hasRecordSaveAdoptionVerify: typeof window.ippoRecordSaveAdoptionVerifySummary === 'function',
+    hasRecordSaveOrchestrator: typeof window.ippoRecordSaveOrchestratorSummary === 'function',
   });
 }
 
-if (typeof window.ippoRunBootstrapShellCheck === 'function') {
+function runDeferredCheck(name, label) {
+  if (typeof window[name] !== 'function') return;
   window.setTimeout(() => {
     try {
-      window.ippoRunBootstrapShellCheck('main-entry-post-module-load');
+      window[name]('main-entry-post-module-load');
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('bootstrap-shell-check-failed', {
+        window.ippoMarkBootError(label + '-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
@@ -291,257 +268,25 @@ if (typeof window.ippoRunBootstrapShellCheck === 'function') {
   }, 0);
 }
 
-if (typeof window.ippoRunStartupBoundaryCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunStartupBoundaryCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('startup-boundary-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunBootstrapOwnershipPrepCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunBootstrapOwnershipPrepCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('bootstrap-ownership-prep-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunRuntimeSequencingCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunRuntimeSequencingCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('runtime-sequencing-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunDeferredHydrationPrepCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunDeferredHydrationPrepCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('deferred-hydration-prep-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunRenderBoundaryCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunRenderBoundaryCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('render-boundary-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunScreenActivationPrepCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunScreenActivationPrepCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('screen-activation-prep-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunRuntimeOwnershipGraphCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunRuntimeOwnershipGraphCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('runtime-ownership-graph-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunPersistenceBoundaryPrepCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunPersistenceBoundaryPrepCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('persistence-boundary-prep-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunPersistenceExecutionReadinessCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunPersistenceExecutionReadinessCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('persistence-execution-readiness-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunPersistenceCandidateShadow === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunPersistenceCandidateShadow('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('persistence-candidate-shadow-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunPersistenceGuardedExecutionCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunPersistenceGuardedExecutionCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('persistence-guarded-execution-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunStartupGuardCandidateCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunStartupGuardCandidateCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('startup-guard-candidate-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunMainEntryStartupObserverWiringCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunMainEntryStartupObserverWiringCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('main-entry-startup-observer-wiring-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunStartupExtractionGuardedGateCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunStartupExtractionGuardedGateCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('startup-extraction-guarded-gate-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunLimitedStartupExtractionRehearsalCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunLimitedStartupExtractionRehearsalCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('limited-startup-extraction-rehearsal-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunStartupExtractionAdoptionCandidateRuntimeCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunStartupExtractionAdoptionCandidateRuntimeCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('startup-extraction-adoption-candidate-runtime-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunFinalAppShellCleanupCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunFinalAppShellCleanupCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('final-app-shell-cleanup-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
-
-if (typeof window.ippoRunActualStartupInlineRemovalCheck === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunActualStartupInlineRemovalCheck('main-entry-post-module-load');
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('actual-startup-inline-removal-check-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
-}
+runDeferredCheck('ippoRunBootstrapShellCheck', 'bootstrap-shell-check');
+runDeferredCheck('ippoRunStartupBoundaryCheck', 'startup-boundary-check');
+runDeferredCheck('ippoRunBootstrapOwnershipPrepCheck', 'bootstrap-ownership-prep-check');
+runDeferredCheck('ippoRunRuntimeSequencingCheck', 'runtime-sequencing-check');
+runDeferredCheck('ippoRunDeferredHydrationPrepCheck', 'deferred-hydration-prep-check');
+runDeferredCheck('ippoRunRenderBoundaryCheck', 'render-boundary-check');
+runDeferredCheck('ippoRunScreenActivationPrepCheck', 'screen-activation-prep-check');
+runDeferredCheck('ippoRunRuntimeOwnershipGraphCheck', 'runtime-ownership-graph-check');
+runDeferredCheck('ippoRunPersistenceBoundaryPrepCheck', 'persistence-boundary-prep-check');
+runDeferredCheck('ippoRunPersistenceExecutionReadinessCheck', 'persistence-execution-readiness-check');
+runDeferredCheck('ippoRunPersistenceCandidateShadow', 'persistence-candidate-shadow');
+runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded-execution-check');
+runDeferredCheck('ippoRunStartupGuardCandidateCheck', 'startup-guard-candidate-check');
+runDeferredCheck('ippoRunMainEntryStartupObserverWiringCheck', 'main-entry-startup-observer-wiring-check');
+runDeferredCheck('ippoRunStartupExtractionGuardedGateCheck', 'startup-extraction-guarded-gate-check');
+runDeferredCheck('ippoRunLimitedStartupExtractionRehearsalCheck', 'limited-startup-extraction-rehearsal-check');
+runDeferredCheck('ippoRunStartupExtractionAdoptionCandidateRuntimeCheck', 'startup-extraction-adoption-candidate-runtime-check');
+runDeferredCheck('ippoRunFinalAppShellCleanupCheck', 'final-app-shell-cleanup-check');
+runDeferredCheck('ippoRunActualStartupInlineRemovalCheck', 'actual-startup-inline-removal-check');
 
 if (typeof window.ippoRunStartupVerify === 'function') {
   window.setTimeout(() => {
