@@ -13,6 +13,7 @@
 
 const OPTIONAL_RUNTIME_LOADER_KEY = '__ippoGuardedOptionalRuntimeLoader';
 const DEFAULT_TIMEOUT_MS = 3000;
+const DEFAULT_INTERACTION_READY_TIMEOUT_MS = 4000;
 
 function nowIso() {
   try {
@@ -27,6 +28,7 @@ function getState() {
     window[OPTIONAL_RUNTIME_LOADER_KEY] = {
       loadedAt: nowIso(),
       imports: [],
+      waits: [],
     };
   }
   return window[OPTIONAL_RUNTIME_LOADER_KEY];
@@ -57,6 +59,69 @@ function timeoutPromise(label, timeoutMs) {
         timeoutMs,
       });
     }, timeoutMs || DEFAULT_TIMEOUT_MS);
+  });
+}
+
+function recordInteractionReadyWait(label, status, detail) {
+  const state = getState();
+  const entry = Object.assign({
+    label,
+    status,
+    at: nowIso(),
+  }, detail || {});
+
+  state.waits.push(entry);
+  if (state.waits.length > 80) state.waits.shift();
+  markBootTimeline('optional-runtime-interaction-ready-' + status, entry);
+  return entry;
+}
+
+function waitForInteractionReady(label, options) {
+  const timeoutMs = options && typeof options.interactionReadyTimeoutMs === 'number'
+    ? options.interactionReadyTimeoutMs
+    : DEFAULT_INTERACTION_READY_TIMEOUT_MS;
+
+  if (window.__ippoInteractionReady === true) {
+    recordInteractionReadyWait(label, 'already-ready', { timeoutMs });
+    return Promise.resolve('already-ready');
+  }
+
+  return new Promise((resolve) => {
+    let done = false;
+    let timeoutId = null;
+
+    function finish(reason) {
+      if (done) return;
+      done = true;
+      window.__ippoInteractionReady = true;
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+      window.removeEventListener('pointerdown', onInteraction, true);
+      window.removeEventListener('keydown', onInteraction, true);
+      window.removeEventListener('touchstart', onInteraction, true);
+      window.removeEventListener('DOMContentLoaded', onDomReady, true);
+      recordInteractionReadyWait(label, reason, { timeoutMs });
+      resolve(reason);
+    }
+
+    function onInteraction() {
+      finish('user-interaction');
+    }
+
+    function onDomReady() {
+      window.setTimeout(() => finish('dom-ready'), 0);
+    }
+
+    window.addEventListener('pointerdown', onInteraction, true);
+    window.addEventListener('keydown', onInteraction, true);
+    window.addEventListener('touchstart', onInteraction, true);
+
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', onDomReady, { once: true, capture: true });
+    } else {
+      window.setTimeout(() => finish('document-ready'), 0);
+    }
+
+    timeoutId = window.setTimeout(() => finish('timeout'), timeoutMs);
   });
 }
 
@@ -124,8 +189,16 @@ function scheduleOptionalRuntime(label, importer, options) {
   const delayMs = options && typeof options.delayMs === 'number'
     ? options.delayMs
     : 0;
+  const shouldWaitForInteractionReady = !!(options && options.waitForInteractionReady);
 
   window.setTimeout(() => {
+    if (shouldWaitForInteractionReady) {
+      waitForInteractionReady(label, options).then(() => {
+        importOptionalRuntime(label, importer, options);
+      });
+      return;
+    }
+
     importOptionalRuntime(label, importer, options);
   }, delayMs);
 }
@@ -133,6 +206,7 @@ function scheduleOptionalRuntime(label, importer, options) {
 function summarizeGuardedOptionalRuntimeLoader() {
   const state = getState();
   const imports = state.imports.slice();
+  const waits = state.waits.slice();
   return {
     loadedAt: state.loadedAt,
     checkedAt: nowIso(),
@@ -140,6 +214,7 @@ function summarizeGuardedOptionalRuntimeLoader() {
     loaded: imports.filter((entry) => entry.status === 'loaded').length,
     failed: imports.filter((entry) => entry.status === 'failed').length,
     timedOut: imports.filter((entry) => entry.status === 'timeout').length,
+    waits,
     imports,
   };
 }
@@ -154,4 +229,5 @@ export {
   importOptionalRuntime,
   scheduleOptionalRuntime,
   summarizeGuardedOptionalRuntimeLoader,
+  waitForInteractionReady,
 };
