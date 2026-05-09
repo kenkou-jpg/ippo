@@ -2,13 +2,13 @@
 // ippo – record-freshness-guard.js
 //
 // Phase B save stabilization:
-// detect stale record overwrite candidates without changing sync order.
+// detect and repair obvious stale record overwrite candidates.
 //
 // IMPORTANT:
-// - warning-first diagnostics
-// - does not block saveState / loadState / cloudBackupAll
-// - does not mutate records
+// - guarded repair only after stale overwrite candidate detection
+// - does not wrap saveState / loadState / cloudBackupAll
 // - does not change hydration or sync timing
+// - only restores last known fresher records when current records shrink
 // ============================================================
 
 import {
@@ -27,6 +27,14 @@ function nowIso() {
   }
 }
 
+function cloneRecords(records) {
+  try {
+    return JSON.parse(JSON.stringify(Array.isArray(records) ? records : []));
+  } catch (_) {
+    return Array.isArray(records) ? records.slice() : [];
+  }
+}
+
 function getStore() {
   try {
     if (!window[FRESHNESS_KEY]) {
@@ -34,7 +42,9 @@ function getStore() {
         createdAt: nowIso(),
         snapshots: [],
         warnings: [],
+        repairs: [],
         latestFingerprint: null,
+        lastKnownFreshRecords: [],
         listenersInstalled: false,
       };
     }
@@ -44,7 +54,9 @@ function getStore() {
       createdAt: nowIso(),
       snapshots: [],
       warnings: [],
+      repairs: [],
       latestFingerprint: null,
+      lastKnownFreshRecords: [],
       listenersInstalled: false,
     };
   }
@@ -152,10 +164,75 @@ function traceReconnect(phase, payload) {
   } catch (_) {}
 }
 
+function setActiveRecords(records) {
+  const nextRecords = cloneRecords(records);
+
+  if (!window.state || typeof window.state !== 'object') {
+    window.state = {};
+  }
+
+  window.state.records = nextRecords;
+  return nextRecords;
+}
+
+function persistFreshnessRepair(detail) {
+  try {
+    if (typeof window.saveState === 'function') {
+      window.saveState();
+      traceFreshness('rollback-repair-persisted', detail);
+    }
+  } catch (error) {
+    traceFreshness('rollback-repair-persist-failed', {
+      ...detail,
+      message: error && error.message ? error.message : String(error),
+    });
+  }
+}
+
+function maybeRepairStaleOverwrite(snapshot, currentRecords) {
+  const store = getStore();
+  const fallbackRecords = Array.isArray(store.lastKnownFreshRecords)
+    ? store.lastKnownFreshRecords
+    : [];
+
+  const fallbackFingerprint = buildFingerprint(fallbackRecords);
+  const currentFingerprint = snapshot?.fingerprint;
+
+  const canRepair = snapshot?.staleCandidate === true
+    && fallbackRecords.length > 0
+    && currentFingerprint
+    && fallbackFingerprint.length > currentFingerprint.length
+    && fallbackFingerprint.contentHash !== currentFingerprint.contentHash;
+
+  if (!canRepair) return false;
+
+  const restored = setActiveRecords(fallbackRecords);
+  const repair = {
+    type: 'stale-record-overwrite-repaired',
+    checkedAt: nowIso(),
+    label: snapshot.label,
+    previousLength: fallbackFingerprint.length,
+    currentLength: currentFingerprint.length,
+    restoredLength: restored.length,
+    fallbackFingerprint,
+    overwrittenFingerprint: currentFingerprint,
+  };
+
+  pushLimited(store.repairs, repair, MAX_EVENTS);
+  traceFreshness('rollback-repair-applied', repair);
+  persistFreshnessRepair(repair);
+
+  store.latestFingerprint = buildFingerprint(restored);
+  store.lastKnownFreshRecords = cloneRecords(restored);
+
+  return repair;
+}
+
 function markRecordFreshness(label = 'manual') {
   const store = getStore();
   const records = getRecords();
-  const fingerprint = buildFingerprint(records);
+  const recordsSnapshot = cloneRecords(records);
+  const fingerprint = buildFingerprint(recordsSnapshot);
   const previous = store.latestFingerprint;
   const staleCandidate = isPotentialStaleOverwrite(previous, fingerprint);
   const snapshot = {
@@ -167,7 +244,6 @@ function markRecordFreshness(label = 'manual') {
   };
 
   pushLimited(store.snapshots, snapshot, MAX_EVENTS);
-  store.latestFingerprint = fingerprint;
 
   if (staleCandidate) {
     const warning = {
@@ -179,7 +255,10 @@ function markRecordFreshness(label = 'manual') {
     };
     pushLimited(store.warnings, warning, MAX_EVENTS);
     traceFreshness('stale-overwrite-candidate', warning);
+    maybeRepairStaleOverwrite(snapshot, recordsSnapshot);
   } else {
+    store.latestFingerprint = fingerprint;
+    store.lastKnownFreshRecords = recordsSnapshot;
     traceFreshness('snapshot', {
       label,
       fingerprint,
@@ -229,16 +308,18 @@ function summarizeRecordFreshnessGuard() {
   return {
     snapshotCount: store.snapshots.length,
     warningCount: store.warnings.length,
+    repairCount: store.repairs.length,
     listenersInstalled: store.listenersInstalled === true,
     latestFingerprint: store.latestFingerprint,
     recentSnapshots: store.snapshots.slice(-8),
     recentWarnings: store.warnings.slice(-8),
+    recentRepairs: store.repairs.slice(-8),
     preservedConstraints: {
-      noSaveBlock: true,
-      noLoadBlock: true,
+      noFunctionWrapping: true,
       noCloudBlock: true,
-      noRecordMutation: true,
-      noTimingChange: true,
+      noLoadBlock: true,
+      guardedRepairOnly: true,
+      noSyncOrderChange: true,
     },
   };
 }
@@ -247,7 +328,9 @@ function resetRecordFreshnessGuard() {
   const store = getStore();
   store.snapshots = [];
   store.warnings = [];
+  store.repairs = [];
   store.latestFingerprint = null;
+  store.lastKnownFreshRecords = [];
   return summarizeRecordFreshnessGuard();
 }
 
