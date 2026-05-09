@@ -15,6 +15,7 @@ import {
 import './record-edit-save-identity-guard.js';
 import './record-freshness-guard.js';
 import './ui-transition-ownership-runtime.js';
+import './ui-drift-suppression-runtime.js';
 import './daily-record-card-guard.js';
 
 function debug(label, detail) {
@@ -41,10 +42,30 @@ function markUiTransition(phase, payload) {
   } catch(e) {}
 }
 
+function markNavigationPhase(phase, payload) {
+  try {
+    if (typeof window.ippoMarkNavigationPhase === 'function') {
+      window.ippoMarkNavigationPhase(phase, payload || {});
+    }
+  } catch(e) {}
+}
+
 function shouldSuppressWelcomeReplay(target, source) {
   try {
     if (typeof window.ippoShouldSuppressWelcomeReplay === 'function') {
       return !!window.ippoShouldSuppressWelcomeReplay({
+        target,
+        source: source || 'welcome-reset-guard',
+      });
+    }
+  } catch(e) {}
+  return false;
+}
+
+function shouldSuppressNavigationReplay(target, source) {
+  try {
+    if (typeof window.ippoShouldSuppressNavigationReplay === 'function') {
+      return !!window.ippoShouldSuppressNavigationReplay({
         target,
         source: source || 'welcome-reset-guard',
       });
@@ -134,6 +155,22 @@ function wrapFunction(name) {
         target,
         source,
       });
+      markNavigationPhase('transition-requested', {
+        target,
+        source,
+      });
+    }
+
+    if (target && shouldSuppressNavigationReplay(target, source)) {
+      markUiTransition('transition-suppressed', {
+        target,
+        source,
+        detail: {
+          reason: 'navigation-replay-suppression',
+        },
+      });
+      markFreshness('welcome-guard:navigation-replay-suppressed');
+      return;
     }
 
     if (
@@ -269,6 +306,7 @@ window.ippoWelcomeResetGuardSummary = function() {
     editSaveIdentityGuardLoaded: typeof window.ippoEditSaveIdentityGuardSummary === 'function',
     recordFreshnessGuardLoaded: typeof window.ippoRecordFreshnessGuardSummary === 'function',
     uiTransitionOwnershipLoaded: typeof window.ippoUiTransitionOwnershipSummary === 'function',
+    uiDriftSuppressionLoaded: typeof window.ippoUiDriftSuppressionSummary === 'function',
     dailyRecordCardGuardLoaded: typeof window.ippoDailyRecordCardSummary === 'function',
   };
 };
