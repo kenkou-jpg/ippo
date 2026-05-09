@@ -27,6 +27,8 @@ import './modules/persistence-guarded-execution.js';
 // ─── Startup extraction / actual startup inline removal ───
 // guarded / fallback-required
 // hydration/render/screen/persistence removal remains disabled
+import './modules/startup-guard-candidate.js';
+import './modules/main-entry-startup-observer-wiring.js';
 import './modules/legacy-bootstrap-fallback-isolation.js';
 import './modules/startup-sequencing-candidate-orchestration.js';
 import './modules/startup-extraction-candidate-shell.js';
@@ -182,6 +184,8 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasStartupGuardCandidate: typeof window.ippoStartupGuardCandidateSummary === 'function',
+    hasMainEntryStartupObserverWiring: typeof window.ippoMainEntryStartupObserverWiringSummary === 'function',
     hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
     hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
     hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
@@ -210,6 +214,8 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasStartupGuardCandidate: typeof window.ippoStartupGuardCandidateSummary === 'function',
+    hasMainEntryStartupObserverWiring: typeof window.ippoMainEntryStartupObserverWiringSummary === 'function',
     hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
     hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
     hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
@@ -382,6 +388,34 @@ if (typeof window.ippoRunPersistenceGuardedExecutionCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('persistence-guarded-execution-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunStartupGuardCandidateCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunStartupGuardCandidateCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('startup-guard-candidate-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunMainEntryStartupObserverWiringCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunMainEntryStartupObserverWiringCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('main-entry-startup-observer-wiring-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
