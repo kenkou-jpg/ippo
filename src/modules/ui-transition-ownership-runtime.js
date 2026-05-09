@@ -2,18 +2,19 @@
 // ippo – ui-transition-ownership-runtime.js
 //
 // Phase C UI drift stabilization:
-// track screen/tab transition ownership and suppress stale welcome replay.
+// track screen/tab transition ownership and suppress stale UI replay.
 //
 // IMPORTANT:
 // - does not wrap showScreen / switchTab by itself
 // - does not change render timing
 // - does not mutate DOM
-// - suppression is limited to stale welcome/onboarding replay only
+// - suppression is limited to stale replay candidates
 // ============================================================
 
 const UI_TRANSITION_KEY = '__IPPO_UI_TRANSITION_OWNERSHIP';
 const MAX_EVENTS = 250;
 const STALE_WINDOW_MS = 1500;
+const HYDRATION_STALE_WINDOW_MS = 5000;
 
 function nowMs() {
   try {
@@ -160,6 +161,18 @@ function tracePersistence(phase, payload) {
   } catch (_) {}
 }
 
+function markSuppression(type, payload) {
+  const store = getStore();
+  const suppression = {
+    type,
+    at: nowIso(),
+    ...payload,
+  };
+  pushLimited(store.suppressions, suppression, MAX_EVENTS);
+  tracePersistence(type, suppression);
+  return suppression;
+}
+
 function markUiTransition(phase, payload = {}) {
   const store = getStore();
   const atMs = nowMs();
@@ -222,6 +235,10 @@ function isWelcomeTarget(target) {
   return /(welcome|onboarding|start)/i.test(String(target || ''));
 }
 
+function isHydrationSource(source) {
+  return /(hydration|startup|restore|loadstate|dom-content-loaded|dom-already-loaded)/i.test(String(source || ''));
+}
+
 function shouldSuppressWelcomeReplay(payload = {}) {
   const target = normalizeTarget(payload.target || payload.screen || payload.tab || payload.name || '');
   const store = getStore();
@@ -234,22 +251,80 @@ function shouldSuppressWelcomeReplay(payload = {}) {
     && !isWelcomeTarget(previous.target);
 
   if (suppress) {
-    const suppression = {
-      type: 'welcome-replay-suppressed',
+    return markSuppression('welcome-replay-suppressed', {
       target,
       source: payload.source || 'unknown',
       previous,
-      at: nowIso(),
       reason: 'completed-user-cannot-replay-welcome',
       state: {
         onboardingCompleted: completed,
         hasRecords: hasRecords(),
         hasProfile: hasProfile(),
       },
-    };
-    pushLimited(store.suppressions, suppression, MAX_EVENTS);
-    tracePersistence('welcome-replay-suppressed', suppression);
-    return suppression;
+    });
+  }
+
+  return false;
+}
+
+function shouldSuppressHydrationReplay(payload = {}) {
+  const target = normalizeTarget(payload.target || payload.screen || payload.tab || payload.name || '');
+  const source = payload.source || 'unknown';
+  const store = getStore();
+  const previous = store.lastTransition;
+  const ts = nowMs();
+
+  const suppress = !!(
+    target
+    && isHydrationSource(source)
+    && previous
+    && previous.target
+    && previous.target !== target
+    && ts - previous.ts >= 0
+    && ts - previous.ts <= HYDRATION_STALE_WINDOW_MS
+  );
+
+  if (suppress) {
+    return markSuppression('hydration-replay-suppressed', {
+      target,
+      source,
+      previous,
+      deltaMs: ts - previous.ts,
+      windowMs: HYDRATION_STALE_WINDOW_MS,
+      reason: 'late-hydration-cannot-overwrite-newer-ui-transition',
+    });
+  }
+
+  return false;
+}
+
+function shouldSuppressTabReplay(payload = {}) {
+  const target = normalizeTarget(payload.target || payload.screen || payload.tab || payload.name || '');
+  const source = payload.source || 'unknown';
+  const store = getStore();
+  const previous = store.lastTransition;
+  const ts = nowMs();
+
+  const suppress = !!(
+    target
+    && /switchtab|tab/i.test(source)
+    && previous
+    && previous.target
+    && previous.target !== target
+    && /showScreen|openRecordScreen|completeOnboarding|obComplete|obSkipAll|navigation/i.test(previous.source || '')
+    && ts - previous.ts >= 0
+    && ts - previous.ts <= STALE_WINDOW_MS
+  );
+
+  if (suppress) {
+    return markSuppression('tab-replay-suppressed', {
+      target,
+      source,
+      previous,
+      deltaMs: ts - previous.ts,
+      windowMs: STALE_WINDOW_MS,
+      reason: 'stale-tab-transition-cannot-overwrite-newer-screen-transition',
+    });
   }
 
   return false;
@@ -271,7 +346,7 @@ function summarizeUiTransitionOwnership() {
       noSwitchTabWrapping: true,
       noDomMutation: true,
       noRenderTimingChange: true,
-      suppressionLimitedToWelcomeReplay: true,
+      suppressionLimitedToReplayCandidates: true,
     },
   };
 }
@@ -288,12 +363,16 @@ function resetUiTransitionOwnership() {
 
 window.ippoMarkUiTransition = markUiTransition;
 window.ippoShouldSuppressWelcomeReplay = shouldSuppressWelcomeReplay;
+window.ippoShouldSuppressHydrationReplay = shouldSuppressHydrationReplay;
+window.ippoShouldSuppressTabReplay = shouldSuppressTabReplay;
 window.ippoUiTransitionOwnershipSummary = summarizeUiTransitionOwnership;
 window.ippoResetUiTransitionOwnership = resetUiTransitionOwnership;
 
 export {
   markUiTransition,
   shouldSuppressWelcomeReplay,
+  shouldSuppressHydrationReplay,
+  shouldSuppressTabReplay,
   summarizeUiTransitionOwnership,
   resetUiTransitionOwnership,
 };
