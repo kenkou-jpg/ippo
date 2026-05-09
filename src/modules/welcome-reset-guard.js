@@ -12,7 +12,6 @@
 import {
   getRecords,
 } from './record-repository.js';
-import './record-edit-post-save-guard.js';
 import './record-edit-save-identity-guard.js';
 import './daily-record-card-guard.js';
 
