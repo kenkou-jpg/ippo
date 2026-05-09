@@ -19,6 +19,7 @@ import './modules/render-boundary-prep.js';
 import './modules/screen-activation-prep.js';
 import './modules/runtime-ownership-graph.js';
 import './modules/persistence-boundary-prep.js';
+import './modules/persistence-execution-readiness.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -162,6 +163,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
+    hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
   });
 }
 
@@ -178,6 +180,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
+    hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
   });
 }
 
@@ -286,6 +289,20 @@ if (typeof window.ippoRunPersistenceBoundaryPrepCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('persistence-boundary-prep-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunPersistenceExecutionReadinessCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunPersistenceExecutionReadinessCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('persistence-execution-readiness-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
