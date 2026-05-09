@@ -9,6 +9,7 @@ import './persistence-trace-runtime.js';
 import './duplicate-sync-detector-runtime.js';
 import './record-save-trace-runtime.js';
 import './calendar-reflection-trace-runtime.js';
+import './persistence-drift-visibility-runtime.js';
 
 const BOOT_KEY = '__ippoBoot';
 
@@ -111,6 +112,7 @@ function summarizeBoot() {
     duplicateSyncDetectorReady: typeof window.ippoDuplicateSyncDetectorSummary === 'function',
     recordSaveTraceReady: typeof window.ippoRecordSaveTraceRuntimeSummary === 'function',
     calendarReflectionTraceReady: typeof window.ippoCalendarReflectionTraceRuntimeSummary === 'function',
+    persistenceDriftVisibilityReady: typeof window.ippoPersistenceDriftVisibilityRuntimeSummary === 'function',
     warnings: boot.warnings.slice(-10),
     errors: boot.errors.slice(-10),
     recentEvents: boot.events.slice(-15),
@@ -127,6 +129,10 @@ function markViteReady(detail) {
 
   if (typeof window.ippoCheckCalendarReflectionReadiness === 'function') {
     window.ippoCheckCalendarReflectionReadiness('vite-ready');
+  }
+
+  if (typeof window.ippoCapturePersistenceDrift === 'function') {
+    window.ippoCapturePersistenceDrift('vite-ready');
   }
 
   return summarizeBoot();
@@ -156,6 +162,10 @@ if (document.readyState === 'loading') {
     if (typeof window.ippoCheckCalendarReflectionReadiness === 'function') {
       window.ippoCheckCalendarReflectionReadiness('dom-content-loaded');
     }
+
+    if (typeof window.ippoCapturePersistenceDrift === 'function') {
+      window.ippoCapturePersistenceDrift('dom-content-loaded');
+    }
   }, { once: true });
 } else {
   getBootState().domContentLoaded = true;
@@ -169,6 +179,10 @@ if (document.readyState === 'loading') {
 
   if (typeof window.ippoCheckCalendarReflectionReadiness === 'function') {
     window.ippoCheckCalendarReflectionReadiness('dom-already-loaded');
+  }
+
+  if (typeof window.ippoCapturePersistenceDrift === 'function') {
+    window.ippoCapturePersistenceDrift('dom-already-loaded');
   }
 }
 
