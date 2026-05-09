@@ -13,6 +13,7 @@ import './modules/legacy-window-bridge.js';
 import './modules/startup-verify.js';
 import './modules/bootstrap-shell.js';
 import './modules/startup-boundary-adapter.js';
+import './modules/bootstrap-ownership-prep.js';
 import './modules/runtime-sequencing.js';
 import './modules/deferred-hydration-prep.js';
 import './modules/render-boundary-prep.js';
@@ -159,6 +160,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasState: typeof window.state === 'object',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
     hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
+    hasBootstrapOwnershipPrep: typeof window.ippoBootstrapOwnershipPrepSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
@@ -178,6 +180,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
     hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
+    hasBootstrapOwnershipPrep: typeof window.ippoBootstrapOwnershipPrepSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
@@ -211,6 +214,20 @@ if (typeof window.ippoRunStartupBoundaryCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('startup-boundary-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunBootstrapOwnershipPrepCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunBootstrapOwnershipPrepCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('bootstrap-ownership-prep-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
