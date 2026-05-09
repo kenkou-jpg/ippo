@@ -308,7 +308,7 @@ if (typeof window.ippoRunScreenActivationPrepCheck === 'function') {
       window.ippoRunScreenActivationPrepCheck('main-entry-post-module-load');
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('screen-activation-prep-failed', {
+        window.ippoMarkBootError('screen-activation-prep-check-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
