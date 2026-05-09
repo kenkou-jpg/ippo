@@ -79,6 +79,49 @@ const OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES = [
   ['record-save-orchestrator', () => import('./modules/record-save-orchestrator.js')],
 ];
 
+// ─── Optional runtime scheduling lanes ────────────────────
+// Bundle 7:
+// Keep the same delay values as the previous startup slimming bundle, but make
+// optional runtime scheduling lane-based so future production-startup tuning is
+// explicit and less likely to accidentally move execution-critical work.
+const OPTIONAL_RUNTIME_LANES = [
+  {
+    name: 'startup-boundary-observers',
+    runtimes: OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES,
+    baseDelayMs: 350,
+    stepMs: 150,
+    timeoutMs: 2500,
+  },
+  {
+    name: 'startup-prep-verification',
+    runtimes: OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES,
+    baseDelayMs: 750,
+    stepMs: 150,
+    timeoutMs: 2500,
+  },
+  {
+    name: 'infrastructure-observability',
+    runtimes: OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES,
+    baseDelayMs: 1400,
+    stepMs: 150,
+    timeoutMs: 2500,
+  },
+  {
+    name: 'startup-migration-assurance',
+    runtimes: OPTIONAL_STARTUP_MIGRATION_RUNTIMES,
+    baseDelayMs: 1700,
+    stepMs: 150,
+    timeoutMs: 2500,
+  },
+  {
+    name: 'record-observability',
+    runtimes: OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES,
+    baseDelayMs: 2200,
+    stepMs: 150,
+    timeoutMs: 2500,
+  },
+];
+
 function scheduleOptionalRuntimes(list, baseDelayMs, stepMs, timeoutMs) {
   if (typeof window.ippoScheduleOptionalRuntime !== 'function') return;
 
@@ -90,16 +133,23 @@ function scheduleOptionalRuntimes(list, baseDelayMs, stepMs, timeoutMs) {
   });
 }
 
+function scheduleOptionalRuntimeLanes(lanes) {
+  lanes.forEach((lane) => {
+    scheduleOptionalRuntimes(
+      lane.runtimes,
+      lane.baseDelayMs,
+      lane.stepMs,
+      lane.timeoutMs
+    );
+  });
+}
+
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
 
 window.setTimeout(() => {
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES, 350, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES, 750, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 1400, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 1700, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 2200, 150, 2500);
+  scheduleOptionalRuntimeLanes(OPTIONAL_RUNTIME_LANES);
 }, 600);
 
 // ─── State ───────────────────────────────────────────────
