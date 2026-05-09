@@ -6,6 +6,7 @@
 // ============================================================
 
 import './persistence-trace-runtime.js';
+import './duplicate-sync-detector-runtime.js';
 
 const BOOT_KEY = '__ippoBoot';
 
@@ -105,6 +106,7 @@ function summarizeBoot() {
     legacyBridgeReady: typeof window.ippoLegacyWindowBridgeSummary === 'function',
     startupVerifyReady: typeof window.ippoStartupVerifySummary === 'function',
     persistenceTraceReady: typeof window.ippoPersistenceTraceRuntimeSummary === 'function',
+    duplicateSyncDetectorReady: typeof window.ippoDuplicateSyncDetectorSummary === 'function',
     warnings: boot.warnings.slice(-10),
     errors: boot.errors.slice(-10),
     recentEvents: boot.events.slice(-15),
