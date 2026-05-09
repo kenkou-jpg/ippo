@@ -24,12 +24,13 @@ import './modules/persistence-execution-readiness.js';
 import './modules/persistence-candidate-execution.js';
 import './modules/persistence-guarded-execution.js';
 
-// ─── Startup extraction preparation ───────────────────────
-// observe-only / fallback-required
-// no ownership transfer yet
+// ─── Startup extraction / actual startup inline removal ───
+// guarded / fallback-required
+// hydration/render/screen/persistence removal remains disabled
 import './modules/legacy-bootstrap-fallback-isolation.js';
 import './modules/startup-sequencing-candidate-orchestration.js';
 import './modules/startup-extraction-candidate-shell.js';
+import './modules/actual-startup-inline-removal-runtime.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -141,7 +142,22 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
     hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
     hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
+    hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
   });
+}
+
+if (typeof window.ippoRunActualStartupInlineRemovalCheck === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunActualStartupInlineRemovalCheck('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('actual-startup-inline-removal-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
 }
 
 export {
