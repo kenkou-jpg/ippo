@@ -13,8 +13,6 @@ import './modules/guarded-optional-runtime-loader.js';
 import './modules/legacy-window-bridge.js';
 import './modules/startup-verify.js';
 import './modules/bootstrap-shell.js';
-import './modules/startup-boundary-adapter.js';
-import './modules/bootstrap-ownership-prep.js';
 import './modules/runtime-sequencing.js';
 import './modules/deferred-hydration-prep.js';
 import './modules/render-boundary-prep.js';
@@ -22,6 +20,16 @@ import './modules/screen-activation-prep.js';
 import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
 import './modules/persistence-guarded-execution.js';
+
+// ─── Optional startup boundary observer runtimes ──────────
+// Bundle 4:
+// These are observe-only boundary/ownership mappers. They do not own startup,
+// hydration, render, persistence, or sync execution, so they do not need to
+// block first render.
+const OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES = [
+  ['startup-boundary-adapter', () => import('./modules/startup-boundary-adapter.js')],
+  ['bootstrap-ownership-prep', () => import('./modules/bootstrap-ownership-prep.js')],
+];
 
 // ─── Optional infrastructure observability runtimes ───────
 // Bundle 3:
@@ -78,9 +86,10 @@ if (typeof window.ippoMarkBootEvent === 'function') {
 }
 
 window.setTimeout(() => {
-  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 450, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 700, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 1000, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES, 350, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 550, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 800, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 1100, 150, 2500);
 }, 600);
 
 // ─── State ───────────────────────────────────────────────
