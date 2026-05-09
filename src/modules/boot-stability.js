@@ -11,6 +11,7 @@ import './record-save-trace-runtime.js';
 import './calendar-reflection-trace-runtime.js';
 import './persistence-drift-visibility-runtime.js';
 import './reconnect-lifecycle-trace-runtime.js';
+import './replay-diagnostics-runtime.js';
 
 const BOOT_KEY = '__ippoBoot';
 
@@ -115,6 +116,7 @@ function summarizeBoot() {
     calendarReflectionTraceReady: typeof window.ippoCalendarReflectionTraceRuntimeSummary === 'function',
     persistenceDriftVisibilityReady: typeof window.ippoPersistenceDriftVisibilityRuntimeSummary === 'function',
     reconnectLifecycleTraceReady: typeof window.ippoReconnectLifecycleTraceRuntimeSummary === 'function',
+    replayDiagnosticsReady: typeof window.ippoReplayDiagnosticsRuntimeSummary === 'function',
     warnings: boot.warnings.slice(-10),
     errors: boot.errors.slice(-10),
     recentEvents: boot.events.slice(-15),
@@ -139,6 +141,10 @@ function markViteReady(detail) {
 
   if (typeof window.ippoInstallReconnectLifecycleListeners === 'function') {
     window.ippoInstallReconnectLifecycleListeners();
+  }
+
+  if (typeof window.ippoCaptureReplayDiagnostics === 'function') {
+    window.ippoCaptureReplayDiagnostics('vite-ready');
   }
 
   return summarizeBoot();
@@ -172,6 +178,10 @@ if (document.readyState === 'loading') {
     if (typeof window.ippoCapturePersistenceDrift === 'function') {
       window.ippoCapturePersistenceDrift('dom-content-loaded');
     }
+
+    if (typeof window.ippoCaptureReplayDiagnostics === 'function') {
+      window.ippoCaptureReplayDiagnostics('dom-content-loaded');
+    }
   }, { once: true });
 } else {
   getBootState().domContentLoaded = true;
@@ -189,6 +199,10 @@ if (document.readyState === 'loading') {
 
   if (typeof window.ippoCapturePersistenceDrift === 'function') {
     window.ippoCapturePersistenceDrift('dom-already-loaded');
+  }
+
+  if (typeof window.ippoCaptureReplayDiagnostics === 'function') {
+    window.ippoCaptureReplayDiagnostics('dom-already-loaded');
   }
 }
 
