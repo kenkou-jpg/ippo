@@ -5,6 +5,7 @@
 // 目的:
 // - 編集保存時に buildDraftFromUI() の空値/初期値で既存recordを消さない
 // - 編集対象日のrecordを新規扱いに落とさない
+// - 保存後に同一日付recordが重複した場合のみ局所統合する
 // - app.html の巨大保存本体は変更しない
 // ============================================================
 
@@ -19,6 +20,34 @@ function debug(label, detail) {
   try {
     if (localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true) {
       console.debug('[ippo:edit-save-identity]', label, detail || '');
+    }
+  } catch(e) {}
+}
+
+function markSavePhase(phase, detail) {
+  try {
+    if (typeof window.ippoMarkRecordSavePhase === 'function') {
+      window.ippoMarkRecordSavePhase(phase, { detail: detail || null });
+    }
+  } catch(e) {}
+}
+
+function markSyncEvent(phase, detail) {
+  try {
+    if (typeof window.ippoMarkSyncEvent === 'function') {
+      window.ippoMarkSyncEvent({
+        phase: phase,
+        area: 'record-edit-save-identity-guard',
+        detail: detail || null,
+      });
+    }
+  } catch(e) {}
+}
+
+function markFreshness(label) {
+  try {
+    if (typeof window.ippoMarkRecordFreshness === 'function') {
+      window.ippoMarkRecordFreshness(label);
     }
   } catch(e) {}
 }
@@ -179,6 +208,7 @@ function protectDraft(draft) {
     protectedKeys: Object.keys(protectedDraft).length,
   };
 
+  markSavePhase('edit-draft-protected', window.__ippoEditSaveIdentityGuardLast);
   debug('draft-protected', window.__ippoEditSaveIdentityGuardLast);
   return protectedDraft;
 }
@@ -200,32 +230,89 @@ function wrapBuildDraftFromUI() {
   return true;
 }
 
-function repairDuplicateAfterSave() {
-  const editDate = getActiveEditDate();
-  const list = getRecords();
-  if (!editDate || !Array.isArray(list)) return false;
+function groupDuplicateRecordDates(list) {
+  const groups = {};
 
-  const matches = [];
   list.forEach(function(record, index) {
-    if (getRecordDate(record) === editDate) matches.push({ record, index });
+    const date = getRecordDate(record);
+    if (!date) return;
+    if (!groups[date]) groups[date] = [];
+    groups[date].push({ record, index });
   });
 
-  if (matches.length <= 1) return false;
+  return Object.keys(groups)
+    .map(function(date) {
+      return {
+        date: date,
+        matches: groups[date],
+      };
+    })
+    .filter(function(group) {
+      return group.matches.length > 1;
+    });
+}
 
-  const merged = matches.reduce(function(acc, item) {
-    return mergeDraftIntoExisting(acc, item.record, editDate);
-  }, matches[0].record);
+function mergeDuplicateGroup(group) {
+  return group.matches.reduce(function(acc, item) {
+    return mergeDraftIntoExisting(acc, item.record, group.date);
+  }, group.matches[0].record);
+}
 
-  list[matches[0].index] = merged;
-  matches.slice(1).reverse().forEach(function(item) {
-    list.splice(item.index, 1);
+function repairDuplicateDatesAfterSave() {
+  const list = getRecords();
+  if (!Array.isArray(list)) return false;
+
+  const duplicateGroups = groupDuplicateRecordDates(list);
+  if (duplicateGroups.length === 0) return false;
+
+  const repaired = duplicateGroups.map(function(group) {
+    const first = group.matches[0];
+    const merged = mergeDuplicateGroup(group);
+
+    list[first.index] = merged;
+    group.matches.slice(1).reverse().forEach(function(item) {
+      list.splice(item.index, 1);
+    });
+
+    return {
+      date: group.date,
+      keptIndex: first.index,
+      removed: group.matches.length - 1,
+    };
   });
 
-  try { if (typeof window.saveState === 'function') window.saveState(); } catch(e) {}
-  try { if (typeof window.cloudBackupAll === 'function') window.cloudBackupAll(); } catch(e) {}
+  try {
+    if (typeof window.saveState === 'function') {
+      window.saveState();
+      markSavePhase('duplicate-date-repair-persisted', { repaired });
+    }
+  } catch(e) {
+    markSavePhase('duplicate-date-repair-persist-failed', { message: e && e.message });
+  }
 
-  debug('duplicate-repaired-after-save', { editDate, removed: matches.length - 1 });
+  try {
+    if (typeof window.cloudBackupAll === 'function') {
+      markSyncEvent('duplicate-date-repair-sync', { repaired });
+      window.cloudBackupAll();
+    }
+  } catch(e) {
+    markSyncEvent('duplicate-date-repair-sync-failed', { message: e && e.message });
+  }
+
+  window.__ippoEditSaveIdentityDuplicateRepairLast = {
+    at: Date.now(),
+    repaired: repaired,
+    recordsLength: list.length,
+  };
+
+  markFreshness('record-edit-save:duplicate-repair');
+
+  debug('duplicate-dates-repaired-after-save', window.__ippoEditSaveIdentityDuplicateRepairLast);
   return true;
+}
+
+function repairDuplicateAfterSave() {
+  return repairDuplicateDatesAfterSave();
 }
 
 function wrapSaveRecordScreen() {
@@ -239,11 +326,13 @@ function wrapSaveRecordScreen() {
     if (result && typeof result.then === 'function') {
       return result.then(function(value) {
         repairDuplicateAfterSave();
+        markFreshness('record-edit-save:after-save');
         return value;
       });
     }
 
     repairDuplicateAfterSave();
+    markFreshness('record-edit-save:after-save-sync');
     return result;
   }
 
@@ -270,10 +359,13 @@ const timer = window.setInterval(function() {
 
 window.ippoEditSaveIdentityGuardSummary = function() {
   const editDate = getActiveEditDate();
+  const records = getRecords();
   return {
     editDate,
     hasExistingRecord: !!(editDate && findRecordByDate(editDate)),
     last: window.__ippoEditSaveIdentityGuardLast || null,
-    recordsLength: getRecords().length,
+    duplicateRepairLast: window.__ippoEditSaveIdentityDuplicateRepairLast || null,
+    duplicateDateCount: Array.isArray(records) ? groupDuplicateRecordDates(records).length : 0,
+    recordsLength: records.length,
   };
 };

@@ -13,12 +13,21 @@ import {
   getRecords,
 } from './record-repository.js';
 import './record-edit-save-identity-guard.js';
+import './record-freshness-guard.js';
 import './daily-record-card-guard.js';
 
 function debug(label, detail) {
   try {
     if (localStorage.getItem('ippo_debug_record') === '1' || window.__IPPO_DEBUG_RECORD__ === true) {
       console.debug('[ippo:welcome-guard]', label, detail || '');
+    }
+  } catch(e) {}
+}
+
+function markFreshness(label) {
+  try {
+    if (typeof window.ippoMarkRecordFreshness === 'function') {
+      window.ippoMarkRecordFreshness(label);
     }
   } catch(e) {}
 }
@@ -101,6 +110,7 @@ function wrapFunction(name) {
       });
 
       ensureMainAppVisible();
+      markFreshness('welcome-guard:blocked-route');
       return;
     }
 
@@ -108,6 +118,7 @@ function wrapFunction(name) {
 
     window.setTimeout(function() {
       ensureMainAppVisible();
+      markFreshness('welcome-guard:post-navigation');
     }, 0);
 
     return result;
@@ -141,6 +152,7 @@ function installMutationGuard() {
         mainHidden,
       });
       ensureMainAppVisible();
+      markFreshness('welcome-guard:mutation-restore');
     }
   });
 
@@ -162,6 +174,7 @@ function install() {
 
   installMutationGuard();
   ensureMainAppVisible();
+  markFreshness('welcome-guard:install');
 }
 
 install();
@@ -186,6 +199,7 @@ window.ippoWelcomeResetGuardSummary = function() {
     welcomeVisible: document.getElementById('screen-welcome')?.style.display !== 'none',
     mainAppVisible: document.getElementById('main-app')?.style.display !== 'none',
     editSaveIdentityGuardLoaded: typeof window.ippoEditSaveIdentityGuardSummary === 'function',
+    recordFreshnessGuardLoaded: typeof window.ippoRecordFreshnessGuardSummary === 'function',
     dailyRecordCardGuardLoaded: typeof window.ippoDailyRecordCardSummary === 'function',
   };
 };
