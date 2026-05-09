@@ -81,12 +81,37 @@
 
   <script>
     (function installIppoBootFallbackWatchdog() {
+      var installedAtMs = Date.now();
       var state = window.__IPPO_BOOT_FALLBACK__ = window.__IPPO_BOOT_FALLBACK__ || {
         installedAt: new Date().toISOString(),
+        installedAtMs: installedAtMs,
         errors: [],
+        events: [],
         fallbackShown: false,
         checks: []
       };
+
+      if (!state.installedAtMs) state.installedAtMs = installedAtMs;
+      if (!Array.isArray(state.events)) state.events = [];
+
+      function nowIso() {
+        try { return new Date().toISOString(); } catch (_) { return null; }
+      }
+
+      function markTimeline(label, detail) {
+        try {
+          state.events.push({
+            label: label,
+            detail: detail || null,
+            at: nowIso(),
+            offsetMs: Date.now() - state.installedAtMs
+          });
+          if (state.events.length > 60) state.events.shift();
+        } catch (_) {}
+      }
+
+      window.ippoMarkBootTimeline = markTimeline;
+      markTimeline('shell-fallback-watchdog-installed');
 
       function recordError(type, event) {
         try {
@@ -101,9 +126,11 @@
           state.errors.push({
             type: type,
             message: message,
-            at: new Date().toISOString()
+            at: nowIso(),
+            offsetMs: Date.now() - state.installedAtMs
           });
           if (state.errors.length > 20) state.errors.shift();
+          markTimeline(type + '-captured', { message: message });
         } catch (_) {}
       }
 
@@ -114,6 +141,12 @@
       window.addEventListener('unhandledrejection', function(event) {
         recordError('unhandledrejection', event);
       });
+
+      function getFirstActiveScreen() {
+        var active = document.querySelector('.screen.active, .app-screen.active');
+        if (!active) return null;
+        return active.id || active.getAttribute('data-screen') || active.className || 'unknown-active-screen';
+      }
 
       function hasRenderedApp() {
         var app = document.getElementById('app');
@@ -131,25 +164,58 @@
         fallback.hidden = false;
         state.fallbackShown = true;
         state.fallbackReason = reason || 'blank-screen-timeout';
-        state.fallbackShownAt = new Date().toISOString();
+        state.fallbackShownAt = nowIso();
+        markTimeline('fallback-shown', { reason: state.fallbackReason });
       }
 
       function runCheck(reason) {
         var rendered = hasRenderedApp();
+        var firstActiveScreen = getFirstActiveScreen();
         state.checks.push({
           reason: reason || 'manual',
           rendered: rendered,
+          firstActiveScreen: firstActiveScreen,
           fallbackShown: state.fallbackShown,
-          at: new Date().toISOString()
+          at: nowIso(),
+          offsetMs: Date.now() - state.installedAtMs
         });
         if (state.checks.length > 30) state.checks.shift();
+        markTimeline('boot-check', {
+          reason: reason || 'manual',
+          rendered: rendered,
+          firstActiveScreen: firstActiveScreen
+        });
         if (rendered) {
           var fallback = document.getElementById('ippo-boot-fallback');
           if (fallback) fallback.hidden = true;
+          if (!state.firstRenderedAt) {
+            state.firstRenderedAt = nowIso();
+            state.firstRenderedOffsetMs = Date.now() - state.installedAtMs;
+            markTimeline('first-render-detected', { firstActiveScreen: firstActiveScreen });
+          }
           return true;
         }
         return false;
       }
+
+      window.ippoBootTimelineSummary = function ippoBootTimelineSummary() {
+        return {
+          installedAt: state.installedAt,
+          rendered: hasRenderedApp(),
+          firstRenderedAt: state.firstRenderedAt || null,
+          firstRenderedOffsetMs: state.firstRenderedOffsetMs || null,
+          firstActiveScreen: getFirstActiveScreen(),
+          fallbackShown: state.fallbackShown,
+          fallbackReason: state.fallbackReason || null,
+          fallbackShownAt: state.fallbackShownAt || null,
+          viteReady: !!window.__ippoViteReady,
+          startupDurationMs: state.firstRenderedOffsetMs || null,
+          events: state.events.slice(),
+          errors: state.errors.slice(),
+          checks: state.checks.slice(),
+          url: String(window.location.href)
+        };
+      };
 
       window.ippoBootFailureSummary = function ippoBootFailureSummary() {
         return {
@@ -158,10 +224,12 @@
           fallbackReason: state.fallbackReason || null,
           fallbackShownAt: state.fallbackShownAt || null,
           rendered: hasRenderedApp(),
+          firstActiveScreen: getFirstActiveScreen(),
           viteReady: !!window.__ippoViteReady,
           bootSummaryReady: typeof window.ippoBootSummary === 'function',
           startupVerifyReady: typeof window.ippoStartupVerifySummary === 'function',
           errors: state.errors.slice(),
+          events: state.events.slice(),
           checks: state.checks.slice(),
           url: String(window.location.href)
         };
@@ -202,6 +270,11 @@
     JavaScript required.
   </noscript>
 
+  <script>
+    if (typeof window.ippoMarkBootTimeline === 'function') {
+      window.ippoMarkBootTimeline('module-script-requested', { src: '/src/main.js' });
+    }
+  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
