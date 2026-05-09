@@ -11,12 +11,8 @@
 import './modules/boot-stability.js';
 import './modules/guarded-optional-runtime-loader.js';
 import './modules/legacy-window-bridge.js';
-import './modules/startup-verify.js';
 import './modules/bootstrap-shell.js';
 import './modules/runtime-sequencing.js';
-import './modules/deferred-hydration-prep.js';
-import './modules/render-boundary-prep.js';
-import './modules/screen-activation-prep.js';
 import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
 import './modules/persistence-guarded-execution.js';
@@ -29,6 +25,19 @@ import './modules/persistence-guarded-execution.js';
 const OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES = [
   ['startup-boundary-adapter', () => import('./modules/startup-boundary-adapter.js')],
   ['bootstrap-ownership-prep', () => import('./modules/bootstrap-ownership-prep.js')],
+];
+
+// ─── Optional startup prep / verification runtimes ────────
+// Bundle 6:
+// These modules are observe-only / diagnostics-only preparation layers. They
+// inspect hydration/render/screen readiness and startup API availability, but
+// do not rewrite hydration sequencing, render timing, screen activation,
+// persistence, save, or sync execution.
+const OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES = [
+  ['deferred-hydration-prep', () => import('./modules/deferred-hydration-prep.js')],
+  ['render-boundary-prep', () => import('./modules/render-boundary-prep.js')],
+  ['screen-activation-prep', () => import('./modules/screen-activation-prep.js')],
+  ['startup-verify', () => import('./modules/startup-verify.js')],
 ];
 
 // ─── Optional infrastructure observability runtimes ───────
@@ -87,9 +96,10 @@ if (typeof window.ippoMarkBootEvent === 'function') {
 
 window.setTimeout(() => {
   scheduleOptionalRuntimes(OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES, 350, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 550, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 800, 150, 2500);
-  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 1100, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES, 750, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES, 1400, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_STARTUP_MIGRATION_RUNTIMES, 1700, 150, 2500);
+  scheduleOptionalRuntimes(OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES, 2200, 150, 2500);
 }, 600);
 
 // ─── State ───────────────────────────────────────────────
