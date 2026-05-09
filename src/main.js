@@ -20,6 +20,7 @@ import './modules/screen-activation-prep.js';
 import './modules/runtime-ownership-graph.js';
 import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
+import './modules/persistence-candidate-execution.js';
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
@@ -164,6 +165,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
+    hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
   });
 }
 
@@ -181,6 +183,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
+    hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
   });
 }
 
@@ -303,6 +306,20 @@ if (typeof window.ippoRunPersistenceExecutionReadinessCheck === 'function') {
     } catch (error) {
       if (typeof window.ippoMarkBootError === 'function') {
         window.ippoMarkBootError('persistence-execution-readiness-check-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+if (typeof window.ippoRunPersistenceCandidateShadow === 'function') {
+  window.setTimeout(() => {
+    try {
+      window.ippoRunPersistenceCandidateShadow('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError('persistence-candidate-shadow-failed', {
           message: error && error.message ? error.message : String(error),
         });
       }
