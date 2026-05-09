@@ -34,7 +34,9 @@ function getStore() {
         suppressions: [],
         lastModal: null,
         lastNavigation: null,
+        lastVisibleModals: [],
         listenersInstalled: false,
+        modalObserverInstalled: false,
       };
     }
     return window[UI_DRIFT_KEY];
@@ -46,7 +48,9 @@ function getStore() {
       suppressions: [],
       lastModal: null,
       lastNavigation: null,
+      lastVisibleModals: [],
       listenersInstalled: false,
+      modalObserverInstalled: false,
     };
   }
 }
@@ -174,6 +178,35 @@ function shouldSuppressModalReplay(payload = {}) {
   return suppression;
 }
 
+function diffModalVisibility(previous, next) {
+  const oldSet = new Set(Array.isArray(previous) ? previous : []);
+  const newSet = new Set(Array.isArray(next) ? next : []);
+  return {
+    opened: Array.from(newSet).filter(function(id) { return !oldSet.has(id); }),
+    closed: Array.from(oldSet).filter(function(id) { return !newSet.has(id); }),
+  };
+}
+
+function observeModalVisibility(source) {
+  const store = getStore();
+  const current = getVisibleModalIds();
+  const diff = diffModalVisibility(store.lastVisibleModals, current);
+
+  diff.opened.forEach(function(modalId) {
+    const suppressed = shouldSuppressModalReplay({ modalId, source: source || 'modal-observer' });
+    if (!suppressed) {
+      markModalPhase('open', { modalId, source: source || 'modal-observer' });
+    }
+  });
+
+  diff.closed.forEach(function(modalId) {
+    markModalPhase('close', { modalId, source: source || 'modal-observer' });
+  });
+
+  store.lastVisibleModals = current;
+  return { current, diff };
+}
+
 function markNavigationPhase(phase, payload = {}) {
   const store = getStore();
   const event = {
@@ -272,6 +305,38 @@ function installNavigationListeners() {
   return summarizeUiDriftSuppression();
 }
 
+function installModalObserver() {
+  const store = getStore();
+  if (store.modalObserverInstalled) return summarizeUiDriftSuppression();
+
+  try {
+    store.lastVisibleModals = getVisibleModalIds();
+    const observer = new MutationObserver(function() {
+      observeModalVisibility('modal-mutation-observer');
+    });
+
+    observer.observe(document.body, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['class', 'style', 'aria-hidden', 'open'],
+    });
+
+    store.modalObserverInstalled = true;
+    observeModalVisibility('modal-observer-installed');
+  } catch (error) {
+    const warning = {
+      type: 'modal-observer-install-failed',
+      at: nowIso(),
+      message: error && error.message ? error.message : String(error),
+    };
+    pushLimited(store.warnings, warning, MAX_EVENTS);
+    trace('modal-observer-install-failed', warning);
+  }
+
+  return summarizeUiDriftSuppression();
+}
+
 function summarizeUiDriftSuppression() {
   const store = getStore();
   return {
@@ -281,6 +346,7 @@ function summarizeUiDriftSuppression() {
     lastModal: store.lastModal,
     lastNavigation: store.lastNavigation,
     listenersInstalled: store.listenersInstalled === true,
+    modalObserverInstalled: store.modalObserverInstalled === true,
     recentEvents: store.events.slice(-12),
     recentWarnings: store.warnings.slice(-12),
     recentSuppressions: store.suppressions.slice(-12),
@@ -302,13 +368,16 @@ function resetUiDriftSuppression() {
   store.suppressions = [];
   store.lastModal = null;
   store.lastNavigation = null;
+  store.lastVisibleModals = getVisibleModalIds();
   return summarizeUiDriftSuppression();
 }
 
 installNavigationListeners();
+installModalObserver();
 
 window.ippoMarkModalPhase = markModalPhase;
 window.ippoShouldSuppressModalReplay = shouldSuppressModalReplay;
+window.ippoObserveModalVisibility = observeModalVisibility;
 window.ippoMarkNavigationPhase = markNavigationPhase;
 window.ippoShouldSuppressNavigationReplay = shouldSuppressNavigationReplay;
 window.ippoUiDriftSuppressionSummary = summarizeUiDriftSuppression;
@@ -317,6 +386,7 @@ window.ippoResetUiDriftSuppression = resetUiDriftSuppression;
 export {
   markModalPhase,
   shouldSuppressModalReplay,
+  observeModalVisibility,
   markNavigationPhase,
   shouldSuppressNavigationReplay,
   summarizeUiDriftSuppression,
