@@ -14,6 +14,7 @@
 const OPTIONAL_RUNTIME_LOADER_KEY = '__ippoGuardedOptionalRuntimeLoader';
 const DEFAULT_TIMEOUT_MS = 3000;
 const DEFAULT_INTERACTION_READY_TIMEOUT_MS = 4000;
+const MAX_LOADER_ENTRIES = 80;
 
 function nowIso() {
   try {
@@ -27,11 +28,18 @@ function getState() {
   if (!window[OPTIONAL_RUNTIME_LOADER_KEY]) {
     window[OPTIONAL_RUNTIME_LOADER_KEY] = {
       loadedAt: nowIso(),
+      scheduled: [],
       imports: [],
       waits: [],
     };
   }
   return window[OPTIONAL_RUNTIME_LOADER_KEY];
+}
+
+function pushBounded(list, entry) {
+  list.push(entry);
+  if (list.length > MAX_LOADER_ENTRIES) list.shift();
+  return entry;
 }
 
 function markBootTimeline(label, detail) {
@@ -62,6 +70,26 @@ function timeoutPromise(label, timeoutMs) {
   });
 }
 
+function recordOptionalRuntimeSchedule(label, options, delayMs, waitForInteractionReady) {
+  const state = getState();
+  const entry = {
+    label,
+    delayMs,
+    timeoutMs: options && typeof options.timeoutMs === 'number'
+      ? options.timeoutMs
+      : DEFAULT_TIMEOUT_MS,
+    waitForInteractionReady: !!waitForInteractionReady,
+    interactionReadyTimeoutMs: options && typeof options.interactionReadyTimeoutMs === 'number'
+      ? options.interactionReadyTimeoutMs
+      : null,
+    at: nowIso(),
+  };
+
+  pushBounded(state.scheduled, entry);
+  markBootTimeline('optional-runtime-scheduled', entry);
+  return entry;
+}
+
 function recordInteractionReadyWait(label, status, detail) {
   const state = getState();
   const entry = Object.assign({
@@ -70,8 +98,7 @@ function recordInteractionReadyWait(label, status, detail) {
     at: nowIso(),
   }, detail || {});
 
-  state.waits.push(entry);
-  if (state.waits.length > 80) state.waits.shift();
+  pushBounded(state.waits, entry);
   markBootTimeline('optional-runtime-interaction-ready-' + status, entry);
   return entry;
 }
@@ -150,8 +177,7 @@ async function importOptionalRuntime(label, importer, options) {
         durationMs,
         at: nowIso(),
       };
-      state.imports.push(entry);
-      if (state.imports.length > 80) state.imports.shift();
+      pushBounded(state.imports, entry);
       markBootTimeline('optional-runtime-import-timeout', entry);
       markBootError('optional-runtime-import-timeout', entry);
       return null;
@@ -164,8 +190,7 @@ async function importOptionalRuntime(label, importer, options) {
       durationMs,
       at: nowIso(),
     };
-    state.imports.push(entry);
-    if (state.imports.length > 80) state.imports.shift();
+    pushBounded(state.imports, entry);
     markBootTimeline('optional-runtime-import-loaded', entry);
     return result;
   } catch (error) {
@@ -177,8 +202,7 @@ async function importOptionalRuntime(label, importer, options) {
       message: error && error.message ? error.message : String(error),
       at: nowIso(),
     };
-    state.imports.push(entry);
-    if (state.imports.length > 80) state.imports.shift();
+    pushBounded(state.imports, entry);
     markBootTimeline('optional-runtime-import-failed', entry);
     markBootError('optional-runtime-import-failed', entry);
     return null;
@@ -190,6 +214,8 @@ function scheduleOptionalRuntime(label, importer, options) {
     ? options.delayMs
     : 0;
   const shouldWaitForInteractionReady = !!(options && options.waitForInteractionReady);
+
+  recordOptionalRuntimeSchedule(label, options, delayMs, shouldWaitForInteractionReady);
 
   window.setTimeout(() => {
     if (shouldWaitForInteractionReady) {
@@ -205,15 +231,23 @@ function scheduleOptionalRuntime(label, importer, options) {
 
 function summarizeGuardedOptionalRuntimeLoader() {
   const state = getState();
+  const scheduled = state.scheduled.slice();
   const imports = state.imports.slice();
   const waits = state.waits.slice();
   return {
     loadedAt: state.loadedAt,
     checkedAt: nowIso(),
+    scheduledTotal: scheduled.length,
+    waitTotal: waits.length,
     total: imports.length,
     loaded: imports.filter((entry) => entry.status === 'loaded').length,
     failed: imports.filter((entry) => entry.status === 'failed').length,
     timedOut: imports.filter((entry) => entry.status === 'timeout').length,
+    interactionReadyWaits: waits.reduce((counts, entry) => {
+      counts[entry.status] = (counts[entry.status] || 0) + 1;
+      return counts;
+    }, {}),
+    scheduled,
     waits,
     imports,
   };
