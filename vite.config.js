@@ -10,6 +10,9 @@ import { defineConfig } from 'vite'
  *  - Supabase / Stripe など外部ドメインは Vite の処理をバイパス
  */
 export default defineConfig({
+  // GitHub Pages / サブパス配信でも build assets を相対参照にする
+  base: './',
+
   // プロジェクトルート（index.html ではなく app.html を使うため '.' のまま）
   root: '.',
 
