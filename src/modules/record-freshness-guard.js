@@ -35,6 +35,7 @@ function getStore() {
         snapshots: [],
         warnings: [],
         latestFingerprint: null,
+        listenersInstalled: false,
       };
     }
     return window[FRESHNESS_KEY];
@@ -44,6 +45,7 @@ function getStore() {
       snapshots: [],
       warnings: [],
       latestFingerprint: null,
+      listenersInstalled: false,
     };
   }
 }
@@ -140,6 +142,16 @@ function traceFreshness(phase, payload) {
   } catch (_) {}
 }
 
+function traceReconnect(phase, payload) {
+  try {
+    if (typeof window.ippoMarkReconnectPhase === 'function') {
+      window.ippoMarkReconnectPhase('record-freshness:' + phase, {
+        detail: payload || null,
+      });
+    }
+  } catch (_) {}
+}
+
 function markRecordFreshness(label = 'manual') {
   const store = getStore();
   const records = getRecords();
@@ -177,11 +189,47 @@ function markRecordFreshness(label = 'manual') {
   return snapshot;
 }
 
+function installRecordFreshnessReconnectListeners() {
+  const store = getStore();
+  if (store.listenersInstalled) return summarizeRecordFreshnessGuard();
+
+  try {
+    window.addEventListener('offline', function() {
+      const snapshot = markRecordFreshness('network:offline');
+      traceReconnect('offline-snapshot', snapshot);
+    });
+
+    window.addEventListener('online', function() {
+      const before = markRecordFreshness('network:online-before-sync-observed');
+      traceReconnect('online-before-sync-observed', before);
+
+      window.setTimeout(function() {
+        const after = markRecordFreshness('network:online-post-microtask-observed');
+        traceReconnect('online-post-microtask-observed', after);
+      }, 0);
+    });
+
+    store.listenersInstalled = true;
+    markRecordFreshness('record-freshness:listeners-installed');
+  } catch (error) {
+    const warning = {
+      type: 'record-freshness-listener-install-failed',
+      checkedAt: nowIso(),
+      message: error && error.message ? error.message : String(error),
+    };
+    pushLimited(store.warnings, warning, MAX_EVENTS);
+    traceFreshness('listener-install-failed', warning);
+  }
+
+  return summarizeRecordFreshnessGuard();
+}
+
 function summarizeRecordFreshnessGuard() {
   const store = getStore();
   return {
     snapshotCount: store.snapshots.length,
     warningCount: store.warnings.length,
+    listenersInstalled: store.listenersInstalled === true,
     latestFingerprint: store.latestFingerprint,
     recentSnapshots: store.snapshots.slice(-8),
     recentWarnings: store.warnings.slice(-8),
@@ -203,12 +251,16 @@ function resetRecordFreshnessGuard() {
   return summarizeRecordFreshnessGuard();
 }
 
+installRecordFreshnessReconnectListeners();
+
 window.ippoMarkRecordFreshness = markRecordFreshness;
+window.ippoInstallRecordFreshnessReconnectListeners = installRecordFreshnessReconnectListeners;
 window.ippoRecordFreshnessGuardSummary = summarizeRecordFreshnessGuard;
 window.ippoResetRecordFreshnessGuard = resetRecordFreshnessGuard;
 
 export {
   markRecordFreshness,
+  installRecordFreshnessReconnectListeners,
   summarizeRecordFreshnessGuard,
   resetRecordFreshnessGuard,
 };
