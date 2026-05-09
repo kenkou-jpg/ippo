@@ -1,25 +1,22 @@
 // ============================================================
 // ippo – startup-guard-candidate.js
 //
-// Phase A-2a:
+// Phase A-2b / A-3 prep:
 // DOMContentLoaded / startup guard extraction candidate observer.
 //
-// This module is intentionally isolated:
-// - not imported by src/main.js yet
+// This module is now safe to import from src/main.js because it remains:
+// - observe-only
+// - adoption disabled by default
 // - no startup ownership adoption
 // - no init() replacement
 // - no render / hydration / save / sync / Supabase changes
-//
-// Purpose:
-// Provide a safe standalone observer that can be wired later after
-// PR review confirms the candidate shape is acceptable.
 // ============================================================
 
 const STARTUP_GUARD_CANDIDATE_KEY = '__ippoStartupGuardCandidate';
 
 const STARTUP_GUARD_ADOPTION = Object.freeze({
   enabled: false,
-  mode: 'isolated-observer-only',
+  mode: 'main-entry-observer-only',
   activeOwner: 'legacy-app-html-inline-startup',
   candidateOwner: 'vite-startup-guard-module',
   fallbackRequired: true,
@@ -27,6 +24,7 @@ const STARTUP_GUARD_ADOPTION = Object.freeze({
 
 const STARTUP_GUARD_PHASES = Object.freeze([
   'module-load-observed',
+  'main-entry-wiring-observed',
   'dom-ready-observed',
   'startup-api-readiness-observed',
   'state-shape-observed',
@@ -134,10 +132,17 @@ function summarizeStartupGuardCandidate() {
     (key) => !existingRuntimeGraphs[key]
   );
 
-  const legacyFallbackReady =
-    existingRuntimeGraphs.bootstrapShell &&
-    existingRuntimeGraphs.startupBoundary &&
-    existingRuntimeGraphs.bootstrapOwnershipPrep;
+  const legacyFallback = {
+    required: STARTUP_GUARD_ADOPTION.fallbackRequired,
+    owner: STARTUP_GUARD_ADOPTION.activeOwner,
+    bootstrapShellReady: existingRuntimeGraphs.bootstrapShell,
+    startupBoundaryReady: existingRuntimeGraphs.startupBoundary,
+    ownershipPrepReady: existingRuntimeGraphs.bootstrapOwnershipPrep,
+    ready:
+      existingRuntimeGraphs.bootstrapShell &&
+      existingRuntimeGraphs.startupBoundary &&
+      existingRuntimeGraphs.bootstrapOwnershipPrep,
+  };
 
   return {
     loadedAt: state.loadedAt,
@@ -157,27 +162,28 @@ function summarizeStartupGuardCandidate() {
     stateShape,
     existingRuntimeGraphs,
     missingRuntimeGraphs,
-    legacyFallbackReady,
+    legacyFallback,
+    legacyFallbackReady: legacyFallback.ready,
     shadowCompareReady:
       missingApis.length === 0 &&
       missingRoots.length === 0 &&
       stateShape.exists &&
       stateShape.recordsIsArray,
-    safeForFutureMainEntryWiring:
+    safeForObserverOnlyMainEntryWiring:
       !state.adoptionEnabled &&
-      legacyFallbackReady &&
+      legacyFallback.ready &&
       missingApis.length === 0,
     unsafeForRealAdoption: true,
     nextPhaseProposal: {
-      phase: 'Phase A-2b',
-      target: 'wire startup guard candidate into main entry as observe-only',
+      phase: 'Phase A-3',
+      target: 'legacy bootstrap fallback isolation',
       constraints: [
-        'main.js import only after isolated observer review',
         'legacy init remains active',
         'candidate remains shadow-only',
         'no render ownership transfer',
         'no hydration ownership transfer',
         'no persistence ownership transfer',
+        'fallback path remains mandatory',
       ],
     },
     checks: state.checks.slice(-20),
@@ -192,7 +198,8 @@ function runStartupGuardCandidateCheck(reason) {
     reason: reason || 'manual',
     at: nowIso(),
     shadowCompareReady: summary.shadowCompareReady,
-    safeForFutureMainEntryWiring: summary.safeForFutureMainEntryWiring,
+    safeForObserverOnlyMainEntryWiring: summary.safeForObserverOnlyMainEntryWiring,
+    legacyFallbackReady: summary.legacyFallbackReady,
     missingStartupApis: summary.missingStartupApis,
     missingDomRoots: summary.missingDomRoots,
     missingRuntimeGraphs: summary.missingRuntimeGraphs,
@@ -206,7 +213,8 @@ function runStartupGuardCandidateCheck(reason) {
     window.ippoMarkBootEvent('startup-guard-candidate-check', {
       reason: reason || 'manual',
       shadowCompareReady: summary.shadowCompareReady,
-      safeForFutureMainEntryWiring: summary.safeForFutureMainEntryWiring,
+      safeForObserverOnlyMainEntryWiring: summary.safeForObserverOnlyMainEntryWiring,
+      legacyFallbackReady: summary.legacyFallbackReady,
       missingStartupApiCount: summary.missingStartupApis.length,
       missingDomRootCount: summary.missingDomRoots.length,
       missingRuntimeGraphCount: summary.missingRuntimeGraphs.length,
@@ -224,6 +232,7 @@ function registerStartupGuardCandidate() {
     window.ippoMarkBootEvent('startup-guard-candidate-registered', {
       mode: STARTUP_GUARD_ADOPTION.mode,
       adoptionEnabled: STARTUP_GUARD_ADOPTION.enabled,
+      fallbackRequired: STARTUP_GUARD_ADOPTION.fallbackRequired,
     });
   }
 }
