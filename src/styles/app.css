@@ -1610,7 +1610,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 .dm-box { width: 88%; max-width: 360px; max-height: 82vh; background: var(--cream); border-radius: 24px; padding: 28px 22px; overflow-y: auto; position: relative; box-shadow: 0 12px 40px rgba(44,36,32,0.15); }
 .dm-x { position: absolute; top: 12px; right: 12px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-ui); background: var(--white); color: var(--ink-light); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .dm-date { font-family: var(--font-serif); font-size: 17px; text-align: center; margin-bottom: 20px; color: var(--ink); }
-.dm-empty { text-align: center; padding: 32px 0; font-size: 14px; color: var(--ink-light); line-height: 2; }
+.dm-empty { text-align: center; padding: 32px 20px; font-size: 14px; color: var(--ink-light); line-height: 2; }
 .dm-donut-wrap { position: relative; width: 160px; height: 160px; margin: 0 auto 12px; }
 .dm-donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .dm-donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
