@@ -108,27 +108,23 @@ function hasRecords() {
 
 function hasProfile() {
   const state = window.state || {};
-  return !!(
-    state.userName ||
-    state.nickname ||
-    state.profile ||
-    state.user ||
-    state.diseases ||
-    state.lastPeriodDate
-  );
+  // state.name is what init() checks to decide whether to call showMain().
+  // Do NOT include lastPeriodDate — it's written during onboarding step 3
+  // before the user completes setup, causing false positives that block the
+  // welcome screen for users who never finished onboarding.
+  return !!(state.name);
 }
 
 function onboardingCompleted() {
   const state = window.state || {};
-
+  // Mirror init()'s own check: if state.name is set init() calls showMain(),
+  // meaning onboarding was finished. state._onboardingDone is set explicitly
+  // by completeOnboarding(). hasRecords() is the fallback for users who have
+  // real data regardless of the flag.
   return !!(
-    state.onboardingCompleted ||
-    state.hasCompletedOnboarding ||
-    state.onboardingDone ||
-    localStorage.getItem('ippo_onboarding_completed') === '1' ||
-    localStorage.getItem('onboardingCompleted') === '1' ||
-    hasRecords() ||
-    hasProfile()
+    state._onboardingDone ||
+    state.name ||
+    hasRecords()
   );
 }
 
