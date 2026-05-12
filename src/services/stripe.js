@@ -56,10 +56,20 @@ export function selectPremiumPlan(planType) {
   }
 }
 
+// ─── Price ID プレースホルダー検出 ───────────────────────
+function isPlaceholderPrice(id) {
+  return !id || /^price_[XY]+$/.test(id);
+}
+
 // ─── Stripe チェックアウト開始 ────────────────────────────
 // ※ Edge Function URL 変更禁止 / 認証フロー変更禁止
 export async function startStripeCheckout(forcePlan) {
   var plan = forcePlan || _selectedPlan;
+  var priceId = plan === 'annual' ? STRIPE_PRICE_ANNUAL : STRIPE_PRICE_MONTHLY;
+  if (isPlaceholderPrice(priceId)) {
+    window.showToast('決済機能は現在準備中です。もうしばらくお待ちください。');
+    return;
+  }
   var sessionData = (await supabase.auth.getSession()).data?.session;
   if (!sessionData) {
     window.showAlertModal('決済にはログインが必要です。設定画面からログインしてください。');
@@ -72,7 +82,6 @@ export async function startStripeCheckout(forcePlan) {
   if (btn) { btn.textContent = '処理中...'; btn.disabled = true; }
 
   try {
-    var priceId = plan === 'annual' ? STRIPE_PRICE_ANNUAL : STRIPE_PRICE_MONTHLY;
     var base    = window.location.href.split('?')[0];
     var resp    = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
       method:  'POST',
