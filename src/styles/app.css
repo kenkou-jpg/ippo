@@ -2272,7 +2272,9 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   font-family: var(--font-body);
   font-size: 13px;
   cursor: pointer;
+  transition: background 0.2s;
 }
+.ai-retry-btn:hover { background: var(--rose-hover); }
 
 
   /* ===== SYNC / AUTH MODAL ===== */
@@ -2444,6 +2446,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 }
 .sync-action-btn.primary { background: var(--rose); color: white; }
 .sync-action-btn.primary:hover { background: var(--rose-hover); }
+.sync-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .sync-action-btn.danger {
   background: none;
   border: 1px solid var(--border-muted);
