@@ -1,4 +1,15 @@
-// ippo Service Worker
+// ============================================================
+//  ippo – root/sw.js  【旧配信用ミラー / Stale mirror — 編集禁止】
+//
+//  このファイルは public/sw.js のミラーコピー。
+//  GitHub Pages が raw source tree を直接配信していた期間に
+//  /sw.js として機能していた。
+//
+//  dist deploy（PR #178）移行後はこのファイルを削除予定。
+//  【正規ソースは public/sw.js】 — 変更はそちらに加えること。
+//
+//  削除タイミング: PR #178 マージ → 本番で dist 配信を確認後
+// ============================================================
 // 更新時は CACHE_VERSION を上げてください
 const CACHE_VERSION = 'v4';
 const CACHE_NAME = 'ippo-' + CACHE_VERSION;

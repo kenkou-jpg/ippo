@@ -1,4 +1,19 @@
-// ippo Service Worker
+// ============================================================
+//  ippo – public/sw.js  【正規ソース / Canonical SW source】
+//
+//  【編集はここだけ行う】
+//  Vite build 時にこのファイルが dist/sw.js にコピーされ、
+//  本番の /sw.js として配信される。
+//
+//  root/sw.js は旧 GitHub Pages 配信（raw source tree）時代の
+//  ミラーコピー。dist deploy 移行後は削除予定。
+//  root/sw.js を直接編集しないこと。
+//
+//  登録元: src/services/push.js
+//    navigator.serviceWorker.register('/sw.js', { scope: '/' })
+//
+//  更新手順: CACHE_VERSION を上げる → PR → main にマージ → deploy
+// ============================================================
 // 更新時は CACHE_VERSION を上げてください
 const CACHE_VERSION = 'v4';
 const CACHE_NAME = 'ippo-' + CACHE_VERSION;
