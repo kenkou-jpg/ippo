@@ -3,11 +3,10 @@ import { defineConfig } from 'vite'
 /**
  * ippo – Vite 設定
  *
- * 移行方針:
- *  - app.html をそのままエントリーとして使用（変更なし）
  *  - publicDir: 'public' → sw.js / manifest.json / images をルートで配信
  *  - appType: 'mpa' → HTML ファイルを直接 URL で開ける
- *  - Supabase / Stripe など外部ドメインは Vite の処理をバイパス
+ *  - index.html (landing) + app.html (app shell) を両方 build input に含める
+ *    → dist/index.html が生成され GitHub Pages root access が解決する
  */
 export default defineConfig({
   // GitHub Pages / サブパス配信でも build assets を相対参照にする
@@ -41,8 +40,8 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     rollupOptions: {
-      // app.html だけをビルドエントリーとする
       input: {
+        index: './index.html',
         app: './app.html',
       },
     },
