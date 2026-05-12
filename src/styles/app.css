@@ -15,6 +15,7 @@
   --plum-light: #c06870;
   --gold: #e8b870;
   --gold-light: #fdf0d8;
+  --warm-light: #fdf5e8;
   --sage: #8abf9a;
   --sage-light: #d8f0e0;
 
@@ -496,6 +497,7 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
   letter-spacing: 0.05em;
 }
 .btn-primary:hover { background: #FF8A8A; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(255,107,107,0.3); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .btn-skip {
   background: none;
@@ -1032,10 +1034,6 @@ h1, h2, h3, .serif { font-family: 'Shippori Mincho', serif; }
 .success-overlay.active .success-card {
   animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-@keyframes popIn {
-  from { transform: scale(0.85); opacity: 0; }
-  to   { transform: scale(1);    opacity: 1; }
-}
 /* スライダースタイル */
 input[type="range"] {
   -webkit-appearance: none;
@@ -1111,7 +1109,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   font-size: 18px;
   cursor: pointer;
   text-align: center;
-  transition: all 0.2s;
   box-shadow: 0 2px 8px var(--shadow);
 }
 .score-btn:hover { border-color: var(--rose-light); }
@@ -1137,7 +1134,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   font-size: 12px;
   color: var(--ink-mid);
   cursor: pointer;
-  transition: all 0.2s;
   box-shadow: 0 1px 4px var(--shadow);
 }
 .chip:hover { border-color: var(--rose-light); }
@@ -1241,6 +1237,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   transition: all 0.2s;
 }
 .btn-save:hover { background: #FF8A8A; }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ===== SUCCESS ===== */
 .success-overlay {
@@ -2466,4 +2463,15 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   gap: 8px;
 }
 
-  
+/* ===== REDUCED MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay.active .modal-sheet { animation: none; }
+  .success-overlay.active .success-card,
+  .premium-lock-card { animation: none; }
+  .ds-sheet,
+  .mr-sheet,
+  .ai-sheet,
+  .sync-sheet { animation: none; }
+  .fade-in { animation: none; opacity: 1; }
+  .ai-loading-icon { animation: none; opacity: 0.8; }
+}
