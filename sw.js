@@ -11,7 +11,7 @@
 //  削除タイミング: PR #178 マージ → 本番で dist 配信を確認後
 // ============================================================
 // 更新時は CACHE_VERSION を上げてください
-const CACHE_VERSION = 'v4';
+const CACHE_VERSION = 'v5';
 const CACHE_NAME = 'ippo-' + CACHE_VERSION;
 
 // App Shell: 必ずキャッシュするファイル
