@@ -2456,7 +2456,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 }
 
 
- #screen-settings .feedback-section {
+#screen-settings .feedback-section {
   margin: 0 20px 28px;
   text-align: center;
 }
