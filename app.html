@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://ekaoojdqhkpeudujfsdh.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ekaoojdqhkpeudujfsdh.supabase.co https://api.stripe.com https://api.anthropic.com https://cdn.jsdelivr.net; frame-src https://js.stripe.com; upgrade-insecure-requests;">
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ippo — 女性疾患・症状記録アプリ</title>
 <meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。生理周期・痛み・気分を可視化し、30日後にあなただけのからだのパターンが見えてきます。">
 <meta name="theme-color" content="#b8707a">
@@ -4533,8 +4533,10 @@ function updateStats() {
   if (streakEl) streakEl.textContent = state.streak || 0;
   var totalEl = document.getElementById('total-count');
   if (totalEl) totalEl.textContent = state.totalDays || 0;
-  document.getElementById('insight-total').textContent = state.totalDays || 0;
-  document.getElementById('insight-streak').textContent = state.streak || 0;
+  var insightTotalEl = document.getElementById('insight-total');
+  var insightStreakEl = document.getElementById('insight-streak');
+  if (insightTotalEl) insightTotalEl.textContent = state.totalDays || 0;
+  if (insightStreakEl) insightStreakEl.textContent = state.streak || 0;
   // 空状態バナー
   var emptyEl = document.getElementById('insights-empty-state');
   if(emptyEl) emptyEl.style.display = (state.records.length === 0) ? 'block' : 'none';
