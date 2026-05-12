@@ -17,16 +17,6 @@ import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
 import './modules/persistence-guarded-execution.js';
 
-// ─── Optional startup boundary observer runtimes ──────────
-// Bundle 4:
-// These are observe-only boundary/ownership mappers. They do not own startup,
-// hydration, render, persistence, or sync execution, so they do not need to
-// block first render.
-const OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES = [
-  ['startup-boundary-adapter', () => import('./modules/startup-boundary-adapter.js')],
-  ['bootstrap-ownership-prep', () => import('./modules/bootstrap-ownership-prep.js')],
-];
-
 // ─── Optional startup prep / verification runtimes ────────
 // Bundle 6:
 // These modules are observe-only / diagnostics-only preparation layers. They
@@ -52,12 +42,6 @@ const OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES = [
 // These are not required for first render. They are loaded through the guarded
 // optional runtime loader so diagnostics/migration failures do not block boot.
 const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
-  ['startup-guard-candidate', () => import('./modules/startup-guard-candidate.js')],
-  ['main-entry-startup-observer-wiring', () => import('./modules/main-entry-startup-observer-wiring.js')],
-  ['legacy-bootstrap-fallback-isolation', () => import('./modules/legacy-bootstrap-fallback-isolation.js')],
-  ['startup-sequencing-candidate-orchestration', () => import('./modules/startup-sequencing-candidate-orchestration.js')],
-  ['startup-extraction-candidate-shell', () => import('./modules/startup-extraction-candidate-shell.js')],
-  ['startup-extraction-guarded-gate', () => import('./modules/startup-extraction-guarded-gate.js')],
   ['final-app-shell-cleanup-runtime', () => import('./modules/final-app-shell-cleanup-runtime.js')],
 ];
 
@@ -75,13 +59,6 @@ const OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES = [
 // optional runtime scheduling lane-based so future production-startup tuning is
 // explicit and less likely to accidentally move execution-critical work.
 const OPTIONAL_RUNTIME_LANES = [
-  {
-    name: 'startup-boundary-observers',
-    runtimes: OPTIONAL_STARTUP_BOUNDARY_OBSERVER_RUNTIMES,
-    baseDelayMs: 350,
-    stepMs: 150,
-    timeoutMs: 2500,
-  },
   {
     name: 'startup-prep-verification',
     runtimes: OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES,
@@ -228,6 +205,9 @@ import './modules/record-edit-hydrate.js';
 // 編集保存 identity guard
 import './modules/record-edit-save-identity-guard.js';
 
+// welcome / main screen ownership (Phase C)
+import './modules/welcome-runtime.js';
+
 // onboarding / welcome reset guard
 import './modules/welcome-reset-guard.js';
 
@@ -252,8 +232,6 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasSupabase: !!supabase,
     hasState: typeof window.state === 'object',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
-    hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
-    hasBootstrapOwnershipPrep: typeof window.ippoBootstrapOwnershipPrepSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
@@ -263,23 +241,10 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
-    hasStartupGuardCandidate: typeof window.ippoStartupGuardCandidateSummary === 'function',
-    hasMainEntryStartupObserverWiring: typeof window.ippoMainEntryStartupObserverWiringSummary === 'function',
-    hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
-    hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
-    hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
-    hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
-    hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
-    hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
     hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
-    hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
     hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
     hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
-    hasRecordDateRolloutTrace: typeof window.ippoRecordDateRolloutTraceSummary === 'function',
-    hasRecordDateLimitedAdoptionCandidate: typeof window.ippoRecordDateLimitedAdoptionCandidateSummary === 'function',
-    hasRecordDateDraftCandidate: typeof window.ippoRecordDateDraftCandidateSummary === 'function',
-    hasRecordSaveAdoptionVerify: typeof window.ippoRecordSaveAdoptionVerifySummary === 'function',
-    hasRecordSaveOrchestrator: typeof window.ippoRecordSaveOrchestratorSummary === 'function',
+    hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
   });
 }
 
@@ -289,8 +254,6 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasSaveRecord: typeof saveRecord === 'function',
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
-    hasStartupBoundary: typeof window.ippoStartupBoundarySummary === 'function',
-    hasBootstrapOwnershipPrep: typeof window.ippoBootstrapOwnershipPrepSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
     hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
     hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
@@ -300,23 +263,10 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
     hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
-    hasStartupGuardCandidate: typeof window.ippoStartupGuardCandidateSummary === 'function',
-    hasMainEntryStartupObserverWiring: typeof window.ippoMainEntryStartupObserverWiringSummary === 'function',
-    hasLegacyBootstrapFallbackIsolation: typeof window.ippoLegacyBootstrapFallbackIsolationSummary === 'function',
-    hasStartupSequencingCandidate: typeof window.ippoStartupSequencingCandidateOrchestrationSummary === 'function',
-    hasStartupExtractionCandidateShell: typeof window.ippoStartupExtractionCandidateShellSummary === 'function',
-    hasStartupExtractionGuardedGate: typeof window.ippoStartupExtractionGuardedGateSummary === 'function',
-    hasLimitedStartupExtractionRehearsal: typeof window.ippoLimitedStartupExtractionRehearsalSummary === 'function',
-    hasStartupExtractionAdoptionCandidate: typeof window.ippoStartupExtractionAdoptionCandidateRuntimeSummary === 'function',
     hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
-    hasActualStartupInlineRemoval: typeof window.ippoActualStartupInlineRemovalRuntimeSummary === 'function',
     hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
     hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
-    hasRecordDateRolloutTrace: typeof window.ippoRecordDateRolloutTraceSummary === 'function',
-    hasRecordDateLimitedAdoptionCandidate: typeof window.ippoRecordDateLimitedAdoptionCandidateSummary === 'function',
-    hasRecordDateDraftCandidate: typeof window.ippoRecordDateDraftCandidateSummary === 'function',
-    hasRecordSaveAdoptionVerify: typeof window.ippoRecordSaveAdoptionVerifySummary === 'function',
-    hasRecordSaveOrchestrator: typeof window.ippoRecordSaveOrchestratorSummary === 'function',
+    hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
   });
 }
 
@@ -336,8 +286,6 @@ function runDeferredCheck(name, label) {
 }
 
 runDeferredCheck('ippoRunBootstrapShellCheck', 'bootstrap-shell-check');
-runDeferredCheck('ippoRunStartupBoundaryCheck', 'startup-boundary-check');
-runDeferredCheck('ippoRunBootstrapOwnershipPrepCheck', 'bootstrap-ownership-prep-check');
 runDeferredCheck('ippoRunRuntimeSequencingCheck', 'runtime-sequencing-check');
 runDeferredCheck('ippoRunDeferredHydrationPrepCheck', 'deferred-hydration-prep-check');
 runDeferredCheck('ippoRunRenderBoundaryCheck', 'render-boundary-check');
@@ -347,9 +295,6 @@ runDeferredCheck('ippoRunPersistenceBoundaryPrepCheck', 'persistence-boundary-pr
 runDeferredCheck('ippoRunPersistenceExecutionReadinessCheck', 'persistence-execution-readiness-check');
 runDeferredCheck('ippoRunPersistenceCandidateShadow', 'persistence-candidate-shadow');
 runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded-execution-check');
-runDeferredCheck('ippoRunStartupGuardCandidateCheck', 'startup-guard-candidate-check');
-runDeferredCheck('ippoRunMainEntryStartupObserverWiringCheck', 'main-entry-startup-observer-wiring-check');
-runDeferredCheck('ippoRunStartupExtractionGuardedGateCheck', 'startup-extraction-guarded-gate-check');
 runDeferredCheck('ippoRunFinalAppShellCleanupCheck', 'final-app-shell-cleanup-check');
 
 // ─── Startup ownership signal ────────────────────────────
