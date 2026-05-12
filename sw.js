@@ -1,6 +1,6 @@
 // ippo Service Worker
 // 更新時は CACHE_VERSION を上げてください
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = 'ippo-' + CACHE_VERSION;
 
 // App Shell: 必ずキャッシュするファイル
@@ -11,6 +11,30 @@ const OPTIONAL_ASSETS = ['/images/icon-192.png', '/images/icon-512.png'];
 
 // キャッシュしないドメイン
 const BYPASS_DOMAINS = ['supabase.co', 'stripe.com', 'anthropic.com', 'googleapis.com', 'gstatic.com'];
+
+function shouldCacheResponse(response) {
+  return !!response && response.status === 200 && response.type !== 'opaque';
+}
+
+function cacheResponse(request, response) {
+  if (!shouldCacheResponse(response)) return Promise.resolve(false);
+
+  let responseForCache;
+  try {
+    responseForCache = response.clone();
+  } catch (error) {
+    console.warn('[ippo-sw] response clone failed; skip cache write', error);
+    return Promise.resolve(false);
+  }
+
+  return caches.open(CACHE_NAME)
+    .then(cache => cache.put(request, responseForCache))
+    .then(() => true)
+    .catch(error => {
+      console.warn('[ippo-sw] cache write failed', error);
+      return false;
+    });
+}
 
 // ========== Install ==========
 self.addEventListener('install', event => {
@@ -48,17 +72,17 @@ self.addEventListener('fetch', event => {
     event.respondWith(
       fetch(event.request)
         .then(res => {
-          if (res && res.status === 200) {
-            caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
-          }
+          event.waitUntil(cacheResponse(event.request, res));
           return res;
         })
         .catch(() =>
-          caches.match('/app.html').then(cached =>
-            cached || new Response(offlineFallbackHTML(), {
-              headers: { 'Content-Type': 'text/html; charset=utf-8' }
-            })
-          )
+          caches.match(event.request)
+            .then(cached => cached || caches.match('/app.html'))
+            .then(cached =>
+              cached || new Response(offlineFallbackHTML(), {
+                headers: { 'Content-Type': 'text/html; charset=utf-8' }
+              })
+            )
         )
     );
     return;
@@ -69,9 +93,7 @@ self.addEventListener('fetch', event => {
     caches.match(event.request).then(cached => {
       if (cached) return cached;
       return fetch(event.request).then(res => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
-          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
-        }
+        event.waitUntil(cacheResponse(event.request, res));
         return res;
       }).catch(() => new Response('', { status: 503 }));
     })
