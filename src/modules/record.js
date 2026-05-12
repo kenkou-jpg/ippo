@@ -22,9 +22,6 @@ import {
   getRecordSaveNotifyCandidates,
 } from './record-save-pipeline.js';
 
-import {
-  runRecordSaveThinOrchestrator,
-} from './record-save-orchestrator.js';
 
 let lastRecordSaveContext = null;
 let activeRecordSaveContext = null;
@@ -228,13 +225,7 @@ function wrapSaveRecordScreen() {
 
     try {
       const result = withRecordSavePipelineDelegates(function() {
-        return runRecordSaveThinOrchestrator({
-          label: 'saveRecordScreen',
-          context: context,
-          execute: function executeOriginalSaveRecordScreen() {
-            return fn.apply(self, args);
-          },
-        });
+        return fn.apply(self, args);
       }, context);
 
       if (result && typeof result.then === 'function') {
