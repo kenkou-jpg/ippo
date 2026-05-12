@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://ekaoojdqhkpeudujfsdh.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ekaoojdqhkpeudujfsdh.supabase.co https://api.stripe.com https://api.anthropic.com https://cdn.jsdelivr.net; frame-src https://js.stripe.com; upgrade-insecure-requests;">
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>ippo — 女性疾患・症状記録アプリ</title>
 <meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。生理周期・痛み・気分を可視化し、30日後にあなただけのからだのパターンが見えてきます。">
 <meta name="theme-color" content="#b8707a">
@@ -1972,7 +1972,7 @@ function openDiseaseSettings(){
     for(var i=0;i<catDiseases.length;i++){
       var d = catDiseases[i];
       var sel = currentArr.indexOf(d) !== -1;
-      html += '<button onclick="toggleDiseaseChip(this,\''+d+'\')" data-disease="'+d+'" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
+      html += '<button onclick="toggleDiseaseChip(this,\''+d+'\')" data-disease="'+d+'" data-selected="'+(sel?'true':'false')+'" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
     }
     html += '</div>';
   }
@@ -2514,12 +2514,14 @@ function updateTimelineView(){
 }
 
 function toggleDiseaseChip(btn, name){
-  var sel = btn.style.borderColor === 'var(--rose)';
+  var sel = btn.dataset.selected === 'true';
   if(sel){
+    btn.dataset.selected = 'false';
     btn.style.background = 'var(--white)';
     btn.style.borderColor = '#e8ddd8';
     btn.style.color = 'var(--ink-mid)';
   } else {
+    btn.dataset.selected = 'true';
     btn.style.background = 'var(--rose-pale)';
     btn.style.borderColor = 'var(--rose)';
     btn.style.color = 'var(--rose)';
@@ -2530,6 +2532,7 @@ function clearAllDiseases(){
   var overlay = document.getElementById('diseaseOverlay');
   if(!overlay) return;
   overlay.querySelectorAll('[data-disease]').forEach(function(btn){
+    btn.dataset.selected = 'false';
     btn.style.background = 'var(--white)';
     btn.style.borderColor = '#e8ddd8';
     btn.style.color = 'var(--ink-mid)';
@@ -2541,7 +2544,7 @@ function saveDiseaseSettings(){
   if(!overlay) return;
   var selected = [];
   overlay.querySelectorAll('[data-disease]').forEach(function(btn){
-    if(btn.style.borderColor === 'var(--rose)'){
+    if(btn.dataset.selected === 'true'){
       selected.push(btn.getAttribute('data-disease'));
     }
   });
@@ -4533,8 +4536,10 @@ function updateStats() {
   if (streakEl) streakEl.textContent = state.streak || 0;
   var totalEl = document.getElementById('total-count');
   if (totalEl) totalEl.textContent = state.totalDays || 0;
-  document.getElementById('insight-total').textContent = state.totalDays || 0;
-  document.getElementById('insight-streak').textContent = state.streak || 0;
+  var itEl = document.getElementById('insight-total');
+  if (itEl) itEl.textContent = state.totalDays || 0;
+  var isEl = document.getElementById('insight-streak');
+  if (isEl) isEl.textContent = state.streak || 0;
   // 空状態バナー
   var emptyEl = document.getElementById('insights-empty-state');
   if(emptyEl) emptyEl.style.display = (state.records.length === 0) ? 'block' : 'none';
@@ -8908,7 +8913,7 @@ function openRecordScreen(){
       return new Date(r.date).toDateString() === todayStr;
     });
     if(todayExists){
-      state.editingDate = new Date().toISOString();
+      state.editingDate = new Date().toISOString().slice(0, 10);
     }
   }
 
@@ -10934,7 +10939,7 @@ var todayStr = targetDate.toDateString();
         var lastPain = last7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/last7.length;
         var prevPain = prev7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/prev7.length;
         var diff = Math.round((prevPain - lastPain)*10)/10;
-        if(diff > 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週より頭痛が'+diff.toFixed(1)+'ポイント改善の傾向です</div>';
+        if(diff > 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週より痛みの記録が'+diff.toFixed(1)+'ポイント改善の傾向です</div>';
         else if(diff < 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">記録を続けてパターンを見つけましょう</div>';
         else feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週と同じペースで記録中です</div>';
       }
