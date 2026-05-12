@@ -2777,7 +2777,9 @@ function cloudBackupAll(){
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
-      console.warn('未ログイン：クラウドバックアップをスキップ');
+      var skipReason = localStorage.getItem('ippo_sb_token') ? 'sdk-session-null-stale-token' : 'not-logged-in';
+      console.warn('未ログイン：クラウドバックアップをスキップ (' + skipReason + ')');
+      window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'skipped', reason: skipReason };
       _cloudBackupLock = false;
       return;
     }
@@ -2804,15 +2806,22 @@ function cloudBackupAll(){
       if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
       if(result.data && result.data.length > 0){
         console.log('Cloud backup完了（更新）: '+stateToSave.records.length+'件');
+        window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
         return result.data;
       }
       payload.user_id = userId;
       return supabase.from('user_data').insert(payload).select().then(function(result2){
-        if(result2.error) console.warn('Backup失敗:', result2.error.message);
-        else console.log('Cloud backup完了（新規）');
+        if(result2.error){
+          console.warn('Backup失敗:', result2.error.message);
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result2.error.message };
+        } else {
+          console.log('Cloud backup完了（新規）');
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'inserted' };
+        }
         return result2.data;
       });
     }).catch(function(e){
+      window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: e.message || String(e) };
       _cloudBackupLock = false;
       if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
       throw e;
@@ -12923,8 +12932,13 @@ async function checkPremiumStatus() {
   try {
     const { data: { session } } = await supabase.auth.getSession();
     if (session && session.user) {
+      // Bridge SDK session → inline auth vars (shared localStorage keys)
+      var prevInlineId = localStorage.getItem('ippo_sb_user_id');
+      if (prevInlineId && prevInlineId !== session.user.id) {
+        console.warn('[ippo auth] user-id mismatch: inline=' + prevInlineId + ' sdk=' + session.user.id);
+        window.__ippoAuthMismatch = { inlineId: prevInlineId, sdkId: session.user.id, ts: new Date().toISOString() };
+      }
       supabaseUserId = session.user.id;
-      // 旧認証変数にも反映（cloudBackupAll等で参照）
       supabaseToken = session.access_token;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
       // 管理者は自動的にPROアクセス付与
@@ -12942,6 +12956,13 @@ async function checkPremiumStatus() {
       var briefEl = document.getElementById('syncStatusBrief');
       if (briefEl) briefEl.textContent = (session.user.id === ADMIN_USER_ID ? '👑 ' : '') + (session.user.email || 'ログイン済み');
     } else {
+      // SDK has no session — check if inline auth left a stale token
+      var staleToken = localStorage.getItem('ippo_sb_token');
+      var staleId    = localStorage.getItem('ippo_sb_user_id');
+      if (staleToken && staleId) {
+        console.warn('[ippo auth] SDK session is null but stale inline token exists (user_id=' + staleId + '). cloudBackupAll will skip until re-login.');
+        window.__ippoAuthMismatch = { inlineId: staleId, sdkId: null, ts: new Date().toISOString() };
+      }
       isPremium = false;
       supabaseToken = null;
       var briefEl = document.getElementById('syncStatusBrief');
