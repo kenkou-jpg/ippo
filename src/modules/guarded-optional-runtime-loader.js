@@ -15,6 +15,8 @@ const OPTIONAL_RUNTIME_LOADER_KEY = '__ippoGuardedOptionalRuntimeLoader';
 const DEFAULT_TIMEOUT_MS = 3000;
 const DEFAULT_INTERACTION_READY_TIMEOUT_MS = 4000;
 const MAX_LOADER_ENTRIES = 80;
+const PRESSURE_CLUSTER_WINDOW_MS = 250;
+const PRESSURE_LATE_START_THRESHOLD_MS = 2000;
 
 function nowIso() {
   try {
@@ -263,6 +265,93 @@ function scheduleOptionalRuntime(label, importer, options) {
   }, delayMs);
 }
 
+function groupScheduledPressure(scheduled) {
+  const byDelay = scheduled.reduce((groups, entry) => {
+    const delayKey = String(entry.delayMs || 0);
+    if (!groups[delayKey]) groups[delayKey] = [];
+    groups[delayKey].push(entry.label);
+    return groups;
+  }, {});
+
+  const clusters = Object.keys(byDelay)
+    .map((delayKey) => ({
+      delayMs: Number(delayKey),
+      count: byDelay[delayKey].length,
+      labels: byDelay[delayKey].slice(),
+    }))
+    .filter((cluster) => cluster.count > 1)
+    .sort((a, b) => a.delayMs - b.delayMs);
+
+  const nearClusters = scheduled
+    .slice()
+    .sort((a, b) => (a.delayMs || 0) - (b.delayMs || 0))
+    .reduce((clustersAcc, entry) => {
+      const delayMs = entry.delayMs || 0;
+      const last = clustersAcc[clustersAcc.length - 1];
+      if (last && delayMs - last.lastDelayMs <= PRESSURE_CLUSTER_WINDOW_MS) {
+        last.lastDelayMs = delayMs;
+        last.count += 1;
+        last.labels.push(entry.label);
+      } else {
+        clustersAcc.push({
+          firstDelayMs: delayMs,
+          lastDelayMs: delayMs,
+          count: 1,
+          labels: [entry.label],
+        });
+      }
+      return clustersAcc;
+    }, [])
+    .filter((cluster) => cluster.count > 1);
+
+  return {
+    exactDelayClusters: clusters,
+    nearDelayClusters: nearClusters,
+  };
+}
+
+function buildOptionalRuntimePressureSummary(scheduled, imports, waits, containments) {
+  const timeoutLabels = imports
+    .filter((entry) => entry.status === 'timeout')
+    .map((entry) => entry.label);
+  const failedLabels = imports
+    .filter((entry) => entry.status === 'failed')
+    .map((entry) => entry.label);
+  const lateScheduled = scheduled
+    .filter((entry) => (entry.delayMs || 0) >= PRESSURE_LATE_START_THRESHOLD_MS)
+    .map((entry) => ({
+      label: entry.label,
+      delayMs: entry.delayMs,
+      waitForInteractionReady: entry.waitForInteractionReady,
+    }));
+  const interactionWaitLabels = waits.map((entry) => entry.label);
+  const containmentLabels = containments.map((entry) => entry.label);
+  const clusters = groupScheduledPressure(scheduled);
+
+  return {
+    thresholds: {
+      clusterWindowMs: PRESSURE_CLUSTER_WINDOW_MS,
+      lateStartThresholdMs: PRESSURE_LATE_START_THRESHOLD_MS,
+    },
+    scheduledCount: scheduled.length,
+    importedCount: imports.length,
+    waitCount: waits.length,
+    containmentCount: containments.length,
+    lateScheduledCount: lateScheduled.length,
+    timeoutCount: timeoutLabels.length,
+    failedCount: failedLabels.length,
+    exactDelayClusterCount: clusters.exactDelayClusters.length,
+    nearDelayClusterCount: clusters.nearDelayClusters.length,
+    timeoutLabels,
+    failedLabels,
+    lateScheduled,
+    interactionWaitLabels,
+    containmentLabels,
+    exactDelayClusters: clusters.exactDelayClusters,
+    nearDelayClusters: clusters.nearDelayClusters,
+  };
+}
+
 function summarizeGuardedOptionalRuntimeLoader() {
   const state = getState();
   const scheduled = state.scheduled.slice();
@@ -287,6 +376,7 @@ function summarizeGuardedOptionalRuntimeLoader() {
       counts[entry.reason] = (counts[entry.reason] || 0) + 1;
       return counts;
     }, {}),
+    pressure: buildOptionalRuntimePressureSummary(scheduled, imports, waits, containments),
     scheduled,
     waits,
     containments,
