@@ -127,6 +127,9 @@ export async function startStripeCheckout(forcePlan) {
         clearInterval(poll);
         if (window.isPremium) {
           window.showToast('🎉 ' + (plan === 'annual' ? '年額' : '月額') + 'プランへようこそ！');
+        } else {
+          // 30秒経過してもプレミアム未確認 — webhook未整備時に発生する
+          window.showToast('決済は受付済みです。有効化に少し時間がかかる場合があります。しばらく後に再起動してください。', 'warn');
         }
       }
     }, 2500);

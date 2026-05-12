@@ -12,7 +12,8 @@
 //      3. null → クライアント未生成、警告のみ
 // ============================================================
 
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+// Version pinned to match package.json ^2.105.3 — update both together
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 
 export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 const SUPABASE_SDK_KEY = window.SUPABASE_KEY
