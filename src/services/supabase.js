@@ -6,13 +6,18 @@
 //  - app.html が /src/main.js をブラウザで直接読み込む現行構成に合わせ、
 //    bare import ではなく CDN ESM import を使用する
 //  - window.supabase を維持（移行期間中: 非モジュール <script> との共存）
-//  - 公開キーは app.html 側の既存グローバル値を優先して参照する
+//  - キー解決優先順位:
+//      1. window.SUPABASE_KEY  （後方互換: 既存グローバル代入）
+//      2. import.meta.env.VITE_SUPABASE_KEY  （Vite ビルド時: GitHub Secrets 経由）
+//      3. null → クライアント未生成、警告のみ
 // ============================================================
 
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
 export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
-const SUPABASE_SDK_KEY = window.SUPABASE_KEY;
+const SUPABASE_SDK_KEY = window.SUPABASE_KEY
+  || (import.meta.env && import.meta.env.VITE_SUPABASE_KEY)
+  || null;
 
 window.__ippoSupabaseStatus = {
   ready: false,
