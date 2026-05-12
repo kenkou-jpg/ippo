@@ -5,6 +5,13 @@
 // 既存 window API を変更せず、存在確認のみを行う。
 // ============================================================
 
+// startup 中に legacy inline scripts が supabase を参照しても
+// ReferenceError にならないよう null で初期化する。
+// src/services/supabase.js が後で本物の client に置換する。
+if (typeof window.supabase === 'undefined') {
+  window.supabase = null;
+}
+
 const REQUIRED_APIS = [
   'saveState',
   'loadState',

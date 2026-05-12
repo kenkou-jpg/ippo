@@ -2760,6 +2760,7 @@ function checkPremiumRegistered(){
   
 var _cloudBackupLock = false;
 function cloudBackupAll(){
+  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve();
   if(_cloudBackupLock){
     console.log('クラウド同期中：スキップ');
     return Promise.resolve();
@@ -2836,6 +2837,7 @@ function cloudBackupAll(){
 
 
 function cloudRestore(){
+  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve(false);
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
@@ -2975,6 +2977,7 @@ function ensureRecordIds(){
 var _syncLock = false;
 
 function syncRecordToCloud(record){
+  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve();
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user) return;
@@ -2996,6 +2999,7 @@ function syncRecordToCloud(record){
 }
 
 function syncAllRecordsToCloud(){
+  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve();
   if(_syncLock) return Promise.resolve();
   _syncLock = true;
   return supabase.auth.getSession().then(function(res){
@@ -10992,7 +10996,17 @@ var todayStr = targetDate.toDateString();
 
 
 // ===== START =====
-init();
+// init() は Vite modules (src/main.js) のロード完了後に実行する。
+// type="module" スクリプトは非同期ロードされるため、直接 init() を呼ぶと
+// window.supabase / window API 未登録状態で startup chain が実行される。
+// ippo:vite-ready は src/main.js の末尾で dispatch される。
+window.addEventListener(
+  'ippo:vite-ready',
+  () => {
+    init();
+  },
+  { once: true }
+);
 setDailyMessage();
   
 

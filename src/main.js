@@ -37,7 +37,6 @@ const OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES = [
   ['deferred-hydration-prep', () => import('./modules/deferred-hydration-prep.js')],
   ['render-boundary-prep', () => import('./modules/render-boundary-prep.js')],
   ['screen-activation-prep', () => import('./modules/screen-activation-prep.js')],
-  ['startup-verify', () => import('./modules/startup-verify.js')],
 ];
 
 // ─── Optional infrastructure observability runtimes ───────
@@ -59,10 +58,7 @@ const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
   ['startup-sequencing-candidate-orchestration', () => import('./modules/startup-sequencing-candidate-orchestration.js')],
   ['startup-extraction-candidate-shell', () => import('./modules/startup-extraction-candidate-shell.js')],
   ['startup-extraction-guarded-gate', () => import('./modules/startup-extraction-guarded-gate.js')],
-  ['limited-startup-extraction-rehearsal', () => import('./modules/limited-startup-extraction-rehearsal.js')],
-  ['startup-extraction-adoption-candidate-runtime', () => import('./modules/startup-extraction-adoption-candidate-runtime.js')],
   ['final-app-shell-cleanup-runtime', () => import('./modules/final-app-shell-cleanup-runtime.js')],
-  ['actual-startup-inline-removal-runtime', () => import('./modules/actual-startup-inline-removal-runtime.js')],
 ];
 
 // ─── Optional record observability runtimes ────────────────
@@ -70,13 +66,7 @@ const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
 // Keep the save/edit primitives boot-critical, but move trace/shadow/candidate
 // verification layers behind guarded dynamic imports.
 const OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES = [
-  ['record-save-shadow', () => import('./modules/record-save-shadow.js')],
   ['record-date-branch-observability', () => import('./modules/record-date-branch-observability.js')],
-  ['record-date-rollout-trace', () => import('./modules/record-date-rollout-trace.js')],
-  ['record-date-limited-adoption-candidate', () => import('./modules/record-date-limited-adoption-candidate.js')],
-  ['record-date-draft-candidate', () => import('./modules/record-date-draft-candidate.js')],
-  ['record-save-adoption-verify', () => import('./modules/record-save-adoption-verify.js')],
-  ['record-save-orchestrator', () => import('./modules/record-save-orchestrator.js')],
 ];
 
 // ─── Optional runtime scheduling lanes ────────────────────
@@ -360,23 +350,19 @@ runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded
 runDeferredCheck('ippoRunStartupGuardCandidateCheck', 'startup-guard-candidate-check');
 runDeferredCheck('ippoRunMainEntryStartupObserverWiringCheck', 'main-entry-startup-observer-wiring-check');
 runDeferredCheck('ippoRunStartupExtractionGuardedGateCheck', 'startup-extraction-guarded-gate-check');
-runDeferredCheck('ippoRunLimitedStartupExtractionRehearsalCheck', 'limited-startup-extraction-rehearsal-check');
-runDeferredCheck('ippoRunStartupExtractionAdoptionCandidateRuntimeCheck', 'startup-extraction-adoption-candidate-runtime-check');
 runDeferredCheck('ippoRunFinalAppShellCleanupCheck', 'final-app-shell-cleanup-check');
-runDeferredCheck('ippoRunActualStartupInlineRemovalCheck', 'actual-startup-inline-removal-check');
 
-if (typeof window.ippoRunStartupVerify === 'function') {
-  window.setTimeout(() => {
-    try {
-      window.ippoRunStartupVerify();
-    } catch (error) {
-      if (typeof window.ippoMarkBootError === 'function') {
-        window.ippoMarkBootError('startup-verify-failed', {
-          message: error && error.message ? error.message : String(error),
-        });
-      }
-    }
-  }, 0);
+// ─── Startup ownership signal ────────────────────────────
+// すべての critical imports・window bridge・service 初期化が完了した後に
+// app.html の inline startup (init()) を unblock する。
+// app.html 側は window.addEventListener('ippo:vite-ready', ...) で待機している。
+window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
+
+if (typeof window.ippoMarkBootEvent === 'function') {
+  window.ippoMarkBootEvent('vite-ready-dispatched', {
+    hasSupabase: !!window.supabase,
+    hasState: typeof window.state === 'object',
+  });
 }
 
 // ─── Re-exports（将来の TypeScript 移行用） ───────────────
