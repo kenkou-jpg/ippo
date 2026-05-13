@@ -10,6 +10,8 @@
 //    app.html 側の呼び出しを透過的にモジュール版へ誘導
 // ============================================================
 
+import { showScreen } from './screen-router.js';
+
 // ── ヘルパー ─────────────────────────────────────────────────
 
 function getGreetingText() {
@@ -325,8 +327,7 @@ export function updateHomeCTAState() {
 // ── showMain ─────────────────────────────────────────────────
 
 export function showMain() {
-  document.getElementById('screen-welcome').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
+  showScreen('home');
 
   // モジュール内で完結する関数を直接呼ぶ
   updateGreeting();

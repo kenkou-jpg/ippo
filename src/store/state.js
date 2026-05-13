@@ -30,6 +30,7 @@ export const INITIAL_STATE = Object.freeze({
   birthYear:       null,
   purpose:         null,
   reminderTime:    null,
+  currentScreen:   'home',
 });
 
 // ─── module-local 正本 ────────────────────────────────────────
