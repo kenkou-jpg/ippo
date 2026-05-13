@@ -5,8 +5,6 @@
 // 既存の init / save / persistence 経路は変更しない。
 // ============================================================
 
-import './persistence-trace-runtime.js';
-
 const BOOT_KEY = '__ippoBoot';
 const BOOT_SESSION_KEY = 'ippo:boot-session';
 const BOOT_HISTORY_KEY = 'ippo:boot-history';
