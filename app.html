@@ -3635,9 +3635,12 @@ if (state.name && !state._onboardingDone) {
     autoRecoveryCheck();
   });
   
- if (state.name) {
+ var _shouldShowMain = window.ippoWelcomeRuntime
+   ? window.ippoWelcomeRuntime.shouldShowMain()
+   : !!state.name;
+ if (_shouldShowMain) {
   showMain();
- 
+
   if (state.fastingActive && state.fastingStart) {
     if (Date.now() - state.fastingStart > 24 * 3600000) {
       // 24h超は自動終了
@@ -3675,7 +3678,10 @@ if (state.name && !state._onboardingDone) {
         if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
         // ★ 別デバイスで初めてログインした場合: クラウド復元後に名前があればメイン画面へ
         var welcomeEl = document.getElementById('screen-welcome');
-        if(state.name && welcomeEl && welcomeEl.style.display !== 'none') {
+        var _shouldShowMainAfterRestore = window.ippoWelcomeRuntime
+          ? window.ippoWelcomeRuntime.shouldShowMain()
+          : !!state.name;
+        if(_shouldShowMainAfterRestore && welcomeEl && welcomeEl.style.display !== 'none') {
           showMain();
           switchTab('home');
           if(typeof updateStats === 'function') updateStats();
