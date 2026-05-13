@@ -78,6 +78,9 @@ import './modules/welcome-runtime.js';
 // onboarding / welcome reset guard
 import './modules/welcome-reset-guard.js';
 
+// ─── Priority 7: screen state-driven router ──────────────
+import './modules/screen-router.js';
+
 // ─── Phase D-1: UI navigation modules ────────────────────
 import './modules/tab-navigation.js';
 

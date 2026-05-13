@@ -15,6 +15,7 @@
 // ============================================================
 
 import { shouldShowMain } from './welcome-runtime.js';
+import { showScreen } from './screen-router.js';
 
 function call(name) {
   if (typeof window[name] === 'function') window[name]();
@@ -31,10 +32,7 @@ export function finishOnboarding() {
   // welcome-runtime に委譲してメイン画面判定
   if (!shouldShowMain()) return;
 
-  const welcome = document.getElementById('screen-welcome');
-  const main    = document.getElementById('main-app');
-  if (welcome) welcome.style.display = 'none';
-  if (main)    main.style.display    = 'block';
+  showScreen('home');
 
   call('updateGreeting');
   call('updateStats');

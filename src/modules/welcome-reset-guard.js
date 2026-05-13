@@ -15,8 +15,8 @@ import {
 import './record-edit-save-identity-guard.js';
 import './record-freshness-guard.js';
 import './ui-transition-ownership-runtime.js';
-import './ui-drift-suppression-runtime.js';
 import './daily-record-card-guard.js';
+import { showScreen, getCurrentScreen } from './screen-router.js';
 
 function debug(label, detail) {
   try {
@@ -133,26 +133,15 @@ function shouldBlockWelcome() {
 }
 
 function ensureMainAppVisible(source) {
-  const main = document.getElementById('main-app');
-  const welcome = document.getElementById('screen-welcome');
-
-  if (!main || !welcome) return;
-
   if (!shouldBlockWelcome()) return;
+  if (!document.getElementById('main-app')) return;
 
-  main.style.display = '';
-  welcome.style.display = 'none';
+  showScreen(getCurrentScreen());
 
-  if (!document.querySelector('.screen.active')) {
-    const home = document.getElementById('screen-home');
-    if (home) {
-      home.classList.add('active');
-      markUiTransition('active-screen-reconciled', {
-        target: 'home',
-        source: source || 'welcome-reset-guard:ensure-main-app-visible',
-      });
-    }
-  }
+  markUiTransition('active-screen-reconciled', {
+    target: getCurrentScreen(),
+    source: source || 'welcome-reset-guard:ensure-main-app-visible',
+  });
 
   debug('main-app-restored', {
     records: getRecords().length,
@@ -272,46 +261,6 @@ function wrapFunction(name) {
   return true;
 }
 
-function installMutationGuard() {
-  if (window.__ippoWelcomeMutationGuardInstalled === true) return;
-  window.__ippoWelcomeMutationGuardInstalled = true;
-
-  const welcome = document.getElementById('screen-welcome');
-  const main = document.getElementById('main-app');
-
-  // 対象要素が存在しない場合は監視不要
-  if (!welcome || !main) return;
-
-  const observer = new MutationObserver(function() {
-    if (!shouldBlockWelcome()) return;
-
-    const welcomeVisible = welcome.style.display !== 'none';
-    const mainHidden = main.style.display === 'none';
-
-    if (welcomeVisible || mainHidden) {
-      debug('mutation-restore', {
-        welcomeVisible,
-        mainHidden,
-      });
-      markUiTransition('welcome-mutation-replay-suppressed', {
-        target: 'welcome',
-        source: 'welcome-reset-guard:mutation-observer',
-        detail: {
-          welcomeVisible,
-          mainHidden,
-        },
-      });
-      ensureMainAppVisible('welcome-reset-guard:mutation-restore');
-      markFreshness('welcome-guard:mutation-restore');
-    }
-  });
-
-  // body 全体ではなく対象要素の style のみを監視
-  const opts = { attributes: true, attributeFilter: ['style'] };
-  observer.observe(welcome, opts);
-  observer.observe(main, opts);
-}
-
 function install() {
   wrapFunction('showScreen');
   wrapFunction('switchTab');
@@ -320,7 +269,6 @@ function install() {
   wrapFunction('obComplete');
   wrapFunction('obSkipAll');
 
-  installMutationGuard();
   ensureMainAppVisible('welcome-reset-guard:install');
   markFreshness('welcome-guard:install');
 }
@@ -333,8 +281,8 @@ window.ippoWelcomeResetGuardSummary = function() {
     shouldBlockWelcome: shouldBlockWelcome(),
     recordsLength: getRecords().length,
     hasProfile: hasProfile(),
-    welcomeVisible: document.getElementById('screen-welcome')?.style.display !== 'none',
-    mainAppVisible: document.getElementById('main-app')?.style.display !== 'none',
+    currentScreen: getCurrentScreen(),
+    mainAppVisible: getCurrentScreen() !== 'welcome',
     editSaveIdentityGuardLoaded: typeof window.ippoEditSaveIdentityGuardSummary === 'function',
     recordFreshnessGuardLoaded: typeof window.ippoRecordFreshnessGuardSummary === 'function',
     uiTransitionOwnershipLoaded: typeof window.ippoUiTransitionOwnershipSummary === 'function',
