@@ -8049,7 +8049,7 @@ function saveEditRecord(){
     var chip = allChips[k];
     var val = chip.dataset.val;
     var symptomList = ['頭痛','腰痛','腹痛','むくみ','肌荒れ','倦怠感','イライラ','不眠','便秘','冷え'];
-    var cycleList = ['なし','生理中','排卵期','高温期','低温期'];
+    var cycleList = ['なし','生理開始','生理中','排卵期','高温期','低温期'];
     if(symptomList.indexOf(val) >= 0 && chip.classList.contains('selected')){
       symptoms.push(val);
     }
@@ -9074,6 +9074,30 @@ function openRecordScreen(){
       if(editRec.bowel){
         document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
           if(c.textContent === editRec.bowel) c.classList.add('selected');
+        });
+      }
+      // 便カウント復元
+      if(editRec.bowelCount){
+        _bowelCount = editRec.bowelCount;
+        var bcd = document.getElementById('bowel-count-display');
+        if(bcd) bcd.textContent = _bowelCount;
+      }
+      // 気分復元
+      if(editRec.mood){
+        document.querySelectorAll('#rs-mood .chip').forEach(function(c){
+          if(parseInt(c.getAttribute('data-val')) === editRec.mood) c.classList.add('selected');
+        });
+      }
+      // おりもの量復元
+      if(editRec.dischargeAmount){
+        document.querySelectorAll('#rs-discharge-amount .chip').forEach(function(c){
+          if(c.textContent === editRec.dischargeAmount) c.classList.add('selected');
+        });
+      }
+      // おりもの状態復元
+      if(editRec.dischargeType){
+        document.querySelectorAll('#rs-discharge-type .chip').forEach(function(c){
+          if(c.textContent === editRec.dischargeType) c.classList.add('selected');
         });
       }
       // 経血詳細セクション表示

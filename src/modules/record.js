@@ -374,7 +374,11 @@ const exportedFunctions = {
 };
 
 // window 互換維持
-window.openRecordScreen = openRecordScreen;
+// openRecordScreen はインライン実装がフォーム初期化（renderSymptomLayers等）を行うため、
+// 既存実装がある場合はそちらを優先し、モジュール版で上書きしない。
+if (typeof window.openRecordScreen !== 'function') {
+  window.openRecordScreen = openRecordScreen;
+}
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
 window.ippoLastRecordSaveContext = getLastRecordSaveContext;
