@@ -8,23 +8,24 @@
 
 import { getState } from '../store/state.js';
 
-const SCREENS = ['home', 'record', 'settings', 'charts', 'reports'];
-
 export function showScreen(name) {
   const state = getState();
   state.currentScreen = name;
 
-  // welcome → main-app の切り替え（オンボーディング完了後の初回遷移を含む）
+  // welcome → main-app の切り替え（これだけ style.display を使う）
   const welcomeEl = document.getElementById('screen-welcome');
   const mainAppEl = document.getElementById('main-app');
   if (welcomeEl) welcomeEl.style.display = 'none';
   if (mainAppEl) mainAppEl.style.display = 'block';
 
-  // 各 screen タブの表示切り替え
-  SCREENS.forEach(screen => {
-    const el = document.getElementById(`screen-${screen}`);
-    if (el) el.style.display = screen === name ? 'block' : 'none';
+  // CSS .screen / .screen.active クラス方式に統一（switchTab と同じ機構）
+  // inline style.display が残留するとクラスより優先されるため必ずクリアする
+  document.querySelectorAll('.screen').forEach(el => {
+    el.classList.remove('active');
+    el.style.display = '';
   });
+  const target = document.getElementById(`screen-${name}`);
+  if (target) target.classList.add('active');
 
   // [data-tab-for] ボタンのアクティブ状態を同期
   document.querySelectorAll('[data-tab-for]').forEach(btn => {
