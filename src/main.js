@@ -7,6 +7,13 @@
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
 
+// ─── Priority 8: 旧 inline script 移植モジュール ─────────────
+import './modules/theme.js';
+import './modules/ui-notifications.js';
+import './modules/reminders-ui.js';
+import './modules/calendar.js';
+import './app-legacy.js';
+
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
 
