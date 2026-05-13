@@ -225,9 +225,22 @@ import './modules/onboarding-runtime.js';
 // settings 画面の表示更新ロジック（updateSettingsHero / initNavIcons 等）
 import './modules/settings-display-runtime.js';
 
+// ─── Phase E (Step 1/5): startup bootstrap ───────────────
+// bootstrap() を Step 5 で main.js から直接呼び出す。
+import { bootstrap } from './modules/app-bootstrap.js';
+
+// ─── Phase E (Step 3): home renderer ─────────────────────
+// showMain() と依存 UI 関数群を移植。window.showMain 等を上書き。
+import './modules/home-renderer.js';
+
 // ─── Services ────────────────────────────────────────────
 // supabase は stripe より先に import（stripe が supabase に依存）
-import { supabase, SUPABASE_URL } from './services/supabase.js';
+// Phase E Step 4: cloudBackupAll / cloudRestore / initialCloudSync も同ファイルから export
+import { supabase, SUPABASE_URL, cloudBackupAll, cloudRestore, initialCloudSync } from './services/supabase.js';
+
+// Phase E Step 4: storage migration / recovery services
+import { migrateToIDB }     from './services/storage-migration.js';
+import { autoRecoveryCheck } from './services/recovery.js';
 import {
   STRIPE_PRICE_MONTHLY,
   STRIPE_PRICE_ANNUAL,
@@ -312,9 +325,9 @@ runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded
 runDeferredCheck('ippoRunFinalAppShellCleanupCheck', 'final-app-shell-cleanup-check');
 
 // ─── Startup ownership signal ────────────────────────────
-// すべての critical imports・window bridge・service 初期化が完了した後に
-// app.html の inline startup (init()) を unblock する。
-// app.html 側は window.addEventListener('ippo:vite-ready', ...) で待機している。
+// Phase E (Step 5): bootstrap() を直接呼び出し、startup ownership を
+// src/ 側に完全移行する。app.html の ippo:vite-ready リスナは空。
+bootstrap();
 window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
 
 if (typeof window.ippoMarkBootEvent === 'function') {
@@ -358,6 +371,8 @@ export {
   finalizeRecordSaveContext,
   debugRecordSavePipeline,
   supabase, SUPABASE_URL,
+  cloudBackupAll, cloudRestore, initialCloudSync,
+  migrateToIDB, autoRecoveryCheck,
   STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
   requestNotificationPermission, scheduleReminders,
