@@ -276,13 +276,14 @@ function installMutationGuard() {
   if (window.__ippoWelcomeMutationGuardInstalled === true) return;
   window.__ippoWelcomeMutationGuardInstalled = true;
 
+  const welcome = document.getElementById('screen-welcome');
+  const main = document.getElementById('main-app');
+
+  // 対象要素が存在しない場合は監視不要
+  if (!welcome || !main) return;
+
   const observer = new MutationObserver(function() {
     if (!shouldBlockWelcome()) return;
-
-    const welcome = document.getElementById('screen-welcome');
-    const main = document.getElementById('main-app');
-
-    if (!welcome || !main) return;
 
     const welcomeVisible = welcome.style.display !== 'none';
     const mainHidden = main.style.display === 'none';
@@ -305,12 +306,10 @@ function installMutationGuard() {
     }
   });
 
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['style', 'class'],
-  });
+  // body 全体ではなく対象要素の style のみを監視
+  const opts = { attributes: true, attributeFilter: ['style'] };
+  observer.observe(welcome, opts);
+  observer.observe(main, opts);
 }
 
 function install() {
@@ -327,17 +326,6 @@ function install() {
 }
 
 install();
-
-let attempts = 0;
-const timer = window.setInterval(function() {
-  attempts++;
-  install();
-  ensureMainAppVisible('welcome-reset-guard:retry-install');
-
-  if (attempts >= 40) {
-    window.clearInterval(timer);
-  }
-}, 250);
 
 window.ippoWelcomeResetGuardSummary = function() {
   return {

@@ -211,6 +211,20 @@ import './modules/welcome-runtime.js';
 // onboarding / welcome reset guard
 import './modules/welcome-reset-guard.js';
 
+// ─── Phase D-1: UI navigation modules ────────────────────
+// tab UI 切替（switchTab）を module 化。window.switchTab を上書き。
+import './modules/tab-navigation.js';
+
+// record modal open/close の所有権確立（実装委譲、Phase D-2 で完全移植）
+import './modules/record-modal-controller.js';
+
+// ─── Phase D-2: onboarding / settings runtime ────────────
+// completeOnboarding / finishOnboarding を module 化。welcome-runtime 統合済み。
+import './modules/onboarding-runtime.js';
+
+// settings 画面の表示更新ロジック（updateSettingsHero / initNavIcons 等）
+import './modules/settings-display-runtime.js';
+
 // ─── Services ────────────────────────────────────────────
 // supabase は stripe より先に import（stripe が supabase に依存）
 import { supabase, SUPABASE_URL } from './services/supabase.js';
