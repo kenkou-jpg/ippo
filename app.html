@@ -8928,11 +8928,13 @@ function openRecordScreen(){
     // 今日の記録が既にある場合は自動的に編集モードにする
   if(!state.editingDate){
     var todayStr = new Date().toDateString();
+    var todaySlice = new Date().toISOString().slice(0, 10);
     var todayExists = state.records.some(function(r){
-      return new Date(r.date).toDateString() === todayStr;
+      return (r.date && new Date(r.date).toDateString() === todayStr) ||
+             (r.record_date && r.record_date.slice(0, 10) === todaySlice);
     });
     if(todayExists){
-      state.editingDate = new Date().toISOString().slice(0, 10);
+      state.editingDate = todaySlice;
     }
   }
 
@@ -10839,9 +10841,14 @@ function saveRecordScreen(){
     var data = gatherRecordData();
    var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
 var todayStr = targetDate.toDateString();
+    var targetDateSlice = targetDate.toISOString().slice(0, 10);
     var rec = null;
     for(var i=0; i<state.records.length; i++){
-      if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
+      var _r = state.records[i];
+      if((_r.date && new Date(_r.date).toDateString() === todayStr) ||
+         (_r.record_date && _r.record_date.slice(0, 10) === targetDateSlice)){
+        rec = _r; break;
+      }
     }
     var isNew = false;
     if(!rec){
@@ -10927,7 +10934,10 @@ var todayStr = targetDate.toDateString();
 
     // 保存成功を検証
     var verify = JSON.parse(localStorage.getItem('ippo_state'));
-    var saved = verify.records.some(function(r){ return new Date(r.date).toDateString() === todayStr; });
+    var saved = verify.records.some(function(r){
+      return (r.date && new Date(r.date).toDateString() === todayStr) ||
+             (r.record_date && r.record_date.slice(0, 10) === targetDateSlice);
+    });
     if(!saved){
       showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
       return;
