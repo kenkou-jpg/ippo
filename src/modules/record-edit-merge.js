@@ -16,6 +16,8 @@ import {
   getRecords,
   findRecordByDate,
 } from './record-repository.js';
+import { getState, saveState } from '../store/state.js';
+import { cloudBackupAll } from '../services/supabase.js';
 
 function trace(label, detail) {
   try {
@@ -59,26 +61,27 @@ function mergePreservingExisting(oldRecord, newRecord) {
 
 function persist() {
   try {
-    if (typeof window.saveState === 'function') window.saveState();
+    saveState();
   } catch(e) {
     trace('saveState:error', e && e.message);
   }
 
   try {
-    if (typeof window.cloudBackupAll === 'function') window.cloudBackupAll();
+    cloudBackupAll();
   } catch(e) {
     trace('cloudBackupAll:error', e && e.message);
   }
 }
 
 function getActiveEditDate() {
+  const s = getState();
   const candidates = [
     window.__ippoActiveEditDate,
     window.currentEditingDate,
     window.editingDate,
-    window.state?.currentEditingDate,
-    window.state?.editingDate,
-    window.state?.recordDate,
+    s?.currentEditingDate,
+    s?.editingDate,
+    s?.recordDate,
   ];
 
   for (const candidate of candidates) {
@@ -237,8 +240,8 @@ function install() {
 
 if (!install()) {
   let count = 0;
-  const timer = window.setInterval(function() {
+  const timer = setInterval(function() {
     count++;
-    if (install() || count >= 20) window.clearInterval(timer);
+    if (install() || count >= 20) clearInterval(timer);
   }, 250);
 }

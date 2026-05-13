@@ -21,6 +21,7 @@ import {
   verifyRecordSaveContext,
   getRecordSaveNotifyCandidates,
 } from './record/save.js';
+import { switchTab } from './tab-navigation.js';
 
 
 let lastRecordSaveContext = null;
@@ -264,52 +265,17 @@ function installSaveRecordScreenTrace() {
   if (wrapSaveRecordScreen()) return;
 
   let attempts = 0;
-  const timer = window.setInterval(function() {
+  const timer = setInterval(function() {
     attempts++;
     if (wrapSaveRecordScreen() || attempts >= 20) {
-      window.clearInterval(timer);
+      clearInterval(timer);
     }
   }, 250);
 }
 
 export function openRecordScreen() {
   traceRecord('openRecordScreen:start', getRecordTraceSnapshot());
-
-  if (typeof window.switchTab === 'function') {
-    traceRecord('openRecordScreen:route:switchTab', { tab: 'record' });
-    window.switchTab('record');
-    return;
-  }
-
-  if (typeof window.showScreen === 'function') {
-    traceRecord('openRecordScreen:route:showScreen', { screen: 'record' });
-    window.showScreen('record');
-    return;
-  }
-
-  const mainApp = document.getElementById('main-app');
-  const welcome = document.getElementById('screen-welcome');
-  const recordScreen = document.getElementById('screen-record');
-
-  traceRecord('openRecordScreen:route:fallback', {
-    hasMainApp: !!mainApp,
-    hasWelcome: !!welcome,
-    hasRecordScreen: !!recordScreen,
-  });
-
-  if (mainApp) mainApp.style.display = '';
-  if (welcome) welcome.style.display = 'none';
-
-  document.querySelectorAll('.screen, .app-screen').forEach(function(screen) {
-    screen.classList.remove('active');
-  });
-
-  if (recordScreen) recordScreen.classList.add('active');
-
-  if (typeof window.renderRecordHeader === 'function') {
-    window.renderRecordHeader();
-  }
-
+  switchTab('record');
   traceRecord('openRecordScreen:end', getRecordTraceSnapshot());
 }
 
