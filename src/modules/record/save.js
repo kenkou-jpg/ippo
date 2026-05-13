@@ -1,11 +1,11 @@
-// ============================================================
-//  ippo – src/modules/record-save-pipeline.js
+﻿// ============================================================
+//  ippo 窶・src/modules/record-save-pipeline.js
 //  Phase 3-F-5: save orchestration helpers
 //
-//  目的:
-//  - saveRecordScreen の将来分離に向けて保存パイプラインを定義する
-//  - 既存 saveRecordScreen / Supabase / localStorage 書き込みは変更しない
-//  - このファイルは補助関数のみを提供する
+//  逶ｮ逧・
+//  - saveRecordScreen 縺ｮ蟆・擂蛻・屬縺ｫ蜷代￠縺ｦ菫晏ｭ倥ヱ繧､繝励Λ繧､繝ｳ繧貞ｮ夂ｾｩ縺吶ｋ
+//  - 譌｢蟄・saveRecordScreen / Supabase / localStorage 譖ｸ縺崎ｾｼ縺ｿ縺ｯ螟画峩縺励↑縺・
+//  - 縺薙・繝輔ぃ繧､繝ｫ縺ｯ陬懷勧髢｢謨ｰ縺ｮ縺ｿ繧呈署萓帙☆繧・
 // ============================================================
 
 import {
@@ -13,12 +13,12 @@ import {
   getRecordsSnapshot,
   getRecordStorageDiagnostics,
   logRecordStorageDiagnostics,
-} from './record-repository.js';
+} from '../record-repository.js';
 
 import {
   upsertRecord,
   upsertRecordInPlace,
-} from './record-upsert.js';
+} from '../record-upsert.js';
 
 export const RECORD_SAVE_ACTION_TYPES = Object.freeze({
   PERSIST: 'persist',
@@ -914,3 +914,22 @@ window.ippoRecordSavePipeline = Object.freeze({
 });
 
 window.ippoDebugRecordSavePipeline = debugRecordSavePipeline;
+
+// ─── Public API ──────────────────────────────────────────
+export async function saveRecord(draft) {
+  if (typeof window.saveRecord === 'function') {
+    return window.saveRecord(draft);
+  }
+}
+
+export function buildDraft() {
+  if (typeof window.buildDraftFromUI === 'function') {
+    return window.buildDraftFromUI();
+  }
+  return {};
+}
+
+export function validateDraft(draft) {
+  if (!draft || typeof draft !== 'object') return false;
+  return !!(draft.record_date || draft.id);
+}
