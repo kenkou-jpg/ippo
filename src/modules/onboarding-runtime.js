@@ -60,8 +60,49 @@ export function finishOnboarding() {
   } catch (_) {}
 }
 
-window.completeOnboarding = completeOnboarding;
-window.finishOnboarding   = finishOnboarding;
+function handleObClick(e) {
+  const actionEl = e.target.closest('[data-ob-action]');
+  if (actionEl) {
+    const action = actionEl.dataset.obAction;
+    const fnMap = {
+      'next':               'obNext',
+      'skip-all':           'obSkipAll',
+      'save-name':          'obSaveName',
+      'save-birth':         'obSaveBirth',
+      'save-period':        'obSavePeriod',
+      'save-cycle':         'obSaveCycle',
+      'save-diseases':      'obSaveDiseases',
+      'save-purpose':       'obSavePurpose',
+      'save-reminder':      'obSaveReminder',
+      'complete':           'obComplete',
+    };
+    if (action === 'complete-onboarding') { completeOnboarding(); return; }
+    const fn = fnMap[action];
+    if (fn && typeof window[fn] === 'function') window[fn]();
+    return;
+  }
+
+  const diseaseEl = e.target.closest('[data-ob-disease]');
+  if (diseaseEl && typeof window.obToggleDisease === 'function') {
+    window.obToggleDisease(diseaseEl, diseaseEl.dataset.obDisease);
+    return;
+  }
+
+  const dateEl = e.target.closest('[data-ob-date]');
+  if (dateEl && !dateEl.dataset.obDateFuture && typeof window.obSelectPeriodDay === 'function') {
+    window.obSelectPeriodDay(dateEl.dataset.obDate);
+  }
+}
+
+export function bindOnboardingEvents() {
+  const welcome = document.getElementById('screen-welcome');
+  if (!welcome) return;
+  welcome.addEventListener('click', handleObClick);
+}
+
+window.completeOnboarding   = completeOnboarding;
+window.finishOnboarding     = finishOnboarding;
+window.bindOnboardingEvents = bindOnboardingEvents;
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('onboarding-runtime-loaded');
