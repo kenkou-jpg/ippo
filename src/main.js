@@ -9,7 +9,6 @@
 
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
-import './modules/guarded-optional-runtime-loader.js';
 import './modules/legacy-window-bridge.js';
 import './modules/bootstrap-shell.js';
 import './modules/runtime-sequencing.js';
@@ -17,107 +16,9 @@ import './modules/persistence-boundary-prep.js';
 import './modules/persistence-execution-readiness.js';
 import './modules/persistence-guarded-execution.js';
 
-// ─── Optional startup prep / verification runtimes ────────
-// Bundle 6:
-// These modules are observe-only / diagnostics-only preparation layers. They
-// inspect hydration/render/screen readiness and startup API availability, but
-// do not rewrite hydration sequencing, render timing, screen activation,
-// persistence, save, or sync execution.
-const OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES = [
-  ['deferred-hydration-prep', () => import('./modules/deferred-hydration-prep.js')],
-  ['render-boundary-prep', () => import('./modules/render-boundary-prep.js')],
-  ['screen-activation-prep', () => import('./modules/screen-activation-prep.js')],
-];
-
-// ─── Optional infrastructure observability runtimes ───────
-// Bundle 3:
-// Keep boundary/readiness/guarded persistence layers boot-critical, but move
-// graph/candidate observability out of the initial static import chain.
-const OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES = [
-  ['runtime-ownership-graph', () => import('./modules/runtime-ownership-graph.js')],
-  ['persistence-candidate-execution', () => import('./modules/persistence-candidate-execution.js')],
-];
-
-// ─── Optional startup / migration assurance runtimes ──────
-// These are not required for first render. They are loaded through the guarded
-// optional runtime loader so diagnostics/migration failures do not block boot.
-const OPTIONAL_STARTUP_MIGRATION_RUNTIMES = [
-  ['final-app-shell-cleanup-runtime', () => import('./modules/final-app-shell-cleanup-runtime.js')],
-];
-
-// ─── Optional record observability runtimes ────────────────
-// Bundle 2:
-// Keep the save/edit primitives boot-critical, but move trace/shadow/candidate
-// verification layers behind guarded dynamic imports.
-const OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES = [
-  ['record-date-branch-observability', () => import('./modules/record-date-branch-observability.js')],
-];
-
-// ─── Optional runtime scheduling lanes ────────────────────
-// Bundle 7:
-// Keep the same delay values as the previous startup slimming bundle, but make
-// optional runtime scheduling lane-based so future production-startup tuning is
-// explicit and less likely to accidentally move execution-critical work.
-const OPTIONAL_RUNTIME_LANES = [
-  {
-    name: 'startup-prep-verification',
-    runtimes: OPTIONAL_STARTUP_PREP_VERIFICATION_RUNTIMES,
-    baseDelayMs: 750,
-    stepMs: 150,
-    timeoutMs: 2500,
-  },
-  {
-    name: 'infrastructure-observability',
-    runtimes: OPTIONAL_INFRASTRUCTURE_OBSERVABILITY_RUNTIMES,
-    baseDelayMs: 1400,
-    stepMs: 150,
-    timeoutMs: 2500,
-  },
-  {
-    name: 'startup-migration-assurance',
-    runtimes: OPTIONAL_STARTUP_MIGRATION_RUNTIMES,
-    baseDelayMs: 1700,
-    stepMs: 150,
-    timeoutMs: 2500,
-  },
-  {
-    name: 'record-observability',
-    runtimes: OPTIONAL_RECORD_OBSERVABILITY_RUNTIMES,
-    baseDelayMs: 2200,
-    stepMs: 150,
-    timeoutMs: 2500,
-  },
-];
-
-function scheduleOptionalRuntimes(list, baseDelayMs, stepMs, timeoutMs) {
-  if (typeof window.ippoScheduleOptionalRuntime !== 'function') return;
-
-  list.forEach(([label, importer], index) => {
-    window.ippoScheduleOptionalRuntime(label, importer, {
-      delayMs: baseDelayMs + index * stepMs,
-      timeoutMs,
-    });
-  });
-}
-
-function scheduleOptionalRuntimeLanes(lanes) {
-  lanes.forEach((lane) => {
-    scheduleOptionalRuntimes(
-      lane.runtimes,
-      lane.baseDelayMs,
-      lane.stepMs,
-      lane.timeoutMs
-    );
-  });
-}
-
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
-
-window.setTimeout(() => {
-  scheduleOptionalRuntimeLanes(OPTIONAL_RUNTIME_LANES);
-}, 600);
 
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
@@ -260,17 +161,9 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     hasState: typeof window.state === 'object',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
-    hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
-    hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
-    hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
-    hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
-    hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
-    hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
-    hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
-    hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
     hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
   });
 }
@@ -282,17 +175,9 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
     hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
     hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
-    hasDeferredHydrationPrep: typeof window.ippoDeferredHydrationPrepSummary === 'function',
-    hasRenderBoundary: typeof window.ippoRenderBoundarySummary === 'function',
-    hasScreenActivationPrep: typeof window.ippoScreenActivationPrepSummary === 'function',
-    hasRuntimeOwnershipGraph: typeof window.ippoRuntimeOwnershipGraphSummary === 'function',
     hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
     hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
-    hasPersistenceCandidateExecution: typeof window.ippoPersistenceCandidateExecutionSummary === 'function',
     hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
-    hasFinalAppShellCleanup: typeof window.ippoFinalAppShellCleanupRuntimeSummary === 'function',
-    hasRecordSaveShadow: typeof window.ippoRecordSaveShadowSummary === 'function',
-    hasRecordDateBranchObservability: typeof window.ippoRecordDateBranchObservabilitySummary === 'function',
     hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
   });
 }
@@ -314,15 +199,9 @@ function runDeferredCheck(name, label) {
 
 runDeferredCheck('ippoRunBootstrapShellCheck', 'bootstrap-shell-check');
 runDeferredCheck('ippoRunRuntimeSequencingCheck', 'runtime-sequencing-check');
-runDeferredCheck('ippoRunDeferredHydrationPrepCheck', 'deferred-hydration-prep-check');
-runDeferredCheck('ippoRunRenderBoundaryCheck', 'render-boundary-check');
-runDeferredCheck('ippoRunScreenActivationPrepCheck', 'screen-activation-prep-check');
-runDeferredCheck('ippoRunRuntimeOwnershipGraphCheck', 'runtime-ownership-graph-check');
 runDeferredCheck('ippoRunPersistenceBoundaryPrepCheck', 'persistence-boundary-prep-check');
 runDeferredCheck('ippoRunPersistenceExecutionReadinessCheck', 'persistence-execution-readiness-check');
-runDeferredCheck('ippoRunPersistenceCandidateShadow', 'persistence-candidate-shadow');
 runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded-execution-check');
-runDeferredCheck('ippoRunFinalAppShellCleanupCheck', 'final-app-shell-cleanup-check');
 
 // ─── Startup ownership signal ────────────────────────────
 // Phase E (Step 5): bootstrap() を直接呼び出し、startup ownership を
