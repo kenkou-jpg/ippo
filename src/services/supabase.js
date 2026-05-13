@@ -68,3 +68,163 @@ window.__ippoSupabaseStatus = {
 if (typeof window.ippoMarkServiceReady === 'function') {
   window.ippoMarkServiceReady('supabase', window.__ippoSupabaseStatus);
 }
+
+// ── Phase E (Step 4): クラウド同期関数 ──────────────────────
+// cloudBackupAll / cloudRestore / initialCloudSync を app.html から移植。
+// window.state / mergeRecords / syncAllRecordsToCloud / showSyncIndicator 等は
+// 移行期間中 window.* 経由で委譲する。
+
+var _cloudBackupLock = false;
+
+export function cloudBackupAll() {
+  if (!supabase) return Promise.resolve();
+  if (_cloudBackupLock) {
+    console.log('クラウド同期中：スキップ');
+    return Promise.resolve();
+  }
+  var s = window.state || {};
+  var hasRecords  = s.records && s.records.length > 0;
+  var hasDiseases = s.myDiseases && s.myDiseases.length > 0;
+  var hasSettings = s.name || s._onboardingDone;
+  if (!hasRecords && !hasDiseases && !hasSettings) {
+    console.warn('空の状態のためクラウド同期をスキップ');
+    return Promise.resolve();
+  }
+  _cloudBackupLock = true;
+  if (typeof window.showSyncIndicator === 'function') window.showSyncIndicator('バックアップ中');
+
+  return supabase.auth.getSession().then(function (res) {
+    var session = res.data.session;
+    if (!session || !session.user) {
+      var skipReason = localStorage.getItem('ippo_sb_token') ? 'sdk-session-null-stale-token' : 'not-logged-in';
+      console.warn('未ログイン：クラウドバックアップをスキップ (' + skipReason + ')');
+      window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'skipped', reason: skipReason };
+      _cloudBackupLock = false;
+      return;
+    }
+    var userId = session.user.id;
+    var stateToSave = {
+      name:           s.name,
+      records:        s.records,
+      streak:         s.streak,
+      totalDays:      s.totalDays,
+      fastGoal:       s.fastGoal,
+      myVision:       s.myVision,
+      fastTimer:      s.fastTimer,
+      lastSaved:      s.lastSaved,
+      myDiseases:     s.myDiseases,
+      reminders:      s.reminders,
+      _onboardingDone: s._onboardingDone,
+    };
+    var payload = { state: stateToSave, updated_at: new Date().toISOString() };
+
+    return supabase.from('user_data').update(payload).eq('user_id', userId).select()
+      .then(function (result) {
+        _cloudBackupLock = false;
+        if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+        if (result.data && result.data.length > 0) {
+          console.log('Cloud backup完了（更新）: ' + stateToSave.records.length + '件');
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
+          return result.data;
+        }
+        payload.user_id = userId;
+        return supabase.from('user_data').insert(payload).select().then(function (result2) {
+          if (result2.error) {
+            console.warn('Backup失敗:', result2.error.message);
+            window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result2.error.message };
+          } else {
+            console.log('Cloud backup完了（新規）');
+            window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'inserted' };
+          }
+          return result2.data;
+        });
+      })
+      .catch(function (e) {
+        window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: e.message || String(e) };
+        _cloudBackupLock = false;
+        if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+        throw e;
+      });
+  }).catch(function (e) {
+    _cloudBackupLock = false;
+    if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+    throw e;
+  });
+}
+
+export function cloudRestore() {
+  if (!supabase) return Promise.resolve(false);
+  var s = window.state || {};
+
+  return supabase.auth.getSession().then(function (res) {
+    var session = res.data.session;
+    if (!session || !session.user) {
+      console.warn('未ログイン：クラウド復元をスキップ');
+      return false;
+    }
+    var userId = session.user.id;
+    return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single()
+      .then(function (result) {
+        if (!result.data) return false;
+        var cloudState = result.data.state;
+        if (!cloudState || typeof cloudState !== 'object') {
+          console.warn('クラウドのデータ形式が不正（nullまたは非オブジェクト）');
+          return false;
+        }
+        if (!Array.isArray(cloudState.records)) {
+          console.warn('クラウドのrecordsが不正（配列ではない）');
+          return false;
+        }
+        var rawDate = result.data.updated_at;
+        if (!rawDate) {
+          console.warn('クラウドのupdated_atが不正');
+          return false;
+        }
+        var cloudDate = new Date(rawDate.endsWith('Z') ? rawDate : rawDate + 'Z');
+        var localDate = s.lastSaved ? new Date(s.lastSaved) : new Date(0);
+        var localRecs = (s.records || []).length;
+        var cloudRecs = cloudState.records.length;
+
+        var merge = typeof window.mergeRecords === 'function'
+          ? window.mergeRecords
+          : function (a, b) { return a.concat(b); };
+        var mergedRecords = merge(s.records || [], cloudState.records || []);
+        var mergedCount   = mergedRecords.length;
+
+        if (cloudDate > localDate) {
+          var safeCloud = Object.assign({}, cloudState);
+          window.state = Object.assign(s, safeCloud);
+          window.state.records  = mergedRecords;
+          window.state.lastSaved = cloudDate.toISOString();
+          localStorage.setItem('ippo_state', JSON.stringify(window.state));
+          console.log('クラウド復元完了（マージ）: ローカル' + localRecs + '件 + クラウド' + cloudRecs + '件 → ' + mergedCount + '件');
+          return true;
+        } else if (mergedCount > localRecs) {
+          window.state.records = mergedRecords;
+          window.state.totalDays = Object.keys(mergedRecords.reduce(function (acc, r) {
+            acc[new Date(r.date).toDateString()] = true; return acc;
+          }, {})).length;
+          if (typeof window.saveState === 'function') window.saveState();
+          console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計' + mergedCount + '件');
+          return true;
+        }
+        console.log('ローカルが最新かつ件数も多いため復元スキップ（ローカル:' + localRecs + ' クラウド:' + cloudRecs + '）');
+        return false;
+      });
+  });
+}
+
+export function initialCloudSync() {
+  if (localStorage.getItem('ippo_records_synced')) return Promise.resolve();
+  if (typeof window.syncAllRecordsToCloud !== 'function') return Promise.resolve();
+  return window.syncAllRecordsToCloud().then(function () {
+    localStorage.setItem('ippo_records_synced', '1');
+    console.log('初回クラウド同期完了');
+  }).catch(function (e) {
+    console.warn('初回クラウド同期失敗（次回再試行）:', e);
+  });
+}
+
+window.cloudBackupAll  = cloudBackupAll;
+window.cloudRestore    = cloudRestore;
+window.initialCloudSync = initialCloudSync;
