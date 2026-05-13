@@ -8574,13 +8574,13 @@ function buildCalendar(){
     var isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
     if(isToday) el.classList.add('today');
     var ds = new Date(calYear, calMonth, d).toDateString();
-    var hasRec = state.records.some(function(r){ return new Date(r.date).toDateString() === ds; });
+    var localDs = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+    var hasRec = state.records.some(function(r){ return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs); });
     if(hasRec) el.classList.add('has-record');
     // 痛みレベルに応じたクラスを付与
     if(hasRec) {
-      var dateStr = new Date(calYear, calMonth, d).toISOString().slice(0, 10);
       var rec = state.records.find(function(r) {
-        return r.date && r.date.slice(0, 10) === dateStr;
+        return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
       });
       if(rec) {
         var pain = rec.painLevel;
@@ -8603,7 +8603,8 @@ function renderCalendarMonthlySummary() {
   if (!el) return;
   var monthStr = calYear + '-' + String(calMonth + 1).padStart(2, '0');
   var recs = state.records.filter(function(r) {
-    return r.date && r.date.slice(0, 7) === monthStr;
+    return (r.date && r.date.slice(0, 7) === monthStr) ||
+           (r.record_date && r.record_date.slice(0, 7) === monthStr);
   });
   if (recs.length === 0) {
     el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + calYear + '年' + (calMonth + 1) + '月の記録はまだありません</div>';
@@ -10854,6 +10855,8 @@ var todayStr = targetDate.toDateString();
     if(!rec){
       rec = { date: targetDate.toISOString() };
       isNew = true;
+    } else if(!rec.date) {
+      rec.date = targetDate.toISOString();
     }
     var mealFreeEl = document.getElementById('rs-meal-free');
     var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
