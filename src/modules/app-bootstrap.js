@@ -18,7 +18,8 @@ function repairStats(state) {
   if (!state.records || state.records.length === 0) return;
   var uniqueDays = {};
   state.records.forEach(function (r) {
-    uniqueDays[new Date(r.date).toDateString()] = true;
+    var d = r.date || (r.record_date ? r.record_date.slice(0, 10) + 'T00:00:00' : '');
+    if (d) uniqueDays[new Date(d).toDateString()] = true;
   });
   var actualDays = Object.keys(uniqueDays).length;
   if (state.totalDays !== actualDays) {
@@ -60,6 +61,8 @@ export function bootstrap() {
     } catch (e) {
       window.state = { ...INITIAL_STATE };
     }
+  } else {
+    window.state = { ...INITIAL_STATE };
   }
 
   const state = window.state;
