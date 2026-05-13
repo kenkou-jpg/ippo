@@ -14,6 +14,7 @@
 
 // Version pinned to match package.json ^2.105.3 — update both together
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
+import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 
 export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
 const SUPABASE_SDK_KEY = window.SUPABASE_KEY
@@ -82,7 +83,7 @@ export function cloudBackupAll() {
     console.log('クラウド同期中：スキップ');
     return Promise.resolve();
   }
-  var s = window.state || {};
+  var s = getState() || {};
   var hasRecords  = s.records && s.records.length > 0;
   var hasDiseases = s.myDiseases && s.myDiseases.length > 0;
   var hasSettings = s.name || s._onboardingDone;
@@ -154,7 +155,7 @@ export function cloudBackupAll() {
 
 export function cloudRestore() {
   if (!supabase) return Promise.resolve(false);
-  var s = window.state || {};
+  var s = getState() || {};
 
   return supabase.auth.getSession().then(function (res) {
     var session = res.data.session;
@@ -193,18 +194,19 @@ export function cloudRestore() {
 
         if (cloudDate > localDate) {
           var safeCloud = Object.assign({}, cloudState);
-          window.state = Object.assign(s, safeCloud);
-          window.state.records  = mergedRecords;
-          window.state.lastSaved = cloudDate.toISOString();
-          localStorage.setItem('ippo_state', JSON.stringify(window.state));
+          var mergedState = Object.assign(s, safeCloud);
+          mergedState.records   = mergedRecords;
+          mergedState.lastSaved = cloudDate.toISOString();
+          setState(mergedState);
+          localStorage.setItem(STATE_KEY, JSON.stringify(mergedState));
           console.log('クラウド復元完了（マージ）: ローカル' + localRecs + '件 + クラウド' + cloudRecs + '件 → ' + mergedCount + '件');
           return true;
         } else if (mergedCount > localRecs) {
-          window.state.records = mergedRecords;
-          window.state.totalDays = Object.keys(mergedRecords.reduce(function (acc, r) {
+          s.records = mergedRecords;
+          s.totalDays = Object.keys(mergedRecords.reduce(function (acc, r) {
             acc[new Date(r.date).toDateString()] = true; return acc;
           }, {})).length;
-          if (typeof window.saveState === 'function') window.saveState();
+          saveState();
           console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計' + mergedCount + '件');
           return true;
         }
@@ -228,3 +230,39 @@ export function initialCloudSync() {
 window.cloudBackupAll  = cloudBackupAll;
 window.cloudRestore    = cloudRestore;
 window.initialCloudSync = initialCloudSync;
+
+// ── visibilitychange: タブ復帰時にクラウドから復元 ─────────────
+// app.html のインラインハンドラ（state = JSON.parse(...)）を廃止し
+// setState() 経由で正本を更新する。30秒以内の重複実行は防ぐ。
+var _lastVisibilitySync = 0;
+document.addEventListener('visibilitychange', function () {
+  if (document.hidden) return;
+  if (!supabase) return;
+  var now = Date.now();
+  if (now - _lastVisibilitySync < 30000) return;
+  _lastVisibilitySync = now;
+
+  cloudRestore().then(function (restored) {
+    if (!restored) return;
+    var newState = JSON.parse(localStorage.getItem(STATE_KEY));
+    setState(newState);
+    if (typeof window.updateStats              === 'function') window.updateStats();
+    if (typeof window.updateHistory            === 'function') window.updateHistory();
+    if (typeof window.buildCalendar            === 'function') window.buildCalendar();
+    if (typeof window.updateDiseaseSettingDisplay === 'function') window.updateDiseaseSettingDisplay();
+    if (typeof window.updateDiseaseQuestions   === 'function') window.updateDiseaseQuestions();
+    if (typeof window.reorderRecordSections    === 'function') window.reorderRecordSections();
+    if (typeof window.updateFastingWidgetPhase === 'function') window.updateFastingWidgetPhase();
+
+    var s = newState;
+    if (s && s.fastingActive && s.fastingStart && (Date.now() - s.fastingStart < 24 * 3600000)) {
+      if (typeof window.resumeFasting === 'function') window.resumeFasting();
+    } else if (s && s.fastingActive) {
+      s.fastingActive = false;
+      s.fastingStart  = null;
+      saveState();
+    }
+  }).catch(function (e) {
+    console.log('visibilitychange 復元エラー:', e);
+  });
+});
