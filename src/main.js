@@ -122,6 +122,15 @@ if (typeof window.ippoMarkServiceReady === 'function') {
     ready: true,
     hasSupabase: !!supabase,
     hasState: typeof window.state === 'object',
+<<<<<<< HEAD
+    hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
+    hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
+    hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
+    hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
+    hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
+=======
+>>>>>>> c95192b6a34cc63925c0372b7dd346d6ace5e467
   });
 }
 
@@ -130,9 +139,42 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasSupabase: !!supabase,
     hasSaveRecord: typeof saveRecord === 'function',
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
+<<<<<<< HEAD
+    hasBootstrapShell: typeof window.ippoBootstrapShellSummary === 'function',
+    hasRuntimeSequencing: typeof window.ippoRuntimeSequencingSummary === 'function',
+    hasPersistenceBoundaryPrep: typeof window.ippoPersistenceBoundaryPrepSummary === 'function',
+    hasPersistenceExecutionReadiness: typeof window.ippoPersistenceExecutionReadinessSummary === 'function',
+    hasPersistenceGuardedExecution: typeof window.ippoPersistenceGuardedExecutionSummary === 'function',
+    hasWelcomeRuntime: typeof window.ippoWelcomeRuntimeSummary === 'function',
   });
 }
 
+function runDeferredCheck(name, label) {
+  if (typeof window[name] !== 'function') return;
+  window.setTimeout(() => {
+    try {
+      window[name]('main-entry-post-module-load');
+    } catch (error) {
+      if (typeof window.ippoMarkBootError === 'function') {
+        window.ippoMarkBootError(label + '-failed', {
+          message: error && error.message ? error.message : String(error),
+        });
+      }
+    }
+  }, 0);
+}
+
+runDeferredCheck('ippoRunBootstrapShellCheck', 'bootstrap-shell-check');
+runDeferredCheck('ippoRunRuntimeSequencingCheck', 'runtime-sequencing-check');
+runDeferredCheck('ippoRunPersistenceBoundaryPrepCheck', 'persistence-boundary-prep-check');
+runDeferredCheck('ippoRunPersistenceExecutionReadinessCheck', 'persistence-execution-readiness-check');
+runDeferredCheck('ippoRunPersistenceGuardedExecutionCheck', 'persistence-guarded-execution-check');
+
+=======
+  });
+}
+
+>>>>>>> c95192b6a34cc63925c0372b7dd346d6ace5e467
 // ─── Startup ownership signal ────────────────────────────
 bootstrap();
 window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
