@@ -20,7 +20,7 @@ import {
   finalizeRecordSaveContext,
   verifyRecordSaveContext,
   getRecordSaveNotifyCandidates,
-} from './record-save-pipeline.js';
+} from './record/save.js';
 
 
 let lastRecordSaveContext = null;
@@ -43,17 +43,14 @@ function traceRecord(label, detail) {
 
 function getRecordTraceSnapshot() {
   const state = window.state || {};
-  let kkRecords = null;
   let ippoState = null;
 
-  try { kkRecords = localStorage.getItem('kk_records'); } catch(e) {}
   try { ippoState = localStorage.getItem('ippo_state'); } catch(e) {}
 
   return {
     hasWindowState: !!window.state,
     stateRecordsLength: Array.isArray(state.records) ? state.records.length : null,
     hasWindowSupabase: !!window.supabase,
-    kkRecordsLength: kkRecords ? kkRecords.length : 0,
     ippoStateLength: ippoState ? ippoState.length : 0,
   };
 }

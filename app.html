@@ -3574,37 +3574,7 @@ document.addEventListener('keydown', function(e){
 // Phase E (Step 5): init() 削除済み。
 // bootstrap() は src/main.js から直接呼び出される。
 
-// タブが表示されるたびにクラウドから復元（30秒以内の重複実行を防ぐ）
-var _lastVisibilitySync = 0;
-document.addEventListener('visibilitychange', function(){
-  if(!document.hidden && typeof cloudRestore === 'function'){
-    var now = Date.now();
-    if(now - _lastVisibilitySync < 30000) return; // 30秒以内は再実行しない
-    _lastVisibilitySync = now;
-    cloudRestore().then(function(restored){
-      if(restored){
-        state = JSON.parse(localStorage.getItem('ippo_state'));
-        updateStats();
-        updateHistory();
-        buildCalendar();
-        // 疾患設定UIを復元後の state に合わせて再描画
-        if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
-        if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
-        if(typeof reorderRecordSections === 'function') reorderRecordSections();
-        if(typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
-        if(state.fastingActive && state.fastingStart && (Date.now() - state.fastingStart < 24 * 3600000)){
-          resumeFasting();
-        } else if(state.fastingActive) {
-          state.fastingActive = false;
-          state.fastingStart = null;
-          saveState();
-        }
-      }
-    }).catch(function(e){
-      console.log('復元エラー:', e);
-    });
-  }
-});
+// visibilitychange ハンドラは src/services/supabase.js に移植済み（Priority 4 Step 4-4）。
 
   function updateFoodBodyCorrelation() {
   var container = document.getElementById('food-body-correlation');

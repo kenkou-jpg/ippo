@@ -2,8 +2,6 @@
 // ippo – boot-stability.js
 // ============================================================
 
-import './persistence-trace-runtime.js';
-
 const BOOT_KEY = '__ippoBoot';
 
 function nowIso() {

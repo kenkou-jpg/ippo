@@ -8,7 +8,7 @@
 //  - Step 4 で cloud sync / migration 関数を直接 import に移行済み
 // ============================================================
 
-import { saveState, STATE_KEY, INITIAL_STATE } from '../store/state.js';
+import { saveState, STATE_KEY, INITIAL_STATE, migrateStorageKeys, getState, setState } from '../store/state.js';
 import { migrateToIDB }     from '../services/storage-migration.js';
 import { initialCloudSync, cloudRestore } from '../services/supabase.js';
 import { autoRecoveryCheck } from '../services/recovery.js';
@@ -18,7 +18,8 @@ function repairStats(state) {
   if (!state.records || state.records.length === 0) return;
   var uniqueDays = {};
   state.records.forEach(function (r) {
-    uniqueDays[new Date(r.date).toDateString()] = true;
+    var d = r.date || (r.record_date ? r.record_date.slice(0, 10) + 'T00:00:00' : '');
+    if (d) uniqueDays[new Date(d).toDateString()] = true;
   });
   var actualDays = Object.keys(uniqueDays).length;
   if (state.totalDays !== actualDays) {
@@ -52,17 +53,22 @@ function repairFastingState(state) {
 }
 
 export function bootstrap() {
+  // ── 0. Legacy storage key 移行 ────────────────────────────
+  migrateStorageKeys();
+
   // ── 1. State hydration ────────────────────────────────────
   const saved = localStorage.getItem(STATE_KEY);
   if (saved) {
     try {
-      window.state = { ...INITIAL_STATE, ...JSON.parse(saved) };
+      setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
     } catch (e) {
-      window.state = { ...INITIAL_STATE };
+      setState({ ...INITIAL_STATE });
     }
+  } else {
+    window.state = { ...INITIAL_STATE };
   }
 
-  const state = window.state;
+  const state = getState();
 
   // ── 2. Data migration: myDisease → myDiseases ─────────────
   if (state.myDisease && !state.myDiseases) {
@@ -123,7 +129,7 @@ export function bootstrap() {
     cloudRestore()
       .then(function (restored) {
         if (!restored) return;
-        window.state = JSON.parse(localStorage.getItem(STATE_KEY));
+        setState(JSON.parse(localStorage.getItem(STATE_KEY)));
         if (typeof window.updateStats === 'function') window.updateStats();
         if (typeof window.updateHistory === 'function') window.updateHistory();
         if (typeof window.buildCalendar === 'function') window.buildCalendar();
@@ -136,7 +142,7 @@ export function bootstrap() {
         var welcomeEl = document.getElementById('screen-welcome');
         var shouldShowMainAfterRestore = window.ippoWelcomeRuntime
           ? window.ippoWelcomeRuntime.shouldShowMain()
-          : !!(window.state && window.state.name);
+          : !!(getState().name);
         if (shouldShowMainAfterRestore && welcomeEl && welcomeEl.style.display !== 'none') {
           if (typeof window.showMain === 'function') window.showMain();
           if (typeof window.switchTab === 'function') window.switchTab('home');
@@ -145,7 +151,7 @@ export function bootstrap() {
         }
 
         // ファスティング状態の再評価
-        var s = window.state;
+        var s = getState();
         if (s && s.fastingActive && s.fastingStart && Date.now() - s.fastingStart < 24 * 3600000) {
           if (typeof window.resumeFasting === 'function') window.resumeFasting();
         } else if (s && s.fastingActive) {

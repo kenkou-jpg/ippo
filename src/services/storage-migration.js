@@ -7,9 +7,11 @@
 //  移行期間中は window.* 経由で委譲する。
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 export function migrateToIDB() {
   if (localStorage.getItem('ippo_idb_migrated')) return Promise.resolve();
-  var s = window.state || {};
+  var s = getState() || {};
   if (typeof window.ensureRecordIds === 'function') window.ensureRecordIds();
   var records = s.records || [];
   var promises = records.map(function (r) {

@@ -81,7 +81,8 @@ export function updateGreeting() {
       var ds = d.toDateString();
       var found = false;
       for (var i = 0; i < (s.records || []).length; i++) {
-        if (new Date(s.records[i].date).toDateString() === ds) { found = true; break; }
+        var recDate = s.records[i].date || (s.records[i].record_date ? s.records[i].record_date.slice(0, 10) + 'T00:00:00' : '');
+        if (recDate && new Date(recDate).toDateString() === ds) { found = true; break; }
       }
       if (!found) break;
       streak++;

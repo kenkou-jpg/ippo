@@ -15,6 +15,7 @@ import {
   getRecordDate,
   getRecords,
 } from './record-repository.js';
+import { getState, setState } from '../store/state.js';
 
 const FRESHNESS_KEY = '__IPPO_RECORD_FRESHNESS_GUARD';
 const MAX_EVENTS = 160;
@@ -167,11 +168,13 @@ function traceReconnect(phase, payload) {
 function setActiveRecords(records) {
   const nextRecords = cloneRecords(records);
 
-  if (!window.state || typeof window.state !== 'object') {
-    window.state = {};
+  var s = getState();
+  if (!s || typeof s !== 'object') {
+    setState({});
+    s = getState();
   }
 
-  window.state.records = nextRecords;
+  s.records = nextRecords;
   return nextRecords;
 }
 
