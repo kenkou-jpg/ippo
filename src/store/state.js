@@ -3,10 +3,10 @@
 //  state 初期値 / loadState / saveState / getState / setState
 //
 //  【設計方針】
-//  - _state: module-local の単一正本。window.state は移行期間中の bridge。
-//  - getState() : _state が未初期化なら window.state にフォールバック。
-//  - setState()  : _state と window.state を同時に更新（bridge 維持）。
-//  - saveState() : window.state 直読みを廃止し getState() 経由で読む。
+//  - _state: module-local の単一正本。
+//  - getState() : _state 未初期化時は INITIAL_STATE で初期化。
+//  - setState()  : _state を更新（window.state bridge は削除済み）。
+//  - saveState() : getState() 経由で localStorage に保存。
 //  - loadState() : localStorage → setState() で正本を初期化。
 // ============================================================
 
@@ -36,19 +36,16 @@ export const INITIAL_STATE = Object.freeze({
 var _state = null;
 
 // ─── getState ─────────────────────────────────────────────────
-// _state 未初期化時は window.state にフォールバック（bootstrap 前の呼び出し対応）
 export function getState() {
   if (!_state) {
-    _state = window.state || Object.assign({}, INITIAL_STATE);
+    _state = Object.assign({}, INITIAL_STATE);
   }
   return _state;
 }
 
 // ─── setState ─────────────────────────────────────────────────
-// 正本を更新し、移行期間中は window.state bridge も維持する。
 export function setState(newState) {
   _state = newState;
-  window.state = newState;
 }
 
 // ─── saveState ────────────────────────────────────────────────
@@ -67,7 +64,7 @@ export function loadState() {
   try {
     var saved = localStorage.getItem(STATE_KEY);
     if (saved) {
-      var base = _state || window.state || Object.assign({}, INITIAL_STATE);
+      var base = _state || Object.assign({}, INITIAL_STATE);
       setState(Object.assign({}, base, JSON.parse(saved)));
     } else if (!_state) {
       setState(Object.assign({}, INITIAL_STATE));
@@ -106,7 +103,7 @@ export function migrateStorageKeys() {
   _mergeInto('records');
 }
 
-// ─── window 互換（移行期間: 非モジュール <script> との共存） ──
+// ─── window 互換（app.html inline script との共存） ──
 window.saveState          = saveState;
 window.loadState          = loadState;
 window.getState           = getState;

@@ -11,6 +11,9 @@
 import {
   findRecordByDate,
 } from './record-repository.js';
+import { openRecordScreen } from './record.js';
+import { switchTab } from './tab-navigation.js';
+import { getState } from '../store/state.js';
 
 function debug(label, detail) {
   try {
@@ -106,10 +109,11 @@ function openTodayRecord() {
   const date = todayLocal();
 
   try {
-    if (window.state && typeof window.state === 'object') {
-      window.state.editingDate = date;
-      window.state.currentEditingDate = date;
-      window.state.recordDate = date;
+    const s = getState();
+    if (s && typeof s === 'object') {
+      s.editingDate = date;
+      s.currentEditingDate = date;
+      s.recordDate = date;
     }
   } catch(e) {}
 
@@ -119,17 +123,11 @@ function openTodayRecord() {
     try { window.ippoMarkRecordEditIntent('daily-card-guard', date); } catch(e) {}
   }
 
-  if (typeof window.openRecordScreen === 'function') {
-    window.openRecordScreen();
-  } else if (typeof window.switchTab === 'function') {
-    window.switchTab('record');
-  } else if (typeof window.showScreen === 'function') {
-    window.showScreen('record');
-  }
+  openRecordScreen();
 
-  window.setTimeout(ensureRecordCardsVisible, 0);
-  window.setTimeout(ensureRecordCardsVisible, 150);
-  window.setTimeout(ensureRecordCardsVisible, 400);
+  setTimeout(ensureRecordCardsVisible, 0);
+  setTimeout(ensureRecordCardsVisible, 150);
+  setTimeout(ensureRecordCardsVisible, 400);
 }
 
 function patchHomeCta() {
@@ -219,7 +217,7 @@ function wrapFunction(name, after) {
   function wrappedFunction() {
     const result = original.apply(this, arguments);
 
-    window.setTimeout(function() {
+    setTimeout(function() {
       try { after && after(arguments); } catch(e) {}
       patchHomeCta();
     }, 0);
@@ -251,10 +249,10 @@ function install() {
 install();
 
 let attempts = 0;
-const timer = window.setInterval(function() {
+const timer = setInterval(function() {
   attempts++;
   install();
-  if (attempts >= 40) window.clearInterval(timer);
+  if (attempts >= 40) clearInterval(timer);
 }, 250);
 
 window.ippoDailyRecordCardSummary = getTodayRecordStatus;
