@@ -86,7 +86,8 @@ export default defineConfig({
           if (id.includes('/runtime/runtime-controller') ||
               id.includes('/runtime/runtime-orchestrator') ||
               id.includes('/runtime/auth-cloud-state-machine') ||
-              id.includes('/runtime/runtime-debug-overlay')) {
+              id.includes('/runtime/runtime-debug-overlay') ||
+              id.includes('/runtime/production-diagnostics')) {
             return 'runtime-control';
           }
           // Guard layer – loaded during bootstrap
