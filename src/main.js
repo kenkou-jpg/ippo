@@ -38,8 +38,17 @@ import { install as _installStateIntegrityGuard }  from './runtime/state-integri
 import { install as _installSaveTransactionGuard } from './runtime/save-transaction-guard.js';
 import './runtime/runtime-debug-overlay.js';
 
+// ─── Auth / Cloud State Machine ──────────────────────────────
+// Supabase 可用性待機・cloud restore ライフサイクル追跡。bootstrap() より前にロード必須。
+import './runtime/auth-cloud-state-machine.js';
+
 // ─── Runtime Decision Layer (brain observer → controller executor) ──
 import { start as _startRuntimeController } from './runtime/runtime-controller.js';
+
+// ─── Runtime Orchestrator ────────────────────────────────────
+// brain + controller + guards + auth-cloud を単一 runtime system として統合。
+// controller より後に宣言することで import 評価順が後になる。
+import './runtime/runtime-orchestrator.js';
 
 // ─── Constants ───────────────────────────────────────────
 import { ICONS }              from './constants/icons.js';

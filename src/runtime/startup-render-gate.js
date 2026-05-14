@@ -16,8 +16,10 @@ if (typeof window.__ippoStateReady === 'undefined') {
 }
 
 // ─── Deferred Render Queue ────────────────────────────────────
-var _queue = [];
-var _flushed = false;
+var _queue      = [];
+var _flushed    = false;
+var _gateTimer  = null;          // timeout-fallback タイマー
+var GATE_TIMEOUT_MS = 8000;      // state-ready が 8s 来なければ強制 flush
 
 function _enqueueDeferredRender(name, fn) {
   if (_flushed || window.__ippoStateReady) {
@@ -36,6 +38,8 @@ function _enqueueDeferredRender(name, fn) {
 
 function _flushDeferredRenderQueue(reason) {
   if (_flushed) return;
+  // タイムアウトタイマーをキャンセル（正常 flush 時）
+  if (_gateTimer) { clearTimeout(_gateTimer); _gateTimer = null; }
   _flushed = true;
   window.__ippoStateReady = true;
 
@@ -80,6 +84,27 @@ window.addEventListener('ippo:vite-ready', function () {
     }, 100);
   }
 });
+
+// ─── Timeout fallback ─────────────────────────────────────────
+// ippo:state-ready が GATE_TIMEOUT_MS 以内に来なければ強制 flush。
+// アプリが何もレンダリングされない状態で固まることを防ぐ。
+_gateTimer = setTimeout(function () {
+  if (!_flushed) {
+    if (typeof window.ippoBrain === 'object') {
+      window.ippoBrain.report({
+        phase:   'startup',
+        module:  'startup-render-gate',
+        outcome: 'warning',
+        error:   'ippo:state-ready not received after ' + GATE_TIMEOUT_MS + 'ms – forcing flush',
+      });
+    }
+    if (typeof window.ippoMarkBootWarning === 'function') {
+      window.ippoMarkBootWarning('startup-render-gate-timeout', { waitedMs: GATE_TIMEOUT_MS });
+    }
+    window.__ippoStateReady = true;
+    _flushDeferredRenderQueue('timeout-fallback-' + GATE_TIMEOUT_MS + 'ms');
+  }
+}, GATE_TIMEOUT_MS);
 
 // ─── Public API ───────────────────────────────────────────────
 window.enqueueDeferredRender = _enqueueDeferredRender;

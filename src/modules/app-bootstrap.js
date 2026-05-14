@@ -134,9 +134,30 @@ export function bootstrap() {
 
   // ── 9. クラウドから復元チェック（Supabase 初期化を待つ） ──────
   window._applyCloudRestore = function _applyCloudRestore() {
+    var acs = window.ippoAuthCloudState;
+
+    // SAFE_CLOUD_MODE 中は cloud restore を安全スキップ
+    var ctrl = window.ippoRuntimeController;
+    if (ctrl && ctrl.getMode() === 'SAFE_CLOUD_MODE') {
+      if (acs) acs.markCloudSkipped('controller in SAFE_CLOUD_MODE');
+      if (typeof window.ippoMarkBootWarning === 'function') {
+        window.ippoMarkBootWarning('cloud-restore-skipped-safe-cloud-mode', {});
+      }
+      return;
+    }
+
+    if (acs) acs.markCloudRestoring();
+
     cloudRestore()
       .then(function (restored) {
-        if (!restored) return;
+        if (!restored) {
+          // 未ログインまたはクラウドデータなし → safe skip
+          if (acs) acs.markCloudSkipped('cloudRestore returned falsy – not logged in or no cloud data');
+          return;
+        }
+
+        if (acs) acs.markCloudRestored();
+
         var cloudData = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
         // hydration guard: local の新しい records をクラウドデータで上書きしない
         var guard = window.ippoHydrationGuard;
@@ -178,15 +199,35 @@ export function bootstrap() {
           saveState();
         }
       })
-      .catch(function (e) { console.log('復元エラー:', e); });
+      .catch(function (e) {
+        if (acs) acs.markCloudFailed(String(e));
+        console.log('復元エラー:', e);
+      });
   };
 
-  var restoreInterval = setInterval(function () {
-    if (typeof window.supabase !== 'undefined' && window.supabase.auth) {
-      clearInterval(restoreInterval);
+  // ── Cloud restore 待機: auth-cloud-state-machine 経由（タイムアウト保護付き） ─
+  var acs = window.ippoAuthCloudState;
+  if (acs && typeof acs.waitForSupabase === 'function') {
+    acs.waitForSupabase(function () {
       window._applyCloudRestore();
-    }
-  }, 500);
+    });
+  } else {
+    // フォールバック: 最大 10s (20回 × 500ms) のポーリング
+    var _restoreAttempts = 0;
+    var restoreInterval = setInterval(function () {
+      _restoreAttempts++;
+      if (typeof window.supabase !== 'undefined' && window.supabase.auth) {
+        clearInterval(restoreInterval);
+        window._applyCloudRestore();
+      } else if (_restoreAttempts >= 20) {
+        clearInterval(restoreInterval);
+        window.__ippoCloudRestoreFailed = true;
+        if (typeof window.ippoMarkBootWarning === 'function') {
+          window.ippoMarkBootWarning('cloud-restore-timeout-fallback', { attempts: _restoreAttempts });
+        }
+      }
+    }, 500);
+  }
 
   // ── 10. Vision UI ─────────────────────────────────────────
   if (typeof window.initVisionUI === 'function') window.initVisionUI();
