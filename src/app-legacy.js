@@ -11711,7 +11711,10 @@ if (typeof updateHomeCTA === "function") window.updateHomeCTA = updateHomeCTA;
 if (typeof updateHomePhaseBanner === "function") window.updateHomePhaseBanner = updateHomePhaseBanner;
 if (typeof updateHomeSummary === "function") window.updateHomeSummary = updateHomeSummary;
 if (typeof updateHomeVision === "function") window.updateHomeVision = updateHomeVision;
-if (typeof updateMealParse === "function") window.updateMealParse = updateMealParse;
+if (typeof window.updateMealParse !== "function" &&
+typeof updateMealParse === "function") {
+window.updateMealParse = updateMealParse;
+}
 if (typeof updateMonthLabel === "function") window.updateMonthLabel = updateMonthLabel;
 if (typeof updatePremiumBadges === "function") window.updatePremiumBadges = updatePremiumBadges;
 if (typeof updateRecProgressDots === "function") window.updateRecProgressDots = updateRecProgressDots;
