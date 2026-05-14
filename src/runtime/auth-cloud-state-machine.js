@@ -14,6 +14,13 @@
 //   Cloud: IDLE → RESTORING → RESTORED | FAILED | SKIPPED
 //
 // 提供: window.ippoAuthCloudState
+//
+// AUDIT: status=required
+//   POLL_INTERVAL_MS=300ms — burst-only; timer self-clears on first READY or TIMEOUT.
+//   AUTH_TIMEOUT_MS=8000   — required; Supabase load is non-deterministic on slow networks.
+//   RESTORE_TIMEOUT_MS=15000 — required; cloud restore can be slow on first sync.
+//   Polling does NOT run indefinitely — it fires for max 8s then stops.
+//   Future: replace with 'supabaseLoaded' CustomEvent if Supabase SDK supports it.
 // ============================================================
 
 var AUTH_STATE = Object.freeze({

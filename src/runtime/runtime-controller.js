@@ -73,6 +73,27 @@ var _controllerActive = false;
 var _pollInterval     = null;
 var _lexicalBridgeInjected = false;
 
+// ─── Runtime Guard Audit (post-ownership cleanup) ─────────
+//
+// GUARD                  STATUS              NOTES
+// ─────────────────────────────────────────────────────────
+// NORMAL_MODE            required            baseline; no cost
+// DEBUG_MODE             required            devtools/console use
+// SAFE_STARTUP_MODE      temp-migration      removable once startup sequence is stable
+// SAFE_CLOUD_MODE        required            Supabase auth is non-deterministic; cannot remove
+// SAFE_MODE (global)     replaceable         target: module-scoped isolation (calendar/premium/insights)
+// LOW_RUNTIME_MODE       replaceable         not triggered in current flow; keep as fallback
+// RECOVERY_MODE          required            records integrity protection (24→0 corruption block)
+//
+// POLL/TIMER             STATUS              NOTES
+// ─────────────────────────────────────────────────────────
+// POLL_INTERVAL_MS=3000  replaceable         future: event-driven (ippo:state-ready / ippo:runtime:*)
+// ACTION_DEDUP_MS=5000   required            prevents cascade action storms
+// MAX_RENDER_RETRIES=3   required            hydration race condition buffer
+// RETRY_EXPIRY_MS=30000  required            prevents zombie retry entries
+// MAX_ACTIONS_PER_POLL=3 required            rate limiter for action queue
+// ─────────────────────────────────────────────────────────
+
 // Dedup window: prevent same action within this ms
 var ACTION_DEDUP_MS = 5000;
 // Max actions per poll cycle

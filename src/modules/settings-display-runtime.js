@@ -1,14 +1,12 @@
 // ============================================================
 // ippo – src/modules/settings-display-runtime.js
 // Phase D-2: settings 画面の表示更新ロジックを module 化
-//
-// updateSettingsHero / initNavIcons / initSettingsIcons を移植。
-// window.ICONS / window.state / window.isAdminOrPremium() はすべて
-// app.html から window 経由でアクセス可能。
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 export function updateSettingsHero() {
-  const state = window.state || {};
+  const state = getState();
   const isPremium = typeof window.isAdminOrPremium === 'function'
     ? window.isAdminOrPremium()
     : false;

@@ -4,6 +4,8 @@
 //  app.html から移植
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 // ─── カレンダー状態 ─────────────────────────────────────────
 var _now = new Date();
 export var calYear  = _now.getFullYear();
@@ -28,7 +30,7 @@ export function buildCalendar() {
   var firstDow   = new Date(cy, cm, 1).getDay();
   var daysInMonth = new Date(cy, cm + 1, 0).getDate();
   var today = new Date();
-  var st = window.state || {};
+  var st = getState();
   for (var e = 0; e < firstDow; e++) {
     var empty = document.createElement('div');
     empty.className = 'cal-day empty';
@@ -72,7 +74,7 @@ export function renderCalendarMonthlySummary() {
   var cy = window.calYear !== undefined ? window.calYear : calYear;
   var cm = window.calMonth !== undefined ? window.calMonth : calMonth;
   var monthStr = cy + '-' + String(cm + 1).padStart(2, '0');
-  var st = window.state || {};
+  var st = getState();
   var records = st.records || [];
   var recs = records.filter(function (r) {
     return (r.date && r.date.slice(0, 7) === monthStr) ||
@@ -128,7 +130,7 @@ export function openDayDetail(d) {
   var ds = dateObj.toDateString();
   var w  = dateObj.getDay();
   var isoDateStr = dateObj.getFullYear() + '-' + String(dateObj.getMonth() + 1).padStart(2, '0') + '-' + String(dateObj.getDate()).padStart(2, '0');
-  var st = window.state || {};
+  var st = getState();
   var records = st.records || [];
   var recs = records.filter(function (r) { return new Date(r.date).toDateString() === ds; });
   document.getElementById('dmDate').textContent = cy + '年' + (cm + 1) + '月' + d + '日（' + WDAY[w] + '）';
@@ -331,7 +333,7 @@ export function openDayDetail(d) {
 // ─── prefillRecordFromModal ───────────────────────────────────
 export function prefillRecordFromModal() {
   var today = new Date().toISOString().slice(0, 10);
-  var st = window.state || {};
+  var st = getState();
   var rec = (st.records || []).find(function (r) {
     return (r.date || r.record_date || '').slice(0, 10) === today;
   });
