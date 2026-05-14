@@ -1922,10 +1922,13 @@ function manualCloudRestore(){
   });
 }
   
-// Phase E (Step 5): var state 削除済み。
-// window.state は src/modules/app-bootstrap.js の bootstrap() が
-// src/main.js から直接呼び出されたときに初期化される。
-// 関数内の state 参照は window.state に自動解決される（sloppy mode グローバル）。
+// ─── legacy compatibility bridge: bare `state` identifier ────────
+// ES module strict mode では bare `state` は window.state に自動解決されない。
+// _ippoStateHooks キューは state.js より先に実行されるため事前登録方式を採用。
+// setState() が呼ばれるたびにフックが state を最新の _state に同期する。
+if (!window._ippoStateHooks) window._ippoStateHooks = [];
+var state = (typeof window.getState === 'function') ? window.getState() : {};
+window._ippoStateHooks.push(function(nextState) { state = nextState; });
 
 // Current record being built（let → var でグローバル化して module 側からも参照可能）
 var currentRecord = {};
@@ -11006,7 +11009,12 @@ async function submitSync() {
       // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
       cloudRestore().then(function(restored) {
         if (restored) {
-          state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+          // setState 経由で _state を更新しフックで bare state も同期する
+          if (typeof window.setState === 'function') {
+            window.setState(JSON.parse(localStorage.getItem('ippo_state') || '{}'));
+          } else {
+            state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+          }
           if (typeof updateStats === 'function') updateStats();
           if (typeof updateHistory === 'function') updateHistory();
           if (typeof buildCalendar === 'function') buildCalendar();
