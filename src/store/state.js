@@ -5,7 +5,7 @@
 //  【設計方針】
 //  - _state: module-local の単一正本。
 //  - getState() : _state 未初期化時は INITIAL_STATE で初期化。
-//  - setState()  : _state を更新（window.state bridge は削除済み）。
+//  - setState()  : _state と window.state を同時更新（legacy code との共存）。
 //  - saveState() : getState() 経由で localStorage に保存。
 //  - loadState() : localStorage → setState() で正本を初期化。
 // ============================================================
@@ -45,8 +45,12 @@ export function getState() {
 }
 
 // ─── setState ─────────────────────────────────────────────────
+// window.state bridge: app-legacy.js など window.state を読む legacy code との共存。
+// app-legacy.js の Object.defineProperty(globalThis,'state',…) が backing variable
+// (__ippoStateStorage) を使う前提で window.state 代入が安全に動作する。
 export function setState(newState) {
   _state = newState;
+  window.state = newState;
 }
 
 // ─── saveState ────────────────────────────────────────────────
