@@ -7,6 +7,13 @@
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
 
+// ─── Runtime stabilization layer (早期ロード: state 依存なし) ──
+import './runtime/health-monitor.js';
+import './runtime/rollback-manager.js';
+import './runtime/startup-validator.js';
+import './runtime/render-boundary.js';
+import './runtime/error-reporter.js';
+
 // ─── Priority 8: 旧 inline script 移植モジュール ─────────────
 import './modules/theme.js';
 import './modules/ui-notifications.js';
@@ -16,6 +23,13 @@ import './app-legacy.js';
 
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
+
+// ─── Runtime stabilization layer (state 確定後にロード) ────────
+import './runtime/hydration-guard.js';
+import './runtime/sync-consistency-checker.js';
+import { install as _installStateIntegrityGuard }  from './runtime/state-integrity-guard.js';
+import { install as _installSaveTransactionGuard } from './runtime/save-transaction-guard.js';
+import './runtime/runtime-debug-overlay.js';
 
 // ─── Constants ───────────────────────────────────────────
 import { ICONS }              from './constants/icons.js';
@@ -125,6 +139,16 @@ import {
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
+}
+
+// ─── Runtime guard installation ───────────────────────────
+// window.setState / window.saveState が確定した後にインストール。
+_installStateIntegrityGuard();
+_installSaveTransactionGuard();
+
+// 60秒ごとに localStorage ↔ in-memory の整合性チェックを開始
+if (typeof window.ippoSyncConsistencyChecker === 'object') {
+  window.ippoSyncConsistencyChecker.schedulePeriodicCheck(60000);
 }
 
 if (typeof window.ippoMarkServiceReady === 'function') {
