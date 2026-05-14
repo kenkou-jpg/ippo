@@ -63,7 +63,8 @@
   function claim(regionId, owner, opts) {
     opts = opts || {};
     var existing = _registry[regionId];
-    if (existing && existing.owner !== owner) {
+    // existing.owner === null means "pre-registered but unclaimed" — first claim wins silently.
+    if (existing && existing.owner !== null && existing.owner !== owner) {
       if (opts.force) {
         _log('warn', 'Force-taking "' + regionId + '" from "' + existing.owner + '" by "' + owner + '"');
       } else {
@@ -236,4 +237,10 @@
   if (typeof window.ippoMarkBootEvent === 'function') {
     window.ippoMarkBootEvent('ownership-registry-loaded');
   }
+
+  // Signal that ownership registry is ready for claims.
+  window.__ippoOwnershipReady = true;
+  window.dispatchEvent(new CustomEvent('ippo:ownership-ready', {
+    detail: { regionCount: Object.keys(_registry).length },
+  }));
 })();

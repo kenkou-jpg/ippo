@@ -139,6 +139,20 @@ self.addEventListener('notificationclick', event => {
   );
 });
 
+// ========== Version Query (production-diagnostics _collectVersionInfo) ==========
+// Responds to { type: 'GET_VERSION' } messages from the client.
+// Enables stale-SW detection: client compares SW cache version with app version.
+self.addEventListener('message', event => {
+  if (!event.data || event.data.type !== 'GET_VERSION') return;
+  const port = event.ports && event.ports[0];
+  if (!port) return;
+  port.postMessage({
+    version:    CACHE_VERSION,
+    cacheName:  CACHE_NAME,
+    buildHash:  null, // future: inject __BUILD_HASH__ via CI
+  });
+});
+
 // ========== オフライン fallback ==========
 function offlineFallbackHTML() {
   return '<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ippo - オフライン</title><style>body{font-family:sans-serif;background:#fdf8f6;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;color:#2d1f1a;text-align:center;padding:24px}h1{font-size:20px;margin:16px 0 8px}p{font-size:13px;color:#8a7a70;line-height:1.7;max-width:280px}button{margin-top:20px;padding:12px 28px;background:#c8747b;color:white;border:none;border-radius:50px;font-size:14px;cursor:pointer;font-family:inherit}</style></head><body><div style="font-size:48px">🌸</div><h1>オフラインです</h1><p>インターネットに接続されていません。接続後に再度お試しください。</p><button onclick="location.reload()">再読み込み</button></body></html>';

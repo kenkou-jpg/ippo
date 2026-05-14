@@ -98,6 +98,14 @@ var _s = {
   initialized:  false,
   safeMode:     false,
 
+  // Bootstrap stage tracking (populated by ippo:*-ready events)
+  bootstrapStages: {
+    environmentReady: null,
+    ownershipReady:   null,
+    supabaseReady:    null,
+    bootstrapReady:   null,
+  },
+
   telemetry:       new RingBuffer(_TELEMETRY_MAX),
   replayActions:   new RingBuffer(_REPLAY_MAX),
   renderHistory:   new RingBuffer(_RENDER_HIST_MAX),
@@ -981,6 +989,24 @@ function _setupPerformanceSafety() {
 // Runtime Event Listeners (boot / hydration / auth / save / retry / screen)
 // ═══════════════════════════════════════════════════════════
 function _installRuntimeListeners() {
+  // Bootstrap convergence events
+  window.addEventListener('ippo:environment-ready', function (e) {
+    _s.bootstrapStages.environmentReady = { ts: _now(), detail: e.detail || {} };
+    _s.startupSequence.push({ name: 'environment-ready', data: e.detail || null, ts: _now() });
+  });
+  window.addEventListener('ippo:ownership-ready', function (e) {
+    _s.bootstrapStages.ownershipReady = { ts: _now(), detail: e.detail || {} };
+    _s.startupSequence.push({ name: 'ownership-ready', data: e.detail || null, ts: _now() });
+  });
+  window.addEventListener('ippo:supabase-ready', function (e) {
+    _s.bootstrapStages.supabaseReady = { ts: _now(), detail: e.detail || {} };
+    _s.startupSequence.push({ name: 'supabase-ready', data: e.detail || null, ts: _now() });
+  });
+  window.addEventListener('ippo:bootstrap-ready', function (e) {
+    _s.bootstrapStages.bootstrapReady = { ts: _now(), detail: e.detail || {} };
+    _s.startupSequence.push({ name: 'bootstrap-ready', data: e.detail || null, ts: _now() });
+  });
+
   // Intercept boot markers
   var _origMark = window.ippoMarkBootEvent;
   window.ippoMarkBootEvent = function (name, data) {
@@ -1203,6 +1229,52 @@ function _init() {
 // Public API: window.ippoDiagnostics
 // ═══════════════════════════════════════════════════════════
 window.ippoDiagnostics = {
+  // §0 Environment & Bootstrap (added Phase 12)
+  getEnvironmentHealth: function () {
+    // Delegate to environment-service if available; fall back to window globals.
+    if (window.__ippoEnvironmentReady && typeof window.__ippoEnvironmentHealth === 'function') {
+      return window.__ippoEnvironmentHealth();
+    }
+    var keyPresent  = !!(window.SUPABASE_KEY && window.SUPABASE_KEY !== '');
+    var urlPresent  = !!(window.SUPABASE_URL);
+    var safeMode    = !!(window.__ippoSafeBootstrapMode);
+    var issues = [];
+    if (!keyPresent) issues.push('missing-supabase-key');
+    if (!urlPresent) issues.push('missing-supabase-url');
+    return {
+      healthy:           issues.length === 0,
+      issues:            issues,
+      supabaseUrl:       window.SUPABASE_URL || null,
+      keyPresent:        keyPresent,
+      safeBootstrapMode: safeMode,
+      envServiceReady:   !!(window.__ippoEnvironmentReady),
+      checkedAt:         new Date().toISOString(),
+    };
+  },
+
+  getBootstrapStatus: function () {
+    var stages  = _s.bootstrapStages;
+    var allDone = !!(stages.environmentReady && stages.ownershipReady &&
+                     stages.supabaseReady && stages.bootstrapReady);
+    return {
+      complete:         allDone,
+      safeBootstrap:    !!(window.__ippoSafeBootstrapMode),
+      environmentReady: !!stages.environmentReady,
+      ownershipReady:   !!stages.ownershipReady,
+      supabaseReady:    !!stages.supabaseReady,
+      bootstrapReady:   !!stages.bootstrapReady,
+      stages:           {
+        environment: stages.environmentReady,
+        ownership:   stages.ownershipReady,
+        supabase:    stages.supabaseReady,
+        bootstrap:   stages.bootstrapReady,
+      },
+      startupSequence:  _s.startupSequence.slice(-30),
+      elapsedMs:        _elapsed(_s.startTs),
+      ts:               _now(),
+    };
+  },
+
   // §1 Health
   getHealth:            function () { return _health.getHealth(); },
   getRuntimeSnapshot:   function () { return _health.getRuntimeSnapshot(); },
@@ -1278,6 +1350,8 @@ window.ippoDiagnostics = {
   // Full dump (console / support use)
   getDiagnosticDump: function () {
     return {
+      environmentHealth: window.ippoDiagnostics.getEnvironmentHealth(),
+      bootstrapStatus:   window.ippoDiagnostics.getBootstrapStatus(),
       health:          _health.getHealth(),
       runtime:         _health.getRuntimeSnapshot(),
       renderIntegrity: _health.getRenderIntegrity(),

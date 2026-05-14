@@ -7,6 +7,11 @@
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
 
+// ─── Environment Authority (MUST be second — sets window.SUPABASE_URL / SUPABASE_KEY) ──
+// app-legacy.js uses these as bare identifiers; they must be on window before any
+// function that references them can be called.
+import './services/environment-service.js';
+
 // ─── Runtime Intelligence Hub (全 runtime の先頭) ──────────
 import './runtime/runtime-brain.js';
 
