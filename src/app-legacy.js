@@ -26,8 +26,9 @@ Object.defineProperty(globalThis, 'state', {
 // ES module strict mode では bare `state` は globalThis.state に自動解決されない。
 // startup 初期 render より前に identifier を存在させるため全 function 定義より先に宣言。
 // state.js の setState() が呼ばれるたびフックが最新 _state に同期する。
+// records: [] を初期値として持つことで hydration 前の state.records 参照を安全にする。
 if (!window._ippoStateHooks) window._ippoStateHooks = [];
-var state = {};
+var state = { records: [] };
 window._ippoStateHooks.push(function(nextState) { state = nextState; });
 
 // ─── app.html script block 2 の内容 ─────────────────────────
@@ -2830,6 +2831,10 @@ function updateStats() {
 
 // 今月の無痛み日数を計算して表示
 function calcPainFreeDays() {
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('calcPainFreeDays', calcPainFreeDays);
+    return;
+  }
   var now = new Date();
   var year = now.getFullYear();
   var month = now.getMonth();
@@ -3785,6 +3790,10 @@ function switchInsTab(tab) {
 
 // ===== からだの発見カード =====
 function renderInsightDiscoveries() {
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderInsightDiscoveries', renderInsightDiscoveries);
+    return;
+  }
   var container = document.getElementById('discoveries-cards');
   if (!container) return;
   var now = new Date();
@@ -3869,6 +3878,10 @@ function renderInsightDiscoveries() {
 
 // ===== フェーズ別症状マップ =====
 function renderPhaseMap() {
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderPhaseMap', renderPhaseMap);
+    return;
+  }
   var container = document.getElementById('phase-map-content');
   if (!container) return;
 
@@ -5915,6 +5928,10 @@ function updateDiseaseSettingDisplay(){
 display.textContent = saved.length ? saved.join('・') : '設定する';
 }
 function updateSymptomSettingDisplay(){
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updateSymptomSettingDisplay', updateSymptomSettingDisplay);
+    return;
+  }
   var display = document.getElementById('symptom-setting-display');
   if(!display) return;
   var saved = state.mySymptoms || [];
@@ -6808,6 +6825,10 @@ function showQuickLogDone() {
 }
 
 function buildCalendar(){
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('buildCalendar', buildCalendar);
+    return;
+  }
   var label = document.getElementById('calLabel');
   var grid = document.getElementById('calGrid');
   if(!label||!grid) return;
@@ -7589,7 +7610,7 @@ function parseMealMemo(text){
   return { mealCount: foodTimes.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
 }
 
-function updateMealParse(){
+function _updateMealParseFreetextLegacy(){
   var ta = document.getElementById('rs-meal-free');
   var box = document.getElementById('meal-auto-parse');
   if(!ta || !box) return;
@@ -7608,7 +7629,7 @@ function updateMealParse(){
 if(!window._ippoInputListenerAdded){
   window._ippoInputListenerAdded = true;
   document.addEventListener('input', function(e){
-    if(e.target.id === 'rs-meal-free') updateMealParse();
+    if(e.target.id === 'rs-meal-free') _updateMealParseFreetextLegacy();
   });
 }
 
@@ -7632,6 +7653,7 @@ if(!window._ippoInputListenerAdded){
   ta.focus();
   ta.selectionStart = ta.selectionEnd = ta.value.length;
   if (typeof updateMealParse === 'function') updateMealParse();
+  else if (typeof _updateMealParseFreetextLegacy === 'function') _updateMealParseFreetextLegacy();
 }
 
 function saveMealDraft(){
@@ -8239,6 +8261,10 @@ function calcTemperaturePhases(records) {
 
 // ===== 体温教育カード =====
 function showTempEducation(){
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('showTempEducation', showTempEducation);
+    return;
+  }
   var card = document.getElementById('temp-edu-card');
   if(!card) return;
 
@@ -11318,6 +11344,10 @@ function isAdminOrPremium() {
   return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
 }
 function updatePremiumBadges() {
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updatePremiumBadges', updatePremiumBadges);
+    return;
+  }
   var unlocked = isAdminOrPremium();
   document.querySelectorAll('.pf-lock-badge').forEach(badge => {
     badge.style.display = unlocked ? 'none' : 'inline';
@@ -11453,32 +11483,7 @@ var premiumCheckInterval = setInterval(function(){
   }
 }, 500);
 
-  function manualCloudRestore(){
-  showConfirmModal('クラウドのデータでローカルデータを上書きします。<br>よろしいですか？', function() {
-    var sb = window.supabase;
-    sb.auth.getUser().then(function(res){
-      if(!res.data || !res.data.user){
-        showAlertModal('ログインしていません。先にログインしてください。');
-        return;
-      }
-      var uid = res.data.user.id;
-      sb.from('user_data').select('*').eq('user_id', uid).order('updated_at', {ascending:false}).limit(1).then(function(r){
-        if(!r.data || r.data.length === 0){
-          showAlertModal('クラウドにデータが見つかりません。');
-          return;
-        }
-        var cloudState = r.data[0].state;
-        var recordCount = cloudState.records ? cloudState.records.length : 0;
-        showConfirmModal('クラウドに ' + recordCount + ' 件の記録があります。<br>復元しますか？', function() {
-          localStorage.setItem('ippo_state', JSON.stringify(cloudState));
-          showAlertModal('復元完了！（' + recordCount + ' 件の記録）<br>ページを再読み込みします。', function() {
-            location.reload();
-          });
-        });
-      });
-    });
-  });
-}
+// manualCloudRestore の実装は line 1870 の enhanced merge 版を使用。
 // ─── window 互換エクスポート ─────────────────────────────────
 if (typeof _buildPhaseBarPreview === "function") window._buildPhaseBarPreview = _buildPhaseBarPreview;
 if (typeof _generateDoctorPDF === "function") window._generateDoctorPDF = _generateDoctorPDF;

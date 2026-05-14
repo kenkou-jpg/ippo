@@ -10,6 +10,10 @@ import './modules/boot-stability.js';
 // ─── Runtime Intelligence Hub (全 runtime の先頭) ──────────
 import './runtime/runtime-brain.js';
 
+// ─── Startup Render Gate (state-ready gate + deferred render queue) ──
+// app-legacy より前にロードして hydration 前の render を防ぐ。
+import './runtime/startup-render-gate.js';
+
 // ─── Runtime stabilization layer (早期ロード: state 依存なし) ──
 import './runtime/health-monitor.js';
 import './runtime/rollback-manager.js';

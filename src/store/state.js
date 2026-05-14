@@ -38,8 +38,12 @@ export const INITIAL_STATE = Object.freeze({
 var _state = null;
 
 // ─── setState hook registry ───────────────────────────────────
+// app-legacy.js が state.js より先に実行されるため、
+// window._ippoStateHooks キューに事前登録されたフックを引き継ぐ。
 // hook(nextState, currentState) が false を返すと setState をブロック。
-var _setStateHooks = [];
+var _setStateHooks = (Array.isArray(window._ippoStateHooks) ? window._ippoStateHooks.slice() : []);
+window._ippoStateHooks = _setStateHooks; // 同じ配列参照を維持（追加登録も届く）
+
 export function addSetStateHook(fn) {
   if (typeof fn === 'function' && _setStateHooks.indexOf(fn) === -1) {
     _setStateHooks.push(fn);
@@ -52,16 +56,6 @@ export function getState() {
     _state = Object.assign({}, INITIAL_STATE);
   }
   return _state;
-}
-
-// ─── setState hooks (legacy compatibility bridge) ──────────────
-// app-legacy.js が state.js より先に実行されるため、
-// window._ippoStateHooks キューに事前登録されたフックを引き継ぐ。
-var _setStateHooks = (Array.isArray(window._ippoStateHooks) ? window._ippoStateHooks.slice() : []);
-window._ippoStateHooks = _setStateHooks; // 同じ配列参照を維持（追加登録も届く）
-
-export function addSetStateHook(fn) {
-  _setStateHooks.push(fn);
 }
 
 // ─── setState ─────────────────────────────────────────────────
