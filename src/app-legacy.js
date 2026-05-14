@@ -9,13 +9,38 @@
 // ─── state getter/setter（ES module strict mode 対応） ────────
 // getter: _state を window.getState() 経由で返す。
 // setter: window.setState(v) 経由で _state を更新（window.state = v は再帰するので禁止）。
+//
+// Phase 9: Bridge Warning Mode
+//   window.__ippoBridgeWarningMode = true の場合、アクセスごとにスタックを記録。
+//   ippoRuntime.enableBridgeWarningMode() で有効化。
+//   段階: warning mode → deactivation → removal（即削除禁止）。
+if (typeof window.__ippoBridgeWarningMode === 'undefined') {
+  window.__ippoBridgeWarningMode = false;
+  window.__ippoBridgeAccessCount = 0;
+}
 Object.defineProperty(globalThis, 'state', {
   get: function() {
+    if (window.__ippoBridgeWarningMode) {
+      window.__ippoBridgeAccessCount = (window.__ippoBridgeAccessCount || 0) + 1;
+      try {
+        var _stack = new Error().stack || '';
+        var _caller = (_stack.split('\n')[2] || '').trim();
+        console.warn('[ippo] legacy bridge READ detected:', _caller);
+      } catch(_) {}
+    }
     return typeof window.getState === 'function'
       ? window.getState()
       : undefined;
   },
   set: function(v) {
+    if (window.__ippoBridgeWarningMode) {
+      window.__ippoBridgeAccessCount = (window.__ippoBridgeAccessCount || 0) + 1;
+      try {
+        var _stack = new Error().stack || '';
+        var _caller = (_stack.split('\n')[2] || '').trim();
+        console.warn('[ippo] legacy bridge WRITE detected:', _caller);
+      } catch(_) {}
+    }
     if (typeof window.setState === 'function') window.setState(v);
   },
   configurable: true,
@@ -54,6 +79,10 @@ function _notifyAuthReady() {
   if (window.ippoBrain && typeof window.ippoBrain.setAuthState === 'function') {
     window.ippoBrain.setAuthState('authReady', true);
     window.ippoBrain.setAuthState('supabaseReady', true);
+  }
+  // Phase 2: auth-service ownership へ通知
+  if (window.ippoAuthService && typeof window.ippoAuthService.markAuthReady === 'function') {
+    window.ippoAuthService.markAuthReady(supabaseUserId, supabaseToken);
   }
   _flushCloudRestoreQueue();
 }
@@ -11346,6 +11375,10 @@ async function checkPremiumStatus() {
       supabaseToken = null;
       var briefEl = document.getElementById('syncStatusBrief');
       if (briefEl) briefEl.textContent = '未ログイン';
+      // Phase 2: auth-service へ skipped 通知
+      if (window.ippoAuthService && typeof window.ippoAuthService.markAuthSkipped === 'function') {
+        window.ippoAuthService.markAuthSkipped('no-session');
+      }
     }
   } catch (e) {
     isPremium = false;
@@ -11498,9 +11531,11 @@ if (e.target === this) closePremiumLock();
 //  window.checkUpsellNotification / handleStripeReturn IIFE として公開)
 
 // Supabase認証の準備完了を待ってからプレミアム状態を確認
+// Phase 5: window._ippoPremiumCheckInterval に公開して premium-service が停止可能にする
 var premiumCheckInterval = setInterval(function(){
   if(typeof supabase !== 'undefined' && supabase.auth){
     clearInterval(premiumCheckInterval);
+    window._ippoPremiumCheckInterval = null;
     supabase.auth.onAuthStateChange(function(event, session){
       checkPremiumStatus();
       // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
@@ -11527,6 +11562,8 @@ var premiumCheckInterval = setInterval(function(){
     checkPremiumStatus();
   }
 }, 500);
+// Phase 5: premium-service.js が停止・確認できるよう公開
+window._ippoPremiumCheckInterval = premiumCheckInterval;
 
 // manualCloudRestore の実装は line 1870 の enhanced merge 版を使用。
 // ─── window 互換エクスポート ─────────────────────────────────

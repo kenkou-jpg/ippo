@@ -3,6 +3,7 @@
 //  Phase 3-E: edit record hydration guard
 //  Phase 3-E-1: edit route trace / reset-after hydrate guard
 //  Phase 3-F-2: record repository 読み取り層へ移行
+//  Phase 3-G: editing-state モジュールへ移行 (window.state mutation 排除)
 //  Hotfix: stabilize edit intent date and hydration
 //  Hotfix: preserve edit identity during save draft build
 //
@@ -11,6 +12,7 @@
 //  - 編集保存時に新規record扱いへ落ちないよう target identity を維持する
 //  - app.html の巨大関数本体は変更しない
 //  - saveRecordScreen の保存ロジックは変更しない
+//  - window.state への直接 mutation を排除 (editing-state.js 経由)
 // ============================================================
 
 import {
@@ -19,6 +21,11 @@ import {
   getRecords,
   findRecordByDate,
 } from './record-repository.js';
+
+import {
+  getEditingState,
+  setEditingState,
+} from './editing-state.js';
 
 let lastEditIntent = {
   at: 0,
@@ -71,42 +78,40 @@ function isRecentEditIntent() {
   return !!lastEditIntent.at && (Date.now() - lastEditIntent.at < 30000);
 }
 
+// ─── persistEditingDate ───────────────────────────────────
+// Phase 3-G: window.state mutation を排除。
+// editing-state モジュール経由で状態を管理し、
+// window.state.editingDate 等への直接書き込みを行わない。
 function persistEditingDate(date) {
   const normalized = normalizeRecordDate(date);
   if (!normalized) return '';
 
-  if (window.state && typeof window.state === 'object') {
-    try { window.state.editingDate = normalized; } catch(e) {}
-    try { window.state.currentEditingDate = normalized; } catch(e) {}
-    try { window.state.recordDate = normalized; } catch(e) {}
-  }
-
-  try { window.currentEditingDate = normalized; } catch(e) {}
-  try { window.editingDate = normalized; } catch(e) {}
-  try { window.__ippoActiveEditDate = normalized; } catch(e) {}
+  setEditingState(normalized, lastEditIntent.source || 'persist');
 
   return normalized;
 }
 
+// ─── getEditingDate ───────────────────────────────────────
+// Phase 3-G: window.state?.currentEditingDate 等の読み取りを排除。
+// editing-state モジュール経由で取得する。
 function getEditingDate() {
   if (isRecentEditIntent() && lastEditIntent.date) return lastEditIntent.date;
 
+  // editing-state モジュール (primary source)
+  const moduleDate = getEditingState().date;
+  if (moduleDate) return moduleDate;
+
+  // window-level bridge (transitional compat — set by setEditingState)
   const directDate =
     window.__ippoActiveEditDate ||
     window.currentEditingDate ||
-    window.editingDate ||
-    window.state?.currentEditingDate ||
-    window.state?.editingDate ||
-    window.state?.recordDate;
+    window.editingDate;
 
   const normalizedDirect = normalizeRecordDate(directDate);
   if (normalizedDirect) return normalizedDirect;
 
   const domDate = getDateFromDom();
   if (domDate) return domDate;
-
-  const selectedDate = normalizeRecordDate(window.state?.selectedDate);
-  if (selectedDate) return selectedDate;
 
   if (lastEditIntent.date) return lastEditIntent.date;
 
@@ -142,12 +147,9 @@ function markEditIntent(source, date) {
   persistEditingDate(normalized);
 
   debug('edit-intent', {
-    source: lastEditIntent.source,
-    date: lastEditIntent.date,
-    stateEditingDate: window.state?.editingDate,
-    stateCurrentEditingDate: window.state?.currentEditingDate,
-    stateSelectedDate: window.state?.selectedDate,
-    stateRecordDate: window.state?.recordDate,
+    source:       lastEditIntent.source,
+    date:         lastEditIntent.date,
+    editingState: getEditingState(),
   });
 }
 
@@ -343,13 +345,11 @@ function wrapFunction(name, options) {
     }
 
     debug('route:start:' + name, {
-      argsDate: argsDate,
-      beforeDate: beforeDate,
-      isEditRoute: isEditRoute,
+      argsDate:            argsDate,
+      beforeDate:          beforeDate,
+      isEditRoute:         isEditRoute,
       shouldHydrateRecord: shouldHydrateRecord,
-      stateEditingDate: window.state?.editingDate,
-      stateSelectedDate: window.state?.selectedDate,
-      stateRecordDate: window.state?.recordDate,
+      editingState:        getEditingState(),
     });
 
     const result = original.apply(this, arguments);
@@ -481,11 +481,12 @@ window.hydrateRecordForm = hydrateRecordForm;
 window.ippoMarkRecordEditIntent = markEditIntent;
 window.ippoRecordEditHydrationSummary = function() {
   return {
-    lastEditIntent: { ...lastEditIntent },
-    recentEditIntent: isRecentEditIntent(),
-    editingDate: getEditingDate(),
-    recordFound: !!getEditingRecord(),
-    protectedEditSaveTarget: window.__ippoProtectedEditSaveTarget || null,
-    recordsLength: getRecords().length,
+    lastEditIntent:           { ...lastEditIntent },
+    recentEditIntent:         isRecentEditIntent(),
+    editingDate:              getEditingDate(),
+    editingState:             getEditingState(),
+    recordFound:              !!getEditingRecord(),
+    protectedEditSaveTarget:  window.__ippoProtectedEditSaveTarget || null,
+    recordsLength:            getRecords().length,
   };
 };
