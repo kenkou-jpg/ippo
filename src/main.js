@@ -21,12 +21,24 @@ import './runtime/startup-validator.js';
 import './runtime/render-boundary.js';
 import './runtime/error-reporter.js';
 
+// ─── Ownership / Render Authority / Timer Registry ───────────
+// 必ず app-legacy.js より前にロード。
+// ownership-registry → render-authority → timer-registry → module-lifecycle
+// この順序で依存関係を満たす。
+import './modules/ownership-registry.js';
+import './modules/render-authority.js';
+import './modules/timer-registry.js';
+import './modules/module-lifecycle.js';
+
 // ─── Priority 8: 旧 inline script 移植モジュール ─────────────
 import './modules/theme.js';
 import './modules/ui-notifications.js';
 import './modules/reminders-ui.js';
 import './modules/calendar.js';
 import './app-legacy.js';
+
+// ─── Ownership Map (after app-legacy so window.* exports exist) ──
+import './modules/ownership-map.js';
 
 // ─── State ───────────────────────────────────────────────
 import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
