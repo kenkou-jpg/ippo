@@ -65,7 +65,7 @@ export function bootstrap() {
       setState({ ...INITIAL_STATE });
     }
   } else {
-    window.state = { ...INITIAL_STATE };
+    setState({ ...INITIAL_STATE });
   }
 
   const state = getState();

@@ -47,6 +47,8 @@ export function getState() {
 // ─── setState ─────────────────────────────────────────────────
 export function setState(newState) {
   _state = newState;
+  // legacy bridge: window.state は _state の read-only mirror としてのみ存在する
+  window.state = _state;
 }
 
 // ─── saveState ────────────────────────────────────────────────
