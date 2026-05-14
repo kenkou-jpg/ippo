@@ -22,7 +22,15 @@ Object.defineProperty(globalThis, 'state', {
   enumerable: false
 });
 
-// ─── app.html script block 2 の内容 ─────────────────────────  
+// ─── bare `state` lexical bridge ─────────────────────────────────
+// ES module strict mode では bare `state` は globalThis.state に自動解決されない。
+// startup 初期 render より前に identifier を存在させるため全 function 定義より先に宣言。
+// state.js の setState() が呼ばれるたびフックが最新 _state に同期する。
+if (!window._ippoStateHooks) window._ippoStateHooks = [];
+var state = {};
+window._ippoStateHooks.push(function(nextState) { state = nextState; });
+
+// ─── app.html script block 2 の内容 ─────────────────────────
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 // var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';  // MIGRATED: see src/services/supabase.js
 // var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';  // MIGRATED: see src/services/supabase.js
@@ -1922,13 +1930,7 @@ function manualCloudRestore(){
   });
 }
   
-// ─── legacy compatibility bridge: bare `state` identifier ────────
-// ES module strict mode では bare `state` は window.state に自動解決されない。
-// _ippoStateHooks キューは state.js より先に実行されるため事前登録方式を採用。
-// setState() が呼ばれるたびにフックが state を最新の _state に同期する。
-if (!window._ippoStateHooks) window._ippoStateHooks = [];
-var state = (typeof window.getState === 'function') ? window.getState() : {};
-window._ippoStateHooks.push(function(nextState) { state = nextState; });
+// (bare `state` lexical bridge は app-legacy.js 最上部で宣言済み)
 
 // Current record being built（let → var でグローバル化して module 側からも参照可能）
 var currentRecord = {};
