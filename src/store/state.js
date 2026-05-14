@@ -37,6 +37,15 @@ export const INITIAL_STATE = Object.freeze({
 // ─── module-local 正本 ────────────────────────────────────────
 var _state = null;
 
+// ─── setState hook registry ───────────────────────────────────
+// hook(nextState, currentState) が false を返すと setState をブロック。
+var _setStateHooks = [];
+export function addSetStateHook(fn) {
+  if (typeof fn === 'function' && _setStateHooks.indexOf(fn) === -1) {
+    _setStateHooks.push(fn);
+  }
+}
+
 // ─── getState ─────────────────────────────────────────────────
 export function getState() {
   if (!_state) {
@@ -50,6 +59,11 @@ export function getState() {
 // window.state は app-legacy.js の Object.defineProperty getter 経由で _state を参照するため
 // ここで window.state への代入は不要（getter-only property への代入は TypeError; setter がある場合は無限再帰）。
 export function setState(newState) {
+  for (var i = 0; i < _setStateHooks.length; i++) {
+    try {
+      if (_setStateHooks[i](newState, _state) === false) return;
+    } catch (_) {}
+  }
   _state = newState;
 }
 
@@ -117,3 +131,4 @@ window.getState           = getState;
 window.setState           = setState;
 window.STATE_KEY          = STATE_KEY;
 window.migrateStorageKeys = migrateStorageKeys;
+window.addSetStateHook    = addSetStateHook;
