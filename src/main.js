@@ -35,6 +35,14 @@ import './modules/theme.js';
 import './modules/ui-notifications.js';
 import './modules/reminders-ui.js';
 import './modules/calendar.js';
+
+// ─── Phase 2: Auth Service (app-legacy.js より前にロード必須) ──
+// app-legacy.js の _notifyAuthReady() が window.ippoAuthService を呼ぶため先行ロード。
+import './modules/auth/auth-service.js';
+
+// ─── Phase 3: Editing State (record-edit-hydrate.js より前にロード) ──
+import './modules/editing-state.js';
+
 import './app-legacy.js';
 
 // ─── Ownership Map (after app-legacy so window.* exports exist) ──
@@ -145,6 +153,10 @@ import './modules/onboarding-runtime.js';
 // settings 画面の表示更新ロジック
 import './modules/settings-display-runtime.js';
 
+// ─── Phase 5: Premium Service (app-legacy.js 後・bootstrap 前) ──
+// app-legacy.js の checkPremiumStatus / premiumCheckInterval が確定した後にロード。
+import { startPremiumSync } from './modules/premium/premium-service.js';
+
 // ─── Phase E (Step 1/5): startup bootstrap ───────────────
 import { bootstrap } from './modules/app-bootstrap.js';
 
@@ -204,6 +216,10 @@ if (typeof window.ippoMarkViteReady === 'function') {
 
 // ─── Startup ownership signal ────────────────────────────
 bootstrap();
+
+// Phase 5: premium sync を auth-ready 待ちで開始
+startPremiumSync();
+
 window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
 
 if (typeof window.ippoMarkBootEvent === 'function') {

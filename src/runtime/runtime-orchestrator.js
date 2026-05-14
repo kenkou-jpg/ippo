@@ -287,6 +287,89 @@ function _init() {
   }
 }
 
+// ─── Bridge Status (Phase 8) ──────────────────────────────
+// bridge 削除可能条件を診断する。
+// 各モジュールが ownership を確立しているかを検査し、
+// 安全に window.state bridge を除去できるかを返す。
+function getBridgeStatus() {
+  var dangerousModules = [];
+
+  // auth-service が ownership を確立しているか
+  var authServiceReady = !!(
+    window.ippoAuthService &&
+    typeof window.ippoAuthService.isReady === 'function'
+  );
+  if (!authServiceReady) dangerousModules.push('auth (no ippoAuthService)');
+
+  // editing-state が ownership を確立しているか
+  var editingStateReady = !!(
+    window.ippoEditingState &&
+    typeof window.ippoEditingState.getEditingState === 'function'
+  );
+  if (!editingStateReady) dangerousModules.push('editing-state (no ippoEditingState)');
+
+  // premium-service が ownership を確立しているか
+  var premiumServiceReady = !!(
+    window.ippoPremiumService &&
+    typeof window.ippoPremiumService.isPremium === 'function'
+  );
+  if (!premiumServiceReady) dangerousModules.push('premium (no ippoPremiumService)');
+
+  // app-legacy の premiumCheckInterval がまだ存在するか
+  if (window._ippoPremiumCheckInterval != null) {
+    dangerousModules.push('premium-polling (app-legacy interval still active)');
+  }
+
+  // auth bridge (window.supabaseUserId) がまだ使われているか
+  var authBridgeRemaining = (window.supabaseUserId != null);
+
+  // window.state への既知の直接 mutation がある場合（デバッグ計測）
+  var stateBridgeCount = (typeof window.__ippoBridgeAccessCount === 'number')
+    ? window.__ippoBridgeAccessCount
+    : null;
+
+  var safeToRemove = (
+    authServiceReady &&
+    editingStateReady &&
+    premiumServiceReady &&
+    !window._ippoPremiumCheckInterval &&
+    dangerousModules.length === 0
+  );
+
+  return {
+    stateBridgeRemaining: stateBridgeCount,
+    authBridgeRemaining:  authBridgeRemaining,
+    dangerousModules:     dangerousModules,
+    safeToRemove:         safeToRemove,
+    authServiceReady:     authServiceReady,
+    editingStateReady:    editingStateReady,
+    premiumServiceReady:  premiumServiceReady,
+    bridgeWarningMode:    window.__ippoBridgeWarningMode === true,
+    generatedAt:          _iso(),
+  };
+}
+
+// ─── Bridge Warning Mode (Phase 9) ───────────────────────
+// safeToRemove=true を確認後に有効化する。
+// window.state の get/set に警告ログを注入し、
+// legacy bridge アクセスの残存箇所を検出する。
+// 段階: warning → deactivation → removal（即削除禁止）
+function enableBridgeWarningMode() {
+  window.__ippoBridgeWarningMode = true;
+  window.__ippoBridgeAccessCount = 0;
+  if (typeof window.ippoMarkBootEvent === 'function') {
+    window.ippoMarkBootEvent('bridge-warning-mode:enabled');
+  }
+  console.info('[ippo] bridge warning mode ENABLED. Access to window.state will be logged.');
+}
+
+function disableBridgeWarningMode() {
+  window.__ippoBridgeWarningMode = false;
+  if (typeof window.ippoMarkBootEvent === 'function') {
+    window.ippoMarkBootEvent('bridge-warning-mode:disabled');
+  }
+}
+
 // ─── Public API ───────────────────────────────────────────
 window.ippoRuntime = {
   // Primary status
@@ -300,9 +383,16 @@ window.ippoRuntime = {
   report:           report,
 
   // Coordination
-  reconcileModes:   reconcileModes,
+  reconcileModes:      reconcileModes,
   verifyRecordsSafety: verifyRecordsSafety,
-  getReconcileLog:  function () { return _reconcileLog.slice(); },
+  getReconcileLog:     function () { return _reconcileLog.slice(); },
+
+  // Phase 8: Bridge removal readiness check
+  getBridgeStatus:         getBridgeStatus,
+
+  // Phase 9: Bridge warning mode
+  enableBridgeWarningMode:  enableBridgeWarningMode,
+  disableBridgeWarningMode: disableBridgeWarningMode,
 
   // Constants
   SAFETY_LEVEL: SAFETY_LEVEL,
