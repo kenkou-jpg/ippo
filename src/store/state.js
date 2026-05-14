@@ -54,10 +54,18 @@ export function getState() {
   return _state;
 }
 
+// ─── setState hooks (legacy compatibility bridge) ──────────────
+// app-legacy.js が state.js より先に実行されるため、
+// window._ippoStateHooks キューに事前登録されたフックを引き継ぐ。
+var _setStateHooks = (Array.isArray(window._ippoStateHooks) ? window._ippoStateHooks.slice() : []);
+window._ippoStateHooks = _setStateHooks; // 同じ配列参照を維持（追加登録も届く）
+
+export function addSetStateHook(fn) {
+  _setStateHooks.push(fn);
+}
+
 // ─── setState ─────────────────────────────────────────────────
-// _state を更新する唯一の関数。
-// window.state は app-legacy.js の Object.defineProperty getter 経由で _state を参照するため
-// ここで window.state への代入は不要（getter-only property への代入は TypeError; setter がある場合は無限再帰）。
+// _state を更新する唯一の関数。フック経由で legacy bare `state` も同期する。
 export function setState(newState) {
   for (var i = 0; i < _setStateHooks.length; i++) {
     try {
@@ -65,6 +73,9 @@ export function setState(newState) {
     } catch (_) {}
   }
   _state = newState;
+  for (var _i = 0; _i < _setStateHooks.length; _i++) {
+    try { _setStateHooks[_i](newState); } catch(e) { console.warn('ippo: setState hook error', e); }
+  }
 }
 
 
@@ -129,6 +140,7 @@ window.saveState          = saveState;
 window.loadState          = loadState;
 window.getState           = getState;
 window.setState           = setState;
+window.addSetStateHook    = addSetStateHook;
 window.STATE_KEY          = STATE_KEY;
 window.migrateStorageKeys = migrateStorageKeys;
 window.addSetStateHook    = addSetStateHook;
