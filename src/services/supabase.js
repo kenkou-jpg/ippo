@@ -6,20 +6,25 @@
 //  - app.html が /src/main.js をブラウザで直接読み込む現行構成に合わせ、
 //    bare import ではなく CDN ESM import を使用する
 //  - window.supabase を維持（移行期間中: 非モジュール <script> との共存）
-//  - キー解決優先順位:
-//      1. window.SUPABASE_KEY  （後方互換: 既存グローバル代入）
-//      2. import.meta.env.VITE_SUPABASE_KEY  （Vite ビルド時: GitHub Secrets 経由）
-//      3. null → クライアント未生成、警告のみ
+//  - 環境変数は environment-service.js が先行して window.SUPABASE_URL /
+//    window.SUPABASE_KEY に設定済み。ここでは window.* から読む。
+//  - getSupabaseClient() / getSupabaseHealth() で単一アクセスポイントを提供
 // ============================================================
 
 // Version pinned to match package.json ^2.105.3 — update both together
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 
+// environment-service が window.SUPABASE_URL / window.SUPABASE_KEY を設定済みのはず。
+// ここで再確認し、未設定の場合はフォールバックを確保する（belt-and-suspenders）。
 export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
-const SUPABASE_SDK_KEY = window.SUPABASE_KEY
+const SUPABASE_SDK_KEY = (window.SUPABASE_KEY && window.SUPABASE_KEY !== 'undefined' ? window.SUPABASE_KEY : null)
   || (import.meta.env && import.meta.env.VITE_SUPABASE_KEY)
   || null;
+
+// グローバルを確定値で上書き（environment-service が未ロードの場合の保険）
+window.SUPABASE_URL = SUPABASE_URL;
+window.SUPABASE_KEY = SUPABASE_SDK_KEY || '';
 
 window.__ippoSupabaseStatus = {
   ready: false,
@@ -230,6 +235,40 @@ export function initialCloudSync() {
 window.cloudBackupAll  = cloudBackupAll;
 window.cloudRestore    = cloudRestore;
 window.initialCloudSync = initialCloudSync;
+
+// ─── Single-access-point API ─────────────────────────────────
+// All code that needs the Supabase client should call getSupabaseClient()
+// rather than importing the `supabase` const directly.
+export function getSupabaseClient() {
+  return supabase;
+}
+
+export function getSupabaseHealth() {
+  return {
+    ready:          !!supabase,
+    url:            SUPABASE_URL,
+    keyPresent:     !!SUPABASE_SDK_KEY,
+    safeMode:       !supabase,
+    initializedAt:  window.__ippoSupabaseStatus ? window.__ippoSupabaseStatus.initializedAt : null,
+    ts:             new Date().toISOString(),
+  };
+}
+
+// ─── ippo:supabase-ready event ───────────────────────────────
+window.dispatchEvent(new CustomEvent('ippo:supabase-ready', {
+  detail: {
+    ready:      !!supabase,
+    keyPresent: !!SUPABASE_SDK_KEY,
+    safeMode:   !supabase,
+  },
+}));
+
+if (typeof window.ippoMarkBootEvent === 'function') {
+  window.ippoMarkBootEvent('supabase-service-ready', {
+    ready:    !!supabase,
+    safeMode: !supabase,
+  });
+}
 
 // ── visibilitychange: タブ復帰時にクラウドから復元 ─────────────
 // app.html のインラインハンドラ（state = JSON.parse(...)）を廃止し

@@ -232,6 +232,23 @@ export function bootstrap() {
   // ── 10. Vision UI ─────────────────────────────────────────
   if (typeof window.initVisionUI === 'function') window.initVisionUI();
   if (typeof window.updateHomeVision === 'function') window.updateHomeVision();
+
+  // ── 11. Bootstrap complete signal ────────────────────────
+  window.__ippoBootstrapReady = true;
+  window.dispatchEvent(new CustomEvent('ippo:bootstrap-ready', {
+    detail: {
+      hasSupabase:    !!(typeof window.supabase !== 'undefined' && window.supabase),
+      safeBootstrap:  !!(window.__ippoSafeBootstrapMode),
+      recordCount:    (getState().records || []).length,
+    },
+  }));
+
+  if (typeof window.ippoMarkBootEvent === 'function') {
+    window.ippoMarkBootEvent('bootstrap-complete', {
+      safeMode:    !!(window.__ippoSafeBootstrapMode),
+      recordCount: (getState().records || []).length,
+    });
+  }
 }
 
 window.ippoBootstrap = bootstrap;
