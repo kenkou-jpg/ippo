@@ -46,16 +46,18 @@ var CTRL_MODE = Object.freeze({
   DEBUG:        'DEBUG_MODE',
   SAFE:         'SAFE_MODE',
   SAFE_STARTUP: 'SAFE_STARTUP_MODE',
+  SAFE_CLOUD:   'SAFE_CLOUD_MODE',
   LOW_RUNTIME:  'LOW_RUNTIME_MODE',
   RECOVERY:     'RECOVERY_MODE',
 });
 
 var MODE_TRANSITIONS = {
-  'NORMAL_MODE':       ['DEBUG_MODE', 'SAFE_MODE', 'SAFE_STARTUP_MODE', 'LOW_RUNTIME_MODE', 'RECOVERY_MODE'],
-  'DEBUG_MODE':        ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
+  'NORMAL_MODE':       ['DEBUG_MODE', 'SAFE_MODE', 'SAFE_STARTUP_MODE', 'SAFE_CLOUD_MODE', 'LOW_RUNTIME_MODE', 'RECOVERY_MODE'],
+  'DEBUG_MODE':        ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
   'SAFE_MODE':         ['NORMAL_MODE', 'RECOVERY_MODE', 'SAFE_STARTUP_MODE'],
   'SAFE_STARTUP_MODE': ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
-  'LOW_RUNTIME_MODE':  ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
+  'SAFE_CLOUD_MODE':   ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
+  'LOW_RUNTIME_MODE':  ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
   'RECOVERY_MODE':     ['NORMAL_MODE', 'SAFE_MODE'],
 };
 
@@ -174,10 +176,18 @@ function _applyModeEffects(mode, reason) {
     _audit('recovery_mode_applied', reason, null);
   }
 
+  if (mode === CTRL_MODE.SAFE_CLOUD) {
+    // Cloud sync disabled; local state preserved; renders continue but no cloud writes
+    _notifyHooks('pause_cloud_sync', { reason: reason });
+    _degradedSystems['cloud'] = { mode: 'paused', since: _now() };
+    _audit('safe_cloud_applied', reason, { degraded: ['cloud'] });
+  }
+
   if (mode === CTRL_MODE.NORMAL) {
     // Restore systems that were degraded by previous mode (not explicit isolations)
     _degradedSystems = {};
     _notifyHooks('resume_render', { reason: reason });
+    _notifyHooks('resume_cloud_sync', { reason: reason });
     _audit('systems_restored', reason, null);
   }
 }
@@ -288,6 +298,25 @@ function _decide(diagnosis) {
     actions.push({
       action: 'delay_startup',
       reason: 'startup phase duplicates detected',
+    });
+  }
+
+  // 9. Cloud restore failed → SAFE_CLOUD_MODE
+  // window.__ippoCloudRestoreFailed は auth-cloud-state-machine が設定する。
+  if (
+    window.__ippoCloudRestoreFailed === true &&
+    _currentMode !== CTRL_MODE.SAFE_CLOUD &&
+    _currentMode !== CTRL_MODE.SAFE       &&
+    _currentMode !== CTRL_MODE.RECOVERY
+  ) {
+    var cloudAcs = window.ippoAuthCloudState;
+    var cloudReason = cloudAcs
+      ? ('auth=' + cloudAcs.getAuthState() + ' cloud=' + cloudAcs.getCloudState())
+      : 'cloud restore failed';
+    actions.push({
+      action: 'switch_mode',
+      mode:   CTRL_MODE.SAFE_CLOUD,
+      reason: cloudReason,
     });
   }
 
@@ -638,4 +667,4 @@ if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('runtime-controller-loaded', { mode: _currentMode });
 }
 
-export { start, stop, evaluate, switchMode, registerHook, unregisterHook, CTRL_MODE };
+export { start, stop, evaluate, switchMode, registerHook, unregisterHook, CTRL_MODE, MODE_TRANSITIONS };

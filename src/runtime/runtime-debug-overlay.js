@@ -59,18 +59,24 @@ if (!_ENABLED) {
   }
 
   function _text() {
-    var state  = typeof window.getState === 'function' ? window.getState() : null;
-    var health = typeof window.ippoHealthMonitor === 'object' ? window.ippoHealthMonitor.getHealth() : null;
-    var snap   = typeof window.ippoRollbackManager === 'object' ? window.ippoRollbackManager.getLatestSnapshot() : null;
-    var sync   = typeof window.ippoSyncConsistencyChecker === 'object' ? window.ippoSyncConsistencyChecker.check() : null;
-    var dupes  = typeof window.ippoStartupValidator === 'object' ? window.ippoStartupValidator.getDuplicates() : [];
-    var brain  = typeof window.ippoBrain === 'object' ? window.ippoBrain : null;
+    var state    = typeof window.getState === 'function' ? window.getState() : null;
+    var health   = typeof window.ippoHealthMonitor === 'object' ? window.ippoHealthMonitor.getHealth() : null;
+    var snap     = typeof window.ippoRollbackManager === 'object' ? window.ippoRollbackManager.getLatestSnapshot() : null;
+    var sync     = typeof window.ippoSyncConsistencyChecker === 'object' ? window.ippoSyncConsistencyChecker.check() : null;
+    var dupes    = typeof window.ippoStartupValidator === 'object' ? window.ippoStartupValidator.getDuplicates() : [];
+    var brain    = typeof window.ippoBrain === 'object' ? window.ippoBrain : null;
+    var acs      = typeof window.ippoAuthCloudState === 'object' ? window.ippoAuthCloudState : null;
+    var orch     = typeof window.ippoRuntime === 'object' ? window.ippoRuntime : null;
+
+    var stateReady = window.__ippoStateReady === true;
+    var gate       = typeof window.ippoDeferredRenderQueue === 'object' ? window.ippoDeferredRenderQueue : null;
 
     var lines = [
       '[ippo runtime debug]',
       'records : ' + (state ? (state.records || []).length : '?'),
       'screen  : ' + (state && state.currentScreen || '?'),
       'saved   : ' + (state && state.lastSaved ? state.lastSaved.slice(11, 19) : '?'),
+      'stRdy   : ' + (stateReady ? 'yes' : 'no') + (gate ? (gate.isFlushed() ? ' flush✓' : ' flush…') : ''),
       'errors  : ' + (health ? health.errorCount : '?'),
       'warnings: ' + (health ? health.warningCount : '?'),
       'renders : ' + (health ? health.metrics.renderCount : '?'),
@@ -138,6 +144,31 @@ if (!_ENABLED) {
       }
     }
 
+    // ── Auth / Cloud state ──────────────────────────────
+    if (acs) {
+      lines.push('── auth/cloud ──────');
+      lines.push('auth    : ' + acs.getAuthState());
+      lines.push('cloud   : ' + acs.getCloudState());
+    }
+
+    // ── Orchestrator readiness ──────────────────────────
+    if (orch) {
+      var readiness   = orch.getReadiness();
+      var safetyLevel = orch.getSafetyLevel();
+      lines.push('── orchestrator ────');
+      lines.push('safety  : ' + safetyLevel);
+      lines.push('healthy : ' + (orch.isHealthy() ? 'yes' : 'NO'));
+      lines.push('state   : ' + (readiness.state        ? 'ready'  : 'wait'));
+      lines.push('hydrat  : ' + (readiness.hydration     ? 'done'   : 'wait'));
+      lines.push('supabase: ' + (readiness.supabase      ? 'ready'  : 'wait'));
+      lines.push('cloud   : ' + (readiness.cloudRestore  ? 'done'   : (acs && acs.isCloudSkipped() ? 'skip' : 'wait')));
+      var reconcileLog = orch.getReconcileLog();
+      if (reconcileLog.length > 0) {
+        var lastRec = reconcileLog[reconcileLog.length - 1];
+        lines.push('reconcil: ' + lastRec.ctrlModePre + '→' + lastRec.ctrlModePost);
+      }
+    }
+
     if (dupes.length > 0) {
       lines.push('DUPES: ' + dupes.map(function (d) { return d.name; }).join(','));
     }
@@ -145,6 +176,10 @@ if (!_ENABLED) {
     var blocked = typeof window.ippoSyncConsistencyChecker === 'object' &&
                   window.ippoSyncConsistencyChecker.isCloudSyncBlocked();
     if (blocked) lines.push('⚠ CLOUD SYNC BLOCKED');
+
+    if (window.__ippoCloudRestoreFailed === true) {
+      lines.push('⚠ CLOUD RESTORE FAILED');
+    }
 
     return lines.join('\n');
   }
