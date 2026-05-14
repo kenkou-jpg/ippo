@@ -12,6 +12,7 @@
 import {
   getRecords,
 } from './record-repository.js';
+import { getState } from '../store/state.js';
 import './record-edit-save-identity-guard.js';
 import './record-freshness-guard.js';
 import './ui-transition-ownership-runtime.js';
@@ -107,7 +108,7 @@ function hasRecords() {
 }
 
 function hasProfile() {
-  const state = window.state || {};
+  const state = getState();
   // state.name is what init() checks to decide whether to call showMain().
   // Do NOT include lastPeriodDate — it's written during onboarding step 3
   // before the user completes setup, causing false positives that block the
@@ -116,7 +117,7 @@ function hasProfile() {
 }
 
 function onboardingCompleted() {
-  const state = window.state || {};
+  const state = getState();
   // Mirror init()'s own check: if state.name is set init() calls showMain(),
   // meaning onboarding was finished. state._onboardingDone is set explicitly
   // by completeOnboarding(). hasRecords() is the fallback for users who have

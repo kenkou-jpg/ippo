@@ -1,16 +1,10 @@
 // ============================================================
 //  ippo – src/modules/home-renderer.js
 //  Phase E (Step 3): showMain() と依存 UI 関数群の module 移植
-//
-//  設計方針:
-//  - window.state への参照はそのまま維持（window 依存はまだ断ち切らない）
-//  - buildCalendar / updateUnlock / reorderRecordSections 等、
-//    未移植の関数は引き続き window.* 経由で委譲
-//  - window.showMain / window.updateStats 等の bridge を登録し
-//    app.html 側の呼び出しを透過的にモジュール版へ誘導
 // ============================================================
 
 import { showScreen } from './screen-router.js';
+import { getState } from '../store/state.js';
 
 // ── ヘルパー ─────────────────────────────────────────────────
 
@@ -23,7 +17,7 @@ function getGreetingText() {
 }
 
 function calcPainFreeDaysThisMonth() {
-  var s = window.state || {};
+  var s = getState();
   var now = new Date();
   var year = now.getFullYear();
   var month = now.getMonth();
@@ -38,7 +32,7 @@ function calcPainFreeDaysThisMonth() {
 }
 
 function calcAvgPainThisMonth() {
-  var s = window.state || {};
+  var s = getState();
   var now = new Date();
   var year = now.getFullYear();
   var month = now.getMonth();
@@ -67,7 +61,7 @@ export function updateDate() {
 }
 
 export function updateGreeting() {
-  var s = window.state || {};
+  var s = getState();
   const greeting = getGreetingText();
   const el = document.getElementById('greeting-text');
   if (el) el.textContent = greeting;
@@ -98,7 +92,7 @@ export function updateGreeting() {
 // ── 統計 ─────────────────────────────────────────────────────
 
 export function updateStats() {
-  var s = window.state || {};
+  var s = getState();
   var streakEl = document.getElementById('streak-count');
   if (streakEl) streakEl.textContent = s.streak || 0;
   var totalEl = document.getElementById('total-count');
@@ -136,7 +130,7 @@ export function buildHomeWeekRow() {
   var weekRow = document.getElementById('home-week-row');
   if (!weekRow) return;
 
-  var s = window.state || {};
+  var s = getState();
   var today = new Date();
   var dayOfWeek = today.getDay();
   var monday = new Date(today);
@@ -198,7 +192,7 @@ export function updateHomeInsightCard() {
   var text = document.getElementById('home-insight-text');
   if (!card || !text) return;
 
-  var s = window.state || {};
+  var s = getState();
   var records = s.records || [];
   if (records.length < 3) { card.style.display = 'none'; return; }
 
@@ -241,7 +235,7 @@ export function updateHomeInsightCard() {
 // ── 数値2つ（連続・次の生理） ─────────────────────────────────
 
 export function updateHomeNumbers() {
-  var s = window.state || {};
+  var s = getState();
   var streak = s.streak || 0;
   var streakEl = document.getElementById('home-streak-num');
   if (streakEl) streakEl.textContent = streak;
@@ -279,7 +273,7 @@ export function updateHomeDiseaseAdvice() {
   var text = document.getElementById('home-disease-advice-text');
   if (!card || !text) return;
 
-  var s = window.state || {};
+  var s = getState();
   var diseases = s.myDiseases || [];
   if (diseases.length === 0) { card.style.display = 'none'; return; }
 

@@ -8,6 +8,12 @@
 //
 //  Flushed on: ippo:state-ready event (dispatched from app-bootstrap.js)
 //  Fallback:   ippo:vite-ready event (safety net after 5s max)
+//
+//  AUDIT: status=required — state must be loaded before renders can access records.
+//         GATE_TIMEOUT_MS=8000 is intentional: slow hydration / IDB migration
+//         can take several seconds on older devices.
+//         Future: narrowable to startup phase only; flush and self-disable after
+//         first ippo:state-ready.  Dedup-by-name already prevents duplicate renders.
 // ============================================================
 
 // Mark state as NOT ready before any render can fire

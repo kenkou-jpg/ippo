@@ -4,6 +4,8 @@
 //  requestNotificationPermission / scheduleReminders は push.js で管理
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 export var REMINDER_PRESETS = [
   { time: '07:00', label: '🌅 朝の基礎体温' },
   { time: '12:00', label: '☀️ お昼の体調チェック' },
@@ -11,7 +13,7 @@ export var REMINDER_PRESETS = [
 ];
 
 export function initReminders() {
-  if (!window.state.reminders) window.state.reminders = [];
+  if (!getState().reminders) getState().reminders = [];
   renderReminderList();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
 }
@@ -19,7 +21,7 @@ export function initReminders() {
 export function renderReminderList() {
   var container = document.getElementById('reminder-list');
   if (!container) return;
-  var reminders = window.state.reminders || [];
+  var reminders = getState().reminders || [];
   var maxFree = 3;
 
   if (reminders.length === 0) {
@@ -54,7 +56,7 @@ export function renderReminderList() {
     html += '</div></div>';
   });
 
-  if (!window.state.isPremium && reminders.length >= maxFree) {
+  if (!getState().isPremium && reminders.length >= maxFree) {
     html += '<div style="text-align:center;padding:10px;font-size:10px;color:var(--ink-light);margin-top:8px;">無料プランは' + maxFree + '件まで。<span style="color:var(--rose);cursor:pointer;" onclick="switchTab(\'premium\')">PRO</span>で無制限に。</div>';
   }
 
@@ -63,8 +65,8 @@ export function renderReminderList() {
 
 export function addPresetReminder(idx) {
   var p = REMINDER_PRESETS[idx];
-  if (!window.state.reminders) window.state.reminders = [];
-  window.state.reminders.push({ time: p.time, label: p.label, enabled: true });
+  if (!getState().reminders) getState().reminders = [];
+  getState().reminders.push({ time: p.time, label: p.label, enabled: true });
   if (typeof window.saveState === 'function') window.saveState();
   renderReminderList();
   if (typeof window.requestNotificationPermission === 'function') window.requestNotificationPermission();
@@ -72,9 +74,9 @@ export function addPresetReminder(idx) {
 }
 
 export function addReminder() {
-  if (!window.state.reminders) window.state.reminders = [];
+  if (!getState().reminders) getState().reminders = [];
   var maxFree = 3;
-  if (!window.state.isPremium && window.state.reminders.length >= maxFree) {
+  if (!getState().isPremium && getState().reminders.length >= maxFree) {
     if (typeof window.premiumGate === 'function') window.premiumGate(addReminderUI);
     return;
   }
@@ -90,9 +92,9 @@ export function addReminderUI() {
   }
   var label = prompt('ラベルを入力（例: 今日の記録）', '今日の記録');
   if (label === null) return;
-  if (!window.state.reminders) window.state.reminders = [];
-  window.state.reminders.push({ time: time, label: label || '記録リマインダー', enabled: true });
-  window.state.reminders.sort(function (a, b) { return a.time.localeCompare(b.time); });
+  if (!getState().reminders) getState().reminders = [];
+  getState().reminders.push({ time: time, label: label || '記録リマインダー', enabled: true });
+  getState().reminders.sort(function (a, b) { return a.time.localeCompare(b.time); });
   if (typeof window.saveState === 'function') window.saveState();
   renderReminderList();
   if (typeof window.requestNotificationPermission === 'function') window.requestNotificationPermission();
@@ -100,14 +102,14 @@ export function addReminderUI() {
 }
 
 export function toggleReminder(idx) {
-  window.state.reminders[idx].enabled = !window.state.reminders[idx].enabled;
+  getState().reminders[idx].enabled = !getState().reminders[idx].enabled;
   if (typeof window.saveState === 'function') window.saveState();
   renderReminderList();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
 }
 
 export function removeReminder(idx) {
-  window.state.reminders.splice(idx, 1);
+  getState().reminders.splice(idx, 1);
   if (typeof window.saveState === 'function') window.saveState();
   renderReminderList();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
