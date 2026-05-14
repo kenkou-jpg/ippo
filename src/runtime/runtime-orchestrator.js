@@ -287,10 +287,9 @@ function _init() {
   }
 }
 
-// ─── Bridge Status (Phase 8) ──────────────────────────────
-// bridge 削除可能条件を診断する。
-// 各モジュールが ownership を確立しているかを検査し、
-// 安全に window.state bridge を除去できるかを返す。
+// ─── Bridge Status (Phase 10: post-removal) ───────────────
+// bridge 除去完了を確認する診断関数。
+// window.state bridge / auth bridge / premium interval は除去済み。
 function getBridgeStatus() {
   var dangerousModules = [];
 
@@ -315,56 +314,31 @@ function getBridgeStatus() {
   );
   if (!premiumServiceReady) dangerousModules.push('premium (no ippoPremiumService)');
 
-  // app-legacy の premiumCheckInterval がまだ存在するか
-  if (window._ippoPremiumCheckInterval != null) {
-    dangerousModules.push('premium-polling (app-legacy interval still active)');
-  }
-
-  // auth bridge (window.supabaseUserId) がまだ使われているか
-  var authBridgeRemaining = (window.supabaseUserId != null);
-
-  // window.state への既知の直接 mutation がある場合（デバッグ計測）
-  var stateBridgeCount = (typeof window.__ippoBridgeAccessCount === 'number')
-    ? window.__ippoBridgeAccessCount
-    : null;
-
   var safeToRemove = (
     authServiceReady &&
     editingStateReady &&
     premiumServiceReady &&
-    !window._ippoPremiumCheckInterval &&
     dangerousModules.length === 0
   );
 
   return {
-    stateBridgeRemaining: stateBridgeCount,
-    authBridgeRemaining:  authBridgeRemaining,
-    dangerousModules:     dangerousModules,
-    safeToRemove:         safeToRemove,
-    authServiceReady:     authServiceReady,
-    editingStateReady:    editingStateReady,
-    premiumServiceReady:  premiumServiceReady,
-    bridgeWarningMode:    window.__ippoBridgeWarningMode === true,
-    generatedAt:          _iso(),
+    dangerousModules:   dangerousModules,
+    safeToRemove:       safeToRemove,
+    authServiceReady:   authServiceReady,
+    editingStateReady:  editingStateReady,
+    premiumServiceReady: premiumServiceReady,
+    bridgesRemoved:     true,
+    generatedAt:        _iso(),
   };
 }
 
-// ─── Bridge Warning Mode (Phase 9) ───────────────────────
-// safeToRemove=true を確認後に有効化する。
-// window.state の get/set に警告ログを注入し、
-// legacy bridge アクセスの残存箇所を検出する。
-// 段階: warning → deactivation → removal（即削除禁止）
 function enableBridgeWarningMode() {
-  window.__ippoBridgeWarningMode = true;
-  window.__ippoBridgeAccessCount = 0;
-  if (typeof window.ippoMarkBootEvent === 'function') {
-    window.ippoMarkBootEvent('bridge-warning-mode:enabled');
-  }
-  console.info('[ippo] bridge warning mode ENABLED. Access to window.state will be logged.');
+  // bridge 除去済みのため no-op（後方互換のみ）
+  console.info('[ippo] bridge warning mode: bridges already removed.');
 }
 
 function disableBridgeWarningMode() {
-  window.__ippoBridgeWarningMode = false;
+  // no-op
   if (typeof window.ippoMarkBootEvent === 'function') {
     window.ippoMarkBootEvent('bridge-warning-mode:disabled');
   }

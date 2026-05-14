@@ -20,7 +20,7 @@ import { getRecords } from './record-repository.js';
 const WELCOME_RUNTIME_KEY = '__ippoWelcomeRuntime';
 
 function getAppState() {
-  return window.state || {};
+  return (typeof window.getState === 'function' ? window.getState() : null) || {};
 }
 
 function hasRecords() {

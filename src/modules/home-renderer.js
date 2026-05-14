@@ -292,7 +292,7 @@ export function updateHomeDiseaseAdvice() {
 // ── CTA カード ────────────────────────────────────────────────
 
 export function updateHomeCTAState() {
-  var s = window.state || {};
+  var s = (typeof window.getState === 'function' ? window.getState() : null) || {};
   var today = new Date().toISOString().slice(0, 10);
   var rec = (s.records || []).find(function (r) {
     return (r.date || r.record_date || '').slice(0, 10) === today;

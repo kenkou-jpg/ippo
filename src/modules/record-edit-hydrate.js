@@ -101,15 +101,6 @@ function getEditingDate() {
   const moduleDate = getEditingState().date;
   if (moduleDate) return moduleDate;
 
-  // window-level bridge (transitional compat — set by setEditingState)
-  const directDate =
-    window.__ippoActiveEditDate ||
-    window.currentEditingDate ||
-    window.editingDate;
-
-  const normalizedDirect = normalizeRecordDate(directDate);
-  if (normalizedDirect) return normalizedDirect;
-
   const domDate = getDateFromDom();
   if (domDate) return domDate;
 

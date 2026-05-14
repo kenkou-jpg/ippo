@@ -142,7 +142,7 @@ export function checkUpsellNotification() {
   var lastShown = localStorage.getItem('ippo_upsell_ts');
   if (lastShown && Date.now() - parseInt(lastShown) < 7 * 24 * 60 * 60 * 1000) return;
 
-  var st = window.state;
+  var st = typeof window.getState === 'function' ? window.getState() : null;
   if (!st || !st.records || st.records.length < 10) return;
 
   var firstDate  = st.records.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; })[0].date;

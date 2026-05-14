@@ -232,7 +232,7 @@ export function getRecordStorageDiagnostics(label) {
     label: label || '',
     checkedAt: new Date().toISOString(),
     activeSource: Array.isArray(s?.records) ? 'state.records' : 'localStorage',
-    hasWindowState: !!window.state,
+    hasWindowState: typeof window.getState === 'function' && !!window.getState(),
     hasSaveState: typeof window.saveState === 'function',
     hasCloudBackupAll: typeof window.cloudBackupAll === 'function',
     hasCloudRestore: typeof window.cloudRestore === 'function',

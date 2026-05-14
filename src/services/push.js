@@ -35,7 +35,7 @@ export function scheduleReminders() {
 
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  var st = window.state;
+  var st = typeof window.getState === 'function' ? window.getState() : null;
   if (!st || !st.reminders || !st.reminders.length) return;
 
   var now = new Date();

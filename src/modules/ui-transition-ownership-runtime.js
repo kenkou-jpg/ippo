@@ -109,7 +109,7 @@ function getActiveScreenSnapshot() {
 
 function hasRecords() {
   try {
-    if (Array.isArray(window.state?.records) && window.state.records.length > 0) return true;
+    if (Array.isArray(window.getState?.()?.records) && window.getState().records.length > 0) return true;
     if (typeof window.ippoRecordStorageSnapshot === 'function') {
       const snapshot = window.ippoRecordStorageSnapshot();
       return (snapshot?.activeRecordsLength || 0) > 0;
@@ -119,7 +119,7 @@ function hasRecords() {
 }
 
 function hasProfile() {
-  const state = window.state || {};
+  const state = (typeof window.getState === 'function' ? window.getState() : null) || {};
   return !!(
     state.userName ||
     state.nickname ||
@@ -131,7 +131,7 @@ function hasProfile() {
 }
 
 function onboardingCompleted() {
-  const state = window.state || {};
+  const state = (typeof window.getState === 'function' ? window.getState() : null) || {};
   try {
     return !!(
       state.onboardingCompleted ||
