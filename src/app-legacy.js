@@ -10,9 +10,15 @@
 // window.state は state.js の setState() が _state のミラーとして設定する。
 // bare `state` 参照をここで getState() 経由に向けることで循環参照を防ぐ。
 Object.defineProperty(globalThis, 'state', {
-  get: function() {
-    return typeof window.getState === 'function' ? window.getState() : undefined;
-  },
+get: function() {
+return typeof window.getState === 'function'
+? window.getState()
+: undefined;
+},
+configurable: true,
+enumerable: false
+});
+
   configurable: true,
   enumerable: false
 });

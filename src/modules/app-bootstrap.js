@@ -56,17 +56,20 @@ export function bootstrap() {
   // ── 0. Legacy storage key 移行 ────────────────────────────
   migrateStorageKeys();
 
-  // ── 1. State hydration ────────────────────────────────────
-  const saved = localStorage.getItem(STATE_KEY);
-  if (saved) {
-    try {
-      setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
-    } catch (e) {
-      setState({ ...INITIAL_STATE });
-    }
-  } else {
-    setState({ ...INITIAL_STATE });
-  }
+ // ── 1. State hydration ────────────────────────────────────
+const saved = localStorage.getItem(STATE_KEY);
+
+if (saved) {
+try {
+setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
+} catch (e) {
+setState({ ...INITIAL_STATE });
+}
+} else {
+setState({ ...INITIAL_STATE });
+}
+
+
 
   const state = getState();
 

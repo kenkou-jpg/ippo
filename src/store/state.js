@@ -5,7 +5,7 @@
 //  【設計方針】
 //  - _state: module-local の単一正本。
 //  - getState() : _state 未初期化時は INITIAL_STATE で初期化。
-//  - setState()  : _state を更新（window.state bridge は削除済み）。
+//  - setState()  : _state と window.state を同時更新（legacy code との共存）。
 //  - saveState() : getState() 経由で localStorage に保存。
 //  - loadState() : localStorage → setState() で正本を初期化。
 // ============================================================
@@ -45,11 +45,13 @@ export function getState() {
 }
 
 // ─── setState ─────────────────────────────────────────────────
+// legacy bridge: window.state は _state の read-only mirror としてのみ存在する
 export function setState(newState) {
-  _state = newState;
-  // legacy bridge: window.state は _state の read-only mirror としてのみ存在する
-  window.state = _state;
+_state = newState;
+window.state = _state;
 }
+
+
 
 // ─── saveState ────────────────────────────────────────────────
 export function saveState() {
