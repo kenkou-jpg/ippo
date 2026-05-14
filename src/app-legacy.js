@@ -6,19 +6,18 @@
 //  設計: ES module として import。state はグローバル getter 経由。
 // ============================================================
 
-// ─── state ゲッター（ES module strict mode 対応） ─────────────
-// window.state は state.js の setState() が _state のミラーとして設定する。
-// bare `state` 参照をここで getState() 経由に向けることで循環参照を防ぐ。
+// ─── state getter/setter（ES module strict mode 対応） ────────
+// getter: _state を window.getState() 経由で返す。
+// setter: window.setState(v) 経由で _state を更新（window.state = v は再帰するので禁止）。
 Object.defineProperty(globalThis, 'state', {
-get: function() {
-return typeof window.getState === 'function'
-? window.getState()
-: undefined;
-},
-configurable: true,
-enumerable: false
-});
-
+  get: function() {
+    return typeof window.getState === 'function'
+      ? window.getState()
+      : undefined;
+  },
+  set: function(v) {
+    if (typeof window.setState === 'function') window.setState(v);
+  },
   configurable: true,
   enumerable: false
 });

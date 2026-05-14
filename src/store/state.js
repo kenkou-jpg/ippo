@@ -3,9 +3,10 @@
 //  state 初期値 / loadState / saveState / getState / setState
 //
 //  【設計方針】
-//  - _state: module-local の単一正本。
+//  - _state: module-local の単一正本（唯一の source of truth）。
 //  - getState() : _state 未初期化時は INITIAL_STATE で初期化。
-//  - setState()  : _state と window.state を同時更新（legacy code との共存）。
+//  - setState()  : _state のみを更新。window.state は app-legacy.js の
+//                 Object.defineProperty getter 経由で _state を参照する。
 //  - saveState() : getState() 経由で localStorage に保存。
 //  - loadState() : localStorage → setState() で正本を初期化。
 // ============================================================
@@ -45,10 +46,11 @@ export function getState() {
 }
 
 // ─── setState ─────────────────────────────────────────────────
-// legacy bridge: window.state は _state の read-only mirror としてのみ存在する
+// _state を更新する唯一の関数。
+// window.state は app-legacy.js の Object.defineProperty getter 経由で _state を参照するため
+// ここで window.state への代入は不要（getter-only property への代入は TypeError; setter がある場合は無限再帰）。
 export function setState(newState) {
-_state = newState;
-window.state = _state;
+  _state = newState;
 }
 
 
