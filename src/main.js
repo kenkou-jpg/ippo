@@ -7,6 +7,9 @@
 // ─── Boot stability ───────────────────────────────────────
 import './modules/boot-stability.js';
 
+// ─── Runtime Intelligence Hub (全 runtime の先頭) ──────────
+import './runtime/runtime-brain.js';
+
 // ─── Runtime stabilization layer (早期ロード: state 依存なし) ──
 import './runtime/health-monitor.js';
 import './runtime/rollback-manager.js';

@@ -64,6 +64,7 @@ if (!_ENABLED) {
     var snap   = typeof window.ippoRollbackManager === 'object' ? window.ippoRollbackManager.getLatestSnapshot() : null;
     var sync   = typeof window.ippoSyncConsistencyChecker === 'object' ? window.ippoSyncConsistencyChecker.check() : null;
     var dupes  = typeof window.ippoStartupValidator === 'object' ? window.ippoStartupValidator.getDuplicates() : [];
+    var brain  = typeof window.ippoBrain === 'object' ? window.ippoBrain : null;
 
     var lines = [
       '[ippo runtime debug]',
@@ -77,6 +78,30 @@ if (!_ENABLED) {
       'snap    : ' + (snap ? snap.label + '@' + snap.at.slice(11, 19) + '(' + snap.recordCount + ')' : 'none'),
       'sync    : ' + (sync ? (sync.ok ? 'OK' : 'ISSUES:' + sync.issues.length) : '?'),
     ];
+
+    if (brain) {
+      var mode  = brain.getMode();
+      var conf  = brain.getConfidence();
+      var crit  = brain.getCriticalErrors();
+      var rDecs = brain.getRecoveryDecisions();
+      var lastDec = rDecs.length > 0 ? rDecs[rDecs.length - 1] : null;
+
+      lines.push('── brain ──────────');
+      lines.push('mode    : ' + mode);
+      lines.push('startup : ' + (conf.startupConfidence   != null ? conf.startupConfidence   : '?'));
+      lines.push('hydrat  : ' + (conf.hydrationConfidence != null ? conf.hydrationConfidence : '?'));
+      lines.push('render  : ' + (conf.renderConsistency   != null ? conf.renderConsistency   : '?'));
+      lines.push('sync    : ' + (conf.syncConfidence      != null ? conf.syncConfidence      : '?'));
+      lines.push('records : ' + (conf.recordsIntegrity    != null ? conf.recordsIntegrity    : '?'));
+      lines.push('events  : ' + brain.getAllTimeline().length);
+      if (crit.length > 0) {
+        var last = crit[crit.length - 1];
+        lines.push('CRIT: ' + last.phase + ':' + last.module);
+      }
+      if (lastDec) {
+        lines.push('rec→ ' + lastDec.decision);
+      }
+    }
 
     if (dupes.length > 0) {
       lines.push('DUPES: ' + dupes.map(function (d) { return d.name; }).join(','));

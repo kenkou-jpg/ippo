@@ -19,6 +19,7 @@ function getReport() {
     startupGraph:   null,
     snapshots:      [],
     syncConsistency: null,
+    brain:          null,
   };
 
   try {
@@ -50,6 +51,12 @@ function getReport() {
   try {
     if (typeof window.ippoSyncConsistencyChecker === 'object') {
       report.syncConsistency = window.ippoSyncConsistencyChecker.check();
+    }
+  } catch (_) {}
+
+  try {
+    if (typeof window.ippoBrain === 'object') {
+      report.brain = window.ippoBrain.getDiagnosisPayload();
     }
   } catch (_) {}
 
@@ -87,6 +94,23 @@ function printReport() {
     console.log('Snapshots:', report.snapshots.map(function (s) {
       return s.label + '(' + s.recordCount + ')@' + s.at.slice(11, 19);
     }).join(', '));
+  }
+
+  if (report.brain) {
+    var b = report.brain;
+    console.group('Brain:');
+    console.log('Mode:', b.mode, '| Events:', b.timeline.total);
+    console.log('Confidence:', JSON.stringify(b.confidence));
+    if (b.criticalErrors.length > 0) {
+      console.warn('Critical errors:', b.criticalErrors);
+    }
+    if (b.recoveryDecision) {
+      console.warn('Recovery decision:', b.recoveryDecision);
+    }
+    if (b.modeHistory && b.modeHistory.length > 0) {
+      console.log('Mode history:', b.modeHistory);
+    }
+    console.groupEnd();
   }
 
   console.groupEnd();
