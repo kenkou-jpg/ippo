@@ -53,12 +53,12 @@ var CTRL_MODE = Object.freeze({
 
 var MODE_TRANSITIONS = {
   'NORMAL_MODE':       ['DEBUG_MODE', 'SAFE_MODE', 'SAFE_STARTUP_MODE', 'SAFE_CLOUD_MODE', 'LOW_RUNTIME_MODE', 'RECOVERY_MODE'],
-  'DEBUG_MODE':        ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
-  'SAFE_MODE':         ['NORMAL_MODE', 'RECOVERY_MODE', 'SAFE_STARTUP_MODE'],
-  'SAFE_STARTUP_MODE': ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
-  'SAFE_CLOUD_MODE':   ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
-  'LOW_RUNTIME_MODE':  ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
-  'RECOVERY_MODE':     ['NORMAL_MODE', 'SAFE_MODE'],
+'DEBUG_MODE':        ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
+'SAFE_MODE':         ['NORMAL_MODE', 'RECOVERY_MODE', 'SAFE_STARTUP_MODE', 'SAFE_CLOUD_MODE'],
+'SAFE_STARTUP_MODE': ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
+'SAFE_CLOUD_MODE':   ['NORMAL_MODE', 'SAFE_MODE', 'RECOVERY_MODE'],
+'LOW_RUNTIME_MODE':  ['NORMAL_MODE', 'SAFE_MODE', 'SAFE_CLOUD_MODE', 'RECOVERY_MODE'],
+'RECOVERY_MODE':     ['NORMAL_MODE', 'SAFE_MODE'],
 };
 
 // ─── Internal state ───────────────────────────────────────
@@ -160,6 +160,13 @@ function _applyModeEffects(mode, reason) {
     _degradedSystems['insights'] = { mode: 'disabled',   since: _now() };
     _degradedSystems['premium']  = { mode: 'disabled',   since: _now() };
     _audit('safe_startup_applied', reason, { degraded: ['calendar', 'insights', 'premium'] });
+  }
+
+  if (mode === CTRL_MODE.SAFE_CLOUD) {
+    // supabaseUserId 未解決: cloud restore / sync を pause
+    _notifyHooks('pause_cloud_restore', { reason: reason });
+    _degradedSystems['cloudRestore'] = { mode: 'paused', since: _now() };
+    _audit('safe_cloud_mode_applied', reason, { degraded: ['cloudRestore'] });
   }
 
   if (mode === CTRL_MODE.LOW_RUNTIME) {
@@ -292,7 +299,29 @@ function _decide(diagnosis) {
     });
   }
 
-  // 8. Startup duplicates detected → delay_startup
+  // 8. supabaseUserId undefined → SAFE_CLOUD_MODE (cloud restore を pause)
+  var authState = (window.ippoBrain && typeof window.ippoBrain.getAuthState === 'function')
+    ? window.ippoBrain.getAuthState() : null;
+  var supabaseNotReady = authState
+    ? (!authState.authReady || !authState.supabaseReady)
+    : (typeof window.supabaseUserId === 'undefined' || window.supabaseUserId === null);
+  if (supabaseNotReady && _currentMode === CTRL_MODE.NORMAL) {
+    actions.push({
+      action: 'switch_mode',
+      mode:   CTRL_MODE.SAFE_CLOUD,
+      reason: 'supabaseUserId not ready – cloud restore paused',
+    });
+  }
+  // auth ready になったら SAFE_CLOUD_MODE → NORMAL_MODE へ復帰
+  if (!supabaseNotReady && _currentMode === CTRL_MODE.SAFE_CLOUD) {
+    actions.push({
+      action: 'switch_mode',
+      mode:   CTRL_MODE.NORMAL,
+      reason: 'supabaseUserId resolved – resuming normal mode',
+    });
+  }
+
+  // 9. Startup duplicates detected → delay_startup
   var sv = window.ippoStartupValidator;
   if (sv && typeof sv.hasDuplicates === 'function' && sv.hasDuplicates()) {
     actions.push({
@@ -651,6 +680,10 @@ window.ippoRuntimeController = {
   // Lexical bridge (要件 4)
   isLexicalBridgeInjected: function () { return _lexicalBridgeInjected; },
   getLexicalBridge:        function () { return window.__legacyStateBridge || null; },
+
+  // Supabase cloud mode (要件 6)
+  isCloudPaused: function () { return _currentMode === CTRL_MODE.SAFE_CLOUD; },
+  resumeCloud:   function () { _transitionMode(CTRL_MODE.NORMAL, 'manual cloud resume'); },
 
   // Internals for overlay (要件 12)
   isActive: function () { return _controllerActive; },

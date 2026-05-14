@@ -48,6 +48,13 @@ var _criticalErrors    = [];  // max 10
 var _recoveryDecisions = [];  // max 20
 var _modeHistory       = [];  // [{from, to, reason, at}]
 
+// ─── Auth state (Supabase runtime bridge) ─────────────────────────
+var _authState = {
+  authReady:        false,
+  supabaseReady:    false,
+  cloudRestoreReady: false,
+};
+
 // ─── Helpers ──────────────────────────────────────────────
 function _now()  { return Date.now(); }
 function _iso()  { try { return new Date().toISOString(); } catch(_) { return ''; } }
@@ -449,6 +456,7 @@ function getDiagnosisPayload() {
     },
     startupPhases: startupPhases,
     modeHistory:   _modeHistory.slice(-5),
+    authState:     Object.assign({}, _authState),
   };
 }
 
@@ -517,6 +525,17 @@ window.ippoBrain = {
   setMode:              setMode,
   enterRecoveryMode:    enterRecoveryMode,
   exitRecoveryMode:     exitRecoveryMode,
+
+  // Auth state (Supabase runtime bridge)
+  setAuthState: function(key, val) {
+    if (key in _authState) {
+      _authState[key] = val;
+      if (typeof window.ippoMarkBootEvent === 'function') {
+        window.ippoMarkBootEvent('auth-state-change', { key: key, val: val });
+      }
+    }
+  },
+  getAuthState: function() { return Object.assign({}, _authState); },
 
   // Constants
   MODE: MODE,

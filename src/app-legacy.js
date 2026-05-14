@@ -35,8 +35,28 @@ window._ippoStateHooks.push(function(nextState) { state = nextState; });
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 // var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';  // MIGRATED: see src/services/supabase.js
 // var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVrYW9vamRxaGtwZXVkdWpmc2RoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTg3MTUsImV4cCI6MjA5MjA5NDcxNX0.QPoyDxCrnhNInpfGJ5qOVQqn6OQ7clAoOmGgvqQTGX0';  // MIGRATED: see src/services/supabase.js
-// var supabaseToken = null;  // MIGRATED: see src/services/supabase.js
-// var supabaseUserId = null;  // MIGRATED: see src/services/supabase.js
+// ★ Supabase runtime bridge: bare identifier が module 化後も必ず存在するよう宣言
+// (SDK 管理の実値は checkPremiumStatus / auth callback で同期される)
+var supabaseToken = null;
+var supabaseUserId = null;
+
+// ─── Deferred Cloud Restore Queue ────────────────────────────────
+// auth 復元前に cloudRestore が呼ばれた場合、auth ready 後にリトライする
+var _cloudRestoreQueue = [];
+function _flushCloudRestoreQueue() {
+  while (_cloudRestoreQueue.length > 0) {
+    try { _cloudRestoreQueue.shift()(); } catch (e) { console.warn('[cloudQueue] flush error', e); }
+  }
+}
+// auth ready を brain / controller に通知するユーティリティ
+function _notifyAuthReady() {
+  window.supabaseUserId = supabaseUserId;
+  if (window.ippoBrain && typeof window.ippoBrain.setAuthState === 'function') {
+    window.ippoBrain.setAuthState('authReady', true);
+    window.ippoBrain.setAuthState('supabaseReady', true);
+  }
+  _flushCloudRestoreQueue();
+}
 
 // ===== 食事クイック入力 =====
 var _mealPendingType = '';
@@ -1109,6 +1129,7 @@ function supabaseSignInAnonymous(){
         localStorage.setItem('ippo_sb_refresh', data.refresh_token);
         localStorage.setItem('ippo_sb_user_id', data.user.id);
         console.log('Supabase: 匿名ユーザー作成', supabaseUserId);
+        _notifyAuthReady();
         return data;
       }
       throw new Error(data.error_description || data.msg || 'signup failed');
@@ -1127,6 +1148,7 @@ function supabaseRefreshSession(){
       localStorage.setItem('ippo_sb_token', data.access_token);
       localStorage.setItem('ippo_sb_refresh', data.refresh_token);
       localStorage.setItem('ippo_sb_user_id', data.user.id);
+      _notifyAuthReady();
       return data;
     }
     throw new Error('refresh failed');
@@ -1140,6 +1162,7 @@ function supabaseEnsureAuth(){
   if(savedToken && savedUserId){
     supabaseToken = savedToken;
     supabaseUserId = savedUserId;
+    window.supabaseUserId = savedUserId;
     return supabaseRefreshSession().catch(function(){
       return supabaseSignInAnonymous();
     });
@@ -1277,6 +1300,24 @@ function cloudBackupAll(){
 
 function cloudRestore(){
   if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve(false);
+  // auth が未完了の場合: localStorage に token があれば queue（auth 復元中）、なければ safe skip
+  if (!supabaseUserId) {
+    var hasSavedToken = !!localStorage.getItem('ippo_sb_token');
+    if (hasSavedToken) {
+      // token は存在する → auth 復元中の可能性が高い。auth ready 後にリトライ
+      console.warn('未ログイン：クラウド復元をキュー（auth pending）');
+      return new Promise(function(resolve) {
+        _cloudRestoreQueue.push(function() {
+          cloudRestore().then(resolve).catch(function() { resolve(false); });
+        });
+      });
+    }
+    console.warn('未ログイン：クラウド復元をスキップ');
+    return Promise.resolve(false);
+  }
+  if (window.ippoBrain && typeof window.ippoBrain.setAuthState === 'function') {
+    window.ippoBrain.setAuthState('cloudRestoreReady', true);
+  }
   return supabase.auth.getSession().then(function(res){
     var session = res.data.session;
     if(!session || !session.user){
@@ -11025,7 +11066,9 @@ async function submitSync() {
     if (result.data.session) {
       // ★ ログイン直後にsupabaseUserIdを即時反映 → isAdminOrPremium()が即座に正しく動く
       supabaseUserId = result.data.session.user.id;
+      window.supabaseUserId = result.data.session.user.id;
       localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
+      _notifyAuthReady();
       if (result.data.session.user.id === ADMIN_USER_ID) {
         isPremium = true;
       }
@@ -11274,7 +11317,9 @@ async function checkPremiumStatus() {
       }
       supabaseUserId = session.user.id;
       supabaseToken = session.access_token;
+      window.supabaseUserId = session.user.id;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
+      _notifyAuthReady();
       // 管理者は自動的にPROアクセス付与
       if (session.user.id === ADMIN_USER_ID) {
         isPremium = true;
