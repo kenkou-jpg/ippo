@@ -56,20 +56,25 @@ export function bootstrap() {
   // ── 0. Legacy storage key 移行 ────────────────────────────
   migrateStorageKeys();
 
- // ── 1. State hydration ────────────────────────────────────
-const saved = localStorage.getItem(STATE_KEY);
+  // ── 1. State hydration ────────────────────────────────────
+  const saved = localStorage.getItem(STATE_KEY);
 
-if (saved) {
-try {
-setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
-} catch (e) {
-setState({ ...INITIAL_STATE });
-}
-} else {
-setState({ ...INITIAL_STATE });
-}
+  if (saved) {
+    try {
+      setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
+    } catch (e) {
+      setState({ ...INITIAL_STATE });
+    }
+  } else {
+    setState({ ...INITIAL_STATE });
+  }
 
-
+  // ── 1a. State readiness signal ────────────────────────────
+  // hydration 完了 → render gate を開放し deferred renders をフラッシュ。
+  window.__ippoStateReady = true;
+  window.dispatchEvent(new CustomEvent('ippo:state-ready', {
+    detail: { recordCount: (getState().records || []).length }
+  }));
 
   const state = getState();
 
@@ -132,7 +137,17 @@ setState({ ...INITIAL_STATE });
     cloudRestore()
       .then(function (restored) {
         if (!restored) return;
-        setState(JSON.parse(localStorage.getItem(STATE_KEY)));
+        var cloudData = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+        // hydration guard: local の新しい records をクラウドデータで上書きしない
+        var guard = window.ippoHydrationGuard;
+        if (guard && typeof guard.checkHydration === 'function') {
+          var hydrationResult = guard.checkHydration(cloudData, 'cloud-restore');
+          if (!hydrationResult.allowed) {
+            console.warn('[ippo bootstrap] cloud restore hydration blocked – local is newer');
+            return;
+          }
+        }
+        setState(cloudData);
         if (typeof window.updateStats === 'function') window.updateStats();
         if (typeof window.updateHistory === 'function') window.updateHistory();
         if (typeof window.buildCalendar === 'function') window.buildCalendar();
