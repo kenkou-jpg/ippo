@@ -70,6 +70,11 @@ import { start as _startRuntimeController } from './runtime/runtime-controller.j
 // controller より後に宣言することで import 評価順が後になる。
 import './runtime/runtime-orchestrator.js';
 
+// ─── Production Diagnostics System ───────────────────────────
+// Phase 11: production observability + cross-device verification + runtime diagnostics。
+// orchestrator 確立後・bootstrap 前にロード。window.ippoDiagnostics を公開。
+import './runtime/production-diagnostics.js';
+
 // ─── Constants ───────────────────────────────────────────
 import { ICONS }              from './constants/icons.js';
 import { DISEASE_CONFIG }     from './constants/disease.js';
