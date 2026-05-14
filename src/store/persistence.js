@@ -4,12 +4,12 @@
 // ============================================================
 
 export function isPersistenceReady() {
-  return typeof window.saveState === 'function' && !!window.state;
+  return typeof window.saveState === 'function' && typeof window.getState === 'function' && !!window.getState();
 }
 
 export function guardedSaveState() {
   try {
-    if (typeof window.saveState === 'function' && window.state) {
+    if (typeof window.saveState === 'function' && typeof window.getState === 'function' && window.getState()) {
       window.saveState();
       return true;
     }

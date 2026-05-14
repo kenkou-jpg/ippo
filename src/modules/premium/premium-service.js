@@ -79,20 +79,11 @@ export function startPremiumSync() {
 }
 
 // ─── stopPremiumSync ──────────────────────────────────────
-// 停止: service が所有する timer を全て停止する。
-// app-legacy.js の premiumCheckInterval は window._ippoPremiumCheckInterval
-// 経由で参照・停止できる（app-legacy.js が expose している場合）。
 export function stopPremiumSync() {
   _syncActive = false;
 
   if (_syncInterval)  { clearInterval(_syncInterval);  _syncInterval  = null; }
   if (_timeoutHandle) { clearTimeout(_timeoutHandle);  _timeoutHandle = null; }
-
-  // app-legacy.js の interval を停止（既に自己停止している場合は no-op）
-  if (window._ippoPremiumCheckInterval) {
-    try { clearInterval(window._ippoPremiumCheckInterval); } catch (_) {}
-    window._ippoPremiumCheckInterval = null;
-  }
 
   if (typeof window.ippoMarkBootEvent === 'function') {
     window.ippoMarkBootEvent('premium-service:stopped');

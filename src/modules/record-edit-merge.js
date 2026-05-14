@@ -75,10 +75,9 @@ function persist() {
 
 function getActiveEditDate() {
   const s = getState();
+  const _editingModuleDate = window.ippoEditingState ? window.ippoEditingState.getEditingState().date : null;
   const candidates = [
-    window.__ippoActiveEditDate,
-    window.currentEditingDate,
-    window.editingDate,
+    _editingModuleDate,
     s?.currentEditingDate,
     s?.editingDate,
     s?.recordDate,

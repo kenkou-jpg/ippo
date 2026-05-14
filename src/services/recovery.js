@@ -11,7 +11,7 @@
 import { saveState } from '../store/state.js';
 
 export function autoRecoveryCheck() {
-  var s = window.state || {};
+  var s = (typeof window.getState === 'function' ? window.getState() : null) || {};
   var lastCount    = parseInt(localStorage.getItem('ippo_last_record_count') || '0');
   var currentCount = (s.records || []).length;
 
@@ -42,8 +42,8 @@ export function autoRecoveryCheck() {
         : Promise.resolve();
 
       return cloudRestore.then(function () {
-        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, (window.state || {}).records ? (window.state || {}).records.length : 0);
-        localStorage.setItem('ippo_last_record_count', String((window.state || {}).records ? (window.state || {}).records.length : 0));
+        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, ((typeof window.getState === 'function' ? window.getState() : null) || {}).records ? ((typeof window.getState === 'function' ? window.getState() : null) || {}).records.length : 0);
+        localStorage.setItem('ippo_last_record_count', String(((typeof window.getState === 'function' ? window.getState() : null) || {}).records ? ((typeof window.getState === 'function' ? window.getState() : null) || {}).records.length : 0));
         return true;
       });
     }).catch(function (e) {

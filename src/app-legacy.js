@@ -6,50 +6,8 @@
 //  設計: ES module として import。state はグローバル getter 経由。
 // ============================================================
 
-// ─── state getter/setter（ES module strict mode 対応） ────────
-// getter: _state を window.getState() 経由で返す。
-// setter: window.setState(v) 経由で _state を更新（window.state = v は再帰するので禁止）。
-//
-// Phase 9: Bridge Warning Mode
-//   window.__ippoBridgeWarningMode = true の場合、アクセスごとにスタックを記録。
-//   ippoRuntime.enableBridgeWarningMode() で有効化。
-//   段階: warning mode → deactivation → removal（即削除禁止）。
-if (typeof window.__ippoBridgeWarningMode === 'undefined') {
-  window.__ippoBridgeWarningMode = false;
-  window.__ippoBridgeAccessCount = 0;
-}
-Object.defineProperty(globalThis, 'state', {
-  get: function() {
-    if (window.__ippoBridgeWarningMode) {
-      window.__ippoBridgeAccessCount = (window.__ippoBridgeAccessCount || 0) + 1;
-      try {
-        var _stack = new Error().stack || '';
-        var _caller = (_stack.split('\n')[2] || '').trim();
-        console.warn('[ippo] legacy bridge READ detected:', _caller);
-      } catch(_) {}
-    }
-    return typeof window.getState === 'function'
-      ? window.getState()
-      : undefined;
-  },
-  set: function(v) {
-    if (window.__ippoBridgeWarningMode) {
-      window.__ippoBridgeAccessCount = (window.__ippoBridgeAccessCount || 0) + 1;
-      try {
-        var _stack = new Error().stack || '';
-        var _caller = (_stack.split('\n')[2] || '').trim();
-        console.warn('[ippo] legacy bridge WRITE detected:', _caller);
-      } catch(_) {}
-    }
-    if (typeof window.setState === 'function') window.setState(v);
-  },
-  configurable: true,
-  enumerable: false
-});
-
-// ─── bare `state` lexical bridge ─────────────────────────────────
-// ES module strict mode では bare `state` は globalThis.state に自動解決されない。
-// startup 初期 render より前に identifier を存在させるため全 function 定義より先に宣言。
+// ─── bare `state` lexical variable ───────────────────────────────
+// ES module strict mode では bare `state` は window.getState() に自動解決されない。
 // state.js の setState() が呼ばれるたびフックが最新 _state に同期する。
 // records: [] を初期値として持つことで hydration 前の state.records 参照を安全にする。
 if (!window._ippoStateHooks) window._ippoStateHooks = [];
@@ -75,7 +33,6 @@ function _flushCloudRestoreQueue() {
 }
 // auth ready を brain / controller に通知するユーティリティ
 function _notifyAuthReady() {
-  window.supabaseUserId = supabaseUserId;
   if (window.ippoBrain && typeof window.ippoBrain.setAuthState === 'function') {
     window.ippoBrain.setAuthState('authReady', true);
     window.ippoBrain.setAuthState('supabaseReady', true);
@@ -1191,7 +1148,6 @@ function supabaseEnsureAuth(){
   if(savedToken && savedUserId){
     supabaseToken = savedToken;
     supabaseUserId = savedUserId;
-    window.supabaseUserId = savedUserId;
     return supabaseRefreshSession().catch(function(){
       return supabaseSignInAnonymous();
     });
@@ -2013,7 +1969,7 @@ var STEPS = [];
 // インラインにも定義を維持する。モジュール実行後は window.saveState が上書きされる。
 function saveState() {
   try {
-    var s = window.state || state;
+    var s = state;
     s.lastSaved = new Date().toISOString();
     localStorage.setItem('ippo_state', JSON.stringify(s));
   } catch(e) {
@@ -11093,9 +11049,7 @@ async function submitSync() {
 
     // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
     if (result.data.session) {
-      // ★ ログイン直後にsupabaseUserIdを即時反映 → isAdminOrPremium()が即座に正しく動く
       supabaseUserId = result.data.session.user.id;
-      window.supabaseUserId = result.data.session.user.id;
       localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
       _notifyAuthReady();
       if (result.data.session.user.id === ADMIN_USER_ID) {
@@ -11346,7 +11300,6 @@ async function checkPremiumStatus() {
       }
       supabaseUserId = session.user.id;
       supabaseToken = session.access_token;
-      window.supabaseUserId = session.user.id;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
       _notifyAuthReady();
       // 管理者は自動的にPROアクセス付与
@@ -11530,40 +11483,32 @@ if (e.target === this) closePremiumLock();
 // (window.selectPremiumPlan / window.startStripeCheckout /
 //  window.checkUpsellNotification / handleStripeReturn IIFE として公開)
 
-// Supabase認証の準備完了を待ってからプレミアム状態を確認
-// Phase 5: window._ippoPremiumCheckInterval に公開して premium-service が停止可能にする
-var premiumCheckInterval = setInterval(function(){
-  if(typeof supabase !== 'undefined' && supabase.auth){
-    clearInterval(premiumCheckInterval);
-    window._ippoPremiumCheckInterval = null;
-    supabase.auth.onAuthStateChange(function(event, session){
+// supabase.js は main.js で app-legacy.js より後にロードされるため
+// ippo:vite-ready 後に onAuthStateChange を登録する。
+window.addEventListener('ippo:vite-ready', function() {
+  if (typeof supabase !== 'undefined' && supabase && supabase.auth) {
+    supabase.auth.onAuthStateChange(function(event, session) {
       checkPremiumStatus();
-      // セッション確立時（ページリロード後の再認証含む）にクラウド復元を実行
-      // ※ TOKEN_REFRESHED は頻繁に起きるので30秒クールダウン
-      // ※ 同期モーダルが開いている間（ログイン処理中）は呼ばない
-      if((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user){
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && session && session.user) {
         var _syncOverlay = document.getElementById('syncOverlay');
         var _syncModalOpen = _syncOverlay && _syncOverlay.classList.contains('active');
-        if(!_syncModalOpen){
+        if (!_syncModalOpen) {
           var _now = Date.now();
           var _last = window._lastAuthRestore || 0;
-          if(_now - _last > 30000){
+          if (_now - _last > 30000) {
             window._lastAuthRestore = _now;
-            if(typeof _applyCloudRestore === 'function') _applyCloudRestore();
+            if (typeof _applyCloudRestore === 'function') _applyCloudRestore();
           }
         }
       }
-      // ログアウト時はステータス表示を即時更新
-      if(event === 'SIGNED_OUT'){
+      if (event === 'SIGNED_OUT') {
         var briefEl = document.getElementById('syncStatusBrief');
-        if(briefEl) briefEl.textContent = '未ログイン';
+        if (briefEl) briefEl.textContent = '未ログイン';
       }
     });
     checkPremiumStatus();
   }
-}, 500);
-// Phase 5: premium-service.js が停止・確認できるよう公開
-window._ippoPremiumCheckInterval = premiumCheckInterval;
+}, { once: true });
 
 // manualCloudRestore の実装は line 1870 の enhanced merge 版を使用。
 // ─── window 互換エクスポート ─────────────────────────────────

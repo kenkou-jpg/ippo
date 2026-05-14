@@ -202,7 +202,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
   window.ippoMarkServiceReady('main-entry', {
     ready: true,
     hasSupabase: !!supabase,
-    hasState: typeof window.state === 'object',
+    hasState: typeof window.getState === 'function' && typeof window.getState() === 'object',
   });
 }
 
@@ -225,7 +225,7 @@ window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('vite-ready-dispatched', {
     hasSupabase: !!window.supabase,
-    hasState: typeof window.state === 'object',
+    hasState: typeof window.getState === 'function' && typeof window.getState() === 'object',
   });
 }
 

@@ -117,7 +117,9 @@ function openTodayRecord() {
     }
   } catch(e) {}
 
-  try { window.__ippoActiveEditDate = date; } catch(e) {}
+  if (window.ippoEditingState) {
+    try { window.ippoEditingState.setEditingState(date, 'daily-card-guard'); } catch(e) {}
+  }
 
   if (typeof window.ippoMarkRecordEditIntent === 'function') {
     try { window.ippoMarkRecordEditIntent('daily-card-guard', date); } catch(e) {}

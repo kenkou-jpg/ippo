@@ -43,13 +43,13 @@ function traceRecord(label, detail) {
 }
 
 function getRecordTraceSnapshot() {
-  const state = window.state || {};
+  const state = (typeof window.getState === 'function' ? window.getState() : null) || {};
   let ippoState = null;
 
   try { ippoState = localStorage.getItem('ippo_state'); } catch(e) {}
 
   return {
-    hasWindowState: !!window.state,
+    hasWindowState: typeof window.getState === 'function' && !!window.getState(),
     stateRecordsLength: Array.isArray(state.records) ? state.records.length : null,
     hasWindowSupabase: !!window.supabase,
     ippoStateLength: ippoState ? ippoState.length : 0,
