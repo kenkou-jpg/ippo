@@ -45,13 +45,13 @@ export function getState() {
 }
 
 // ─── setState ─────────────────────────────────────────────────
-// window.state bridge: app-legacy.js など window.state を読む legacy code との共存。
-// app-legacy.js の Object.defineProperty(globalThis,'state',…) が backing variable
-// (__ippoStateStorage) を使う前提で window.state 代入が安全に動作する。
+// legacy bridge: window.state は _state の read-only mirror としてのみ存在する
 export function setState(newState) {
-  _state = newState;
-  window.state = newState;
+_state = newState;
+window.state = _state;
 }
+
+
 
 // ─── saveState ────────────────────────────────────────────────
 export function saveState() {
