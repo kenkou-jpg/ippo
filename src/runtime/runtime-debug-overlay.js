@@ -103,6 +103,41 @@ if (!_ENABLED) {
       }
     }
 
+    var ctrl = typeof window.ippoRuntimeController === 'object' ? window.ippoRuntimeController : null;
+    if (ctrl) {
+      var ctrlMode    = ctrl.getMode();
+      var lastAction  = ctrl.getLastDecision();
+      var isolated    = ctrl.getIsolatedModules();
+      var retryQueue  = ctrl.getRenderRetryQueue();
+      var degraded    = ctrl.getDegradedSystems();
+      var isolatedNames = Object.keys(isolated);
+      var degradedNames = Object.keys(degraded);
+      var audit       = ctrl.getAuditTrail();
+      var lastAudit   = audit.length > 0 ? audit[audit.length - 1] : null;
+
+      lines.push('── controller ─────');
+      lines.push('ctrlMode: ' + ctrlMode);
+      if (lastAction) {
+        lines.push('action  : ' + lastAction.action);
+        lines.push('reason  : ' + (lastAction.reason || '').slice(0, 30));
+      }
+      if (lastAudit && (!lastAction || lastAudit.action !== lastAction.action)) {
+        lines.push('lastLog : ' + lastAudit.action);
+      }
+      if (retryQueue.length > 0) {
+        lines.push('retryQ  : ' + retryQueue.map(function (r) { return r.module + '#' + r.attempts; }).join(','));
+      }
+      if (isolatedNames.length > 0) {
+        lines.push('isolated: ' + isolatedNames.join(','));
+      }
+      if (degradedNames.length > 0) {
+        lines.push('degraded: ' + degradedNames.join(','));
+      }
+      if (ctrl.isLexicalBridgeInjected()) {
+        lines.push('lexBrdg : injected');
+      }
+    }
+
     if (dupes.length > 0) {
       lines.push('DUPES: ' + dupes.map(function (d) { return d.name; }).join(','));
     }

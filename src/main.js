@@ -34,6 +34,9 @@ import { install as _installStateIntegrityGuard }  from './runtime/state-integri
 import { install as _installSaveTransactionGuard } from './runtime/save-transaction-guard.js';
 import './runtime/runtime-debug-overlay.js';
 
+// ─── Runtime Decision Layer (brain observer → controller executor) ──
+import { start as _startRuntimeController } from './runtime/runtime-controller.js';
+
 // ─── Constants ───────────────────────────────────────────
 import { ICONS }              from './constants/icons.js';
 import { DISEASE_CONFIG }     from './constants/disease.js';
@@ -148,6 +151,10 @@ if (typeof window.ippoMarkBootEvent === 'function') {
 // window.setState / window.saveState が確定した後にインストール。
 _installStateIntegrityGuard();
 _installSaveTransactionGuard();
+
+// ─── Runtime Controller start (state 確定後) ──────────────
+// brain = observer, controller = executor. 循環依存なし。
+_startRuntimeController();
 
 // 60秒ごとに localStorage ↔ in-memory の整合性チェックを開始
 if (typeof window.ippoSyncConsistencyChecker === 'object') {
