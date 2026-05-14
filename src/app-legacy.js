@@ -7,9 +7,12 @@
 // ============================================================
 
 // ─── state ゲッター（ES module strict mode 対応） ─────────────
+// getter/setter は window.state を参照しないよう backing variable 経由にする。
+// 自己参照（window.state → getter → window.state）は無限再帰になるため。
+var __ippoStateStorage;
 Object.defineProperty(globalThis, 'state', {
-  get: function() { return window.state; },
-  set: function(v) { window.state = v; },
+  get: function() { return __ippoStateStorage; },
+  set: function(v) { __ippoStateStorage = v; },
   configurable: true,
   enumerable: false
 });
