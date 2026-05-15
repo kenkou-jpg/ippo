@@ -7,13 +7,31 @@
 // tab-specific な更新関数は window.* 経由で呼び出す（まだ inline に残る）。
 // ============================================================
 
-export function switchTab(tab, btn) {
-  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+import { ensureScreenLoaded } from './screen-router.js';
+
+export async function switchTab(tab, btn) {
+  // calendar / insights は静的 DOM に存在しないため fetch して注入
+  await ensureScreenLoaded(tab);
 
   const screen = document.getElementById('screen-' + tab);
-  if (screen) screen.classList.add('active');
+  console.log('[switchTab]', tab, 'screen found:', !!screen, screen ? screen.className : 'N/A');
+
+  document.querySelectorAll('.screen').forEach(function(s) {
+    s.classList.remove('active');
+    s.style.display = 'none';  // 明示的に非表示
+  });
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+
+  if (screen) {
+    screen.classList.add('active');
+    screen.style.display = 'block';  // CSS クラスより強い inline style で確実に表示
+    console.log('[switchTab] showing screen:', screen.id, 'display:', screen.style.display);
+  } else {
+    console.error('[switchTab] screen element not found for tab:', tab);
+  }
   if (btn) btn.classList.add('active');
+
+  window.scrollTo(0, 0);
 
   if (tab === 'insights') {
     let activePaneName = 'free';

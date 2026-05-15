@@ -14,6 +14,10 @@ import { getState } from '../store/state.js';
 
 const _loadedScreens = new Set();
 
+export async function ensureScreenLoaded(name) {
+  return _ensureScreenLoaded(name);
+}
+
 async function _ensureScreenLoaded(name) {
   const existing = document.getElementById(`screen-${name}`);
   if (existing) return; // static DOM or already injected
