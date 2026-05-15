@@ -1,0 +1,263 @@
+<div id="screen-insights" class="screen">
+  <div class="spacer-top"></div>
+
+  <!-- ===== インサイト タブバー ===== -->
+  <div style="margin:0 20px 16px;">
+    <div style="display:flex;background:#f2ece8;border-radius:12px;padding:3px;gap:2px;">
+      <button id="ins-tab-btn-free" onclick="switchInsTab('free')"
+        style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:600;background:white;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08);transition:all 0.15s;">
+        無料の発見
+      </button>
+      <button id="ins-tab-btn-pro" onclick="switchInsTab('pro')"
+        style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
+        ☆ PRO分析
+      </button>
+      <button id="ins-tab-btn-doctor" onclick="switchInsTab('doctor')"
+        style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
+        ⬜ 医師レポート
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== 無料の発見 タブ ===== -->
+  <div id="ins-pane-free">
+
+    <!-- 統計3列 -->
+    <div style="display:flex;gap:8px;margin:0 20px 16px;">
+      <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+        <div style="font-size:22px;font-weight:700;color:var(--ink);line-height:1;" id="insight-total">0</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">記録日数</div>
+      </div>
+      <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+        <div style="font-size:22px;font-weight:700;color:#1D9B6C;line-height:1;" id="pain-free-days">—</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">無痛み日</div>
+      </div>
+      <div style="flex:1;text-align:center;background:white;border-radius:12px;padding:12px 6px;box-shadow:0 1px 5px rgba(0,0,0,0.06);">
+        <div style="font-size:22px;font-weight:700;color:var(--rose);line-height:1;" id="avg-pain-score">—</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:4px;">平均痛み</div>
+      </div>
+    </div>
+    <!-- 隠し要素（updateStats用ID保持） -->
+    <span id="insight-streak" style="display:none;">0</span>
+
+    <!-- 空状態バナー（記録なし時） -->
+    <div id="insights-empty-state" style="display:none;margin:0 20px 24px;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:20px;padding:28px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🌱</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">記録を始めましょう</div>
+      <div style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>パターンが見えてきます。</div>
+      <button type="button" onclick="state.editingDate=null; openRecordScreen()" style="padding:14px 32px;background:var(--rose);color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:500;cursor:pointer;box-shadow:0 4px 14px rgba(184,112,122,0.3);">今日を記録する →</button>
+    </div>
+
+    <!-- からだの発見カード -->
+    <div id="insights-discoveries" style="padding:0 20px;margin-bottom:20px;">
+      <div id="discoveries-cards"></div>
+    </div>
+
+    <!-- PROで解放される分析 -->
+    <div style="margin:0 20px 32px;">
+      <div style="text-align:center;font-size:11px;color:var(--ink-light);margin-bottom:12px;letter-spacing:0.05em;">PROで解放される分析</div>
+      <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 1px 6px rgba(0,0,0,0.06);">
+        <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f5efeb;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--ink);">フェーズ別症状マップ</div>
+            <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">月経・卵胞・排卵・黄体期それぞれの症状傾向</div>
+          </div>
+        </div>
+        <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid #f5efeb;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--ink);">食事×からだ相関分析</div>
+            <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">何を食べた翌日に体調が変化するか可視化</div>
+          </div>
+        </div>
+        <div onclick="premiumGate(function(){})" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="flex-shrink:0;margin-right:12px;"><path d="M12 2C8.13 2 5 5.13 5 9v2H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V9c0-3.87-3.13-7-7-7zm0 2c2.76 0 5 2.24 5 5v2H7V9c0-2.76 2.24-5 5-5z" fill="#c4a0a8"/></svg>
+          <div>
+            <div style="font-size:13px;font-weight:500;color:var(--ink);">90日・1年間の比較グラフ</div>
+            <div style="font-size:11px;color:var(--ink-light);margin-top:2px;">長期トレンドで体の変化を追う</div>
+          </div>
+        </div>
+      </div>
+      <button onclick="switchTab('premium', document.querySelector('.nav-item:last-child'))"
+        style="width:100%;padding:16px;margin-top:14px;background:#3D2020;color:white;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:0.05em;">
+        PROにする
+      </button>
+    </div>
+
+  </div><!-- /ins-pane-free -->
+
+  <!-- ===== PRO分析 タブ ===== -->
+  <div id="ins-pane-pro" style="display:none;">
+
+    <!-- フェーズ別症状マップ -->
+    <div id="phase-map-section" style="padding:0 20px;margin-bottom:20px;">
+      <div style="margin-bottom:12px;">
+        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">フェーズ別症状マップ</div>
+        <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">生理期・卵胞期・黄体期それぞれで<br>あなたの症状がどう変わるか可視化します。</div>
+        <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+      </div>
+      <div id="phase-map-content"></div>
+    </div>
+
+    <!-- 食事×体調の相関（PRO予告） -->
+    <div class="section-card" style="margin:0 20px 20px;">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">FOOD × BODY</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">食事とからだの関係</div>
+        <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">食べたものと体調・症状の相関を<br>グラフで可視化します。</div>
+        <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+      </div>
+      <div id="food-body-correlation"></div>
+    </div>
+
+    <!-- 生理周期×症状パターン（PRO予告） -->
+    <div class="section-card" style="margin:0 20px 20px;">
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">CYCLE × SYMPTOMS</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);font-weight:500;margin-bottom:4px;">生理周期と症状の関係</div>
+        <div style="font-size:12px;color:var(--ink-light);line-height:1.6;margin-bottom:10px;">周期のどの時期に症状が出やすいか<br>パターンを分析します。</div>
+        <button onclick="premiumGate(function(){})" style="padding:8px 16px;background:#FBEAF0;color:#72243E;border:none;border-radius:8px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">PROで解放する →</button>
+      </div>
+      <div id="cycle-symptom-correlation"></div>
+    </div>
+
+    <!-- 比較グラフ（Comparison Chart） -->
+    <div class="section-card" style="margin:0 20px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMPARISON CHART</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">比較グラフ</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+        <select id="cg-metric1" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
+          <option value="energy">エネルギー</option>
+          <option value="sleepQuality">睡眠の質</option>
+          <option value="sleepHours">睡眠時間</option>
+          <option value="painLevel">痛みレベル</option>
+          <option value="wellnessScore">ウェルネス</option>
+          <option value="smiScore">SMI</option>
+          <option value="symptomCount">症状数</option>
+        </select>
+        <select id="cg-metric2" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);background:var(--white);">
+          <option value="">なし（単独表示）</option>
+          <option value="energy">エネルギー</option>
+          <option value="sleepQuality" selected>睡眠の質</option>
+          <option value="sleepHours">睡眠時間</option>
+          <option value="painLevel">痛みレベル</option>
+          <option value="wellnessScore">ウェルネス</option>
+          <option value="smiScore">SMI</option>
+          <option value="symptomCount">症状数</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;">
+        <button class="cg-range-btn" onclick="setCGRange(7,this)" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">7日</button>
+        <button class="cg-range-btn selected" onclick="setCGRange(30,this)" style="padding:5px 12px;border:1px solid var(--rose);border-radius:8px;font-size:10px;background:var(--rose-pale);color:var(--rose);cursor:pointer;">30日</button>
+        <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(90)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">90日<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
+        <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(365)})" style="padding:5px 12px;border:1px solid #e8ddd8;border-radius:8px;font-size:10px;background:var(--white);color:var(--ink-mid);cursor:pointer;">1年<span style="font-size:8px;color:var(--rose);margin-left:2px;">PRO</span></button>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="cg-factor-toggles"></div>
+      <div id="cg-chart-container" style="width:100%;overflow-x:auto;">
+        <svg id="cg-chart" width="100%" height="200" style="min-width:300px;"></svg>
+      </div>
+      <div id="cg-legend" style="display:flex;gap:12px;justify-content:center;margin-top:8px;font-size:10px;color:var(--ink-light);"></div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="section-card" style="margin:0 20px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">TIMELINE</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">タイムライン</div>
+        </div>
+        <div style="font-size:10px;color:var(--ink-light);" id="tl-count"></div>
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:10px;">
+        <input type="text" id="tl-search" placeholder="🔍 症状・要因・メモで検索" oninput="renderTimeline()" style="flex:1;padding:8px 12px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);outline:none;">
+        <select id="tl-filter" onchange="renderTimeline()" style="padding:8px;border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+          <option value="all">すべて</option>
+          <option value="pain">痛みあり</option>
+          <option value="flare">フレアアップ</option>
+          <option value="period">生理中</option>
+          <option value="high-energy">高エネルギー</option>
+          <option value="low-energy">低エネルギー</option>
+        </select>
+      </div>
+      <div id="tl-list" style="max-height:400px;overflow-y:auto;"></div>
+      <div id="tl-more" style="display:none;text-align:center;margin-top:10px;">
+        <button onclick="loadMoreTimeline()" style="padding:8px 20px;background:var(--white);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink-mid);cursor:pointer;">もっと見る</button>
+      </div>
+    </div>
+
+    <!-- Community Voice -->
+    <div class="section-card" style="margin:0 20px 20px;">
+      <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.cv-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">COMMUNITY VOICE</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:var(--ink);">みんなの声</div>
+        </div>
+        <span class="cv-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+      </div>
+      <div style="display:none;margin-top:14px;">
+        <div style="font-size:12px;color:var(--ink-light);margin-bottom:16px;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
+
+        <!-- タブ切り替え -->
+        <div id="cv-tabs" style="display:flex;gap:8px;margin-bottom:14px;">
+          <button onclick="switchCVTab('current')" id="cv-tab-current" style="flex:1;padding:8px;border:1.5px solid var(--rose);border-radius:10px;background:var(--rose);color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">今週のテーマ</button>
+          <button onclick="switchCVTab('archive')" id="cv-tab-archive" style="flex:1;padding:8px;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);color:var(--ink-mid);font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">過去のテーマ</button>
+        </div>
+
+        <!-- 今週のテーマ -->
+        <div id="cv-current">
+          <div id="community-topic" style="background:linear-gradient(135deg,#fdf3f3,#faf6f1);border-radius:14px;padding:16px;margin-bottom:14px;">
+            <div style="font-size:10px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div>
+            <div style="font-size:14px;color:var(--ink);font-weight:600;line-height:1.6;" id="community-question">読み込み中...</div>
+          </div>
+
+          <div id="community-replies" style="margin-bottom:14px;"></div>
+
+          <div id="community-form" style="background:var(--warm-light);border-radius:14px;padding:14px;">
+            <div style="font-size:11px;color:var(--ink-light);margin-bottom:8px;">💬 あなたの体験を共有する</div>
+            <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1.5px solid #e8ddd8;border-radius:10px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.7;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+              <div style="font-size:10px;color:var(--ink-light);">匿名で投稿されます</div>
+              <button onclick="postCommunityReply()" style="background:#3a2e2e;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:600;cursor:pointer;">投稿する</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 過去のテーマ -->
+        <div id="cv-archive" style="display:none;">
+          <div id="cv-archive-list" style="font-size:13px;color:var(--ink-light);text-align:center;padding:20px 0;">読み込み中...</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /ins-pane-pro -->
+
+  <!-- ===== 医師レポート タブ ===== -->
+  <div id="ins-pane-doctor" style="display:none;">
+    <div style="margin:0 20px 20px;">
+      <div onclick="premiumGate(function(){})" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:18px;padding:22px 20px;cursor:pointer;">
+        <div style="font-size:11px;color:var(--rose);letter-spacing:0.1em;margin-bottom:6px;">DOCTOR REPORT</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:var(--ink);margin-bottom:8px;">医師向けレポート</div>
+        <div style="font-size:12px;color:var(--ink-light);line-height:1.8;margin-bottom:16px;">記録データをもとに、産婦人科・内科受診時に活用できるサマリーを生成します。症状の傾向・服薬記録・周期データを1枚にまとめてPDF出力できます。</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+            <span style="color:var(--rose);">✓</span> 痛みスコア・症状の月次サマリー
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+            <span style="color:var(--rose);">✓</span> 服薬・サプリ記録の一覧
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);">
+            <span style="color:var(--rose);">✓</span> 生理周期グラフ（直近3ヶ月）
+          </div>
+        </div>
+        <div style="background:var(--rose);color:white;border-radius:12px;padding:12px;text-align:center;font-size:13px;font-weight:500;">🔓 PROで医師レポートを生成する</div>
+      </div>
+    </div>
+  </div><!-- /ins-pane-doctor -->
+
+</div><!-- /screen-insights -->

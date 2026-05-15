@@ -7,6 +7,7 @@
 // ============================================================
 
 import { logWarning } from './health-monitor.js';
+import { getState } from '../store/state.js';
 
 var _cloudSyncBlocked = false;
 
@@ -24,7 +25,7 @@ function check() {
   try {
     var stateKey     = window.STATE_KEY || 'ippo_state';
     var stored       = localStorage.getItem(stateKey);
-    var currentState = typeof window.getState === 'function' ? window.getState() : null;
+    var currentState = getState();
 
     if (stored && currentState) {
       var parsedStored  = JSON.parse(stored);

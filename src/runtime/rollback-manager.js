@@ -5,6 +5,8 @@
 // 提供: window.ippoRollbackManager
 // ============================================================
 
+import { getState, saveState } from '../store/state.js';
+
 const SNAPSHOT_LIMIT = 8;
 const _snapshots = [];
 
@@ -18,7 +20,7 @@ function _deepClone(obj) {
 
 // 現在の state をスナップショットとして保存する
 function takeSnapshot(label) {
-  var state = typeof window.getState === 'function' ? window.getState() : null;
+  var state = getState();
   if (!state) return null;
   try {
     var snap = {
@@ -61,7 +63,7 @@ function rollbackTo(snap) {
     window._ippoRollbackBypass = true;
     if (typeof window.setState === 'function') window.setState(restored);
     window._ippoRollbackBypass = false;
-    if (typeof window.saveState === 'function') window.saveState();
+    saveState();
     if (typeof window.ippoMarkBootEvent === 'function') {
       window.ippoMarkBootEvent('rollback-applied', {
         label:       snap.label,

@@ -10,7 +10,7 @@
 
 import { saveState, STATE_KEY, INITIAL_STATE, migrateStorageKeys, getState, setState } from '../store/state.js';
 import { migrateToIDB }     from '../services/storage-migration.js';
-import { initialCloudSync, cloudRestore } from '../services/supabase.js';
+import { supabase, initialCloudSync, cloudRestore } from '../services/supabase.js';
 import { autoRecoveryCheck } from '../services/recovery.js';
 
 // totalDays / streak の整合性を records から再計算して修復する
@@ -216,7 +216,7 @@ export function bootstrap() {
     var _restoreAttempts = 0;
     var restoreInterval = setInterval(function () {
       _restoreAttempts++;
-      if (typeof window.supabase !== 'undefined' && window.supabase.auth) {
+      if (supabase && supabase.auth) {
         clearInterval(restoreInterval);
         window._applyCloudRestore();
       } else if (_restoreAttempts >= 20) {
@@ -237,7 +237,7 @@ export function bootstrap() {
   window.__ippoBootstrapReady = true;
   window.dispatchEvent(new CustomEvent('ippo:bootstrap-ready', {
     detail: {
-      hasSupabase:    !!(typeof window.supabase !== 'undefined' && window.supabase),
+      hasSupabase:    !!supabase,
       safeBootstrap:  !!(window.__ippoSafeBootstrapMode),
       recordCount:    (getState().records || []).length,
     },

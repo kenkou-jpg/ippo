@@ -13,6 +13,7 @@
 
 import { logWarning } from './health-monitor.js';
 import { takeSnapshot } from './rollback-manager.js';
+import { getState } from '../store/state.js';
 
 function _ts(val) {
   if (!val) return 0;
@@ -32,7 +33,7 @@ function isNewerOrEqual(incoming, current) {
 
 // hydration 前に呼び出す。ブロックすべき場合は allowed: false を返す。
 function checkHydration(incomingData, source) {
-  var currentState = typeof window.getState === 'function' ? window.getState() : null;
+  var currentState = getState();
   if (!currentState || !incomingData) return { allowed: true };
 
   var currentCount  = (currentState.records || []).length;

@@ -15,6 +15,8 @@
 //  - window.requestNotificationPermission / window.scheduleReminders を維持
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 // ─── タイマー管理 ─────────────────────────────────────────
 // モジュールローカル変数。scheduleReminders() 内でのみ使用。
 let _reminderTimers = [];
@@ -35,7 +37,7 @@ export function scheduleReminders() {
 
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  var st = typeof window.getState === 'function' ? window.getState() : null;
+  var st = getState();
   if (!st || !st.reminders || !st.reminders.length) return;
 
   var now = new Date();

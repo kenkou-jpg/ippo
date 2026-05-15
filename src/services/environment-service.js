@@ -7,14 +7,11 @@
 //  SUPABASE_URL identifiers anywhere else are prohibited.
 //
 //  Load order: imported first in main.js (after boot-stability).
-//  Side effect: sets window.SUPABASE_URL and window.SUPABASE_KEY
-//  so that app-legacy.js bare-identifier references resolve.
 // ============================================================
 
 // ─── Resolution (runs at module evaluation time) ─────────────
-// Priority: window override → Vite build-time injection → hardcoded default (URL only)
+// VITE_SUPABASE_ANON_KEY is preferred; VITE_SUPABASE_KEY kept for backwards compat
 var _url = (function () {
-  if (window.SUPABASE_URL && window.SUPABASE_URL !== 'undefined') return window.SUPABASE_URL;
   try {
     var v = import.meta.env.VITE_SUPABASE_URL;
     if (v && v !== 'undefined') return v;
@@ -23,9 +20,8 @@ var _url = (function () {
 })();
 
 var _key = (function () {
-  if (window.SUPABASE_KEY && window.SUPABASE_KEY !== 'undefined') return window.SUPABASE_KEY;
   try {
-    var v = import.meta.env.VITE_SUPABASE_KEY;
+    var v = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
     if (v && v !== 'undefined') return v;
   } catch (_) {}
   return null;
@@ -67,12 +63,6 @@ if (_key && _key.length < 20) _issues.push('malformed-supabase-key');
 // Activated when SUPABASE_KEY is absent.
 // In safe mode: save disabled, cloud disabled, local-only, diagnostics visible.
 var SAFE_BOOTSTRAP_MODE = !_key;
-
-// ─── Global exposure ─────────────────────────────────────────
-// CRITICAL: sets bare-identifier globals that app-legacy.js functions reference.
-// In ES modules, window.X IS accessible as bare identifier X in global scope.
-window.SUPABASE_URL = _url;
-window.SUPABASE_KEY = _key || '';
 
 if (SAFE_BOOTSTRAP_MODE) {
   window.__ippoSafeBootstrapMode = true;

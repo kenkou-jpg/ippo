@@ -10,6 +10,8 @@
 // ============================================================
 
 // ─── Constants ────────────────────────────────────────────
+import { getState } from '../store/state.js';
+
 var TIMELINE_MAX  = 300;
 var CAUSALITY_MAX = 100;
 var RECORD_HIST_MAX = 50;
@@ -222,7 +224,7 @@ function _classifyHydrationState(data) {
   if (!data) return 'unknown';
 
   var incoming    = data.incomingData   || {};
-  var currentState = typeof window.getState === 'function' ? window.getState() : null;
+  var currentState = getState();
 
   if (!currentState) return 'no-current-state';
 
@@ -414,7 +416,7 @@ function getReplay(filter) {
 function getDiagnosisPayload() {
   var state = null;
   try {
-    if (typeof window.getState === 'function') state = window.getState();
+    state = getState();
   } catch (_) {}
 
   var recentCritical = _criticalErrors.slice(-5);

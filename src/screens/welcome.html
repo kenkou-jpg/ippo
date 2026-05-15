@@ -1,0 +1,129 @@
+<div id="screen-welcome" class="fade-in">
+
+  <!-- ステップインジケーター -->
+  <div id="ob-indicator" style="display:none;justify-content:center;gap:5px;margin-bottom:20px;padding-top:8px;">
+  </div>
+
+  <!-- Step 0: スプラッシュ -->
+  <div id="ob-step-0" class="ob-step">
+    <div style="text-align:center;padding:20px 0 24px;">
+      <div class="welcome-logo">ippo</div>
+      <div style="font-size:13px;color:var(--ink-light);margin-top:6px;line-height:1.7;">
+        疾患と向き合う女性の<br>毎日の記録帳
+      </div>
+    </div>
+    <div style="background:var(--white);border-radius:16px;padding:16px 18px;margin-bottom:20px;border:0.5px solid #e8ddd8;">
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">記録が続くほど</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);line-height:1.8;">
+        あなただけのからだの<br>パターンが見えてきます
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #f0e8e0;font-size:11px;color:var(--ink-light);line-height:1.7;">
+        症状・痛み・体調を毎日記録して<br>
+        診察に活かせるデータを作りましょう
+      </div>
+    </div>
+    <div style="background:var(--cream);border-radius:14px;padding:13px 16px;margin-bottom:20px;border:0.5px solid #e8ddd8;display:flex;align-items:flex-start;gap:10px;">
+      <div style="font-size:16px;flex-shrink:0;margin-top:1px;">&#128274;</div>
+      <div style="font-size:11px;color:var(--ink-light);line-height:1.7;">
+        あなたの記録はあなただけのものです。<br>
+        広告への利用・第三者への販売は行いません。
+      </div>
+    </div>
+    <button class="btn-primary" data-ob-action="next" style="width:100%;">はじめる</button>
+    <button class="btn-skip" data-ob-action="skip-all" style="width:100%;margin-top:8px;">すでにアカウントをお持ちの方</button>
+  </div>
+
+  <!-- Step 1: 名前 -->
+  <div id="ob-step-1" class="ob-step" style="display:none;">
+    <div class="ob-question">お名前を<br>教えてください</div>
+    <div class="ob-hint">ニックネームでも大丈夫です</div>
+    <input class="welcome-input" id="ob-name-input" type="text" placeholder="例：さくら"
+      style="margin-bottom:8px;"
+      oninput="document.getElementById('ob-name-display').textContent = this.value || 'あなた'">
+    <button class="btn-primary" data-ob-action="save-name" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 2: 生年 -->
+  <div id="ob-step-2" class="ob-step" style="display:none;">
+    <div class="ob-question">生まれた年を<br>教えてください</div>
+    <div class="ob-hint">年齢によって表示するアドバイスが変わります（任意）</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="ob-birth-year" class="welcome-input" style="flex:1;margin-bottom:0;">
+        <option value="">選択してください</option>
+      </select>
+      <div style="display:flex;align-items:center;font-size:13px;color:var(--ink-light);">年</div>
+    </div>
+    <button class="btn-primary" data-ob-action="save-birth" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 3: 最後の生理開始日 -->
+  <div id="ob-step-3" class="ob-step" style="display:none;">
+    <div class="ob-question">最後の生理が<br>始まった日は？</div>
+    <div class="ob-hint">ホームの周期表示に使います。わからない場合はスキップできます</div>
+    <div id="ob-period-calendar" style="background:var(--white);border-radius:14px;border:0.5px solid #e8ddd8;padding:12px;margin-bottom:16px;"></div>
+    <div id="ob-period-selected" style="text-align:center;font-size:12px;color:var(--rose);font-weight:500;margin-bottom:12px;min-height:18px;"></div>
+    <button class="btn-primary" data-ob-action="save-period" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">わからない・スキップ</button>
+  </div>
+
+  <!-- Step 4: 生理周期 -->
+  <div id="ob-step-4" class="ob-step" style="display:none;">
+    <div class="ob-question">生理の周期は<br>だいたい何日ですか？</div>
+    <div class="ob-hint">「だいたい」で大丈夫です</div>
+    <div id="ob-cycle-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-cycle" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 5: 疾患選択 -->
+  <div id="ob-step-5" class="ob-step" style="display:none;">
+    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid var(--rose-dark);">
+      <div style="font-size:13px;font-weight:500;color:#72243E;margin-bottom:6px;">ippoのデータポリシー</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.8;">すべてのデータはあなたの端末内で暗号化されます。<br>第三者への提供・販売は一切行いません。</div>
+    </div>
+    <div class="ob-question">気になる症状や<br>疾患はありますか？</div>
+    <div class="ob-hint">選択すると記録する症状が自動で最適化されます（複数選択可）</div>
+    <div id="ob-disease-list-new" style="max-height:42vh;overflow-y:auto;padding:0 2px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-diseases" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">まだわからない・スキップ</button>
+  </div>
+
+  <!-- Step 6: 目的 -->
+  <div id="ob-step-6" class="ob-step" style="display:none;">
+    <div class="ob-question">ippoをどのように<br>使いたいですか？</div>
+    <div class="ob-hint">後で設定から変更できます</div>
+    <div id="ob-purpose-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-purpose" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 7: リマインダー -->
+  <div id="ob-step-7" class="ob-step" style="display:none;">
+    <div class="ob-question">記録のお知らせを<br>設定しますか？</div>
+    <div class="ob-hint">毎日この時間にお知らせします。継続率が大幅に上がります</div>
+    <div id="ob-reminder-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-reminder" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="complete" style="width:100%;margin-top:8px;">リマインダーは不要</button>
+  </div>
+
+  <!-- Step 8: 完了画面 -->
+  <div id="ob-step-8" class="ob-step" style="display:none;">
+    <div style="text-align:center;padding:24px 0;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);margin-bottom:8px;">
+        準備ができました
+      </div>
+      <div id="ob-name-display" style="font-size:14px;color:var(--ink-light);margin-bottom:20px;">あなた</div>
+      <div id="ob-cycle-summary" style="background:var(--rose-pale);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:none;">
+        <div id="ob-cycle-phase" style="font-size:13px;font-weight:500;color:var(--plum);margin-bottom:4px;"></div>
+        <div id="ob-cycle-next" style="font-size:12px;color:var(--ink-light);"></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.8;margin-bottom:24px;">
+        記録するほど、あなただけの<br>パターンが見えてきます。<br>まずは今日の記録から始めましょう。
+      </div>
+      <button class="btn-primary" data-ob-action="complete-onboarding" style="width:100%;">ippoをはじめる</button>
+    </div>
+  </div>
+
+</div>

@@ -18,10 +18,10 @@
 // ============================================================
 
 import { supabase, SUPABASE_URL } from './supabase.js';
+import { getState } from '../store/state.js';
 
-// ─── Price ID（Stripe ダッシュボードで設定） ─────────────────
-export const STRIPE_PRICE_MONTHLY = 'price_XXXXXXXXXXXXXXXXXX'; // ¥580/月
-export const STRIPE_PRICE_ANNUAL  = 'price_YYYYYYYYYYYYYYYYYY'; // ¥4,800/年
+// Price ID はサーバー側（Edge Function の環境変数）でのみ管理する。
+// クライアントには Price ID を公開しない。
 
 // ─── プラン選択状態 ────────────────────────────────────────
 // window._selectedPlan も同期して HTML onclick ハンドラから参照可能にする
@@ -56,17 +56,11 @@ export function selectPremiumPlan(planType) {
   }
 }
 
-// ─── Price ID プレースホルダー検出 ───────────────────────
-function isPlaceholderPrice(id) {
-  return !id || /^price_[XY]+$/.test(id);
-}
-
 // ─── Stripe チェックアウト開始 ────────────────────────────
-// ※ Edge Function URL 変更禁止 / 認証フロー変更禁止
+// plan ("monthly" | "annual") のみをサーバーに送信。Price ID はサーバー側で決定。
 export async function startStripeCheckout(forcePlan) {
   var plan = forcePlan || _selectedPlan;
-  var priceId = plan === 'annual' ? STRIPE_PRICE_ANNUAL : STRIPE_PRICE_MONTHLY;
-  if (isPlaceholderPrice(priceId)) {
+  if (plan !== 'monthly' && plan !== 'annual') {
     window.showToast('決済機能は現在準備中です。もうしばらくお待ちください。');
     return;
   }
@@ -82,18 +76,13 @@ export async function startStripeCheckout(forcePlan) {
   if (btn) { btn.textContent = '処理中...'; btn.disabled = true; }
 
   try {
-    var base    = window.location.href.split('?')[0];
-    var resp    = await fetch(SUPABASE_URL + '/functions/v1/create-checkout', {
+    var resp = await fetch(SUPABASE_URL + '/functions/v1/stripe-checkout', {
       method:  'POST',
       headers: {
         'Content-Type':  'application/json',
         'Authorization': 'Bearer ' + sessionData.access_token,
       },
-      body: JSON.stringify({
-        price_id:    priceId,
-        success_url: base + '?stripe=success&plan=' + plan,
-        cancel_url:  base + '?stripe=cancel',
-      }),
+      body: JSON.stringify({ plan }),
     });
     var data = await resp.json();
     if (data.url) {
@@ -120,12 +109,16 @@ export async function startStripeCheckout(forcePlan) {
   if (stripeStatus === 'success') {
     window.showToast('💳 決済が完了しました。プレミアム機能を有効化中...');
     var attempts = 0;
-    var poll = setInterval(function () {
+    var poll = setInterval(async function () {
       attempts++;
-      window.checkPremiumStatus();
-      if (window.isPremium || attempts >= 12) {
+      // DB から最新のプレミアム状態を取得（Edge Function / webhook 経由で更新済みのはず）
+      if (window.ippoPremiumService && typeof window.ippoPremiumService.refreshPremiumStatus === 'function') {
+        await window.ippoPremiumService.refreshPremiumStatus();
+      }
+      var nowPremium = window.ippoPremiumService ? window.ippoPremiumService.isPremium() : false;
+      if (nowPremium || attempts >= 12) {
         clearInterval(poll);
-        if (window.isPremium) {
+        if (nowPremium) {
           window.showToast('🎉 ' + (plan === 'annual' ? '年額' : '月額') + 'プランへようこそ！');
         } else {
           // 30秒経過してもプレミアム未確認 — webhook未整備時に発生する
@@ -142,7 +135,7 @@ export function checkUpsellNotification() {
   var lastShown = localStorage.getItem('ippo_upsell_ts');
   if (lastShown && Date.now() - parseInt(lastShown) < 7 * 24 * 60 * 60 * 1000) return;
 
-  var st = typeof window.getState === 'function' ? window.getState() : null;
+  var st = getState();
   if (!st || !st.records || st.records.length < 10) return;
 
   var firstDate  = st.records.slice().sort(function (a, b) { return a.date < b.date ? -1 : 1; })[0].date;
@@ -179,8 +172,6 @@ export function checkUpsellNotification() {
 }
 
 // ─── window 互換（移行期間: 非モジュール <script> との共存） ──
-window.STRIPE_PRICE_MONTHLY    = STRIPE_PRICE_MONTHLY;
-window.STRIPE_PRICE_ANNUAL     = STRIPE_PRICE_ANNUAL;
 window.selectPremiumPlan       = selectPremiumPlan;
 window.startStripeCheckout     = startStripeCheckout;
 window.checkUpsellNotification = checkUpsellNotification;

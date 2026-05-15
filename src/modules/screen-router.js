@@ -4,11 +4,44 @@
 //
 //  showScreen(name) を経由することで「現在どの画面か」が
 //  DOM ではなく state.currentScreen に存在するようになる。
+//
+//  Phase 8: src/screens/{name}.html の遅延 fetch に対応。
+//  static DOM にスクリーンが存在する場合はそのまま使用し、
+//  存在しない場合のみ fetch して #screens-container に注入する。
 // ============================================================
 
 import { getState } from '../store/state.js';
 
-export function showScreen(name) {
+const _loadedScreens = new Set();
+
+async function _ensureScreenLoaded(name) {
+  const existing = document.getElementById(`screen-${name}`);
+  if (existing) return; // static DOM or already injected
+  if (_loadedScreens.has(name)) return; // fetch already in flight / done
+  _loadedScreens.add(name);
+
+  let container = document.getElementById('screens-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'screens-container';
+    document.getElementById('main-app')?.appendChild(container) ??
+      document.body.appendChild(container);
+  }
+
+  try {
+    const res = await fetch(`/src/screens/${name}.html`);
+    if (!res.ok) throw new Error(`screen fetch failed: ${res.status}`);
+    const html = await res.text();
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    while (tmp.firstChild) container.appendChild(tmp.firstChild);
+  } catch (e) {
+    _loadedScreens.delete(name);
+    console.warn(`[screen-router] could not load screen "${name}":`, e);
+  }
+}
+
+export async function showScreen(name) {
   const state = getState();
   state.currentScreen = name;
 
@@ -17,6 +50,9 @@ export function showScreen(name) {
   const mainAppEl = document.getElementById('main-app');
   if (welcomeEl) welcomeEl.style.display = 'none';
   if (mainAppEl) mainAppEl.style.display = 'block';
+
+  // Phase 8: スクリーンが DOM に無ければ fetch して注入
+  await _ensureScreenLoaded(name);
 
   // CSS .screen / .screen.active クラス方式に統一（switchTab と同じ機構）
   // inline style.display が残留するとクラスより優先されるため必ずクリアする
