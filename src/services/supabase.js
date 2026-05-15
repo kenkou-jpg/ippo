@@ -15,12 +15,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 
-// import.meta.env から直接取得。VITE_SUPABASE_ANON_KEY を優先し、旧 KEY も fallback。
+// import.meta.env.VITE_SUPABASE_ANON_KEY はビルド時に Vite が静的注入する。
 export const SUPABASE_URL =
   (import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
   'https://ekaoojdqhkpeudujfsdh.supabase.co';
 const SUPABASE_SDK_KEY =
-  (import.meta.env && (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY)) ||
+  (import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) ||
   null;
 
 // app-legacy.js の bare identifier 参照のために window に設定（Phase 7 で削除予定）
@@ -36,7 +36,7 @@ window.__ippoSupabaseStatus = {
 };
 
 if (!SUPABASE_SDK_KEY) {
-  console.warn('ippo: SUPABASE_KEY is not available. Supabase client was not initialized.');
+  console.warn('ippo: VITE_SUPABASE_ANON_KEY is not available. Supabase client was not initialized.');
 }
 
 export const supabase = SUPABASE_SDK_KEY ? createClient(SUPABASE_URL, SUPABASE_SDK_KEY, {

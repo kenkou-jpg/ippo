@@ -10,7 +10,6 @@
 // ============================================================
 
 // ─── Resolution (runs at module evaluation time) ─────────────
-// VITE_SUPABASE_ANON_KEY is preferred; VITE_SUPABASE_KEY kept for backwards compat
 var _url = (function () {
   try {
     var v = import.meta.env.VITE_SUPABASE_URL;
@@ -21,7 +20,7 @@ var _url = (function () {
 
 var _key = (function () {
   try {
-    var v = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY;
+    var v = import.meta.env.VITE_SUPABASE_ANON_KEY;
     if (v && v !== 'undefined') return v;
   } catch (_) {}
   return null;
@@ -60,13 +59,13 @@ if (_url && !/^https?:\/\//.test(_url)) _issues.push('malformed-supabase-url');
 if (_key && _key.length < 20) _issues.push('malformed-supabase-key');
 
 // ─── SAFE_BOOTSTRAP_MODE ─────────────────────────────────────
-// Activated when SUPABASE_KEY is absent.
+// Activated when VITE_SUPABASE_ANON_KEY is absent at build time.
 // In safe mode: save disabled, cloud disabled, local-only, diagnostics visible.
 var SAFE_BOOTSTRAP_MODE = !_key;
 
 if (SAFE_BOOTSTRAP_MODE) {
   window.__ippoSafeBootstrapMode = true;
-  console.warn('[environment-service] SAFE_BOOTSTRAP_MODE: SUPABASE_KEY missing. Cloud features disabled.');
+  console.warn('[environment-service] SAFE_BOOTSTRAP_MODE: VITE_SUPABASE_ANON_KEY missing. Cloud features disabled.');
 }
 
 // ─── Public API ──────────────────────────────────────────────
