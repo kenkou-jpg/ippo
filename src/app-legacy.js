@@ -10607,18 +10607,15 @@ function buildDataSummary(records) {
 
     // エネルギー
     if(d.energy){
-      if(!energyLevels) energyLevels = [];
       energyLevels.push(d.energy);
       daySummary.energy = d.energy;
     }
     // 睡眠
     if(d.sleepHours){
-      if(!sleepHoursArr) sleepHoursArr = [];
       sleepHoursArr.push(d.sleepHours);
       daySummary.sleepHours = d.sleepHours;
     }
     if(d.sleepQuality){
-      if(!sleepQualityArr) sleepQualityArr = [];
       sleepQualityArr.push(d.sleepQuality);
       daySummary.sleepQuality = d.sleepQuality;
     }

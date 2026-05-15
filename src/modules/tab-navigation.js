@@ -7,13 +7,23 @@
 // tab-specific な更新関数は window.* 経由で呼び出す（まだ inline に残る）。
 // ============================================================
 
-export function switchTab(tab, btn) {
-  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
-  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+import { ensureScreenLoaded, showScreen } from './screen-router.js';
 
-  const screen = document.getElementById('screen-' + tab);
-  if (screen) screen.classList.add('active');
+export async function switchTab(tab, btn) {
+  // calendar / insights は静的 DOM に存在しないため fetch して注入
+  await ensureScreenLoaded(tab);
+
+  // showScreen() 経由で state.currentScreen を更新する。
+  // welcome-reset-guard が setTimeout(0) で showScreen(getCurrentScreen()) を
+  // 呼ぶため、ここで currentScreen を正しいタブに更新しないと home に戻される。
+  await showScreen(tab);
+
+  // nav ボタンのアクティブ状態を同期（showScreen は data-tab-for を見るが
+  // ボトムナビは data-tab 属性のため手動で合わせる）
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
   if (btn) btn.classList.add('active');
+
+  window.scrollTo(0, 0);
 
   if (tab === 'insights') {
     let activePaneName = 'free';
