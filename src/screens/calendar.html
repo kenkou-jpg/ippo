@@ -1,0 +1,25 @@
+<div id="screen-calendar" class="screen">
+  <div class="spacer-top"></div>
+  <div class="calendar-section">
+    <div class="cal-header">
+      <div class="cal-label" id="calLabel"></div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月"></button>
+        <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月"></button>
+      </div>
+    </div>
+    <div class="cal-weekdays">
+      <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+</div>
+
+<!-- Day Detail Modal（グローバル・固定） -->
+<div class="dm-overlay" id="dmOverlay">
+  <div class="dm-box">
+    <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
+    <div class="dm-date" id="dmDate"></div>
+    <div id="dmBody"></div>
+  </div>
+</div>

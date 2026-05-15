@@ -1271,28 +1271,6 @@
         <button class="fb-submit" onclick="submitFeedback()">フィードバックを送る</button>
       </div>
 
-<!-- Admin Panel (管理者のみ表示) -->
-<div id="admin-panel" style="display:none;">
-  <div class="settings-section">
-    <div class="settings-section-title">🔧 Admin Panel</div>
-    <div class="settings-card" style="padding:20px;">
-      <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px;">プレミアム管理</div>
-      <div style="margin-bottom:12px;">
-        <input type="email" id="admin-email" placeholder="ユーザーのメールアドレス" style="width:100%;border:1.5px solid #e8ddd8;border-radius:12px;padding:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);outline:none;box-sizing:border-box;">
-      </div>
-      <div style="display:flex;gap:8px;margin-bottom:16px;">
-        <button onclick="adminSetPremium(true)" style="flex:1;padding:12px;background:var(--rose);color:white;border:none;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">✓ Premium ON</button>
-        <button onclick="adminSetPremium(false)" style="flex:1;padding:12px;background:#f0ebe6;color:var(--ink-mid);border:none;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:13px;font-weight:500;cursor:pointer;">✗ Premium OFF</button>
-      </div>
-      <div id="admin-result" style="font-size:12px;color:var(--ink-light);min-height:20px;"></div>
-      <div style="border-top:1px solid #f0ebe6;margin-top:16px;padding-top:16px;">
-        <div style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:12px;">プレミアムユーザー一覧</div>
-        <button onclick="adminLoadPremiumUsers()" style="width:100%;padding:10px;background:var(--white);border:1.5px solid #e8ddd8;border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink-mid);cursor:pointer;">一覧を読み込む</button>
-        <div id="admin-user-list" style="margin-top:12px;"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
       
       <!-- About -->

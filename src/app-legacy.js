@@ -10445,7 +10445,7 @@ async function downloadReportPDF() {
 
   // ===== AI PATTERN ANALYSIS (AIパターン解析) =====
 
-const OPENAI_API_KEY = 'YOUR_API_KEY_HERE'; // ← 後で設定
+// AI analysis uses Edge Function (ai-analyze) — no client-side API key needed
 
 function openAIAnalysis() {
   document.getElementById('aiAnalysisOverlay').classList.add('active');
@@ -10679,65 +10679,36 @@ function buildDataSummary(records) {
 }
 
 async function callAIAPI(summary) {
-  // APIキーが設定されていない場合はローカル解析
-  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_API_KEY_HERE') {
+  // Edge Function 経由で AI 解析を実行（クライアントに API キー不要）
+  var supabaseClient = window.supabase;
+  var sessionData = supabaseClient ? (await supabaseClient.auth.getSession()).data?.session : null;
+
+  if (!sessionData) {
     return generateLocalAnalysis(summary);
   }
 
-  const prompt = `あなたは女性の健康セルフケアアプリ「ippo」のパターン解析アシスタントです。
-以下のユーザーの記録データを分析し、気づいたパターンや傾向をコメントしてください。
+  var supabaseUrl = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
+  var records = typeof state !== 'undefined' && state.records ? state.records : [];
 
-【ルール】
-- 医学的な診断や指導は絶対にしない
-- 「〜の傾向があるようです」「〜かもしれません」など、事実の提示に留める
-- 具体的なデータ（日数や回数）を引用する
-- 温かく、押しつけがましくないトーンで
-- 3〜4段落、合計300文字程度
-- HTMLの<p>タグで段落を分ける
-
-【データ】
-記録日数: ${summary.totalDays}日
-${summary.avgTemp ? '平均基礎体温: ' + summary.avgTemp + '℃' : ''}
-${summary.avgFasting ? '平均ファスティング: ' + summary.avgFasting + '時間' : ''}
-ファスティングの分布: ${summary.fastingHours ? '16h以上=' + summary.fastingHours.filter(h=>h>=16).length + '日, 12-16h=' + summary.fastingHours.filter(h=>h>=12&&h<16).length + '日, 12h未満=' + summary.fastingHours.filter(h=>h<12).length + '日' : 'データなし'}
-最多症状: ${summary.topSymptom || 'なし'}
-感情傾向: ${JSON.stringify(summary.emotionCounts)}
-症状: ${JSON.stringify(summary.symptomCounts)}
-生理周期: ${JSON.stringify(summary.cycleData)}
-痛みデータ: ${summary.painDays > 0 ? '記録日数=' + summary.painDays + '日, 平均強度=' + summary.avgPainLevel + '/10, 部位=' + JSON.stringify([...new Set(summary.painData.flatMap(p=>p.location))]) + ', 種類=' + JSON.stringify([...new Set(summary.painData.flatMap(p=>p.type))]) : 'データなし'}
-服薬状況: ${Object.keys(summary.medicationCounts).length > 0 ? JSON.stringify(summary.medicationCounts) : 'データなし'}
-経血詳細: ${summary.bloodDetails.length > 0 ? summary.bloodDetails.map(b => b.date + ':' + b.flow + (b.clot.length ? '/' + b.clot.join(',') : '') + (b.color.length ? '/' + b.color.join(',') : '')).join(', ') : 'データなし'}
-直近メモ: ${summary.notes.join(' / ')}
-体調スコア: ${summary.scores.length > 0 ? '平均' + (summary.scores.reduce((a,b)=>a+b,0)/summary.scores.length).toFixed(1) : 'なし'}
-${summary.avgEnergy ? '平均エネルギー: ' + summary.avgEnergy + '/5' : ''}
-${summary.avgSleepHours ? '平均睡眠時間: ' + summary.avgSleepHours + '時間' : ''}
-${summary.avgSleepQuality ? '平均睡眠の質: ' + summary.avgSleepQuality + '/5' : ''}
-${Object.keys(summary.factorCounts).length > 0 ? '生活ファクター: ' + JSON.stringify(summary.factorCounts) : ''}
-${Object.keys(summary.bowelCounts).length > 0 ? 'お通じ分布: ' + JSON.stringify(summary.bowelCounts) : ''}
-${summary.avgWellness ? '平均ウェルネススコア: ' + summary.avgWellness + '/100' : ''}
-${summary.avgSMI ? '平均更年期指数(SMI): ' + summary.avgSMI + '/94' : ''}`;
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  var resp = await fetch(supabaseUrl + '/functions/v1/ai-analyze', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + OPENAI_API_KEY
+      'Authorization': 'Bearer ' + sessionData.access_token,
     },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [{ role: 'user', content: prompt }],
-      max_tokens: 500,
-      temperature: 0.7
-    })
+    body: JSON.stringify({ records: records, analysisType: 'pattern' }),
   });
 
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error('API error: ' + (errData.error?.message || response.status));
+  if (!resp.ok) {
+    if (resp.status === 429) throw new Error('解析リクエストが多すぎます。1分後にもう一度お試しください。');
+    const errData = await resp.json().catch(() => ({}));
+    throw new Error('API error: ' + (errData.error || resp.status));
   }
 
-  const data = await response.json();
-  return data.choices[0].message.content;
+  var data = await resp.json();
+  var content = data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? null;
+  if (!content) return generateLocalAnalysis(summary);
+  return content;
 }
 
 // APIキーなしのローカル解析（フォールバック）

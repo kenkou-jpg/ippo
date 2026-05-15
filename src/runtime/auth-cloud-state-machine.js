@@ -23,6 +23,9 @@
 //   Future: replace with 'supabaseLoaded' CustomEvent if Supabase SDK supports it.
 // ============================================================
 
+import { getState } from '../store/state.js';
+import { supabase } from '../services/supabase.js';
+
 var AUTH_STATE = Object.freeze({
   INITIAL:           'initial',
   CHECKING:          'checking',
@@ -97,7 +100,7 @@ function _reportBrain(reason) {
 
   var recordCount = null;
   try {
-    var s = typeof window.getState === 'function' ? window.getState() : null;
+    var s = getState();
     recordCount = s ? (s.records || []).length : null;
   } catch (_) {}
 
@@ -130,11 +133,7 @@ function waitForSupabase(onReady) {
   _pollTimer = setInterval(function () {
     elapsed += POLL_INTERVAL_MS;
 
-    var isReady = (
-      typeof window.supabase !== 'undefined' &&
-      window.supabase &&
-      typeof window.supabase.auth === 'object'
-    );
+    var isReady = !!(supabase && typeof supabase.auth === 'object');
 
     if (isReady) {
       clearInterval(_pollTimer);

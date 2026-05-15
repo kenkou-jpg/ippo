@@ -4,7 +4,7 @@
 // ============================================================
 
 import { showScreen } from './screen-router.js';
-import { getState } from '../store/state.js';
+import { getState, saveState } from '../store/state.js';
 
 // ── ヘルパー ─────────────────────────────────────────────────
 
@@ -292,7 +292,7 @@ export function updateHomeDiseaseAdvice() {
 // ── CTA カード ────────────────────────────────────────────────
 
 export function updateHomeCTAState() {
-  var s = (typeof window.getState === 'function' ? window.getState() : null) || {};
+  var s = getState() || {};
   var today = new Date().toISOString().slice(0, 10);
   var rec = (s.records || []).find(function (r) {
     return (r.date || r.record_date || '').slice(0, 10) === today;

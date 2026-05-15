@@ -3,14 +3,16 @@
 //  persistence boundary utilities
 // ============================================================
 
+import { getState, saveState } from './state.js';
+
 export function isPersistenceReady() {
-  return typeof window.saveState === 'function' && typeof window.getState === 'function' && !!window.getState();
+  return !!getState();
 }
 
 export function guardedSaveState() {
   try {
-    if (typeof window.saveState === 'function' && typeof window.getState === 'function' && window.getState()) {
-      window.saveState();
+    if (getState()) {
+      saveState();
       return true;
     }
   } catch (_) {}

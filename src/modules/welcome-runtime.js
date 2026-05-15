@@ -16,11 +16,12 @@
 // ============================================================
 
 import { getRecords } from './record-repository.js';
+import { getState } from '../store/state.js';
 
 const WELCOME_RUNTIME_KEY = '__ippoWelcomeRuntime';
 
 function getAppState() {
-  return (typeof window.getState === 'function' ? window.getState() : null) || {};
+  return getState() || {};
 }
 
 function hasRecords() {

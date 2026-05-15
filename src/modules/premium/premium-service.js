@@ -1,59 +1,80 @@
 // ============================================================
 //  ippo – src/modules/premium/premium-service.js
-//  Phase 5: Premium Module Extraction
-//
-//  責務:
-//    - premium polling の ownership を premium module へ移行
-//    - startPremiumSync() / stopPremiumSync() により timer 制御を一元化
-//    - ippo:auth-ready イベントを受けて premium check を実行
-//    - app-legacy.js の premiumCheckInterval を段階的に引き継ぐ
-//
-//  設計:
-//    - app-legacy.js の onAuthStateChange 登録は transitional bridge として存続
-//    - premium-service は ippo:auth-ready 以降の premium 再確認を担当
-//    - 将来: app-legacy.js の premiumCheckInterval 完全除去後に
-//      startPremiumSync() がメイン polling になる
-//
-//  提供: window.ippoPremiumService
-//  依存: window.checkPremiumStatus (app-legacy.js)、ippo:auth-ready event
-//
-//  AUDIT: timer=bounded
-//    _syncInterval は startPremiumSync → auth-ready で自己停止。
-//    auth-ready 未発火時は AUTH_WAIT_TIMEOUT_MS (20s) でタイムアウト停止。
+//  Premium status is sourced from Supabase DB (profiles table).
+//  No localStorage / client-side state manipulation.
 // ============================================================
 
-var AUTH_WAIT_TIMEOUT_MS = 20000;  // auth-ready 待ち最大時間
+import { supabase } from '../../services/supabase.js';
 
-// ─── Internal state ───────────────────────────────────────
-var _syncInterval   = null;
-var _syncActive     = false;
-var _timeoutHandle  = null;
-var _authReadyBound = false;
+var SYNC_INTERVAL_MS    = 5 * 60 * 1000; // 5分ごとに再取得
+var AUTH_WAIT_TIMEOUT_MS = 20000;
 
-// ─── Helpers ──────────────────────────────────────────────
-function _callCheckPremium() {
+// ─── Internal memory state ────────────────────────────────
+var _isPremiumValue     = false;
+var _premiumExpiresAt   = null;
+var _syncInterval       = null;
+var _syncActive         = false;
+var _timeoutHandle      = null;
+var _authReadyBound     = false;
+
+// ─── DB から is_premium を取得 ────────────────────────────
+async function _fetchPremiumFromDB() {
   try {
-    if (typeof window.checkPremiumStatus === 'function') {
-      window.checkPremiumStatus();
+    var session = (await supabase.auth.getSession()).data?.session;
+    if (!session) {
+      _isPremiumValue   = false;
+      _premiumExpiresAt = null;
+      return;
     }
+
+    var { data, error } = await supabase
+      .from('profiles')
+      .select('is_premium, premium_expires_at')
+      .eq('id', session.user.id)
+      .single();
+
+    if (error || !data) {
+      console.warn('[premium-service] profiles fetch error', error);
+      return;
+    }
+
+    var now = new Date();
+    var expired = data.premium_expires_at && new Date(data.premium_expires_at) < now;
+    _isPremiumValue   = !!data.is_premium && !expired;
+    _premiumExpiresAt = data.premium_expires_at ?? null;
   } catch (e) {
-    console.warn('[ippoPremiumService] checkPremiumStatus error', e);
+    console.warn('[premium-service] _fetchPremiumFromDB error', e);
   }
 }
 
-// ─── onAuthReady handler ──────────────────────────────────
-function _onAuthReady() {
+// ─── Public: isPremium ────────────────────────────────────
+export function isPremium() {
+  return _isPremiumValue;
+}
+
+// ─── Public: refreshPremiumStatus ────────────────────────
+export async function refreshPremiumStatus() {
+  await _fetchPremiumFromDB();
+}
+
+// ─── onAuthReady handler ─────────────────────────────────
+async function _onAuthReady() {
   stopPremiumSync();
-  _callCheckPremium();
+
+  await _fetchPremiumFromDB();
+
+  // 5分ごとに定期同期
+  _syncInterval = setInterval(_fetchPremiumFromDB, SYNC_INTERVAL_MS);
+  _syncActive   = true;
 
   if (typeof window.ippoMarkBootEvent === 'function') {
-    window.ippoMarkBootEvent('premium-service:auth-ready-triggered');
+    window.ippoMarkBootEvent('premium-service:auth-ready-triggered', {
+      isPremium: _isPremiumValue,
+    });
   }
 }
 
-// ─── startPremiumSync ─────────────────────────────────────
-// 起動: ippo:auth-ready を待ち、到達したら premium check を実行。
-// app-legacy.js の premiumCheckInterval が既に動作中の場合も安全に共存。
+// ─── Public: startPremiumSync ────────────────────────────
 export function startPremiumSync() {
   if (_syncActive) return;
   _syncActive = true;
@@ -63,9 +84,8 @@ export function startPremiumSync() {
     window.addEventListener('ippo:auth-ready', _onAuthReady, { once: true });
   }
 
-  // タイムアウト保護: 20s で ippo:auth-ready が来なかった場合は停止
   _timeoutHandle = setTimeout(function () {
-    if (_syncActive) {
+    if (!_syncInterval) {
       stopPremiumSync();
       if (typeof window.ippoMarkBootEvent === 'function') {
         window.ippoMarkBootEvent('premium-service:sync-timeout', { waitedMs: AUTH_WAIT_TIMEOUT_MS });
@@ -78,7 +98,7 @@ export function startPremiumSync() {
   }
 }
 
-// ─── stopPremiumSync ──────────────────────────────────────
+// ─── Public: stopPremiumSync ─────────────────────────────
 export function stopPremiumSync() {
   _syncActive = false;
 
@@ -90,25 +110,13 @@ export function stopPremiumSync() {
   }
 }
 
-// ─── isPremium ────────────────────────────────────────────
-function _isPremium() {
-  // auth-service 経由（推奨）
-  if (window.ippoAuthService && typeof window.ippoAuthService.isPremium === 'function') {
-    return window.ippoAuthService.isPremium();
-  }
-  // app-legacy.js bridge 経由（fallback）
-  if (typeof window.isAdminOrPremium === 'function') {
-    return window.isAdminOrPremium();
-  }
-  return false;
-}
-
-// ─── Public API ───────────────────────────────────────────
+// ─── Public API object ────────────────────────────────────
 window.ippoPremiumService = {
-  startPremiumSync: startPremiumSync,
-  stopPremiumSync:  stopPremiumSync,
-  isPremium:        _isPremium,
-  isActive:         function () { return _syncActive; },
+  startPremiumSync:     startPremiumSync,
+  stopPremiumSync:      stopPremiumSync,
+  isPremium:            isPremium,
+  refreshPremiumStatus: refreshPremiumStatus,
+  isActive:             function () { return _syncActive; },
 };
 
 if (typeof window.ippoMarkBootEvent === 'function') {

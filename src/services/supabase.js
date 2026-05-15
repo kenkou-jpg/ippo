@@ -15,14 +15,15 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 
-// environment-service が window.SUPABASE_URL / window.SUPABASE_KEY を設定済みのはず。
-// ここで再確認し、未設定の場合はフォールバックを確保する（belt-and-suspenders）。
-export const SUPABASE_URL = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
-const SUPABASE_SDK_KEY = (window.SUPABASE_KEY && window.SUPABASE_KEY !== 'undefined' ? window.SUPABASE_KEY : null)
-  || (import.meta.env && import.meta.env.VITE_SUPABASE_KEY)
-  || null;
+// import.meta.env から直接取得。VITE_SUPABASE_ANON_KEY を優先し、旧 KEY も fallback。
+export const SUPABASE_URL =
+  (import.meta.env && import.meta.env.VITE_SUPABASE_URL) ||
+  'https://ekaoojdqhkpeudujfsdh.supabase.co';
+const SUPABASE_SDK_KEY =
+  (import.meta.env && (import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_KEY)) ||
+  null;
 
-// グローバルを確定値で上書き（environment-service が未ロードの場合の保険）
+// app-legacy.js の bare identifier 参照のために window に設定（Phase 7 で削除予定）
 window.SUPABASE_URL = SUPABASE_URL;
 window.SUPABASE_KEY = SUPABASE_SDK_KEY || '';
 

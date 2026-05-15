@@ -1,0 +1,313 @@
+<div id="screen-record" class="screen">
+  <div class="spacer-top"></div>
+  <div style="padding:0 24px 16px;">
+    <button type="button" onclick="switchTab('home', document.querySelector('.nav-item'))" aria-label="ホームに戻る" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-light);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0 0 12px;letter-spacing:0.03em;">← 戻る</button>
+    <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
+    <div class="home-date" id="rec-screen-date"></div>
+  </div>
+
+  <!-- プログレスドット -->
+  <div id="rec-progress-dots" style="display:flex;justify-content:center;gap:8px;padding:0 24px 20px;">
+    <div id="rec-dot-1" style="width:10px;height:10px;border-radius:50%;background:var(--rose);transition:background 0.3s;"></div>
+    <div id="rec-dot-2" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-3" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-4" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;display:none;"></div>
+  </div>
+
+  <!-- ===== STEP 1: 今日の気分 ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 1</div>
+    <div class="section-title serif">今日の気分</div>
+    <div style="display:flex;justify-content:space-around;padding:8px 0;" id="rs-mood">
+      <button class="chip" onclick="selectMood(this,1)" data-val="1" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-2 7-2 10 0"/><line x1="8" y1="9" x2="10" y2="11"/><line x1="16" y1="9" x2="18" y2="11"/></svg>
+        <span style="font-size:9px;margin-top:2px;">つらい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,2)" data-val="2" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-1 7-1 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">しんどい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,3)" data-val="3" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><line x1="9" y1="16" x2="17" y2="16"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">ふつう</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,4)" data-val="4" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 14c1.5 2 7 2 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">まあまあ</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,5)" data-val="5" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 13c1 2.5 3.5 4 5 4s4-1.5 5-4"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="17" cy="9" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">よい</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: 症状・痛み ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 2</div>
+    <div class="section-title serif">症状・痛み</div>
+    <div id="rs-symptoms"></div>
+    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
+      <div class="section-label">PAIN DETAIL</div>
+      <div class="section-title serif">痛みの詳細</div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
+        <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
+          <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
+        <div class="chips" id="rs-pain-location">
+          <div class="chip" onclick="toggleRsChip(this)">左下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">右下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">下腹部全体</div>
+          <div class="chip" onclick="toggleRsChip(this)">腰</div>
+          <div class="chip" onclick="toggleRsChip(this)">骨盤周り</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの種類</div>
+        <div class="chips" id="rs-pain-type">
+          <div class="chip" onclick="toggleRsChip(this)">鈍痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">鋭痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">差し込み</div>
+          <div class="chip" onclick="toggleRsChip(this)">圧迫感</div>
+          <div class="chip" onclick="toggleRsChip(this)">張り</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: 生理の状態 ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 3</div>
+    <div class="section-title serif">生理の状態</div>
+    <div class="chips" id="rs-cycle">
+      <div class="chip" onclick="selectRsCycle(this,'none');updateRecProgressDots();">なし</div>
+      <div class="chip" onclick="selectRsCycle(this,'light');updateRecProgressDots();">少量</div>
+      <div class="chip" onclick="selectRsCycle(this,'normal');updateRecProgressDots();">普通</div>
+      <div class="chip" onclick="selectRsCycle(this,'heavy');updateRecProgressDots();">多い</div>
+      <div class="chip" onclick="selectRsCycle(this,'spotting');updateRecProgressDots();">不正出血</div>
+    </div>
+    <div id="cycle-detail-section" style="display:none;margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">経血の状態</div>
+      <div class="chips" id="rs-blood-clot">
+        <div class="chip" onclick="toggleRsChip(this)">塊あり</div>
+        <div class="chip" onclick="toggleRsChip(this)">塊なし</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:12px 0 8px;">経血の色</div>
+      <div class="chips" id="rs-blood-color">
+        <div class="chip" onclick="toggleRsChip(this)">鮮赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">暗赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色</div>
+        <div class="chip" onclick="toggleRsChip(this)">ピンク</div>
+      </div>
+    </div>
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">おりもの</div>
+      <div class="chips" id="rs-discharge-amount">
+        <div class="chip" onclick="toggleRsChip(this)">少ない</div>
+        <div class="chip" onclick="toggleRsChip(this)">普通</div>
+        <div class="chip" onclick="toggleRsChip(this)">多い</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:10px 0 8px;">おりものの状態</div>
+      <div class="chips" id="rs-discharge-type">
+        <div class="chip" onclick="toggleRsChip(this)">透明・水様</div>
+        <div class="chip" onclick="toggleRsChip(this)">白濁・乳白色</div>
+        <div class="chip" onclick="toggleRsChip(this)">クリーム色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色・血混じり</div>
+        <div class="chip" onclick="toggleRsChip(this)">黄色・緑色</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 詳しく記録する（折りたたみ） ===== -->
+  <div style="text-align:center;padding:4px 24px 16px;">
+    <button onclick="toggleRecordDetails()" style="background:none;border:none;font-size:14px;color:var(--rose);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:500;display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:20px;border:1px solid var(--rose-light);">
+      詳しく記録する <span id="rec-details-arrow">▾</span>
+    </button>
+  </div>
+  <div id="rec-details-section" style="display:none;">
+
+    <!-- 食事の記録 -->
+    <div class="section-card">
+      <div class="section-label">MEAL TIMELINE</div>
+      <div class="section-title serif">食事の記録</div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
+        時間と食べたものを自由に記入してください<br>
+        <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
+      </div>
+      <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="meal-btn-add" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;" onclick="openMealTimePicker()">＋ 時間を追加</button>
+      </div>
+      <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
+          <button onclick="closeMealTimePicker()" aria-label="閉じる" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
+          <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
+        </div>
+      </div>
+      <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+      <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+        <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- からだのための選択ガイド -->
+    <div class="section-card">
+      <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.bc-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY-CONSCIOUS CHOICES</div>
+          <div style="font-size:14px;color:var(--ink);font-weight:500;">からだのための選択ガイド</div>
+        </div>
+        <span class="bc-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+      </div>
+      <div style="display:none;margin-top:14px;font-size:12px;color:var(--ink-mid);line-height:2.0;">
+        <div style="margin-bottom:12px;padding:12px;background:var(--rose-pale);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">温めるもの</div>生姜・シナモン・根菜・味噌汁・白湯</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--sage-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">腸を整えるもの</div>発酵食品・食物繊維・ぬか漬け・キムチ・ヨーグルト</div>
+        <div style="margin-bottom:12px;padding:12px;background:#fef3e6;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">血を補うもの</div>ほうれん草・小松菜・ひじき・プルーン・黒ごま</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--warm-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">ホルモンを助けるもの</div>大豆・亜麻仁・ナッツ・豆乳・アボカド</div>
+        <div style="padding:12px;background:#f5f0f0;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">控えたいもの</div>カフェイン・砂糖・冷たいもの・アルコール・加工食品</div>
+      </div>
+    </div>
+
+    <!-- 基礎体温 -->
+    <div class="section-card">
+      <div class="section-label">BASAL TEMPERATURE</div>
+      <div class="section-title serif">基礎体温（決まった時間帯計測）</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="temp-tab-sublingual" onclick="selectTempMethod('sublingual')" class="chip selected" style="font-size:12px;padding:6px 18px;border-radius:20px;">舌下</button>
+        <button id="temp-tab-axilla" onclick="selectTempMethod('axilla')" class="chip" style="font-size:12px;padding:6px 18px;border-radius:20px;">脇の下</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
+        <span style="font-size:16px;color:var(--ink-mid);">℃</span>
+      </div>
+      <div id="temp-edu-card" style="display:none;margin-top:12px;padding:12px 14px;background:linear-gradient(135deg,#f8f4f0,#fdf8f6);border-radius:12px;border-left:3px solid var(--rose);"></div>
+    </div>
+
+    <!-- 服薬・サプリ -->
+    <div class="section-card">
+      <div class="section-label">MEDICATION</div>
+      <div class="section-title serif">服薬・サプリ</div>
+      <div class="chips" id="rs-medication">
+        <div class="chip" onclick="toggleRsChip(this)">低用量ピル</div>
+        <div class="chip" onclick="toggleRsChip(this)">ジエノゲスト</div>
+        <div class="chip" onclick="toggleRsChip(this)">漢方薬</div>
+        <div class="chip" onclick="toggleRsChip(this)">鎮痛剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">鉄剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">サプリメント</div>
+        <div class="chip" onclick="toggleRsChip(this)">その他</div>
+      </div>
+    </div>
+
+    <!-- エネルギーレベル -->
+    <div class="section-card">
+      <div class="section-label">ENERGY</div>
+      <div class="section-title serif">エネルギーレベル</div>
+      <div style="display:flex;justify-content:center;gap:6px;padding:8px 0;" id="rs-energy">
+        <button class="chip" onclick="selectEnergy(this,1)" data-val="1" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">1<span style="font-size:9px;">ぐったり</span></button>
+        <button class="chip" onclick="selectEnergy(this,2)" data-val="2" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">2<span style="font-size:9px;">低い</span></button>
+        <button class="chip" onclick="selectEnergy(this,3)" data-val="3" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">3<span style="font-size:9px;">普通</span></button>
+        <button class="chip" onclick="selectEnergy(this,4)" data-val="4" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">4<span style="font-size:9px;">良い</span></button>
+        <button class="chip" onclick="selectEnergy(this,5)" data-val="5" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">5<span style="font-size:9px;">絶好調</span></button>
+      </div>
+    </div>
+
+    <!-- 睡眠 -->
+    <div class="section-card">
+      <div class="section-label">SLEEP</div>
+      <div class="section-title serif">睡眠</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">就寝</div>
+          <input type="time" id="rs-sleep-bed" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">起床</div>
+          <input type="time" id="rs-sleep-wake" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">睡眠の質</div>
+      <div style="display:flex;gap:6px;" id="rs-sleep-quality">
+        <button class="chip" onclick="selectSleepQuality(this,1)" data-val="1" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">1 最悪</button>
+        <button class="chip" onclick="selectSleepQuality(this,2)" data-val="2" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">2 悪い</button>
+        <button class="chip" onclick="selectSleepQuality(this,3)" data-val="3" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">3 普通</button>
+        <button class="chip" onclick="selectSleepQuality(this,4)" data-val="4" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">4 良い</button>
+        <button class="chip" onclick="selectSleepQuality(this,5)" data-val="5" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">5 最高</button>
+      </div>
+    </div>
+
+    <!-- 生活ファクター -->
+    <div class="section-card">
+      <div class="section-label">FACTORS</div>
+      <div class="section-title serif">生活ファクター</div>
+      <div class="chips" id="rs-factors">
+        <div class="chip" onclick="toggleRsChip(this)">カフェイン</div>
+        <div class="chip" onclick="toggleRsChip(this)">アルコール</div>
+        <div class="chip" onclick="toggleRsChip(this)">運動した</div>
+        <div class="chip" onclick="toggleRsChip(this)">ストレス高</div>
+        <div class="chip" onclick="toggleRsChip(this)">仕事が忙しい</div>
+        <div class="chip" onclick="toggleRsChip(this)">外出した</div>
+        <div class="chip" onclick="toggleRsChip(this)">雨・低気圧</div>
+        <div class="chip" onclick="toggleRsChip(this)">夜更かし</div>
+        <div class="chip" onclick="toggleRsChip(this)">入浴・半身浴</div>
+        <div class="chip" onclick="toggleRsChip(this)">瞑想・リラックス</div>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="rs-factor-custom" placeholder="＋ 自分だけのファクターを追加" style="width:100%;padding:10px 14px;border:1px dashed #e8ddd8;border-radius:12px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:transparent;color:var(--ink);outline:none;" onkeydown="if(event.key==='Enter'){addCustomFactor();event.preventDefault();}">
+      </div>
+    </div>
+
+    <!-- お通じ -->
+    <div class="section-card">
+      <div class="section-label">BOWEL</div>
+      <div class="section-title serif">お通じ</div>
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">回数</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="adjustBowelCount(-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;color:var(--ink-mid);cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+          <span id="bowel-count-display" style="font-size:22px;font-weight:600;color:var(--ink);min-width:32px;text-align:center;">0</span>
+          <button onclick="adjustBowelCount(1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--rose);background:var(--rose-pale);font-size:18px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+          <span style="font-size:13px;color:var(--ink-light);">回</span>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">状態</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rs-bowel">
+        <button class="chip" onclick="selectBowel(this,'なし')">なし</button>
+        <button class="chip" onclick="selectBowel(this,'硬い（コロコロ）')">硬い（コロコロ）</button>
+        <button class="chip" onclick="selectBowel(this,'やや硬い')">やや硬い</button>
+        <button class="chip" onclick="selectBowel(this,'普通')">普通</button>
+        <button class="chip" onclick="selectBowel(this,'やや軟らかい')">やや軟らかい</button>
+        <button class="chip" onclick="selectBowel(this,'軟便・下痢')">軟便・下痢</button>
+      </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="section-card">
+      <div class="section-label">JOURNAL</div>
+      <div class="section-title serif">今日のメモ</div>
+      <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
+    </div>
+
+  </div><!-- /rec-details-section -->
+
+  <!-- ===== STEP 4: 疾患セルフチェック ===== -->
+  <div class="section-card" id="disease-questions" style="display:none;margin:0 20px 16px;"></div>
+
+  <div style="padding:0 24px 40px;">
+    <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
+    <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
+    <div id="draft-indicator" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>
+  </div>
+</div>

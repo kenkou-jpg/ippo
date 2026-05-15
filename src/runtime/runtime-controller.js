@@ -41,6 +41,8 @@
 //   RECOVERY_MODE ──→ NORMAL_MODE
 //                      SAFE_MODE
 //
+import { getState } from '../store/state.js';
+
 var CTRL_MODE = Object.freeze({
   NORMAL:       'NORMAL_MODE',
   DEBUG:        'DEBUG_MODE',
@@ -425,13 +427,7 @@ function _injectLexicalBridge(reason) {
   try {
     var bridge = null;
 
-    if (typeof window.getState === 'function') {
-      bridge = window.getState();
-    } else if (typeof window._ippoState !== 'undefined') {
-      bridge = window._ippoState;
-    } else {
-      bridge = {};
-    }
+    bridge = getState() || window._ippoState || {};
 
     window.__legacyStateBridge = bridge;
     _lexicalBridgeInjected = true;
@@ -439,7 +435,7 @@ function _injectLexicalBridge(reason) {
     var recordCount = bridge && Array.isArray(bridge.records) ? bridge.records.length : 0;
 
     _audit('lexical_bridge_injected', reason, {
-      bridgeSource:  typeof window.getState === 'function' ? 'getState' : '_ippoState',
+      bridgeSource:  'getState',
       recordCount:   recordCount,
       bridgeKeys:    bridge ? Object.keys(bridge).slice(0, 8) : [],
     });

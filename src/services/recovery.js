@@ -8,10 +8,10 @@
 //  残るため移行期間中は window.* 経由で委譲する。
 // ============================================================
 
-import { saveState } from '../store/state.js';
+import { saveState, getState } from '../store/state.js';
 
 export function autoRecoveryCheck() {
-  var s = (typeof window.getState === 'function' ? window.getState() : null) || {};
+  var s = getState() || {};
   var lastCount    = parseInt(localStorage.getItem('ippo_last_record_count') || '0');
   var currentCount = (s.records || []).length;
 
@@ -42,8 +42,9 @@ export function autoRecoveryCheck() {
         : Promise.resolve();
 
       return cloudRestore.then(function () {
-        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, ((typeof window.getState === 'function' ? window.getState() : null) || {}).records ? ((typeof window.getState === 'function' ? window.getState() : null) || {}).records.length : 0);
-        localStorage.setItem('ippo_last_record_count', String(((typeof window.getState === 'function' ? window.getState() : null) || {}).records ? ((typeof window.getState === 'function' ? window.getState() : null) || {}).records.length : 0));
+        var afterState = getState() || {};
+        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, (afterState.records || []).length);
+        localStorage.setItem('ippo_last_record_count', String((afterState.records || []).length));
         return true;
       });
     }).catch(function (e) {

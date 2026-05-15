@@ -17,6 +17,8 @@
 // ============================================================
 
 // ─── Safety level mapping ─────────────────────────────────
+import { getState } from '../store/state.js';
+
 var SAFETY_LEVEL = Object.freeze({
   NORMAL:   'normal',     // 通常動作
   DEGRADED: 'degraded',   // 一部機能制限（SAFE_CLOUD / LOW_RUNTIME）
@@ -57,7 +59,7 @@ function getStatus() {
 
   var state = null;
   try {
-    state = typeof window.getState === 'function' ? window.getState() : null;
+    state = getState();
   } catch (_) {}
 
   var ctrlMode     = ctrl     ? ctrl.getMode()              : 'unknown';
@@ -228,7 +230,7 @@ function reconcileModes() {
 // records count を比較して異常を brain に報告する。
 function verifyRecordsSafety() {
   var state = null;
-  try { state = typeof window.getState === 'function' ? window.getState() : null; } catch (_) {}
+  try { state = getState(); } catch (_) {}
 
   var inMemoryCount  = state ? (state.records || []).length : null;
   var localRaw       = null;

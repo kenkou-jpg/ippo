@@ -54,7 +54,7 @@ import './app-legacy.js';
 import './modules/ownership-map.js';
 
 // ─── State ───────────────────────────────────────────────
-import { saveState, loadState, STATE_KEY, INITIAL_STATE } from './store/state.js';
+import { saveState, loadState, STATE_KEY, INITIAL_STATE, getState } from './store/state.js';
 
 // ─── Runtime stabilization layer (state 確定後にロード) ────────
 import './runtime/hydration-guard.js';
@@ -174,13 +174,11 @@ import { bootstrap } from './modules/app-bootstrap.js';
 import './modules/home-renderer.js';
 
 // ─── Services ────────────────────────────────────────────
-import { supabase, SUPABASE_URL, cloudBackupAll, cloudRestore, initialCloudSync } from './services/supabase.js';
+import { supabase, cloudBackupAll, cloudRestore, initialCloudSync } from './services/supabase.js';
 
 import { migrateToIDB }     from './services/storage-migration.js';
 import { autoRecoveryCheck } from './services/recovery.js';
 import {
-  STRIPE_PRICE_MONTHLY,
-  STRIPE_PRICE_ANNUAL,
   selectPremiumPlan,
   startStripeCheckout,
   checkUpsellNotification,
@@ -212,7 +210,7 @@ if (typeof window.ippoMarkServiceReady === 'function') {
   window.ippoMarkServiceReady('main-entry', {
     ready: true,
     hasSupabase: !!supabase,
-    hasState: typeof window.getState === 'function' && typeof window.getState() === 'object',
+    hasState: typeof getState() === 'object',
   });
 }
 
@@ -234,14 +232,14 @@ window.dispatchEvent(new CustomEvent('ippo:vite-ready'));
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('vite-ready-dispatched', {
-    hasSupabase: !!window.supabase,
-    hasState: typeof window.getState === 'function' && typeof window.getState() === 'object',
+    hasSupabase: !!supabase,
+    hasState: typeof getState() === 'object',
   });
 }
 
 // ─── Re-exports（将来の TypeScript 移行用） ───────────────
 export {
-  saveState, loadState, STATE_KEY, INITIAL_STATE,
+  saveState, loadState, STATE_KEY, INITIAL_STATE, getState,
   ICONS, DISEASE_CONFIG, SYMPTOM_LAYERS, SENSITIVE_SYMPTOMS, DISEASE_PRIORITY_SYMPTOMS,
   openRecordScreen,
   saveRecord,
@@ -271,10 +269,9 @@ export {
   notifyRecordUpdated,
   finalizeRecordSaveContext,
   debugRecordSavePipeline,
-  supabase, SUPABASE_URL,
+  supabase,
   cloudBackupAll, cloudRestore, initialCloudSync,
   migrateToIDB, autoRecoveryCheck,
-  STRIPE_PRICE_MONTHLY, STRIPE_PRICE_ANNUAL,
   selectPremiumPlan, startStripeCheckout, checkUpsellNotification,
   requestNotificationPermission, scheduleReminders,
 };

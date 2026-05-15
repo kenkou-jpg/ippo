@@ -4,7 +4,7 @@
 //  requestNotificationPermission / scheduleReminders は push.js で管理
 // ============================================================
 
-import { getState } from '../store/state.js';
+import { getState, saveState } from '../store/state.js';
 
 export var REMINDER_PRESETS = [
   { time: '07:00', label: '🌅 朝の基礎体温' },
@@ -67,7 +67,7 @@ export function addPresetReminder(idx) {
   var p = REMINDER_PRESETS[idx];
   if (!getState().reminders) getState().reminders = [];
   getState().reminders.push({ time: p.time, label: p.label, enabled: true });
-  if (typeof window.saveState === 'function') window.saveState();
+  saveState();
   renderReminderList();
   if (typeof window.requestNotificationPermission === 'function') window.requestNotificationPermission();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
@@ -95,7 +95,7 @@ export function addReminderUI() {
   if (!getState().reminders) getState().reminders = [];
   getState().reminders.push({ time: time, label: label || '記録リマインダー', enabled: true });
   getState().reminders.sort(function (a, b) { return a.time.localeCompare(b.time); });
-  if (typeof window.saveState === 'function') window.saveState();
+  saveState();
   renderReminderList();
   if (typeof window.requestNotificationPermission === 'function') window.requestNotificationPermission();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
@@ -103,14 +103,14 @@ export function addReminderUI() {
 
 export function toggleReminder(idx) {
   getState().reminders[idx].enabled = !getState().reminders[idx].enabled;
-  if (typeof window.saveState === 'function') window.saveState();
+  saveState();
   renderReminderList();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
 }
 
 export function removeReminder(idx) {
   getState().reminders.splice(idx, 1);
-  if (typeof window.saveState === 'function') window.saveState();
+  saveState();
   renderReminderList();
   if (typeof window.scheduleReminders === 'function') window.scheduleReminders();
 }
