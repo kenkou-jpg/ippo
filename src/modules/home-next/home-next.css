@@ -1,14 +1,14 @@
 /* ============================================================
-   ippo – home-next.css v2
-   参考画像 (Calm Insight型HOME) 完全対応版
+   ippo – home-next.css v3
+   参考画像 完全対応版 — 静かな高級感 / wellness感
    ============================================================ */
 
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
   --hn-bg:            #FAF7F2;
   --hn-card-bg:       #FFFFFF;
-  --hn-card-border:   1px solid rgba(0, 0, 0, 0.065);
-  --hn-card-shadow:   0 2px 14px rgba(0, 0, 0, 0.04);
+  --hn-card-border:   1px solid #EEE9E4;
+  --hn-card-shadow:   0 2px 8px rgba(0, 0, 0, 0.035);
   --hn-card-radius:   20px;
   --hn-card-radius-lg: 24px;
 
@@ -64,7 +64,7 @@
   to   { opacity: 1; transform: scale(1); }
 }
 
-.hn-anim-0  { animation: hn-fade-up 0.38s 0.00s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-0  { animation: hn-fade-up  0.38s 0.00s cubic-bezier(0.23, 1, 0.32, 1) both; }
 .hn-anim-1  { animation: hn-scale-in 0.42s 0.06s cubic-bezier(0.23, 1, 0.32, 1) both; }
 .hn-anim-2  { animation: hn-fade-up  0.38s 0.12s cubic-bezier(0.23, 1, 0.32, 1) both; }
 .hn-anim-3  { animation: hn-fade-up  0.38s 0.18s cubic-bezier(0.23, 1, 0.32, 1) both; }
@@ -79,18 +79,19 @@
 .hn-greeting-time {
   font-family: var(--hn-font-ja);
   font-size: 13px;
+  font-weight: 300;
   color: var(--hn-ink-muted);
   letter-spacing: 0.2px;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .hn-greeting-name {
   font-family: var(--hn-font-ja);
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--hn-ink);
-  letter-spacing: -0.3px;
-  line-height: 1.2;
+  letter-spacing: -0.2px;
+  line-height: 1.25;
   margin-bottom: 6px;
 }
 
@@ -99,6 +100,7 @@
   font-size: 13px;
   color: var(--hn-ink-sec);
   line-height: 1.6;
+  font-weight: 300;
 }
 
 /* ── ヒーローカード ──────────────────────────────────────── */
@@ -113,15 +115,15 @@
   overflow: hidden;
 }
 
-/* ボタニカルSVG装飾 */
+/* ボタニカルSVG装飾 (大きめ・存在感) */
 .hn-hero-botanical {
   position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 108px;
-  height: 96px;
+  top: -6px;
+  right: -6px;
+  width: 130px;
+  height: 116px;
   pointer-events: none;
-  opacity: 0.8;
+  opacity: 0.88;
 }
 
 /* "今日のあなた" ラベル */
@@ -136,16 +138,18 @@
 
 /* コンテンツエリア (botanical のスペースを確保) */
 .hn-hero-body {
-  max-width: calc(100% - 88px);
+  max-width: calc(100% - 106px);
 }
 
 .hn-hero-message {
   font-family: var(--hn-font-ja);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 500;
   color: var(--hn-ink);
-  line-height: 1.55;
-  letter-spacing: 0.1px;
+  line-height: 1.65;
+  letter-spacing: 0.05px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 .hn-hero-desc {
@@ -154,6 +158,7 @@
   color: var(--hn-ink-sec);
   line-height: 1.75;
   margin-top: 10px;
+  font-weight: 300;
 }
 
 .hn-hero-footer {
@@ -162,7 +167,7 @@
   justify-content: space-between;
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.048);
 }
 
 .hn-hero-link {
@@ -177,12 +182,14 @@
   align-items: center;
   gap: 3px;
   letter-spacing: 0.1px;
+  font-weight: 400;
 }
 
 .hn-hero-cycle {
   font-family: var(--hn-font-ja);
   font-size: 11px;
   color: var(--hn-ink-muted);
+  font-weight: 300;
 }
 
 .hn-hero-cycle strong {
@@ -211,14 +218,14 @@
   font-size: 12px;
   color: var(--hn-ink-muted);
   cursor: pointer;
+  font-weight: 300;
 }
 
 /* ── 状態カード (横4列) ──────────────────────────────────── */
 .hn-sc-row {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   margin-bottom: 14px;
-  /* 4列固定グリッド */
 }
 
 .hn-status-card {
@@ -228,18 +235,26 @@
   border: var(--hn-card-border);
   border-radius: 16px;
   box-shadow: var(--hn-card-shadow);
-  padding: 12px 10px 10px;
+  padding: 12px 9px 10px;
   display: flex;
   flex-direction: column;
   gap: 3px;
-  cursor: default;
 }
 
+/* SVG アイコン */
 .hn-sc-icon {
-  font-size: 14px;
-  line-height: 1;
-  margin-bottom: 2px;
+  width: 16px;
+  height: 16px;
+  margin-bottom: 3px;
+  color: var(--hn-ink-sec);
   opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.hn-sc-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
 }
 
 .hn-sc-label {
@@ -250,14 +265,28 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 300;
 }
 
 .hn-sc-value {
   font-family: var(--hn-font-ja);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--hn-ink);
   line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 数値表示 (時間・体温など) */
+.hn-sc-value-num {
+  font-family: var(--hn-font);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  line-height: 1.2;
+  letter-spacing: -0.4px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -271,6 +300,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  font-weight: 300;
 }
 
 /* ── 棒グラフ (睡眠) ─────────────────────────────────────── */
@@ -314,24 +344,32 @@
 .hn-sc-dot.pain-3 { background: var(--hn-terra); }
 .hn-sc-dot.pain-4 { background: #B07050; }
 
-/* ── 気分 絵文字行 ───────────────────────────────────────── */
+/* ── 気分 SVGフェイス行 ──────────────────────────────────── */
 .hn-mood-row {
   display: flex;
   gap: 1px;
   margin-top: 5px;
-  font-size: 11px;
+  align-items: center;
 }
 
-.hn-mood-row span {
-  opacity: 0.22;
-  transition: opacity 0.2s, transform 0.2s;
+.hn-mood-face {
   flex: 1;
-  text-align: center;
+  display: flex;
+  justify-content: center;
+  opacity: 0.18;
+  color: var(--hn-ink-sec);
+  transition: opacity 0.2s, color 0.2s;
 }
 
-.hn-mood-row span.active {
+.hn-mood-face svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.hn-mood-face.active {
   opacity: 1;
-  transform: scale(1.2);
+  color: var(--hn-sage);
 }
 
 /* ── スパークライン (体温/エネルギー) ────────────────────── */
@@ -369,6 +407,7 @@
   font-size: 9px;
   color: var(--hn-ink-muted);
   font-family: var(--hn-font-ja);
+  font-weight: 300;
 }
 
 .hn-week-label.today { color: var(--hn-sage); font-weight: 600; }
@@ -381,7 +420,7 @@
   align-items: center;
   justify-content: center;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--hn-ink-muted);
   border: 1.5px solid var(--hn-beige);
 }
@@ -444,6 +483,7 @@
   font-size: 11.5px;
   color: var(--hn-ink-sec);
   line-height: 1.6;
+  font-weight: 300;
 }
 
 .hn-optional-link {
@@ -484,6 +524,16 @@
   overflow: hidden;
 }
 
+/* 右下ボタニカルデコ */
+.hn-insight-deco {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 88px;
+  height: 88px;
+  pointer-events: none;
+}
+
 .hn-insight-tag-row {
   display: flex;
   align-items: center;
@@ -501,23 +551,26 @@
   font-size: 11px;
   color: var(--hn-sage);
   letter-spacing: 0.3px;
+  font-weight: 400;
 }
 
 .hn-insight-main {
   font-family: var(--hn-font-ja);
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--hn-ink);
-  line-height: 1.6;
-  margin-bottom: 8px;
+  line-height: 1.65;
+  margin-bottom: 10px;
+  padding-right: 60px;
 }
 
 .hn-insight-sub {
   font-family: var(--hn-font-ja);
   font-size: 12px;
   color: var(--hn-ink-sec);
-  line-height: 1.65;
+  line-height: 1.7;
   margin-bottom: 14px;
+  font-weight: 300;
 }
 
 .hn-insight-link {
@@ -531,6 +584,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
+  font-weight: 400;
 }
 
 /* ── クイック記録 ─────────────────────────────────────────── */
@@ -554,7 +608,7 @@
 .hn-quick-row {
   display: flex;
   justify-content: space-between;
-  gap: 6px;
+  gap: 5px;
   margin-bottom: 14px;
 }
 
@@ -562,14 +616,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   flex: 1;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
 
 .hn-quick-item:active .hn-quick-icon-wrap {
-  transform: scale(0.93);
+  transform: scale(0.91);
 }
 
 .hn-quick-icon-wrap {
@@ -580,17 +634,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
   transition: transform 0.12s ease;
+  color: #8A9480;
+}
+
+.hn-quick-icon-wrap svg {
+  width: 20px;
+  height: 20px;
+  display: block;
 }
 
 .hn-quick-name {
   font-family: var(--hn-font-ja);
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--hn-ink-sec);
   text-align: center;
   line-height: 1.3;
   white-space: nowrap;
+  font-weight: 300;
 }
 
 /* トレンドインサイト行 */
@@ -602,6 +663,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  border: 1px solid #EEE9E4;
 }
 
 .hn-quick-trend-text {
@@ -610,6 +672,7 @@
   color: var(--hn-ink-mid);
   line-height: 1.55;
   flex: 1;
+  font-weight: 300;
 }
 
 .hn-quick-trend-chart {

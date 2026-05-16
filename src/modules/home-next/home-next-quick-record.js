@@ -1,18 +1,52 @@
 // ============================================================
-//  ippo – home-next-quick-record.js v2
-//  クイック記録: アイコングリッド6種 + トレンド一行 + 記録CTA
-//  HOMEの主役にしない。最下部の静かな導線として機能させる。
+//  ippo – home-next-quick-record.js v3
+//  クイック記録: SVG細線アイコン6種 + トレンド一行 + 記録CTA
 // ============================================================
+
+// ── SVG アイコン定義 (1.4px stroke / stroke-linecap round) ──
+
+const ICON_PERIOD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 4C12 4 6.5 10.5 6.5 14.5a5.5 5.5 0 0011 0C17.5 10.5 12 4 12 4z"/>
+</svg>`;
+
+const ICON_MOOD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+  <circle cx="12" cy="12" r="9"/>
+  <path d="M8.5 15c.8 1.2 2 1.8 3.5 1.8s2.7-.6 3.5-1.8"/>
+  <circle cx="9.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/>
+  <circle cx="14.5" cy="10.5" r=".9" fill="currentColor" stroke="none"/>
+</svg>`;
+
+const ICON_SYMPTOM = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="12" cy="6" r="3.5"/>
+  <path d="M5 21v-2a7 7 0 0114 0v2"/>
+</svg>`;
+
+const ICON_FOOD = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M18 8h1a4 4 0 010 8h-1"/>
+  <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+  <line x1="6" y1="1" x2="6" y2="4"/>
+  <line x1="10" y1="1" x2="10" y2="4"/>
+  <line x1="14" y1="1" x2="14" y2="4"/>
+</svg>`;
+
+const ICON_TEMP = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>
+</svg>`;
+
+const ICON_NOTE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M12 20h9"/>
+  <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/>
+</svg>`;
 
 // ── クイック記録ボタン定義 ────────────────────────────────
 
 const QUICK_ITEMS = [
-  { icon: '⚡', label: '痛み・\n不調' },
-  { icon: '☁', label: '気分' },
-  { icon: '🌙', label: '睡眠' },
-  { icon: '🍃', label: '食事' },
-  { icon: '◎', label: '体温' },
-  { icon: '✎', label: 'メモ' },
+  { icon: ICON_PERIOD,  label: '生理',  bg: '#F5EAEA' },
+  { icon: ICON_MOOD,    label: '気分',  bg: '#EEF3EB' },
+  { icon: ICON_SYMPTOM, label: '症状',  bg: '#F5EDE3' },
+  { icon: ICON_FOOD,    label: '食事',  bg: '#EEF3EB' },
+  { icon: ICON_TEMP,    label: '体温',  bg: '#F2EDE6' },
+  { icon: ICON_NOTE,    label: 'メモ',  bg: '#EEF3EB' },
 ];
 
 // ── 今日の記録状態 ────────────────────────────────────────
@@ -25,20 +59,17 @@ function getTodayRecord(records) {
 }
 
 // ── トレンド一行テキスト ──────────────────────────────────
-// インサイトの中で最もシンプルなものを1行で
 
 function getTrendText(state) {
-  const records = state.records || [];
+  const records  = state.records || [];
   const diseases = state.myDiseases || [];
 
   if (records.length < 3) return '';
 
-  // 直近7日
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 7);
   const week = records.filter(r => new Date(r.date || r.record_date || '') >= cutoff);
 
-  // 睡眠不足×痛みパターン
   const poorSleepPain = week.filter(r =>
     (r.sleepQuality ?? 0) >= 3 && (r.painLevel ?? 0) >= 2
   );
@@ -46,7 +77,6 @@ function getTrendText(state) {
     return '睡眠不足の翌日は、体調が崩れやすい傾向があります';
   }
 
-  // 繰り返し症状
   const symCount = {};
   week.forEach(r => (r.symptoms || []).forEach(s => {
     symCount[s] = (symCount[s] || 0) + 1;
@@ -56,7 +86,6 @@ function getTrendText(state) {
     return `今週「${top[0]}」が${top[1]}日続いています`;
   }
 
-  // 疾患別ヒント
   if (diseases.includes('子宮内膜症') || diseases.includes('子宮腺筋症')) {
     return '生理開始後は、下腹部の張りが強くなりやすい傾向があります';
   }
@@ -70,7 +99,7 @@ function getTrendText(state) {
   return '';
 }
 
-// ── ミニ折れ線チャート (トレンド行右側) ──────────────────
+// ── ミニ折れ線チャート ────────────────────────────────────
 
 function buildTrendMiniChart(records) {
   const recent = [...(records || [])]
@@ -107,8 +136,8 @@ function buildQuickGrid() {
 
   return QUICK_ITEMS.map(item => `
     <div class="hn-quick-item" onclick="${openRecord}">
-      <div class="hn-quick-icon-wrap">${item.icon}</div>
-      <div class="hn-quick-name">${item.label.replace(/\n/g, '<br>')}</div>
+      <div class="hn-quick-icon-wrap" style="background:${item.bg}">${item.icon}</div>
+      <div class="hn-quick-name">${item.label}</div>
     </div>`).join('');
 }
 
@@ -144,7 +173,7 @@ export function renderQuickRecord(container, state) {
           </div>
           <span style="margin-left:auto;color:#AFA298;font-size:16px;">›</span>
         </div>`
-      : `<div class="hn-record-cta hn-anim-5" onclick="${openRecord}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 16px;background:#FFFFFF;border:1px solid rgba(0,0,0,0.065);border-radius:14px;box-shadow:0 2px 10px rgba(0,0,0,0.035);margin-bottom:8px;">
+      : `<div class="hn-record-cta hn-anim-5" onclick="${openRecord}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 16px;background:#FFFFFF;border:1px solid #EEE9E4;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.035);margin-bottom:8px;">
           <div style="width:32px;height:32px;border-radius:10px;background:#EEF3EB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">+</div>
           <div>
             <div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#2A2320;">今日を記録する</div>

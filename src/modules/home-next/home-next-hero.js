@@ -11,24 +11,27 @@ import {
   CYCLE_PHASES,
 } from './home-next-config.js';
 
-// ── ボタニカルSVG ─────────────────────────────────────────
+// ── ボタニカルSVG (大きめ・存在感あり) ──────────────────
 
-const BOTANICAL_SVG = `<svg class="hn-hero-botanical" viewBox="0 0 108 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+const BOTANICAL_SVG = `<svg class="hn-hero-botanical" viewBox="0 0 130 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
   <!-- メイン茎 -->
-  <path d="M54 90 Q50 65 38 44 Q32 32 22 14" stroke="#C8D8BE" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-  <!-- 左葉1 -->
-  <path d="M38 44 Q20 38 14 20 Q30 28 38 44Z" fill="#C8D8BE" opacity="0.72"/>
+  <path d="M65 110 Q60 80 46 54 Q38 38 26 16" stroke="#C8D8BE" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+  <!-- 左葉1 (大) -->
+  <path d="M46 54 Q24 46 16 24 Q36 34 46 54Z" fill="#C8D8BE" opacity="0.75"/>
   <!-- 左葉2 -->
-  <path d="M44 58 Q26 54 24 38 Q38 46 44 58Z" fill="#D4E2CA" opacity="0.60"/>
-  <!-- 右葉1 -->
-  <path d="M38 44 Q50 32 54 14 Q44 32 38 44Z" fill="#BFD0B2" opacity="0.62"/>
+  <path d="M53 70 Q30 64 28 46 Q44 56 53 70Z" fill="#D4E2CA" opacity="0.62"/>
+  <!-- 右葉1 (大) -->
+  <path d="M46 54 Q60 38 66 16 Q52 38 46 54Z" fill="#BFD0B2" opacity="0.65"/>
   <!-- 右葉2 -->
-  <path d="M42 56 Q56 44 62 28 Q48 42 42 56Z" fill="#CBD9BF" opacity="0.52"/>
-  <!-- 先端小葉 -->
-  <path d="M26 22 Q16 12 20 4 Q28 14 26 22Z" fill="#B8CAAC" opacity="0.55"/>
-  <path d="M24 24 Q34 14 40 6 Q30 18 24 24Z" fill="#C4D4B6" opacity="0.48"/>
+  <path d="M50 68 Q68 54 76 34 Q58 50 50 68Z" fill="#CBD9BF" opacity="0.54"/>
+  <!-- 先端小葉 左 -->
+  <path d="M30 26 Q18 14 24 4 Q34 16 30 26Z" fill="#B8CAAC" opacity="0.58"/>
+  <!-- 先端小葉 右 -->
+  <path d="M28 28 Q40 16 48 6 Q36 22 28 28Z" fill="#C4D4B6" opacity="0.50"/>
   <!-- 右下葉 -->
-  <path d="M48 68 Q62 62 68 48 Q56 58 48 68Z" fill="#C8D8BE" opacity="0.42"/>
+  <path d="M58 82 Q76 74 82 58 Q68 70 58 82Z" fill="#C8D8BE" opacity="0.44"/>
+  <!-- 茎サブ枝 -->
+  <path d="M46 54 Q56 60 62 74" stroke="#D4E2CA" stroke-width="1.0" fill="none" stroke-linecap="round" opacity="0.6"/>
 </svg>`;
 
 // ── 直近レコード集計 ─────────────────────────────────────
@@ -117,7 +120,7 @@ export function renderHero(container, config, state) {
       ${BOTANICAL_SVG}
       <span class="hn-hero-tag">今日のあなた</span>
       <div class="hn-hero-body">
-        <div class="hn-hero-message">${esc(message)}</div>
+        <div class="hn-hero-message">${escMsg(message)}</div>
         ${desc ? `<div class="hn-hero-desc">${esc(desc)}</div>` : ''}
       </div>
       <div class="hn-hero-footer">
@@ -133,4 +136,11 @@ function esc(str) {
   return String(str || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/\n/g, '<br>');
+}
+
+// メッセージ専用: \n を除去してCSSに自然な折り返しを委ねる
+function escMsg(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/\n/g, '');
 }
