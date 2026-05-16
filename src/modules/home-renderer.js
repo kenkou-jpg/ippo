@@ -139,11 +139,6 @@ export function buildHomeWeekRow() {
   var days = ['月', '火', '水', '木', '金', '土', '日'];
   var html = '';
 
-  var phaseColors = {
-    '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
-    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4',
-  };
-
   for (var i = 0; i < 7; i++) {
     var d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -155,34 +150,40 @@ export function buildHomeWeekRow() {
     var rec = (s.records || []).find(function (r) {
       return (r.date || r.record_date || '').slice(0, 10) === dateStr;
     });
-    var pain = rec ? (rec.painLevel || 0) : null;
+    var hasRecord = !!rec;
+    var clickable = !isFuture;
 
-    var phase = typeof window.getPhaseForDate === 'function' ? window.getPhaseForDate(d) : '不明';
-    var phaseColor = phaseColors[phase] || phaseColors['不明'];
+    var circleContent, circleBg, circleBorder, circleColor, fontSize;
+    if (hasRecord) {
+      circleContent = '✓';
+      fontSize = '14px';
+      if (isToday) {
+        circleBg = 'var(--rose-dark)'; circleColor = 'white'; circleBorder = 'none';
+      } else {
+        circleBg = 'var(--rose-pale)'; circleColor = 'var(--rose)'; circleBorder = 'none';
+      }
+    } else if (isToday) {
+      circleContent = '+'; fontSize = '20px';
+      circleBg = 'var(--rose-dark)'; circleColor = 'white'; circleBorder = 'none';
+    } else {
+      circleContent = ''; fontSize = '12px';
+      circleBg = 'transparent'; circleColor = 'transparent';
+      circleBorder = '1.5px solid ' + (isFuture ? 'var(--rose-light)' : '#ddd0d0');
+    }
 
-    var cellBg = isFuture ? '#f0ebe8' :
-                 rec === undefined ? '#ede8e4' :
-                 pain >= 4 ? '#c04060' :
-                 pain >= 2 ? '#e8809a' :
-                 pain >= 1 ? '#f0a8b8' : phaseColor;
-    var cellColor  = (pain >= 2) ? 'white' : 'var(--ink)';
-    var cellWeight = isToday ? '700' : '500';
-    var clickable  = !isFuture;
-
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;'
+    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:5px;'
       + (clickable ? 'cursor:pointer;' : '') + '"'
       + (clickable ? ' onclick="openDayDetailByDate(\'' + dateStr + '\')"' : '')
       + '>';
-    html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
-    html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
-      + 'font-size:12px;font-weight:' + cellWeight + ';'
-      + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px var(--rose-dark);' : '')
-      + '">' + d.getDate() + '</div>';
+    html += '<div style="font-size:10px;color:' + (isToday ? 'var(--rose-dark)' : 'var(--ink-light)') + ';font-weight:' + (isToday ? '600' : '400') + ';">' + days[i] + '</div>';
+    html += '<div style="width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;'
+      + 'font-size:' + fontSize + ';font-weight:600;'
+      + 'color:' + circleColor + ';background:' + circleBg + ';'
+      + 'border:' + circleBorder + ';'
+      + '">' + circleContent + '</div>';
     html += '</div>';
   }
   weekRow.innerHTML = html;
-  if (typeof window.buildPhaseBar === 'function') window.buildPhaseBar(monday);
 }
 
 // ── 今週の気づきカード ────────────────────────────────────────
@@ -245,7 +246,8 @@ export function updateHomeNumbers() {
   var nextEl    = document.getElementById('home-next-num');
   var nextLabel = document.getElementById('home-next-label');
   var nextUnit  = document.getElementById('home-next-unit');
-  if (!nextEl) return;
+
+  var nextInfoEl = document.getElementById('home-next-info');
 
   if (s.lastPeriodDate && s.cycleLength) {
     var last     = new Date(s.lastPeriodDate + 'T00:00:00');
@@ -253,16 +255,19 @@ export function updateHomeNumbers() {
     var dayNum   = Math.floor((today - last) / 86400000) + 1;
     var daysLeft = s.cycleLength - dayNum;
     if (daysLeft > 0) {
-      nextEl.textContent = daysLeft;
+      if (nextEl) nextEl.textContent = daysLeft;
       if (nextUnit) nextUnit.textContent = '日後';
+      if (nextInfoEl) nextInfoEl.textContent = '次の生理まで約' + daysLeft + '日';
     } else {
-      nextEl.textContent = '今日';
+      if (nextEl) nextEl.textContent = '今日';
       if (nextUnit) nextUnit.textContent = '頃';
+      if (nextInfoEl) nextInfoEl.textContent = '生理予定日頃';
     }
   } else {
-    nextEl.textContent = '—';
+    if (nextEl) nextEl.textContent = '—';
     if (nextLabel) nextLabel.textContent = '次の生理予測';
-    if (nextUnit)  nextUnit.textContent  = '';
+    if (nextUnit) nextUnit.textContent = '';
+    if (nextInfoEl) nextInfoEl.textContent = '';
   }
 }
 
@@ -289,6 +294,64 @@ export function updateHomeDiseaseAdvice() {
   card.style.display = 'block';
 }
 
+// ── ホーム埋め込みカレンダー ──────────────────────────────────
+
+var _homeCalNow = new Date();
+var homeCalYear  = _homeCalNow.getFullYear();
+var homeCalMonth = _homeCalNow.getMonth();
+
+export function buildHomeCalendar() {
+  var label = document.getElementById('homeCalLabel');
+  var grid  = document.getElementById('homeCalGrid');
+  if (!label || !grid) return;
+
+  label.textContent = homeCalYear + '年' + (homeCalMonth + 1) + '月';
+  grid.innerHTML = '';
+
+  var firstDow    = new Date(homeCalYear, homeCalMonth, 1).getDay();
+  var daysInMonth = new Date(homeCalYear, homeCalMonth + 1, 0).getDate();
+  var today = new Date();
+  var st = getState();
+
+  for (var e = 0; e < firstDow; e++) {
+    var empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+  for (var day = 1; day <= daysInMonth; day++) {
+    var el = document.createElement('div');
+    el.className = 'cal-day';
+    var isToday = day === today.getDate() && homeCalMonth === today.getMonth() && homeCalYear === today.getFullYear();
+    if (isToday) el.classList.add('today');
+    var ds      = new Date(homeCalYear, homeCalMonth, day).toDateString();
+    var localDs = homeCalYear + '-' + String(homeCalMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var records = st.records || [];
+    var rec = records.find(function (r) {
+      return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
+    });
+    if (rec) {
+      var pain = rec.painLevel;
+      if (pain !== null && pain !== undefined && pain >= 0) {
+        el.classList.add('pain-' + Math.min(pain, 4));
+      } else {
+        el.classList.add('has-record-no-pain');
+      }
+    }
+    el.textContent = day;
+    el.addEventListener('click', (function (ds) { return function () {
+      if (typeof window.openDayDetailByDate === 'function') window.openDayDetailByDate(ds);
+    }; })(localDs));
+    grid.appendChild(el);
+  }
+}
+
+export function changeHomeCalMonth(delta) {
+  homeCalMonth += delta;
+  if (homeCalMonth > 11) { homeCalMonth = 0; homeCalYear++; }
+  if (homeCalMonth < 0)  { homeCalMonth = 11; homeCalYear--; }
+  buildHomeCalendar();
+}
+
 // ── CTA カード ────────────────────────────────────────────────
 
 export function updateHomeCTAState() {
@@ -305,7 +368,7 @@ export function updateHomeCTAState() {
 
   if (rec) {
     card.style.background = 'var(--rose-dark)';
-    card.style.opacity = '0.82';
+    card.style.opacity = '0.85';
     if (title) title.textContent = '✓ 今日の記録完了';
     if (sub) sub.textContent = typeof window.buildComparisonComment === 'function'
       ? window.buildComparisonComment(rec)
@@ -313,8 +376,8 @@ export function updateHomeCTAState() {
   } else {
     card.style.background = 'var(--rose-dark)';
     card.style.opacity = '1';
-    if (title) title.textContent = '今日を記録する';
-    if (sub)   sub.textContent   = '';
+    if (title) title.textContent = '+ 今日を記録する';
+    if (sub)   sub.textContent   = '今日はまだ記録していません';
   }
 }
 
@@ -333,9 +396,16 @@ export function showMain() {
   updateHomeDiseaseAdvice();
   updateHomeCTAState();
 
+  buildHomeCalendar();
+
+  // ホームカレンダーナビアイコン
+  var hPrev = document.getElementById('homeCalPrev');
+  var hNext = document.getElementById('homeCalNext');
+  if (hPrev && window.ICONS) hPrev.innerHTML = window.ICONS.chevronLeft(16, 'var(--ink-mid)');
+  if (hNext && window.ICONS) hNext.innerHTML = window.ICONS.chevronRight(16, 'var(--ink-mid)');
+
   // 未移植の関数は window.* 経由で委譲（app.html 側に残っている）
   if (typeof window.updateUnlock === 'function') window.updateUnlock();
-  if (typeof window.buildCalendar === 'function') window.buildCalendar();
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
   if (typeof window.updateHomePhaseBanner === 'function') window.updateHomePhaseBanner();
   if (typeof window.updateTodayMessage === 'function') window.updateTodayMessage();
@@ -359,11 +429,14 @@ window.updateDate            = updateDate;
 window.updateGreeting        = updateGreeting;
 window.updateHistory         = updateHistory;
 window.updateStats           = updateStats;
-window.buildHomeWeekRow      = buildHomeWeekRow;
+window.buildHomeWeekRow          = buildHomeWeekRow;
+window.__raw_buildHomeWeekRow    = buildHomeWeekRow;
 window.updateHomeInsightCard = updateHomeInsightCard;
 window.updateHomeNumbers     = updateHomeNumbers;
 window.updateHomeDiseaseAdvice = updateHomeDiseaseAdvice;
 window.updateHomeCTAState    = updateHomeCTAState;
+window.buildHomeCalendar     = buildHomeCalendar;
+window.changeHomeCalMonth    = changeHomeCalMonth;
 
 // 診断・テスト用サマリー
 window.ippoHomeRenderer = {

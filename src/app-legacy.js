@@ -219,8 +219,8 @@ function initNavIcons() {
   if (typeof ICONS === 'undefined') return;
   var navIcons = {
     'nav-icon-home':         ICONS.home(20, 'currentColor'),
-    'nav-icon-calendar':     ICONS.calendar(20, 'currentColor'),
     'nav-icon-insights':     ICONS.insights(20, 'currentColor'),
+    'nav-icon-settings':     ICONS.settings(20, 'currentColor'),
     'nav-icon-plus':         ICONS.plus(22, 'white'),
     'home-settings-icon':    ICONS.settings(18, 'rgba(255,255,255,0.9)')
   };
