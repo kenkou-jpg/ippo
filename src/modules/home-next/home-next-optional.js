@@ -93,8 +93,8 @@ function shouldShowFoodModule(config, state) {
 }
 
 function shouldShowFastingModule(state) {
-  // ファスティング機能: state.fastingActive または state.fastGoal が設定されていれば表示
-  return state.fastingActive || (state.fastGoal != null && state.fastGoal > 0);
+  // ファスティングが実際に稼働中のときのみ表示（fastGoal だけでは表示しない）
+  return state.fastingActive === true;
 }
 
 // ── メインレンダリング ────────────────────────────────────
