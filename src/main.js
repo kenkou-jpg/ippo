@@ -173,6 +173,11 @@ import { bootstrap } from './modules/app-bootstrap.js';
 // ─── Phase E (Step 3): home renderer ─────────────────────
 import './modules/home-renderer.js';
 
+// ─── Calm Insight HOME (home-next): tab-navigation より後にロード ───
+// Feature flag: localStorage['ippo_home_next'] === '1' で有効化。
+// フラグ OFF の場合は既存 home に影響しない。
+import './modules/home-next/home-next-shell.js';
+
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync } from './services/supabase.js';
 
