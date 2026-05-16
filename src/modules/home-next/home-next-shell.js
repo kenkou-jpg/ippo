@@ -1,5 +1,5 @@
 // ============================================================
-//  ippo – home-next-shell.js
+//  ippo – home-next-shell.js v2
 //  Calm Insight HOME オーケストレーター
 //
 //  Feature flag: localStorage['ippo_home_next'] === '1'
@@ -33,44 +33,55 @@ export function isHomeNextEnabled() {
   }
 }
 
-export function enableHomeNext() {
-  try { localStorage.setItem(FLAG_KEY, '1'); } catch { /* noop */ }
-}
-
-export function disableHomeNext() {
-  try { localStorage.removeItem(FLAG_KEY); } catch { /* noop */ }
-}
+export function enableHomeNext()  { try { localStorage.setItem(FLAG_KEY, '1'); }    catch { /* noop */ } }
+export function disableHomeNext() { try { localStorage.removeItem(FLAG_KEY); }       catch { /* noop */ } }
 
 // ── グリーティング・日付 ─────────────────────────────────
 
 function getGreeting() {
   const h = new Date().getHours();
-  if (h >= 5  && h < 10) return 'おはようございます';
-  if (h >= 10 && h < 17) return 'こんにちは';
-  if (h >= 17 && h < 21) return 'こんばんは';
-  return 'おつかれさまです';
+  if (h >= 5  && h < 10) return 'おはよう、';
+  if (h >= 10 && h < 17) return 'こんにちは、';
+  if (h >= 17 && h < 21) return 'こんばんは、';
+  return 'おつかれさまです、';
 }
 
-function getDateStr() {
-  const now  = new Date();
-  const days = ['日', '月', '火', '水', '木', '金', '土'];
-  return `${now.getMonth() + 1}/${now.getDate()}（${days[now.getDay()]}）`;
+function getSubGreeting(state, records) {
+  // 今日の記録があれば状態に合わせた一言
+  const today = new Date().toISOString().slice(0, 10);
+  const todayRec = (records || []).find(r =>
+    (r.date || r.record_date || '').slice(0, 10) === today
+  );
+
+  if (!todayRec && records.length === 0) {
+    return 'からだの記録を始めましょう。';
+  }
+  if (!todayRec) {
+    return '今日の体調を記録してみましょう。';
+  }
+
+  const pain = todayRec.painLevel ?? 0;
+  const sleep = todayRec.sleepQuality ?? 0;
+
+  if (pain >= 3) return '今日はつらい日かもしれません。無理しないで。';
+  if (sleep >= 3) return '少し疲れが出やすい状態かもしれません。';
+  if (pain === 0 && sleep <= 1) return 'あなたの体は、よくがんばっています。';
+  return 'からだの状態を確認していきましょう。';
 }
 
-// ── トップバー ───────────────────────────────────────────
+// ── グリーティングセクション ─────────────────────────────
 
-function renderTopbar(container, state) {
-  const name     = state.name ? `${state.name}さん` : 'あなたさん';
+function renderGreeting(container, state) {
+  const records  = state.records || [];
+  const name     = state.name || 'あなた';
   const greeting = getGreeting();
-  const date     = getDateStr();
+  const sub      = getSubGreeting(state, records);
 
   container.innerHTML = `
-    <div class="hn-topbar">
-      <div>
-        <div class="hn-topbar-greeting">${greeting}</div>
-        <div class="hn-topbar-name">${escapeHTML(name)}</div>
-      </div>
-      <div class="hn-topbar-date">${date}</div>
+    <div class="hn-greeting hn-anim-0">
+      <div class="hn-greeting-time">${greeting}</div>
+      <div class="hn-greeting-name">${esc(name)}さん</div>
+      <div class="hn-greeting-sub">${esc(sub)}</div>
     </div>`;
 }
 
@@ -80,24 +91,24 @@ function renderAll() {
   const state  = getState();
   const config = getHomeConfiguration(state.myDiseases || []);
 
-  const topbar   = document.getElementById('hn-topbar');
+  const greeting = document.getElementById('hn-greeting');
   const hero     = document.getElementById('hn-hero');
   const status   = document.getElementById('hn-status');
   const optional = document.getElementById('hn-optional');
   const insights = document.getElementById('hn-insights');
   const record   = document.getElementById('hn-record');
 
-  if (topbar)   renderTopbar(topbar, state);
+  if (greeting) renderGreeting(greeting, state);
   if (hero)     renderHero(hero, config, state);
   if (status)   renderStatusCards(status, config, state);
   if (optional) renderOptionalModules(optional, config, state);
   if (insights) renderInsights(insights, state, config);
   if (record)   renderQuickRecord(record, state);
 
-  // 既存の window bridge 関数も更新（設定画面ヒーローなど）
-  if (typeof window.updateSettingsHero  === 'function') window.updateSettingsHero();
-  if (typeof window.updateUnlock        === 'function') window.updateUnlock();
-  if (typeof window.initReminders       === 'function') window.initReminders();
+  // 既存 window bridge 関数も更新
+  if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
+  if (typeof window.updateUnlock       === 'function') window.updateUnlock();
+  if (typeof window.initReminders      === 'function') window.initReminders();
 }
 
 // ── showHomeNext ─────────────────────────────────────────
@@ -108,27 +119,22 @@ export async function showHomeNext() {
 }
 
 // ── tab-navigation との統合 ──────────────────────────────
-// switchTab('home') が呼ばれたとき home-next を表示するよう差し替える。
-// また tab-nav が呼ぶ個別 update 関数を renderAll に集約する。
 
 function patchTabNavigation() {
   const originalSwitchTab = window.switchTab;
 
   window.switchTab = async function (tab, btn) {
     if (tab === 'home') {
-      // ナビボタンのアクティブ状態を同期
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       if (btn) btn.classList.add('active');
       window.scrollTo(0, 0);
       await showHomeNext();
     } else {
-      if (typeof originalSwitchTab === 'function') {
-        await originalSwitchTab(tab, btn);
-      }
+      if (typeof originalSwitchTab === 'function') await originalSwitchTab(tab, btn);
     }
   };
 
-  // tab-nav が home タブで呼ぶ個別関数を no-op に（home-next が全部担う）
+  // tab-nav が個別に呼ぶ update 関数を no-op に (home-next が一括担う)
   const noOp = () => {};
   window.buildHomeWeekRow        = noOp;
   window.updateHomeInsightCard   = noOp;
@@ -144,10 +150,7 @@ function patchTabNavigation() {
 export function initHomeNext() {
   if (!isHomeNextEnabled()) return;
 
-  // showMain を差し替え（bootstrap / app-bootstrap が呼ぶ）
   window.showMain = showHomeNext;
-
-  // tab-navigation を差し替え
   patchTabNavigation();
 
   if (typeof window.ippoMarkBootEvent === 'function') {
@@ -155,30 +158,27 @@ export function initHomeNext() {
   }
 }
 
-// ── DevTools ヘルパー ────────────────────────────────────
-// ブラウザコンソールから:
-//   window.ippoHomeNext.enable()  → 有効化してリロード不要でプレビュー
-//   window.ippoHomeNext.disable() → 無効化
-//   window.ippoHomeNext.preview() → リロードせずその場でプレビュー
+// ── DevTools ヘルパー ─────────────────────────────────────
+// コンソールから:
+//   window.ippoHomeNext.enable()   → 有効化 (その場でプレビュー)
+//   window.ippoHomeNext.disable()  → 無効化してリロード
+//   window.ippoHomeNext.preview()  → フラグ操作なしでプレビュー
 
 window.ippoHomeNext = {
   enable()  { enableHomeNext();  initHomeNext(); showHomeNext(); },
   disable() { disableHomeNext(); location.reload(); },
   preview() { initHomeNext(); showHomeNext(); },
   isEnabled: isHomeNextEnabled,
-  render:    renderAll,
+  render: renderAll,
 };
 
 // ── 自動起動 ─────────────────────────────────────────────
-// このモジュールがロードされた時点でフラグを確認し、有効なら差し替える。
-// tab-navigation.js より後にロードされるため、window.switchTab の上書き安全。
+// tab-navigation.js より後にロードされるため window.switchTab 上書き安全
 
 initHomeNext();
 
-function escapeHTML(str) {
+function esc(str) {
   return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
