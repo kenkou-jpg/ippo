@@ -1,123 +1,68 @@
 <div id="screen-home" class="screen active">
 
-  <!-- ホームカード：上段ダークローズ（挨拶）＋下段ホワイト（カレンダー）-->
+  <!-- メインカード（1枚でスクロール完結） -->
   <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);">
 
-    <!-- 上段：ダークローズ（挨拶 + バッジ） -->
+    <!-- 上段：ダークローズ（挨拶 + フェーズバッジ） -->
     <div style="background:var(--rose-dark);padding:20px 18px 18px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;">
         <div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:rgba(255,255,255,0.85);" id="greeting-text">おはようございます</div>
-          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:1px;" id="greeting-name">あなたさん</div>
-          <div id="today-date" style="font-size:12px;color:rgba(255,255,255,0.68);margin-top:3px;"></div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.82);" id="greeting-text">こんにちは</div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:2px;" id="greeting-name">あなたさん</div>
         </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-          <button type="button" onclick="switchTab('settings')" aria-label="設定を開く"
-            style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.18);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;"
-            id="home-settings-btn">
-            <span id="home-settings-icon" aria-hidden="true"></span>
-          </button>
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
           <div id="home-phase-badge" style="display:none;">
-            <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:5px 12px;border-radius:20px;white-space:nowrap;"></div>
+            <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:20px;white-space:nowrap;"></div>
+          </div>
+          <div id="home-next-info" style="font-size:11px;color:rgba(255,255,255,0.72);white-space:nowrap;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 下段：ホワイト（記録ボタン・週・カレンダー） -->
+    <div style="padding:16px 16px 20px;">
+
+      <!-- 記録ボタン -->
+      <div id="home-record-cta" onclick="handleHomeCTA()">
+        <div id="home-cta-card" style="background:var(--rose-dark);border-radius:14px;padding:15px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+          <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">+ 今日を記録する</div>
+        </div>
+      </div>
+      <div id="home-cta-sub" style="text-align:center;font-size:12px;color:var(--ink-light);margin-top:8px;min-height:16px;"></div>
+
+      <!-- 今週 -->
+      <div style="margin-top:18px;">
+        <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:10px;">今週</div>
+        <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+      </div>
+
+      <!-- 月間カレンダー -->
+      <div style="margin-top:22px;">
+        <div class="cal-header" style="margin-bottom:12px;">
+          <div class="cal-label" id="homeCalLabel"></div>
+          <div class="cal-nav">
+            <button class="cal-nav-btn" id="homeCalPrev" type="button" aria-label="前の月" onclick="changeHomeCalMonth(-1)">‹</button>
+            <button class="cal-nav-btn" id="homeCalNext" type="button" aria-label="次の月" onclick="changeHomeCalMonth(1)">›</button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- 下段：ホワイト（フェーズバー・ラベル・週カレンダー） -->
-    <div style="padding:14px 16px 16px;background:white;">
-      <!-- フェーズバー（全周期比例） -->
-      <div id="home-phase-bar" style="height:6px;border-radius:3px;overflow:hidden;display:flex;margin-bottom:7px;"></div>
-      <!-- フェーズラベル（4フェーズ） -->
-      <div id="home-phase-labels" style="display:flex;margin-bottom:14px;"></div>
-      <!-- 週間カレンダー -->
-      <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
-    </div>
-
-  </div>
-
-  <!-- 今週の気づき -->
-  <div id="home-insight-card" style="margin:0 20px 16px;display:none;">
-    <div style="background:var(--rose-pale);border-radius:14px;padding:13px 16px;">
-      <div style="font-size:11px;color:var(--rose);font-weight:500;margin-bottom:5px;">今週の気づき</div>
-      <div id="home-insight-text" style="font-size:13px;color:var(--ink);line-height:1.7;"></div>
-    </div>
-  </div>
-
-  <!-- 数値 2つ（フラット） -->
-  <div style="margin:0 24px 20px;display:flex;gap:0;">
-    <div style="flex:1;">
-      <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">記録連続</div>
-      <div style="display:flex;align-items:baseline;gap:3px;">
-        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-streak-num">0</span>
-        <span style="font-size:13px;color:var(--ink-light);">日</span>
-        <span id="home-streak-fire" style="font-size:16px;margin-left:2px;"></span>
-      </div>
-    </div>
-    <div style="flex:1;">
-      <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;" id="home-next-label">次の生理予測</div>
-      <div style="display:flex;align-items:baseline;gap:3px;">
-        <span style="font-size:28px;font-weight:700;color:var(--ink);" id="home-next-num">—</span>
-        <span style="font-size:13px;color:var(--ink-light);" id="home-next-unit">日後</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- 疾患別アドバイス -->
-  <div id="home-disease-advice" style="margin:0 20px 16px;display:none;">
-    <div style="background:var(--gold-light);border-radius:14px;padding:12px 16px;border-left:3px solid var(--gold);">
-      <div id="home-disease-advice-text" style="font-size:12px;color:var(--ink);line-height:1.7;"></div>
-    </div>
-  </div>
-
-  <!-- 記録ボタン -->
-  <div id="home-record-cta" style="margin:0 20px 12px;" onclick="handleHomeCTA()">
-    <div id="home-cta-card" style="background:var(--rose-dark);border-radius:16px;padding:16px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
-      <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">今日を記録する</div>
-      <div id="home-cta-sub" style="font-size:11px;color:rgba(255,255,255,0.80);margin-top:2px;"></div>
-    </div>
-  </div>
-
-  <!-- ファスティングウィジェット（オプション） -->
-  <div class="fasting-widget" id="home-fasting-widget" style="margin:0 20px 16px;display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div>
-        <div class="fw-label">FASTING TIMER</div>
-        <div class="fw-timer" id="fast-timer">00:00:00</div>
-        <div class="fw-status" id="fast-status">開始を押して下さい</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
-        <div class="fw-goal-pills">
-          <div class="fw-pill active" onclick="setFastGoal(12, this)">12h</div>
-          <div class="fw-pill" onclick="setFastGoal(14, this)">14h</div>
-          <div class="fw-pill" onclick="setFastGoal(16, this)">16h</div>
+        <div class="cal-weekdays">
+          <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
         </div>
-        <button class="fw-btn start" id="fast-start-btn" onclick="toggleFast()" style="padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:linear-gradient(135deg,#e8b4b8,#c4878c);color:#fff;">開始</button>
-        <button class="fw-btn stop" id="fast-stop-btn" onclick="endFast()" style="display:none;padding:10px 24px;border-radius:12px;font-size:14px;font-weight:700;border:none;cursor:pointer;background:rgba(255,255,255,0.15);color:#fff;">終了</button>
+        <div class="cal-grid" id="homeCalGrid"></div>
       </div>
-    </div>
-    <div id="fast-binge-btn-wrap" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,0.12);">
-      <button onclick="showBingeUrgeSupport()" style="width:100%;padding:9px 12px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.22);border-radius:11px;color:rgba(255,255,255,0.75);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-align:left;display:flex;align-items:center;gap:8px;">
-        <span style="font-size:16px;">🍬</span>
-        <span>食欲が止まらない… サポートを見る</span>
-      </button>
+
     </div>
   </div>
 
-  <!-- 回復食ガイド（ファスティング終了後） -->
-  <div id="fast-recovery-card" style="display:none;margin:0 20px 16px;background:var(--white);border-radius:16px;padding:16px;box-shadow:0 2px 12px var(--shadow);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <div style="font-family:'Shippori Mincho',serif;font-size:14px;color:var(--ink);">回復食ガイド</div>
-      <button onclick="document.getElementById('fast-recovery-card').style.display='none'" style="background:none;border:none;color:var(--ink-light);font-size:16px;cursor:pointer;padding:0;">✕</button>
-    </div>
-    <div id="fast-recovery-content"></div>
-  </div>
-
-  <!-- レポートリンク -->
-  <div style="text-align:center;margin:0 20px 24px;">
-    <button onclick="openDoctorSummary()" style="background:none;border:none;font-size:13px;color:var(--ink-light);cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-decoration:underline;text-underline-offset:3px;">
-      先週のレポートを見る
-    </button>
+  <!-- hidden: JS が参照する旧 ID を保持（クラッシュ回避） -->
+  <div style="display:none;">
+    <span id="home-streak-num"></span>
+    <span id="home-streak-fire"></span>
+    <span id="home-next-num"></span>
+    <span id="home-next-label"></span>
+    <span id="home-next-unit"></span>
+    <span id="today-date"></span>
+    <span id="home-settings-icon"></span>
   </div>
 
 </div>
