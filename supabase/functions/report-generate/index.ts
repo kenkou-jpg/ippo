@@ -31,7 +31,8 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  if (!profile.is_premium) {
+  const premiumExpired = profile.premium_expires_at && new Date(profile.premium_expires_at) < new Date();
+  if (!profile.is_premium || premiumExpired) {
     return new Response(JSON.stringify({ error: 'Premium subscription required' }), {
       status: 403,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
