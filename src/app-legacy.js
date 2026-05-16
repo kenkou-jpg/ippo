@@ -7227,6 +7227,9 @@ function prefillRecordFromModal() {
 
 // ===== RECORD SCREEN =====
 function openRecordScreen(){
+  // welcome-reset-guard が setTimeout(0) で showScreen(getCurrentScreen()) を呼ぶため、
+  // state.currentScreen を先に更新しないと旧タブに戻される。
+  state.currentScreen = 'record';
     // 今日の記録が既にある場合は自動的に編集モードにする
   if(!state.editingDate){
     var todayStr = new Date().toDateString();

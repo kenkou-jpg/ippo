@@ -25,6 +25,11 @@ export default defineConfig({
   // GitHub Pages / サブパス配信でも build assets を相対参照にする
   base: './',
 
+  // console.* / debugger を本番ビルドから除去（esbuild 組み込み機能）
+  esbuild: {
+    drop: ['console', 'debugger'],
+  },
+
   // プロジェクトルート（index.html ではなく app.html を使うため '.' のまま）
   root: '.',
 
