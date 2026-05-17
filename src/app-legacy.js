@@ -3794,17 +3794,17 @@ function switchInsTab(tab) {
     if (!pane || !btn) return;
     if (p === tab) {
       pane.style.display = 'block';
-      btn.style.background = '#EEE9F8';
-      btn.style.color = '#7C6AED';
-      btn.style.fontWeight = '600';
-      btn.style.borderColor = 'rgba(124,106,237,0.3)';
+      btn.style.background = '#F3EFFD';
+      btn.style.color = '#A78BFA';
+      btn.style.fontWeight = '500';
+      btn.style.borderColor = 'rgba(167,139,250,0.22)';
       btn.style.boxShadow = 'none';
     } else {
       pane.style.display = 'none';
       btn.style.background = 'transparent';
-      btn.style.color = '#9a8a80';
+      btn.style.color = 'rgba(45,31,26,0.42)';
       btn.style.fontWeight = '400';
-      btn.style.borderColor = 'rgba(0,0,0,0.05)';
+      btn.style.borderColor = 'transparent';
       btn.style.boxShadow = 'none';
     }
   });
