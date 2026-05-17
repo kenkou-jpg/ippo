@@ -242,7 +242,38 @@ export function pickHeroMessage(messages, key) {
 
 // ── メインエクスポート ────────────────────────────────────
 
+/**
+ * 複数疾患対応: 最重要プロファイルをベースに、
+ * 他疾患の priorityCards を最大4件にマージして返す。
+ *
+ * 例: ['卵巣嚢腫', 'PMS/PMDD', '慢性骨盤痛']
+ *   → ovarian_cyst (primary) の [pain, swelling, sleep, mood]
+ *      pms の [mood, swelling] は既に含まれるので追加不要
+ *      chronic_pelvic_pain の [pain, mood, sleep, swelling] も同様
+ *   → 最終的に ovarian_cyst ベースのまま (重複なし)
+ */
 export function getHomeConfiguration(myDiseases = []) {
-  const key = detectProfileKey(myDiseases);
-  return { ...PROFILES[key], profileKey: key };
+  const primaryKey = detectProfileKey(myDiseases);
+  const primary    = { ...PROFILES[primaryKey], profileKey: primaryKey };
+
+  if (myDiseases.length <= 1) return primary;
+
+  // 2番目以降の疾患の priorityCards を収集
+  const seen = new Set(primary.priorityCards);
+  const merged = [...primary.priorityCards];
+
+  for (const disease of myDiseases) {
+    const key = DISEASE_TO_PROFILE[disease];
+    if (!key || key === primaryKey) continue;
+    const profile = PROFILES[key];
+    if (!profile) continue;
+    for (const card of profile.priorityCards) {
+      if (!seen.has(card) && merged.length < 4) {
+        seen.add(card);
+        merged.push(card);
+      }
+    }
+  }
+
+  return { ...primary, priorityCards: merged.slice(0, 4) };
 }

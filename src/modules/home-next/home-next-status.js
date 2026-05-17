@@ -216,6 +216,86 @@ function buildMoodCard(records) {
   </div>`;
 }
 
+// ── 症状カード ────────────────────────────────────────────
+
+const SVG_SYMPTOM = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="10" cy="7" r="3"/>
+  <path d="M4 19v-1.5a6 6 0 0112 0V19"/>
+</svg>`;
+
+function buildSymptomCard(records) {
+  const rec      = getTodayRecord(records) || getLatestRecord(records);
+  const symptoms = rec?.symptoms || [];
+  const recent4  = getRecentN(records, 4);
+
+  // 頻出症状トップ2を集計
+  const symCount = {};
+  recent4.forEach(r => (r.symptoms || []).forEach(s => {
+    symCount[s] = (symCount[s] || 0) + 1;
+  }));
+
+  let value, sub;
+  if (symptoms.length >= 1) {
+    value = symptoms.slice(0, 2).join('・');
+    sub   = symptoms.length > 2 ? `他${symptoms.length - 2}件` : '今日の症状';
+  } else if (rec) {
+    value = 'なし';
+    sub   = '症状なし';
+  } else {
+    value = '未記録';
+    sub   = '';
+  }
+
+  // 週の症状有無バー（あり=1/なし=0）
+  const recentVals = getRecentN(records, 4).reverse()
+    .map(r => (r.symptoms || []).length > 0 ? 1 : 0);
+
+  return `<div class="hn-status-card">
+    <div class="hn-sc-icon">${SVG_SYMPTOM}</div>
+    <div class="hn-sc-label">症状</div>
+    <div class="hn-sc-value">${esc(value)}</div>
+    ${sub ? `<div class="hn-sc-sub">${esc(sub)}</div>` : ''}
+    ${buildSparkline(recentVals, '#C4946A')}
+  </div>`;
+}
+
+// ── 食事カード ────────────────────────────────────────────
+
+const SVG_FOOD_CARD = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M14.5 7h.75A3 3 0 0115.25 13H14.5"/>
+  <path d="M2 7H14v6.5A3 3 0 0111 16.5H5A3 3 0 012 13.5V7z"/>
+  <line x1="5"  y1="1.5" x2="5"  y2="4"/>
+  <line x1="8"  y1="1.5" x2="8"  y2="4"/>
+  <line x1="11" y1="1.5" x2="11" y2="4"/>
+</svg>`;
+
+function buildFoodCard(records) {
+  const rec       = getTodayRecord(records) || getLatestRecord(records);
+  const mealCount = rec?.mealCount ?? null;
+  const recent4   = getRecentN(records, 4).reverse()
+    .map(r => r.mealCount != null ? r.mealCount : 0);
+
+  let value, sub;
+  if (mealCount != null) {
+    value = `${mealCount}食`;
+    sub   = mealCount >= 3 ? 'バランス良し' : mealCount >= 2 ? '通常' : '少なめ';
+  } else if (rec) {
+    value = '未記録';
+    sub   = '食事を記録して';
+  } else {
+    value = '未記録';
+    sub   = '';
+  }
+
+  return `<div class="hn-status-card">
+    <div class="hn-sc-icon">${SVG_FOOD_CARD}</div>
+    <div class="hn-sc-label">食事</div>
+    <div class="hn-sc-value">${esc(value)}</div>
+    ${sub ? `<div class="hn-sc-sub">${esc(sub)}</div>` : ''}
+    ${buildSparkline(recent4)}
+  </div>`;
+}
+
 // ── 体温 / むくみ / エネルギーカード ─────────────────────
 
 function buildTempOrEnergyCard(records, priorityKey) {
@@ -317,6 +397,8 @@ export function renderStatusCards(container, config, state) {
       case 'sleep':    return buildSleepCard(records);
       case 'pain':     return buildPainCard(records);
       case 'mood':     return buildMoodCard(records);
+      case 'symptom':  return buildSymptomCard(records);
+      case 'food':     return buildFoodCard(records);
       case 'swelling': return buildTempOrEnergyCard(records, 'swelling');
       default:         return buildTempOrEnergyCard(records, key);
     }

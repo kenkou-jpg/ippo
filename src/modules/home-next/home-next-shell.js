@@ -9,14 +9,15 @@
 
 import './home-next.css';
 
-import { getState }              from '../../store/state.js';
-import { showScreen }            from '../screen-router.js';
-import { getHomeConfiguration }  from './home-next-config.js';
-import { renderHero }            from './home-next-hero.js';
-import { renderStatusCards }     from './home-next-status.js';
-import { renderInsights }        from './home-next-insights.js';
-import { renderOptionalModules } from './home-next-optional.js';
-import { renderQuickRecord }     from './home-next-quick-record.js';
+import { getState }                  from '../../store/state.js';
+import { showScreen }                from '../screen-router.js';
+import { getHomeConfiguration }      from './home-next-config.js';
+import { renderHero }                from './home-next-hero.js';
+import { renderStatusCards }         from './home-next-status.js';
+import { renderInsights }            from './home-next-insights.js';
+import { renderOptionalModules }     from './home-next-optional.js';
+import { renderQuickRecord }         from './home-next-quick-record.js';
+import { renderPersonalizeSection }  from './home-next-personalize.js';
 
 // ── Feature flag ─────────────────────────────────────────
 
@@ -35,6 +36,41 @@ export function isHomeNextEnabled() {
 
 export function enableHomeNext()  { try { localStorage.setItem(FLAG_KEY, '1'); }    catch { /* noop */ } }
 export function disableHomeNext() { try { localStorage.removeItem(FLAG_KEY); }       catch { /* noop */ } }
+
+// ── ヘッダーバー ─────────────────────────────────────────
+
+// ベルSVG (outline / 1.5px)
+const SVG_BELL = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M10 2.5a6.5 6.5 0 00-6.5 6.5v3l-1 2h15l-1-2V9A6.5 6.5 0 0010 2.5z"/>
+  <path d="M8 16.5a2 2 0 004 0"/>
+</svg>`;
+
+function renderHeader(container, state) {
+  const name    = state.name || '';
+  const initial = name ? name.charAt(0).toUpperCase() : 'K';
+
+  // 未読通知があるか（将来の通知機能を想定、今は常にfalse）
+  const hasUnread = false;
+
+  container.innerHTML = `
+    <div class="hn-header">
+      <div class="hn-header-logo">
+        ippo
+        <span class="hn-header-logo-dot"></span>
+      </div>
+      <div class="hn-header-actions">
+        <button class="hn-header-bell" aria-label="通知"
+          onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
+          ${SVG_BELL}
+          ${hasUnread ? '<span class="hn-bell-badge"></span>' : ''}
+        </button>
+        <div class="hn-header-avatar"
+          onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
+          ${esc(initial)}
+        </div>
+      </div>
+    </div>`;
+}
 
 // ── グリーティング・日付 ─────────────────────────────────
 
@@ -91,19 +127,23 @@ function renderAll() {
   const state  = getState();
   const config = getHomeConfiguration(state.myDiseases || []);
 
-  const greeting = document.getElementById('hn-greeting');
-  const hero     = document.getElementById('hn-hero');
-  const status   = document.getElementById('hn-status');
-  const optional = document.getElementById('hn-optional');
-  const insights = document.getElementById('hn-insights');
-  const record   = document.getElementById('hn-record');
+  const header      = document.getElementById('hn-header');
+  const greeting    = document.getElementById('hn-greeting');
+  const hero        = document.getElementById('hn-hero');
+  const status      = document.getElementById('hn-status');
+  const personalize = document.getElementById('hn-personalize');
+  const optional    = document.getElementById('hn-optional');
+  const insights    = document.getElementById('hn-insights');
+  const record      = document.getElementById('hn-record');
 
-  if (greeting) renderGreeting(greeting, state);
-  if (hero)     renderHero(hero, config, state);
-  if (status)   renderStatusCards(status, config, state);
-  if (optional) renderOptionalModules(optional, config, state);
-  if (insights) renderInsights(insights, state, config);
-  if (record)   renderQuickRecord(record, state);
+  if (header)      renderHeader(header, state);
+  if (greeting)    renderGreeting(greeting, state);
+  if (hero)        renderHero(hero, config, state);
+  if (status)      renderStatusCards(status, config, state);
+  if (personalize) renderPersonalizeSection(personalize, config, state);
+  if (optional)    renderOptionalModules(optional, config, state);
+  if (insights)    renderInsights(insights, state, config);
+  if (record)      renderQuickRecord(record, state);
 
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
