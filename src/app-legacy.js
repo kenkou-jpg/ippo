@@ -3781,61 +3781,102 @@ function updateHomeDiseaseAdvice() {
   card.style.display = 'block';
 }
 
-// ===== インサイト タブ切り替え =====
+// ===== インサイト タブ切り替え (Pattern B: 5タブ) =====
 function switchInsTab(tab) {
-  var panes = ['free','pro','doctor'];
+  // 旧タブ名の後方互換マッピング
+  var legacyMap = { free: 'recommended', pro: 'trends', doctor: 'report' };
+  if (legacyMap[tab]) tab = legacyMap[tab];
+
+  var panes = ['recommended', 'trends', 'cycle', 'experiments', 'report'];
   panes.forEach(function(p) {
     var pane = document.getElementById('ins-pane-' + p);
     var btn  = document.getElementById('ins-tab-btn-' + p);
     if (!pane || !btn) return;
     if (p === tab) {
       pane.style.display = 'block';
-      btn.style.background = 'white';
-      btn.style.color = 'var(--ink)';
+      btn.style.background = '#EEE9F8';
+      btn.style.color = '#7C6AED';
       btn.style.fontWeight = '600';
-      btn.style.boxShadow = '0 1px 4px rgba(0,0,0,0.08)';
+      btn.style.borderColor = 'rgba(124,106,237,0.3)';
+      btn.style.boxShadow = 'none';
     } else {
       pane.style.display = 'none';
       btn.style.background = 'transparent';
-      btn.style.color = 'var(--ink-light)';
-      btn.style.fontWeight = '500';
+      btn.style.color = '#9a8a80';
+      btn.style.fontWeight = '400';
+      btn.style.borderColor = 'rgba(0,0,0,0.05)';
       btn.style.boxShadow = 'none';
     }
   });
-  // PRO分析タブに切り替えたとき既存コンテンツを描画
-  if (tab === 'pro') {
+
+  if (tab === 'recommended') {
+    renderInsightDiscoveries();
+    renderMonthlySummaryText();
+  }
+  if (tab === 'trends') {
+    setTimeout(function(){
+      if (typeof renderComparisonChart === 'function') renderComparisonChart();
+      if (typeof renderTimeline === 'function') renderTimeline();
+    }, 80);
+  }
+  if (tab === 'cycle') {
     if (typeof renderPhaseMap === 'function') renderPhaseMap();
     setTimeout(function(){
       if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
       if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
-      if (typeof renderComparisonChart === 'function') renderComparisonChart();
-      if (typeof renderTimeline === 'function') renderTimeline();
-    }, 100);
+    }, 80);
   }
 }
 
-// ===== からだの発見カード =====
+// ===== インサイト発見ロジック＋メインカード更新 =====
 function renderInsightDiscoveries() {
   if (!window.__ippoStateReady) {
     if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderInsightDiscoveries', renderInsightDiscoveries);
     return;
   }
-  var container = document.getElementById('discoveries-cards');
-  if (!container) return;
   var now = new Date();
   var records30 = (state.records || []).filter(function(r){
     var d = new Date(r.date);
     return (now - d) / 86400000 <= 30;
   });
 
+  // 記録不足の場合は空状態を表示
+  var emptyEl = document.getElementById('insights-empty-state');
   if (records30.length < 3) {
-    container.innerHTML = '<div style="background:#f7f2f2;border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink-light);">記録を続けると発見が表示されます</div>';
+    if (emptyEl) emptyEl.style.display = 'block';
+    _updateInsMainCard(
+      '記録を続けると、\nあなたの体のパターンが見えてきます。',
+      '7日間記録すると、食事・症状・周期のつながりが分かってきます。'
+    );
     return;
   }
+  if (emptyEl) emptyEl.style.display = 'none';
 
-  var cards = [];
+  // ── 発見候補を生成 ──────────────────────────────────
+  var best = null; // { main, sub, priority }
 
-  // 1. 痛みパターン（ピンク）
+  // 1. 睡眠が短い翌日の痛み
+  var shortSleepDays = records30.filter(function(r){ return (r.sleepHours || 8) < 6 && r.sleepHours > 0; });
+  if (shortSleepDays.length >= 2) {
+    var nextDayPains = shortSleepDays.map(function(r){
+      var d = new Date(r.date); d.setDate(d.getDate()+1);
+      var nx = records30.find(function(r2){ return new Date(r2.date).toDateString() === d.toDateString(); });
+      return nx ? (nx.painLevel || 0) : null;
+    }).filter(function(v){ return v !== null; });
+    if (nextDayPains.length >= 1) {
+      var avgNP = nextDayPains.reduce(function(a,b){return a+b;},0)/nextDayPains.length;
+      if (avgNP >= 2) {
+        var pct = Math.round(nextDayPains.filter(function(v){return v>=2;}).length / nextDayPains.length * 100);
+        best = {
+          priority: 5,
+          main: '睡眠が6時間未満の日の翌日は、\n頭痛が出やすい傾向があります',
+          sub:  '過去30日の記録からみると、約' + pct + '%の確率で見られます。あなたの体のパターンです。'
+        };
+      }
+    }
+  }
+
+  // 2. 生理前の痛み集中
   var painDays = records30.filter(function(r){ return (r.painLevel || 0) >= 4; });
   if (painDays.length >= 3) {
     var preLuteal = painDays.filter(function(r){
@@ -3845,61 +3886,112 @@ function renderInsightDiscoveries() {
       var cl = state.cycleLength || 28;
       return dayNum >= (cl - 7) && dayNum <= cl;
     });
-    var msg = preLuteal.length >= 2
-      ? '生理前' + preLuteal.length + '日間に痛みが集中しています'
-      : '直近30日で痛みが強い日が' + painDays.length + '日ありました';
-    cards.push({ bg: '#FBEAF0', titleColor: '#72243E', title: '痛みのパターン', msg: msg });
+    if (preLuteal.length >= 2 && (!best || best.priority < 6)) {
+      best = {
+        priority: 6,
+        main: '生理前の時期に、\n痛みが集中しやすい傾向があります',
+        sub:  '過去30日で生理前' + preLuteal.length + '日間に痛みが集中しています。周期を把握することが助けになります。'
+      };
+    }
   }
 
-  // 2. 良い傾向（グリーン）
+  // 3. 運動した翌日の気分向上
   var exerciseDays = records30.filter(function(r){ return r.factors && r.factors.indexOf('運動した') !== -1; });
-  if (exerciseDays.length >= 2) {
+  if (exerciseDays.length >= 2 && (!best || best.priority < 4)) {
     var avgMoodEx = exerciseDays.reduce(function(s,r){ return s+(r.mood||3); },0) / exerciseDays.length;
     var nonEx = records30.filter(function(r){ return !r.factors || r.factors.indexOf('運動した') === -1; });
     var avgMoodNo = nonEx.length ? nonEx.reduce(function(s,r){ return s+(r.mood||3); },0) / nonEx.length : 3;
     if (avgMoodEx > avgMoodNo + 0.3) {
-      cards.push({ bg: '#E1F5EE', titleColor: '#1D6B4D', title: '良い傾向', msg: '運動した翌日の気分スコアが高い傾向です' });
+      best = {
+        priority: 4,
+        main: '運動した翌日は、\n気分が上向きやすいかもしれません',
+        sub:  '運動した日と比べ、気分スコアが高い傾向が見られます。続けることが助けになりそうです。'
+      };
     }
   }
 
-  // 3. 睡眠との相関（パープル）
-  var shortSleepDays = records30.filter(function(r){ return (r.sleepHours || 8) < 6 && r.sleepHours > 0; });
-  if (shortSleepDays.length >= 2) {
-    var nextDayPain = shortSleepDays.map(function(r){
-      var d = new Date(r.date); d.setDate(d.getDate()+1);
-      var nextRec = records30.find(function(r2){ return new Date(r2.date).toDateString() === d.toDateString(); });
-      return nextRec ? (nextRec.painLevel || 0) : null;
-    }).filter(function(v){ return v !== null; });
-    if (nextDayPain.length >= 1) {
-      var avgNextPain = nextDayPain.reduce(function(a,b){ return a+b; },0)/nextDayPain.length;
-      if (avgNextPain >= 2) {
-        cards.push({ bg: '#EEEDFE', titleColor: '#4B3FB5', title: '睡眠との関係', msg: '睡眠が短い翌日、痛みが増える傾向です' });
-      }
+  // 4. 繰り返し症状
+  if (!best || best.priority < 3) {
+    var symCount = {};
+    records30.forEach(function(r){ (r.symptoms||[]).forEach(function(s){ symCount[s]=(symCount[s]||0)+1; }); });
+    var topSym = Object.entries ? Object.entries(symCount).sort(function(a,b){return b[1]-a[1];})[0] : null;
+    if (!topSym) {
+      var keys = Object.keys(symCount).sort(function(a,b){return symCount[b]-symCount[a];});
+      if (keys.length) topSym = [keys[0], symCount[keys[0]]];
+    }
+    if (topSym && topSym[1] >= 3) {
+      best = {
+        priority: 3,
+        main: '今月、「' + topSym[0] + '」が\n' + topSym[1] + '日続いています',
+        sub:  '記録を継続することで、症状のパターンが見えてきます。'
+      };
     }
   }
 
-  // 4. 服薬・生活ファクター（オレンジ）
-  var medCount = {};
-  records30.forEach(function(r){
-    (r.medication||[]).forEach(function(m){ medCount[m] = (medCount[m]||0)+1; });
+  // 記録継続（ポジティブ）
+  if (!best && records30.length >= 5) {
+    best = {
+      priority: 1,
+      main: '今月は' + records30.length + '日、\n記録が続いています',
+      sub:  '続けるほど、あなただけのからだのパターンが見えてきます。'
+    };
+  }
+
+  if (best) {
+    _updateInsMainCard(best.main, best.sub);
+  }
+
+  // discoveries-cards（非表示コンテナ）にも書き込む（後方互換）
+  var container = document.getElementById('discoveries-cards');
+  if (container) container.innerHTML = '';
+}
+
+function _updateInsMainCard(main, sub) {
+  var textEl = document.getElementById('ins-main-insight-text');
+  var subEl  = document.getElementById('ins-main-insight-sub');
+  if (textEl) textEl.innerHTML = main.replace(/\n/g, '<br>');
+  if (subEl)  subEl.textContent = sub;
+}
+
+// ===== 今月のサマリーテキスト生成 =====
+function renderMonthlySummaryText() {
+  if (!window.__ippoStateReady) {
+    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderMonthlySummaryText', renderMonthlySummaryText);
+    return;
+  }
+  var el = document.getElementById('ins-monthly-summary-text');
+  if (!el) return;
+
+  var now = new Date();
+  var monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  var mn = monthNames[now.getMonth()];
+
+  var monthRecs = (state.records || []).filter(function(r){
+    var d = new Date(r.date);
+    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
   });
-  var topMed = Object.keys(medCount).sort(function(a,b){ return medCount[b]-medCount[a]; })[0];
-  if (topMed && medCount[topMed] >= 3) {
-    cards.push({ bg: '#FAEEDA', titleColor: '#7A4A00', title: '服薬・サプリ', msg: '今月「' + topMed + '」を' + medCount[topMed] + '日記録しました' });
-  }
 
-  if (cards.length === 0) {
-    container.innerHTML = '<div style="background:#f7f2f2;border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink-light);">記録を続けると発見が表示されます</div>';
+  if (monthRecs.length < 3) {
+    el.innerHTML = mn + 'の記録を集めています。<br><span style="font-size:12px;color:#9a8a80;">記録が増えるほど、より正確な分析が見えてきます。</span>';
     return;
   }
 
-  var html = cards.slice(0,4).map(function(c){
-    return '<div style="background:'+c.bg+';border-radius:12px;padding:12px 14px;margin-bottom:10px;">'
-      + '<div style="font-weight:700;color:'+c.titleColor+';font-size:13px;margin-bottom:4px;">'+c.title+'</div>'
-      + '<div style="font-size:13px;color:var(--ink);line-height:1.6;">'+c.msg+'</div>'
-      + '</div>';
-  }).join('');
-  container.innerHTML = html;
+  var painDays = monthRecs.filter(function(r){ return (r.painLevel||0) >= 2; }).length;
+  var freeDays = monthRecs.length - painDays;
+
+  var avgSleep = monthRecs.reduce(function(s,r){ return s+(r.sleepHours||0); },0) / monthRecs.length;
+
+  var sentence;
+  if (freeDays > painDays) {
+    sentence = mn + 'のあなたは、<strong style="color:#6B8F71;font-weight:600;">痛みのない日が多い</strong>、穏やかな1ヶ月でした。';
+  } else if (avgSleep >= 6.5) {
+    sentence = mn + 'のあなたは、<strong style="color:#8B82B8;font-weight:600;">睡眠が比較的安定</strong>してきた1ヶ月でした。';
+  } else {
+    sentence = mn + 'のあなたは、痛みと向き合いながら記録を続けた1ヶ月でした。';
+  }
+
+  var note = monthRecs.length + '日の記録から見えてきたパターンです。';
+  el.innerHTML = sentence + '<br><span style="font-size:12px;color:#9a8a80;line-height:1.7;">' + note + '</span>';
 }
 
 // ===== フェーズ別症状マップ =====
@@ -11627,6 +11719,7 @@ if (typeof renderEmotion === "function") window.renderEmotion = renderEmotion;
 if (typeof renderFasting === "function") window.renderFasting = renderFasting;
 if (typeof renderFood === "function") window.renderFood = renderFood;
 if (typeof renderInsightDiscoveries === "function") window.renderInsightDiscoveries = renderInsightDiscoveries;
+if (typeof renderMonthlySummaryText === "function") window.renderMonthlySummaryText = renderMonthlySummaryText;
 if (typeof renderMealSections === "function") window.renderMealSections = renderMealSections;
 if (typeof renderPainScale === "function") window.renderPainScale = renderPainScale;
 if (typeof renderPhaseMap === "function") window.renderPhaseMap = renderPhaseMap;

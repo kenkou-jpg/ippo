@@ -294,30 +294,346 @@
      </div>
    </div>
 
-     <!-- ===== INSIGHTS SCREEN ===== -->
-    <div id="screen-insights" class="screen">
+     <!-- ===== INSIGHTS SCREEN (Pattern B) ===== -->
+    <div id="screen-insights" class="screen" style="background:#FAF8F5;min-height:100vh;">
       <div class="spacer-top"></div>
 
-      <!-- ===== インサイト タブバー ===== -->
-      <div style="margin:0 20px 16px;">
-        <div style="display:flex;background:#f2ece8;border-radius:12px;padding:3px;gap:2px;">
-          <button id="ins-tab-btn-free" onclick="switchInsTab('free')"
-            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:600;background:white;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,0.08);transition:all 0.15s;">
-            無料の発見
+      <!-- Header -->
+      <div style="padding:16px 16px 12px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="font-family:'Noto Sans JP',sans-serif;font-size:18px;color:#2d1f1a;font-weight:600;">インサイト</div>
+        <button onclick="premiumGate(function(){})"
+          style="display:flex;align-items:center;gap:4px;padding:7px 14px;background:#FEF3C7;border:none;border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;color:#D97706;font-weight:600;cursor:pointer;letter-spacing:0.02em;">
+          ☆ プロ機能
+        </button>
+      </div>
+
+      <!-- Filter Tabs -->
+      <div style="padding:0 16px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+        <div style="display:flex;gap:6px;min-width:max-content;">
+          <button id="ins-tab-btn-recommended" onclick="switchInsTab('recommended')"
+            style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid rgba(124,106,237,0.3);border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:600;background:#EEE9F8;color:#7C6AED;white-space:nowrap;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            おすすめ
           </button>
-          <button id="ins-tab-btn-pro" onclick="switchInsTab('pro')"
-            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
-            ☆ PRO分析
+          <button id="ins-tab-btn-trends" onclick="switchInsTab('trends')"
+            style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid rgba(0,0,0,0.05);border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:400;background:transparent;color:#9a8a80;white-space:nowrap;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            傾向
           </button>
-          <button id="ins-tab-btn-doctor" onclick="switchInsTab('doctor')"
-            style="flex:1;padding:8px 4px;border:none;border-radius:10px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:transparent;color:var(--ink-light);transition:all 0.15s;">
-            ⬜ 医師レポート
+          <button id="ins-tab-btn-cycle" onclick="switchInsTab('cycle')"
+            style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid rgba(0,0,0,0.05);border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:400;background:transparent;color:#9a8a80;white-space:nowrap;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            周期
+          </button>
+          <button id="ins-tab-btn-experiments" onclick="switchInsTab('experiments')"
+            style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid rgba(0,0,0,0.05);border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:400;background:transparent;color:#9a8a80;white-space:nowrap;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v4l-3.5 7A1 1 0 0 0 7.4 16h9.2a1 1 0 0 0 .9-1.45L14 8.45V3"/><path d="M7.5 14h9"/></svg>
+            実験中
+          </button>
+          <button id="ins-tab-btn-report" onclick="switchInsTab('report')"
+            style="display:flex;align-items:center;gap:5px;padding:7px 14px;border:1.5px solid rgba(0,0,0,0.05);border-radius:50px;font-size:12px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:400;background:transparent;color:#9a8a80;white-space:nowrap;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            レポート
           </button>
         </div>
       </div>
 
-      <!-- ===== 無料の発見 タブ ===== -->
-      <div id="ins-pane-free">
+      <!-- おすすめ Pane -->
+      <div id="ins-pane-recommended">
+        <!-- 空状態 -->
+        <div id="insights-empty-state" style="display:none;margin:0 16px 20px;background:white;border-radius:20px;padding:32px 24px;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);">
+          <div style="width:48px;height:48px;border-radius:50%;background:#EEE9F8;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a7 7 0 0 1 7 7c0 4-3 6-4 9H9c-1-3-4-5-4-9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+          </div>
+          <div style="font-family:'Noto Sans JP',sans-serif;font-size:15px;color:#2d1f1a;font-weight:600;margin-bottom:8px;">記録を始めましょう</div>
+          <div style="font-size:13px;color:#9a8a80;line-height:1.8;margin-bottom:20px;">7日間記録すると、食事・症状・生理周期の<br>つながりが見えてきます。</div>
+          <button type="button" onclick="state.editingDate=null; openRecordScreen()"
+            style="padding:12px 28px;background:#2d1f1a;color:white;border:none;border-radius:50px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;cursor:pointer;">
+            今日を記録する
+          </button>
+        </div>
+
+        <!-- 2カラム全体グリッド -->
+        <div style="padding:0 16px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+          <!-- LEFT ROW 1: Hero -->
+          <div style="background:#EEE9F8;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(124,106,237,0.08);position:relative;overflow:hidden;min-height:190px;">
+            <svg style="position:absolute;right:-2px;bottom:-2px;width:100px;height:100px;" viewBox="0 0 100 100" fill="none" aria-hidden="true">
+              <ellipse cx="80" cy="55" rx="9" ry="16" fill="#B4D0A4" opacity="0.55" transform="rotate(18 80 55)"/>
+              <ellipse cx="89" cy="42" rx="6" ry="11" fill="#C0DCA8" opacity="0.45" transform="rotate(36 89 42)"/>
+              <ellipse cx="74" cy="68" rx="7" ry="11" fill="#AACAA0" opacity="0.45" transform="rotate(-10 74 68)"/>
+              <path d="M83 98 Q81 76 80 55" stroke="#88B878" stroke-width="1.2" fill="none" opacity="0.5"/>
+              <circle cx="58" cy="30" r="10" fill="#E8C9B8"/>
+              <path d="M48 27 Q52 17 58 17 Q67 17 66 28" fill="#6B4538" opacity="0.85"/>
+              <path d="M48 27 Q46 34 49 40" fill="#6B4538" opacity="0.65"/>
+              <rect x="55" y="39" width="5" height="6" rx="2.5" fill="#E8C9B8"/>
+              <path d="M47 45 Q58 42 70 45 L68 60 Q58 64 48 60 Z" fill="#C0B8E8"/>
+              <path d="M47 47 Q40 53 42 60" stroke="#E8C9B8" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+              <path d="M70 47 Q77 53 75 60" stroke="#E8C9B8" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+              <ellipse cx="58" cy="72" rx="14" ry="6" fill="#C0B8E8"/>
+              <ellipse cx="46" cy="76" rx="7" ry="4.5" fill="#B0A8DC"/>
+              <ellipse cx="70" cy="76" rx="7" ry="4.5" fill="#B0A8DC"/>
+              <ellipse cx="41" cy="79" rx="5.5" ry="2.8" fill="#E8C9B8"/>
+              <ellipse cx="75" cy="79" rx="5.5" ry="2.8" fill="#E8C9B8"/>
+            </svg>
+            <div style="position:relative;z-index:1;max-width:68%;">
+              <div style="display:flex;align-items:center;gap:4px;margin-bottom:10px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <span style="font-size:10px;color:#7C6AED;font-weight:600;letter-spacing:0.04em;">今日のインサイト</span>
+              </div>
+              <div id="ins-main-insight-text" style="font-family:'Noto Sans JP',sans-serif;font-size:13px;color:#2d1f1a;line-height:1.85;font-weight:600;margin-bottom:8px;">記録を続けると、<br>あなたの体の<br>パターンが見えます</div>
+              <div id="ins-main-insight-sub" style="font-size:11px;color:#9B8FC0;line-height:1.65;margin-bottom:10px;">過去の記録から分析中です。</div>
+              <button onclick="switchInsTab('trends')" style="background:transparent;border:none;padding:0;font-size:11px;color:#9B8FC0;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;">詳しく見る →</button>
+            </div>
+          </div>
+
+          <!-- RIGHT ROW 1: フレアアップ -->
+          <div style="background:#FFF9F5;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(249,115,22,0.08);">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div style="display:flex;align-items:center;gap:4px;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+                <span style="font-size:10px;color:#F97316;font-weight:600;letter-spacing:0.04em;">フレアアップ</span>
+              </div>
+              <span style="font-size:9px;background:#FEF3C7;color:#D97706;padding:2px 7px;border-radius:50px;font-weight:600;white-space:nowrap;line-height:1.6;">警戒レベル：中</span>
+            </div>
+            <div id="ins-flareup-text" style="font-size:12px;color:#2d1f1a;line-height:1.65;margin-bottom:10px;">疲労と睡眠不足が重なると症状が強まりやすい</div>
+            <div style="background:#FFF7F3;border-radius:10px;padding:8px 8px 2px;">
+              <svg width="100%" height="38" viewBox="0 0 140 38" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="flare-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#F97316" stop-opacity="0.15"/>
+                    <stop offset="100%" stop-color="#F97316" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <polygon points="10,30 50,20 90,8 110,14 130,24 130,38 10,38" fill="url(#flare-fill)"/>
+                <polyline points="10,30 50,20 90,8 110,14 130,24" stroke="#F97316" stroke-width="2" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+                <circle cx="10" cy="30" r="3" fill="white" stroke="#F97316" stroke-width="1.5"/>
+                <circle cx="50" cy="20" r="3" fill="white" stroke="#F97316" stroke-width="1.5"/>
+                <circle cx="90" cy="8" r="4" fill="#F97316"/>
+                <circle cx="110" cy="14" r="3" fill="white" stroke="#F97316" stroke-width="1.5"/>
+                <circle cx="130" cy="24" r="3" fill="white" stroke="#F97316" stroke-width="1.5" opacity="0.6"/>
+              </svg>
+              <div style="display:flex;justify-content:space-between;font-size:9px;color:#c0a898;padding:2px 2px 4px;">
+                <span>5/12</span><span>5/16</span><span>5/21</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- LEFT ROW 2: 要因のつながり -->
+          <div style="background:white;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:12px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              <span style="font-size:10px;color:#7C6AED;font-weight:600;letter-spacing:0.02em;">要因のつながり</span>
+            </div>
+            <div id="ins-factor-chain" style="display:flex;flex-direction:column;align-items:flex-start;">
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#EEE9F8;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="1.8" stroke-linecap="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
+                </div>
+                <div style="font-size:11px;color:#2d1f1a;line-height:1.3;font-weight:500;">睡眠不足</div>
+              </div>
+              <div style="color:#d8cec8;font-size:11px;padding:2px 0 2px 9px;line-height:1;">↓</div>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#FFF7F0;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+                </div>
+                <div style="font-size:11px;color:#2d1f1a;line-height:1.3;font-weight:500;">疲労感増加</div>
+              </div>
+              <div style="color:#d8cec8;font-size:11px;padding:2px 0 2px 9px;line-height:1;">↓</div>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#FFF0F3;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#e05a6a" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="10" r="3"/><path d="M12 13 Q10.5 16.5 11 18.5"/></svg>
+                </div>
+                <div style="font-size:11px;color:#2d1f1a;line-height:1.3;font-weight:500;">頭痛増加</div>
+              </div>
+              <div style="color:#d8cec8;font-size:11px;padding:2px 0 2px 9px;line-height:1;">↓</div>
+              <div style="display:flex;align-items:center;gap:7px;">
+                <div style="width:28px;height:28px;border-radius:50%;background:#F0F5F1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+                </div>
+                <div style="font-size:11px;color:#2d1f1a;line-height:1.3;font-weight:500;">気分低下</div>
+              </div>
+            </div>
+            <button onclick="switchInsTab('trends')" style="margin-top:12px;background:transparent;border:none;font-size:11px;color:#7C6AED;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0;font-weight:500;">詳しく見る →</button>
+          </div>
+
+          <!-- RIGHT ROW 2: 周期フェーズ -->
+          <div style="background:white;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:10px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span style="font-size:10px;color:#22C55E;font-weight:600;letter-spacing:0.02em;">周期フェーズ</span>
+            </div>
+            <div style="display:flex;justify-content:center;margin-bottom:8px;position:relative;flex:1;align-items:center;min-height:80px;">
+              <svg width="80" height="80" viewBox="0 0 80 80" style="overflow:visible;">
+                <circle cx="40" cy="40" r="30" fill="none" stroke="#F0FDF4" stroke-width="9"/>
+                <circle cx="40" cy="40" r="30" fill="none" stroke="#BBF7D0" stroke-width="9" stroke-dasharray="94 188" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+                <circle cx="40" cy="40" r="30" fill="none" stroke="#22C55E" stroke-width="9" stroke-dasharray="66 188" stroke-linecap="round" transform="rotate(90 40 40)"/>
+              </svg>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                <div style="font-size:9px;color:#16a34a;font-weight:600;white-space:nowrap;">黄体期</div>
+                <div style="font-size:9px;color:#4ade80;font-weight:500;" id="ins-phase-days">Day 16</div>
+              </div>
+            </div>
+            <div id="ins-phase-text" style="font-size:11px;color:#2d1f1a;line-height:1.65;text-align:center;margin-bottom:8px;">睡眠の質が<br>下がりやすい傾向</div>
+            <button onclick="switchInsTab('cycle')" style="background:transparent;border:none;font-size:11px;color:#22C55E;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0;font-weight:500;text-align:center;margin-top:auto;">比較を見る →</button>
+          </div>
+
+          <!-- LEFT ROW 3: 実験中 -->
+          <div style="background:white;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6"/><path d="M10 3v4l-3.5 7A1 1 0 0 0 7.4 16h9.2a1 1 0 0 0 .9-1.45L14 8.45V3"/><path d="M7.5 14h9"/></svg>
+              <span style="font-size:10px;color:#22C55E;font-weight:600;letter-spacing:0.02em;">実験中</span>
+            </div>
+            <div style="font-size:11px;color:#2d1f1a;line-height:1.65;margin-bottom:8px;font-weight:500;">甘いものを減らした時、睡眠はどう変わる？</div>
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+              <span style="font-size:10px;background:#F0FDF4;color:#16a34a;padding:3px 8px;border-radius:50px;font-weight:600;white-space:nowrap;">睡眠の質 +12%</span>
+              <span style="font-size:10px;background:#F0FDF4;color:#16a34a;padding:3px 8px;border-radius:50px;font-weight:600;white-space:nowrap;">肌の調子 +8%</span>
+            </div>
+            <div style="margin-bottom:4px;">
+              <svg width="100%" height="22" viewBox="0 0 100 22" preserveAspectRatio="none">
+                <polyline points="5,17 28,13 50,10 72,7 95,3" stroke="#22C55E" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+                <circle cx="5" cy="17" r="2" fill="#22C55E" opacity="0.5"/>
+                <circle cx="28" cy="13" r="2" fill="#22C55E" opacity="0.6"/>
+                <circle cx="50" cy="10" r="2" fill="#22C55E" opacity="0.75"/>
+                <circle cx="72" cy="7" r="2" fill="#22C55E" opacity="0.85"/>
+                <circle cx="95" cy="3" r="2.5" fill="#22C55E"/>
+              </svg>
+            </div>
+            <div style="font-size:10px;color:#9a8a80;margin-bottom:10px;">残り 12日</div>
+            <button onclick="switchInsTab('experiments')" style="background:transparent;border:none;font-size:11px;color:#22C55E;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0;font-weight:500;text-align:left;margin-top:auto;">実験を見る →</button>
+          </div>
+
+          <!-- RIGHT ROW 3: からだサマリー -->
+          <div style="background:white;border-radius:20px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);display:flex;flex-direction:column;">
+            <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+              <span style="font-size:10px;color:#F59E0B;font-weight:600;letter-spacing:0.02em;">からだサマリー</span>
+            </div>
+            <div id="ins-monthly-summary-text" style="font-size:11px;color:#2d1f1a;line-height:1.8;flex:1;">今月の記録を集めています。</div>
+            <button onclick="switchInsTab('report')" style="background:transparent;border:none;font-size:11px;color:#F59E0B;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0;font-weight:500;text-align:left;margin-top:12px;">サマリーを見る →</button>
+          </div>
+
+        </div><!-- /2col grid -->
+
+        <!-- PRO strip (rectangular scroll cards) -->
+        <div style="margin:0 0 32px;">
+          <div style="padding:0 16px 10px;">
+            <div style="font-size:12px;color:#9a8a80;font-weight:600;letter-spacing:0.02em;">プロ機能でより深く理解する</div>
+          </div>
+          <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 4px;scrollbar-width:none;">
+            <div style="display:flex;gap:8px;min-width:max-content;">
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#EEE9F8;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">AIパターン解析</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">体調の隠れた<br>パターンを発見</div></div>
+              </div>
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#FFF7F0;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">フレアアップ分析</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">悪化のサインを<br>早期に察知</div></div>
+              </div>
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#FFFBEB;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">要因効果レポート</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">何が効いているか<br>数字で確認</div></div>
+              </div>
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#F0FDF4;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">周期フェーズ分析</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">周期ごとの体調<br>変化を可視化</div></div>
+              </div>
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#EEE9F8;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7C6AED" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">からだサマリー</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">月次の体調を<br>ひとことで要約</div></div>
+              </div>
+              <div onclick="premiumGate(function(){})" style="cursor:pointer;background:white;border-radius:16px;padding:12px 14px;box-shadow:0 4px 16px rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.04);min-width:120px;display:flex;flex-direction:column;gap:8px;">
+                <div style="width:32px;height:32px;border-radius:10px;background:#FFF7F0;display:flex;align-items:center;justify-content:center;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+                <div><div style="font-size:11px;color:#2d1f1a;font-weight:600;margin-bottom:3px;">月次PDF出力</div><div style="font-size:10px;color:#9a8a80;line-height:1.5;">記録を印刷して<br>受診時に活用</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 非表示: JS互換ID保持 -->
+        <span id="insight-total" style="display:none;">—</span>
+        <span id="pain-free-days" style="display:none;">—</span>
+        <span id="avg-pain-score" style="display:none;">—</span>
+        <span id="insight-streak" style="display:none;">0</span>
+        <div id="insights-discoveries" style="display:none;"><div id="discoveries-cards"></div></div>
+      </div><!-- /ins-pane-recommended -->
+
+      <!-- 傾向 Pane -->
+      <div id="ins-pane-trends" style="display:none;">
+        <div style="margin:0 16px 14px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);">
+          <div style="margin-bottom:14px;"><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">COMPARISON</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;">比較グラフ</div></div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+            <select id="cg-metric1" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:#2d1f1a;background:white;outline:none;"><option value="energy">エネルギー</option><option value="sleepQuality">睡眠の質</option><option value="sleepHours">睡眠時間</option><option value="painLevel">痛みレベル</option><option value="wellnessScore">ウェルネス</option><option value="smiScore">SMI</option><option value="symptomCount">症状数</option></select>
+            <select id="cg-metric2" onchange="renderComparisonChart()" style="flex:1;min-width:120px;padding:8px 10px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:#2d1f1a;background:white;outline:none;"><option value="">なし（単独表示）</option><option value="energy">エネルギー</option><option value="sleepQuality" selected>睡眠の質</option><option value="sleepHours">睡眠時間</option><option value="painLevel">痛みレベル</option><option value="wellnessScore">ウェルネス</option><option value="smiScore">SMI</option><option value="symptomCount">症状数</option></select>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+            <button class="cg-range-btn" onclick="setCGRange(7,this)" style="padding:5px 13px;border:1px solid rgba(0,0,0,0.08);border-radius:20px;font-size:11px;background:white;color:#9a8a80;cursor:pointer;">7日</button>
+            <button class="cg-range-btn selected" onclick="setCGRange(30,this)" style="padding:5px 13px;border:1px solid #7C6AED;border-radius:20px;font-size:11px;background:#EEE9F8;color:#7C6AED;cursor:pointer;font-weight:500;">30日</button>
+            <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(90)})" style="padding:5px 13px;border:1px solid rgba(0,0,0,0.08);border-radius:20px;font-size:11px;background:white;color:#9a8a80;cursor:pointer;">90日<span style="font-size:9px;color:#F97316;margin-left:2px;">PRO</span></button>
+            <button class="cg-range-btn" onclick="premiumGate(function(){setCGRange(365)})" style="padding:5px 13px;border:1px solid rgba(0,0,0,0.08);border-radius:20px;font-size:11px;background:white;color:#9a8a80;cursor:pointer;">1年<span style="font-size:9px;color:#F97316;margin-left:2px;">PRO</span></button>
+          </div>
+          <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;" id="cg-factor-toggles"></div>
+          <div id="cg-chart-container" style="width:100%;overflow-x:auto;"><svg id="cg-chart" width="100%" height="200" style="min-width:300px;"></svg></div>
+          <div id="cg-legend" style="display:flex;gap:12px;justify-content:center;margin-top:10px;font-size:10px;color:#9a8a80;"></div>
+        </div>
+        <div style="margin:0 16px 14px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;"><div><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">TIMELINE</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;">タイムライン</div></div><div style="font-size:10px;color:#9a8a80;" id="tl-count"></div></div>
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <input type="text" id="tl-search" placeholder="症状・要因・メモで検索" oninput="renderTimeline()" style="flex:1;padding:8px 14px;border:1px solid rgba(0,0,0,0.08);border-radius:50px;font-size:11px;font-family:'Noto Sans JP',sans-serif;background:white;color:#2d1f1a;outline:none;">
+            <select id="tl-filter" onchange="renderTimeline()" style="padding:8px 10px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;font-size:11px;font-family:'Noto Sans JP',sans-serif;background:white;color:#2d1f1a;outline:none;"><option value="all">すべて</option><option value="pain">痛みあり</option><option value="flare">フレアアップ</option><option value="period">生理中</option><option value="high-energy">高エネルギー</option><option value="low-energy">低エネルギー</option></select>
+          </div>
+          <div id="tl-list" style="max-height:400px;overflow-y:auto;"></div>
+          <div id="tl-more" style="display:none;text-align:center;margin-top:12px;"><button onclick="loadMoreTimeline()" style="padding:8px 22px;background:white;border:1px solid rgba(0,0,0,0.08);border-radius:20px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:#9a8a80;cursor:pointer;">もっと見る</button></div>
+        </div>
+        <div style="margin:0 16px 28px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);">
+          <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.cv-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='︿';}else{b.style.display='none';a.textContent='﹀';}">
+            <div><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">COMMUNITY</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;">みんなの声</div></div>
+            <span class="cv-arrow" style="font-size:14px;color:#9a8a80;">﹀</span>
+          </div>
+          <div style="display:none;margin-top:16px;">
+            <div style="font-size:12px;color:#9a8a80;margin-bottom:16px;line-height:1.7;">同じ悩みを持つ人の体験を読んだり、あなたの声を届けたり。</div>
+            <div id="cv-tabs" style="display:flex;gap:8px;margin-bottom:14px;">
+              <button onclick="switchCVTab('current')" id="cv-tab-current" style="flex:1;padding:8px;border:1px solid #7C6AED;border-radius:12px;background:#EEE9F8;color:#7C6AED;font-size:12px;font-weight:600;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">今週のテーマ</button>
+              <button onclick="switchCVTab('archive')" id="cv-tab-archive" style="flex:1;padding:8px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;background:white;color:#9a8a80;font-size:12px;font-weight:500;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">過去のテーマ</button>
+            </div>
+            <div id="cv-current">
+              <div id="community-topic" style="background:#FAF8F5;border-radius:14px;padding:16px;margin-bottom:14px;"><div style="font-size:10px;color:#7C6AED;letter-spacing:0.1em;margin-bottom:6px;" id="community-week">第1週</div><div style="font-size:14px;color:#2d1f1a;font-weight:500;line-height:1.7;" id="community-question">読み込み中...</div></div>
+              <div id="community-replies" style="margin-bottom:14px;"></div>
+              <div id="community-form" style="background:#FAF8F5;border-radius:14px;padding:14px;">
+                <div style="font-size:11px;color:#9a8a80;margin-bottom:8px;">あなたの体験を共有する</div>
+                <textarea id="community-input" placeholder="※これは個人の体験です。医学的なアドバイスではありません。" style="width:100%;min-height:80px;border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:#2d1f1a;background:white;resize:vertical;outline:none;line-height:1.7;box-sizing:border-box;" onfocus="this.style.borderColor='#7C6AED'" onblur="this.style.borderColor='rgba(0,0,0,0.08)'"></textarea>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;"><div style="font-size:10px;color:#9a8a80;">匿名で投稿されます</div><button onclick="postCommunityReply()" style="background:#2d1f1a;color:#fff;border:none;border-radius:20px;padding:8px 20px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">投稿する</button></div>
+              </div>
+            </div>
+            <div id="cv-archive" style="display:none;"><div id="cv-archive-list" style="font-size:13px;color:#9a8a80;text-align:center;padding:20px 0;">読み込み中...</div></div>
+          </div>
+        </div>
+      </div><!-- /ins-pane-trends -->
+
+      <!-- 周期 Pane -->
+      <div id="ins-pane-cycle" style="display:none;">
+        <div style="margin:0 16px 14px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);"><div style="margin-bottom:12px;"><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">PHASE MAP</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;margin-bottom:4px;">フェーズ別症状マップ</div><div style="font-size:12px;color:#9a8a80;line-height:1.65;">生理期・卵胞期・黄体期それぞれで、あなたの症状がどう変わるかを見ます。</div></div><div id="phase-map-content"></div></div>
+        <div style="margin:0 16px 14px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);"><div style="margin-bottom:12px;"><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">FOOD × BODY</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;margin-bottom:4px;">食事とからだの関係</div><div style="font-size:12px;color:#9a8a80;line-height:1.65;">食べたものと体調・症状の相関を可視化します。</div></div><div id="food-body-correlation"></div></div>
+        <div style="margin:0 16px 28px;background:white;border-radius:20px;padding:20px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);"><div style="margin-bottom:12px;"><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:4px;font-weight:500;">CYCLE × SYMPTOMS</div><div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2d1f1a;margin-bottom:4px;">生理周期と症状の関係</div><div style="font-size:12px;color:#9a8a80;line-height:1.65;">周期のどの時期に症状が出やすいかパターンを分析します。</div></div><div id="cycle-symptom-correlation"></div></div>
+      </div><!-- /ins-pane-cycle -->
+
+      <!-- 実験中 Pane -->
+      <div id="ins-pane-experiments" style="display:none;">
+        <div style="margin:0 16px 14px;background:#F2F7F2;border-radius:22px;padding:26px 24px;box-shadow:0 8px 24px rgba(0,0,0,0.03);position:relative;overflow:hidden;">
+          <svg style="position:absolute;right:-4px;bottom:-4px;width:100px;height:100px;opacity:0.22;" viewBox="0 0 100 100" fill="none" aria-hidden="true"><circle cx="76" cy="76" r="44" fill="#A8C898"/><circle cx="52" cy="88" r="24" fill="#B8D4A8"/></svg>
+          <div style="position:relative;z-index:1;"><div style="font-size:10px;letter-spacing:0.12em;color:#22C55E;margin-bottom:12px;font-weight:500;">ACTIVE EXPERIMENT</div><div style="font-family:'Shippori Mincho',serif;font-size:17px;color:#2d1f1a;line-height:1.85;margin-bottom:10px;">甘いものを減らした時、<br>睡眠と肌の調子はどう変わるか？</div><div style="font-size:12px;color:#5A7A60;margin-bottom:16px;">5月1日 〜 5月31日　残り 14日</div><div style="background:rgba(255,255,255,0.5);border-radius:50px;height:5px;overflow:hidden;"><div style="background:#22C55E;border-radius:50px;height:5px;width:55%;"></div></div></div>
+        </div>
+        <div style="margin:0 16px 14px;background:white;border-radius:20px;padding:20px 22px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);"><div style="font-size:10px;letter-spacing:0.12em;color:#9a8a80;margin-bottom:10px;font-weight:500;">今月の発見</div><div style="font-size:14px;color:#2d1f1a;line-height:1.85;margin-bottom:8px;">甘いものを控えた翌日、<br>睡眠スコアが上向きの傾向が見られます。<br>肌の調子も「良い」が増えてきました。</div><div style="font-size:11px;color:#9a8a80;line-height:1.65;">「改善」ではなく「発見」として。まだ実験は続きます。</div></div>
+        <div style="margin:0 16px 28px;"><div onclick="premiumGate(function(){})" style="background:white;border-radius:20px;padding:18px 22px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);cursor:pointer;display:flex;align-items:center;gap:14px;"><div style="width:36px;height:36px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div><div><div style="font-size:13px;font-weight:600;color:#2d1f1a;margin-bottom:3px;">新しい実験を始める</div><div style="font-size:11px;color:#9a8a80;">セルフケアの効果を、記録から発見します（PRO）</div></div></div></div>
+      </div><!-- /ins-pane-experiments -->
+
+      <!-- レポート Pane -->
+      <div id="ins-pane-report" style="display:none;">
+        <div style="margin:0 16px 28px;"><div onclick="premiumGate(function(){})" style="background:white;border-radius:20px;padding:28px 24px;box-shadow:0 8px 24px rgba(0,0,0,0.03);border:1px solid rgba(0,0,0,0.04);cursor:pointer;"><div style="font-size:10px;letter-spacing:0.12em;color:#F59E0B;margin-bottom:10px;font-weight:500;">DOCTOR REPORT</div><div style="font-family:'Shippori Mincho',serif;font-size:18px;color:#2d1f1a;margin-bottom:10px;">医師向けレポート</div><div style="font-size:13px;color:#9a8a80;line-height:1.8;margin-bottom:20px;">記録データをもとに、受診時に活用できるサマリーを生成します。症状の傾向・服薬記録・周期データを1枚にまとめてPDF出力できます。</div><div style="display:flex;flex-direction:column;gap:10px;margin-bottom:22px;"><div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2d1f1a;"><div style="width:18px;height:18px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>痛みスコア・症状の月次サマリー</div><div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2d1f1a;"><div style="width:18px;height:18px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>服薬・サプリ記録の一覧</div><div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2d1f1a;"><div style="width:18px;height:18px;border-radius:50%;background:#F0FDF4;display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>生理周期グラフ（直近3ヶ月）</div></div><div style="background:#2d1f1a;color:white;border-radius:14px;padding:14px;text-align:center;font-size:13px;font-weight:500;">PROで医師レポートを生成する</div></div></div>
+      </div><!-- /ins-pane-report -->
+
+      <!-- ===== legacy hidden section ===== -->
+      <div id="ins-pane-free" style="display:none;">
 
         <!-- 統計3列 -->
         <div style="display:flex;gap:8px;margin:0 20px 16px;">
