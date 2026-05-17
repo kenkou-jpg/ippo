@@ -26,13 +26,10 @@ export async function switchTab(tab, btn) {
   window.scrollTo(0, 0);
 
   if (tab === 'insights') {
-    let activePaneName = 'free';
-    const proPan = document.getElementById('ins-pane-pro');
-    const docPan = document.getElementById('ins-pane-doctor');
-    if (proPan && proPan.style.display === 'block') activePaneName = 'pro';
-    if (docPan && docPan.style.display === 'block') activePaneName = 'doctor';
-    if (typeof window.switchInsTab === 'function') window.switchInsTab(activePaneName);
+    // 新デザイン: おすすめタブをデフォルト表示
+    if (typeof window.switchInsTab === 'function') window.switchInsTab('recommended');
     if (typeof window.renderInsightDiscoveries === 'function') window.renderInsightDiscoveries();
+    if (typeof window.renderMonthlySummaryText === 'function') window.renderMonthlySummaryText();
   }
 
   if (tab === 'home') {
