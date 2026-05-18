@@ -39,15 +39,64 @@ function getMoonIllumination(age) {
 // 表示名用の分類。SVG描画には使わない。
 function getMoonPhaseType(age) {
   const n = age / SYNODIC_MONTH;
-  if (n < 0.035 || n >= 0.965) return 'new';
-  if (n < 0.22) return 'waxing-crescent';
-  if (n < 0.285) return 'first-quarter';
-  if (n < 0.465) return 'waxing-gibbous';
-  if (n < 0.535) return 'full';
-  if (n < 0.715) return 'waning-gibbous';
-  if (n < 0.78) return 'last-quarter';
+
+  // 新月（かなり狭く）
+  if (n < 0.015 || n >= 0.985) {
+    return 'new';
+  }
+
+  // 三日月
+  if (n < 0.235) {
+    return 'waxing-crescent';
+  }
+
+  // 上弦
+  if (n < 0.265) {
+    return 'first-quarter';
+  }
+
+  // 十三夜
+  if (n < 0.485) {
+    return 'waxing-gibbous';
+  }
+
+  // 満月（かなり狭く）
+  if (n < 0.515) {
+    return 'full';
+  }
+
+  // 十六夜
+  if (n < 0.735) {
+    return 'waning-gibbous';
+  }
+
+  // 下弦
+  if (n < 0.765) {
+    return 'last-quarter';
+  }
+
+  // 二十七夜
   return 'waning-crescent';
 }
+
+
+// ★ これを追加
+function getMoonEvent(age) {
+  const n = age / SYNODIC_MONTH;
+
+  // 新月イベント
+  if (n < 0.015 || n >= 0.985) {
+    return 'new-moon';
+  }
+
+  // 満月イベント
+  if (n >= 0.485 && n < 0.515) {
+    return 'full-moon';
+  }
+
+  return null;
+}
+
 
 function getMoonPhaseName(age) {
   const names = {
@@ -351,8 +400,17 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
 
   const hasRecord = records.some(r => (r.date || r.record_date || '').slice(0, 10) === dateStr);
   if (hasRecord) cell.classList.add('cn-cell--has-record');
+  
+  if (moonEvent === 'full-moon') {
+  cell.classList.add('cn-cell--full-moon');
+}
+
+if (moonEvent === 'new-moon') {
+  cell.classList.add('cn-cell--new-moon');
+}
 
   const moonAge = getMoonAge(year, month, day);
+  const moonEvent = getMoonEvent(moonAge);
   const lunar   = getLunarDate(year, month, day);
 
   const dayEl = document.createElement('div');
@@ -363,13 +421,31 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   moonEl.className = 'cn-moon';
   moonEl.innerHTML = getMoonSVG(moonAge);
 
+  const eventEl = document.createElement('div');
+eventEl.className = 'cn-moon-event';
+
+if (moonEvent === 'full-moon') {
+  eventEl.classList.add('cn-moon-event--full');
+  eventEl.textContent = '満月';
+}
+
+if (moonEvent === 'new-moon') {
+  eventEl.classList.add('cn-moon-event--new');
+  eventEl.textContent = '新月';
+}
+
   const lunarEl = document.createElement('div');
   lunarEl.className = 'cn-cell-lunar';
   lunarEl.textContent = `旧暦 ${lunar.lm}/${lunar.ld}`;
 
   cell.appendChild(dayEl);
-  cell.appendChild(moonEl);
-  cell.appendChild(lunarEl);
+cell.appendChild(moonEl);
+
+if (moonEvent) {
+  cell.appendChild(eventEl);
+}
+
+cell.appendChild(lunarEl);
 
   cell.addEventListener('click', () => {
     // 既存の openDayDetail を利用
