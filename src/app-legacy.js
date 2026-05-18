@@ -245,7 +245,10 @@ function initSettingsIcons() {
     'settings-icon-restore':   ICONS.cloud(16, '#4a7c5c'),
     'settings-icon-history':   ICONS.download(16, '#4a7c5c'),
     'settings-icon-diagnosis': ICONS.search(16, 'var(--ink-light)'),
-    'settings-icon-delete':    ICONS.trash(16, 'var(--rose)')
+    'settings-icon-delete':    ICONS.trash(16, 'var(--rose)'),
+    'settings-icon-priority':  ICONS.star(16, '#c8a060'),
+    'settings-icon-density':   ICONS.settings(16, 'var(--ink-light)'),
+    'settings-icon-home-info': ICONS.home(16, '#4a7c5c')
   };
   Object.keys(map).forEach(function(id) {
     var el = document.getElementById(id);
