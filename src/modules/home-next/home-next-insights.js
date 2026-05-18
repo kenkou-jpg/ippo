@@ -117,6 +117,122 @@ function findBestInsight(records, config) {
     }
   }
 
+  // ─ 疾患別インサイト ─
+  const profileKey = (config && config.profileKey) || 'default';
+
+  // PCOS: 血糖×疲労
+  if (['pcos'].includes(profileKey)) {
+    const fatigueDays = week.filter(r =>
+      (r.symptoms || []).some(s => ['倦怠感', 'だるさ', '食後の眠気'].includes(s))
+    );
+    if (fatigueDays.length >= 3) {
+      candidates.push({
+        priority: priority.includes('glycemic_fatigue') ? 11 : 6,
+        main: `今週${fatigueDays.length}日、\n食後の疲労感・眠気が見られます`,
+        sub:  '炭水化物の摂取量や食事の順番との関係を観察してみましょう。',
+      });
+    }
+    // 周期の乱れ
+    const irregSigns = week.filter(r =>
+      (r.symptoms || []).some(s => ['月経不順', '周期の乱れ'].includes(s))
+    ).length;
+    if (irregSigns >= 2) {
+      candidates.push({
+        priority: priority.includes('cycle_mood') ? 9 : 4,
+        main: '周期の変化が\n今週も続いています',
+        sub:  '記録を続けることで、周期のパターンが見えてきます。',
+      });
+    }
+  }
+
+  // 子宮内膜症・子宮腺筋症: 炎症×疲労×睡眠
+  if (['endometriosis', 'adenomyosis'].includes(profileKey)) {
+    const highLoadDays = week.filter(r =>
+      (r.painLevel ?? 0) >= 2 &&
+      (r.sleepQuality ?? 0) >= 3
+    ).length;
+    if (highLoadDays >= 2) {
+      candidates.push({
+        priority: priority.includes('pain_cycle') ? 11 : 6,
+        main: `痛みと睡眠不足が重なる日が\n今週${highLoadDays}日あります`,
+        sub:  '睡眠が整うと、症状の負担が軽くなる可能性があります。',
+      });
+    }
+    // 生理期×疼痛ピーク
+    const bowelPainDays = week.filter(r =>
+      (r.symptoms || []).some(s => ['排便痛', '排便時の痛み'].includes(s))
+    ).length;
+    if (bowelPainDays >= 2) {
+      candidates.push({
+        priority: 9,
+        main: `排便時の痛みが\n今週${bowelPainDays}日続いています`,
+        sub:  '受診時に伝えておくと、観察の参考になります。',
+      });
+    }
+  }
+
+  // 卵巣嚢腫: 張り×周期
+  if (profileKey === 'ovarian_cyst') {
+    const tensionDays = week.filter(r =>
+      (r.symptoms || []).some(s => ['腹部膨満', 'お腹の張り', '下腹部の張り', 'むくみ'].includes(s))
+    ).length;
+    if (tensionDays >= 3) {
+      candidates.push({
+        priority: priority.includes('tension_cycle') ? 11 : 7,
+        main: `今週${tensionDays}日、\n腹部の張り感が見られます`,
+        sub:  '排卵期周辺での張りは周期との関係を記録しておくと参考になります。',
+      });
+    }
+  }
+
+  // PMS/PMDD: 気分×周期
+  if (profileKey === 'pms') {
+    const moodDips = week.filter(r =>
+      (r.symptoms || []).some(s => ['イライラ', '気分の落ち込み', '情緒不安定', '不安感'].includes(s))
+    ).length;
+    if (moodDips >= 3) {
+      candidates.push({
+        priority: priority.includes('cycle_mood') ? 11 : 7,
+        main: `今週${moodDips}日、\n気分の波が見られます`,
+        sub:  '月経周期と気分の変化の関係を記録することで、傾向が見えてきます。',
+      });
+    }
+    const irriDays = week.filter(r =>
+      (r.symptoms || []).some(s => ['イライラ', '怒り'].includes(s))
+    ).length;
+    if (irriDays >= 3 && priority.includes('mood_irritability')) {
+      candidates.push({
+        priority: 10,
+        main: `今週は${irriDays}日、\nイライラ感が続いています`,
+        sub:  '生理前のホルモン変動によるものかもしれません。自分を責めないで。',
+      });
+    }
+  }
+
+  // 子宮筋腫: 出血×貧血
+  if (profileKey === 'uterine_fibroid') {
+    const heavyDays = week.filter(r =>
+      ['heavy', 'very_heavy'].includes(r.menstrualCycle || '')
+    ).length;
+    if (heavyDays >= 2) {
+      candidates.push({
+        priority: priority.includes('bleeding_cycle') ? 11 : 7,
+        main: `今週${heavyDays}日、\n経血量が多い状態が続いています`,
+        sub:  '鉄分と休息を意識して過ごしましょう。変化があれば記録して。',
+      });
+    }
+    const ironSigns = week.filter(r =>
+      (r.symptoms || []).some(s => ['めまい', '立ちくらみ', '倦怠感'].includes(s))
+    ).length;
+    if (ironSigns >= 3 && heavyDays >= 1) {
+      candidates.push({
+        priority: 10,
+        main: '貧血様の症状と\n経血量の増加が重なっています',
+        sub:  '受診時に伝えておくと、観察の参考になります。',
+      });
+    }
+  }
+
   // ─ 連続記録 (ポジティブ) ─
   {
     if (week.length >= 5 && candidates.length === 0) {

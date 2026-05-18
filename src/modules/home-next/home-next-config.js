@@ -33,10 +33,18 @@ export const CYCLE_PHASES = {
   luteal:     { label: '黄体期',    icon: PHASE_ICONS.gibbous,  days: [16, 99] },
 };
 
+// ── 疾患別カード定義 ─────────────────────────────────────────
+// diseaseCards: 疾患選択時に「あなたの状態」で表示するカードキー
+// todayAwareness: 疾患×文脈別の「今日の注意」メッセージ
+// watchSigns: 静かな観察サイン（警告UIではなく観察として）
+
 // 疾患プロファイル設定
 const PROFILES = {
   default: {
     priorityCards:  ['sleep', 'pain', 'mood', 'symptom'],
+    diseaseCards:   null,  // null = priorityCards を使用
+    todayAwareness: null,
+    watchSigns:     [],
     heroMessages: {
       morning:    ['今日もゆっくり始めていきましょう。', '朝の静けさの中で、からだを確認して。'],
       afternoon:  ['今日のあなたを、静かに見守っています。', 'からだの声を聴いてみましょう。'],
@@ -54,7 +62,19 @@ const PROFILES = {
   },
 
   endometriosis: {
-    priorityCards:  ['pain', 'sleep', 'mood', 'swelling'],
+    priorityCards:   ['pain', 'sleep', 'mood', 'swelling'],
+    diseaseCards:    ['inflammation', 'pelvis_pain', 'fatigue_level', 'sleep_recovery'],
+    todayAwareness: {
+      morning:    ['疲労がたまりやすい時期です。今日は無理のない計画で。'],
+      afternoon:  ['午後に負担が集中しやすい状態です。こまめに休んで。'],
+      night:      ['今日もよくがんばりました。ゆっくり回復して。'],
+      menstrual:  ['生理期間中です。炎症が高まりやすい状態です。からだへの負担を最小限に。'],
+      follicular: ['体が軽くなりやすい時期です。無理しない範囲で過ごして。'],
+      luteal:     ['生理前の時期です。疲労と炎症負荷が高まりやすい状態です。'],
+      highPain:   ['今日は負担が出やすい状態です。からだを最優先に。'],
+      lowSleep:   ['疲労と睡眠不足が重なると負担が高まりやすい状態です。'],
+    },
+    watchSigns:  ['痛み増加速度', '疲労回復遅延', '生理前後の悪化'],
     heroMessages: {
       morning:    ['今日も、無理しない選択を。', 'からだを最優先にしていい日です。'],
       afternoon:  ['今日も一歩ずつ、ゆっくりと。'],
@@ -71,57 +91,107 @@ const PROFILES = {
   },
 
   pcos: {
-    priorityCards:  ['mood', 'sleep', 'symptom', 'pain'],
+    priorityCards:   ['mood', 'sleep', 'symptom', 'pain'],
+    diseaseCards:    ['glycemic', 'ovulation_est', 'swelling', 'fatigue_level'],
+    todayAwareness: {
+      morning:    ['今日は血糖変動が出やすい状態です。食事の順番に気をつけてみて。'],
+      afternoon:  ['食後に眠気やだるさが出やすい時間帯です。'],
+      night:      ['今日のホルモンバランスを静かに整えていきましょう。'],
+      menstrual:  ['生理が来ています。からだをゆっくり休めながら観察して。'],
+      follicular: ['排卵に向けて体が動きやすい時期です。'],
+      luteal:     ['ホルモン変動が大きくなりやすい時期です。食事と睡眠を意識して。'],
+      highPain:   ['インスリン抵抗性の影響で不調が出やすい状態です。'],
+      lowSleep:   ['睡眠不足はホルモンバランスに影響します。早めに休んで。'],
+    },
+    watchSigns:  ['無排卵傾向', '周期長期化', '睡眠悪化'],
     heroMessages: {
       morning:    ['今日も穏やかに過ごしましょう。', 'PCOSと向き合いながら、一歩ずつ。'],
-      afternoon:  ['ホルモンバランスを意識した過ごし方を。'],
+      afternoon:  ['食後のからだの変化に気づいてみて。'],
       night:      ['今日もお疲れさまでした。'],
       menstrual:  ['生理が来ています。からだをゆっくり休めて。'],
       follicular: ['体が動きやすい時期です。'],
-      luteal:     ['気分の波が出やすい時期かもしれません。'],
+      luteal:     ['食後にだるさが出やすい状態です。'],
       lowSleep:   ['睡眠不足はホルモンに影響します。'],
       highPain:   ['今日は無理せず、からだを休めて。'],
     },
-    insightPriority: ['sleep_mood', 'cycle_mood', 'symptom_pattern'],
+    insightPriority: ['glycemic_fatigue', 'sleep_mood', 'cycle_mood', 'symptom_pattern'],
     optionalModules: ['food'],
     accentColor: '#8B9E84',
   },
 
   pms: {
-    priorityCards:  ['mood', 'swelling', 'pain', 'sleep'],
+    priorityCards:   ['mood', 'swelling', 'pain', 'sleep'],
+    diseaseCards:    ['emotional', 'sensitivity', 'sleep_recovery', 'irritability'],
+    todayAwareness: {
+      morning:    ['気分の波に気づいていきましょう。からだのサインを大切に。'],
+      afternoon:  ['刺激に敏感になりやすい時間帯です。'],
+      night:      ['今日もよく過ごしました。気持ちをゆっくり整えて。'],
+      menstrual:  ['生理が始まりました。気分が落ち着いてくる頃です。ゆっくり過ごして。'],
+      follicular: ['気分が安定しやすい時期です。'],
+      luteal:     ['刺激に敏感になりやすい時期です。自分を責めないで。'],
+      highPain:   ['今日は気分と痛みに注意して過ごして。'],
+      lowSleep:   ['睡眠不足が気分の波を大きくすることがあります。'],
+    },
+    watchSigns:  ['情緒不安定の長期化', 'イライラ増加', '睡眠悪化'],
     heroMessages: {
       morning:    ['気分の波に気づいていきましょう。', 'からだのサインを大切に。'],
       afternoon:  ['気分の揺れは、周期の一部かもしれません。'],
       night:      ['今日もよく過ごしました。'],
       menstrual:  ['生理が始まりました。ゆっくり過ごして。'],
       follicular: ['気分が少し落ち着いてくる頃です。'],
-      luteal:     ['生理前の気分の波に気づいてみて。', 'イライラや落ち込みはホルモンの影響かも。'],
+      luteal:     ['刺激に敏感になりやすい状態です。', 'イライラや落ち込みはホルモンの影響かも。'],
       lowSleep:   ['睡眠不足が気分に影響することがあります。'],
       highPain:   ['今日は気分と痛みに注意して過ごして。'],
     },
-    insightPriority: ['cycle_mood', 'sleep_mood', 'symptom_pattern'],
+    insightPriority: ['cycle_mood', 'sleep_mood', 'mood_irritability', 'symptom_pattern'],
     optionalModules: [],
     accentColor: '#8B9E84',
   },
 
   ovarian_cyst: {
-    priorityCards:  ['pain', 'swelling', 'sleep', 'mood'],
+    priorityCards:   ['pain', 'swelling', 'sleep', 'mood'],
+    diseaseCards:    ['tension', 'swelling', 'pressure_sense', 'fatigue_level'],
+    todayAwareness: {
+      morning:    ['今日のからだの状態を確認しましょう。'],
+      afternoon:  ['午後に張り感が出やすい状態です。違和感があれば無理しないで。'],
+      night:      ['今日もお疲れさまでした。'],
+      menstrual:  ['生理期間中です。張りや痛みの変化を記録して。'],
+      follicular: ['排卵に向けて卵巣が変化する時期です。'],
+      luteal:     ['からだの声に耳を傾けてみて。'],
+      ovulation:  ['排卵期周辺で張り感が出やすい時期です。'],
+      highPain:   ['今日は張り感や痛みに注意して過ごして。'],
+      lowSleep:   ['疲れが出ているかもしれません。'],
+    },
+    watchSigns:  ['張り急増', '圧迫感増加', '排卵期の急な痛み'],
     heroMessages: {
       morning:    ['今日のからだの状態を確認しましょう。'],
-      afternoon:  ['違和感がある場合は無理しないで。'],
+      afternoon:  ['張り感が出やすい時期です。違和感があれば無理しないで。'],
       night:      ['今日もお疲れさまでした。'],
       menstrual:  ['生理期間中です。痛みの変化を記録して。'],
+      ovulation:  ['排卵期周辺で張り感が出やすい時期です。'],
       luteal:     ['からだの声に耳を傾けてみて。'],
       highPain:   ['今日は痛みに注意して過ごして。'],
       lowSleep:   ['疲れが出ているかもしれません。'],
     },
-    insightPriority: ['pain_cycle', 'sleep_pain', 'symptom_pattern'],
+    insightPriority: ['tension_cycle', 'pain_cycle', 'sleep_pain', 'symptom_pattern'],
     optionalModules: [],
     accentColor: '#8B9E84',
   },
 
   uterine_fibroid: {
-    priorityCards:  ['pain', 'swelling', 'mood', 'sleep'],
+    priorityCards:   ['pain', 'swelling', 'mood', 'sleep'],
+    diseaseCards:    ['bleeding_load', 'iron_risk', 'coldness', 'fatigue_level'],
+    todayAwareness: {
+      morning:    ['今日のからだの変化にゆっくり気づいて。'],
+      afternoon:  ['からだの声を聴きながら過ごしましょう。'],
+      night:      ['今日もお疲れさまでした。'],
+      menstrual:  ['生理期間中です。出血量と体調の変化を記録して。'],
+      follicular: ['生理が落ち着いてくる頃です。鉄分を意識して。'],
+      luteal:     ['生理前の時期です。冷えに注意して。'],
+      highPain:   ['今日は痛みが気になる状態です。'],
+      lowSleep:   ['疲れが蓄積しているかもしれません。鉄不足にも注意して。'],
+    },
+    watchSigns:  ['出血量の増加', '疲労・貧血症状', '生理期間の延長'],
     heroMessages: {
       morning:    ['今日のからだの変化にゆっくり気づいて。'],
       afternoon:  ['からだの声を聴きながら過ごしましょう。'],
@@ -130,13 +200,24 @@ const PROFILES = {
       highPain:   ['今日は痛みが気になる状態です。'],
       lowSleep:   ['疲れが蓄積しているかもしれません。'],
     },
-    insightPriority: ['pain_cycle', 'symptom_pattern', 'sleep_pain'],
+    insightPriority: ['bleeding_cycle', 'pain_cycle', 'symptom_pattern', 'sleep_pain'],
     optionalModules: [],
     accentColor: '#8B9E84',
   },
 
   adenomyosis: {
-    priorityCards:  ['pain', 'sleep', 'swelling', 'mood'],
+    priorityCards:   ['pain', 'sleep', 'swelling', 'mood'],
+    diseaseCards:    ['inflammation', 'pelvis_pain', 'bleeding_load', 'fatigue_level'],
+    todayAwareness: {
+      morning:    ['からだと対話しながら、今日も一歩ずつ。'],
+      afternoon:  ['痛みと向き合いながら、自分のペースで。'],
+      night:      ['今日も頑張りました。'],
+      menstrual:  ['生理期間中です。特に無理をしないで。'],
+      luteal:     ['生理前の時期です。炎症負荷が高まりやすい状態です。'],
+      highPain:   ['今日は痛みが強い状態です。'],
+      lowSleep:   ['睡眠が取れていません。無理しないで。'],
+    },
+    watchSigns:  ['痛みの強化', '経血量増加', '疲労回復遅延'],
     heroMessages: {
       morning:    ['からだと対話しながら、今日も一歩ずつ。'],
       afternoon:  ['痛みと向き合いながら、自分のペースで。'],
@@ -145,13 +226,22 @@ const PROFILES = {
       highPain:   ['今日は痛みが強い状態です。'],
       lowSleep:   ['睡眠が取れていません。無理しないで。'],
     },
-    insightPriority: ['pain_cycle', 'sleep_pain', 'symptom_pattern'],
+    insightPriority: ['pain_cycle', 'sleep_pain', 'bleeding_cycle', 'symptom_pattern'],
     optionalModules: [],
     accentColor: '#8B9E84',
   },
 
   menopause: {
-    priorityCards:  ['mood', 'sleep', 'symptom', 'pain'],
+    priorityCards:   ['mood', 'sleep', 'symptom', 'pain'],
+    diseaseCards:    null,
+    todayAwareness: {
+      morning:    ['変化の時期を、静かに受け入れながら過ごしましょう。'],
+      afternoon:  ['からだの正直な反応を受け入れて。'],
+      night:      ['良い眠りが、明日のからだを整えます。'],
+      lowSleep:   ['睡眠不足がほてりや気分に影響します。早めに休んで。'],
+      highPain:   ['無理せず、からだを休めましょう。'],
+    },
+    watchSigns:  ['睡眠悪化', 'ほてりの増加', '気分の変化'],
     heroMessages: {
       morning:    ['今日も穏やかに過ごしていきましょう。', '変化の時期を、静かに受け入れながら。'],
       afternoon:  ['からだの正直な反応を受け入れて。'],
@@ -165,7 +255,16 @@ const PROFILES = {
   },
 
   chronic_pelvic_pain: {
-    priorityCards:  ['pain', 'mood', 'sleep', 'swelling'],
+    priorityCards:   ['pain', 'mood', 'sleep', 'swelling'],
+    diseaseCards:    null,
+    todayAwareness: {
+      morning:    ['今日の痛みの状態を確認してみましょう。'],
+      afternoon:  ['痛みと向き合いながら、自分のペースで。'],
+      night:      ['今日もよく頑張りました。'],
+      highPain:   ['今日は痛みが気になる状態です。'],
+      lowSleep:   ['痛みと睡眠は影響し合います。'],
+    },
+    watchSigns:  ['痛みの増加', '睡眠悪化', '生活への影響拡大'],
     heroMessages: {
       morning:    ['今日の痛みの状態を確認してみましょう。'],
       afternoon:  ['痛みと向き合いながら、自分のペースで。'],
@@ -179,7 +278,17 @@ const PROFILES = {
   },
 
   infertility: {
-    priorityCards:  ['mood', 'sleep', 'pain', 'symptom'],
+    priorityCards:   ['mood', 'sleep', 'pain', 'symptom'],
+    diseaseCards:    null,
+    todayAwareness: {
+      morning:    ['今日も、あなたのペースで。焦らなくていいです。'],
+      afternoon:  ['今日も自分をいたわって過ごして。'],
+      night:      ['今日もお疲れさまでした。'],
+      menstrual:  ['生理が来ました。気持ちを大切にして。'],
+      ovulation:  ['からだの変化を記録しておきましょう。'],
+      lowSleep:   ['睡眠が足りていません。早めに休んで。'],
+    },
+    watchSigns:  ['排卵の変化', '周期の乱れ', '気分の低下'],
     heroMessages: {
       morning:    ['今日も、あなたのペースで。', '焦らなくていいです。'],
       afternoon:  ['今日も自分をいたわって過ごして。'],
@@ -252,6 +361,29 @@ export function pickHeroMessage(messages, key) {
 // ── メインエクスポート ────────────────────────────────────
 
 /**
+ * todayAwareness メッセージを取得
+ */
+export function getTodayAwareness(config, opts = {}) {
+  const awareness = config.todayAwareness;
+  if (!awareness) return null;
+
+  const { phase, recentPainAvg, recentSleepAvg } = opts;
+
+  let key = null;
+  if (recentPainAvg != null && recentPainAvg >= 2.5) key = 'highPain';
+  else if (recentSleepAvg != null && recentSleepAvg >= 2.8) key = 'lowSleep';
+  else if (phase && awareness[phase]) key = phase;
+  else key = 'morning';
+
+  const candidates = awareness[key] || awareness['morning'] || [];
+  if (!candidates.length) return null;
+
+  const today = new Date();
+  const seed  = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  return candidates[seed % candidates.length];
+}
+
+/**
  * 複数疾患対応: 最重要プロファイルをベースに、
  * 他疾患の priorityCards を最大4件にマージして返す。
  *
@@ -267,7 +399,7 @@ export function getHomeConfiguration(myDiseases = []) {
 
   if (myDiseases.length <= 1) return primary;
 
-  // 2番目以降の疾患の priorityCards を収集
+  // 2番目以降の疾患の priorityCards を収集 (diseaseCards がない場合のフォールバック)
   const seen = new Set(primary.priorityCards);
   const merged = [...primary.priorityCards];
 
@@ -285,4 +417,14 @@ export function getHomeConfiguration(myDiseases = []) {
   }
 
   return { ...primary, priorityCards: merged.slice(0, 4) };
+}
+
+/**
+ * 疾患別カードキーを取得（diseaseCards が設定されていれば優先使用）
+ */
+export function getStatusCardKeys(config) {
+  if (config.diseaseCards && config.diseaseCards.length > 0) {
+    return config.diseaseCards.slice(0, 4);
+  }
+  return config.priorityCards || ['sleep', 'pain', 'mood', 'symptom'];
 }

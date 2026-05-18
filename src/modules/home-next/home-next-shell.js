@@ -19,6 +19,8 @@ import { renderInsights }            from './home-next-insights.js';
 import { renderOptionalModules }     from './home-next-optional.js';
 import { renderQuickRecord }         from './home-next-quick-record.js';
 import { renderPersonalizeSection }  from './home-next-personalize.js';
+import { renderDailyNote }           from './home-next-daily-note.js';
+import { renderMedicalSummary }      from './home-next-medical-summary.js';
 
 // ── Feature flag ─────────────────────────────────────────
 
@@ -96,23 +98,27 @@ function renderAll() {
   const state  = getState();
   const config = getHomeConfiguration(state.myDiseases || []);
 
-  const header      = document.getElementById('hn-header');
-  const greeting    = document.getElementById('hn-greeting');
-  const hero        = document.getElementById('hn-hero');
-  const status      = document.getElementById('hn-status');
-  const personalize = document.getElementById('hn-personalize');
-  const optional    = document.getElementById('hn-optional');
-  const insights    = document.getElementById('hn-insights');
-  const record      = document.getElementById('hn-record');
+  const header         = document.getElementById('hn-header');
+  const greeting       = document.getElementById('hn-greeting');
+  const hero           = document.getElementById('hn-hero');
+  const dailyNote      = document.getElementById('hn-daily-note');
+  const status         = document.getElementById('hn-status');
+  const personalize    = document.getElementById('hn-personalize');
+  const optional       = document.getElementById('hn-optional');
+  const insights       = document.getElementById('hn-insights');
+  const medicalSummary = document.getElementById('hn-medical-summary');
+  const record         = document.getElementById('hn-record');
 
-  if (header)      renderSharedHeader(header);
-  if (greeting)    renderGreeting(greeting, state);
-  if (hero)        renderHero(hero, config, state);
-  if (status)      renderStatusCards(status, config, state);
-  if (personalize) renderPersonalizeSection(personalize, config, state);
-  if (optional)    renderOptionalModules(optional, config, state);
-  if (insights)    renderInsights(insights, state, config);
-  if (record)      renderQuickRecord(record, state);
+  if (header)         renderSharedHeader(header);
+  if (greeting)       renderGreeting(greeting, state);
+  if (hero)           renderHero(hero, config, state);
+  if (dailyNote)      renderDailyNote(dailyNote, config, state);
+  if (status)         renderStatusCards(status, config, state);
+  if (personalize)    renderPersonalizeSection(personalize, config, state);
+  if (optional)       renderOptionalModules(optional, config, state);
+  if (insights)       renderInsights(insights, state, config);
+  if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
+  if (record)         renderQuickRecord(record, state);
 
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
