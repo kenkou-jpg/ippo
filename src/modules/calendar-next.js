@@ -485,8 +485,7 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   if (hasRecord) cell.classList.add('cn-cell--has-record');
   
  const moonAge = getMoonAge(year, month, day);
-
-const lunar = getLunarDate(year, month, day);
+ const lunar = getLunarDate(year, month, day);
 
   const dayEl = document.createElement('div');
   dayEl.className = 'cn-cell-day';
