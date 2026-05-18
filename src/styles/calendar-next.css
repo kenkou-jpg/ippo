@@ -284,10 +284,14 @@
   font-size: 11px;
   font-weight: 400;
   color: rgba(42,35,32,0.52);
+
   text-align: center;
   line-height: 1.4;
+
   white-space: nowrap;
   letter-spacing: 0.01em;
+
+  opacity: 0.72;
 }
 
 /* ── 凡例 ── */
@@ -473,7 +477,8 @@
   padding: 2px 8px;
   border-radius: 999px;
 
-  font-size: 10px;
+  font-size: 9px;
+
   font-weight: 600;
   line-height: 1.2;
 
@@ -483,7 +488,6 @@
 
   align-self: center;
 
-  /* ★追加 */
   width: fit-content;
   margin-left: auto;
   margin-right: auto;
