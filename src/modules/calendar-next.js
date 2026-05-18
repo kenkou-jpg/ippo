@@ -9,30 +9,43 @@ import { renderSharedHeader } from './shared-header.js';
 
 // ─── 月の満ち欠け ────────────────────────────────────────────
 
-function toJD(y, m, d) {
-  if (m <= 2) { y -= 1; m += 12; }
-  const A = Math.floor(y / 100);
-  const B = 2 - A + Math.floor(A / 4);
-  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+const SYNODIC_MONTH = 29.530588861;
+const KNOWN_NEW_MOON_JD = 2451550.09765; // 2000-01-06 18:14 UTC 付近
+
+function toJD(year, month, day) {
+  // 月相はその日の代表値として「ユーザーのローカル正午」で計算する。
+  // UTC 0:00 固定にするとタイムゾーン境界で前日/翌日の月相に寄るため。
+  const localNoon = new Date(year, month - 1, day, 12, 0, 0, 0);
+  return localNoon.getTime() / 86400000 + 2440587.5;
 }
 
 // 月齢（0 = 新月、~14.77 = 満月）
 function getMoonAge(year, month, day) {
   const jd = toJD(year, month, day);
-  const knownNewMoon = 2451550.09765; // 2000-01-06.5 JD
-  const synodic = 29.530588861;
-  return ((jd - knownNewMoon) % synodic + synodic) % synodic;
+  return ((jd - KNOWN_NEW_MOON_JD) % SYNODIC_MONTH + SYNODIC_MONTH) % SYNODIC_MONTH;
 }
 
+function getMoonIllumination(age) {
+  const phase = ((age % SYNODIC_MONTH) + SYNODIC_MONTH) % SYNODIC_MONTH / SYNODIC_MONTH;
+  const phaseAngle = phase * 2 * Math.PI;
+  return {
+    phase,
+    phaseAngle,
+    illumination: (1 - Math.cos(phaseAngle)) / 2,
+    waxing: phase < 0.5,
+  };
+}
+
+// 表示名用の分類。SVG描画には使わない。
 function getMoonPhaseType(age) {
-  const n = age / 29.530588861;
-  if (n < 0.0625 || n >= 0.9375) return 'new';
-  if (n < 0.1875) return 'waxing-crescent';
-  if (n < 0.3125) return 'first-quarter';
-  if (n < 0.4375) return 'waxing-gibbous';
-  if (n < 0.5625) return 'full';
-  if (n < 0.6875) return 'waning-gibbous';
-  if (n < 0.8125) return 'last-quarter';
+  const n = age / SYNODIC_MONTH;
+  if (n < 0.035 || n >= 0.965) return 'new';
+  if (n < 0.22) return 'waxing-crescent';
+  if (n < 0.285) return 'first-quarter';
+  if (n < 0.465) return 'waxing-gibbous';
+  if (n < 0.535) return 'full';
+  if (n < 0.715) return 'waning-gibbous';
+  if (n < 0.78) return 'last-quarter';
   return 'waning-crescent';
 }
 
@@ -50,111 +63,65 @@ function getMoonPhaseName(age) {
   return names[getMoonPhaseType(age)] || '';
 }
 
-// ─── 月相グラデーションスプライト（bodyに一度だけ注入） ──────────────────
-// userSpaceOnUse: 24×24 viewBox 座標系。光源は左上 (7,6) 固定。
-// editorial/matte トーン: ippo カラーパレット準拠。
-const MOON_SPRITE_ID = 'cn-moon-sprite';
-
-function _ensureMoonSprite() {
-  if (document.getElementById(MOON_SPRITE_ID)) return;
-  const el = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  el.id = MOON_SPRITE_ID;
-  el.setAttribute('width', '0');
-  el.setAttribute('height', '0');
-  el.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;pointer-events:none';
-  el.innerHTML = `<defs>
-    <!-- 暗側ベース球体: かすかな球体感を保つ深みある暗褐色 -->
-    <radialGradient id="ipm-dark" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#5B4638"/>
-      <stop offset="40%"  stop-color="#3A2F28"/>
-      <stop offset="80%"  stop-color="#2A211A"/>
-      <stop offset="100%" stop-color="#1E1610"/>
-    </radialGradient>
-    <!-- 満月: 温かいクリーム〜深みあるタン、マット仕上げ -->
-    <radialGradient id="ipm-full" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#F0E6CE"/>
-      <stop offset="22%"  stop-color="#E9D8B8"/>
-      <stop offset="50%"  stop-color="#D4BC92"/>
-      <stop offset="76%"  stop-color="#BEA276"/>
-      <stop offset="100%" stop-color="#AE9262"/>
-    </radialGradient>
-    <!-- 三日月〜細い月 -->
-    <radialGradient id="ipm-crescent" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#DCCFB2"/>
-      <stop offset="28%"  stop-color="#C9B39D"/>
-      <stop offset="60%"  stop-color="#B09278"/>
-      <stop offset="100%" stop-color="#987C5C"/>
-    </radialGradient>
-    <!-- 上弦・下弦付近 -->
-    <radialGradient id="ipm-quarter" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#E6D9BE"/>
-      <stop offset="28%"  stop-color="#D8C4A6"/>
-      <stop offset="60%"  stop-color="#C2A682"/>
-      <stop offset="100%" stop-color="#AC8E68"/>
-    </radialGradient>
-    <!-- 十三夜・十六夜 (大きい月) -->
-    <radialGradient id="ipm-gibbous" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
-      <stop offset="0%"   stop-color="#EBE0C6"/>
-      <stop offset="24%"  stop-color="#E2CFA4"/>
-      <stop offset="54%"  stop-color="#CAAD80"/>
-      <stop offset="84%"  stop-color="#B8966A"/>
-      <stop offset="100%" stop-color="#AA8860"/>
-    </radialGradient>
-  </defs>`;
-  document.body.insertBefore(el, document.body.firstChild);
-}
-
-// ─── 月相SVG 連続生成（数学的位相補間） ─────────────────────────────────
+// ─── 月相SVG 連続生成（illumination based renderer） ────────────────
 //
-// 光源: 左上固定（グラデーション origin cx=7, cy=6）
-// 構造: ベース暗円 + 照明パス + テクスチャ（クレーター・ハイライト）
-//
-// アーク法則（illumination = (1 - cos(φ)) / 2）:
-//   外弧: waxing→右半円(sweep=1) / waning→左半円(sweep=0)
-//   終端弧: 三日月系→同方向(sweep=1) / 大月系→逆方向(sweep=0)
-//   判定式: termSweep = (waxing === (cosΦ > 0)) ? 1 : 0
+// 重要:
+// - カレンダーセルの描画では8フェーズ固定を使わない。
+// - 毎日 illumination / waxing / waning から連続的に描画する。
+// - ベース暗円は常に表示し、月が消えないようにする。
+// - SVGは全て viewBox="0 0 24 24"、光学中心は cx=12, cy=12 固定。
+// - defs は各SVG内に閉じ込め、外部sprite参照切れで月が消える事故を避ける。
 
 function getMoonSVG(age) {
-  _ensureMoonSprite();
-
-  const synodic = 29.530588861;
-  const phase   = ((age % synodic) + synodic) % synodic / synodic; // 0–1
-  const phi     = phase * 2 * Math.PI;
-  const cosΦ    = Math.cos(phi);
-  const illum   = (1 - cosΦ) / 2; // 0=新月, 1=満月
-
-  // 共通テクスチャ要素（光源左上、opacity 3–5%）
-  const HL  = 'rgba(255,255,255,0.12)'; // ハイライト（極薄）
-  const C1  = 'rgba(60,40,28,0.05)';   // クレーター暗
-  const C2  = 'rgba(60,40,28,0.04)';   // クレーター極薄
-
-  // ── 新月（照明面積 < 1.5%） ──────────────────────────────────────────
-  if (illum < 0.015) {
-    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="url(#ipm-dark)"/><ellipse cx="8.5" cy="8" rx="2.2" ry="1.5" fill="rgba(255,255,255,0.03)" transform="rotate(-22,8.5,8)"/></svg>`;
-  }
-
-  // ── 満月（照明面積 > 98.5%） ─────────────────────────────────────────
-  if (illum > 0.985) {
-    return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="url(#ipm-full)"/><ellipse cx="9" cy="10" rx="1.9" ry="1.3" fill="${C1}" transform="rotate(-15,9,10)"/><ellipse cx="14.5" cy="14" rx="1.3" ry="0.9" fill="${C2}"/><circle cx="11" cy="7.5" r="0.8" fill="${C2}"/><circle cx="16" cy="10.5" r="0.55" fill="${C2}"/><ellipse cx="8.5" cy="8" rx="2.8" ry="1.8" fill="${HL}" transform="rotate(-25,8.5,8)"/></svg>`;
-  }
-
-  // ── 連続位相（三日月〜大月） ──────────────────────────────────────────
-  const waxing     = phase < 0.5;
-  const rx         = (Math.abs(cosΦ) * 9).toFixed(2);
+  const { phase, phaseAngle, illumination, waxing } = getMoonIllumination(age);
+  const cosPhi = Math.cos(phaseAngle);
+  const rx = Math.max(0.08, Math.abs(cosPhi) * 9).toFixed(2);
   const outerSweep = waxing ? 1 : 0;
-  const termSweep  = (waxing === (cosΦ > 0)) ? 1 : 0;
-
-  // 照明量に応じたグラデーション選択
-  let gradId;
-  if      (illum < 0.25) gradId = 'ipm-crescent';
-  else if (illum < 0.55) gradId = 'ipm-quarter';
-  else if (illum < 0.88) gradId = 'ipm-gibbous';
-  else                   gradId = 'ipm-full';
-
-  // 照明パス: M top A outer-semicircle bottom A terminator top Z
+  const termSweep = (waxing === (cosPhi > 0)) ? 1 : 0;
   const litPath = `M 12,3 A 9,9 0 0,${outerSweep} 12,21 A ${rx},9 0 0,${termSweep} 12,3 Z`;
 
-  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="url(#ipm-dark)"/><path d="${litPath}" fill="url(#${gradId})"/><ellipse cx="9.5" cy="10" rx="1.6" ry="1.1" fill="${C1}" transform="rotate(-15,9.5,10)"/><circle cx="14.5" cy="8.5" r="0.65" fill="${C2}"/><ellipse cx="8.5" cy="8" rx="2.2" ry="1.4" fill="${HL}" transform="rotate(-25,8.5,8)"/></svg>`;
+  // 同一ページに複数SVGを置くため、gradient/filter ID衝突を避ける。
+  const uid = `ipm-${Math.round(phase * 100000)}`;
+
+  // 照度に応じて、同じ連続描画のまま少しだけ色温度を変える。
+  const litOuter = illumination < 0.22 ? '#9B8163'
+    : illumination < 0.55 ? '#BDA17C'
+    : illumination < 0.88 ? '#D0B58A'
+    : '#E9D8B8';
+  const litMid = illumination < 0.22 ? '#B79C7A'
+    : illumination < 0.55 ? '#D3BE9B'
+    : illumination < 0.88 ? '#E0C99D'
+    : '#F0E6CE';
+
+  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <radialGradient id="${uid}-dark" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#5B4638"/>
+        <stop offset="48%" stop-color="#3A2F28"/>
+        <stop offset="100%" stop-color="#1E1610"/>
+      </radialGradient>
+      <radialGradient id="${uid}-lit" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#F2E8D2"/>
+        <stop offset="34%" stop-color="${litMid}"/>
+        <stop offset="72%" stop-color="${litOuter}"/>
+        <stop offset="100%" stop-color="#8A6A52"/>
+      </radialGradient>
+      <filter id="${uid}-soft" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0.4" stdDeviation="0.45" flood-color="rgba(20,16,14,0.18)"/>
+      </filter>
+      <clipPath id="${uid}-clip"><circle cx="12" cy="12" r="9"/></clipPath>
+    </defs>
+    <g filter="url(#${uid}-soft)">
+      <circle cx="12" cy="12" r="9" fill="url(#${uid}-dark)"/>
+      <path d="${litPath}" fill="url(#${uid}-lit)"/>
+      <g clip-path="url(#${uid}-clip)" opacity="0.95">
+        <ellipse cx="9.4" cy="10.1" rx="1.55" ry="1.05" fill="rgba(60,40,28,0.045)" transform="rotate(-16,9.4,10.1)"/>
+        <ellipse cx="14.6" cy="14" rx="1.05" ry="0.72" fill="rgba(60,40,28,0.035)"/>
+        <circle cx="15.7" cy="9.6" r="0.46" fill="rgba(60,40,28,0.035)"/>
+        <ellipse cx="8.4" cy="8" rx="2.2" ry="1.35" fill="rgba(255,255,255,0.10)" transform="rotate(-25,8.4,8)"/>
+      </g>
+    </g>
+  </svg>`;
 }
 
 // ─── 旧暦計算 ────────────────────────────────────────────────
