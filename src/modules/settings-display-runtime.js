@@ -62,18 +62,21 @@ export function initSettingsIcons() {
   const ICONS = window.ICONS;
   if (!ICONS) return;
   const map = {
-    'settings-icon-profile':   ICONS.user(16, 'var(--rose)'),
-    'settings-icon-theme':     ICONS.star(16, 'var(--rose)'),
-    'settings-icon-reminder':  ICONS.bell(16, 'var(--rose)'),
-    'settings-icon-disease':   ICONS.heart(16, 'var(--rose)'),
-    'settings-icon-symptom':   ICONS.activity(16, 'var(--rose)'),
-    'settings-icon-privacy':   ICONS.shield(16, 'var(--rose)'),
-    'settings-icon-export':    ICONS.barChart(16, '#4a7c5c'),
-    'settings-icon-backup':    ICONS.download(16, '#4a7c5c'),
-    'settings-icon-restore':   ICONS.cloud(16, '#4a7c5c'),
-    'settings-icon-history':   ICONS.download(16, '#4a7c5c'),
-    'settings-icon-diagnosis': ICONS.search(16, 'var(--ink-light)'),
-    'settings-icon-delete':    ICONS.trash(16, 'var(--rose)'),
+    'settings-icon-profile':   ICONS.user(15, 'var(--rose)'),
+    'settings-icon-theme':     ICONS.star(15, 'var(--rose)'),
+    'settings-icon-reminder':  ICONS.bell(15, 'var(--rose)'),
+    'settings-icon-disease':   ICONS.heart(15, 'var(--rose)'),
+    'settings-icon-symptom':   ICONS.activity(15, 'var(--rose)'),
+    'settings-icon-privacy':   ICONS.shield(15, 'var(--rose)'),
+    'settings-icon-export':    ICONS.barChart(15, '#4a7c5c'),
+    'settings-icon-backup':    ICONS.download(15, '#4a7c5c'),
+    'settings-icon-restore':   ICONS.cloud(15, '#4a7c5c'),
+    'settings-icon-history':   ICONS.download(15, '#4a7c5c'),
+    'settings-icon-diagnosis': ICONS.search(15, 'var(--ink-light)'),
+    'settings-icon-delete':    ICONS.trash(15, 'var(--rose)'),
+    'settings-icon-priority':  ICONS.star(15, '#c8a840'),
+    'settings-icon-density':   ICONS.barChart(15, 'var(--ink-light)'),
+    'settings-icon-home-info': ICONS.home(15, 'var(--ink-light)'),
   };
   Object.keys(map).forEach(function(id) {
     const el = document.getElementById(id);
