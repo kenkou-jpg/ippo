@@ -164,25 +164,31 @@
 .cn-cell--sun .cn-cell-day { color: rgba(200,80,100,0.8); }
 .cn-cell--sat .cn-cell-day { color: rgba(100,110,200,0.75); }
 
-/* 今日 — 背景レイヤーのみ変化、月相・旧暦の位置は絶対固定 */
+/* 今日 — 背景円のみ変化。月相・旧暦の位置は絶対固定・layout shift禁止 */
 .cn-cell--today::before {
   content: '';
   position: absolute;
   top: 5px;
   left: 50%;
   transform: translateX(-50%);
-  width: 32px;
-  height: 32px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: #E4A7AE;
-  opacity: 0.92;
-  box-shadow: 0 4px 12px rgba(217,140,149,0.16);
+  opacity: 0.88;
+  box-shadow: 0 3px 10px rgba(217,143,154,0.18);
   z-index: 0;
   pointer-events: none;
 }
 .cn-cell--today .cn-cell-day {
   color: #fff;
   font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+/* 月相・旧暦は today でも位置変化なし */
+.cn-cell--today .cn-moon,
+.cn-cell--today .cn-cell-lunar {
   position: relative;
   z-index: 1;
 }
@@ -241,6 +247,7 @@
 }
 
 /* ── 月相 SVG天体 ── */
+/* 全フェーズで同一viewBox(0 0 24 24)・同一サイズ。CSS補正禁止 */
 .cn-moon {
   display: flex;
   align-items: center;
@@ -249,11 +256,14 @@
   height: 22px;
   flex-shrink: 0;
   line-height: 0;
+  position: relative;
+  z-index: 1; /* 今日の背景円の上 */
 }
 .cn-moon svg {
   width: 22px;
   height: 22px;
   display: block;
+  overflow: visible; /* クレーターがclipされないよう */
 }
 .cn-moon--sm {
   width: 20px;
@@ -265,15 +275,15 @@
 }
 
 /* ── 旧暦テキスト ── */
+/* "時間の余韻"として置く — opacity は color で表現し二重適用しない */
 .cn-cell-lunar {
   font-size: 11px;
   font-weight: 400;
-  color: rgba(42,35,32,0.55);
+  color: rgba(42,35,32,0.52);
   text-align: center;
   line-height: 1.4;
   white-space: nowrap;
   letter-spacing: 0.01em;
-  opacity: 0.55;
 }
 
 /* ── 凡例 ── */
