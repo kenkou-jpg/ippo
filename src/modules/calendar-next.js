@@ -108,8 +108,15 @@ function getMoonPhaseName(age) {
 function getMoonSVG(age) {
   const { phase, phaseAngle, illumination, waxing } = getMoonIllumination(age);
   const cosPhi = Math.cos(phaseAngle);
-  const rx = Math.max(0.08, Math.abs(cosPhi) * 9).toFixed(2);
+  // ★ 追加
+  const visualCos =
+    Math.max(0.18, Math.abs(cosPhi));
+
+  // ★ 修正
+  const rx = (visualCos * 9).toFixed(2);
+
   const outerSweep = waxing ? 1 : 0;
+ 
   // 新月付近で照明パスが満月側に閉じてしまわないよう、
   // crescent側では外弧と逆 sweep、gibbous/full側では同 sweep で閉じる。
   const termSweep = (waxing === (cosPhi > 0)) ? 0 : 1;
