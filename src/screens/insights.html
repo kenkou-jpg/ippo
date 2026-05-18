@@ -550,40 +550,61 @@
   </div><!-- /ins-pane-experiments -->
 
   <!-- ═══════════════════════════════════════════════════════
-       レポート Pane
+       レポート Pane  —  Clinical Summary Layer
        ══════════════════════════════════════════════════════ -->
   <div id="ins-pane-report" style="display:none;">
-    <div style="margin:20px 16px 28px;">
-      <div onclick="premiumGate(function(){})"
-        style="background:rgba(255,255,255,0.88);border-radius:24px;padding:30px 26px;box-shadow:0 1px 6px rgba(0,0,0,0.012);border:1px solid rgba(0,0,0,0.03);cursor:pointer;">
-        <div style="font-size:10px;letter-spacing:0.1em;color:#8A6830;margin-bottom:10px;font-weight:500;">DOCTOR REPORT</div>
-        <div style="font-family:'Shippori Mincho',serif;font-size:18px;color:#2C241F;margin-bottom:10px;letter-spacing:-0.01em;">医師向けレポート</div>
-        <div style="font-size:13px;color:rgba(44,36,31,0.52);line-height:1.82;margin-bottom:22px;">記録データをもとに、受診時に活用できるサマリーを生成します。症状の傾向・服薬記録・周期データを1枚にまとめてPDF出力できます。</div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-bottom:24px;">
-          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2C241F;">
-            <div style="width:18px;height:18px;border-radius:50%;background:#DDE9DB;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#4A7A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            痛みスコア・症状の月次サマリー
+
+    <!-- ─── 観察サマリー (動的生成) ──────────────────────── -->
+    <div id="ins-clinical-summary" style="margin:20px 16px 0;"></div>
+
+    <!-- ─── 受診準備ガイド ─────────────────────────────── -->
+    <div style="margin:14px 16px 0;background:rgba(255,255,255,0.88);border-radius:20px;padding:22px;border:1px solid rgba(0,0,0,0.03);box-shadow:0 1px 6px rgba(0,0,0,0.012);">
+      <div style="font-size:10px;letter-spacing:0.1em;color:rgba(44,36,31,0.4);margin-bottom:10px;font-weight:500;">VISIT GUIDE</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2C241F;margin-bottom:12px;letter-spacing:-0.01em;">受診前に確認すること</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:#EEF3EB;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <span style="font-size:10px;color:#5A9060;font-weight:600;">1</span>
           </div>
-          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2C241F;">
-            <div style="width:18px;height:18px;border-radius:50%;background:#DDE9DB;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#4A7A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            服薬・サプリ記録の一覧
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#2C241F;">
-            <div style="width:18px;height:18px;border-radius:50%;background:#DDE9DB;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#4A7A50" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            生理周期グラフ（直近3ヶ月）
+          <div>
+            <div style="font-size:13px;color:#2C241F;font-weight:500;margin-bottom:2px;letter-spacing:-0.01em;">最近の変化を確認する</div>
+            <div style="font-size:11px;color:rgba(44,36,31,0.46);line-height:1.65;">「以前より痛みが増えた」「周期が変わった」など、変化の観察が大切です。</div>
           </div>
         </div>
-        <div style="background:#2C241F;color:white;border-radius:14px;padding:15px;text-align:center;font-size:13px;font-weight:500;letter-spacing:-0.01em;">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:#EEF3EB;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <span style="font-size:10px;color:#5A9060;font-weight:600;">2</span>
+          </div>
+          <div>
+            <div style="font-size:13px;color:#2C241F;font-weight:500;margin-bottom:2px;letter-spacing:-0.01em;">症状のパターンを整理する</div>
+            <div style="font-size:11px;color:rgba(44,36,31,0.46);line-height:1.65;">「生理前に悪化する」「睡眠不足後に強まる」など、パターンを伝えると参考になります。</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <div style="width:20px;height:20px;border-radius:50%;background:#EEF3EB;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;">
+            <span style="font-size:10px;color:#5A9060;font-weight:600;">3</span>
+          </div>
+          <div>
+            <div style="font-size:13px;color:#2C241F;font-weight:500;margin-bottom:2px;letter-spacing:-0.01em;">日常生活への影響を伝える</div>
+            <div style="font-size:11px;color:rgba(44,36,31,0.46);line-height:1.65;">「仕事を休んだ日がある」「痛みで眠れない夜があった」など、生活への影響も大切な情報です。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── PRO 医師レポート ───────────────────────────── -->
+    <div style="margin:14px 16px 28px;">
+      <div onclick="premiumGate(function(){})"
+        style="background:rgba(255,255,255,0.88);border-radius:20px;padding:24px;box-shadow:0 1px 6px rgba(0,0,0,0.012);border:1px solid rgba(0,0,0,0.03);cursor:pointer;">
+        <div style="font-size:10px;letter-spacing:0.1em;color:#8A6830;margin-bottom:8px;font-weight:500;">DOCTOR REPORT · PRO</div>
+        <div style="font-family:'Shippori Mincho',serif;font-size:16px;color:#2C241F;margin-bottom:8px;letter-spacing:-0.01em;">医師向けPDF出力</div>
+        <div style="font-size:12px;color:rgba(44,36,31,0.52);line-height:1.8;margin-bottom:18px;">痛みスコア・症状傾向・周期グラフを1枚にまとめたPDFを生成します。受診時に医師へ見せることができます。</div>
+        <div style="background:#2C241F;color:white;border-radius:12px;padding:13px;text-align:center;font-size:12.5px;font-weight:500;letter-spacing:-0.01em;">
           PROで医師レポートを生成する
         </div>
       </div>
     </div>
+
   </div><!-- /ins-pane-report -->
 
 </div><!-- /screen-insights -->

@@ -9,6 +9,7 @@
 
 import { ensureScreenLoaded, showScreen } from './screen-router.js';
 import { renderSharedHeader }             from './shared-header.js';
+import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
 
 export async function switchTab(tab, btn) {
   // calendar / insights は静的 DOM に存在しないため fetch して注入
@@ -33,6 +34,8 @@ export async function switchTab(tab, btn) {
     if (typeof window.switchInsTab === 'function') window.switchInsTab('recommended');
     if (typeof window.renderInsightDiscoveries === 'function') window.renderInsightDiscoveries();
     if (typeof window.renderMonthlySummaryText === 'function') window.renderMonthlySummaryText();
+    // Clinical Summary: レポートタブ用の観察サマリーを事前レンダリング
+    renderInsClinicalSummary();
   }
 
   if (tab === 'home') {
