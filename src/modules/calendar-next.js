@@ -194,13 +194,29 @@ function getMoonSVG(age) {
         />
       </filter>
 
+      <filter
+  id="${uid}-newmoon"
+  x="-40%"
+  y="-40%"
+  width="180%"
+  height="180%"
+>
+  <feDropShadow
+    dx="0"
+    dy="0.6"
+    stdDeviation="0.9"
+    flood-color="#140F0C"
+    flood-opacity="0.32"
+  />
+</filter>
+
       <clipPath id="${uid}-clip">
         <circle cx="12" cy="12" r="9"/>
       </clipPath>
 
     </defs>
 
-    <g filter="url(#${uid}-soft)">
+    <g filter="url(#${uid}-${illumination < 0.06 ? 'newmoon' : 'soft'}')">
 
   <circle
     cx="12"
