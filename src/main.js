@@ -40,6 +40,7 @@ import './modules/theme.js';
 import './modules/ui-notifications.js';
 import './modules/reminders-ui.js';
 import './modules/calendar.js';
+import './modules/calendar-next.js';
 
 // ─── Phase 2: Auth Service (app-legacy.js より前にロード必須) ──
 // app-legacy.js の _notifyAuthReady() が window.ippoAuthService を呼ぶため先行ロード。

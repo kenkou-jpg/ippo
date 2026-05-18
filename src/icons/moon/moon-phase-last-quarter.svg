@@ -1,0 +1,6 @@
+<svg viewBox="0 0 24 24" width="24" height="24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <!-- dark base -->
+  <circle cx="12" cy="12" r="9" fill="#3A2F28"/>
+  <!-- left half lit: left arc + straight terminator -->
+  <path d="M12,3 A9,9 0 0,0 12,21 L12,3 Z" fill="#D9C4A8"/>
+</svg>

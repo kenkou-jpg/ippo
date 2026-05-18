@@ -98,7 +98,7 @@ function buildPhaseLabel(phase) {
   if (!phase) return '';
   const info = CYCLE_PHASES[phase];
   if (!info) return '';
-  return `${info.emoji} ${info.label}`;
+  return `${info.icon || ''}${info.label}`;
 }
 
 // ── ヒーローカードHTML ────────────────────────────────────

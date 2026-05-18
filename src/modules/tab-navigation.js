@@ -46,7 +46,8 @@ export async function switchTab(tab, btn) {
   }
 
   if (tab === 'calendar') {
-    if (typeof window.buildCalendar === 'function') window.buildCalendar();
+    if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
+    else if (typeof window.buildCalendar === 'function') window.buildCalendar();
   }
 }
 
