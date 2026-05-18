@@ -5,12 +5,20 @@
 //  showScreen(name) を経由することで「現在どの画面か」が
 //  DOM ではなく state.currentScreen に存在するようになる。
 //
-//  Phase 8: src/screens/{name}.html の遅延 fetch に対応。
+//  Phase 8: src/screens/{name}.html の遅延読み込みに対応。
 //  static DOM にスクリーンが存在する場合はそのまま使用し、
-//  存在しない場合のみ fetch して #screens-container に注入する。
+//  存在しない場合は ?raw バンドル → fetch の順で注入する。
+//  ?raw import により本番ビルドでも確実に HTML が利用可能。
 // ============================================================
 
 import { getState } from '../store/state.js';
+import insightsHtml from '../screens/insights.html?raw';
+
+// Vite ?raw でバンドルされた画面 HTML マップ。
+// fetch に依存しないため本番環境でも確実に動作する。
+const SCREEN_HTML = {
+  insights: insightsHtml,
+};
 
 const _loadedScreens = new Set();
 
@@ -21,7 +29,7 @@ export async function ensureScreenLoaded(name) {
 async function _ensureScreenLoaded(name) {
   const existing = document.getElementById(`screen-${name}`);
   if (existing) return; // static DOM or already injected
-  if (_loadedScreens.has(name)) return; // fetch already in flight / done
+  if (_loadedScreens.has(name)) return; // already in flight / done
   _loadedScreens.add(name);
 
   let container = document.getElementById('screens-container');
@@ -32,6 +40,15 @@ async function _ensureScreenLoaded(name) {
       document.body.appendChild(container);
   }
 
+  // ?raw バンドルがあればそれを使用（本番環境でも確実）
+  if (SCREEN_HTML[name]) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = SCREEN_HTML[name];
+    while (tmp.firstChild) container.appendChild(tmp.firstChild);
+    return;
+  }
+
+  // fallback: 開発時など raw html がない画面は fetch で取得
   try {
     const res = await fetch(`/src/screens/${name}.html`);
     if (!res.ok) throw new Error(`screen fetch failed: ${res.status}`);
@@ -42,6 +59,13 @@ async function _ensureScreenLoaded(name) {
   } catch (e) {
     _loadedScreens.delete(name);
     console.warn(`[screen-router] could not load screen "${name}":`, e);
+    // ユーザーに最低限のフィードバックを表示
+    const errEl = document.createElement('div');
+    errEl.id = `screen-${name}`;
+    errEl.className = 'screen';
+    errEl.style.cssText = 'display:flex;align-items:center;justify-content:center;height:100%;color:#666;font-size:14px;';
+    errEl.textContent = '画面の読み込みに失敗しました。再読み込みしてください。';
+    container.appendChild(errEl);
   }
 }
 
