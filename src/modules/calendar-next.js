@@ -486,11 +486,6 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   
  const moonAge = getMoonAge(year, month, day);
 
-
-if (moonEvent === 'new-moon') {
-  cell.classList.add('cn-cell--new-moon');
-}
-
 const lunar = getLunarDate(year, month, day);
 
   const dayEl = document.createElement('div');
