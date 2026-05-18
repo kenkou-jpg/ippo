@@ -77,7 +77,9 @@ function getMoonSVG(age) {
   const cosPhi = Math.cos(phaseAngle);
   const rx = Math.max(0.08, Math.abs(cosPhi) * 9).toFixed(2);
   const outerSweep = waxing ? 1 : 0;
-  const termSweep = (waxing === (cosPhi > 0)) ? 1 : 0;
+  // 新月付近で照明パスが満月側に閉じてしまわないよう、
+  // crescent側では外弧と逆 sweep、gibbous/full側では同 sweep で閉じる。
+  const termSweep = (waxing === (cosPhi > 0)) ? 0 : 1;
   const litPath = `M 12,3 A 9,9 0 0,${outerSweep} 12,21 A ${rx},9 0 0,${termSweep} 12,3 Z`;
 
   // 同一ページに複数SVGを置くため、gradient/filter ID衝突を避ける。
