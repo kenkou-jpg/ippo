@@ -452,3 +452,40 @@
   margin-left: 1px;
   font-family: var(--font-body);
 }
+/* =========================
+   Moon Event UI
+========================= */
+
+.cn-cell--full-moon .cn-moon {
+  transform: scale(1.12);
+}
+
+.cn-cell--new-moon .cn-moon {
+  transform: scale(1.12);
+}
+
+.cn-moon-event {
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  align-self: center;
+}
+
+.cn-moon-event--full {
+  background: #F6D67A;
+  color: #5B4638;
+}
+
+.cn-moon-event--new {
+  background: #2E3138;
+  color: #FFFFFF;
+}
