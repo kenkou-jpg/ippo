@@ -2918,28 +2918,53 @@ input[type="range"] {
   background: rgba(255,255,255,0.85) !important;
 }
 
-/* ── 【6】ナビゲーションバー改善 ── */
+/* ── 【6】ナビゲーションバー — 静かなwellness editorial UI ── */
 
 .app-nav {
-  background: #fff !important;
-  border-top: 1px solid #e8e4de !important;
-  box-shadow: 0 -2px 8px rgba(0,0,0,0.04) !important;
+  /* 背景をページに溶け込ませる */
+  background: rgba(250, 248, 245, 0.94) !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
+/* top bar インジケーターを消す（app感の原因） */
+.nav-item::before {
+  display: none !important;
+}
+
+/* 非アクティブ: 極めてmuted */
+.nav-item {
+  color: rgba(42, 35, 32, 0.32) !important;
+  padding: 10px 4px 8px !important;
+  font-size: 9px !important;
+}
+
+/* アクティブ: sage green（静かな存在感） */
 .nav-item.active {
-  color: #7DB8B4 !important;
-}
-.nav-item.active::before {
-  background: #7DB8B4 !important;
+  color: #9DB095 !important;
 }
 
+/* 記録ボタン: フラットにしてapp感を消す */
 .nav-record-ring {
-  background: linear-gradient(135deg, #7DB8B4, #5a9e9a) !important;
-  width: 52px !important;
-  height: 52px !important;
+  background: linear-gradient(135deg, #9DB095, #7B9E73) !important;
+  width: 44px !important;
+  height: 44px !important;
   border-radius: 50% !important;
-  transform: translateY(-12px) !important;
-  box-shadow: 0 4px 16px rgba(125,184,180,0.4) !important;
+  transform: none !important;
+  box-shadow: 0 2px 10px rgba(157, 176, 149, 0.30) !important;
+  margin-bottom: 3px !important;
+}
+
+/* アイコンサイズを控えめに */
+.nav-icon {
+  font-size: 1.1rem !important;
+  opacity: 0.75;
+}
+
+.nav-item.active .nav-icon {
+  opacity: 1;
 }
 
 /* ── 【7】設定画面改善 ── */

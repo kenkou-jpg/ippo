@@ -5,10 +5,35 @@
 
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
-  --hn-bg:            #FAF7F2;
+  /* ── Global design tokens (HOMEとInsightsで共有) ── */
+  --bg-soft:      #FAF8F5;
+  --card-bg:      #FFFFFF;
+  --border-soft:  rgba(0, 0, 0, 0.04);
+  --shadow-soft:  0 2px 8px rgba(0, 0, 0, 0.015);
+  --radius-card:  20px;
+
+  /* アクセントカラー */
+  --accent-sage:   #9DB095;
+  --accent-terra:  #C4946A;
+  --accent-purple: #A78BFA;
+  --accent-green:  #6FBF73;
+  --accent-orange: #F59E0B;
+
+  /* スペーシングスケール */
+  --space-4:  4px;
+  --space-8:  8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+
+  /* ── Home-next スコープトークン ── */
+  --hn-bg:            #FAF8F5;   /* Insightsと統一 */
   --hn-card-bg:       #FFFFFF;
-  --hn-card-border:   1px solid #EEE9E4;
-  --hn-card-shadow:   0 2px 8px rgba(0, 0, 0, 0.035);
+  --hn-card-border:   1px solid rgba(0, 0, 0, 0.04);  /* Insightsと統一 */
+  --hn-card-shadow:   0 2px 8px rgba(0, 0, 0, 0.015); /* 極薄 */
   --hn-card-radius:   20px;
   --hn-card-radius-lg: 24px;
 
@@ -48,29 +73,69 @@
   -webkit-overflow-scrolling: touch;
 }
 
+#screen-insights {
+  background: var(--hn-bg);
+}
+
 .hn-scroll {
   padding: 0 16px calc(96px + env(safe-area-inset-bottom));
   max-width: 430px;
   margin: 0 auto;
 }
 
-/* ── ヘッダーバー ────────────────────────────────────────── */
-#hn-header {
+/* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
+#hn-header,
+#ins-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--hn-bg);
-  /* 背景のぼかし（Frosted glass） */
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
-  background: rgba(250, 247, 242, 0.88);
+  background: rgba(250, 248, 245, 0.90);
+}
+
+/* ── Insights: ページタイトル行 ─────────────────────────── */
+/* HOME の .hn-greeting と同じ vertical rhythm を持つ */
+.ins-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 16px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.ins-page-title {
+  font-family: var(--hn-font-ja);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--hn-ink);
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+}
+
+.ins-pro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 12px;
+  background: #FFFBEB;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  border-radius: 50px;
+  font-size: 11px;
+  font-family: var(--hn-font-ja);
+  color: rgba(160, 105, 5, 0.8);
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .hn-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 10px) 20px 8px;
+  padding: calc(env(safe-area-inset-top) + 12px) 20px 8px;
   max-width: 430px;
   margin: 0 auto;
 }
@@ -161,8 +226,8 @@
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
-  padding: 14px 16px 12px;
-  margin-bottom: 14px;
+  padding: 16px 18px 14px;
+  margin-bottom: 20px;
 }
 
 /* 疾患タグ行 */
@@ -279,8 +344,8 @@
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius-lg);
   box-shadow: var(--hn-card-shadow);
-  padding: 22px 20px 18px;
-  margin-bottom: 14px;
+  padding: 24px 22px 20px;
+  margin-bottom: 20px;
   position: relative;
   overflow: hidden;
 }
@@ -324,10 +389,10 @@
 
 .hn-hero-desc {
   font-family: var(--hn-font-ja);
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--hn-ink-sec);
   line-height: 1.75;
-  margin-top: 10px;
+  margin-top: 12px;
   font-weight: 300;
 }
 
@@ -378,8 +443,8 @@
 
 .hn-section-title {
   font-family: var(--hn-font-ja);
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--hn-ink);
 }
 
@@ -394,8 +459,8 @@
 /* ── 状態カード (横4列) ──────────────────────────────────── */
 .hn-sc-row {
   display: flex;
-  gap: 7px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 20px;
 }
 
 .hn-status-card {
@@ -556,8 +621,8 @@
   border: var(--hn-card-border);
   border-radius: 16px;
   box-shadow: var(--hn-card-shadow);
-  padding: 14px 12px;
-  margin-bottom: 14px;
+  padding: 20px 16px;
+  margin-bottom: 20px;
 }
 
 .hn-week-grid {
@@ -605,8 +670,8 @@
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
-  padding: 16px;
-  margin-bottom: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .hn-optional-head {
@@ -688,8 +753,8 @@
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
-  padding: 20px;
-  margin-bottom: 14px;
+  padding: 24px 22px;
+  margin-bottom: 20px;
   position: relative;
   overflow: hidden;
 }
@@ -736,10 +801,10 @@
 
 .hn-insight-sub {
   font-family: var(--hn-font-ja);
-  font-size: 12px;
+  font-size: 13px;
   color: var(--hn-ink-sec);
-  line-height: 1.7;
-  margin-bottom: 14px;
+  line-height: 1.75;
+  margin-bottom: 16px;
   font-weight: 300;
 }
 
@@ -763,8 +828,8 @@
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
-  padding: 18px 16px 14px;
-  margin-bottom: 14px;
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .hn-quick-title {
@@ -852,7 +917,8 @@
 }
 
 /* ── ユーティリティ ──────────────────────────────────────── */
-.hn-mb { margin-bottom: 14px; }
+.hn-mb        { margin-bottom: 20px; }
+.hn-section   { margin-bottom: 40px; }  /* セクション間の大きな余白 */
 
 /* スクロールバー非表示 */
 .hn-scroll::-webkit-scrollbar { display: none; }
