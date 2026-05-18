@@ -106,62 +106,154 @@ function getMoonPhaseName(age) {
 // - defs は各SVG内に閉じ込め、外部sprite参照切れで月が消える事故を避ける。
 
 function getMoonSVG(age) {
-  const { phase, phaseAngle, illumination, waxing } = getMoonIllumination(age);
+  const { phase, phaseAngle, illumination, waxing } =
+    getMoonIllumination(age);
+
   const cosPhi = Math.cos(phaseAngle);
-  // ★ 追加
+
+  // 新月付近が真っ黒になりすぎないよう補正
   const visualCos =
     Math.max(0.18, Math.abs(cosPhi));
 
-  // ★ 修正
+  // 描画用の光面幅
   const rx = (visualCos * 9).toFixed(2);
 
   const outerSweep = waxing ? 1 : 0;
- 
-  // 新月付近で照明パスが満月側に閉じてしまわないよう、
-  // crescent側では外弧と逆 sweep、gibbous/full側では同 sweep で閉じる。
-  const termSweep = (waxing === (cosPhi > 0)) ? 0 : 1;
-  const litPath = `M 12,3 A 9,9 0 0,${outerSweep} 12,21 A ${rx},9 0 0,${termSweep} 12,3 Z`;
 
-  // 同一ページに複数SVGを置くため、gradient/filter ID衝突を避ける。
+  // crescent / gibbous の閉じ方向補正
+  const termSweep =
+    (waxing === (cosPhi > 0)) ? 0 : 1;
+
+  const litPath =
+    `M 12,3
+     A 9,9 0 0,${outerSweep} 12,21
+     A ${rx},9 0 0,${termSweep} 12,3 Z`;
+
+  // SVG ID衝突回避
   const uid = `ipm-${Math.round(phase * 100000)}`;
 
-  // 照度に応じて、同じ連続描画のまま少しだけ色温度を変える。
-  const litOuter = illumination < 0.22 ? '#9B8163'
+  // 照度に応じた暖色変化
+  const litOuter =
+    illumination < 0.22 ? '#9B8163'
     : illumination < 0.55 ? '#BDA17C'
     : illumination < 0.88 ? '#D0B58A'
     : '#E9D8B8';
-  const litMid = illumination < 0.22 ? '#B79C7A'
+
+  const litMid =
+    illumination < 0.22 ? '#B79C7A'
     : illumination < 0.55 ? '#D3BE9B'
     : illumination < 0.88 ? '#E0C99D'
     : '#F0E6CE';
 
-  return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  return `
+  <svg
+    viewBox="0 0 24 24"
+    xmlns="http://www.w3.org/2000/svg"
+    aria-hidden="true"
+  >
     <defs>
-      <radialGradient id="${uid}-dark" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="${uid}-dark"
+        cx="7"
+        cy="6"
+        r="17"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop offset="0%" stop-color="#5B4638"/>
         <stop offset="48%" stop-color="#3A2F28"/>
         <stop offset="100%" stop-color="#1E1610"/>
       </radialGradient>
-      <radialGradient id="${uid}-lit" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+
+      <radialGradient
+        id="${uid}-lit"
+        cx="7"
+        cy="6"
+        r="17"
+        gradientUnits="userSpaceOnUse"
+      >
         <stop offset="0%" stop-color="#F2E8D2"/>
         <stop offset="34%" stop-color="${litMid}"/>
         <stop offset="72%" stop-color="${litOuter}"/>
         <stop offset="100%" stop-color="#8A6A52"/>
       </radialGradient>
-      <filter id="${uid}-soft" x="-30%" y="-30%" width="160%" height="160%">
-        <feDropShadow dx="0" dy="0.4" stdDeviation="0.45" flood-color="rgba(20,16,14,0.18)"/>
+
+      <filter
+        id="${uid}-soft"
+        x="-30%"
+        y="-30%"
+        width="160%"
+        height="160%"
+      >
+        <feDropShadow
+          dx="0"
+          dy="0.4"
+          stdDeviation="0.45"
+          flood-color="#14100E"
+          flood-opacity="0.18"
+        />
       </filter>
-      <clipPath id="${uid}-clip"><circle cx="12" cy="12" r="9"/></clipPath>
+
+      <clipPath id="${uid}-clip">
+        <circle cx="12" cy="12" r="9"/>
+      </clipPath>
+
     </defs>
+
     <g filter="url(#${uid}-soft)">
-      <circle cx="12" cy="12" r="9" fill="url(#${uid}-dark)"/>
-      <path d="${litPath}" fill="url(#${uid}-lit)"/>
-      <g clip-path="url(#${uid}-clip)" opacity="0.95">
-        <ellipse cx="9.4" cy="10.1" rx="1.55" ry="1.05" fill="rgba(60,40,28,0.045)" transform="rotate(-16,9.4,10.1)"/>
-        <ellipse cx="14.6" cy="14" rx="1.05" ry="0.72" fill="rgba(60,40,28,0.035)"/>
-        <circle cx="15.7" cy="9.6" r="0.46" fill="rgba(60,40,28,0.035)"/>
-        <ellipse cx="8.4" cy="8" rx="2.2" ry="1.35" fill="rgba(255,255,255,0.10)" transform="rotate(-25,8.4,8)"/>
+
+      <circle
+        cx="12"
+        cy="12"
+        r="9"
+        fill="url(#${uid}-dark)"
+      />
+
+      <path
+        d="${litPath}"
+        fill="url(#${uid}-lit)"
+      />
+
+      <g
+        clip-path="url(#${uid}-clip)"
+        opacity="0.95"
+      >
+
+        <ellipse
+          cx="9.4"
+          cy="10.1"
+          rx="1.55"
+          ry="1.05"
+          fill="rgba(60,40,28,0.045)"
+          transform="rotate(-16,9.4,10.1)"
+        />
+
+        <ellipse
+          cx="14.6"
+          cy="14"
+          rx="1.05"
+          ry="0.72"
+          fill="rgba(60,40,28,0.035)"
+        />
+
+        <circle
+          cx="15.7"
+          cy="9.6"
+          r="0.46"
+          fill="rgba(60,40,28,0.035)"
+        />
+
+        <ellipse
+          cx="8.4"
+          cy="8"
+          rx="2.2"
+          ry="1.35"
+          fill="rgba(255,255,255,0.10)"
+          transform="rotate(-25,8.4,8)"
+        />
+
       </g>
+
     </g>
   </svg>`;
 }
