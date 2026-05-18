@@ -228,6 +228,28 @@ function getMoonSVG(age) {
     fill="url(#${uid}-dark)"
   />
 
+  ${illumination > 0.94 ? `
+  <circle
+    cx="12"
+    cy="12"
+    r="${moonRadius + 0.5}"
+    fill="none"
+    stroke="rgba(255,226,150,0.55)"
+    stroke-width="0.7"
+  />
+` : ''}
+
+${illumination < 0.06 ? `
+  <circle
+    cx="12"
+    cy="12"
+    r="${moonRadius + 0.4}"
+    fill="none"
+    stroke="rgba(210,225,255,0.32)"
+    stroke-width="0.55"
+  />
+` : ''}
+
   ${illumination < 0.06 ? `
     <circle
       cx="12"
