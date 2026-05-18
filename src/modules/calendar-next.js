@@ -80,27 +80,7 @@ function getMoonPhaseType(age) {
 }
 
 
-function getMoonEvent(age) {
-  const n = age / SYNODIC_MONTH;
 
-  // 新月点との距離
-  const distToNew = Math.min(n, 1 - n);
-
-  // 満月点との距離
-  const distToFull = Math.abs(n - 0.5);
-
-  // 新月イベント
-  if (distToNew < 0.012) {
-    return 'new-moon';
-  }
-
-  // 満月イベント
-  if (distToFull < 0.012) {
-    return 'full-moon';
-  }
-
-  return null;
-}
 
 function getMoonPhaseName(age) {
   const names = {
@@ -407,11 +387,6 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   
  const moonAge = getMoonAge(year, month, day);
 
-const moonEvent = getMoonEvent(moonAge);
-
-if (moonEvent === 'full-moon') {
-  cell.classList.add('cn-cell--full-moon');
-}
 
 if (moonEvent === 'new-moon') {
   cell.classList.add('cn-cell--new-moon');
@@ -427,32 +402,13 @@ const lunar = getLunarDate(year, month, day);
   moonEl.className = 'cn-moon';
   moonEl.innerHTML = getMoonSVG(moonAge);
 
-  const eventEl = document.createElement('div');
-eventEl.className = 'cn-moon-event';
+const lunarEl = document.createElement('div');
+lunarEl.className = 'cn-cell-lunar';
+lunarEl.textContent = `旧暦 ${lunar.lm}/${lunar.ld}`;
 
-if (moonEvent === 'full-moon') {
-  eventEl.classList.add('cn-moon-event--full');
-  eventEl.textContent = '満月';
-}
-
-if (moonEvent === 'new-moon') {
-  eventEl.classList.add('cn-moon-event--new');
-  eventEl.textContent = '新月';
-}
-
-  const lunarEl = document.createElement('div');
-  lunarEl.className = 'cn-cell-lunar';
-  lunarEl.textContent = `旧暦 ${lunar.lm}/${lunar.ld}`;
-
-  cell.appendChild(dayEl);
+cell.appendChild(dayEl);
 cell.appendChild(moonEl);
-
-if (moonEvent) {
-  cell.appendChild(eventEl);
-}
-
 cell.appendChild(lunarEl);
-
   cell.addEventListener('click', () => {
     // 既存の openDayDetail を利用
     window.calYear  = year;
