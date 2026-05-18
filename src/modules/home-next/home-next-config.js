@@ -16,12 +16,21 @@ const DISEASE_TO_PROFILE = {
   '不妊症':       'infertility',
 };
 
+// 月相SVGマーク（wellness symbol — emoji不使用）
+const _mkMoon = svg => `<svg viewBox="0 0 16 16" width="13" height="13" xmlns="http://www.w3.org/2000/svg" style="display:inline-block;vertical-align:-2px;margin-right:3px" aria-hidden="true">${svg}</svg>`;
+const PHASE_ICONS = {
+  new:      _mkMoon(`<circle cx="8" cy="8" r="6" fill="#3A2F28"/>`),
+  crescent: _mkMoon(`<circle cx="8" cy="8" r="6" fill="#3A2F28"/><path d="M8,2 A6,6 0 0,1 8,14 A5,6 0 0,0 8,2 Z" fill="#C9B39D"/>`),
+  full:     _mkMoon(`<circle cx="8" cy="8" r="6" fill="#E9D8B8"/>`),
+  gibbous:  _mkMoon(`<circle cx="8" cy="8" r="6" fill="#3A2F28"/><path d="M8,2 A6,6 0 0,0 8,14 A3.3,6 0 0,1 8,2 Z" fill="#E2CFA4"/>`),
+};
+
 // 周期フェーズ定義
 export const CYCLE_PHASES = {
-  menstrual:  { label: '生理期間',  emoji: '🌑', days: [1, 5] },
-  follicular: { label: '卵胞期',    emoji: '🌒', days: [6, 13] },
-  ovulation:  { label: '排卵期',    emoji: '🌕', days: [14, 15] },
-  luteal:     { label: '黄体期',    emoji: '🌔', days: [16, 99] },
+  menstrual:  { label: '生理期間',  icon: PHASE_ICONS.new,      days: [1, 5] },
+  follicular: { label: '卵胞期',    icon: PHASE_ICONS.crescent, days: [6, 13] },
+  ovulation:  { label: '排卵期',    icon: PHASE_ICONS.full,     days: [14, 15] },
+  luteal:     { label: '黄体期',    icon: PHASE_ICONS.gibbous,  days: [16, 99] },
 };
 
 // 疾患プロファイル設定

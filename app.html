@@ -34,6 +34,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/src/styles/app.css">
+<link rel="stylesheet" href="/src/styles/calendar-next.css">
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
@@ -267,21 +268,60 @@
      </div>
    </div>
 
-   <!-- ===== CALENDAR SCREEN ===== -->
-   <div id="screen-calendar" class="screen">
-     <div class="spacer-top"></div>
-     <div class="calendar-section">
-       <div class="cal-header">
-         <div class="cal-label" id="calLabel"></div>
-         <div class="cal-nav">
-           <button class="cal-nav-btn" id="calPrev" type="button" aria-label="前の月"></button>
-           <button class="cal-nav-btn" id="calNext" type="button" aria-label="次の月"></button>
+   <!-- ===== CALENDAR SCREEN (パターンA: やさしく見渡せるカレンダー) ===== -->
+   <div id="screen-calendar" class="screen cn-screen">
+
+     <!-- 共通ヘッダー（bell + avatar） -->
+     <div id="cal-header"></div>
+
+     <div class="cn-scroll">
+
+       <!-- ページタイトル -->
+       <div class="cn-page-header">
+         <div class="cn-page-title-wrap">
+           <div class="cn-page-title">カレンダー</div>
+           <div class="cn-page-subtitle">自分のリズムを、やさしく見つめてみましょう。</div>
+         </div>
+         <button class="cn-today-btn" id="calTodayBtn" type="button">
+           <svg class="cn-today-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+           </svg>
+           今日
+         </button>
+       </div>
+
+       <!-- カレンダーカード -->
+       <div class="cn-card">
+         <div class="cn-month-nav">
+           <button class="cn-nav-btn" id="calPrevNew" type="button" aria-label="前の月">‹</button>
+           <div class="cn-month-center">
+             <div class="cn-month-label" id="calLabelNew"></div>
+             <div class="cn-wareki-label" id="calWarekilabel"></div>
+           </div>
+           <button class="cn-nav-btn" id="calNextNew" type="button" aria-label="次の月">›</button>
+         </div>
+         <div class="cn-weekdays">
+           <div class="cn-wd cn-wd--sun">日</div>
+           <div class="cn-wd">月</div><div class="cn-wd">火</div><div class="cn-wd">水</div><div class="cn-wd">木</div><div class="cn-wd">金</div>
+           <div class="cn-wd cn-wd--sat">土</div>
+         </div>
+         <div class="cn-grid" id="calGridNew"></div>
+         <div class="cn-legend">
+           <div class="cn-legend-item"><span class="cn-dot period"></span>生理</div>
+           <div class="cn-legend-item"><span class="cn-dot ovulation"></span>排卵期</div>
+           <div class="cn-legend-item"><span class="cn-dot ovulation-day"></span>排卵日予測</div>
+           <div class="cn-legend-item"><span class="cn-dot fertile"></span>妊娠しやすい</div>
+           <div class="cn-legend-item"><span class="cn-dot low-temp"></span>低温期</div>
+           <div class="cn-legend-item"><span class="cn-dot high-temp"></span>高温期</div>
          </div>
        </div>
-       <div class="cal-weekdays">
-         <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
-       </div>
-       <div class="cal-grid" id="calGrid"></div>
+
+       <!-- 今日のからだメモ -->
+       <div class="cn-card" id="calBodyMemo"></div>
+
+       <!-- 今月のふりかえり -->
+       <div class="cn-card" id="calMonthlySummary"></div>
+
      </div>
    </div>
 
@@ -953,6 +993,10 @@
       <button class="nav-item" type="button" onclick="switchTab('home', this)" data-tab="home" aria-label="ホーム">
         <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
         <span>ホーム</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchTab('calendar', this)" data-tab="calendar" aria-label="カレンダー">
+        <span class="nav-icon" id="nav-icon-calendar" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span>カレンダー</span>
       </button>
       <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
         <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
