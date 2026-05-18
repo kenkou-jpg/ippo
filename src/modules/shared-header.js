@@ -9,7 +9,7 @@
 import './home-next/home-next.css';
 import { getState } from '../store/state.js';
 
-const SVG_BELL = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+const SVG_BELL = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
   <path d="M10 2.5a6.5 6.5 0 00-6.5 6.5v3l-1 2h15l-1-2V9A6.5 6.5 0 0010 2.5z"/>
   <path d="M8 16.5a2 2 0 004 0"/>
 </svg>`;

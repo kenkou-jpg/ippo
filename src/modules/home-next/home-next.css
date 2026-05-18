@@ -78,7 +78,7 @@
 }
 
 .hn-scroll {
-  padding: 0 16px calc(96px + env(safe-area-inset-bottom));
+  padding: 96px 16px calc(96px + env(safe-area-inset-bottom));
   max-width: 430px;
   margin: 0 auto;
 }
@@ -132,30 +132,38 @@
 }
 
 .hn-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: calc(env(safe-area-inset-top) + 12px) 20px 8px;
-  max-width: 430px;
-  margin: 0 auto;
+  padding: env(safe-area-inset-top, 0px) 24px 0;
+  min-height: 72px;
+  background: rgba(248,243,239,0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(42,35,32,0.04);
 }
 
 .hn-header-logo {
   font-family: var(--hn-font);
-  font-size: 17px;
-  font-weight: 600;
+  font-size: 22px;
+  font-weight: 700;
   color: var(--hn-ink);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.04em;
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
 .hn-header-logo-dot {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  background: var(--hn-sage);
+  background: #A8B99F;
   margin-bottom: 1px;
   flex-shrink: 0;
 }
@@ -167,15 +175,15 @@
 }
 
 .hn-header-bell {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
   cursor: pointer;
-  color: var(--hn-ink-sec);
+  color: #8D857E;
   border-radius: 50%;
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s;
@@ -185,8 +193,8 @@
 .hn-header-bell:active { background: rgba(0,0,0,0.04); }
 
 .hn-header-bell svg {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 
@@ -203,21 +211,21 @@
 }
 
 .hn-header-avatar {
-  width: 30px;
-  height: 30px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: var(--hn-sage-pale);
-  border: 1.5px solid var(--hn-sage-mid);
+  background: rgba(223,236,216,0.72);
+  border: 1px solid rgba(168,185,159,0.42);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--hn-font);
-  font-size: 12px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--hn-sage);
   cursor: pointer;
   flex-shrink: 0;
-  letter-spacing: 0;
+  letter-spacing: -0.01em;
 }
 
 /* ── パーソナライズセクション ────────────────────────────── */

@@ -1,11 +1,12 @@
 <div id="screen-insights" class="screen" style="background:#F7F4EF;min-height:100vh;font-family:'Noto Sans JP',-apple-system,sans-serif;">
-  <div class="spacer-top"></div>
+  <!-- 共通固定ヘッダー -->
+  <div id="ins-header"></div>
 
   <!-- ═══ Header ════════════════════════════════════════════ -->
-  <div style="padding:24px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;">
+  <div style="padding:96px 20px 0;display:flex;align-items:flex-start;justify-content:space-between;">
     <div>
-      <div style="font-size:26px;font-weight:700;letter-spacing:-0.025em;color:#2C241F;line-height:1.1;margin-bottom:7px;">インサイト</div>
-      <div style="font-size:12.5px;color:rgba(44,36,31,0.46);font-weight:400;line-height:1.75;letter-spacing:-0.01em;">あなたの体の流れを、静かに見つめてみましょう。</div>
+      <div style="font-size:26px;font-weight:700;letter-spacing:-0.025em;color:#2C241F;line-height:1.2;margin-bottom:10px;">インサイト</div>
+      <div style="font-size:14px;color:rgba(42,35,32,0.54);font-weight:400;line-height:1.8;letter-spacing:-0.01em;max-width:28ch;">あなたの体の流れを、<br>静かに見つめてみましょう。</div>
     </div>
     <button onclick="premiumGate(function(){})"
       style="margin-top:4px;flex-shrink:0;padding:6px 14px;background:#FEFBF3;border:1px solid rgba(212,160,23,0.2);border-radius:99px;font-size:11px;color:rgba(140,90,5,0.72);font-weight:500;cursor:pointer;white-space:nowrap;letter-spacing:-0.005em;">
@@ -14,7 +15,7 @@
   </div>
 
   <!-- ═══ Tabs ══════════════════════════════════════════════ -->
-  <div style="padding:20px 20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+  <div style="padding:32px 20px 0;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
     <div style="display:flex;gap:4px;min-width:max-content;">
       <button id="ins-tab-btn-recommended" onclick="switchInsTab('recommended')"
         style="display:flex;align-items:center;gap:5px;padding:7px 16px;border:1px solid rgba(160,140,250,0.2);border-radius:99px;font-size:12px;cursor:pointer;font-weight:600;background:#EAE2FF;color:#6B5CE7;white-space:nowrap;letter-spacing:-0.01em;">
@@ -45,7 +46,7 @@
   </div>
 
   <!-- hairline -->
-  <div style="margin:16px 20px 0;height:1px;background:rgba(44,36,31,0.06);"></div>
+  <div style="margin:24px 20px 0;height:1px;background:rgba(44,36,31,0.05);"></div>
 
   <!-- ═══════════════════════════════════════════════════════
        おすすめ Pane

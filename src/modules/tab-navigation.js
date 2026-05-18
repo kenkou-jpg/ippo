@@ -52,6 +52,10 @@ export async function switchTab(tab, btn) {
     if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
     else if (typeof window.buildCalendar === 'function') window.buildCalendar();
   }
+
+  if (tab === 'settings') {
+    renderSharedHeader(document.getElementById('set-header'));
+  }
 }
 
 // inline の function 宣言より後に実行されるため安全に上書きできる

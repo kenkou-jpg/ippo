@@ -1308,7 +1308,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 /* ===== SETTINGS v2 – wellness editorial ===== */
 #screen-settings { padding: 0; background: transparent; }
 
-.set-scroll { padding: 60px 22px 0; }
+.set-scroll { padding: 96px clamp(20px, 5vw, 28px) 0; }
 
 /* Header */
 .set-header {
@@ -1316,36 +1316,40 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  padding-bottom: 40px;
   margin-bottom: 36px;
 }
 .set-header-text { flex: 1; min-width: 0; }
 .set-title {
   font-family: "Cormorant Garamond", "Shippori Mincho", serif;
-  font-size: 44px;
-  font-weight: 700;
+  font-size: 42px;
+  font-weight: 600;
   color: var(--ink);
-  line-height: 1.0;
-  margin: 0 0 8px;
-  letter-spacing: -0.03em;
+  line-height: 1.02;
+  margin: 0 0 14px;
+  letter-spacing: -0.04em;
 }
 .set-subtitle {
-  font-size: 13px;
-  color: #8D857E;
-  line-height: 1.8;
+  font-size: 15px;
+  color: #9B928B;
+  line-height: 1.9;
   margin: 0;
   font-weight: 400;
   font-family: "DM Sans", "Noto Sans JP", sans-serif;
+  max-width: 20ch;
 }
 .set-profile-pill {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #FFFFFF;
-  border: 1px solid rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.62);
   border-radius: 20px;
   padding: 10px 12px 10px 10px;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(42,35,32,0.04);
+  box-shadow: 0 4px 20px rgba(42,35,32,0.06);
   flex-shrink: 0;
   font-family: "DM Sans", "Noto Sans JP", sans-serif;
   transition: background 0.18s, transform 0.15s;
