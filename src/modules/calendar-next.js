@@ -90,12 +90,12 @@ function getMoonEvent(age) {
   const distToFull = Math.abs(n - 0.5);
 
   // 新月イベント
-  if (distToNew < 0.018) {
+  if (distToNew < 0.012) {
     return 'new-moon';
   }
 
   // 満月イベント
-  if (distToFull < 0.018) {
+  if (distToFull < 0.012) {
     return 'full-moon';
   }
 
