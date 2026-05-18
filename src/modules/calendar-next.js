@@ -401,7 +401,11 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   const hasRecord = records.some(r => (r.date || r.record_date || '').slice(0, 10) === dateStr);
   if (hasRecord) cell.classList.add('cn-cell--has-record');
   
-  if (moonEvent === 'full-moon') {
+ const moonAge = getMoonAge(year, month, day);
+
+const moonEvent = getMoonEvent(moonAge);
+
+if (moonEvent === 'full-moon') {
   cell.classList.add('cn-cell--full-moon');
 }
 
@@ -409,9 +413,7 @@ if (moonEvent === 'new-moon') {
   cell.classList.add('cn-cell--new-moon');
 }
 
-  const moonAge = getMoonAge(year, month, day);
-  const moonEvent = getMoonEvent(moonAge);
-  const lunar   = getLunarDate(year, month, day);
+const lunar = getLunarDate(year, month, day);
 
   const dayEl = document.createElement('div');
   dayEl.className = 'cn-cell-day';
