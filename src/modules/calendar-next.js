@@ -80,23 +80,27 @@ function getMoonPhaseType(age) {
 }
 
 
-// ★ これを追加
 function getMoonEvent(age) {
   const n = age / SYNODIC_MONTH;
 
+  // 新月点との距離
+  const distToNew = Math.min(n, 1 - n);
+
+  // 満月点との距離
+  const distToFull = Math.abs(n - 0.5);
+
   // 新月イベント
-  if (n < 0.025 || n >= 0.975) {
+  if (distToNew < 0.018) {
     return 'new-moon';
   }
 
   // 満月イベント
-  if (n >= 0.485 && n < 0.515) {
+  if (distToFull < 0.018) {
     return 'full-moon';
   }
 
   return null;
 }
-
 
 function getMoonPhaseName(age) {
   const names = {
