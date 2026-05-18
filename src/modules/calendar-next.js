@@ -202,18 +202,28 @@ function getMoonSVG(age) {
 
     <g filter="url(#${uid}-soft)">
 
-      <circle
-        cx="12"
-        cy="12"
-        r="9"
-        fill="url(#${uid}-dark)"
-      />
+  <circle
+    cx="12"
+    cy="12"
+    r="9"
+    fill="url(#${uid}-dark)"
+  />
 
-      <path
-        d="${litPath}"
-        fill="url(#${uid}-lit)"
-      />
+  ${illumination < 0.06 ? `
+    <circle
+      cx="12"
+      cy="12"
+      r="9.2"
+      fill="none"
+      stroke="rgba(210,220,255,0.22)"
+      stroke-width="0.55"
+    />
+  ` : ''}
 
+  <path
+    d="${litPath}"
+    fill="url(#${uid}-lit)"
+  />
       <g
         clip-path="url(#${uid}-clip)"
         opacity="0.95"
