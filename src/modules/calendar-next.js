@@ -118,6 +118,9 @@ function getMoonSVG(age) {
   // 描画用の光面幅
   const rx = (visualCos * 9).toFixed(2);
 
+  const moonRadius =
+  illumination < 0.06 ? 8.5 : 9;
+
   const outerSweep = waxing ? 1 : 0;
 
   // crescent / gibbous の閉じ方向補正
@@ -221,7 +224,7 @@ function getMoonSVG(age) {
   <circle
     cx="12"
     cy="12"
-    r="9"
+    r="${moonRadius}"
     fill="url(#${uid}-dark)"
   />
 
