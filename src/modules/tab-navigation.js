@@ -8,6 +8,7 @@
 // ============================================================
 
 import { ensureScreenLoaded, showScreen } from './screen-router.js';
+import { renderSharedHeader }             from './shared-header.js';
 
 export async function switchTab(tab, btn) {
   // calendar / insights は静的 DOM に存在しないため fetch して注入
@@ -26,6 +27,8 @@ export async function switchTab(tab, btn) {
   window.scrollTo(0, 0);
 
   if (tab === 'insights') {
+    // 共通ヘッダーシェルを描画（HOME と同一システム）
+    renderSharedHeader(document.getElementById('ins-header'));
     // 新デザイン: おすすめタブをデフォルト表示
     if (typeof window.switchInsTab === 'function') window.switchInsTab('recommended');
     if (typeof window.renderInsightDiscoveries === 'function') window.renderInsightDiscoveries();

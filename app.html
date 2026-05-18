@@ -370,19 +370,18 @@
       }
     </style>
     <div id="screen-insights" class="screen" style="min-height:100vh;">
-      <div class="spacer-top"></div>
 
-      <!-- ── Header ── -->
-      <div style="padding:20px 20px 16px;display:flex;align-items:center;justify-content:space-between;">
-        <div style="font-family:'Noto Sans JP',sans-serif;font-size:22px;color:#2d1f1a;font-weight:600;letter-spacing:-0.01em;">インサイト</div>
-        <button onclick="premiumGate(function(){})"
-          style="padding:6px 13px;background:#FFFBEB;border:1px solid rgba(245,158,11,0.18);border-radius:50px;font-size:11px;font-family:'Noto Sans JP',sans-serif;color:rgba(160,105,5,0.8);font-weight:500;cursor:pointer;letter-spacing:0.02em;">
-          ☆ プロ機能
-        </button>
+      <!-- ── 共通ヘッダーシェル (JS で renderSharedHeader が描画) ── -->
+      <div id="ins-header"></div>
+
+      <!-- ── ページタイトル行 (HOME greeting と同じ vertical rhythm) ── -->
+      <div class="ins-page-header">
+        <div class="ins-page-title">インサイト</div>
+        <button class="ins-pro-btn" onclick="premiumGate(function(){})">☆ プロ機能</button>
       </div>
 
       <!-- ── Filter Tabs ── -->
-      <div style="padding:0 20px 24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
+      <div style="padding:0 20px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;">
         <div style="display:flex;gap:6px;min-width:max-content;">
           <button id="ins-tab-btn-recommended" onclick="switchInsTab('recommended')"
             style="display:flex;align-items:center;gap:4px;padding:6px 14px;border:1px solid rgba(167,139,250,0.22);border-radius:50px;font-size:11px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;font-weight:500;background:#F3EFFD;color:#A78BFA;white-space:nowrap;">
