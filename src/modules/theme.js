@@ -10,10 +10,13 @@ export function applyTheme(name) {
   document.documentElement.setAttribute('data-theme', name === 'sakura' ? '' : name);
   localStorage.setItem('ippo_theme', name);
   THEMES.forEach(function (t) {
-    var dot = document.getElementById('theme-dot-' + t);
-    var btn = document.getElementById('theme-btn-' + t);
-    if (dot) dot.style.borderColor = t === name ? 'var(--rose)' : 'transparent';
-    if (btn) btn.style.background  = t === name ? 'var(--rose-pale)' : '';
+    var dot   = document.getElementById('theme-dot-' + t);
+    var btn   = document.getElementById('theme-btn-' + t);
+    var check = document.getElementById('theme-check-' + t);
+    var active = t === name;
+    if (dot) dot.style.borderColor = active ? 'rgba(255,255,255,0.9)' : 'transparent';
+    if (btn) btn.style.background  = active ? 'var(--rose-pale)' : '';
+    if (check) check.style.display = active ? 'block' : 'none';
   });
   if (typeof window.updateHomeCTA === 'function') window.updateHomeCTA();
 }
