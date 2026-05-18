@@ -41,7 +41,7 @@ function getMoonPhaseType(age) {
   const n = age / SYNODIC_MONTH;
 
   // 新月（かなり狭く）
-  if (n < 0.015 || n >= 0.985) {
+  if (n < 0.025 || n >= 0.975) {
     return 'new';
   }
 
@@ -85,7 +85,7 @@ function getMoonEvent(age) {
   const n = age / SYNODIC_MONTH;
 
   // 新月イベント
-  if (n < 0.015 || n >= 0.985) {
+  if (n < 0.025 || n >= 0.975) {
     return 'new-moon';
   }
 
