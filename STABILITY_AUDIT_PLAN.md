@@ -259,8 +259,9 @@
 - **実施内容:** `assertOwnership(slotId, caller, registeredOwner)` を追加。`console.warn` に加え `window.dispatchEvent(new CustomEvent('ippo:render-authority-violation', { detail }))` を発火。`request()` 内の `_warn` 直呼びを `assertOwnership` に置換。public API にも `assertOwnership` を追加し外部監視可能に。removal condition: 本番で `ippo:render-authority-violation` が0件を確認後、throw に格上げ可。
 
 ### A-4: `save-transaction-guard` をモジュール境界で完結させる（long-term）
-- [ ] `src/store/state.js` の `saveState` 自体にスナップショット機能を統合
+- [x] `src/store/state.js` の `saveState` 自体にスナップショット機能を統合
 - `window.saveState` patch パターンを廃止
+- **実施内容:** `state.js` に `_preSaveHooks` / `_postSaveHooks` と `addPreSaveHook()` / `addPostSaveHook()` を追加。`saveState()` が保存前後にフックを呼ぶよう変更。`save-transaction-guard.js` の `window.saveState` パッチ (`window.saveState = function guardedSaveState()...`) を廃止し、`addPreSaveHook(_preSave)` / `addPostSaveHook(_postSave)` 登録方式に移行。direct import でも `window.saveState` 経由でも guard が適用されるよう統合。`addPreSaveHook` / `addPostSaveHook` を window にも公開。
 
 ### A-5: プレミアム offline cache の localStorage key 正式化
 - [ ] `ippo_premium_cached` キーを localStorage key 一覧に追加・ドキュメント化

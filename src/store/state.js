@@ -50,6 +50,24 @@ window._ippoStateHooks = _preHooks; // 同じ配列参照を維持（追加登�
 
 var _postHooks = [];
 
+// ─── saveState hook registry ──────────────────────────────────
+// pre-save: void hooks called before localStorage write (e.g. snapshot)
+// post-save: hooks called after save with (error|null)
+var _preSaveHooks  = [];
+var _postSaveHooks = [];
+
+export function addPreSaveHook(fn) {
+  if (typeof fn === 'function' && _preSaveHooks.indexOf(fn) === -1) {
+    _preSaveHooks.push(fn);
+  }
+}
+
+export function addPostSaveHook(fn) {
+  if (typeof fn === 'function' && _postSaveHooks.indexOf(fn) === -1) {
+    _postSaveHooks.push(fn);
+  }
+}
+
 export function addSetStateHook(fn) {
   if (typeof fn === 'function' && _preHooks.indexOf(fn) === -1) {
     _preHooks.push(fn);
@@ -88,12 +106,20 @@ export function setState(newState) {
 
 // ─── saveState ────────────────────────────────────────────────
 export function saveState() {
+  for (var _pi = 0; _pi < _preSaveHooks.length; _pi++) {
+    try { _preSaveHooks[_pi](); } catch (_) {}
+  }
+  var saveErr = null;
   try {
     var s = Object.assign({}, getState());
     s.lastSaved = new Date().toISOString();
     localStorage.setItem(STATE_KEY, JSON.stringify(s));
   } catch(e) {
+    saveErr = e;
     console.warn('ippo: saveState failed', e);
+  }
+  for (var _oi = 0; _oi < _postSaveHooks.length; _oi++) {
+    try { _postSaveHooks[_oi](saveErr); } catch (_) {}
   }
 }
 
@@ -151,5 +177,7 @@ window.getState              = getState;
 window.setState              = setState;
 window.addSetStateHook       = addSetStateHook;
 window.addPostSetStateHook   = addPostSetStateHook;
+window.addPreSaveHook        = addPreSaveHook;
+window.addPostSaveHook       = addPostSaveHook;
 window.STATE_KEY             = STATE_KEY;
 window.migrateStorageKeys    = migrateStorageKeys;
