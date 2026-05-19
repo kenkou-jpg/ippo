@@ -47,10 +47,11 @@
 - **実施内容:** calendar.html lines 72-79 の重複 `#dmOverlay`/`#dmClose` を削除しコメントに置換。screen-router.js に `_attachCalendarModalHandlers()` を追加し、?raw/fetch 両注入パスと DOMContentLoaded（静的DOM用）で呼び出す。`_dmHandlerAttached` ガードで重複バインド防止。
 
 ### C-5: `window.supabase` 未設定で app-legacy の全クラウド同期が silent no-op
-- [ ] `src/main.js` に `window.supabase = supabaseClient` を追加（supabase.js の export を window に露出）
+- [x] `src/main.js` に `window.supabase = supabaseClient` を追加（supabase.js の export を window に露出）
 - または app-legacy.js 内の `typeof window.supabase === 'undefined'` チェックをモジュール import に置換
 - **Why:** 全ユーザーのクラウドバックアップが現在動作していない可能性。最重大な本番リスク
 - **File:** `src/app-legacy.js:1213,1290,1448,1470`
+- **実施内容:** `supabase.js:66` に既存の `window.supabase = supabase` はあるが、main.js の import 順 (app-legacy line 52 → supabase.js line 183) の都合上 top-level での公開が不明確だった。main.js body 先頭に `window.supabase = supabase` を明示追加。removal condition: app-legacy.js の `window.supabase` 参照が全廃されたら削除可。
 
 ---
 
@@ -260,13 +261,13 @@
 
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
-| PHASE 1 — CRITICAL | 5 | 4 | 1 |
+| PHASE 1 — CRITICAL | 5 | 5 | 0 |
 | PHASE 2 — HIGH | 10 | 0 | 10 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **4** | **40** |
+| **合計** | **44** | **5** | **39** |
 
 ---
 

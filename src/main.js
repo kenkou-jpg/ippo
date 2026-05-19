@@ -194,6 +194,11 @@ import {
   scheduleReminders,
 } from './services/push.js';
 
+// C-5: app-legacy.js の cloud sync ガードが `typeof window.supabase` を参照するため
+// supabase.js の side-effect に加えて main.js でも明示的に公開する。
+// (removal condition: app-legacy.js の window.supabase 参照が全廃されたら削除可)
+window.supabase = supabase;
+
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('main-entry-start');
 }
