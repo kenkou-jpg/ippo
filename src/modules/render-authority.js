@@ -46,6 +46,21 @@
     console.warn('[RenderAuthority]', msg, data || '');
   }
 
+  /**
+   * Assert that `caller` is allowed to render `slotId`.
+   * Violation: fires 'ippo:render-authority-violation' event instead of throwing
+   * so monitoring can catch it without breaking existing renders.
+   * Removal condition: once all callers have been audited and ownership violations
+   * are zero in production, this can be promoted to throw.
+   */
+  function assertOwnership(slotId, caller, registeredOwner) {
+    var detail = { slotId: slotId, caller: caller, owner: registeredOwner };
+    _warn('"' + caller + '" requested render of "' + slotId + '" owned by "' + registeredOwner + '"');
+    try {
+      window.dispatchEvent(new CustomEvent('ippo:render-authority-violation', { detail: detail }));
+    } catch (_) {}
+  }
+
   function _scheduleFlush() {
     if (_rafHandle !== null) return;
     _rafHandle = requestAnimationFrame(_flush);
@@ -109,11 +124,11 @@
   function request(slotId, caller, fn, opts) {
     opts = opts || {};
 
-    // Ownership check (lenient: warn only, don't block)
+    // Ownership check (lenient: event-only, don't block)
     if (REG) {
       var owner = REG.getOwner(slotId);
       if (owner && owner !== caller) {
-        _warn('"' + caller + '" requested render of "' + slotId + '" owned by "' + owner + '"');
+        assertOwnership(slotId, caller, owner);
       }
     }
 
@@ -278,6 +293,7 @@
     flushNow: flushNow,
     getLog: getLog,
     getPending: getPending,
+    assertOwnership: assertOwnership,
     SLOTS: SLOTS,
   };
 

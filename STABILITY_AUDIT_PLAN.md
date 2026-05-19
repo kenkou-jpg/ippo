@@ -253,9 +253,10 @@
   - **removal condition:** app-legacy.js が ESM 化されるか、上記4ステップが完了するまで `window.supabase` を維持
 
 ### A-3: ownership-registry の enforcement をログ警告から throw に格上げ
-- [ ] `src/modules/render-authority.js` の `assertOwnership()` を全 render wrap に組み込む
+- [x] `src/modules/render-authority.js` の `assertOwnership()` を全 render wrap に組み込む
 - 違反時に throw ではなく ERROR イベント発火（段階的移行）
 - **File:** `src/modules/render-authority.js`
+- **実施内容:** `assertOwnership(slotId, caller, registeredOwner)` を追加。`console.warn` に加え `window.dispatchEvent(new CustomEvent('ippo:render-authority-violation', { detail }))` を発火。`request()` 内の `_warn` 直呼びを `assertOwnership` に置換。public API にも `assertOwnership` を追加し外部監視可能に。removal condition: 本番で `ippo:render-authority-violation` が0件を確認後、throw に格上げ可。
 
 ### A-4: `save-transaction-guard` をモジュール境界で完結させる（long-term）
 - [ ] `src/store/state.js` の `saveState` 自体にスナップショット機能を統合
