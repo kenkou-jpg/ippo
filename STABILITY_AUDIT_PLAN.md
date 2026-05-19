@@ -40,10 +40,11 @@
 - **実施内容:** UPDATE `.then()` 先頭に `result.error` チェックを追加し early return。`.then()`/`.catch()` 両方に散在していた `_cloudBackupLock = false` と `hideSyncIndicator` を `.finally()` に集約。
 
 ### C-4: `#dmClose` が動的インジェクト後に click ハンドラ未バインド（モーダル閉じられない）
-- [ ] `src/screens/calendar.html` から `#dmOverlay` / `#dmClose` を削除（app.html 側のみ残す）
-- [ ] `src/modules/calendar-next.js` または screen-router.js に `attachCalendarModalHandlers()` を追加し、calendar 画面 inject 後に呼ぶ
+- [x] `src/screens/calendar.html` から `#dmOverlay` / `#dmClose` を削除（app.html 側のみ残す）
+- [x] `src/modules/calendar-next.js` または screen-router.js に `attachCalendarModalHandlers()` を追加し、calendar 画面 inject 後に呼ぶ
 - **Why:** DOMContentLoaded 後に inject された要素には app-legacy の handler が届かない。本番で✕ボタンが無効
 - **File:** `src/screens/calendar.html:73–79`, `src/app-legacy.js:7047–7050`
+- **実施内容:** calendar.html lines 72-79 の重複 `#dmOverlay`/`#dmClose` を削除しコメントに置換。screen-router.js に `_attachCalendarModalHandlers()` を追加し、?raw/fetch 両注入パスと DOMContentLoaded（静的DOM用）で呼び出す。`_dmHandlerAttached` ガードで重複バインド防止。
 
 ### C-5: `window.supabase` 未設定で app-legacy の全クラウド同期が silent no-op
 - [ ] `src/main.js` に `window.supabase = supabaseClient` を追加（supabase.js の export を window に露出）
@@ -259,13 +260,13 @@
 
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
-| PHASE 1 — CRITICAL | 5 | 3 | 2 |
+| PHASE 1 — CRITICAL | 5 | 4 | 1 |
 | PHASE 2 — HIGH | 10 | 0 | 10 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **3** | **41** |
+| **合計** | **44** | **4** | **40** |
 
 ---
 

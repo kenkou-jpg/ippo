@@ -22,6 +22,28 @@ const SCREEN_HTML = {
 
 const _loadedScreens = new Set();
 
+// ─── attachCalendarModalHandlers ────────────────────────────
+// calendar 画面 inject 後、または静的 DOM 確定後に #dmOverlay/#dmClose
+// のハンドラを確実にバインドする。_dmHandlerAttached ガードで重複防止。
+function _attachCalendarModalHandlers() {
+  var dmClose = document.getElementById('dmClose');
+  var dmOverlay = document.getElementById('dmOverlay');
+  if (dmClose && !dmClose._dmHandlerAttached) {
+    dmClose.addEventListener('click', function () {
+      var ov = document.getElementById('dmOverlay');
+      if (ov) ov.classList.remove('dm-open');
+    });
+    dmClose._dmHandlerAttached = true;
+  }
+  if (dmOverlay && !dmOverlay._dmHandlerAttached) {
+    dmOverlay.addEventListener('click', function (e) {
+      if (e.target === e.currentTarget) e.currentTarget.classList.remove('dm-open');
+    });
+    dmOverlay._dmHandlerAttached = true;
+  }
+}
+export { _attachCalendarModalHandlers as attachCalendarModalHandlers };
+
 export async function ensureScreenLoaded(name) {
   return _ensureScreenLoaded(name);
 }
@@ -45,6 +67,7 @@ async function _ensureScreenLoaded(name) {
     const tmp = document.createElement('div');
     tmp.innerHTML = SCREEN_HTML[name];
     while (tmp.firstChild) container.appendChild(tmp.firstChild);
+    if (name === 'calendar') _attachCalendarModalHandlers();
     return;
   }
 
@@ -56,6 +79,7 @@ async function _ensureScreenLoaded(name) {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     while (tmp.firstChild) container.appendChild(tmp.firstChild);
+    if (name === 'calendar') _attachCalendarModalHandlers();
   } catch (e) {
     _loadedScreens.delete(name);
     console.warn(`[screen-router] could not load screen "${name}":`, e);
@@ -103,3 +127,10 @@ export function getCurrentScreen() {
 
 window.showScreen      = showScreen;
 window.getCurrentScreen = getCurrentScreen;
+
+// 静的 DOM 版（app.html に #dmOverlay が既存）の場合も確実にバインド
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _attachCalendarModalHandlers);
+} else {
+  _attachCalendarModalHandlers();
+}
