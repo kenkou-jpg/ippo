@@ -14,6 +14,15 @@ if (!window._ippoStateHooks) window._ippoStateHooks = [];
 var state = { records: [] };
 window._ippoStateHooks.push(function(nextState) { state = nextState; });
 
+try {
+  Object.defineProperty(window, 'state', {
+    get: function () {
+      return state;
+    },
+    configurable: true,
+  });
+} catch (_) {}
+
 // ─── app.html script block 2 の内容 ─────────────────────────
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
 // var SUPABASE_URL = 'https://ekaoojdqhkpeudujfsdh.supabase.co';  // MIGRATED: see src/services/supabase.js
@@ -4191,7 +4200,7 @@ function openRecordModal() {
   if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
   currentRecord = {};
   currentStep = 0;
-  window.STEPS = buildSteps();
+  STEPS = window.STEPS = buildSteps();
   // ステップインジケーターのドットを動的生成
   var indicator = document.getElementById('step-indicator');
   if (indicator) {
@@ -5742,6 +5751,12 @@ function isPeriodExpected(){
 var currentTopicId = null;
 
 function loadCommunityTopic(){
+  // 未認証時は 401 になるため、認証済みの場合のみリクエストを送る
+  if (!supabaseUserId) {
+    var qEl = document.getElementById('community-question');
+    if(qEl) qEl.textContent = 'コミュニティ機能は準備中です。もうしばらくお待ちください 🌸';
+    return;
+  }
   fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.true&order=created_at.desc&limit=1', {
     headers: {'apikey': SUPABASE_KEY}
   })
@@ -5764,7 +5779,7 @@ function loadCommunityTopic(){
     loadCommunityReplies();
   })
   .catch(function(e){
-    console.warn('コミュニティトピック読込スキップ:', e.message);
+    // silent fail — community_topics table policy not set
     var qEl = document.getElementById('community-question');
     if(qEl) qEl.textContent = 'コミュニティ機能は準備中です 🌸';
   });
@@ -9331,9 +9346,10 @@ var todayStr = targetDate.toDateString();
       else state.streak = 1;
     }
 
-    // 保存を即座に実行
+    // 保存を即座に実行（saveState 経由で persist delegate に記録させる）
     try {
       localStorage.setItem('ippo_state', JSON.stringify(state));
+      if (typeof window.saveState === 'function') window.saveState();
     } catch(storageErr) {
       showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
       console.error('Storage error:', storageErr);
@@ -9370,12 +9386,14 @@ var todayStr = targetDate.toDateString();
     updateStats();
     updateHistory();
     buildCalendar();
+    if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
     localStorage.removeItem('ippo_draft');
-    if(typeof cloudBackupAll === 'function'){
-  cloudBackupAll().catch(function(e){
+    var _cloudBackupFn = (typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : cloudBackupAll);
+    if(typeof _cloudBackupFn === 'function'){
+  _cloudBackupFn().catch(function(e){
     console.warn('クラウドバックアップ失敗、リトライ中...', e);
     setTimeout(function(){
-      cloudBackupAll().catch(function(){
+      _cloudBackupFn().catch(function(){
         showToast('クラウド同期に失敗しました。Wi-Fiを確認してください。', 'warn');
       });
     }, 3000);
@@ -11843,6 +11861,8 @@ if (typeof updateTodayMessage === "function") window.updateTodayMessage = update
 if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
 if (typeof updateVisionDisplay === "function") window.updateVisionDisplay = updateVisionDisplay;
 // ─── グローバル変数エクスポート ───────────────────────────────
-if (typeof currentRecord !== "undefined") window.currentRecord = currentRecord;
-if (typeof currentStep   !== "undefined") window.currentStep   = currentStep;
-if (typeof STEPS         !== "undefined") window.STEPS         = STEPS;
+if (typeof currentRecord  !== "undefined") window.currentRecord  = currentRecord;
+if (typeof currentStep    !== "undefined") window.currentStep    = currentStep;
+if (typeof STEPS          !== "undefined") window.STEPS          = STEPS;
+if (typeof saveState      === "function")  window.saveState      = saveState;
+if (typeof cloudBackupAll === "function")  window.cloudBackupAll = cloudBackupAll;
