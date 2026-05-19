@@ -278,23 +278,29 @@
 ## PHASE 6 — Dead Code 除去
 
 ### D-1: `home-renderer.js: updateHistory()` 空関数
-- [ ] `src/modules/home-renderer.js` の `updateHistory` 関数と全呼び出し箇所を削除
+- [x] `src/modules/home-renderer.js` の `updateHistory` 関数と全呼び出し箇所を削除
 - **File:** `src/modules/home-renderer.js`
+- **実施内容:** 空関数宣言・`showMain()` 内の呼び出し・`window.updateHistory` 代入・`ippoHomeRenderer` object エントリを削除。app-legacy.js 内の同名空関数（line 2918）はそのまま維持。
 
 ### D-2: `rollback-manager.js` の未使用 named exports
-- [ ] `src/runtime/rollback-manager.js` の named export を `export {}` に整理（または削除）
+- [x] `src/runtime/rollback-manager.js` の named export を `export {}` に整理（または削除）
+- **実施内容:** `export { takeSnapshot, rollbackToBest }` に縮小。未使用の `getLatestSnapshot, getBestSnapshot, rollbackTo, rollbackToLatest` を named export から削除（window.ippoRollbackManager 経由では引き続き利用可）。
 
 ### D-3: `error-reporter.js` の未使用 named exports
-- [ ] `src/runtime/error-reporter.js` の `getReport`, `printReport` named export を削除
+- [x] `src/runtime/error-reporter.js` の `getReport`, `printReport` named export を削除
+- **実施内容:** `export { getReport, printReport }` 行を削除。`window.ippoErrorReporter` / `window.ippoReport` での公開は維持。
 
 ### D-4: `screen-home-next` が bottom nav から到達不能
-- [ ] `app.html` から `#screen-home-next` を削除（または正式に導線を追加）
+- [x] `app.html` から `#screen-home-next` を削除（または正式に導線を追加）
+- **実施内容:** `app.html` の `#screen-home-next` div（hn-header/hn-greeting/hn-hero 等7要素）を削除。`src/screens/home-next.html` は独立ファイルのため残存するが app.html から除去済み。
 
 ### D-5: `window.__raw_*` 系グローバル (~20個)
-- [ ] ownership-map wrap の順序問題（H-10）修正後に `__raw_*` グローバルを全廃
+- [x] ownership-map wrap の順序問題（H-10）修正後に `__raw_*` グローバルを全廃
+- **実施内容:** `ownership-map.js` に `var _rawFns = {}` をローカル追加。`window['__raw_' + globalFnName] = original` → `_rawFns[globalFnName] = original` に変更。全 `onRender` コールバックの `window.__raw_*()` 参照を `_rawFns.*()` に置換。window への `__raw_*` 公開を完全除去。
 
 ### D-6: `runtime-orchestrator.js: enableBridgeWarningMode / disableBridgeWarningMode`
-- [ ] 実質 no-op の2関数を削除し、bridge 実態に合わせてコメントを更新
+- [x] 実質 no-op の2関数を削除し、bridge 実態に合わせてコメントを更新
+- **実施内容:** `enableBridgeWarningMode` / `disableBridgeWarningMode` 関数定義と `window.ippoRuntime` への公開エントリを削除。
 
 ---
 
@@ -307,8 +313,8 @@
 | PHASE 3 — MEDIUM | 13 | 13 | 0 |
 | PHASE 4 — Leaks | 5 | 5 | 0 |
 | PHASE 5 — Architecture | 5 | 5 | 0 |
-| PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **38** | **6** |
+| PHASE 6 — Dead Code | 6 | 6 | 0 |
+| **合計** | **44** | **44** | **0** |
 
 ---
 

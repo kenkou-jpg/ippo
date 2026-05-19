@@ -204,6 +204,10 @@
     //  buildCalendar() called 10 times synchronously → 1 RAF fires.
     // ═══════════════════════════════════════════════════════════
 
+    // D-5: 旧 window.__raw_* (~20 globals) を IIFE-local Map に内部化。
+    // onRender callbacks のみが参照するため window 汚染は不要だった。
+    var _rawFns = {};
+
     function _wrapRender(globalFnName, slotId, owner) {
       var original = window[globalFnName];
       if (typeof original !== 'function') return;
@@ -216,9 +220,7 @@
       wrapped.__ippoOwnershipWrapped = true;
 
       window[globalFnName] = wrapped;
-      // Keep a reference to the unwrapped original for internal use.
-      // __raw_* は ownership-map のみが管理する。
-      window['__raw_' + globalFnName] = original;
+      _rawFns[globalFnName] = original;
     }
 
     // Calendar
@@ -296,7 +298,7 @@
         slots:   [SLOTS.CALENDAR, SLOTS.CALENDAR_MONTHLY],
         regions: [REGIONS.CALENDAR_GRID, REGIONS.CALENDAR_LABEL, REGIONS.CALENDAR_MONTHLY],
         onRender: function () {
-          if (typeof window.__raw_buildCalendar === 'function') window.__raw_buildCalendar();
+          if (typeof _rawFns.buildCalendar === 'function') _rawFns.buildCalendar();
         },
       });
 
@@ -312,10 +314,10 @@
           REGIONS.HOME_PHASE_BANNER, REGIONS.HOME_INSIGHT_CARD, REGIONS.HOME_CTA,
         ],
         onRender: function () {
-          if (typeof window.__raw_updateGreeting    === 'function') window.__raw_updateGreeting();
-          if (typeof window.__raw_buildHomeWeekRow  === 'function') window.__raw_buildHomeWeekRow();
-          if (typeof window.__raw_updateHomeNumbers === 'function') window.__raw_updateHomeNumbers();
-          if (typeof window.__raw_updateHomeSummary === 'function') window.__raw_updateHomeSummary();
+          if (typeof _rawFns.updateGreeting    === 'function') _rawFns.updateGreeting();
+          if (typeof _rawFns.buildHomeWeekRow  === 'function') _rawFns.buildHomeWeekRow();
+          if (typeof _rawFns.updateHomeNumbers === 'function') _rawFns.updateHomeNumbers();
+          if (typeof _rawFns.updateHomeSummary === 'function') _rawFns.updateHomeSummary();
         },
       });
 
@@ -324,7 +326,7 @@
         slots:   [SLOTS.INSIGHTS_DISCOVERIES, SLOTS.INSIGHTS_PHASE_MAP],
         regions: [REGIONS.INSIGHTS_DISCOVERIES, REGIONS.INSIGHTS_PHASE_MAP],
         onRender: function () {
-          if (typeof window.__raw_renderInsightDiscoveries === 'function') window.__raw_renderInsightDiscoveries();
+          if (typeof _rawFns.renderInsightDiscoveries === 'function') _rawFns.renderInsightDiscoveries();
         },
       });
 
@@ -333,7 +335,7 @@
         slots:   [SLOTS.INSIGHTS_TIMELINE],
         regions: [REGIONS.TIMELINE_LIST],
         onRender: function () {
-          if (typeof window.__raw_renderTimeline === 'function') window.__raw_renderTimeline();
+          if (typeof _rawFns.renderTimeline === 'function') _rawFns.renderTimeline();
         },
       });
 
@@ -348,7 +350,7 @@
         slots:   [SLOTS.PREMIUM_BADGE],
         regions: [REGIONS.PREMIUM_BADGE],
         onRender: function () {
-          if (typeof window.__raw_updatePremiumBadges === 'function') window.__raw_updatePremiumBadges();
+          if (typeof _rawFns.updatePremiumBadges === 'function') _rawFns.updatePremiumBadges();
         },
       });
 
@@ -357,7 +359,7 @@
         slots:   [SLOTS.FASTING_WIDGET],
         regions: [REGIONS.FASTING_WIDGET],
         onRender: function () {
-          if (typeof window.__raw_renderFasting === 'function') window.__raw_renderFasting();
+          if (typeof _rawFns.renderFasting === 'function') _rawFns.renderFasting();
         },
       });
 

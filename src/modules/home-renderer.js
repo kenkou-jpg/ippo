@@ -118,12 +118,6 @@ export function updateStats() {
   if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
 }
 
-// ── 記録履歴（現在は空実装）─────────────────────────────────
-
-export function updateHistory() {
-  // 最近の記録セクション削除済み
-}
-
 // ── 週間行 ────────────────────────────────────────────────────
 
 export function buildHomeWeekRow() {
@@ -389,7 +383,6 @@ export function showMain() {
   // モジュール内で完結する関数を直接呼ぶ
   updateGreeting();
   updateStats();
-  updateHistory();
   buildHomeWeekRow();
   updateHomeInsightCard();
   updateHomeNumbers();
@@ -427,7 +420,6 @@ export function showMain() {
 window.showMain              = showMain;
 window.updateDate            = updateDate;
 window.updateGreeting        = updateGreeting;
-window.updateHistory         = updateHistory;
 window.updateStats           = updateStats;
 // ownership-map が wrap 済みの場合は上書きしない（後発代入による wrap 破壊を防ぐ）
 if (!window.buildHomeWeekRow || !window.buildHomeWeekRow.__ippoOwnershipWrapped) {
@@ -446,7 +438,6 @@ window.ippoHomeRenderer = {
   showMain,
   updateDate,
   updateGreeting,
-  updateHistory,
   updateStats,
   buildHomeWeekRow,
   updateHomeInsightCard,

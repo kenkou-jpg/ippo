@@ -103,4 +103,4 @@ if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('rollback-manager-loaded');
 }
 
-export { takeSnapshot, getLatestSnapshot, getBestSnapshot, rollbackTo, rollbackToLatest, rollbackToBest };
+export { takeSnapshot, rollbackToBest };
