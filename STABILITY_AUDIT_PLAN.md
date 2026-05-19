@@ -126,71 +126,84 @@
 ## PHASE 3 — MEDIUM (UX・安定性)
 
 ### M-1: 設定画面の dead onclick が 4 箇所
-- [ ] `src/screens/settings.html` の以下を修正
+- [x] `src/screens/settings.html` の以下を修正
   - `onclick=""` の「状態を変更する」ボタン（:30）→ 実装 or "準備中" トースト
   - `onclick=""` の「優先度」行（:107）→ 同上
   - `onclick=""` の「表示の濃さ」行（:176）→ 同上
   - `onclick=""` の「ホーム情報」行（:189）→ 同上
 - **File:** `src/screens/settings.html:30,107,176,189`
+- **実施内容:** 4箇所の `onclick=""` を `onclick="showToast('この機能は準備中です')"` に変更。
 
 ### M-2: `通知の設定` 行が `toggleFastingFeature()` を呼ぶ（セマンティクス破綻）
-- [ ] `src/screens/settings.html` の onclick を正しい通知設定関数に修正
+- [x] `src/screens/settings.html` の onclick を正しい通知設定関数に修正
 - **File:** `src/screens/settings.html`
+- **実施内容:** `onclick="toggleFastingFeature()"` → `onclick="showToast('通知設定は準備中です')"` に変更。
 
 ### M-3: chip タップのたびに `scheduleHydration` が 7 本の setTimeout を生成
-- [ ] `src/modules/record-edit-hydrate.js` の capture listener regex を修正
+- [x] `src/modules/record-edit-hydrate.js` の capture listener regex を修正
 - chip 要素（`.rs-chip`, `toggleRsChip`）を除外リストに追加 or regex から `record` を削除
 - **File:** `src/modules/record-edit-hydrate.js`
+- **実施内容:** `installEditClickCapture` に `target.closest('.rs-chip')` と `toggleRsChip` 属性の early-return 除外を追加。
 
 ### M-4: プレミアムステータスがオフライン再起動で常に無料扱い
-- [ ] `src/modules/premium/premium-service.js` を修正
-- `isPremium()` の結果を `ippo_state` 内の `premiumCached` フィールドに保存
+- [x] `src/modules/premium/premium-service.js` を修正
+- `isPremium()` の結果を `ippo_premium_cached` localStorage key に保存
 - オフライン時は `premiumCached` を fallback として使用
 - **File:** `src/modules/premium/premium-service.js`
+- **実施内容:** `_CACHE_KEY = 'ippo_premium_cached'` を追加。モジュール初期化時に localStorage から fallback 読み込み。`_fetchPremiumFromDB` 成功後に `localStorage.setItem(_CACHE_KEY, String(_isPremiumValue))` で永続化。
 
 ### M-5: `autoRecoveryCheck` の cloud fallback にタイムアウトなし
-- [ ] `src/services/recovery.js` の `manualCloudRestore()` 呼び出しに `Promise.race` でタイムアウトを追加（15s 推奨）
+- [x] `src/services/recovery.js` の `manualCloudRestore()` 呼び出しに `Promise.race` でタイムアウトを追加（15s 推奨）
 - **File:** `src/services/recovery.js:40–48`
+- **実施内容:** `Promise.race([manualCloudRestore(), timeout(15000)])` でラップ。タイムアウト時は catch に落ちて graceful 処理。
 
 ### M-6: `auth-cloud-state-machine` タイムアウト後に遅延解決で FAILED→RESTORED 逆転
-- [ ] `src/runtime/auth-cloud-state-machine.js` を修正
+- [x] `src/runtime/auth-cloud-state-machine.js` を修正
 - タイムアウト後は cloudRestore の解決を無視するフラグを追加
 - **File:** `src/runtime/auth-cloud-state-machine.js:177–181`
+- **実施内容:** `markCloudRestored()` に `if (_cloudState === CLOUD_STATE.FAILED) return;` ガードを追加。タイムアウト後の遅延解決が FAILED → RESTORED に逆転しないよう保護。
 
 ### M-7: double-click ガードの欠如（コミュニティ返信・フィードバック・食事時間追加）
-- [ ] `src/screens/insights.html` の `postCommunityReply` ボタンに disabled ガード追加
-- [ ] `src/screens/settings.html` の `submitFeedback` ボタンに disabled ガード追加
-- [ ] `src/screens/record.html` の `addMealTime` ボタンに disabled ガード追加
+- [x] `src/screens/insights.html` の `postCommunityReply` ボタンに disabled ガード追加
+- [x] `src/screens/settings.html` の `submitFeedback` ボタンに disabled ガード追加
+- [x] `src/screens/record.html` の `addMealTime` ボタンに disabled ガード追加
 - **File:** `src/screens/insights.html`, `src/screens/settings.html`, `src/screens/record.html`
+- **実施内容:** 3ボタンに `this.disabled=true; Promise.resolve(fn()).finally(...)` パターンを適用。
 
 ### M-8: `storage-migration.js` — 単一レコードエラーで全移行失敗・毎起動リトライ
-- [ ] `src/services/storage-migration.js` を修正
+- [x] `src/services/storage-migration.js` を修正
 - `Promise.all` → `Promise.allSettled` に変更し、失敗レコードのみをログ
 - 成功分のみで `ippo_idb_migrated` フラグを設定
 - **File:** `src/services/storage-migration.js:15–22`
+- **実施内容:** `Promise.all` → `Promise.allSettled` に変更。失敗件数をログし、成功分のみで `ippo_idb_migrated = '1'` をセット。
 
 ### M-9: `normalizeRecordDate` が年越し時に1年ズレ
-- [ ] `src/modules/record-repository.js` の年推論ロジックを修正
+- [x] `src/modules/record-repository.js` の年推論ロジックを修正
 - 月/日のみパターンは保存前に拒否するか、記録日時を ISO 8601 フル形式で保存することを強制
 - **File:** `src/modules/record-repository.js:80`
+- **実施内容:** `const year = new Date().getFullYear()` → 現在月より大きい月は前年と判定するロジックに変更。年越し時の +1年ズレを修正。
 
 ### M-10: `migrateStorageKeys` がレコード数のみで復元可否を判定 → 削除済みレコード再インポート
-- [ ] `src/store/state.js` の `migrateStorageKeys` を修正
+- [x] `src/store/state.js` の `migrateStorageKeys` を修正
 - レコード数比較 → 最終更新タイムスタンプ比較に変更
 - **File:** `src/store/state.js:120`
+- **実施内容:** `records.length > current.records.length` → `legacyTs > currentTs`（lastSaved タイムスタンプ比較）に変更。削除済みレコードの再インポートを防止。
 
 ### M-11: `_applyModeEffects()` 内の SAFE_CLOUD ブロック重複
-- [ ] `src/runtime/runtime-controller.js:188–213` の重複ブロックを削除
+- [x] `src/runtime/runtime-controller.js:188–213` の重複ブロックを削除
 - **File:** `src/runtime/runtime-controller.js:188–213`
+- **実施内容:** 2つ目の SAFE_CLOUD ブロック（`pause_cloud_sync` / `degradedSystems['cloud']`）を削除。最初のブロック（`pause_cloud_restore`）のみ残す。
 
 ### M-12: `production-diagnostics` が `visibilitychange` で同期 layout flush
-- [ ] `src/runtime/production-diagnostics.js` の `_verifyUIIntegrity()` を非同期化
+- [x] `src/runtime/production-diagnostics.js` の `_verifyUIIntegrity()` を非同期化
 - `getBoundingClientRect` / `getComputedStyle` 呼び出しを `requestIdleCallback` または `requestAnimationFrame` 内に移動
 - **File:** `src/runtime/production-diagnostics.js:598–706`
+- **実施内容:** `visibilitychange` handler 内の `_throttledUI()` 呼び出しを `requestAnimationFrame()` でラップ。レイアウト確定後に getBoundingClientRect/getComputedStyle が実行されるよう変更。
 
 ### M-13: `addSetStateHook` が window に二重代入
-- [ ] `src/store/state.js:137,140` の重複代入を1行に削除
+- [x] `src/store/state.js:137,140` の重複代入を1行に削除
 - **File:** `src/store/state.js:137,140`
+- **実施内容:** H-1 対応内で同時除去。line 140 の `window.addSetStateHook = addSetStateHook` 重複を削除。
 
 ---
 
@@ -273,11 +286,11 @@
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
 | PHASE 2 — HIGH | 10 | 10 | 0 |
-| PHASE 3 — MEDIUM | 13 | 0 | 13 |
+| PHASE 3 — MEDIUM | 13 | 13 | 0 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **15** | **29** |
+| **合計** | **44** | **28** | **16** |
 
 ---
 
