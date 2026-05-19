@@ -37,7 +37,7 @@ export const INITIAL_STATE = Object.freeze({
 //   するため、モジュールローカルの参照ではなく常に window.state を読む。
 export function saveState() {
   try {
-    var s = window.state;
+    var s = Object.assign({}, window.state);
     s.lastSaved = new Date().toISOString();
     localStorage.setItem(STATE_KEY, JSON.stringify(s));
   } catch(e) {
