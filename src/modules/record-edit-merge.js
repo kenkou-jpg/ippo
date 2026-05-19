@@ -243,4 +243,9 @@ if (!install()) {
     count++;
     if (install() || count >= 20) clearInterval(timer);
   }, 250);
+  // EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+  if (window.ippoTimerRegistry) {
+    window.ippoTimerRegistry.register(timer, 'record-edit-merge', 'interval',
+      'install-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+  }
 }

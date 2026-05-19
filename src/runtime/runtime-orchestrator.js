@@ -275,6 +275,16 @@ function _coordinationTick() {
   }
 }
 
+// ─── Stop ─────────────────────────────────────────────────
+// EL-3: _reconcileInterval の明示的クリーンアップ。
+// removal condition: ページアンロード時の cleanup が不要になったら削除可。
+function stop() {
+  if (_reconcileInterval) {
+    clearInterval(_reconcileInterval);
+    _reconcileInterval = null;
+  }
+}
+
 // ─── Init ────────────────────────────────────────────────
 function _init() {
   if (_initialized) return;
@@ -283,6 +293,9 @@ function _init() {
 
   // 5 秒ごとに協調 tick
   _reconcileInterval = setInterval(_coordinationTick, 5000);
+
+  // EL-3: ページアンロード時にインターバルを停止
+  window.addEventListener('beforeunload', function () { stop(); }, { once: true });
 
   if (typeof window.ippoMarkBootEvent === 'function') {
     window.ippoMarkBootEvent('runtime-orchestrator-started', { startedAt: _startedAt });
@@ -357,6 +370,9 @@ window.ippoRuntime = {
 
   // Brain forwarding
   report:           report,
+
+  // Lifecycle
+  stop:                stop,
 
   // Coordination
   reconcileModes:      reconcileModes,

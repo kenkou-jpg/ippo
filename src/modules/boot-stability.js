@@ -101,19 +101,45 @@ if (document.readyState === 'loading') {
   markBootEvent('dom-already-loaded');
 }
 
+// ─── EL-1: 診断バス (単一グローバルリスナー) ─────────────────
+// health-monitor / production-diagnostics はここに subscribe する。
+// window.__ippoDiagBus が未初期化でも後続モジュールが先に push できるよう
+// 配列ベースの遅延初期化パターンを採用。
+// removal condition: health-monitor / production-diagnostics が
+//   window.addEventListener を直接使う形に戻したら削除可。
+if (!window.__ippoDiagBus) {
+  window.__ippoDiagBus = {
+    _subs: [],
+    subscribe: function (fn) { this._subs.push(fn); },
+  };
+}
+
+function _dispatchDiagBus(type, detail) {
+  var subs = window.__ippoDiagBus._subs;
+  for (var i = 0; i < subs.length; i++) {
+    try { subs[i](type, detail); } catch (_) {}
+  }
+}
+
 window.addEventListener('error', (event) => {
-  markBootError('window-error', {
-    message: event.message || null,
+  var d = {
+    message:  event.message  || null,
     filename: event.filename || null,
-    lineno: event.lineno || null,
-    colno: event.colno || null,
-  });
+    lineno:   event.lineno   || null,
+    colno:    event.colno    || null,
+  };
+  markBootError('window-error', d);
+  _dispatchDiagBus('window-error', d);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
-  markBootError('unhandled-rejection', {
-    reason: event.reason && event.reason.message ? event.reason.message : String(event.reason || ''),
-  });
+  var d = {
+    reason: event.reason && event.reason.message
+      ? event.reason.message
+      : String(event.reason || ''),
+  };
+  markBootError('unhandled-rejection', d);
+  _dispatchDiagBus('unhandled-rejection', d);
 });
 
 window.ippoMarkBootEvent = markBootEvent;
