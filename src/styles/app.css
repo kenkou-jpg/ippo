@@ -2854,3 +2854,11 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   ),
   var(--ippo-bg-base);
 }
+/* ===== Shared Surface Card ===== */
+.ippo-surface {
+  background: var(--ippo-card-bg);
+  border-radius: var(--ippo-card-radius);
+  border: var(--ippo-card-border);
+  box-shadow: var(--ippo-card-shadow);
+  backdrop-filter: blur(18px);
+}
