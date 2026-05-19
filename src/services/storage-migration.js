@@ -19,11 +19,14 @@ export function migrateToIDB() {
       ? window.idbPutRecord(r)
       : Promise.resolve();
   });
-  return Promise.all(promises).then(function () {
+  return Promise.allSettled(promises).then(function (results) {
+    var failed = results.filter(function(r) { return r.status === 'rejected'; });
+    if (failed.length > 0) {
+      console.warn('IndexedDB移行: ' + failed.length + '件失敗', failed.map(function(r) { return r.reason; }));
+    }
+    var succeeded = results.length - failed.length;
     localStorage.setItem('ippo_idb_migrated', '1');
-    console.log('IndexedDB移行完了:', records.length + '件');
-  }).catch(function (e) {
-    console.warn('IndexedDB移行失敗:', e);
+    console.log('IndexedDB移行完了: ' + succeeded + '/' + records.length + '件');
   });
 }
 
