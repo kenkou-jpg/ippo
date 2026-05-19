@@ -153,7 +153,7 @@ export function getRecords() {
   return getRecordsFromLocalStorage();
 }
 
-function getRecordDateCandidates(record) {
+export function getRecordDateCandidates(record) {
   if (!record) return [];
 
   const raw = [
