@@ -77,9 +77,10 @@
 - **実施内容:** `restored === true` 後に `localStorage` から再読して `setState()` していた2行を削除。代わりに `getState()` で cloudRestore が確定させた正本を参照。setState の二重呼び出しと、state-integrity-guard の二重発火を排除。
 
 ### H-4: `recovery.js` が `setState` を呼ばずに `s.records` を直接ミューテーション
-- [ ] `src/services/recovery.js:32–36` を修正
+- [x] `src/services/recovery.js:32–36` を修正
 - `s.records = merge(...)` → `setState({ ...getState(), records: merge(...) }); saveState();`
 - **File:** `src/services/recovery.js:32–36`
+- **実施内容:** `setState` を import 追加。`s.records = merge(...)` を `var mergedRecords = merge(...)` + `setState(Object.assign({}, getState(), { records: mergedRecords }))` に置換。state-integrity-guard と pre-hook が復元時にも機能するよう修正。
 
 ### H-5: `onboarding-runtime.js` が `_onboardingDone` を直接ミューテーション
 - [ ] `src/modules/onboarding-runtime.js:26` を修正
@@ -265,12 +266,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 3 | 7 |
+| PHASE 2 — HIGH | 10 | 4 | 6 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **8** | **36** |
+| **合計** | **44** | **9** | **35** |
 
 ---
 
