@@ -38,6 +38,10 @@ async function _fetchPremiumFromDB() {
       .single();
 
     if (error || !data) {
+      // DB エラー時はセキュリティ優先で false にリセット（キャッシュも更新）
+      _isPremiumValue   = false;
+      _premiumExpiresAt = null;
+      try { localStorage.setItem(_CACHE_KEY, 'false'); } catch(_) {}
       console.warn('[premium-service] profiles fetch error', error);
       return;
     }
