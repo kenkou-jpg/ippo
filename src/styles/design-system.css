@@ -1,0 +1,19 @@
+:root {
+  --ippo-bg-base: #F7F2EE;
+
+  --ippo-overlay-home: rgba(226,235,220,0.18);
+  --ippo-overlay-calendar: rgba(236,224,210,0.18);
+  --ippo-overlay-insight: rgba(218,208,244,0.16);
+  --ippo-overlay-settings: rgba(232,219,214,0.14);
+
+  --ippo-card-bg: rgba(255,255,255,0.72);
+  --ippo-card-radius: 32px;
+  --ippo-card-shadow: 0 8px 32px rgba(42,35,32,0.045);
+  --ippo-card-border: 1px solid rgba(255,255,255,0.62);
+
+  --ippo-content-max: 920px;
+  --ippo-content-padding: 24px;
+
+  --ippo-title-color: #2A2320;
+  --ippo-sub-color: #9B928B;
+}
