@@ -183,6 +183,8 @@ function markCloudRestoring() {
 
 function markCloudRestored() {
   if (_restoreTimer) { clearTimeout(_restoreTimer); _restoreTimer = null; }
+  // タイムアウト後の遅延解決は無視（FAILED→RESTORED 逆転防止）
+  if (_cloudState === CLOUD_STATE.FAILED) return;
   window.__ippoCloudRestoreFailed = false;
   _transition(null, CLOUD_STATE.RESTORED, 'cloud restore success');
 }
