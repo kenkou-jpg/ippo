@@ -127,8 +127,11 @@ export function cloudBackupAll() {
 
     return supabase.from('user_data').update(payload).eq('user_id', userId).select()
       .then(function (result) {
-        _cloudBackupLock = false;
-        if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+        if (result.error) {
+          console.warn('Backup UPDATE失敗:', result.error.message);
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result.error.message };
+          return;
+        }
         if (result.data && result.data.length > 0) {
           console.log('Cloud backup完了（更新）: ' + stateToSave.records.length + '件');
           window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
@@ -137,7 +140,7 @@ export function cloudBackupAll() {
         payload.user_id = userId;
         return supabase.from('user_data').insert(payload).select().then(function (result2) {
           if (result2.error) {
-            console.warn('Backup失敗:', result2.error.message);
+            console.warn('Backup INSERT失敗:', result2.error.message);
             window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result2.error.message };
           } else {
             console.log('Cloud backup完了（新規）');
@@ -148,9 +151,11 @@ export function cloudBackupAll() {
       })
       .catch(function (e) {
         window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: e.message || String(e) };
+        throw e;
+      })
+      .finally(function () {
         _cloudBackupLock = false;
         if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
-        throw e;
       });
   }).catch(function (e) {
     _cloudBackupLock = false;
@@ -200,11 +205,11 @@ export function cloudRestore() {
 
         if (cloudDate > localDate) {
           var safeCloud = Object.assign({}, cloudState);
-          var mergedState = Object.assign(s, safeCloud);
+          var mergedState = Object.assign({}, s, safeCloud);
           mergedState.records   = mergedRecords;
           mergedState.lastSaved = cloudDate.toISOString();
           setState(mergedState);
-          localStorage.setItem(STATE_KEY, JSON.stringify(mergedState));
+          saveState();
           console.log('クラウド復元完了（マージ）: ローカル' + localRecs + '件 + クラウド' + cloudRecs + '件 → ' + mergedCount + '件');
           return true;
         } else if (mergedCount > localRecs) {

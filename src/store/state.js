@@ -77,7 +77,7 @@ export function setState(newState) {
 // ─── saveState ────────────────────────────────────────────────
 export function saveState() {
   try {
-    var s = getState();
+    var s = Object.assign({}, getState());
     s.lastSaved = new Date().toISOString();
     localStorage.setItem(STATE_KEY, JSON.stringify(s));
   } catch(e) {
