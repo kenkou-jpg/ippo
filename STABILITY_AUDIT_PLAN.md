@@ -65,9 +65,10 @@
 - **実施内容:** `_setStateHooks` を `_preHooks`（ブロック用）と `_postHooks`（通知用）に分離。`addPostSetStateHook()` を新規 export。`setState` が pre-loop で `_preHooks` を、post-loop で `_postHooks` を使うよう修正。`window.addSetStateHook` の重複代入も同時削除。`window._ippoStateHooks` は `_preHooks` を参照し後方互換を維持。
 
 ### H-2: `cloudRestore` のネットワークエラーを "データなし" と誤認
-- [ ] `src/services/supabase.js` の `cloudRestore()` に `result.error` チェックを追加
+- [x] `src/services/supabase.js` の `cloudRestore()` に `result.error` チェックを追加
 - エラー種別（PGRST116 = no rows vs それ以外）を区別してログ出力
 - **File:** `src/services/supabase.js:173`
+- **実施内容:** `.then(result)` 先頭に `result.error` チェックを追加。`PGRST116`（行なし = 正常）とその他エラー（ネットワーク障害等）を分岐して別メッセージでログ出力。両ケースとも `false` を返しローカルデータを保護。
 
 ### H-3: `visibilitychange` で cloudRestore 後に `setState` 二重呼び出し
 - [ ] `src/services/supabase.js` の visibilitychange handler を修正
@@ -263,12 +264,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 1 | 9 |
+| PHASE 2 — HIGH | 10 | 2 | 8 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **6** | **38** |
+| **合計** | **44** | **7** | **37** |
 
 ---
 

@@ -177,6 +177,15 @@ export function cloudRestore() {
     var userId = session.user.id;
     return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single()
       .then(function (result) {
+        if (result.error) {
+          if (result.error.code === 'PGRST116') {
+            // 行なし = クラウドに未保存（正常ケース）
+            console.log('cloudRestore: クラウドにデータなし（初回ユーザー）');
+          } else {
+            console.warn('cloudRestore: クラウド取得エラー', result.error.code, result.error.message);
+          }
+          return false;
+        }
         if (!result.data) return false;
         var cloudState = result.data.state;
         if (!cloudState || typeof cloudState !== 'object') {
