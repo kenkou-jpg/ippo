@@ -40,13 +40,25 @@ var _state = null;
 // ─── setState hook registry ───────────────────────────────────
 // app-legacy.js が state.js より先に実行されるため、
 // window._ippoStateHooks キューに事前登録されたフックを引き継ぐ。
-// hook(nextState, currentState) が false を返すと setState をブロック。
-var _setStateHooks = (Array.isArray(window._ippoStateHooks) ? window._ippoStateHooks.slice() : []);
-window._ippoStateHooks = _setStateHooks; // 同じ配列参照を維持（追加登録も届く）
+//
+// _preHooks  : hook(nextState, currentState) が false を返すと setState をブロック。
+//              addSetStateHook() で登録（後方互換）。
+// _postHooks : 状態更新確定後の通知専用。ブロック不可。
+//              addPostSetStateHook() で登録。
+var _preHooks = (Array.isArray(window._ippoStateHooks) ? window._ippoStateHooks.slice() : []);
+window._ippoStateHooks = _preHooks; // 同じ配列参照を維持（追加登録も届く）
+
+var _postHooks = [];
 
 export function addSetStateHook(fn) {
-  if (typeof fn === 'function' && _setStateHooks.indexOf(fn) === -1) {
-    _setStateHooks.push(fn);
+  if (typeof fn === 'function' && _preHooks.indexOf(fn) === -1) {
+    _preHooks.push(fn);
+  }
+}
+
+export function addPostSetStateHook(fn) {
+  if (typeof fn === 'function' && _postHooks.indexOf(fn) === -1) {
+    _postHooks.push(fn);
   }
 }
 
@@ -61,14 +73,14 @@ export function getState() {
 // ─── setState ─────────────────────────────────────────────────
 // _state を更新する唯一の関数。フック経由で legacy bare `state` も同期する。
 export function setState(newState) {
-  for (var i = 0; i < _setStateHooks.length; i++) {
+  for (var i = 0; i < _preHooks.length; i++) {
     try {
-      if (_setStateHooks[i](newState, _state) === false) return;
+      if (_preHooks[i](newState, _state) === false) return;
     } catch (_) {}
   }
   _state = newState;
-  for (var _i = 0; _i < _setStateHooks.length; _i++) {
-    try { _setStateHooks[_i](newState); } catch(e) { console.warn('ippo: setState hook error', e); }
+  for (var _i = 0; _i < _postHooks.length; _i++) {
+    try { _postHooks[_i](newState); } catch(e) { console.warn('ippo: setState post-hook error', e); }
   }
 }
 
@@ -130,11 +142,11 @@ export function migrateStorageKeys() {
 }
 
 // ─── window 互換（app.html inline script との共存） ──
-window.saveState          = saveState;
-window.loadState          = loadState;
-window.getState           = getState;
-window.setState           = setState;
-window.addSetStateHook    = addSetStateHook;
-window.STATE_KEY          = STATE_KEY;
-window.migrateStorageKeys = migrateStorageKeys;
-window.addSetStateHook    = addSetStateHook;
+window.saveState             = saveState;
+window.loadState             = loadState;
+window.getState              = getState;
+window.setState              = setState;
+window.addSetStateHook       = addSetStateHook;
+window.addPostSetStateHook   = addPostSetStateHook;
+window.STATE_KEY             = STATE_KEY;
+window.migrateStorageKeys    = migrateStorageKeys;

@@ -58,10 +58,11 @@
 ## PHASE 2 — HIGH (データ整合性・UX 破綻)
 
 ### H-1: `setState` フックが pre/post 両フェーズで同一配列を使用
-- [ ] `src/store/state.js` に `_preHooks` / `_postHooks` を分離
+- [x] `src/store/state.js` に `_preHooks` / `_postHooks` を分離
 - pre-hook: ブロック判定（false 返却）用
 - post-hook: 通知用
 - **File:** `src/store/state.js:64–73`
+- **実施内容:** `_setStateHooks` を `_preHooks`（ブロック用）と `_postHooks`（通知用）に分離。`addPostSetStateHook()` を新規 export。`setState` が pre-loop で `_preHooks` を、post-loop で `_postHooks` を使うよう修正。`window.addSetStateHook` の重複代入も同時削除。`window._ippoStateHooks` は `_preHooks` を参照し後方互換を維持。
 
 ### H-2: `cloudRestore` のネットワークエラーを "データなし" と誤認
 - [ ] `src/services/supabase.js` の `cloudRestore()` に `result.error` チェックを追加
@@ -262,12 +263,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 0 | 10 |
+| PHASE 2 — HIGH | 10 | 1 | 9 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **5** | **39** |
+| **合計** | **44** | **6** | **38** |
 
 ---
 
