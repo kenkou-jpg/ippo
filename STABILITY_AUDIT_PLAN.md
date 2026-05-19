@@ -115,10 +115,11 @@
 - **実施内容:** `record-repository.js` の `getRecordDateCandidates` を `export` に変更。`record-upsert.js` でインポートし、`getRecordDate(record) === targetDate` を `getRecordDateCandidates(record).includes(targetDate)` に置換。`record_date`/`recordDate`/`date` 等の全フィールド候補を検索するよう統一。
 
 ### H-10: `ownership-map.js` の wrap が `home-renderer.js` の後発代入で上書きされる
-- [ ] `src/modules/home-renderer.js` の window 代入タイミングを修正
+- [x] `src/modules/home-renderer.js` の window 代入タイミングを修正
 - または ownership-map.js の wrap を home-renderer.js の後に実行されるよう依存順序を確定
 - `window.__raw_*` 系グローバルを整理
 - **File:** `src/modules/home-renderer.js:432–433`, `src/modules/ownership-map.js`
+- **実施内容:** `_wrapRender` に `__ippoOwnershipWrapped = true` フラグを追加し、既ラップ関数の再ラップを防止。`home-renderer.js:432` を `!window.buildHomeWeekRow.__ippoOwnershipWrapped` ガードで保護し、wrap 済みの場合は上書きしない。`home-renderer.js:433`（`__raw_buildHomeWeekRow`）を削除 — `__raw_*` は ownership-map のみが管理する責務に整理。
 
 ---
 
@@ -271,12 +272,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 9 | 1 |
+| PHASE 2 — HIGH | 10 | 10 | 0 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **14** | **30** |
+| **合計** | **44** | **15** | **29** |
 
 ---
 

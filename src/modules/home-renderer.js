@@ -429,8 +429,11 @@ window.updateDate            = updateDate;
 window.updateGreeting        = updateGreeting;
 window.updateHistory         = updateHistory;
 window.updateStats           = updateStats;
-window.buildHomeWeekRow          = buildHomeWeekRow;
-window.__raw_buildHomeWeekRow    = buildHomeWeekRow;
+// ownership-map が wrap 済みの場合は上書きしない（後発代入による wrap 破壊を防ぐ）
+if (!window.buildHomeWeekRow || !window.buildHomeWeekRow.__ippoOwnershipWrapped) {
+  window.buildHomeWeekRow = buildHomeWeekRow;
+}
+// __raw_buildHomeWeekRow は ownership-map._wrapRender が管理するため ここでは設定しない
 window.updateHomeInsightCard = updateHomeInsightCard;
 window.updateHomeNumbers     = updateHomeNumbers;
 window.updateHomeDiseaseAdvice = updateHomeDiseaseAdvice;

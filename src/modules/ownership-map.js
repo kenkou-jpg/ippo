@@ -207,12 +207,17 @@
     function _wrapRender(globalFnName, slotId, owner) {
       var original = window[globalFnName];
       if (typeof original !== 'function') return;
+      // 既にラップ済みなら再ラップしない（home-renderer.js 等の後発代入対策）
+      if (original.__ippoOwnershipWrapped === true) return;
 
-      window[globalFnName] = function () {
+      var wrapped = function () {
         AUTH.request(slotId, owner, original);
       };
+      wrapped.__ippoOwnershipWrapped = true;
 
-      // Keep a reference to the unwrapped original for internal use
+      window[globalFnName] = wrapped;
+      // Keep a reference to the unwrapped original for internal use.
+      // __raw_* は ownership-map のみが管理する。
       window['__raw_' + globalFnName] = original;
     }
 
