@@ -236,8 +236,9 @@
 ## PHASE 5 — Architecture (中長期)
 
 ### A-1: `vite.config.js` の boot-stability パス指定ミスでチャンク配置が意図と異なる
-- [ ] `vite.config.js:87` の `/runtime/boot-stability` を `/modules/boot-stability` に修正
+- [x] `vite.config.js:87` の `/runtime/boot-stability` を `/modules/boot-stability` に修正
 - **File:** `vite.config.js:87`
+- **実施内容:** `runtime-core` ブロックの `id.includes('/runtime/boot-stability')` を削除。実ファイルは `src/modules/boot-stability.js` で、`/modules/boot-stability` は `runtime-guards` ブロック（line 101）に既に正しく記載済み。dead path を除去し意図通りのチャンク配置に修正。
 
 ### A-2: `window.supabase` を `window.*` に露出する必要性の整理
 - [ ] C-5 修正後に、app-legacy.js の `window.supabase` 依存を段階的にモジュール import へ移行計画を立てる
