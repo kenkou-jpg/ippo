@@ -5,7 +5,7 @@
 // 提供: window.ippoRollbackManager
 // ============================================================
 
-import { getState, saveState } from '../store/state.js';
+import { getState } from '../store/state.js';
 
 const SNAPSHOT_LIMIT = 8;
 const _snapshots = [];
@@ -63,7 +63,8 @@ function rollbackTo(snap) {
     window._ippoRollbackBypass = true;
     if (typeof window.setState === 'function') window.setState(restored);
     window._ippoRollbackBypass = false;
-    saveState();
+    // window.saveState を使い、save-transaction-guard のスナップショット/検証を通過させる
+    if (typeof window.saveState === 'function') window.saveState();
     if (typeof window.ippoMarkBootEvent === 'function') {
       window.ippoMarkBootEvent('rollback-applied', {
         label:       snap.label,

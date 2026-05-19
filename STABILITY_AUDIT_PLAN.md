@@ -89,9 +89,10 @@
 - **実施内容:** `setState`, `saveState` を import 追加。`getState()._onboardingDone = true` → `setState(Object.assign({}, getState(), { _onboardingDone: true }))` に置換。`call('saveState')` を直接 `saveState()` 呼び出しに変更。
 
 ### H-6: `save-transaction-guard` が `window.saveState` のみラップ、direct import はバイパス
-- [ ] `src/store/state.js` の `saveState` 自体にトランザクションロジックを組み込む
+- [x] `src/store/state.js` の `saveState` 自体にトランザクションロジックを組み込む
 - または `recovery.js` / `rollback-manager.js` の import を `window.saveState` 経由に統一
 - **File:** `src/runtime/save-transaction-guard.js:19`, `src/services/recovery.js`, `src/runtime/rollback-manager.js`
+- **実施内容:** `rollback-manager.js` から `saveState` の direct import を削除し、`window.saveState()` 呼び出しに統一。`recovery.js` も同様に `saveState` import を削除し `window.saveState()` に変更。ロールバック・IDB 復元時のスナップショット/検証が guard を通過するよう修正。
 
 ### H-7: `premium-service` double-start race → 20 秒後にプレミアム同期停止
 - [ ] `src/modules/premium/premium-service.js` を修正
@@ -267,12 +268,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 5 | 5 |
+| PHASE 2 — HIGH | 10 | 6 | 4 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **10** | **34** |
+| **合計** | **44** | **11** | **33** |
 
 ---
 
