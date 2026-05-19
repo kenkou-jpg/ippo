@@ -149,7 +149,7 @@
         </div>
         <div style="display:flex;align-items:center;gap:10px;">
           <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
-          <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
+          <button onclick="this.disabled=true;Promise.resolve(addMealTime()).finally(function(){this.disabled=false;}.bind(this))" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
         </div>
       </div>
       <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>

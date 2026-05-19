@@ -471,7 +471,7 @@
               onfocus="this.style.borderColor='rgba(107,92,231,0.5)'" onblur="this.style.borderColor='rgba(0,0,0,0.07)'"></textarea>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
               <div style="font-size:10px;color:rgba(44,36,31,0.42);">匿名で投稿されます</div>
-              <button onclick="postCommunityReply()"
+              <button onclick="this.disabled=true;postCommunityReply().finally(function(){this.disabled=false;}.bind(this))"
                 style="background:#2C241F;color:#fff;border:none;border-radius:99px;padding:9px 20px;font-size:12px;font-weight:500;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">投稿する</button>
             </div>
           </div>

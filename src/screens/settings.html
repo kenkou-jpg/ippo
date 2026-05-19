@@ -307,7 +307,7 @@
         </div>
         <div class="set-feedback-hint">ご感想やご要望をお聞かせください（任意）</div>
         <textarea id="fb-comment" placeholder="ご感想やご要望をお聞かせください（任意）" style="width:100%;border:1px solid rgba(42,35,32,0.08);border-radius:16px;padding:12px 16px;font-family:var(--font-body);font-size:13px;color:var(--ink);background:rgba(248,243,239,0.5);resize:none;min-height:80px;outline:none;box-sizing:border-box;margin-bottom:16px;line-height:1.7;"></textarea>
-        <button class="set-feedback-btn fb-submit" onclick="submitFeedback()">♡ フィードバックを送る</button>
+        <button class="set-feedback-btn fb-submit" onclick="this.disabled=true;Promise.resolve(submitFeedback()).finally(function(){this.disabled=false;}.bind(this))">♡ フィードバックを送る</button>
       </div>
     </div>
 
