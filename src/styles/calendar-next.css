@@ -5,8 +5,14 @@
  * ============================================================ */
 
 /* ── スクリーン ── */
-.cn-screen {
-  background: #F9F6F4;
+.cn-screen{
+  background:
+  linear-gradient(
+    180deg,
+    var(--ippo-overlay-calendar),
+    transparent 42%
+  ),
+  var(--ippo-bg-base);
 }
 
 .cn-scroll {
