@@ -200,11 +200,11 @@ export function cloudRestore() {
 
         if (cloudDate > localDate) {
           var safeCloud = Object.assign({}, cloudState);
-          var mergedState = Object.assign(s, safeCloud);
+          var mergedState = Object.assign({}, s, safeCloud);
           mergedState.records   = mergedRecords;
           mergedState.lastSaved = cloudDate.toISOString();
           setState(mergedState);
-          localStorage.setItem(STATE_KEY, JSON.stringify(mergedState));
+          saveState();
           console.log('クラウド復元完了（マージ）: ローカル' + localRecs + '件 + クラウド' + cloudRecs + '件 → ' + mergedCount + '件');
           return true;
         } else if (mergedCount > localRecs) {
