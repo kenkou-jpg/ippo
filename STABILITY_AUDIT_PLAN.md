@@ -241,7 +241,16 @@
 - **実施内容:** `runtime-core` ブロックの `id.includes('/runtime/boot-stability')` を削除。実ファイルは `src/modules/boot-stability.js` で、`/modules/boot-stability` は `runtime-guards` ブロック（line 101）に既に正しく記載済み。dead path を除去し意図通りのチャンク配置に修正。
 
 ### A-2: `window.supabase` を `window.*` に露出する必要性の整理
-- [ ] C-5 修正後に、app-legacy.js の `window.supabase` 依存を段階的にモジュール import へ移行計画を立てる
+- [x] C-5 修正後に、app-legacy.js の `window.supabase` 依存を段階的にモジュール import へ移行計画を立てる
+- **実施内容:** 調査結果をここに記録（コード変更なし）。
+  - **現状:** `src/services/supabase.js:66` と `src/main.js:200` の2箇所で `window.supabase` を公開。
+  - **app-legacy.js の依存:** lines 1213,1290,1448,1470（guard チェック）、line 10778（`var supabaseClient = window.supabase`）
+  - **移行ステップ（将来作業）:**
+    1. app-legacy.js の 1213/1290/1448/1470 を `import { supabase } from '../services/supabase.js'` に変換（app-legacy を ESM 化済みの場合）または supabase.js から直接参照する wrapper 関数を経由
+    2. line 10778 の `window.supabase` を同 wrapper に置換
+    3. `src/record.js:54` の diagnostic 参照を `!!supabase` に変更
+    4. 全置換確認後、`src/main.js:200` と `src/services/supabase.js:66` の `window.supabase` 露出を削除
+  - **removal condition:** app-legacy.js が ESM 化されるか、上記4ステップが完了するまで `window.supabase` を維持
 
 ### A-3: ownership-registry の enforcement をログ警告から throw に格上げ
 - [ ] `src/modules/render-authority.js` の `assertOwnership()` を全 render wrap に組み込む
