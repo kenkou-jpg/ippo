@@ -973,7 +973,8 @@ function _setupPerformanceSafety() {
   document.addEventListener('visibilitychange', function () {
     if (document.hidden) return;
     _idle(function () {
-      _throttledUI();
+      // rAF でレイアウト確定後に getBoundingClientRect/getComputedStyle を呼ぶ（同期 layout flush 回避）
+      requestAnimationFrame(function () { _throttledUI(); });
       _validateSW().then(function (sw) {
         _s.swStatus = sw;
         if (sw.stale) _cacheRecovery.enterSafeMode('stale-sw-on-resume');
