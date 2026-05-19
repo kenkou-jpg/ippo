@@ -102,10 +102,11 @@
 - **実施内容:** `_authReadyBound` を削除し、`{once:true}` リスナーをモジュール初期化時（トップレベル）に移動。`_onAuthReady` に `_authReadyRunning` フラグによる re-entrant guard を追加（finally でリセット）。`startPremiumSync` から `_authReadyBound` ロジックを除去。
 
 ### H-8: Record save ボタン 2000ms 固定再有効化 → double submit
-- [ ] `src/screens/record.html` または save 処理を修正
+- [x] `src/screens/record.html` または save 処理を修正
 - `saveRecordScreen()` が Promise を返すように変更
 - `.finally()` でボタンを再有効化（固定タイマー廃止）
 - **File:** `src/screens/record.html` の save-record-btn onclick
+- **実施内容:** `saveRecordScreen()` を `Promise.resolve(saveRecordScreen()).finally(...)` でラップ。2000ms `setTimeout` を廃止し、保存完了（同期 or 将来の非同期）のタイミングで `.finally()` がボタンを再有効化するよう変更。`getElementById` → closure の `btn` 変数に変更。saveRecord系ロジック（app-legacy.js）は無変更。
 
 ### H-9: `findRecordByDate` dual 実装差異 → 重複レコード INSERT
 - [ ] `src/modules/record-upsert.js` の `findRecordIndexByDate` を修正
@@ -269,12 +270,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 7 | 3 |
+| PHASE 2 — HIGH | 10 | 8 | 2 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **12** | **32** |
+| **合計** | **44** | **13** | **31** |
 
 ---
 
