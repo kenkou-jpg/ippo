@@ -2845,3 +2845,12 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
   z-index: 1000;
 }
+#screen-home{
+  background:
+  linear-gradient(
+    180deg,
+    var(--ippo-overlay-home),
+    transparent 42%
+  ),
+  var(--ippo-bg-base);
+}
