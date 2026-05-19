@@ -95,10 +95,11 @@
 - **実施内容:** `rollback-manager.js` から `saveState` の direct import を削除し、`window.saveState()` 呼び出しに統一。`recovery.js` も同様に `saveState` import を削除し `window.saveState()` に変更。ロールバック・IDB 復元時のスナップショット/検証が guard を通過するよう修正。
 
 ### H-7: `premium-service` double-start race → 20 秒後にプレミアム同期停止
-- [ ] `src/modules/premium/premium-service.js` を修正
+- [x] `src/modules/premium/premium-service.js` を修正
 - `_onAuthReady` 内に re-entrant guard を追加
 - `{once:true}` リスナーの登録を `startPremiumSync` ではなく初期化時の1回のみに変更
 - **File:** `src/modules/premium/premium-service.js:78–99`
+- **実施内容:** `_authReadyBound` を削除し、`{once:true}` リスナーをモジュール初期化時（トップレベル）に移動。`_onAuthReady` に `_authReadyRunning` フラグによる re-entrant guard を追加（finally でリセット）。`startPremiumSync` から `_authReadyBound` ロジックを除去。
 
 ### H-8: Record save ボタン 2000ms 固定再有効化 → double submit
 - [ ] `src/screens/record.html` または save 処理を修正
@@ -268,12 +269,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 6 | 4 |
+| PHASE 2 — HIGH | 10 | 7 | 3 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **11** | **33** |
+| **合計** | **44** | **12** | **32** |
 
 ---
 
