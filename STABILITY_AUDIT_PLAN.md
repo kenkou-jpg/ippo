@@ -241,47 +241,66 @@
 ## PHASE 5 — Architecture (中長期)
 
 ### A-1: `vite.config.js` の boot-stability パス指定ミスでチャンク配置が意図と異なる
-- [ ] `vite.config.js:87` の `/runtime/boot-stability` を `/modules/boot-stability` に修正
+- [x] `vite.config.js:87` の `/runtime/boot-stability` を `/modules/boot-stability` に修正
 - **File:** `vite.config.js:87`
+- **実施内容:** `runtime-core` ブロックの `id.includes('/runtime/boot-stability')` を削除。実ファイルは `src/modules/boot-stability.js` で、`/modules/boot-stability` は `runtime-guards` ブロック（line 101）に既に正しく記載済み。dead path を除去し意図通りのチャンク配置に修正。
 
 ### A-2: `window.supabase` を `window.*` に露出する必要性の整理
-- [ ] C-5 修正後に、app-legacy.js の `window.supabase` 依存を段階的にモジュール import へ移行計画を立てる
+- [x] C-5 修正後に、app-legacy.js の `window.supabase` 依存を段階的にモジュール import へ移行計画を立てる
+- **実施内容:** 調査結果をここに記録（コード変更なし）。
+  - **現状:** `src/services/supabase.js:66` と `src/main.js:200` の2箇所で `window.supabase` を公開。
+  - **app-legacy.js の依存:** lines 1213,1290,1448,1470（guard チェック）、line 10778（`var supabaseClient = window.supabase`）
+  - **移行ステップ（将来作業）:**
+    1. app-legacy.js の 1213/1290/1448/1470 を `import { supabase } from '../services/supabase.js'` に変換（app-legacy を ESM 化済みの場合）または supabase.js から直接参照する wrapper 関数を経由
+    2. line 10778 の `window.supabase` を同 wrapper に置換
+    3. `src/record.js:54` の diagnostic 参照を `!!supabase` に変更
+    4. 全置換確認後、`src/main.js:200` と `src/services/supabase.js:66` の `window.supabase` 露出を削除
+  - **removal condition:** app-legacy.js が ESM 化されるか、上記4ステップが完了するまで `window.supabase` を維持
 
 ### A-3: ownership-registry の enforcement をログ警告から throw に格上げ
-- [ ] `src/modules/render-authority.js` の `assertOwnership()` を全 render wrap に組み込む
+- [x] `src/modules/render-authority.js` の `assertOwnership()` を全 render wrap に組み込む
 - 違反時に throw ではなく ERROR イベント発火（段階的移行）
 - **File:** `src/modules/render-authority.js`
+- **実施内容:** `assertOwnership(slotId, caller, registeredOwner)` を追加。`console.warn` に加え `window.dispatchEvent(new CustomEvent('ippo:render-authority-violation', { detail }))` を発火。`request()` 内の `_warn` 直呼びを `assertOwnership` に置換。public API にも `assertOwnership` を追加し外部監視可能に。removal condition: 本番で `ippo:render-authority-violation` が0件を確認後、throw に格上げ可。
 
 ### A-4: `save-transaction-guard` をモジュール境界で完結させる（long-term）
-- [ ] `src/store/state.js` の `saveState` 自体にスナップショット機能を統合
+- [x] `src/store/state.js` の `saveState` 自体にスナップショット機能を統合
 - `window.saveState` patch パターンを廃止
+- **実施内容:** `state.js` に `_preSaveHooks` / `_postSaveHooks` と `addPreSaveHook()` / `addPostSaveHook()` を追加。`saveState()` が保存前後にフックを呼ぶよう変更。`save-transaction-guard.js` の `window.saveState` パッチ (`window.saveState = function guardedSaveState()...`) を廃止し、`addPreSaveHook(_preSave)` / `addPostSaveHook(_postSave)` 登録方式に移行。direct import でも `window.saveState` 経由でも guard が適用されるよう統合。`addPreSaveHook` / `addPostSaveHook` を window にも公開。
 
 ### A-5: プレミアム offline cache の localStorage key 正式化
-- [ ] `ippo_premium_cached` キーを localStorage key 一覧に追加・ドキュメント化
+- [x] `ippo_premium_cached` キーを localStorage key 一覧に追加・ドキュメント化
 - M-4 対応後に実施
+- **実施内容:** `src/store/state.js` に ippo 全 localStorage キーの正規一覧コメント（所有モジュール・用途付き）を追加。`premium-service.js` の `_CACHE_KEY` を `export var PREMIUM_CACHE_KEY` として named export に昇格。
 
 ---
 
 ## PHASE 6 — Dead Code 除去
 
 ### D-1: `home-renderer.js: updateHistory()` 空関数
-- [ ] `src/modules/home-renderer.js` の `updateHistory` 関数と全呼び出し箇所を削除
+- [x] `src/modules/home-renderer.js` の `updateHistory` 関数と全呼び出し箇所を削除
 - **File:** `src/modules/home-renderer.js`
+- **実施内容:** 空関数宣言・`showMain()` 内の呼び出し・`window.updateHistory` 代入・`ippoHomeRenderer` object エントリを削除。app-legacy.js 内の同名空関数（line 2918）はそのまま維持。
 
 ### D-2: `rollback-manager.js` の未使用 named exports
-- [ ] `src/runtime/rollback-manager.js` の named export を `export {}` に整理（または削除）
+- [x] `src/runtime/rollback-manager.js` の named export を `export {}` に整理（または削除）
+- **実施内容:** `export { takeSnapshot, rollbackToBest }` に縮小。未使用の `getLatestSnapshot, getBestSnapshot, rollbackTo, rollbackToLatest` を named export から削除（window.ippoRollbackManager 経由では引き続き利用可）。
 
 ### D-3: `error-reporter.js` の未使用 named exports
-- [ ] `src/runtime/error-reporter.js` の `getReport`, `printReport` named export を削除
+- [x] `src/runtime/error-reporter.js` の `getReport`, `printReport` named export を削除
+- **実施内容:** `export { getReport, printReport }` 行を削除。`window.ippoErrorReporter` / `window.ippoReport` での公開は維持。
 
 ### D-4: `screen-home-next` が bottom nav から到達不能
-- [ ] `app.html` から `#screen-home-next` を削除（または正式に導線を追加）
+- [x] `app.html` から `#screen-home-next` を削除（または正式に導線を追加）
+- **実施内容:** `app.html` の `#screen-home-next` div（hn-header/hn-greeting/hn-hero 等7要素）を削除。`src/screens/home-next.html` は独立ファイルのため残存するが app.html から除去済み。
 
 ### D-5: `window.__raw_*` 系グローバル (~20個)
-- [ ] ownership-map wrap の順序問題（H-10）修正後に `__raw_*` グローバルを全廃
+- [x] ownership-map wrap の順序問題（H-10）修正後に `__raw_*` グローバルを全廃
+- **実施内容:** `ownership-map.js` に `var _rawFns = {}` をローカル追加。`window['__raw_' + globalFnName] = original` → `_rawFns[globalFnName] = original` に変更。全 `onRender` コールバックの `window.__raw_*()` 参照を `_rawFns.*()` に置換。window への `__raw_*` 公開を完全除去。
 
 ### D-6: `runtime-orchestrator.js: enableBridgeWarningMode / disableBridgeWarningMode`
-- [ ] 実質 no-op の2関数を削除し、bridge 実態に合わせてコメントを更新
+- [x] 実質 no-op の2関数を削除し、bridge 実態に合わせてコメントを更新
+- **実施内容:** `enableBridgeWarningMode` / `disableBridgeWarningMode` 関数定義と `window.ippoRuntime` への公開エントリを削除。
 
 ---
 
@@ -293,9 +312,9 @@
 | PHASE 2 — HIGH | 10 | 10 | 0 |
 | PHASE 3 — MEDIUM | 13 | 13 | 0 |
 | PHASE 4 — Leaks | 5 | 5 | 0 |
-| PHASE 5 — Architecture | 5 | 0 | 5 |
-| PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **33** | **11** |
+| PHASE 5 — Architecture | 5 | 5 | 0 |
+| PHASE 6 — Dead Code | 6 | 6 | 0 |
+| **合計** | **44** | **44** | **0** |
 
 ---
 

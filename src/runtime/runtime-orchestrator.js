@@ -347,17 +347,6 @@ function getBridgeStatus() {
   };
 }
 
-function enableBridgeWarningMode() {
-  // bridge 除去済みのため no-op（後方互換のみ）
-  console.info('[ippo] bridge warning mode: bridges already removed.');
-}
-
-function disableBridgeWarningMode() {
-  // no-op
-  if (typeof window.ippoMarkBootEvent === 'function') {
-    window.ippoMarkBootEvent('bridge-warning-mode:disabled');
-  }
-}
 
 // ─── Public API ───────────────────────────────────────────
 window.ippoRuntime = {
@@ -381,10 +370,6 @@ window.ippoRuntime = {
 
   // Phase 8: Bridge removal readiness check
   getBridgeStatus:         getBridgeStatus,
-
-  // Phase 9: Bridge warning mode
-  enableBridgeWarningMode:  enableBridgeWarningMode,
-  disableBridgeWarningMode: disableBridgeWarningMode,
 
   // Constants
   SAFETY_LEVEL: SAFETY_LEVEL,

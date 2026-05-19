@@ -10,7 +10,8 @@ var SYNC_INTERVAL_MS    = 5 * 60 * 1000; // 5分ごとに再取得
 var AUTH_WAIT_TIMEOUT_MS = 20000;
 
 // ─── Internal memory state ────────────────────────────────
-var _CACHE_KEY          = 'ippo_premium_cached';
+export var PREMIUM_CACHE_KEY = 'ippo_premium_cached'; // A-5: 正式化 — state.js の localStorage key 一覧に記載済み
+var _CACHE_KEY          = PREMIUM_CACHE_KEY;
 // オフライン再起動時の fallback: localStorage から初期値を読む
 var _isPremiumValue     = (function() {
   try { return localStorage.getItem(_CACHE_KEY) === 'true'; } catch(_) { return false; }

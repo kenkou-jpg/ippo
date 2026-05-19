@@ -129,4 +129,3 @@ if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('error-reporter-loaded');
 }
 
-export { getReport, printReport };

@@ -83,7 +83,6 @@ export default defineConfig({
           if (id.includes('/runtime/runtime-brain') ||
               id.includes('/runtime/startup-render-gate') ||
               id.includes('/runtime/health-monitor') ||
-              id.includes('/runtime/boot-stability') ||
               id.includes('/store/')) {
             return 'runtime-core';
           }
