@@ -264,8 +264,9 @@
 - **実施内容:** `state.js` に `_preSaveHooks` / `_postSaveHooks` と `addPreSaveHook()` / `addPostSaveHook()` を追加。`saveState()` が保存前後にフックを呼ぶよう変更。`save-transaction-guard.js` の `window.saveState` パッチ (`window.saveState = function guardedSaveState()...`) を廃止し、`addPreSaveHook(_preSave)` / `addPostSaveHook(_postSave)` 登録方式に移行。direct import でも `window.saveState` 経由でも guard が適用されるよう統合。`addPreSaveHook` / `addPostSaveHook` を window にも公開。
 
 ### A-5: プレミアム offline cache の localStorage key 正式化
-- [ ] `ippo_premium_cached` キーを localStorage key 一覧に追加・ドキュメント化
+- [x] `ippo_premium_cached` キーを localStorage key 一覧に追加・ドキュメント化
 - M-4 対応後に実施
+- **実施内容:** `src/store/state.js` に ippo 全 localStorage キーの正規一覧コメント（所有モジュール・用途付き）を追加。`premium-service.js` の `_CACHE_KEY` を `export var PREMIUM_CACHE_KEY` として named export に昇格。
 
 ---
 
@@ -300,9 +301,9 @@
 | PHASE 2 — HIGH | 10 | 10 | 0 |
 | PHASE 3 — MEDIUM | 13 | 13 | 0 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
-| PHASE 5 — Architecture | 5 | 0 | 5 |
+| PHASE 5 — Architecture | 5 | 5 | 0 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **28** | **16** |
+| **合計** | **44** | **33** | **11** |
 
 ---
 

@@ -13,6 +13,40 @@
 
 export const STATE_KEY = 'ippo_state';
 
+// ─── localStorage key 一覧 ────────────────────────────────────
+// ippo が使用する全 localStorage キーの正規リスト。
+// キー追加時はここに追記し、所有モジュールを明記する。
+//
+// Key                       Owner / Purpose
+// ------------------------- -----------------------------------------------
+// ippo_state                state.js — メイン state JSON
+// kk_records                (legacy) → migrateStorageKeys() で ippo_state へ移行
+// records                   (legacy) → 同上
+// ippo_idb_migrated         storage-migration.js — IDB 移行完了フラグ
+// ippo_premium_cached       premium-service.js  — プレミアム状態オフライン cache
+//                           (M-4 で追加; A-5 で正式化)
+// ippo_draft                record.js — 記録入力途中の下書き
+// ippo_meal_draft           record.js — 食事時刻入力の下書き
+// ippo_last_record_count    record-freshness-guard.js — 記録件数監視
+// ippo_device_id            supabase.js — デバイス識別子
+// ippo_sb_user_id           supabase.js — Supabase ユーザー ID cache
+// ippo_sb_token             supabase.js — Supabase セッショントークン
+// ippo_sb_refresh           supabase.js — Supabase リフレッシュトークン
+// ippo_records_synced       supabase.js — クラウド同期済みフラグ
+// ippo_onboarding_completed onboarding-runtime.js — オンボーディング完了フラグ
+// ippo_recent_symptoms      record-edit / symptom モジュール — 最近の症状
+// ippo_rec_details_open     record-edit UI — 詳細セクション開閉状態
+// ippo_theme                settings — テーマ設定
+// ippo_hide_add_home        home — ホームの「追加」バナー非表示フラグ
+// ippo_upsell_ts            premium UI — アップセル表示タイムスタンプ
+// ippo_debug_overlay        production-diagnostics — デバッグオーバーレイ表示フラグ
+// ippo_debug_record         production-diagnostics — デバッグ記録フラグ
+// ippo_diagnostics_overlay  production-diagnostics — 診断オーバーレイ
+// ippo_manifest_version     service worker — マニフェストバージョン
+// ippo_premium_registered   premium-service — プレミアム登録フラグ
+// onboardingCompleted       (legacy) — 旧オンボーディング完了フラグ
+// sakura                    (legacy) — 旧設定キー
+
 // ─── デフォルト初期値 ─────────────────────────────────────────
 export const INITIAL_STATE = Object.freeze({
   name:            '',
