@@ -83,9 +83,10 @@
 - **実施内容:** `setState` を import 追加。`s.records = merge(...)` を `var mergedRecords = merge(...)` + `setState(Object.assign({}, getState(), { records: mergedRecords }))` に置換。state-integrity-guard と pre-hook が復元時にも機能するよう修正。
 
 ### H-5: `onboarding-runtime.js` が `_onboardingDone` を直接ミューテーション
-- [ ] `src/modules/onboarding-runtime.js:26` を修正
+- [x] `src/modules/onboarding-runtime.js:26` を修正
 - `getState()._onboardingDone = true` → `setState({ ...getState(), _onboardingDone: true })`
 - **File:** `src/modules/onboarding-runtime.js:26`
+- **実施内容:** `setState`, `saveState` を import 追加。`getState()._onboardingDone = true` → `setState(Object.assign({}, getState(), { _onboardingDone: true }))` に置換。`call('saveState')` を直接 `saveState()` 呼び出しに変更。
 
 ### H-6: `save-transaction-guard` が `window.saveState` のみラップ、direct import はバイパス
 - [ ] `src/store/state.js` の `saveState` 自体にトランザクションロジックを組み込む
@@ -266,12 +267,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 4 | 6 |
+| PHASE 2 — HIGH | 10 | 5 | 5 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **9** | **35** |
+| **合計** | **44** | **10** | **34** |
 
 ---
 

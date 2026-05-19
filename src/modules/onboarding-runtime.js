@@ -16,15 +16,15 @@
 
 import { shouldShowMain } from './welcome-runtime.js';
 import { showScreen } from './screen-router.js';
-import { getState } from '../store/state.js';
+import { getState, setState, saveState } from '../store/state.js';
 
 function call(name) {
   if (typeof window[name] === 'function') window[name]();
 }
 
 export function completeOnboarding() {
-  getState()._onboardingDone = true;
-  call('saveState');
+  setState(Object.assign({}, getState(), { _onboardingDone: true }));
+  saveState();
   finishOnboarding();
 }
 
