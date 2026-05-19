@@ -71,9 +71,10 @@
 - **実施内容:** `.then(result)` 先頭に `result.error` チェックを追加。`PGRST116`（行なし = 正常）とその他エラー（ネットワーク障害等）を分岐して別メッセージでログ出力。両ケースとも `false` を返しローカルデータを保護。
 
 ### H-3: `visibilitychange` で cloudRestore 後に `setState` 二重呼び出し
-- [ ] `src/services/supabase.js` の visibilitychange handler を修正
+- [x] `src/services/supabase.js` の visibilitychange handler を修正
 - `cloudRestore()` が setState 済みの場合は handler 側の setState をスキップ
 - **File:** `src/services/supabase.js:286–304`
+- **実施内容:** `restored === true` 後に `localStorage` から再読して `setState()` していた2行を削除。代わりに `getState()` で cloudRestore が確定させた正本を参照。setState の二重呼び出しと、state-integrity-guard の二重発火を排除。
 
 ### H-4: `recovery.js` が `setState` を呼ばずに `s.records` を直接ミューテーション
 - [ ] `src/services/recovery.js:32–36` を修正
@@ -264,12 +265,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 2 | 8 |
+| PHASE 2 — HIGH | 10 | 3 | 7 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **7** | **37** |
+| **合計** | **44** | **8** | **36** |
 
 ---
 
