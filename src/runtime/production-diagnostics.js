@@ -1089,19 +1089,25 @@ function _installRuntimeListeners() {
     _recordTelemetry('module-failed', 'module', { module: mod });
   });
 
-  // JS errors → replay + telemetry (no content, only type/location)
-  window.addEventListener('error', function (e) {
-    var file = _safeGet(function () { return e.filename.split('/').slice(-2).join('/'); }, 'unknown');
-    _s.replayActions.push({ type: 'js-error', message: (e.message || '').slice(0, 120), file: file });
-    _recordTelemetry('js-error', 'runtime', { detail: (e.message || '').slice(0, 80) });
-    _classifyDeviceCrash(e);
-  });
-
-  window.addEventListener('unhandledrejection', function (e) {
-    var msg = String((e.reason && e.reason.message) || e.reason || '').slice(0, 120);
-    _s.replayActions.push({ type: 'unhandled-rejection', message: msg });
-    _recordTelemetry('unhandled-rejection', 'runtime', { detail: msg.slice(0, 80) });
-  });
+  // EL-1: boot-stability の診断バス経由でエラーを受信（重複リスナー廃止）
+  // removal condition: boot-stability.js の __ippoDiagBus が廃止されたら
+  //   window.addEventListener を直接使う形に戻す。
+  if (window.__ippoDiagBus && typeof window.__ippoDiagBus.subscribe === 'function') {
+    window.__ippoDiagBus.subscribe(function (type, detail) {
+      if (type === 'window-error') {
+        var file = detail.filename
+          ? String(detail.filename).split('/').slice(-2).join('/')
+          : 'unknown';
+        _s.replayActions.push({ type: 'js-error', message: (detail.message || '').slice(0, 120), file: file });
+        _recordTelemetry('js-error', 'runtime', { detail: (detail.message || '').slice(0, 80) });
+        _classifyDeviceCrash(detail); // _classifyDeviceCrash は _s.deviceInfo のみ参照
+      } else if (type === 'unhandled-rejection') {
+        var msg = String(detail.reason || '').slice(0, 120);
+        _s.replayActions.push({ type: 'unhandled-rejection', message: msg });
+        _recordTelemetry('unhandled-rejection', 'runtime', { detail: msg.slice(0, 80) });
+      }
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════

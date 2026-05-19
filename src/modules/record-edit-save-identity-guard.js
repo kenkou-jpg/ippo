@@ -354,6 +354,11 @@ const timer = setInterval(function() {
   install();
   if (attempts >= 40) clearInterval(timer);
 }, 250);
+// EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+if (window.ippoTimerRegistry) {
+  window.ippoTimerRegistry.register(timer, 'record-edit-save-identity-guard', 'interval',
+    'install-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+}
 
 window.ippoEditSaveIdentityGuardSummary = function() {
   const editDate = getActiveEditDate();

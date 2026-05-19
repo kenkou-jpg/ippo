@@ -69,22 +69,29 @@ function getHealth() {
   };
 }
 
-// グローバルエラーをキャプチャ（boot-stability と重複するが category 付きで記録）
-window.addEventListener('error', function (ev) {
-  logError('window-error', {
-    message:  ev.message  || null,
-    filename: ev.filename || null,
-    lineno:   ev.lineno   || null,
-  });
-}, true);
-
-window.addEventListener('unhandledrejection', function (ev) {
-  logError('unhandled-rejection', {
-    reason: ev.reason && ev.reason.message
-      ? ev.reason.message
-      : String(ev.reason || ''),
-  });
-});
+// EL-1: boot-stability の診断バス経由でエラーを受信（重複リスナー廃止）
+// boot-stability.js が window.error / unhandledrejection の単一オーナー。
+// removal condition: boot-stability.js の __ippoDiagBus が廃止されたら
+//   window.addEventListener を直接使う形に戻す。
+(function () {
+  function _subscribe() {
+    if (window.__ippoDiagBus && typeof window.__ippoDiagBus.subscribe === 'function') {
+      window.__ippoDiagBus.subscribe(function (type, detail) {
+        logError(type, detail);
+      });
+      return true;
+    }
+    return false;
+  }
+  if (!_subscribe()) {
+    // バスが未初期化の場合（ロード順の異常）: 遅延サブスクライブ
+    var _busRetry = 0;
+    var _busTimer = setInterval(function () {
+      _busRetry++;
+      if (_subscribe() || _busRetry >= 20) clearInterval(_busTimer);
+    }, 100);
+  }
+})();
 
 window.ippoHealthMonitor = {
   logError:   logError,

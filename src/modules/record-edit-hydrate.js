@@ -472,6 +472,11 @@ const timer = window.setInterval(function() {
   install();
   if (attempts >= 40) window.clearInterval(timer);
 }, 250);
+// EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+if (window.ippoTimerRegistry) {
+  window.ippoTimerRegistry.register(timer, 'record-edit-hydrate', 'interval',
+    'install-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+}
 
 window.hydrateRecordForm = hydrateRecordForm;
 window.ippoMarkRecordEditIntent = markEditIntent;
