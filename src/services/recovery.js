@@ -8,7 +8,7 @@
 //  残るため移行期間中は window.* 経由で委譲する。
 // ============================================================
 
-import { saveState, getState } from '../store/state.js';
+import { getState, setState } from '../store/state.js';
 
 export function autoRecoveryCheck() {
   var s = getState() || {};
@@ -29,11 +29,14 @@ export function autoRecoveryCheck() {
         var merge = typeof window.mergeRecords === 'function'
           ? window.mergeRecords
           : function (a, b) { return a.concat(b); };
-        s.records = merge(s.records, activeRecs);
-        saveState();
-        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, s.records.length);
-        console.log('IndexedDBから自動復元: ' + s.records.length + '件');
-        localStorage.setItem('ippo_last_record_count', String(s.records.length));
+        var mergedRecords = merge(s.records, activeRecs);
+        setState(Object.assign({}, getState(), { records: mergedRecords }));
+        // window.saveState を使い、save-transaction-guard のスナップショット/検証を通過させる
+        if (typeof window.saveState === 'function') window.saveState();
+        var mergedCount = mergedRecords.length;
+        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, mergedCount);
+        console.log('IndexedDBから自動復元: ' + mergedCount + '件');
+        localStorage.setItem('ippo_last_record_count', String(mergedCount));
         return true;
       }
 

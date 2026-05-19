@@ -11,6 +11,7 @@
 import {
   getRecordDate,
   normalizeRecordDate,
+  getRecordDateCandidates,
 } from './record-repository.js';
 
 export function isEmptyRecordValue(value) {
@@ -33,7 +34,7 @@ export function findRecordIndexByDate(records, date) {
   if (!targetDate || !Array.isArray(records)) return -1;
 
   return records.findIndex(function(record) {
-    return getRecordDate(record) === targetDate;
+    return getRecordDateCandidates(record).includes(targetDate);
   });
 }
 

@@ -306,7 +306,7 @@
   <div class="section-card" id="disease-questions" style="display:none;margin:0 20px 16px;"></div>
 
   <div style="padding:0 24px 40px;">
-    <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
+    <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;var btn=this;btn.disabled=true;btn.textContent='保存中...';Promise.resolve(saveRecordScreen()).finally(function(){btn.disabled=false;btn.textContent='この内容で記録する';});" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
     <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
     <div id="draft-indicator" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>
   </div>

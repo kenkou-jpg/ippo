@@ -58,58 +58,68 @@
 ## PHASE 2 — HIGH (データ整合性・UX 破綻)
 
 ### H-1: `setState` フックが pre/post 両フェーズで同一配列を使用
-- [ ] `src/store/state.js` に `_preHooks` / `_postHooks` を分離
+- [x] `src/store/state.js` に `_preHooks` / `_postHooks` を分離
 - pre-hook: ブロック判定（false 返却）用
 - post-hook: 通知用
 - **File:** `src/store/state.js:64–73`
+- **実施内容:** `_setStateHooks` を `_preHooks`（ブロック用）と `_postHooks`（通知用）に分離。`addPostSetStateHook()` を新規 export。`setState` が pre-loop で `_preHooks` を、post-loop で `_postHooks` を使うよう修正。`window.addSetStateHook` の重複代入も同時削除。`window._ippoStateHooks` は `_preHooks` を参照し後方互換を維持。
 
 ### H-2: `cloudRestore` のネットワークエラーを "データなし" と誤認
-- [ ] `src/services/supabase.js` の `cloudRestore()` に `result.error` チェックを追加
+- [x] `src/services/supabase.js` の `cloudRestore()` に `result.error` チェックを追加
 - エラー種別（PGRST116 = no rows vs それ以外）を区別してログ出力
 - **File:** `src/services/supabase.js:173`
+- **実施内容:** `.then(result)` 先頭に `result.error` チェックを追加。`PGRST116`（行なし = 正常）とその他エラー（ネットワーク障害等）を分岐して別メッセージでログ出力。両ケースとも `false` を返しローカルデータを保護。
 
 ### H-3: `visibilitychange` で cloudRestore 後に `setState` 二重呼び出し
-- [ ] `src/services/supabase.js` の visibilitychange handler を修正
+- [x] `src/services/supabase.js` の visibilitychange handler を修正
 - `cloudRestore()` が setState 済みの場合は handler 側の setState をスキップ
 - **File:** `src/services/supabase.js:286–304`
+- **実施内容:** `restored === true` 後に `localStorage` から再読して `setState()` していた2行を削除。代わりに `getState()` で cloudRestore が確定させた正本を参照。setState の二重呼び出しと、state-integrity-guard の二重発火を排除。
 
 ### H-4: `recovery.js` が `setState` を呼ばずに `s.records` を直接ミューテーション
-- [ ] `src/services/recovery.js:32–36` を修正
+- [x] `src/services/recovery.js:32–36` を修正
 - `s.records = merge(...)` → `setState({ ...getState(), records: merge(...) }); saveState();`
 - **File:** `src/services/recovery.js:32–36`
+- **実施内容:** `setState` を import 追加。`s.records = merge(...)` を `var mergedRecords = merge(...)` + `setState(Object.assign({}, getState(), { records: mergedRecords }))` に置換。state-integrity-guard と pre-hook が復元時にも機能するよう修正。
 
 ### H-5: `onboarding-runtime.js` が `_onboardingDone` を直接ミューテーション
-- [ ] `src/modules/onboarding-runtime.js:26` を修正
+- [x] `src/modules/onboarding-runtime.js:26` を修正
 - `getState()._onboardingDone = true` → `setState({ ...getState(), _onboardingDone: true })`
 - **File:** `src/modules/onboarding-runtime.js:26`
+- **実施内容:** `setState`, `saveState` を import 追加。`getState()._onboardingDone = true` → `setState(Object.assign({}, getState(), { _onboardingDone: true }))` に置換。`call('saveState')` を直接 `saveState()` 呼び出しに変更。
 
 ### H-6: `save-transaction-guard` が `window.saveState` のみラップ、direct import はバイパス
-- [ ] `src/store/state.js` の `saveState` 自体にトランザクションロジックを組み込む
+- [x] `src/store/state.js` の `saveState` 自体にトランザクションロジックを組み込む
 - または `recovery.js` / `rollback-manager.js` の import を `window.saveState` 経由に統一
 - **File:** `src/runtime/save-transaction-guard.js:19`, `src/services/recovery.js`, `src/runtime/rollback-manager.js`
+- **実施内容:** `rollback-manager.js` から `saveState` の direct import を削除し、`window.saveState()` 呼び出しに統一。`recovery.js` も同様に `saveState` import を削除し `window.saveState()` に変更。ロールバック・IDB 復元時のスナップショット/検証が guard を通過するよう修正。
 
 ### H-7: `premium-service` double-start race → 20 秒後にプレミアム同期停止
-- [ ] `src/modules/premium/premium-service.js` を修正
+- [x] `src/modules/premium/premium-service.js` を修正
 - `_onAuthReady` 内に re-entrant guard を追加
 - `{once:true}` リスナーの登録を `startPremiumSync` ではなく初期化時の1回のみに変更
 - **File:** `src/modules/premium/premium-service.js:78–99`
+- **実施内容:** `_authReadyBound` を削除し、`{once:true}` リスナーをモジュール初期化時（トップレベル）に移動。`_onAuthReady` に `_authReadyRunning` フラグによる re-entrant guard を追加（finally でリセット）。`startPremiumSync` から `_authReadyBound` ロジックを除去。
 
 ### H-8: Record save ボタン 2000ms 固定再有効化 → double submit
-- [ ] `src/screens/record.html` または save 処理を修正
+- [x] `src/screens/record.html` または save 処理を修正
 - `saveRecordScreen()` が Promise を返すように変更
 - `.finally()` でボタンを再有効化（固定タイマー廃止）
 - **File:** `src/screens/record.html` の save-record-btn onclick
+- **実施内容:** `saveRecordScreen()` を `Promise.resolve(saveRecordScreen()).finally(...)` でラップ。2000ms `setTimeout` を廃止し、保存完了（同期 or 将来の非同期）のタイミングで `.finally()` がボタンを再有効化するよう変更。`getElementById` → closure の `btn` 変数に変更。saveRecord系ロジック（app-legacy.js）は無変更。
 
 ### H-9: `findRecordByDate` dual 実装差異 → 重複レコード INSERT
-- [ ] `src/modules/record-upsert.js` の `findRecordIndexByDate` を修正
+- [x] `src/modules/record-upsert.js` の `findRecordIndexByDate` を修正
 - strict `===` → `getRecordDateCandidates()` ベースの multi-candidate 検索に統一
 - **File:** `src/modules/record-upsert.js:35`
+- **実施内容:** `record-repository.js` の `getRecordDateCandidates` を `export` に変更。`record-upsert.js` でインポートし、`getRecordDate(record) === targetDate` を `getRecordDateCandidates(record).includes(targetDate)` に置換。`record_date`/`recordDate`/`date` 等の全フィールド候補を検索するよう統一。
 
 ### H-10: `ownership-map.js` の wrap が `home-renderer.js` の後発代入で上書きされる
-- [ ] `src/modules/home-renderer.js` の window 代入タイミングを修正
+- [x] `src/modules/home-renderer.js` の window 代入タイミングを修正
 - または ownership-map.js の wrap を home-renderer.js の後に実行されるよう依存順序を確定
 - `window.__raw_*` 系グローバルを整理
 - **File:** `src/modules/home-renderer.js:432–433`, `src/modules/ownership-map.js`
+- **実施内容:** `_wrapRender` に `__ippoOwnershipWrapped = true` フラグを追加し、既ラップ関数の再ラップを防止。`home-renderer.js:432` を `!window.buildHomeWeekRow.__ippoOwnershipWrapped` ガードで保護し、wrap 済みの場合は上書きしない。`home-renderer.js:433`（`__raw_buildHomeWeekRow`）を削除 — `__raw_*` は ownership-map のみが管理する責務に整理。
 
 ---
 
@@ -262,12 +272,12 @@
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
-| PHASE 2 — HIGH | 10 | 0 | 10 |
+| PHASE 2 — HIGH | 10 | 10 | 0 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **5** | **39** |
+| **合計** | **44** | **15** | **29** |
 
 ---
 

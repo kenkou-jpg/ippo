@@ -177,6 +177,15 @@ export function cloudRestore() {
     var userId = session.user.id;
     return supabase.from('user_data').select('state,updated_at').eq('user_id', userId).single()
       .then(function (result) {
+        if (result.error) {
+          if (result.error.code === 'PGRST116') {
+            // 行なし = クラウドに未保存（正常ケース）
+            console.log('cloudRestore: クラウドにデータなし（初回ユーザー）');
+          } else {
+            console.warn('cloudRestore: クラウド取得エラー', result.error.code, result.error.message);
+          }
+          return false;
+        }
         if (!result.data) return false;
         var cloudState = result.data.state;
         if (!cloudState || typeof cloudState !== 'object') {
@@ -289,8 +298,9 @@ document.addEventListener('visibilitychange', function () {
 
   cloudRestore().then(function (restored) {
     if (!restored) return;
-    var newState = JSON.parse(localStorage.getItem(STATE_KEY));
-    setState(newState);
+    // cloudRestore() が setState() + saveState() 済みのため再呼び出し不要。
+    // getState() で確定済みの正本を参照する。
+    var s = getState();
     if (typeof window.updateStats              === 'function') window.updateStats();
     if (typeof window.updateHistory            === 'function') window.updateHistory();
     if (typeof window.buildCalendar            === 'function') window.buildCalendar();
@@ -299,7 +309,6 @@ document.addEventListener('visibilitychange', function () {
     if (typeof window.reorderRecordSections    === 'function') window.reorderRecordSections();
     if (typeof window.updateFastingWidgetPhase === 'function') window.updateFastingWidgetPhase();
 
-    var s = newState;
     if (s && s.fastingActive && s.fastingStart && (Date.now() - s.fastingStart < 24 * 3600000)) {
       if (typeof window.resumeFasting === 'function') window.resumeFasting();
     } else if (s && s.fastingActive) {

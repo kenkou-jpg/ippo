@@ -15,7 +15,7 @@ var _premiumExpiresAt   = null;
 var _syncInterval       = null;
 var _syncActive         = false;
 var _timeoutHandle      = null;
-var _authReadyBound     = false;
+var _authReadyRunning   = false; // re-entrant guard for _onAuthReady
 
 // ─── DB から is_premium を取得 ────────────────────────────
 async function _fetchPremiumFromDB() {
@@ -59,18 +59,25 @@ export async function refreshPremiumStatus() {
 
 // ─── onAuthReady handler ─────────────────────────────────
 async function _onAuthReady() {
-  stopPremiumSync();
+  // re-entrant guard: 非同期 await 中に再発火しても無視
+  if (_authReadyRunning) return;
+  _authReadyRunning = true;
+  try {
+    stopPremiumSync();
 
-  await _fetchPremiumFromDB();
+    await _fetchPremiumFromDB();
 
-  // 5分ごとに定期同期
-  _syncInterval = setInterval(_fetchPremiumFromDB, SYNC_INTERVAL_MS);
-  _syncActive   = true;
+    // 5分ごとに定期同期
+    _syncInterval = setInterval(_fetchPremiumFromDB, SYNC_INTERVAL_MS);
+    _syncActive   = true;
 
-  if (typeof window.ippoMarkBootEvent === 'function') {
-    window.ippoMarkBootEvent('premium-service:auth-ready-triggered', {
-      isPremium: _isPremiumValue,
-    });
+    if (typeof window.ippoMarkBootEvent === 'function') {
+      window.ippoMarkBootEvent('premium-service:auth-ready-triggered', {
+        isPremium: _isPremiumValue,
+      });
+    }
+  } finally {
+    _authReadyRunning = false;
   }
 }
 
@@ -78,11 +85,6 @@ async function _onAuthReady() {
 export function startPremiumSync() {
   if (_syncActive) return;
   _syncActive = true;
-
-  if (!_authReadyBound) {
-    _authReadyBound = true;
-    window.addEventListener('ippo:auth-ready', _onAuthReady, { once: true });
-  }
 
   _timeoutHandle = setTimeout(function () {
     if (!_syncInterval) {
@@ -97,6 +99,11 @@ export function startPremiumSync() {
     window.ippoMarkBootEvent('premium-service:started');
   }
 }
+
+// ─── ippo:auth-ready リスナーをモジュール初期化時に登録 ──────
+// startPremiumSync() より先に auth-ready が発火しても取りこぼさないよう、
+// モジュールロード時点で once リスナーを設定する。
+window.addEventListener('ippo:auth-ready', _onAuthReady, { once: true });
 
 // ─── Public: stopPremiumSync ─────────────────────────────
 export function stopPremiumSync() {
