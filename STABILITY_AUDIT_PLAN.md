@@ -32,11 +32,12 @@
 - **実施内容:** line 203: `Object.assign(s, safeCloud)` → `Object.assign({}, s, safeCloud)` でコピー生成。line 207: `localStorage.setItem(...)` → `saveState()` に置換。C-1 も audit branch に適用（state.js:81 `getState()` → `Object.assign({}, getState())`）。
 
 ### C-3: `cloudBackupAll` UPDATE の `error` 未チェックで INSERT フォールスルー
-- [ ] `src/services/supabase.js` の `cloudBackupAll()` を修正
+- [x] `src/services/supabase.js` の `cloudBackupAll()` を修正
 - `result.error` を明示チェック
 - `_cloudBackupLock` のリセットを `.finally()` に移動
 - **Why:** DB エラー時に重複 INSERT → unique constraint 違反。lock 永続化リスク
 - **File:** `src/services/supabase.js:128–153`
+- **実施内容:** UPDATE `.then()` 先頭に `result.error` チェックを追加し early return。`.then()`/`.catch()` 両方に散在していた `_cloudBackupLock = false` と `hideSyncIndicator` を `.finally()` に集約。
 
 ### C-4: `#dmClose` が動的インジェクト後に click ハンドラ未バインド（モーダル閉じられない）
 - [ ] `src/screens/calendar.html` から `#dmOverlay` / `#dmClose` を削除（app.html 側のみ残す）
@@ -258,13 +259,13 @@
 
 | Phase | 総数 | 完了 | 残り |
 |-------|------|------|------|
-| PHASE 1 — CRITICAL | 5 | 2 | 3 |
+| PHASE 1 — CRITICAL | 5 | 3 | 2 |
 | PHASE 2 — HIGH | 10 | 0 | 10 |
 | PHASE 3 — MEDIUM | 13 | 0 | 13 |
 | PHASE 4 — Leaks | 5 | 0 | 5 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **2** | **42** |
+| **合計** | **44** | **3** | **41** |
 
 ---
 
