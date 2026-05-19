@@ -430,7 +430,12 @@ function installEditClickCapture() {
     const target = event.target && event.target.closest ? event.target.closest('button, a, [role="button"], [onclick], [data-date], [data-record-date]') : null;
     if (!target) return;
 
-    const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + (target.getAttribute('onclick') || '') + ' ' + (target.className || ''));
+    // chip タップで scheduleHydration が誤発火しないよう除外
+    if (target.closest('.rs-chip')) return;
+    const onclickAttr = target.getAttribute('onclick') || '';
+    if (onclickAttr.includes('toggleRsChip')) return;
+
+    const label = String((target.textContent || '') + ' ' + (target.getAttribute('aria-label') || '') + ' ' + onclickAttr + ' ' + (target.className || ''));
     if (!/(編集|editRecord|openRecordEditor|edit|record)/i.test(label)) return;
 
     const date = normalizeRecordDate(target.getAttribute('data-date')) ||
