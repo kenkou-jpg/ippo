@@ -206,13 +206,6 @@ function _applyModeEffects(mode, reason) {
     _audit('recovery_mode_applied', reason, null);
   }
 
-  if (mode === CTRL_MODE.SAFE_CLOUD) {
-    // Cloud sync disabled; local state preserved; renders continue but no cloud writes
-    _notifyHooks('pause_cloud_sync', { reason: reason });
-    _degradedSystems['cloud'] = { mode: 'paused', since: _now() };
-    _audit('safe_cloud_applied', reason, { degraded: ['cloud'] });
-  }
-
   if (mode === CTRL_MODE.NORMAL) {
     // Restore systems that were degraded by previous mode (not explicit isolations)
     _degradedSystems = {};

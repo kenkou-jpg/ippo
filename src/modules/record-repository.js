@@ -77,7 +77,10 @@ export function normalizeRecordDate(value) {
 
   const jpNoYear = text.match(/(\d{1,2})月\s*(\d{1,2})日/);
   if (jpNoYear) {
-    const year = new Date().getFullYear();
+    const now   = new Date();
+    const month = parseInt(jpNoYear[1], 10);
+    // 年またぎ補正: 現在月より大きい月は前年と判定
+    const year  = month > now.getMonth() + 1 ? now.getFullYear() - 1 : now.getFullYear();
     return [year, jpNoYear[1].padStart(2, '0'), jpNoYear[2].padStart(2, '0')].join('-');
   }
 

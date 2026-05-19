@@ -40,8 +40,14 @@ export function autoRecoveryCheck() {
         return true;
       }
 
+      var _CLOUD_TIMEOUT_MS = 15000;
       var cloudRestore = typeof window.manualCloudRestore === 'function'
-        ? window.manualCloudRestore()
+        ? Promise.race([
+            window.manualCloudRestore(),
+            new Promise(function(_, reject) {
+              setTimeout(function() { reject(new Error('cloud restore timeout')); }, _CLOUD_TIMEOUT_MS);
+            })
+          ])
         : Promise.resolve();
 
       return cloudRestore.then(function () {

@@ -10,7 +10,11 @@ var SYNC_INTERVAL_MS    = 5 * 60 * 1000; // 5分ごとに再取得
 var AUTH_WAIT_TIMEOUT_MS = 20000;
 
 // ─── Internal memory state ────────────────────────────────
-var _isPremiumValue     = false;
+var _CACHE_KEY          = 'ippo_premium_cached';
+// オフライン再起動時の fallback: localStorage から初期値を読む
+var _isPremiumValue     = (function() {
+  try { return localStorage.getItem(_CACHE_KEY) === 'true'; } catch(_) { return false; }
+})();
 var _premiumExpiresAt   = null;
 var _syncInterval       = null;
 var _syncActive         = false;
@@ -34,6 +38,10 @@ async function _fetchPremiumFromDB() {
       .single();
 
     if (error || !data) {
+      // DB エラー時はセキュリティ優先で false にリセット（キャッシュも更新）
+      _isPremiumValue   = false;
+      _premiumExpiresAt = null;
+      try { localStorage.setItem(_CACHE_KEY, 'false'); } catch(_) {}
       console.warn('[premium-service] profiles fetch error', error);
       return;
     }
@@ -42,6 +50,7 @@ async function _fetchPremiumFromDB() {
     var expired = data.premium_expires_at && new Date(data.premium_expires_at) < now;
     _isPremiumValue   = !!data.is_premium && !expired;
     _premiumExpiresAt = data.premium_expires_at ?? null;
+    try { localStorage.setItem(_CACHE_KEY, String(_isPremiumValue)); } catch(_) {}
   } catch (e) {
     console.warn('[premium-service] _fetchPremiumFromDB error', e);
   }

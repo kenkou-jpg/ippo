@@ -129,7 +129,10 @@ export function migrateStorageKeys() {
       if (records && records.length > 0) {
         var currentRaw = localStorage.getItem(STATE_KEY);
         var current = currentRaw ? JSON.parse(currentRaw) : {};
-        if (records.length > (current.records || []).length) {
+        // タイムスタンプ比較: legacy データが新しい場合のみ上書き（削除済みレコード再インポート防止）
+        var legacyTs  = parsed && parsed.lastSaved ? new Date(parsed.lastSaved).getTime() : 0;
+        var currentTs = current.lastSaved ? new Date(current.lastSaved).getTime() : 0;
+        if (legacyTs > currentTs) {
           current.records = records;
           localStorage.setItem(STATE_KEY, JSON.stringify(current));
         }
