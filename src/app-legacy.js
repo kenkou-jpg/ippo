@@ -1756,7 +1756,8 @@ function showDiagnosisUI(){
   box.innerHTML = '<div style="text-align:center;font-size:15px;font-weight:600;margin-bottom:16px;">🔍 データ診断中...</div><div id="diagnosis-result" style="font-size:13px;color:#666;text-align:center;">確認しています...</div>';
   overlay.appendChild(box);
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  // EL-5: 動的生成 overlay は once:true で残留リスナーを防止
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); }, { once: true });
   runSelfDiagnosis().then(function(r){
     var best = Math.max(r.local, r.idb, r.cloud);
     var source = best === r.cloud ? 'クラウド' : best === r.idb ? 'IndexedDB' : 'ローカル';
@@ -10019,7 +10020,8 @@ function _generateDoctorPDF(btn, original){
   
   overlay.appendChild(sheet);
   document.body.appendChild(overlay);
-  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); });
+  // EL-5: 動的生成 overlay は once:true で残留リスナーを防止
+  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); }, { once: true });
 }
 
 function exportJSON(){
@@ -11339,12 +11341,19 @@ function adminLoadPremiumUsers(){
   });
 }
 
+// EL-2: 匿名/オフライン時の無限稼働を防ぐため最大30秒で打ち切り
+// removal condition: auth 確定後に adminCheckInterval が不要になったら削除可。
+var _adminCheckCount = 0;
 var adminCheckInterval = setInterval(function(){
+  _adminCheckCount++;
   if(supabaseUserId){
     clearInterval(adminCheckInterval);
     initAdminPanel();
     // 管理者ログイン確定後にPROバッジを即時更新
     if(typeof updatePremiumBadges === 'function') updatePremiumBadges();
+  } else if (_adminCheckCount >= 30) {
+    // 30秒経過してもログイン未確定 → 匿名/オフライン確定、インターバル停止
+    clearInterval(adminCheckInterval);
   }
 }, 1000);
 

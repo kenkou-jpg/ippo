@@ -271,6 +271,11 @@ function installSaveRecordScreenTrace() {
       clearInterval(timer);
     }
   }, 250);
+  // EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+  if (window.ippoTimerRegistry) {
+    window.ippoTimerRegistry.register(timer, 'record', 'interval',
+      'saveRecordScreen-wrap-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+  }
 }
 
 export function openRecordScreen() {

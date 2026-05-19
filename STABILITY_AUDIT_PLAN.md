@@ -210,26 +210,31 @@
 ## PHASE 4 — Event Listener Leaks
 
 ### EL-1: 3本の独立した `window.error` / `unhandledrejection` リスナー
-- [ ] `boot-stability.js`, `health-monitor.js`, `production-diagnostics.js` の error 監視を統合
+- [x] `boot-stability.js`, `health-monitor.js`, `production-diagnostics.js` の error 監視を統合
 - 単一の診断バスを設け、3モジュールがそこに書き込む形に変更
 - **File:** `src/modules/boot-stability.js`, `src/runtime/health-monitor.js`, `src/runtime/production-diagnostics.js`
+- **実施内容:** `boot-stability.js` に `window.__ippoDiagBus`（subscribe / _subs）を初期化し、`_dispatchDiagBus` で各リスナーから配信。`health-monitor.js` の2本の `window.addEventListener` を削除しバスに subscribe。`production-diagnostics.js` の `_init()` 内2本を削除しバスに subscribe（`_classifyDeviceCrash` は `_s.deviceInfo` のみ参照するため引数不一致の影響なし）。
 
 ### EL-2: `adminCheckInterval` — 匿名/オフライン時に 1Hz で無限稼働
-- [ ] `src/app-legacy.js:11342` の adminCheckInterval に最大試行回数 or 明示的な cleanup を追加
+- [x] `src/app-legacy.js:11342` の adminCheckInterval に最大試行回数 or 明示的な cleanup を追加
 - **File:** `src/app-legacy.js:11342`
+- **実施内容:** `_adminCheckCount` カウンタを追加。30秒（30回）経過してもログイン未確定の場合は `clearInterval` で停止。
 
 ### EL-3: runtime-orchestrator の `_reconcileInterval` に stop() がない
-- [ ] `src/runtime/runtime-orchestrator.js` に `stop()` メソッドを追加
+- [x] `src/runtime/runtime-orchestrator.js` に `stop()` メソッドを追加
 - `window.addEventListener('beforeunload')` で呼ぶ
 - **File:** `src/runtime/runtime-orchestrator.js:285`
+- **実施内容:** `stop()` 関数を追加し `_reconcileInterval` をクリア。`_init()` 内で `beforeunload`（`{once:true}`）にバインド。`window.ippoRuntime.stop` として公開。
 
 ### EL-4: record-edit 系 setInterval 5本が timer-registry 未登録
-- [ ] 各モジュールの setInterval を `window.ippoTimerRegistry` に登録
+- [x] 各モジュールの setInterval を `window.ippoTimerRegistry` に登録
 - **File:** `src/modules/record-edit-hydrate.js`, `record-edit-merge.js`, `record-edit-save-identity-guard.js`, `daily-record-card-guard.js`, `record.js`
+- **実施内容:** 5ファイル全て `setInterval` の直後に `if (window.ippoTimerRegistry)` ガード付きで `register(timer, owner, 'interval', label, 250, TYPES.HYDRATION)` を追加。
 
 ### EL-5: overlay 要素の addEventListener が再生成時に残留
-- [ ] `src/app-legacy.js` の overlay 系リスナーを `{ once: true }` または `removeEventListener` で管理
+- [x] `src/app-legacy.js` の overlay 系リスナーを `{ once: true }` または `removeEventListener` で管理
 - **File:** `src/app-legacy.js`
+- **実施内容:** 動的生成される `diagnosis-overlay`（line 1759）と export-overlay（line 10022）の click ハンドラに `{ once: true }` を追加。静的 DOM に対する単発登録（lines 9464, 10221, 10557, 10985, 11544）は変更不要と判断。
 
 ---
 
@@ -287,10 +292,10 @@
 | PHASE 1 — CRITICAL | 5 | 5 | 0 |
 | PHASE 2 — HIGH | 10 | 10 | 0 |
 | PHASE 3 — MEDIUM | 13 | 13 | 0 |
-| PHASE 4 — Leaks | 5 | 0 | 5 |
+| PHASE 4 — Leaks | 5 | 5 | 0 |
 | PHASE 5 — Architecture | 5 | 0 | 5 |
 | PHASE 6 — Dead Code | 6 | 0 | 6 |
-| **合計** | **44** | **28** | **16** |
+| **合計** | **44** | **33** | **11** |
 
 ---
 
