@@ -1,19 +1,30 @@
 :root {
-  --ippo-bg-base: #F7F2EE;
+  /* ── 共通背景 ─────────────────────────────────────────── */
+  --ippo-bg-base: #FAF8F5;   /* 全画面統一: 温かみのある白 */
 
-  --ippo-overlay-home: rgba(226,235,220,0.18);
-  --ippo-overlay-calendar: rgba(236,224,210,0.18);
-  --ippo-overlay-insight: rgba(218,208,244,0.16);
-  --ippo-overlay-settings: rgba(232,219,214,0.14);
+  /* ── 画面ごとの感情温度 overlay (極薄・空気感のみ) ──── */
+  --ippo-overlay-home:     rgba(226,235,220,0.12);
+  --ippo-overlay-calendar: rgba(236,224,210,0.12);
+  --ippo-overlay-insight:  rgba(218,208,244,0.10);
+  --ippo-overlay-settings: rgba(232,219,214,0.10);
 
-  --ippo-card-bg: rgba(255,255,255,0.72);
-  --ippo-card-radius: 32px;
-  --ippo-card-shadow: 0 8px 32px rgba(42,35,32,0.045);
-  --ippo-card-border: 1px solid rgba(255,255,255,0.62);
+  /* ── カード (全画面共通) ─────────────────────────────── */
+  --ippo-card-bg:     #FFFFFF;
+  --ippo-card-radius: 20px;
+  --ippo-card-shadow: 0 2px 8px rgba(0,0,0,0.015);
+  --ippo-card-border: 1px solid rgba(0,0,0,0.04);
 
-  --ippo-content-max: 920px;
-  --ippo-content-padding: 24px;
+  /* ── レイアウト ──────────────────────────────────────── */
+  --ippo-content-max:     430px;
+  --ippo-content-padding: 20px;
 
+  /* ── タイポグラフィ ───────────────────────────────────── */
   --ippo-title-color: #2A2320;
-  --ippo-sub-color: #9B928B;
+  --ippo-sub-color:   #9B928B;
+
+  /* ── ヘッダー ────────────────────────────────────────── */
+  --ippo-header-bg:     rgba(250,248,245,0.90);
+  --ippo-header-blur:   18px;
+  --ippo-header-border: 1px solid rgba(42,35,32,0.04);
+  --ippo-header-height: 72px;
 }

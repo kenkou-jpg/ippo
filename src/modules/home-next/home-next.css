@@ -5,12 +5,12 @@
 
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
-  /* ── Global design tokens (HOMEとInsightsで共有) ── */
-  --bg-soft:      #FAF8F5;
-  --card-bg:      #FFFFFF;
+  /* ── Global design tokens (design-system.css と同期) ── */
+  --bg-soft:      var(--ippo-bg-base, #FAF8F5);
+  --card-bg:      var(--ippo-card-bg, #FFFFFF);
   --border-soft:  rgba(0, 0, 0, 0.04);
-  --shadow-soft:  0 2px 8px rgba(0, 0, 0, 0.015);
-  --radius-card:  20px;
+  --shadow-soft:  var(--ippo-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.015));
+  --radius-card:  var(--ippo-card-radius, 20px);
 
   /* アクセントカラー */
   --accent-sage:   #9DB095;
@@ -30,11 +30,11 @@
   --space-40: 40px;
 
   /* ── Home-next スコープトークン ── */
-  --hn-bg:            #FAF8F5;   /* Insightsと統一 */
-  --hn-card-bg:       #FFFFFF;
-  --hn-card-border:   1px solid rgba(0, 0, 0, 0.04);  /* Insightsと統一 */
-  --hn-card-shadow:   0 2px 8px rgba(0, 0, 0, 0.015); /* 極薄 */
-  --hn-card-radius:   20px;
+  --hn-bg:             var(--ippo-bg-base, #FAF8F5);
+  --hn-card-bg:        var(--ippo-card-bg, #FFFFFF);
+  --hn-card-border:    var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
+  --hn-card-shadow:    var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
+  --hn-card-radius:    var(--ippo-card-radius, 20px);
   --hn-card-radius-lg: 24px;
 
   /* テキスト: 温かいグレー系 */
@@ -85,13 +85,15 @@
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
 #hn-header,
-#ins-header {
+#ins-header,
+#cal-header,
+#set-header {
   position: sticky;
   top: 0;
   z-index: 100;
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  background: rgba(250, 248, 245, 0.90);
+  -webkit-backdrop-filter: blur(var(--ippo-header-blur, 18px));
+  backdrop-filter: blur(var(--ippo-header-blur, 18px));
+  background: var(--ippo-header-bg, rgba(250,248,245,0.90));
 }
 
 /* ── Insights: ページタイトル行 ─────────────────────────── */
@@ -141,11 +143,14 @@
   align-items: center;
   justify-content: space-between;
   padding: env(safe-area-inset-top, 0px) 24px 0;
-  min-height: 72px;
-  background: rgba(248,243,239,0.82);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(42,35,32,0.04);
+  min-height: var(--ippo-header-height, 72px);
+  background: var(--ippo-header-bg, rgba(250,248,245,0.90));
+  backdrop-filter: blur(var(--ippo-header-blur, 18px));
+  -webkit-backdrop-filter: blur(var(--ippo-header-blur, 18px));
+  border-bottom: var(--ippo-header-border, 1px solid rgba(42,35,32,0.04));
+  max-width: var(--ippo-content-max, 430px);
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .hn-header-logo {
