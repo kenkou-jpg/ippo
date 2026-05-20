@@ -32,18 +32,20 @@ export function renderSharedHeader(container) {
 
   container.innerHTML = `
     <div class="hn-header">
-      <div class="hn-header-logo">
-        ippo
-        <span class="hn-header-logo-dot"></span>
-      </div>
-      <div class="hn-header-actions">
-        <button class="hn-header-bell" aria-label="通知"
-          onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
-          ${SVG_BELL}
-        </button>
-        <div class="hn-header-avatar"
-          onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
-          ${esc(initial)}
+      <div class="hn-header-inner">
+        <div class="hn-header-logo">
+          ippo
+          <span class="hn-header-logo-dot"></span>
+        </div>
+        <div class="hn-header-actions">
+          <button class="hn-header-bell" aria-label="通知"
+            onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
+            ${SVG_BELL}
+          </button>
+          <div class="hn-header-avatar"
+            onclick="if(typeof window.switchTab==='function')window.switchTab('settings',null)">
+            ${esc(initial)}
+          </div>
         </div>
       </div>
     </div>`;
