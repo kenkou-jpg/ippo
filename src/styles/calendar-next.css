@@ -23,7 +23,7 @@
 
 /* ── ページタイトル ── */
 .cn-page-header {
-  padding: 96px 24px 16px;
+  padding: 24px 24px 16px;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;

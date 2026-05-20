@@ -78,7 +78,7 @@
 }
 
 .hn-scroll {
-  padding: 96px 16px calc(96px + env(safe-area-inset-bottom));
+  padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
   max-width: 430px;
   margin: 0 auto;
 }
@@ -87,17 +87,11 @@
 /* cal / set は独自コンテンツが sticky ヘッダーとして動作 */
 #cal-header,
 #set-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  -webkit-backdrop-filter: blur(var(--ippo-header-blur, 18px));
-  backdrop-filter: blur(var(--ippo-header-blur, 18px));
-  background: var(--ippo-header-bg, rgba(250,248,245,0.90));
+  position: relative;
 }
 
-/* hn / ins は子の .hn-header が position:fixed で管理するため
-   コンテナ側に backdrop-filter を置くと fixed が viewport 基準から
-   外れてスクロール追従してしまう。コンテナはニュートラルに保つ。 */
+/* hn-header / ins-header は .hn-header (position:relative) を子に持つ。
+   コンテナはニュートラルに保ち、見た目は .hn-header 側で制御する。 */
 #hn-header,
 #ins-header {
   position: static;
@@ -144,14 +138,8 @@
 }
 
 .hn-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
+  position: relative;
   background: var(--ippo-header-bg, rgba(250,248,245,0.90));
-  backdrop-filter: blur(var(--ippo-header-blur, 18px));
-  -webkit-backdrop-filter: blur(var(--ippo-header-blur, 18px));
   border-bottom: var(--ippo-header-border, 1px solid rgba(42,35,32,0.04));
 }
 
@@ -159,10 +147,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 680px;
+  max-width: 430px;
   margin: 0 auto;
-  padding: env(safe-area-inset-top, 0px) 24px 0;
-  min-height: var(--ippo-header-height, 72px);
+  padding: 0 24px;
+  height: 72px;
 }
 
 .hn-header-logo {
