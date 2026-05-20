@@ -73,9 +73,13 @@ async function _ensureScreenLoaded(name) {
     return;
   }
 
-  // fallback: 開発時など raw html がない画面は fetch で取得
+  // fallback: dev-only. In production all screens must be in SCREEN_HTML via ?raw import.
+  // If this executes in production it means a new screen was added without a ?raw entry.
+  if (import.meta.env.PROD) {
+    console.error(`[screen-router] ARCH VIOLATION: screen "${name}" missing from SCREEN_HTML. Add ?raw import to screen-router.js.`);
+  }
   try {
-    const res = await fetch(`/src/screens/${name}.html`);
+    const res = await fetch(`/src/screens/${name}.html`); // arch-guard-ignore: dev-only fallback, prod uses SCREEN_HTML
     if (!res.ok) throw new Error(`screen fetch failed: ${res.status}`);
     const html = await res.text();
     const tmp = document.createElement('div');

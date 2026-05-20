@@ -9,6 +9,32 @@ import { defineConfig } from 'vite'
  *  - index.html (landing) + app.html (app shell) を両方 build input に含める
  *    → dist/index.html が生成され GitHub Pages root access が解決する
  */
+// ── Architecture Guard ────────────────────────────────────────────────────
+// Prevents runtime fetch('/src/...) in production builds.
+// Any line containing fetch(`/src/  fetch('/src/  fetch("/src/  or new URL('/src/
+// will fail the build, unless the line ends with // arch-guard-ignore
+// Allowed patterns: ?raw import, Vite asset import, publicDir assets (/images/ etc.)
+const archGuardPlugin = {
+  name: 'arch-guard-no-src-fetch',
+  enforce: 'pre',
+  transform(code, id) {
+    if (!id.endsWith('.js') && !id.endsWith('.ts')) return;
+    if (!id.includes('\\src\\') && !id.includes('/src/')) return;
+    const lines = code.split('\n');
+    lines.forEach((line, i) => {
+      if (line.includes('arch-guard-ignore')) return;
+      if (/fetch\s*\(\s*[`'"]\/src\//.test(line) || /new\s+URL\s*\(\s*[`'"]\/src\//.test(line)) {
+        this.error(
+          `[arch-guard] Forbidden runtime fetch of /src/ path.\n` +
+          `  File: ${id}:${i + 1}\n` +
+          `  Line: ${line.trim()}\n` +
+          `  Fix: use ?raw import and add entry to SCREEN_HTML in screen-router.js`
+        );
+      }
+    });
+  },
+};
+
 export default defineConfig({
   test: {
     // jsdom: required for DOM-touching modules (calendar, home-renderer, reminders-ui)
@@ -38,6 +64,8 @@ export default defineConfig({
 
   // Multi-Page App: /app.html を直接リクエストできる
   appType: 'mpa',
+
+  plugins: [archGuardPlugin],
 
   server: {
     port: 5173,
