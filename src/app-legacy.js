@@ -12,16 +12,11 @@
 // records: [] を初期値として持つことで hydration 前の state.records 参照を安全にする。
 if (!window._ippoStateHooks) window._ippoStateHooks = [];
 var state = { records: [] };
-window._ippoStateHooks.push(function(nextState) { state = nextState; });
-
-try {
-  Object.defineProperty(window, 'state', {
-    get: function () {
-      return state;
-    },
-    configurable: true,
-  });
-} catch (_) {}
+window.state = state;
+window._ippoStateHooks.push(function(nextState) {
+  state = nextState;
+  try { window.state = nextState; } catch (_) {}
+});
 
 // ─── app.html script block 2 の内容 ─────────────────────────
 // ===== SUPABASE CLOUD SYNC (auth + user_data) =====
@@ -9346,10 +9341,9 @@ var todayStr = targetDate.toDateString();
       else state.streak = 1;
     }
 
-    // 保存を即座に実行（saveState 経由で persist delegate に記録させる）
+    // 保存を即座に実行
     try {
       localStorage.setItem('ippo_state', JSON.stringify(state));
-      if (typeof window.saveState === 'function') window.saveState();
     } catch(storageErr) {
       showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
       console.error('Storage error:', storageErr);
@@ -11861,8 +11855,6 @@ if (typeof updateTodayMessage === "function") window.updateTodayMessage = update
 if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
 if (typeof updateVisionDisplay === "function") window.updateVisionDisplay = updateVisionDisplay;
 // ─── グローバル変数エクスポート ───────────────────────────────
-if (typeof currentRecord  !== "undefined") window.currentRecord  = currentRecord;
-if (typeof currentStep    !== "undefined") window.currentStep    = currentStep;
-if (typeof STEPS          !== "undefined") window.STEPS          = STEPS;
-if (typeof saveState      === "function")  window.saveState      = saveState;
-if (typeof cloudBackupAll === "function")  window.cloudBackupAll = cloudBackupAll;
+if (typeof currentRecord !== "undefined") window.currentRecord = currentRecord;
+if (typeof currentStep   !== "undefined") window.currentStep   = currentStep;
+if (typeof STEPS         !== "undefined") window.STEPS         = STEPS;
