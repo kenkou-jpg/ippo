@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 //  ippo – src/modules/calendar-next.js
 //  パターンA: やさしく見渡せるカレンダー
 //  月の満ち欠け・旧暦・周期フェーズを表示するカレンダー
@@ -109,212 +109,125 @@ function getMoonSVG(age) {
   const { phase, phaseAngle, illumination, waxing } =
     getMoonIllumination(age);
 
-  const cosPhi = Math.cos(phaseAngle);
+  const isFullMoon = illumination > 0.985;
+  const isNewMoon  = illumination < 0.06;
 
-  // 新月付近が真っ黒になりすぎないよう補正
-  const visualCos =
-    Math.max(0.18, Math.abs(cosPhi));
-
-  // 描画用の光面幅
-  const rx = (visualCos * 9).toFixed(2);
-
-  const moonRadius =
-  illumination < 0.06 ? 8.5 : 9;
+  const cosPhi    = Math.cos(phaseAngle);
+  const visualCos = Math.max(0.18, Math.abs(cosPhi));
+  const rx        = (visualCos * 9).toFixed(2);
+  const moonRadius = isNewMoon ? 8.5 : 9;
 
   const outerSweep = waxing ? 1 : 0;
-
-  // crescent / gibbous の閉じ方向補正
-  const termSweep =
-    (waxing === (cosPhi > 0)) ? 0 : 1;
+  const termSweep  = (waxing === (cosPhi > 0)) ? 0 : 1;
 
   const litPath =
-    `M 12,3
-     A 9,9 0 0,${outerSweep} 12,21
-     A ${rx},9 0 0,${termSweep} 12,3 Z`;
+    `M 12,3 A 9,9 0 0,${outerSweep} 12,21 A ${rx},9 0 0,${termSweep} 12,3 Z`;
 
-  // SVG ID衝突回避
   const uid = `ipm-${Math.round(phase * 100000)}`;
 
-  // 照度に応じた暖色変化
-  const litOuter =
-    illumination < 0.22 ? '#9B8163'
-    : illumination < 0.55 ? '#BDA17C'
-    : illumination < 0.88 ? '#D0B58A'
-    : '#E9D8B8';
+  // 照度に応じた暖色グラデーション（黄みベージュ系）
+  let litCenter, litMid, litOuter;
+  if (illumination < 0.22) {
+    litCenter = '#D0B58A'; litMid = '#B79C7A'; litOuter = '#9B8163';
+  } else if (illumination < 0.55) {
+    litCenter = '#F5D7A8'; litMid = '#EFCB93'; litOuter = '#D8B880';
+  } else if (illumination < 0.88) {
+    litCenter = '#FFF0D8'; litMid = '#F5D7A8'; litOuter = '#EFCB93';
+  } else {
+    litCenter = '#FFF6E6'; litMid = '#FFF3D8'; litOuter = '#F5D7A8';
+  }
 
-  const litMid =
-    illumination < 0.22 ? '#B79C7A'
-    : illumination < 0.55 ? '#D3BE9B'
-    : illumination < 0.88 ? '#E0C99D'
-    : '#F0E6CE';
+  // 満月きらめき（十字型・5個・控えめ）
+  const sparkleData = [
+    { x: 12,   y: 0.6,  s: 0.95, o: 0.50 },
+    { x: 21.5, y: 6.0,  s: 0.75, o: 0.40 },
+    { x: 22.0, y: 18.5, s: 0.68, o: 0.35 },
+    { x: 2.5,  y: 4.5,  s: 0.72, o: 0.38 },
+    { x: 2.0,  y: 19.5, s: 0.55, o: 0.30 },
+  ];
+
+  const sparkleSVG = isFullMoon ? sparkleData.map(({ x, y, s, o }) => {
+    const hw = (s * 0.15).toFixed(2);
+    const hl = (s * 1.25).toFixed(2);
+    const rr = (s * 0.12).toFixed(2);
+    return `<g transform="translate(${x},${y})" opacity="${o}">` +
+      `<rect x="-${hw}" y="-${hl}" width="${(s * 0.30).toFixed(2)}" height="${(s * 2.5).toFixed(2)}" fill="#FFF8E0" rx="${rr}"/>` +
+      `<rect x="-${hl}" y="-${hw}" width="${(s * 2.5).toFixed(2)}" height="${(s * 0.30).toFixed(2)}" fill="#FFF8E0" rx="${rr}"/>` +
+      `</g>`;
+  }).join('') : '';
 
   return `
-  <svg
-    viewBox="0 0 24 24"
-    xmlns="http://www.w3.org/2000/svg"
-    aria-hidden="true"
-  >
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <defs>
-
-      <radialGradient
-        id="${uid}-dark"
-        cx="7"
-        cy="6"
-        r="17"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="0%" stop-color="#5B4638"/>
-        <stop offset="48%" stop-color="#3A2F28"/>
+      <radialGradient id="${uid}-dark" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="#5B4638"/>
+        <stop offset="48%"  stop-color="#3F3027"/>
         <stop offset="100%" stop-color="#1E1610"/>
       </radialGradient>
 
-      <radialGradient
-        id="${uid}-lit"
-        cx="7"
-        cy="6"
-        r="17"
-        gradientUnits="userSpaceOnUse"
-      >
-        <stop offset="0%" stop-color="#F2E8D2"/>
-        <stop offset="34%" stop-color="${litMid}"/>
-        <stop offset="72%" stop-color="${litOuter}"/>
+      <radialGradient id="${uid}-lit" cx="7" cy="6" r="17" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stop-color="${litCenter}"/>
+        <stop offset="34%"  stop-color="${litMid}"/>
+        <stop offset="72%"  stop-color="${litOuter}"/>
         <stop offset="100%" stop-color="#8A6A52"/>
       </radialGradient>
 
-      <filter
-        id="${uid}-soft"
-        x="-30%"
-        y="-30%"
-        width="160%"
-        height="160%"
-      >
-        <feDropShadow
-          dx="0"
-          dy="0.4"
-          stdDeviation="0.45"
-          flood-color="#14100E"
-          flood-opacity="0.18"
-        />
+      <filter id="${uid}-soft" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0.4" stdDeviation="0.45" flood-color="#14100E" flood-opacity="0.18"/>
       </filter>
 
-      <filter id="${uid}-fullglow">
-  <feGaussianBlur stdDeviation="1.2"/>
-</filter>
 
-<filter id="${uid}-newglow">
-  <feGaussianBlur stdDeviation="1"/>
-</filter>
 
-      <filter
-  id="${uid}-newmoon"
-  x="-40%"
-  y="-40%"
-  width="180%"
-  height="180%"
->
-  <feDropShadow
-    dx="0"
-    dy="0.6"
-    stdDeviation="0.9"
-    flood-color="#140F0C"
-    flood-opacity="0.32"
-  />
-</filter>
+
+
+      <filter id="${uid}-newmoon" x="-40%" y="-40%" width="180%" height="180%">
+        <feDropShadow dx="0" dy="0.6" stdDeviation="0.9" flood-color="#140F0C" flood-opacity="0.32"/>
+      </filter>
 
       <clipPath id="${uid}-clip">
         <circle cx="12" cy="12" r="9"/>
       </clipPath>
-
     </defs>
 
-    <g filter="url(#${uid}-${illumination < 0.06 ? 'newmoon' : 'soft'}')">
+    ${isFullMoon ? `<circle cx="12" cy="12" r="10.8" fill="rgba(255,236,182,0.14)"/><circle cx="12" cy="12" r="12.5" fill="rgba(255,236,182,0.06)"/>` : ``}
 
-  <circle
-    cx="12"
-    cy="12"
-    r="${moonRadius}"
-    fill="url(#${uid}-dark)"
-  />
+    <g filter="url(#${uid}-${isNewMoon ? 'newmoon' : 'soft'})">
+      <circle cx="12" cy="12" r="${moonRadius}" fill="url(#${uid}-dark)"/>
+      <path d="${litPath}" fill="url(#${uid}-lit)"/>
 
- ${illumination > 0.94 ? `
-  <circle
-    cx="12"
-    cy="12"
-    r="${moonRadius}"
-    fill="url(#${uid}-lit)"
-    opacity="0.18"
-    filter="url(#${uid}-fullglow)"
-  />
-` : ''}
-
-${illumination < 0.06 ? `
-  <circle
-    cx="12"
-    cy="12"
-    r="${moonRadius}"
-    fill="#DCE6FF"
-    opacity="0.10"
-    filter="url(#${uid}-newglow)"
-  />
-` : ''}
-
-  ${illumination < 0.06 ? `
-    <circle
-      cx="12"
-      cy="12"
-      r="9.2"
-      fill="none"
-      stroke="rgba(210,220,255,0.22)"
-      stroke-width="0.55"
-    />
-  ` : ''}
-
-  <path
-    d="${litPath}"
-    fill="url(#${uid}-lit)"
-  />
-      <g
-        clip-path="url(#${uid}-clip)"
-        opacity="0.95"
-      >
-
-        <ellipse
-          cx="9.4"
-          cy="10.1"
-          rx="1.55"
-          ry="1.05"
-          fill="rgba(60,40,28,0.045)"
-          transform="rotate(-16,9.4,10.1)"
-        />
-
-        <ellipse
-          cx="14.6"
-          cy="14"
-          rx="1.05"
-          ry="0.72"
-          fill="rgba(60,40,28,0.035)"
-        />
-
-        <circle
-          cx="15.7"
-          cy="9.6"
-          r="0.46"
-          fill="rgba(60,40,28,0.035)"
-        />
-
-        <ellipse
-          cx="8.4"
-          cy="8"
-          rx="2.2"
-          ry="1.35"
-          fill="rgba(255,255,255,0.10)"
-          transform="rotate(-25,8.4,8)"
-        />
-
+      <g clip-path="url(#${uid}-clip)" opacity="0.92">
+        <ellipse cx="9.4"  cy="10.1" rx="1.55" ry="1.05" fill="rgba(60,40,28,0.048)" transform="rotate(-16,9.4,10.1)"/>
+        <ellipse cx="14.6" cy="14.0" rx="1.05" ry="0.72"  fill="rgba(60,40,28,0.040)"/>
+        <circle  cx="15.7" cy="9.6"  r="0.46"              fill="rgba(60,40,28,0.038)"/>
+        <ellipse cx="8.4"  cy="8.0"  rx="2.2"  ry="1.35"  fill="rgba(255,248,230,0.12)" transform="rotate(-25,8.4,8)"/>
+        <circle  cx="11.0" cy="14.8" r="0.62"              fill="rgba(60,40,28,0.032)"/>
+        <ellipse cx="13.5" cy="8.5"  rx="0.78" ry="0.52"  fill="rgba(60,40,28,0.030)"/>
+        <circle  cx="10.2" cy="12.5" r="0.35"              fill="rgba(60,40,28,0.025)"/>
       </g>
 
+      <circle cx="12" cy="12" r="${moonRadius}" fill="none"
+        stroke="${isFullMoon ? 'rgba(255,246,220,0.28)' : 'rgba(240,220,180,0.14)'}"
+        stroke-width="0.45"/>
+
+      ${isNewMoon ? `<circle cx="12" cy="12" r="9.3" fill="none" stroke="rgba(220,180,110,0.20)" stroke-width="0.7"/>` : ''}
     </g>
+
+    ${sparkleSVG}
   </svg>`;
+}
+
+// ─── 月相SVGキャッシュ（月単位・パフォーマンス最適化） ──────────────────
+// render毎の再計算を防ぐ。日付文字列をキーに結果をキャッシュ。
+// 120件超で最古エントリを自動削除しメモリ増殖を防ぐ。
+const _moonSVGCache = new Map();
+
+function getMoonSVGCached(year, month, day) {
+  const key = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  if (_moonSVGCache.has(key)) return _moonSVGCache.get(key);
+  const svg = getMoonSVG(getMoonAge(year, month, day));
+  if (_moonSVGCache.size > 120) _moonSVGCache.delete(_moonSVGCache.keys().next().value);
+  _moonSVGCache.set(key, svg);
+  return svg;
 }
 
 // ─── 旧暦計算 ────────────────────────────────────────────────
@@ -552,7 +465,7 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
 
   const moonEl = document.createElement('span');
   moonEl.className = 'cn-moon';
-  moonEl.innerHTML = getMoonSVG(moonAge);
+  moonEl.innerHTML = getMoonSVGCached(year, month, day);
 
 const lunarEl = document.createElement('div');
 lunarEl.className = 'cn-cell-lunar';
@@ -581,7 +494,7 @@ function _buildBodyMemo() {
 
   const moonAge  = getMoonAge(today.getFullYear(), today.getMonth() + 1, today.getDate());
   const moonName = getMoonPhaseName(moonAge);
-  const moonSVG  = getMoonSVG(moonAge);
+  const moonSVG  = getMoonSVGCached(today.getFullYear(), today.getMonth() + 1, today.getDate());
   const lunar    = getLunarDate(today.getFullYear(), today.getMonth() + 1, today.getDate());
 
   const lastPeriod  = st.lastPeriodDate;
