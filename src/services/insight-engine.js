@@ -16,6 +16,10 @@ import {
   getCyclePhase,
   getCycleDayNum,
 } from '../modules/home-next/home-next-config.js';
+import {
+  matchVocabulary,
+  getObservations,
+} from '../data/disease-contexts.js';
 
 // ─────────────────────────────────────────────────────────────
 //  Cache
@@ -182,6 +186,40 @@ function _isLuteal(r, lastPeriodDate, cycleLength) {
   // 複数周期対応: modulo で正規化
   const normDay = ((dayNum - 1) % cycleLength) + 1;
   return normDay >= (cycleLength - 7) && normDay <= cycleLength;
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Disease Vocabulary Matcher
+//  symptom タグ + 数値フィールド(sleep/energy) + cycle 状態 を組み合わせて
+//  疾患別の active vocabulary を特定する
+// ─────────────────────────────────────────────────────────────
+
+function _activeVocab(records, context, contextKey) {
+  const recent   = _sliceDays(records, 14);
+  const symptoms = [...new Set(recent.flatMap(r => r.symptoms || []))];
+  const matched  = new Set(matchVocabulary(symptoms, contextKey));
+
+  // sleepQuality 数値フィールド → sleepRelation vocab
+  if (context.stats.last7.poorSleepDays >= 1 && contextKey === 'endometriosis') {
+    matched.add('sleepRelation');
+  }
+
+  // energy / _SYM_FATIGUE フィールド → fatigueFlow / energyInstability vocab
+  const week        = _sliceDays(records, 7);
+  const fatigueDays = week.filter(r =>
+    _hasSym(r, _SYM_FATIGUE) || (r.energy != null && r.energy <= 2)
+  ).length;
+  if (fatigueDays >= 2) {
+    if (contextKey === 'endometriosis') matched.add('fatigueFlow');
+    if (contextKey === 'pcos')          matched.add('energyInstability');
+  }
+
+  // PCOS の cycleIrregularity は symptom タグではなく状態から判定
+  if (contextKey === 'pcos' && (context.cycleIrregular || context.cycleLength > 35)) {
+    matched.add('cycleIrregularity');
+  }
+
+  return [...matched];
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -434,6 +472,157 @@ RULES.stress_symptoms = function(records, context) {
     evidenceDays: stressWithSomatic,
     confidence:  Math.min(1, stressWithSomatic / 4),
     diseaseKey:  null,
+  };
+};
+
+// ── FREE: DISEASE_CONTEXT_ENDO ─────────────────────────────
+// 子宮内膜症 — 症状パターンから生活文脈の観察を生成
+
+RULES.disease_context_endo = function(records, context) {
+  if (!context.diseaseNames.includes('子宮内膜症')) return null;
+  const recent = _sliceDays(records, 14);
+  if (recent.length < 2) return null;
+
+  const active = _activeVocab(records, context, 'endometriosis');
+  if (active.length === 0) return null;
+
+  const obs = getObservations('endometriosis').find(o => active.includes(o.vocabularyKey));
+  if (!obs) return null;
+
+  return {
+    id:           obs.id,
+    type:         'context',
+    tier:         'free',
+    priorityKey:  'sleep_pain',
+    main:         obs.phrase,
+    sub:          obs.context,
+    action:       null,
+    reason:       `disease=子宮内膜症 vocab=[${active.join(',')}]`,
+    ruleId:       'RULE_DISEASE_CONTEXT_ENDO',
+    evidenceDays:  recent.length,
+    confidence:   Math.min(1, active.length / 3),
+    diseaseKey:   '子宮内膜症',
+  };
+};
+
+// ── FREE: DISEASE_CONTEXT_PCOS ─────────────────────────────
+// PCOS — 症状パターンから生活文脈の観察を生成
+
+RULES.disease_context_pcos = function(records, context) {
+  if (!context.diseaseNames.includes('PCOS')) return null;
+  const recent = _sliceDays(records, 14);
+  if (recent.length < 2) return null;
+
+  const active = _activeVocab(records, context, 'pcos');
+  if (active.length === 0) return null;
+
+  const obs = getObservations('pcos').find(o => active.includes(o.vocabularyKey));
+  if (!obs) return null;
+
+  return {
+    id:           obs.id,
+    type:         'context',
+    tier:         'free',
+    priorityKey:  'symptom_pattern',
+    main:         obs.phrase,
+    sub:          obs.context,
+    action:       null,
+    reason:       `disease=PCOS vocab=[${active.join(',')}]`,
+    ruleId:       'RULE_DISEASE_CONTEXT_PCOS',
+    evidenceDays:  recent.length,
+    confidence:   Math.min(1, active.length / 2),
+    diseaseKey:   'PCOS',
+  };
+};
+
+// ── FREE: DISEASE_CONTEXT_PMS ──────────────────────────────
+// PMS — 症状パターンから生活文脈の観察を生成
+
+RULES.disease_context_pms = function(records, context) {
+  const hasPms = context.diseaseNames.some(d => d === 'PMS' || d === 'PMS/PMDD');
+  if (!hasPms) return null;
+  const recent = _sliceDays(records, 14);
+  if (recent.length < 2) return null;
+
+  const active = _activeVocab(records, context, 'pms');
+  if (active.length === 0) return null;
+
+  const obs = getObservations('pms').find(o => active.includes(o.vocabularyKey));
+  if (!obs) return null;
+
+  return {
+    id:           obs.id,
+    type:         'context',
+    tier:         'free',
+    priorityKey:  'cycle_mood',
+    main:         obs.phrase,
+    sub:          obs.context,
+    action:       null,
+    reason:       `disease=PMS vocab=[${active.join(',')}]`,
+    ruleId:       'RULE_DISEASE_CONTEXT_PMS',
+    evidenceDays:  recent.length,
+    confidence:   Math.min(1, active.length / 2),
+    diseaseKey:   'PMS',
+  };
+};
+
+// ── FREE: DISEASE_CONTEXT_PMDD ─────────────────────────────
+// PMDD — 症状パターンから生活文脈の観察を生成
+
+RULES.disease_context_pmdd = function(records, context) {
+  if (!context.diseaseNames.includes('PMDD')) return null;
+  const recent = _sliceDays(records, 14);
+  if (recent.length < 2) return null;
+
+  const active = _activeVocab(records, context, 'pmdd');
+  if (active.length === 0) return null;
+
+  const obs = getObservations('pmdd').find(o => active.includes(o.vocabularyKey));
+  if (!obs) return null;
+
+  return {
+    id:           obs.id,
+    type:         'context',
+    tier:         'free',
+    priorityKey:  'cycle_mood',
+    main:         obs.phrase,
+    sub:          obs.context,
+    action:       null,
+    reason:       `disease=PMDD vocab=[${active.join(',')}]`,
+    ruleId:       'RULE_DISEASE_CONTEXT_PMDD',
+    evidenceDays:  recent.length,
+    confidence:   Math.min(1, active.length / 2),
+    diseaseKey:   'PMDD',
+  };
+};
+
+// ── FREE: DISEASE_CONTEXT_CYST ─────────────────────────────
+// 卵巣嚢腫 — 症状パターンから生活文脈の観察を生成
+
+RULES.disease_context_cyst = function(records, context) {
+  if (!context.diseaseNames.includes('卵巣嚢腫')) return null;
+  const recent = _sliceDays(records, 14);
+  if (recent.length < 2) return null;
+
+  const active = _activeVocab(records, context, 'ovarianCyst');
+  if (active.length === 0) return null;
+
+  const obs = getObservations('ovarianCyst').find(o => active.includes(o.vocabularyKey));
+  if (!obs) return null;
+
+  return {
+    id:           obs.id,
+    type:         'context',
+    tier:         'free',
+    priorityKey:  'symptom_pattern',
+    main:         obs.phrase,
+    sub:          obs.context,
+    action:       null,
+    reason:       `disease=卵巣嚢腫 vocab=[${active.join(',')}]`,
+    ruleId:       'RULE_DISEASE_CONTEXT_CYST',
+    evidenceDays:  recent.length,
+    confidence:   Math.min(1, active.length / 2),
+    diseaseKey:   '卵巣嚢腫',
   };
 };
 
