@@ -79,8 +79,6 @@
 
 .hn-scroll {
   padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
-  max-width: 430px;
-  margin: 0 auto;
 }
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */

@@ -1307,8 +1307,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
 .set-scroll {
   padding: 0 20px calc(80px + env(safe-area-inset-bottom, 0px));
-  max-width: var(--ippo-content-max, 430px);
-  margin: 0 auto;
 }
 
 /* Header */
@@ -2856,11 +2854,9 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   .app-header-bar { max-width: var(--app-max-desktop); }
   .bottom-nav     { max-width: var(--app-max-desktop); }
 
-  /* ホーム画面: 2カラムグリッド
-     greeting ヘッダーは全幅、残りをメイン（左）+ インサイト（右）に分割
-     ※ 各要素が #screen-home の直接子でない場合はグリッドが適用されず、
-        コンテナ拡張のみが効く（安全フォールバック） */
-  #screen-home {
+  /* ホーム画面: 2カラムグリッド（active 時のみ — .active なし時は .screen { display:none } を維持）
+     #screen-home だけでなく .active を必須にすることで CSS 優先度競合を防ぐ */
+  #screen-home.active {
     display: grid;
     grid-template-columns: 1fr 272px;
     column-gap: 24px;
@@ -2868,28 +2864,28 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   }
 
   /* デフォルト: 不明な要素は全幅スパン */
-  #screen-home > * {
+  #screen-home.active > * {
     grid-column: 1 / -1;
   }
 
   /* グリーティングヘッダー: 全幅 */
-  #screen-home > .home-header {
+  #screen-home.active > .home-header {
     grid-column: 1 / -1;
   }
 
   /* メインカラム（左） */
-  #screen-home > .fasting-widget,
-  #screen-home > .today-msg,
-  #screen-home > .record-cta,
-  #screen-home > .share-section {
+  #screen-home.active > .fasting-widget,
+  #screen-home.active > .today-msg,
+  #screen-home.active > .record-cta,
+  #screen-home.active > .share-section {
     grid-column: 1;
     margin-left: 0;
     margin-right: 0;
   }
 
   /* インサイトパネル（右） */
-  #screen-home > .milestone-row,
-  #screen-home > .unlock-section {
+  #screen-home.active > .milestone-row,
+  #screen-home.active > .unlock-section {
     grid-column: 2;
     padding-left: 0;
     padding-right: 0;
@@ -2898,7 +2894,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   }
 
   /* ミルストーン統計: 縦積みに変換 */
-  #screen-home > .milestone-row {
+  #screen-home.active > .milestone-row {
     flex-direction: column;
     gap: 10px;
   }
