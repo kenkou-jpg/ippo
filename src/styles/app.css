@@ -2809,6 +2809,130 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 
 /* #screen-settings feedback overrides are in the settings v2 block above */
 
+/* ============================================================
+   RESPONSIVE — Tablet & Desktop Layout
+   "静かな余白設計" — Flo / Calm / Apple Health 流
+   モバイルファーストUIを、PCでも美しく呼吸させる
+   ============================================================ */
+
+/* ── Layout tokens ── */
+:root {
+  --app-max-tablet:  600px;
+  --app-max-desktop: 860px;
+}
+
+/* ── Tablet (768px+): コンテナを広げ、浮遊感を与える ── */
+@media (min-width: 768px) {
+  body {
+    background: #ede8e3;
+  }
+
+  #app {
+    max-width: var(--app-max-tablet);
+    box-shadow:
+      0 0 0 1px rgba(200, 170, 160, 0.14),
+      0 4px 40px rgba(168, 100, 110, 0.07),
+      0 2px 12px rgba(0, 0, 0, 0.04);
+  }
+
+  .app-header-bar { max-width: var(--app-max-tablet); }
+  .bottom-nav     { max-width: var(--app-max-tablet); }
+}
+
+/* ── Desktop (1100px+): 高級余白 + 緩い2カラム ── */
+@media (min-width: 1100px) {
+  body {
+    background: #e8e2db;
+  }
+
+  #app {
+    max-width: var(--app-max-desktop);
+    box-shadow:
+      0 0 0 1px rgba(200, 170, 160, 0.16),
+      0 8px 60px rgba(168, 100, 110, 0.09),
+      0 3px 20px rgba(0, 0, 0, 0.05);
+  }
+
+  .app-header-bar { max-width: var(--app-max-desktop); }
+  .bottom-nav     { max-width: var(--app-max-desktop); }
+
+  /* ホーム画面: 2カラムグリッド
+     greeting ヘッダーは全幅、残りをメイン（左）+ インサイト（右）に分割
+     ※ 各要素が #screen-home の直接子でない場合はグリッドが適用されず、
+        コンテナ拡張のみが効く（安全フォールバック） */
+  #screen-home {
+    display: grid;
+    grid-template-columns: 1fr 272px;
+    column-gap: 24px;
+    align-items: start;
+  }
+
+  /* デフォルト: 不明な要素は全幅スパン */
+  #screen-home > * {
+    grid-column: 1 / -1;
+  }
+
+  /* グリーティングヘッダー: 全幅 */
+  #screen-home > .home-header {
+    grid-column: 1 / -1;
+  }
+
+  /* メインカラム（左） */
+  #screen-home > .fasting-widget,
+  #screen-home > .today-msg,
+  #screen-home > .record-cta,
+  #screen-home > .share-section {
+    grid-column: 1;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* インサイトパネル（右） */
+  #screen-home > .milestone-row,
+  #screen-home > .unlock-section {
+    grid-column: 2;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* ミルストーン統計: 縦積みに変換 */
+  #screen-home > .milestone-row {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* カレンダー: 幅を制限して中央寄せ（横いっぱい禁止） */
+  #screen-calendar .calendar-section {
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* 設定: 読みやすい幅に制限 */
+  .settings-header {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .settings-section {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ===== SURFACE CARD TOKEN (main ブランチ互換) ===== */
+/* .ippo-surface は main の app.html で参照。このブランチに定義がないと
+   ホームカードの背景・角丸・影が失われるため、ここで補完する。       */
+.ippo-surface {
+  background: var(--ippo-card-bg, #ffffff);
+  border-radius: var(--ippo-card-radius, 22px);
+  border: var(--ippo-card-border, 1px solid rgba(0, 0, 0, 0.04));
+  box-shadow: var(--ippo-card-shadow, var(--shadow-card, 0 4px 18px rgba(120, 40, 55, 0.14)));
+}
+
 /* ===== REDUCED MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
