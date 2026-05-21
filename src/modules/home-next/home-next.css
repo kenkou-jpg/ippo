@@ -1,0 +1,938 @@
+/* ============================================================
+   ippo – home-next.css v3
+   参考画像 完全対応版 — 静かな高級感 / wellness感
+   ============================================================ */
+
+/* ── CSS変数 ──────────────────────────────────────────────── */
+:root {
+  /* ── Global design tokens (design-system.css と同期) ── */
+  --bg-soft:      var(--ippo-bg-base, #FAF8F5);
+  --card-bg:      var(--ippo-card-bg, #FFFFFF);
+  --border-soft:  rgba(0, 0, 0, 0.04);
+  --shadow-soft:  var(--ippo-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.015));
+  --radius-card:  var(--ippo-card-radius, 20px);
+
+  /* アクセントカラー */
+  --accent-sage:   #9DB095;
+  --accent-terra:  #C4946A;
+  --accent-purple: #A78BFA;
+  --accent-green:  #6FBF73;
+  --accent-orange: #F59E0B;
+
+  /* スペーシングスケール */
+  --space-4:  4px;
+  --space-8:  8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-20: 20px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-40: 40px;
+
+  /* ── Home-next スコープトークン ── */
+  --hn-bg:             var(--ippo-bg-base, #FAF8F5);
+  --hn-card-bg:        var(--ippo-card-bg, #FFFFFF);
+  --hn-card-border:    var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
+  --hn-card-shadow:    var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
+  --hn-card-radius:    var(--ippo-card-radius, 20px);
+  --hn-card-radius-lg: 24px;
+
+  /* テキスト: 温かいグレー系 */
+  --hn-ink:       #2A2320;
+  --hn-ink-mid:   #5A5048;
+  --hn-ink-sec:   #7A6E66;
+  --hn-ink-muted: #AFA298;
+
+  /* アクセント: セージグリーン */
+  --hn-sage:        #9DB095;
+  --hn-sage-mid:    #B0C2A8;
+  --hn-sage-pale:   #EEF3EB;
+
+  /* 痛みドット: テラコッタウォーム */
+  --hn-terra:      #C4946A;
+  --hn-terra-pale: #F5EDE3;
+
+  /* ベージュ系 */
+  --hn-beige:      #E8DDD4;
+  --hn-beige-pale: #F2EDE6;
+  --hn-cream:      #FDFAF6;
+
+  /* ボタニカルグリーン */
+  --hn-leaf:      #C8D8BE;
+  --hn-leaf-dark: #B8C9AC;
+
+  --hn-font:    'DM Sans', -apple-system, 'Noto Sans JP', sans-serif;
+  --hn-font-ja: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
+}
+
+/* ── スクリーン基盤 ──────────────────────────────────────── */
+#screen-home-next {
+  background: var(--hn-bg);
+  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#screen-insights {
+  background: var(--hn-bg);
+}
+
+.hn-scroll {
+  padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+/* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
+/* cal / set は独自コンテンツが sticky ヘッダーとして動作 */
+#cal-header,
+#set-header {
+  position: relative;
+}
+
+/* hn-header / ins-header は .hn-header (position:relative) を子に持つ。
+   コンテナはニュートラルに保ち、見た目は .hn-header 側で制御する。 */
+#hn-header,
+#ins-header {
+  position: static;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  background: transparent;
+}
+
+/* ── Insights: ページタイトル行 ─────────────────────────── */
+/* HOME の .hn-greeting と同じ vertical rhythm を持つ */
+.ins-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px 16px;
+  max-width: 430px;
+  margin: 0 auto;
+}
+
+.ins-page-title {
+  font-family: var(--hn-font-ja);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--hn-ink);
+  letter-spacing: -0.3px;
+  line-height: 1.25;
+}
+
+.ins-pro-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 5px 12px;
+  background: #FFFBEB;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  border-radius: 50px;
+  font-size: 11px;
+  font-family: var(--hn-font-ja);
+  color: rgba(160, 105, 5, 0.8);
+  font-weight: 500;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hn-header {
+  position: relative;
+  background: var(--ippo-header-bg, rgba(250,248,245,0.90));
+  border-bottom: var(--ippo-header-border, 1px solid rgba(42,35,32,0.04));
+}
+
+.hn-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 430px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 72px;
+}
+
+.hn-header-logo {
+  font-family: var(--hn-font);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--hn-ink);
+  letter-spacing: -0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.hn-header-logo-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #A8B99F;
+  margin-bottom: 1px;
+  flex-shrink: 0;
+}
+
+.hn-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hn-header-bell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #8D857E;
+  border-radius: 50%;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+  position: relative;
+}
+
+.hn-header-bell:active { background: rgba(0,0,0,0.04); }
+
+.hn-header-bell svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+/* 未読バッジ */
+.hn-bell-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  background: #C4946A;
+  border-radius: 50%;
+  border: 1.5px solid var(--hn-bg);
+}
+
+.hn-header-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(223,236,216,0.72);
+  border: 1px solid rgba(168,185,159,0.42);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--hn-font);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--hn-sage);
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ── パーソナライズセクション ────────────────────────────── */
+.hn-personalize {
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: var(--hn-card-radius);
+  box-shadow: var(--hn-card-shadow);
+  padding: 16px 18px 14px;
+  margin-bottom: 20px;
+}
+
+/* 疾患タグ行 */
+.hn-ptags-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* 疾患タグ */
+.hn-ptag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px 3px 8px;
+  border-radius: 20px;
+  background: var(--ptag-bg, #EEF3EB);
+  font-family: var(--hn-font-ja);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ptag-color, #9DB095);
+  white-space: nowrap;
+}
+
+.hn-ptag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ptag-color, #9DB095);
+  flex-shrink: 0;
+}
+
+/* 重視項目テキスト */
+.hn-ppriority {
+  font-family: var(--hn-font-ja);
+  font-size: 11.5px;
+  color: var(--hn-ink-sec);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  font-weight: 300;
+}
+
+/* 設定リンク */
+.hn-psettings {
+  font-family: var(--hn-font-ja);
+  font-size: 11.5px;
+  color: var(--hn-sage);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 400;
+  letter-spacing: 0.1px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── アニメーション ──────────────────────────────────────── */
+@keyframes hn-fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hn-scale-in {
+  from { opacity: 0; transform: scale(0.975); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.hn-anim-0  { animation: hn-fade-up  0.38s 0.00s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-1  { animation: hn-scale-in 0.42s 0.06s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-2  { animation: hn-fade-up  0.38s 0.12s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-3  { animation: hn-fade-up  0.38s 0.18s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-4  { animation: hn-fade-up  0.38s 0.24s cubic-bezier(0.23, 1, 0.32, 1) both; }
+.hn-anim-5  { animation: hn-fade-up  0.38s 0.30s cubic-bezier(0.23, 1, 0.32, 1) both; }
+
+/* ── グリーティングセクション ────────────────────────────── */
+.hn-greeting {
+  /* ヘッダーが sticky なので top の safe-area 分は不要 */
+  padding: 12px 0 18px;
+}
+
+.hn-greeting-time {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--hn-ink-muted);
+  letter-spacing: 0.2px;
+  margin-bottom: 3px;
+}
+
+.hn-greeting-name {
+  font-family: var(--hn-font-ja);
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  letter-spacing: -0.2px;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+
+.hn-greeting-sub {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  color: var(--hn-ink-sec);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* ── ヒーローカード ──────────────────────────────────────── */
+.hn-hero {
+  background: var(--hn-cream);
+  border: var(--hn-card-border);
+  border-radius: var(--hn-card-radius-lg);
+  box-shadow: var(--hn-card-shadow);
+  padding: 24px 22px 20px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ボタニカルSVG装飾 (大きめ・存在感) */
+.hn-hero-botanical {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 130px;
+  height: 116px;
+  pointer-events: none;
+  opacity: 0.88;
+}
+
+/* "今日のあなた" ラベル */
+.hn-hero-tag {
+  font-family: var(--hn-font-ja);
+  font-size: 11px;
+  color: var(--hn-sage);
+  letter-spacing: 0.4px;
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* コンテンツエリア (botanical のスペースを確保) */
+.hn-hero-body {
+  max-width: calc(100% - 106px);
+}
+
+.hn-hero-message {
+  font-family: var(--hn-font-ja);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  line-height: 1.65;
+  letter-spacing: 0.05px;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.hn-hero-desc {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  color: var(--hn-ink-sec);
+  line-height: 1.75;
+  margin-top: 12px;
+  font-weight: 300;
+}
+
+.hn-hero-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.048);
+}
+
+.hn-hero-link {
+  font-family: var(--hn-font-ja);
+  font-size: 12px;
+  color: var(--hn-sage);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  letter-spacing: 0.1px;
+  font-weight: 400;
+}
+
+.hn-hero-cycle {
+  font-family: var(--hn-font-ja);
+  font-size: 11px;
+  color: var(--hn-ink-muted);
+  font-weight: 300;
+}
+
+.hn-hero-cycle strong {
+  color: var(--hn-sage);
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+/* ── 状態セクション ──────────────────────────────────────── */
+.hn-section-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hn-section-title {
+  font-family: var(--hn-font-ja);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--hn-ink);
+}
+
+.hn-section-edit {
+  font-family: var(--hn-font-ja);
+  font-size: 12px;
+  color: var(--hn-ink-muted);
+  cursor: pointer;
+  font-weight: 300;
+}
+
+/* ── 状態カード (横4列) ──────────────────────────────────── */
+.hn-sc-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.hn-status-card {
+  flex: 1 1 0;
+  min-width: 0;
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: 16px;
+  box-shadow: var(--hn-card-shadow);
+  padding: 12px 9px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* SVG アイコン */
+.hn-sc-icon {
+  width: 16px;
+  height: 16px;
+  margin-bottom: 3px;
+  color: var(--hn-ink-sec);
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+.hn-sc-icon svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.hn-sc-label {
+  font-family: var(--hn-font-ja);
+  font-size: 10px;
+  color: var(--hn-ink-muted);
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 300;
+}
+
+.hn-sc-value {
+  font-family: var(--hn-font-ja);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 数値表示 (時間・体温など) */
+.hn-sc-value-num {
+  font-family: var(--hn-font);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  line-height: 1.2;
+  letter-spacing: -0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hn-sc-sub {
+  font-family: var(--hn-font-ja);
+  font-size: 10px;
+  color: var(--hn-ink-muted);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 300;
+}
+
+/* ── 棒グラフ (睡眠) ─────────────────────────────────────── */
+.hn-sc-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 18px;
+  margin-top: 5px;
+}
+
+.hn-sc-bar {
+  flex: 1;
+  background: var(--hn-beige);
+  border-radius: 2px;
+  min-height: 3px;
+}
+
+.hn-sc-bar.today {
+  background: var(--hn-sage-mid);
+}
+
+/* ── ドットスケール (痛み) ───────────────────────────────── */
+.hn-sc-dots {
+  display: flex;
+  gap: 3px;
+  margin-top: 5px;
+}
+
+.hn-sc-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--hn-beige);
+  flex-shrink: 0;
+}
+
+.hn-sc-dot.pain-0 { background: var(--hn-sage-pale); }
+.hn-sc-dot.pain-1 { background: var(--hn-sage-mid); }
+.hn-sc-dot.pain-2 { background: #D4A870; }
+.hn-sc-dot.pain-3 { background: var(--hn-terra); }
+.hn-sc-dot.pain-4 { background: #B07050; }
+
+/* ── 気分 SVGフェイス行 ──────────────────────────────────── */
+.hn-mood-row {
+  display: flex;
+  gap: 1px;
+  margin-top: 5px;
+  align-items: center;
+}
+
+.hn-mood-face {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  opacity: 0.18;
+  color: var(--hn-ink-sec);
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.hn-mood-face svg {
+  width: 13px;
+  height: 13px;
+  display: block;
+}
+
+.hn-mood-face.active {
+  opacity: 1;
+  color: var(--hn-sage);
+}
+
+/* ── スパークライン (体温/エネルギー) ────────────────────── */
+.hn-sparkline {
+  width: 100%;
+  height: 18px;
+  margin-top: 5px;
+  overflow: visible;
+}
+
+/* ── 週間ストリップ ──────────────────────────────────────── */
+.hn-week-card {
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: 16px;
+  box-shadow: var(--hn-card-shadow);
+  padding: 20px 16px;
+  margin-bottom: 20px;
+}
+
+.hn-week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.hn-week-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.hn-week-label {
+  font-size: 9px;
+  color: var(--hn-ink-muted);
+  font-family: var(--hn-font-ja);
+  font-weight: 300;
+}
+
+.hn-week-label.today { color: var(--hn-sage); font-weight: 600; }
+
+.hn-week-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--hn-ink-muted);
+  border: 1.5px solid var(--hn-beige);
+}
+
+.hn-week-dot.has-record  { background: var(--hn-sage-pale); border-color: var(--hn-sage-mid); color: var(--hn-sage); }
+.hn-week-dot.is-today    { background: var(--hn-sage); border-color: var(--hn-sage); color: #fff; }
+.hn-week-dot.future      { border-color: var(--hn-beige-pale); opacity: 0.45; }
+
+/* ── optional カード ─────────────────────────────────────── */
+.hn-optional-card {
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: var(--hn-card-radius);
+  box-shadow: var(--hn-card-shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.hn-optional-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.hn-optional-title {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hn-ink);
+}
+
+.hn-optional-badge {
+  font-size: 10px;
+  color: var(--hn-sage);
+  background: var(--hn-sage-pale);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: var(--hn-font-ja);
+}
+
+.hn-optional-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.hn-optional-text-area { flex: 1; }
+
+.hn-optional-main {
+  font-family: var(--hn-font-ja);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  margin-bottom: 4px;
+}
+
+.hn-optional-desc {
+  font-family: var(--hn-font-ja);
+  font-size: 11.5px;
+  color: var(--hn-ink-sec);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.hn-optional-link {
+  font-family: var(--hn-font-ja);
+  font-size: 12px;
+  color: var(--hn-sage);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+/* ドーナツチャート */
+.hn-donut-wrap {
+  width: 72px;
+  height: 72px;
+  flex-shrink: 0;
+}
+
+.hn-donut {
+  transform: rotate(-90deg);
+  transform-origin: center;
+}
+
+/* ── インサイトカード ─────────────────────────────────────── */
+.hn-insight-card {
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: var(--hn-card-radius);
+  box-shadow: var(--hn-card-shadow);
+  padding: 24px 22px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 右下ボタニカルデコ */
+.hn-insight-deco {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 88px;
+  height: 88px;
+  pointer-events: none;
+}
+
+.hn-insight-tag-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.hn-insight-sparkle {
+  font-size: 11px;
+  color: var(--hn-sage);
+}
+
+.hn-insight-tag-label {
+  font-family: var(--hn-font-ja);
+  font-size: 11px;
+  color: var(--hn-sage);
+  letter-spacing: 0.3px;
+  font-weight: 400;
+}
+
+.hn-insight-main {
+  font-family: var(--hn-font-ja);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--hn-ink);
+  line-height: 1.65;
+  margin-bottom: 10px;
+  padding-right: 60px;
+}
+
+.hn-insight-sub {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  color: var(--hn-ink-sec);
+  line-height: 1.75;
+  margin-bottom: 16px;
+  font-weight: 300;
+}
+
+.hn-insight-link {
+  font-family: var(--hn-font-ja);
+  font-size: 12px;
+  color: var(--hn-sage);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-weight: 400;
+}
+
+/* ── クイック記録 ─────────────────────────────────────────── */
+.hn-quick-card {
+  background: var(--hn-card-bg);
+  border: var(--hn-card-border);
+  border-radius: var(--hn-card-radius);
+  box-shadow: var(--hn-card-shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.hn-quick-title {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--hn-ink);
+  margin-bottom: 14px;
+}
+
+.hn-quick-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.hn-quick-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.hn-quick-item:active .hn-quick-icon-wrap {
+  transform: scale(0.91);
+}
+
+.hn-quick-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: var(--hn-beige-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease;
+  color: #8A9480;
+}
+
+.hn-quick-icon-wrap svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.hn-quick-name {
+  font-family: var(--hn-font-ja);
+  font-size: 9.5px;
+  color: var(--hn-ink-sec);
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+  font-weight: 300;
+}
+
+/* トレンドインサイト行 */
+.hn-quick-trend {
+  background: var(--hn-beige-pale);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid #EEE9E4;
+}
+
+.hn-quick-trend-text {
+  font-family: var(--hn-font-ja);
+  font-size: 11px;
+  color: var(--hn-ink-mid);
+  line-height: 1.55;
+  flex: 1;
+  font-weight: 300;
+}
+
+.hn-quick-trend-chart {
+  flex-shrink: 0;
+  width: 52px;
+  height: 24px;
+}
+
+/* ── ユーティリティ ──────────────────────────────────────── */
+.hn-mb        { margin-bottom: 20px; }
+.hn-section   { margin-bottom: 40px; }  /* セクション間の大きな余白 */
+
+/* スクロールバー非表示 */
+.hn-scroll::-webkit-scrollbar { display: none; }
+.hn-scroll { scrollbar-width: none; }

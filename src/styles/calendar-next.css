@@ -1,0 +1,514 @@
+/* ============================================================
+ *  ippo – calendar-next.css
+ *  パターンA: やさしく見渡せるカレンダー  v2 (wellness) 2026
+ *  "月と体のリズムを、静かに見渡す wellness calendar"
+ * ============================================================ */
+
+/* ── スクリーン ── */
+.cn-screen {
+  background: var(--ippo-bg-base);
+  /* 感情温度 overlay は極薄で空気感だけ */
+  background-image: linear-gradient(
+    180deg,
+    var(--ippo-overlay-calendar),
+    transparent 30%
+  );
+}
+
+.cn-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── ページタイトル ── */
+.cn-page-header {
+  padding: 24px 24px 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.cn-page-title-wrap { flex: 1; }
+.cn-page-title {
+  font-family: var(--hn-font-ja, 'Noto Sans JP', sans-serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: #2A2320;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  margin-bottom: 10px;
+}
+.cn-page-subtitle {
+  font-size: 14px;
+  color: rgba(42,35,32,0.54);
+  line-height: 1.8;
+  letter-spacing: -0.005em;
+  max-width: 28ch;
+}
+.cn-today-btn {
+  background: white;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 20px;
+  padding: 7px 16px;
+  font-size: 12px;
+  font-family: var(--font-body);
+  color: rgba(42,35,32,0.65);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+  margin-top: 2px;
+  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.cn-today-btn:active { background: #FEF6F8; }
+.cn-today-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--rose);
+  flex-shrink: 0;
+}
+
+/* ── カード共通 ── */
+.cn-card {
+  margin: 8px 16px;
+  background: var(--ippo-card-bg, #FFFFFF);
+  border-radius: var(--ippo-card-radius, 20px);
+  padding: 20px 18px 18px;
+  border: var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
+  box-shadow: var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
+}
+.cn-scroll > .cn-card:first-of-type {
+  margin-top: 20px;
+}
+
+/* ── 月ナビ ── */
+.cn-month-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cn-nav-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.8);
+  color: rgba(42,35,32,0.5);
+  font-size: 17px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.cn-nav-btn:active { background: #FEF0F3; }
+.cn-month-center { text-align: center; flex: 1; }
+.cn-month-label {
+  font-family: var(--hn-font-ja, 'Noto Sans JP', sans-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: #2A2320;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  letter-spacing: 0.01em;
+}
+.cn-month-label::after {
+  content: '▾';
+  font-size: 9px;
+  color: rgba(42,35,32,0.35);
+}
+.cn-wareki-label {
+  font-size: 10px;
+  color: rgba(42,35,32,0.4);
+  margin-top: 3px;
+  letter-spacing: 0.04em;
+}
+
+/* ── 曜日ヘッダー ── */
+.cn-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  margin-bottom: 6px;
+}
+.cn-wd {
+  text-align: center;
+  font-size: 10px;
+  color: rgba(42,35,32,0.35);
+  padding: 4px 0 8px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+.cn-wd.cn-wd--sun { color: rgba(200,80,100,0.6); }
+.cn-wd.cn-wd--sat { color: rgba(100,110,200,0.6); }
+
+/* ── カレンダーグリッド ── */
+.cn-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  row-gap: 0;
+  column-gap: 0;
+}
+
+/* ── 日付セル ── */
+.cn-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding: 14px 0 12px;
+
+  gap: 4px;
+
+  cursor: pointer;
+  position: relative;
+  background: transparent;
+  transition: background 0.12s;
+  border-radius: 6px;
+}
+.cn-cell:active { background: rgba(200,116,123,0.06); }
+.cn-cell--other { opacity: 0.28; pointer-events: none; }
+.cn-cell--sun .cn-cell-day { color: rgba(200,80,100,0.8); }
+.cn-cell--sat .cn-cell-day { color: rgba(100,110,200,0.75); }
+
+/* 今日 — 背景円のみ変化。月相・旧暦の位置は絶対固定・layout shift禁止 */
+.cn-cell--today::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #E4A7AE;
+  opacity: 0.88;
+  box-shadow: 0 3px 10px rgba(217,143,154,0.18);
+  z-index: 0;
+  pointer-events: none;
+}
+.cn-cell--today .cn-cell-day {
+  color: #fff;
+  font-weight: 600;
+  position: relative;
+  z-index: 1;
+}
+/* 月相・旧暦は today でも位置変化なし */
+.cn-cell--today .cn-moon,
+.cn-cell--today .cn-cell-lunar {
+  position: relative;
+  z-index: 1;
+}
+
+/* 周期フェーズ — 極淡・自然なリズム */
+.cn-cell--period       { background: rgba(245,165,178,0.12); }
+.cn-cell--ovulation-pre { background: rgba(243,200,122,0.1); }
+.cn-cell--ovulation-day { background: rgba(243,200,122,0.18); }
+.cn-cell--fertile      { background: rgba(168,221,181,0.12); }
+.cn-cell--high-temp    { background: rgba(245,200,174,0.12); }
+.cn-cell--low-temp     { background: rgba(184,184,248,0.1); }
+
+/* フェーズドット（極小・セル下部） */
+.cn-cell::after {
+  content: '';
+  display: none;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0.7;
+}
+.cn-cell--period::after      { display: block; background: #F5A5B2; }
+.cn-cell--ovulation-pre::after { display: block; background: #F3C87A; }
+.cn-cell--ovulation-day::after { display: block; background: #E8AE50; }
+.cn-cell--fertile::after     { display: block; background: #A8DDB5; }
+.cn-cell--high-temp::after   { display: block; background: #F5C8AE; }
+.cn-cell--low-temp::after    { display: block; background: #B8B8F8; }
+
+/* 記録あり */
+.cn-cell--has-record:not(.cn-cell--today) .cn-cell-day::after {
+  content: '';
+  display: block;
+  width: 3px;
+  height: 3px;
+  background: rgba(200,116,123,0.5);
+  border-radius: 50%;
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.cn-cell-day { position: relative; }
+
+/* ── セル内要素 ── */
+.cn-cell-day {
+  font-size: 15px;
+  font-weight: 500;
+  color: #2A2320;
+  line-height: 1;
+  text-align: center;
+  min-width: 26px;
+}
+
+/* ── 月相 SVG天体 ── */
+/* 全フェーズで同一viewBox(0 0 24 24)・同一サイズ。CSS補正禁止 */
+.cn-moon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  line-height: 0;
+  position: relative;
+  z-index: 1; /* 今日の背景円の上 */
+}
+.cn-moon svg {
+  width: 26px;
+  height: 26px;
+
+  display: block;
+  overflow: visible; /* クレーターがclipされないよう */
+}
+.cn-moon--sm {
+  width: 20px;
+  height: 20px;
+}
+.cn-moon--sm svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── 旧暦テキスト ── */
+/* "時間の余韻"として置く — opacity は color で表現し二重適用しない */
+.cn-cell-lunar {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(42,35,32,0.52);
+
+  text-align: center;
+  line-height: 1.4;
+
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+
+  opacity: 0.72;
+}
+
+/* ── 凡例 ── */
+.cn-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+.cn-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  color: rgba(42,35,32,0.45);
+  letter-spacing: 0.02em;
+}
+.cn-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.cn-dot.period       { background: #F5A5B2; }
+.cn-dot.ovulation    { background: #F3C87A; }
+.cn-dot.ovulation-day{ background: #E8AE50; }
+.cn-dot.fertile      { background: #A8DDB5; }
+.cn-dot.low-temp     { background: #B8B8F8; }
+.cn-dot.high-temp    { background: #F5C8AE; }
+
+/* ── section header ── */
+.cn-section-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 18px;
+}
+.cn-section-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+  flex-shrink: 0;
+}
+.cn-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #2A2320;
+  flex: 1;
+  letter-spacing: 0.01em;
+}
+.cn-record-btn {
+  background: var(--rose);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 7px 16px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: opacity 0.15s;
+  box-shadow: 0 2px 6px rgba(200,116,123,0.25);
+}
+.cn-record-btn:active { opacity: 0.8; }
+.cn-report-btn {
+  background: rgba(200,116,123,0.06);
+  color: rgba(184,112,122,0.9);
+  border: none;
+  border-radius: 14px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cn-report-btn:active { background: rgba(200,116,123,0.12); }
+
+/* ── 今日のからだメモ ── */
+.cn-memo-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+.cn-memo-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 10px;
+}
+.cn-memo-item:first-child { padding-left: 0; }
+.cn-memo-item:last-child  { padding-right: 0; }
+.cn-memo-item + .cn-memo-item {
+  border-left: 1px solid rgba(0,0,0,0.05);
+}
+.cn-memo-label {
+  font-size: 10px;
+  color: rgba(42,35,32,0.45);
+  letter-spacing: 0.04em;
+}
+.cn-memo-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #2A2320;
+  font-family: var(--font-serif);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+.cn-memo-value--cycle { color: var(--rose); }
+.cn-memo-moon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2A2320;
+}
+.cn-memo-sub {
+  font-size: 10px;
+  color: rgba(42,35,32,0.4);
+  margin-top: -2px;
+}
+.cn-memo-care {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(42,35,32,0.7);
+  line-height: 1.75;
+  flex: 1;
+}
+
+/* ── 今月のふりかえり ── */
+.cn-summary-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+}
+.cn-summary-item {
+  text-align: center;
+  padding: 0 8px;
+}
+.cn-summary-item + .cn-summary-item {
+  border-left: 1px solid rgba(0,0,0,0.05);
+}
+.cn-summary-label {
+  font-size: 10px;
+  color: rgba(42,35,32,0.45);
+  margin-bottom: 5px;
+  letter-spacing: 0.03em;
+}
+.cn-summary-value {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 700;
+  color: #2A2320;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+.cn-summary-value--accent { color: var(--rose); font-size: 18px; letter-spacing: 0; }
+.cn-summary-unit {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(42,35,32,0.5);
+  margin-left: 1px;
+  font-family: var(--font-body);
+}
+/* =========================
+   Moon Event UI
+========================= */
+
+.cn-cell--full-moon .cn-moon {
+  transform: scale(1.12);
+}
+
+.cn-cell--new-moon .cn-moon {
+  transform: scale(1.12);
+}
+
+.cn-moon-event {
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+
+  font-size: 9px;
+
+  font-weight: 600;
+  line-height: 1.2;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  align-self: center;
+
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+.cn-moon-event--full {
+  background: #F6D67A;
+  color: #5B4638;
+}
+
+.cn-moon-event--new {
+  background: #2E3138;
+  color: #FFFFFF;
+}

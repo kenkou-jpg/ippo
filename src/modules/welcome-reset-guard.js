@@ -12,11 +12,12 @@
 import {
   getRecords,
 } from './record-repository.js';
+import { getState } from '../store/state.js';
 import './record-edit-save-identity-guard.js';
 import './record-freshness-guard.js';
 import './ui-transition-ownership-runtime.js';
-import './ui-drift-suppression-runtime.js';
 import './daily-record-card-guard.js';
+import { showScreen, getCurrentScreen } from './screen-router.js';
 
 function debug(label, detail) {
   try {
@@ -107,28 +108,24 @@ function hasRecords() {
 }
 
 function hasProfile() {
-  const state = window.state || {};
-  return !!(
-    state.userName ||
-    state.nickname ||
-    state.profile ||
-    state.user ||
-    state.diseases ||
-    state.lastPeriodDate
-  );
+  const state = getState();
+  // state.name is what init() checks to decide whether to call showMain().
+  // Do NOT include lastPeriodDate — it's written during onboarding step 3
+  // before the user completes setup, causing false positives that block the
+  // welcome screen for users who never finished onboarding.
+  return !!(state.name);
 }
 
 function onboardingCompleted() {
-  const state = window.state || {};
-
+  const state = getState();
+  // Mirror init()'s own check: if state.name is set init() calls showMain(),
+  // meaning onboarding was finished. state._onboardingDone is set explicitly
+  // by completeOnboarding(). hasRecords() is the fallback for users who have
+  // real data regardless of the flag.
   return !!(
-    state.onboardingCompleted ||
-    state.hasCompletedOnboarding ||
-    state.onboardingDone ||
-    localStorage.getItem('ippo_onboarding_completed') === '1' ||
-    localStorage.getItem('onboardingCompleted') === '1' ||
-    hasRecords() ||
-    hasProfile()
+    state._onboardingDone ||
+    state.name ||
+    hasRecords()
   );
 }
 
@@ -137,26 +134,15 @@ function shouldBlockWelcome() {
 }
 
 function ensureMainAppVisible(source) {
-  const main = document.getElementById('main-app');
-  const welcome = document.getElementById('screen-welcome');
-
-  if (!main || !welcome) return;
-
   if (!shouldBlockWelcome()) return;
+  if (!document.getElementById('main-app')) return;
 
-  main.style.display = '';
-  welcome.style.display = 'none';
+  showScreen(getCurrentScreen());
 
-  if (!document.querySelector('.screen.active')) {
-    const home = document.getElementById('screen-home');
-    if (home) {
-      home.classList.add('active');
-      markUiTransition('active-screen-reconciled', {
-        target: 'home',
-        source: source || 'welcome-reset-guard:ensure-main-app-visible',
-      });
-    }
-  }
+  markUiTransition('active-screen-reconciled', {
+    target: getCurrentScreen(),
+    source: source || 'welcome-reset-guard:ensure-main-app-visible',
+  });
 
   debug('main-app-restored', {
     records: getRecords().length,
@@ -276,47 +262,6 @@ function wrapFunction(name) {
   return true;
 }
 
-function installMutationGuard() {
-  if (window.__ippoWelcomeMutationGuardInstalled === true) return;
-  window.__ippoWelcomeMutationGuardInstalled = true;
-
-  const observer = new MutationObserver(function() {
-    if (!shouldBlockWelcome()) return;
-
-    const welcome = document.getElementById('screen-welcome');
-    const main = document.getElementById('main-app');
-
-    if (!welcome || !main) return;
-
-    const welcomeVisible = welcome.style.display !== 'none';
-    const mainHidden = main.style.display === 'none';
-
-    if (welcomeVisible || mainHidden) {
-      debug('mutation-restore', {
-        welcomeVisible,
-        mainHidden,
-      });
-      markUiTransition('welcome-mutation-replay-suppressed', {
-        target: 'welcome',
-        source: 'welcome-reset-guard:mutation-observer',
-        detail: {
-          welcomeVisible,
-          mainHidden,
-        },
-      });
-      ensureMainAppVisible('welcome-reset-guard:mutation-restore');
-      markFreshness('welcome-guard:mutation-restore');
-    }
-  });
-
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['style', 'class'],
-  });
-}
-
 function install() {
   wrapFunction('showScreen');
   wrapFunction('switchTab');
@@ -325,23 +270,11 @@ function install() {
   wrapFunction('obComplete');
   wrapFunction('obSkipAll');
 
-  installMutationGuard();
   ensureMainAppVisible('welcome-reset-guard:install');
   markFreshness('welcome-guard:install');
 }
 
 install();
-
-let attempts = 0;
-const timer = window.setInterval(function() {
-  attempts++;
-  install();
-  ensureMainAppVisible('welcome-reset-guard:retry-install');
-
-  if (attempts >= 40) {
-    window.clearInterval(timer);
-  }
-}, 250);
 
 window.ippoWelcomeResetGuardSummary = function() {
   return {
@@ -349,8 +282,8 @@ window.ippoWelcomeResetGuardSummary = function() {
     shouldBlockWelcome: shouldBlockWelcome(),
     recordsLength: getRecords().length,
     hasProfile: hasProfile(),
-    welcomeVisible: document.getElementById('screen-welcome')?.style.display !== 'none',
-    mainAppVisible: document.getElementById('main-app')?.style.display !== 'none',
+    currentScreen: getCurrentScreen(),
+    mainAppVisible: getCurrentScreen() !== 'welcome',
     editSaveIdentityGuardLoaded: typeof window.ippoEditSaveIdentityGuardSummary === 'function',
     recordFreshnessGuardLoaded: typeof window.ippoRecordFreshnessGuardSummary === 'function',
     uiTransitionOwnershipLoaded: typeof window.ippoUiTransitionOwnershipSummary === 'function',

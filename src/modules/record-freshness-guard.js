@@ -15,6 +15,7 @@ import {
   getRecordDate,
   getRecords,
 } from './record-repository.js';
+import { getState, setState, saveState } from '../store/state.js';
 
 const FRESHNESS_KEY = '__IPPO_RECORD_FRESHNESS_GUARD';
 const MAX_EVENTS = 160;
@@ -167,20 +168,20 @@ function traceReconnect(phase, payload) {
 function setActiveRecords(records) {
   const nextRecords = cloneRecords(records);
 
-  if (!window.state || typeof window.state !== 'object') {
-    window.state = {};
+  var s = getState();
+  if (!s || typeof s !== 'object') {
+    setState({});
+    s = getState();
   }
 
-  window.state.records = nextRecords;
+  s.records = nextRecords;
   return nextRecords;
 }
 
 function persistFreshnessRepair(detail) {
   try {
-    if (typeof window.saveState === 'function') {
-      window.saveState();
-      traceFreshness('rollback-repair-persisted', detail);
-    }
+    saveState();
+    traceFreshness('rollback-repair-persisted', detail);
   } catch (error) {
     traceFreshness('rollback-repair-persist-failed', {
       ...detail,
@@ -282,7 +283,7 @@ function installRecordFreshnessReconnectListeners() {
       const before = markRecordFreshness('network:online-before-sync-observed');
       traceReconnect('online-before-sync-observed', before);
 
-      window.setTimeout(function() {
+      setTimeout(function() {
         const after = markRecordFreshness('network:online-post-microtask-observed');
         traceReconnect('online-post-microtask-observed', after);
       }, 0);

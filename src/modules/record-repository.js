@@ -3,18 +3,19 @@
 //  Phase 3-F-1: readonly record repository
 //  Phase 3-F-3: storage/sync diagnostics
 //  Hotfix: resilient edit-date record resolution
+//  Priority 4: legacy fallback 削除 / getState() 経由に統一
 //
 //  目的:
-//  - record読み取り処理を段階的に共通化する
+//  - record読み取り処理を共通化する
 //  - saveRecordScreen / Supabase / localStorage書き込みは変更しない
-//  - 旧キー互換を維持しつつ、state.recordsを正本候補として扱う
-//  - state/localStorage間のズレを診断できるようにする
+//  - legacy key (kk_records / records) は Step 4-1 で移行済みのため削除
 // ============================================================
 
+import { STATE_KEY, getState } from '../store/state.js';
+
+// 後方互換: 外部から参照している箇所向けに state キーのみ公開
 export const RECORD_STORAGE_KEYS = Object.freeze({
-  state: 'ippo_state',
-  legacyKkRecords: 'kk_records',
-  legacyRecords: 'records',
+  state: STATE_KEY,
 });
 
 export function getRecordDate(record) {
@@ -76,7 +77,10 @@ export function normalizeRecordDate(value) {
 
   const jpNoYear = text.match(/(\d{1,2})月\s*(\d{1,2})日/);
   if (jpNoYear) {
-    const year = new Date().getFullYear();
+    const now   = new Date();
+    const month = parseInt(jpNoYear[1], 10);
+    // 年またぎ補正: 現在月より大きい月は前年と判定
+    const year  = month > now.getMonth() + 1 ? now.getFullYear() - 1 : now.getFullYear();
     return [year, jpNoYear[1].padStart(2, '0'), jpNoYear[2].padStart(2, '0')].join('-');
   }
 
@@ -143,26 +147,16 @@ function recordsFromKey(key) {
 }
 
 export function getRecordsFromLocalStorage() {
-  const sources = [
-    RECORD_STORAGE_KEYS.state,
-    RECORD_STORAGE_KEYS.legacyKkRecords,
-    RECORD_STORAGE_KEYS.legacyRecords,
-  ];
-
-  for (const key of sources) {
-    const records = recordsFromKey(key);
-    if (records.length > 0) return records;
-  }
-
-  return [];
+  return recordsFromKey(STATE_KEY);
 }
 
 export function getRecords() {
-  if (Array.isArray(window.state?.records)) return window.state.records;
+  const s = getState();
+  if (Array.isArray(s?.records)) return s.records;
   return getRecordsFromLocalStorage();
 }
 
-function getRecordDateCandidates(record) {
+export function getRecordDateCandidates(record) {
   if (!record) return [];
 
   const raw = [
@@ -212,53 +206,42 @@ export function findRecordIndexByDate(date) {
 }
 
 export function getRecordsSnapshot() {
-  const stateRecords = Array.isArray(window.state?.records) ? window.state.records : null;
-  const ippoStateRecords = recordsFromKey(RECORD_STORAGE_KEYS.state);
-  const kkRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyKkRecords);
-  const legacyRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyRecords);
+  const s = getState();
+  const stateRecords = Array.isArray(s?.records) ? s.records : null;
+  const ippoStateRecords = recordsFromKey(STATE_KEY);
 
   return {
     source: stateRecords ? 'state.records' : 'localStorage',
     stateRecordsLength: stateRecords ? stateRecords.length : null,
     ippoStateRecordsLength: ippoStateRecords.length,
-    kkRecordsLength: kkRecords.length,
-    legacyRecordsLength: legacyRecords.length,
     activeRecordsLength: getRecords().length,
   };
 }
 
 export function getRecordStorageDiagnostics(label) {
-  const stateRecords = Array.isArray(window.state?.records) ? window.state.records : [];
-  const ippoStateRecords = recordsFromKey(RECORD_STORAGE_KEYS.state);
-  const kkRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyKkRecords);
-  const legacyRecords = recordsFromKey(RECORD_STORAGE_KEYS.legacyRecords);
+  const s = getState();
+  const stateRecords = Array.isArray(s?.records) ? s.records : [];
+  const ippoStateRecords = recordsFromKey(STATE_KEY);
 
   const summaries = {
     state: summarizeRecords(stateRecords),
     ippoState: summarizeRecords(ippoStateRecords),
-    kkRecords: summarizeRecords(kkRecords),
-    legacyRecords: summarizeRecords(legacyRecords),
   };
 
   const stateHash = summaries.state.hash;
   const ippoHash = summaries.ippoState.hash;
-  const kkHash = summaries.kkRecords.hash;
-  const legacyHash = summaries.legacyRecords.hash;
 
   return {
     label: label || '',
     checkedAt: new Date().toISOString(),
-    activeSource: Array.isArray(window.state?.records) ? 'state.records' : 'localStorage',
-    hasWindowState: !!window.state,
+    activeSource: Array.isArray(s?.records) ? 'state.records' : 'localStorage',
+    hasWindowState: typeof window.getState === 'function' && !!window.getState(),
     hasSaveState: typeof window.saveState === 'function',
     hasCloudBackupAll: typeof window.cloudBackupAll === 'function',
     hasCloudRestore: typeof window.cloudRestore === 'function',
     summaries: summaries,
     consistency: {
       stateMatchesIppoState: stateHash === ippoHash,
-      stateMatchesKkRecords: stateHash === kkHash,
-      ippoStateMatchesKkRecords: ippoHash === kkHash,
-      legacyRecordsMatchesState: legacyHash === stateHash,
     },
     warnings: buildDiagnosticsWarnings(summaries),
   };
@@ -273,14 +256,6 @@ function buildDiagnosticsWarnings(summaries) {
 
   if (summaries.state.hash !== summaries.ippoState.hash) {
     warnings.push('state.records and ippo_state.records hash differ');
-  }
-
-  if (summaries.kkRecords.length > 0 && summaries.kkRecords.hash !== summaries.state.hash) {
-    warnings.push('legacy kk_records differs from state.records');
-  }
-
-  if (summaries.legacyRecords.length > 0 && summaries.legacyRecords.hash !== summaries.state.hash) {
-    warnings.push('legacy records differs from state.records');
   }
 
   return warnings;

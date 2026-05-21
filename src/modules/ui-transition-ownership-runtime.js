@@ -11,6 +11,8 @@
 // - suppression is limited to stale replay candidates
 // ============================================================
 
+import { getState } from '../store/state.js';
+
 const UI_TRANSITION_KEY = '__IPPO_UI_TRANSITION_OWNERSHIP';
 const MAX_EVENTS = 250;
 const STALE_WINDOW_MS = 1500;
@@ -109,7 +111,7 @@ function getActiveScreenSnapshot() {
 
 function hasRecords() {
   try {
-    if (Array.isArray(window.state?.records) && window.state.records.length > 0) return true;
+    if (Array.isArray(getState()?.records) && getState().records.length > 0) return true;
     if (typeof window.ippoRecordStorageSnapshot === 'function') {
       const snapshot = window.ippoRecordStorageSnapshot();
       return (snapshot?.activeRecordsLength || 0) > 0;
@@ -119,7 +121,7 @@ function hasRecords() {
 }
 
 function hasProfile() {
-  const state = window.state || {};
+  const state = getState() || {};
   return !!(
     state.userName ||
     state.nickname ||
@@ -131,7 +133,7 @@ function hasProfile() {
 }
 
 function onboardingCompleted() {
-  const state = window.state || {};
+  const state = getState() || {};
   try {
     return !!(
       state.onboardingCompleted ||

@@ -20,11 +20,9 @@ import {
   finalizeRecordSaveContext,
   verifyRecordSaveContext,
   getRecordSaveNotifyCandidates,
-} from './record-save-pipeline.js';
+} from './record/save.js';
+import { switchTab } from './tab-navigation.js';
 
-import {
-  runRecordSaveThinOrchestrator,
-} from './record-save-orchestrator.js';
 
 let lastRecordSaveContext = null;
 let activeRecordSaveContext = null;
@@ -45,18 +43,15 @@ function traceRecord(label, detail) {
 }
 
 function getRecordTraceSnapshot() {
-  const state = window.state || {};
-  let kkRecords = null;
+  const state = (typeof window.getState === 'function' ? window.getState() : null) || {};
   let ippoState = null;
 
-  try { kkRecords = localStorage.getItem('kk_records'); } catch(e) {}
   try { ippoState = localStorage.getItem('ippo_state'); } catch(e) {}
 
   return {
-    hasWindowState: !!window.state,
+    hasWindowState: typeof window.getState === 'function' && !!window.getState(),
     stateRecordsLength: Array.isArray(state.records) ? state.records.length : null,
     hasWindowSupabase: !!window.supabase,
-    kkRecordsLength: kkRecords ? kkRecords.length : 0,
     ippoStateLength: ippoState ? ippoState.length : 0,
   };
 }
@@ -228,13 +223,7 @@ function wrapSaveRecordScreen() {
 
     try {
       const result = withRecordSavePipelineDelegates(function() {
-        return runRecordSaveThinOrchestrator({
-          label: 'saveRecordScreen',
-          context: context,
-          execute: function executeOriginalSaveRecordScreen() {
-            return fn.apply(self, args);
-          },
-        });
+        return fn.apply(self, args);
       }, context);
 
       if (result && typeof result.then === 'function') {
@@ -276,52 +265,22 @@ function installSaveRecordScreenTrace() {
   if (wrapSaveRecordScreen()) return;
 
   let attempts = 0;
-  const timer = window.setInterval(function() {
+  const timer = setInterval(function() {
     attempts++;
     if (wrapSaveRecordScreen() || attempts >= 20) {
-      window.clearInterval(timer);
+      clearInterval(timer);
     }
   }, 250);
+  // EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+  if (window.ippoTimerRegistry) {
+    window.ippoTimerRegistry.register(timer, 'record', 'interval',
+      'saveRecordScreen-wrap-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+  }
 }
 
 export function openRecordScreen() {
   traceRecord('openRecordScreen:start', getRecordTraceSnapshot());
-
-  if (typeof window.switchTab === 'function') {
-    traceRecord('openRecordScreen:route:switchTab', { tab: 'record' });
-    window.switchTab('record');
-    return;
-  }
-
-  if (typeof window.showScreen === 'function') {
-    traceRecord('openRecordScreen:route:showScreen', { screen: 'record' });
-    window.showScreen('record');
-    return;
-  }
-
-  const mainApp = document.getElementById('main-app');
-  const welcome = document.getElementById('screen-welcome');
-  const recordScreen = document.getElementById('screen-record');
-
-  traceRecord('openRecordScreen:route:fallback', {
-    hasMainApp: !!mainApp,
-    hasWelcome: !!welcome,
-    hasRecordScreen: !!recordScreen,
-  });
-
-  if (mainApp) mainApp.style.display = '';
-  if (welcome) welcome.style.display = 'none';
-
-  document.querySelectorAll('.screen, .app-screen').forEach(function(screen) {
-    screen.classList.remove('active');
-  });
-
-  if (recordScreen) recordScreen.classList.add('active');
-
-  if (typeof window.renderRecordHeader === 'function') {
-    window.renderRecordHeader();
-  }
-
+  switchTab('record');
   traceRecord('openRecordScreen:end', getRecordTraceSnapshot());
 }
 
@@ -383,7 +342,11 @@ const exportedFunctions = {
 };
 
 // window 互換維持
-window.openRecordScreen = openRecordScreen;
+// openRecordScreen はインライン実装がフォーム初期化（renderSymptomLayers等）を行うため、
+// 既存実装がある場合はそちらを優先し、モジュール版で上書きしない。
+if (typeof window.openRecordScreen !== 'function') {
+  window.openRecordScreen = openRecordScreen;
+}
 window.enableRecordTrace = enableRecordTrace;
 window.disableRecordTrace = disableRecordTrace;
 window.ippoLastRecordSaveContext = getLastRecordSaveContext;

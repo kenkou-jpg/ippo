@@ -15,6 +15,8 @@ import {
   findRecordByDate,
   getRecords,
 } from './record-repository.js';
+import { getState, saveState } from '../store/state.js';
+import { cloudBackupAll } from '../services/supabase.js';
 
 function debug(label, detail) {
   try {
@@ -65,13 +67,13 @@ function empty(value) {
 }
 
 function getActiveEditDate() {
+  const s = getState();
+  const _editingModuleDate = window.ippoEditingState ? window.ippoEditingState.getEditingState().date : null;
   const candidates = [
-    window.__ippoActiveEditDate,
-    window.currentEditingDate,
-    window.editingDate,
-    window.state?.currentEditingDate,
-    window.state?.editingDate,
-    window.state?.recordDate,
+    _editingModuleDate,
+    s?.currentEditingDate,
+    s?.editingDate,
+    s?.recordDate,
   ];
 
   for (const candidate of candidates) {
@@ -282,19 +284,15 @@ function repairDuplicateDatesAfterSave() {
   });
 
   try {
-    if (typeof window.saveState === 'function') {
-      window.saveState();
-      markSavePhase('duplicate-date-repair-persisted', { repaired });
-    }
+    saveState();
+    markSavePhase('duplicate-date-repair-persisted', { repaired });
   } catch(e) {
     markSavePhase('duplicate-date-repair-persist-failed', { message: e && e.message });
   }
 
   try {
-    if (typeof window.cloudBackupAll === 'function') {
-      markSyncEvent('duplicate-date-repair-sync', { repaired });
-      window.cloudBackupAll();
-    }
+    markSyncEvent('duplicate-date-repair-sync', { repaired });
+    cloudBackupAll();
   } catch(e) {
     markSyncEvent('duplicate-date-repair-sync-failed', { message: e && e.message });
   }
@@ -351,11 +349,16 @@ function install() {
 install();
 
 let attempts = 0;
-const timer = window.setInterval(function() {
+const timer = setInterval(function() {
   attempts++;
   install();
-  if (attempts >= 40) window.clearInterval(timer);
+  if (attempts >= 40) clearInterval(timer);
 }, 250);
+// EL-4: timer-registry に登録（診断・強制クリーンアップ用）
+if (window.ippoTimerRegistry) {
+  window.ippoTimerRegistry.register(timer, 'record-edit-save-identity-guard', 'interval',
+    'install-retry', 250, window.ippoTimerRegistry.TYPES.HYDRATION);
+}
 
 window.ippoEditSaveIdentityGuardSummary = function() {
   const editDate = getActiveEditDate();

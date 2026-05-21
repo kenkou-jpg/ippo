@@ -1,210 +1,1284 @@
+﻿
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://cdn.jsdelivr.net https://ekaoojdqhkpeudujfsdh.supabase.co; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://ekaoojdqhkpeudujfsdh.supabase.co https://api.stripe.com https://api.anthropic.com https://cdn.jsdelivr.net; frame-src https://js.stripe.com; upgrade-insecure-requests;">
 
-  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ippo — 女性疾患・症状記録アプリ</title>
+<meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。生理周期・痛み・気分を可視化し、30日後にあなただけのからだのパターンが見えてきます。">
+<meta name="theme-color" content="#b8707a">
+  <!-- OGP Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="images/icon-512.png">
 
-  <title>ippo — 女性疾患・症状記録アプリ</title>
-  <meta name="description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。">
-  <meta name="theme-color" content="#b8707a">
+<meta property="og:title" content="ippo – からだの声を聴くセルフケア記録">
+<meta property="og:description" content="子宮内膜症・PCOS・子宮筋腫など女性疾患の症状を毎日記録。30日後、あなただけのからだのパターンが見えてきます。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ippo-app.com/app.html">
+<meta property="og:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
+<meta property="og:site_name" content="ippo">
+<meta property="og:locale" content="ja_JP">
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ippo – からだの声を聴くセルフケア記録">
+<meta name="twitter:description" content="生理周期・食事・ファスティングタイムを毎日1分で記録。あなただけのパターンを発見。">
+<meta name="twitter:image" content="https://ippo-app.com/ippo/images/ogp-image.png">
+<!-- Favicon -->
+<link rel="icon" href="images/icon-192.png" type="image/png">
 
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="images/icon-512.png">
-  <link rel="icon" href="images/icon-192.png" type="image/png">
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="./src/styles/app.css">
-
-  <style>
-    #ippo-boot-fallback[hidden] { display: none !important; }
-    #ippo-boot-fallback {
-      min-height: 100vh;
-      padding: 40px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #fdf8f6;
-      color: #2d1f1a;
-      font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    .ippo-boot-fallback-card {
-      width: min(100%, 360px);
-      padding: 28px 24px;
-      border-radius: 24px;
-      background: #ffffff;
-      box-shadow: 0 12px 36px rgba(200,120,140,0.14);
-      text-align: center;
-    }
-    .ippo-boot-fallback-logo {
-      margin-bottom: 12px;
-      font-family: 'Shippori Mincho', serif;
-      font-size: 24px;
-      letter-spacing: 0.08em;
-      color: #b8707a;
-    }
-    .ippo-boot-fallback-title {
-      margin-bottom: 10px;
-      font-family: 'Shippori Mincho', serif;
-      font-size: 20px;
-      line-height: 1.55;
-    }
-    .ippo-boot-fallback-text {
-      margin-bottom: 20px;
-      color: #8a7a70;
-      font-size: 13px;
-      line-height: 1.8;
-    }
-    .ippo-boot-fallback-button {
-      width: 100%;
-      padding: 13px 16px;
-      border: 0;
-      border-radius: 999px;
-      background: #b8707a;
-      color: #ffffff;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .ippo-boot-fallback-note {
-      margin-top: 14px;
-      color: #8a7a70;
-      font-size: 11px;
-      line-height: 1.7;
-    }
-  </style>
-
-  <script>
-    (function installIppoBootFallbackWatchdog() {
-      var state = window.__IPPO_BOOT_FALLBACK__ = window.__IPPO_BOOT_FALLBACK__ || {
-        installedAt: new Date().toISOString(),
-        errors: [],
-        fallbackShown: false,
-        checks: []
-      };
-
-      function recordError(type, event) {
-        try {
-          var message = '';
-          if (event && event.reason) {
-            message = event.reason.message || String(event.reason);
-          } else if (event && event.message) {
-            message = event.message;
-          } else {
-            message = String(event || type);
-          }
-          state.errors.push({
-            type: type,
-            message: message,
-            at: new Date().toISOString()
-          });
-          if (state.errors.length > 20) state.errors.shift();
-        } catch (_) {}
-      }
-
-      window.addEventListener('error', function(event) {
-        recordError('error', event);
-      });
-
-      window.addEventListener('unhandledrejection', function(event) {
-        recordError('unhandledrejection', event);
-      });
-
-      function hasRenderedApp() {
-        var app = document.getElementById('app');
-        if (!app) return false;
-        if (app.children && app.children.length > 0) return true;
-        if ((app.textContent || '').trim().length > 0) return true;
-        if (document.querySelector('.screen.active, .app-screen.active, #main-app, #screen-welcome')) return true;
-        return false;
-      }
-
-      function showFallback(reason) {
-        if (hasRenderedApp()) return;
-        var fallback = document.getElementById('ippo-boot-fallback');
-        if (!fallback) return;
-        fallback.hidden = false;
-        state.fallbackShown = true;
-        state.fallbackReason = reason || 'blank-screen-timeout';
-        state.fallbackShownAt = new Date().toISOString();
-      }
-
-      function runCheck(reason) {
-        var rendered = hasRenderedApp();
-        state.checks.push({
-          reason: reason || 'manual',
-          rendered: rendered,
-          fallbackShown: state.fallbackShown,
-          at: new Date().toISOString()
-        });
-        if (state.checks.length > 30) state.checks.shift();
-        if (rendered) {
-          var fallback = document.getElementById('ippo-boot-fallback');
-          if (fallback) fallback.hidden = true;
-          return true;
-        }
-        return false;
-      }
-
-      window.ippoBootFailureSummary = function ippoBootFailureSummary() {
-        return {
-          installedAt: state.installedAt,
-          fallbackShown: state.fallbackShown,
-          fallbackReason: state.fallbackReason || null,
-          fallbackShownAt: state.fallbackShownAt || null,
-          rendered: hasRenderedApp(),
-          viteReady: !!window.__ippoViteReady,
-          bootSummaryReady: typeof window.ippoBootSummary === 'function',
-          startupVerifyReady: typeof window.ippoStartupVerifySummary === 'function',
-          errors: state.errors.slice(),
-          checks: state.checks.slice(),
-          url: String(window.location.href)
-        };
-      };
-
-      window.ippoRunBootFallbackCheck = runCheck;
-
-      window.setTimeout(function() { runCheck('boot-watchdog-1500ms'); }, 1500);
-      window.setTimeout(function() {
-        if (!runCheck('boot-watchdog-5000ms')) {
-          showFallback('blank-screen-timeout-5000ms');
-        }
-      }, 5000);
-    })();
-  </script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Inter:wght@600;700&family=Shippori+Mincho:wght@400;600;700&family=Noto+Sans+JP:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/app.css">
+<link rel="stylesheet" href="/src/styles/design-system.css">
+<link rel="stylesheet" href="/src/styles/calendar-next.css">
+<script type="module" src="/src/main.js"></script>
 </head>
 <body>
-  <div id="app"></div>
+<div id="app">
 
-  <div id="ippo-boot-fallback" hidden aria-live="polite">
-    <div class="ippo-boot-fallback-card">
-      <div class="ippo-boot-fallback-logo">ippo</div>
-      <div class="ippo-boot-fallback-title">アプリの表示に時間がかかっています</div>
-      <p class="ippo-boot-fallback-text">
-        通信状況や更新直後のキャッシュが影響している可能性があります。<br>
-        ページを再読み込みしてください。
-      </p>
-      <button class="ippo-boot-fallback-button" type="button" onclick="window.location.reload()">
-        再読み込みする
-      </button>
-      <p class="ippo-boot-fallback-note">
-        何度も表示される場合は、ブラウザのキャッシュを削除してからもう一度お試しください。
-      </p>
+  <!-- ===== WELCOME ===== -->
+  <div id="screen-welcome" class="fade-in">
+
+  <!-- ステップインジケーター -->
+  <div id="ob-indicator" style="display:none;justify-content:center;gap:5px;margin-bottom:20px;padding-top:8px;">
+  </div>
+
+  <!-- Step 0: スプラッシュ -->
+  <div id="ob-step-0" class="ob-step">
+    <div style="text-align:center;padding:20px 0 24px;">
+      <div class="welcome-logo">ippo</div>
+      <div style="font-size:13px;color:var(--ink-light);margin-top:6px;line-height:1.7;">
+        疾患と向き合う女性の<br>毎日の記録帳
+      </div>
+    </div>
+    <div style="background:var(--white);border-radius:16px;padding:16px 18px;margin-bottom:20px;border:0.5px solid #e8ddd8;">
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">記録が続くほど</div>
+      <div style="font-family:'Shippori Mincho',serif;font-size:15px;color:var(--ink);line-height:1.8;">
+        あなただけのからだの<br>パターンが見えてきます
+      </div>
+      <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid #f0e8e0;font-size:11px;color:var(--ink-light);line-height:1.7;">
+        症状・痛み・体調を毎日記録して<br>
+        診察に活かせるデータを作りましょう
+      </div>
+    </div>
+    <div style="background:var(--cream);border-radius:14px;padding:13px 16px;margin-bottom:20px;border:0.5px solid #e8ddd8;display:flex;align-items:flex-start;gap:10px;">
+      <div style="font-size:16px;flex-shrink:0;margin-top:1px;">&#128274;</div>
+      <div style="font-size:11px;color:var(--ink-light);line-height:1.7;">
+        あなたの記録はあなただけのものです。<br>
+        広告への利用・第三者への販売は行いません。
+      </div>
+    </div>
+    <button class="btn-primary" data-ob-action="next" style="width:100%;">はじめる</button>
+    <button class="btn-skip" data-ob-action="skip-all" style="width:100%;margin-top:8px;">すでにアカウントをお持ちの方</button>
+  </div>
+
+  <!-- Step 1: 名前 -->
+  <div id="ob-step-1" class="ob-step" style="display:none;">
+    <div class="ob-question">お名前を<br>教えてください</div>
+    <div class="ob-hint">ニックネームでも大丈夫です</div>
+    <input class="welcome-input" id="ob-name-input" type="text" placeholder="例：さくら"
+      style="margin-bottom:8px;"
+      oninput="document.getElementById('ob-name-display').textContent = this.value || 'あなた'">
+    <button class="btn-primary" data-ob-action="save-name" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 2: 生年 -->
+  <div id="ob-step-2" class="ob-step" style="display:none;">
+    <div class="ob-question">生まれた年を<br>教えてください</div>
+    <div class="ob-hint">年齢によって表示するアドバイスが変わります（任意）</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <select id="ob-birth-year" class="welcome-input" style="flex:1;margin-bottom:0;">
+        <option value="">選択してください</option>
+      </select>
+      <div style="display:flex;align-items:center;font-size:13px;color:var(--ink-light);">年</div>
+    </div>
+    <button class="btn-primary" data-ob-action="save-birth" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 3: 最後の生理開始日 -->
+  <div id="ob-step-3" class="ob-step" style="display:none;">
+    <div class="ob-question">最後の生理が<br>始まった日は？</div>
+    <div class="ob-hint">ホームの周期表示に使います。わからない場合はスキップできます</div>
+    <div id="ob-period-calendar" style="background:var(--white);border-radius:14px;border:0.5px solid #e8ddd8;padding:12px;margin-bottom:16px;"></div>
+    <div id="ob-period-selected" style="text-align:center;font-size:12px;color:var(--rose);font-weight:500;margin-bottom:12px;min-height:18px;"></div>
+    <button class="btn-primary" data-ob-action="save-period" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">わからない・スキップ</button>
+  </div>
+
+  <!-- Step 4: 生理周期 -->
+  <div id="ob-step-4" class="ob-step" style="display:none;">
+    <div class="ob-question">生理の周期は<br>だいたい何日ですか？</div>
+    <div class="ob-hint">「だいたい」で大丈夫です</div>
+    <div id="ob-cycle-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-cycle" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 5: 疾患選択 -->
+  <div id="ob-step-5" class="ob-step" style="display:none;">
+    <!-- プライバシーポリシー告知 -->
+    <div style="background:#FBEAF0;border-radius:14px;padding:16px 18px;margin-bottom:20px;border-left:3px solid var(--rose-dark);">
+      <div style="font-size:13px;font-weight:500;color:#72243E;margin-bottom:6px;">ippoのデータポリシー</div>
+      <div style="font-size:12px;color:var(--ink);line-height:1.8;">すべてのデータはあなたの端末内で暗号化されます。<br>第三者への提供・販売は一切行いません。</div>
+    </div>
+    <div class="ob-question">気になる症状や<br>疾患はありますか？</div>
+    <div class="ob-hint">選択すると記録する症状が自動で最適化されます（複数選択可）</div>
+    <div id="ob-disease-list-new" style="max-height:42vh;overflow-y:auto;padding:0 2px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-diseases" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">まだわからない・スキップ</button>
+  </div>
+
+  <!-- Step 6: 目的 -->
+  <div id="ob-step-6" class="ob-step" style="display:none;">
+    <div class="ob-question">ippoをどのように<br>使いたいですか？</div>
+    <div class="ob-hint">後で設定から変更できます</div>
+    <div id="ob-purpose-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-purpose" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="next" style="width:100%;margin-top:8px;">スキップ</button>
+  </div>
+
+  <!-- Step 7: リマインダー -->
+  <div id="ob-step-7" class="ob-step" style="display:none;">
+    <div class="ob-question">記録のお知らせを<br>設定しますか？</div>
+    <div class="ob-hint">毎日この時間にお知らせします。継続率が大幅に上がります</div>
+    <div id="ob-reminder-chips" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+    <button class="btn-primary" data-ob-action="save-reminder" style="width:100%;">次へ</button>
+    <button class="btn-skip" data-ob-action="complete" style="width:100%;margin-top:8px;">リマインダーは不要</button>
+  </div>
+
+  <!-- Step 8: 完了画面 -->
+  <div id="ob-step-8" class="ob-step" style="display:none;">
+    <div style="text-align:center;padding:24px 0;">
+      <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:var(--ink);margin-bottom:8px;">
+        準備ができました
+      </div>
+      <div id="ob-name-display" style="font-size:14px;color:var(--ink-light);margin-bottom:20px;">あなた</div>
+      <div id="ob-cycle-summary" style="background:var(--rose-pale);border-radius:14px;padding:14px 16px;margin-bottom:20px;display:none;">
+        <div id="ob-cycle-phase" style="font-size:13px;font-weight:500;color:var(--plum);margin-bottom:4px;"></div>
+        <div id="ob-cycle-next" style="font-size:12px;color:var(--ink-light);"></div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.8;margin-bottom:24px;">
+        記録するほど、あなただけの<br>パターンが見えてきます。<br>まずは今日の記録から始めましょう。
+      </div>
+      <button class="btn-primary" data-ob-action="complete-onboarding" style="width:100%;">ippoをはじめる</button>
     </div>
   </div>
 
-  <noscript>
-    <div style="padding:32px 24px;text-align:center;font-family:sans-serif;color:#2d1f1a">
-      このアプリはJavaScriptが必要です。ブラウザの設定でJavaScriptを有効にしてからページを再読み込みしてください。
-    </div>
-  </noscript>
+</div>
 
-  <script type="module" src="./src/modules/minimal-app-shell-renderer.js"></script>
-  <script type="module" src="./src/main.js"></script>
+  <!-- ===== MAIN APP ===== -->
+  <div id="main-app" style="display:none;">
+
+    <!-- HOME -->
+    <div id="screen-home" class="screen active">
+
+  <!-- カード①：挨拶 + 今週 -->
+ <div class="ippo-surface" style="margin:0 16px 12px;overflow:hidden;">
+      <div style="background:var(--rose-dark);padding:20px 18px 18px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div>
+          <div style="font-size:13px;color:rgba(255,255,255,0.82);" id="greeting-text"></div>
+          <div style="font-family:'Shippori Mincho',serif;font-size:22px;color:white;font-weight:600;margin-top:2px;" id="greeting-name">あなたさん</div>
+        </div>
+        <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+          <div id="home-phase-badge" style="display:none;">
+            <div id="home-phase-badge-text" style="font-size:11px;font-weight:500;color:white;background:rgba(255,255,255,0.22);padding:4px 12px;border-radius:20px;white-space:nowrap;"></div>
+          </div>
+          <div id="home-next-info" style="font-size:11px;color:rgba(255,255,255,0.72);white-space:nowrap;"></div>
+        </div>
+      </div>
+    </div>
+    <div style="padding:16px 16px 20px;">
+      <div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:10px;">今週</div>
+      <div id="home-week-row" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+    </div>
+  </div>
+
+  <!-- カード②：記録ボタン（独立） -->
+  <div style="margin:0 16px 12px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);padding:16px;">
+    <div id="home-record-cta" onclick="handleHomeCTA()">
+      <div id="home-cta-card" style="background:var(--rose-dark);border-radius:14px;padding:15px 20px;text-align:center;cursor:pointer;transition:transform 0.12s,opacity 0.3s;" onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform=''" ontouchstart="this.style.transform='scale(0.97)'" ontouchend="this.style.transform=''">
+        <div id="home-cta-title" style="font-size:16px;font-weight:600;color:white;letter-spacing:0.3px;">+ 今日を記録する</div>
+      </div>
+    </div>
+    <div id="home-cta-sub" style="text-align:center;font-size:12px;color:var(--ink-light);margin-top:8px;min-height:16px;"></div>
+  </div>
+
+  <!-- カレンダーカード（別カード） -->
+  <div style="margin:0 16px 16px;background:white;border-radius:22px;overflow:hidden;box-shadow:0 4px 18px rgba(120,40,55,0.14);padding:16px 16px 20px;">
+    <div class="cal-header" style="margin-bottom:12px;">
+      <div class="cal-label" id="homeCalLabel"></div>
+      <div class="cal-nav">
+        <button class="cal-nav-btn" id="homeCalPrev" type="button" aria-label="前の月" onclick="changeHomeCalMonth(-1)">‹</button>
+        <button class="cal-nav-btn" id="homeCalNext" type="button" aria-label="次の月" onclick="changeHomeCalMonth(1)">›</button>
+      </div>
+    </div>
+    <div class="cal-weekdays">
+      <div class="cal-wd">日</div><div class="cal-wd">月</div><div class="cal-wd">火</div><div class="cal-wd">水</div><div class="cal-wd">木</div><div class="cal-wd">金</div><div class="cal-wd">土</div>
+    </div>
+    <div class="cal-grid" id="homeCalGrid"></div>
+  </div>
+
+  <!-- hidden: JS が参照する旧 ID を保持（クラッシュ回避） -->
+  <div style="display:none;">
+    <span id="home-streak-num"></span>
+    <span id="home-streak-fire"></span>
+    <span id="home-next-num"></span>
+    <span id="home-next-label"></span>
+    <span id="home-next-unit"></span>
+    <span id="today-date"></span>
+    <span id="home-settings-icon"></span>
+    <div id="home-phase-bar"></div>
+    <div id="home-phase-labels"></div>
+    <div id="home-insight-card"><div id="home-insight-text"></div></div>
+    <div id="home-disease-advice"><div id="home-disease-advice-text"></div></div>
+    <div id="home-fasting-widget"></div>
+    <div id="fast-recovery-card"><div id="fast-recovery-content"></div></div>
+  </div>
+
+   </div>
+
+   <!-- ===== CALENDAR SCREEN (パターンA: やさしく見渡せるカレンダー) ===== -->
+   <div id="screen-calendar" class="screen cn-screen">
+
+     <!-- 共通ヘッダー（bell + avatar） -->
+     <div id="cal-header"></div>
+
+     <div class="cn-scroll">
+
+       <!-- ページタイトル -->
+       <div class="cn-page-header">
+         <div class="cn-page-title-wrap">
+           <div class="cn-page-title">カレンダー</div>
+           <div class="cn-page-subtitle">月とからだのリズムを、<br>やさしく眺めてみましょう。</div>
+         </div>
+         <button class="cn-today-btn" id="calTodayBtn" type="button">
+           <svg class="cn-today-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+           </svg>
+           今日
+         </button>
+       </div>
+
+       <!-- カレンダーカード -->
+       <div class="cn-card">
+         <div class="cn-month-nav">
+           <button class="cn-nav-btn" id="calPrevNew" type="button" aria-label="前の月">‹</button>
+           <div class="cn-month-center">
+             <div class="cn-month-label" id="calLabelNew"></div>
+             <div class="cn-wareki-label" id="calWarekilabel"></div>
+           </div>
+           <button class="cn-nav-btn" id="calNextNew" type="button" aria-label="次の月">›</button>
+         </div>
+         <div class="cn-weekdays">
+           <div class="cn-wd cn-wd--sun">日</div>
+           <div class="cn-wd">月</div><div class="cn-wd">火</div><div class="cn-wd">水</div><div class="cn-wd">木</div><div class="cn-wd">金</div>
+           <div class="cn-wd cn-wd--sat">土</div>
+         </div>
+         <div class="cn-grid" id="calGridNew"></div>
+         <div class="cn-legend">
+           <div class="cn-legend-item"><span class="cn-dot period"></span>生理</div>
+           <div class="cn-legend-item"><span class="cn-dot ovulation"></span>排卵期</div>
+           <div class="cn-legend-item"><span class="cn-dot ovulation-day"></span>排卵日予測</div>
+           <div class="cn-legend-item"><span class="cn-dot fertile"></span>妊娠しやすい</div>
+           <div class="cn-legend-item"><span class="cn-dot low-temp"></span>低温期</div>
+           <div class="cn-legend-item"><span class="cn-dot high-temp"></span>高温期</div>
+         </div>
+       </div>
+
+       <!-- 今日のからだメモ -->
+       <div class="cn-card" id="calBodyMemo"></div>
+
+       <!-- 今月のふりかえり -->
+       <div class="cn-card" id="calMonthlySummary"></div>
+
+     </div>
+   </div>
+
+   <!-- Day Detail Modal（グローバル・固定） -->
+   <div class="dm-overlay" id="dmOverlay">
+     <div class="dm-box">
+       <button class="dm-x" id="dmClose" type="button" aria-label="閉じる">✕</button>
+       <div class="dm-date" id="dmDate"></div>
+       <div id="dmBody"></div>
+     </div>
+   </div>
+
+     <!-- INSIGHTS SCREEN: removed from static HTML; loaded dynamically via screen-router from src/screens/insights.html -->
+    <!-- (old insights static HTML removed; screen-router fetches src/screens/insights.html) -->
+
+    <!-- ===== 症状設定オーバーレイ ===== -->
+<div id="symptomSettingsOverlay" style="position:fixed;inset:0;z-index:600;background:rgba(44,36,32,0.5);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;">
+  <div style="width:88%;max-width:360px;max-height:82vh;background:var(--cream);border-radius:24px;padding:28px 22px;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる症状を選択</div>
+      <button onclick="closeSymptomSettings()" aria-label="閉じる" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;" aria-hidden="false">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">よく気になる症状を選んでおくと、記録画面で優先表示されます。</div>
+    <div id="symptomSettingsChips" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;"></div>
+    <button onclick="saveSymptomSettings()" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>
+  </div>
+</div>
+
+     <!-- ===== SYNC INDICATOR ===== -->
+     <div id="ippo-sync-indicator" role="status" aria-live="polite">
+       <div class="ippo-spinner"></div>
+       <span id="ippo-sync-text">同期中</span>
+     </div>
+
+     <!-- ===== BOTTOM NAV ===== -->
+      <nav class="bottom-nav" role="navigation" aria-label="メインナビゲーション">
+      <button class="nav-item" type="button" onclick="switchTab('home', this)" data-tab="home" aria-label="ホーム">
+        <span class="nav-icon" id="nav-icon-home" aria-hidden="true"></span>
+        <span>ホーム</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchTab('calendar', this)" data-tab="calendar" aria-label="カレンダー">
+        <span class="nav-icon" id="nav-icon-calendar" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+        <span>カレンダー</span>
+      </button>
+      <button class="nav-item nav-record-btn" type="button" onclick="state.editingDate=null; openRecordScreen()" aria-label="今日を記録する">
+        <div class="nav-record-ring" id="nav-icon-plus" aria-hidden="true"></div>
+        <span style="font-size:9px;margin-top:2px;">記録</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchTab('insights', this)" data-tab="insights" aria-label="インサイト">
+        <span class="nav-icon" id="nav-icon-insights" aria-hidden="true"></span>
+        <span>インサイト</span>
+      </button>
+      <button class="nav-item" type="button" onclick="switchTab('settings', this)" data-tab="settings" aria-label="設定">
+        <span class="nav-icon" id="nav-icon-settings" aria-hidden="true"></span>
+        <span>設定</span>
+      </button>
+    </nav>
+
+<!-- ===== RECORD SCREEN ===== -->
+<div id="screen-record" class="screen">
+  <div class="spacer-top"></div>
+  <div style="padding:0 24px 16px;">
+    <button type="button" onclick="switchTab('home', document.querySelector('.nav-item'))" aria-label="ホームに戻る" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-light);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0 0 12px;letter-spacing:0.03em;">← 戻る</button>
+    <div class="home-greeting serif" id="rec-screen-title">今日を記録する</div>
+    <div class="home-date" id="rec-screen-date"></div>
+  </div>
+  <!-- プログレスドット -->
+  <div id="rec-progress-dots" style="display:flex;justify-content:center;gap:8px;padding:0 24px 20px;">
+    <div id="rec-dot-1" style="width:10px;height:10px;border-radius:50%;background:var(--rose);transition:background 0.3s;"></div>
+    <div id="rec-dot-2" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-3" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;"></div>
+    <div id="rec-dot-4" style="width:10px;height:10px;border-radius:50%;background:#e8ddd8;transition:background 0.3s;display:none;"></div>
+  </div>
+
+    
+<!-- ===== STEP 1: 今日の気分 ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 1</div>
+    <div class="section-title serif">今日の気分</div>
+    <div style="display:flex;justify-content:space-around;padding:8px 0;" id="rs-mood">
+      <button class="chip" onclick="selectMood(this,1)" data-val="1" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-2 7-2 10 0"/><line x1="8" y1="9" x2="10" y2="11"/><line x1="16" y1="9" x2="18" y2="11"/></svg>
+        <span style="font-size:9px;margin-top:2px;">つらい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,2)" data-val="2" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 17c1.5-1 7-1 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">しんどい</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,3)" data-val="3" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><line x1="9" y1="16" x2="17" y2="16"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">ふつう</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,4)" data-val="4" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 14c1.5 2 7 2 10 0"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="17" cy="10" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">まあまあ</span>
+      </button>
+      <button class="chip" onclick="selectMood(this,5)" data-val="5" style="width:56px;height:56px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 13c1 2.5 3.5 4 5 4s4-1.5 5-4"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="17" cy="9" r="1" fill="currentColor"/></svg>
+        <span style="font-size:9px;margin-top:2px;">よい</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== STEP 2: 症状・痛み ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 2</div>
+    <div class="section-title serif">症状・痛み</div>
+    <!-- 症状チップは renderSymptomLayers() で動的描画 -->
+    <div id="rs-symptoms"></div>
+    <div class="section-card" id="pain-detail-section" style="display:none;margin-top:12px;">
+      <div class="section-label">PAIN DETAIL</div>
+      <div class="section-title serif">痛みの詳細</div>
+      <!-- 痛みの強さスライダー（痛みの詳細内に移動） -->
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの強さ <span id="pain-level-display" style="color:var(--rose);font-size:14px;font-weight:700;">0</span>/10</div>
+        <input type="range" id="rs-pain-level" min="0" max="10" value="0" oninput="document.getElementById('pain-level-display').textContent=this.value;updateRecProgressDots();" style="width:100%;accent-color:var(--rose);">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--ink-light);margin-top:4px;">
+          <span>なし</span><span>軽い</span><span>中程度</span><span>強い</span><span>激痛</span>
+        </div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの位置</div>
+        <div class="chips" id="rs-pain-location">
+          <div class="chip" onclick="toggleRsChip(this)">左下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">右下腹部</div>
+          <div class="chip" onclick="toggleRsChip(this)">下腹部全体</div>
+          <div class="chip" onclick="toggleRsChip(this)">腰</div>
+          <div class="chip" onclick="toggleRsChip(this)">骨盤周り</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">痛みの種類</div>
+        <div class="chips" id="rs-pain-type">
+          <div class="chip" onclick="toggleRsChip(this)">鈍痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">鋭痛</div>
+          <div class="chip" onclick="toggleRsChip(this)">差し込み</div>
+          <div class="chip" onclick="toggleRsChip(this)">圧迫感</div>
+          <div class="chip" onclick="toggleRsChip(this)">張り</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP 3: 生理の状態 ===== -->
+  <div class="section-card">
+    <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">STEP 3</div>
+    <div class="section-title serif">生理の状態</div>
+    <div class="chips" id="rs-cycle">
+      <div class="chip" onclick="selectRsCycle(this,'none');updateRecProgressDots();">なし</div>
+      <div class="chip" onclick="selectRsCycle(this,'light');updateRecProgressDots();">少量</div>
+      <div class="chip" onclick="selectRsCycle(this,'normal');updateRecProgressDots();">普通</div>
+      <div class="chip" onclick="selectRsCycle(this,'heavy');updateRecProgressDots();">多い</div>
+      <div class="chip" onclick="selectRsCycle(this,'spotting');updateRecProgressDots();">不正出血</div>
+    </div>
+    <div id="cycle-detail-section" style="display:none;margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">経血の状態</div>
+      <div class="chips" id="rs-blood-clot">
+        <div class="chip" onclick="toggleRsChip(this)">塊あり</div>
+        <div class="chip" onclick="toggleRsChip(this)">塊なし</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:12px 0 8px;">経血の色</div>
+      <div class="chips" id="rs-blood-color">
+        <div class="chip" onclick="toggleRsChip(this)">鮮赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">暗赤色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色</div>
+        <div class="chip" onclick="toggleRsChip(this)">ピンク</div>
+      </div>
+    </div>
+    <!-- おりもの（生理タブ内） -->
+    <div style="margin-top:16px;">
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin-bottom:8px;">おりもの</div>
+      <div class="chips" id="rs-discharge-amount">
+        <div class="chip" onclick="toggleRsChip(this)">少ない</div>
+        <div class="chip" onclick="toggleRsChip(this)">普通</div>
+        <div class="chip" onclick="toggleRsChip(this)">多い</div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--ink-light);margin:10px 0 8px;">おりものの状態</div>
+      <div class="chips" id="rs-discharge-type">
+        <div class="chip" onclick="toggleRsChip(this)">透明・水様</div>
+        <div class="chip" onclick="toggleRsChip(this)">白濁・乳白色</div>
+        <div class="chip" onclick="toggleRsChip(this)">クリーム色</div>
+        <div class="chip" onclick="toggleRsChip(this)">茶色・血混じり</div>
+        <div class="chip" onclick="toggleRsChip(this)">黄色・緑色</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 詳しく記録する（折りたたみ） ===== -->
+  <div style="text-align:center;padding:4px 24px 16px;">
+    <button onclick="toggleRecordDetails()" style="background:none;border:none;font-size:14px;color:var(--rose);cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-weight:500;display:inline-flex;align-items:center;gap:6px;padding:8px 20px;border-radius:20px;border:1px solid var(--rose-light);">
+      詳しく記録する <span id="rec-details-arrow">▾</span>
+    </button>
+  </div>
+  <div id="rec-details-section" style="display:none;">
+    <div class="section-card">
+      <div class="section-label">MEAL TIMELINE</div>
+      <div class="section-title serif">食事の記録</div>
+      <div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:12px;">
+        時間と食べたものを自由に記入してください<br>
+        <span style="font-size:11px;color:var(--ink-light);">例）0830 朝食 / 1200 昼食</span>
+      </div>
+      <div id="meal-quick-btns" style="display:flex;gap:8px;margin-bottom:10px;">
+        <button id="meal-btn-add" style="flex:1;padding:10px 0;border:1.5px solid #e8ddd8;border-radius:10px;background:var(--white);font-size:12px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;" onclick="openMealTimePicker()">＋ 時間を追加</button>
+      </div>
+      <div id="meal-time-picker" style="display:none;margin-bottom:10px;padding:12px;background:var(--cream);border-radius:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <span id="meal-time-label" style="font-size:13px;color:var(--ink);font-weight:500;">食事の時間</span>
+          <button onclick="closeMealTimePicker()" aria-label="閉じる" style="background:none;border:none;font-size:16px;color:var(--ink-light);cursor:pointer;">✕</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <input type="time" id="meal-time-input" style="flex:1;padding:10px;border:1.5px solid #e8ddd8;border-radius:10px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);">
+          <button onclick="addMealTime()" style="padding:10px 20px;background:var(--rose);color:white;border:none;border-radius:10px;font-size:13px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">追加</button>
+        </div>
+      </div>
+      <textarea id="rs-meal-free" placeholder="0830 朝食&#10;1300 昼食&#10;1430 間食&#10;1900 夕食" style="width:100%;min-height:160px;border:1.5px solid #e8ddd8;border-radius:12px;padding:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;color:var(--ink);background:var(--white);resize:vertical;outline:none;line-height:1.9;" onfocus="this.style.borderColor='var(--rose)'" onblur="this.style.borderColor='#e8ddd8'"></textarea>
+      <div id="meal-auto-parse" style="margin-top:12px;display:none;padding:14px;background:var(--warm-light);border-radius:12px;">
+        <div style="font-size:11px;color:var(--ink-light);letter-spacing:0.1em;margin-bottom:8px;">AUTO PARSE</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="font-size:13px;color:var(--ink);">🍽 <span id="parse-meal-count">0</span>食</div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最初 <span id="parse-first-time">--:--</span></div>
+          <div style="font-size:13px;color:var(--ink);">🕐 最後 <span id="parse-last-time">--:--</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- からだのための選択ガイド -->
+    <div class="section-card">
+      <div style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;" onclick="var b=this.nextElementSibling;var a=this.querySelector('.bc-arrow');if(b.style.display==='none'){b.style.display='block';a.textContent='▾';}else{b.style.display='none';a.textContent='▸';}">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY-CONSCIOUS CHOICES</div>
+          <div style="font-size:14px;color:var(--ink);font-weight:500;">からだのための選択ガイド</div>
+        </div>
+        <span class="bc-arrow" style="font-size:16px;color:var(--ink-light);">▸</span>
+      </div>
+      <div style="display:none;margin-top:14px;font-size:12px;color:var(--ink-mid);line-height:2.0;">
+        <div style="margin-bottom:12px;padding:12px;background:var(--rose-pale);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">温めるもの</div>生姜・シナモン・根菜・味噌汁・白湯</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--sage-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">腸を整えるもの</div>発酵食品・食物繊維・ぬか漬け・キムチ・ヨーグルト</div>
+        <div style="margin-bottom:12px;padding:12px;background:#fef3e6;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">血を補うもの</div>ほうれん草・小松菜・ひじき・プルーン・黒ごま</div>
+        <div style="margin-bottom:12px;padding:12px;background:var(--warm-light);border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">ホルモンを助けるもの</div>大豆・亜麻仁・ナッツ・豆乳・アボカド</div>
+        <div style="padding:12px;background:#f5f0f0;border-radius:12px;"><div style="font-weight:500;margin-bottom:6px;">控えたいもの</div>カフェイン・砂糖・冷たいもの・アルコール・加工食品</div>
+      </div>
+    </div>
+
+    <!-- 基礎体温 -->
+    <div class="section-card">
+      <div class="section-label">BASAL TEMPERATURE</div>
+      <div class="section-title serif">基礎体温（決まった時間帯計測）</div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button id="temp-tab-sublingual" onclick="selectTempMethod('sublingual')" class="chip selected" style="font-size:12px;padding:6px 18px;border-radius:20px;">舌下</button>
+        <button id="temp-tab-axilla" onclick="selectTempMethod('axilla')" class="chip" style="font-size:12px;padding:6px 18px;border-radius:20px;">脇の下</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="number" step="0.01" min="35" max="38" class="meal-input" id="rs-temp" placeholder="36.50" style="width:140px;text-align:center;font-size:20px;font-family:'Shippori Mincho',serif;">
+        <span style="font-size:16px;color:var(--ink-mid);">℃</span>
+      </div>
+      <div id="temp-edu-card" style="display:none;margin-top:12px;padding:12px 14px;background:linear-gradient(135deg,#f8f4f0,#fdf8f6);border-radius:12px;border-left:3px solid var(--rose);"></div>
+    </div>
+
+    <!-- 服薬・サプリ -->
+    <div class="section-card">
+      <div class="section-label">MEDICATION</div>
+      <div class="section-title serif">服薬・サプリ</div>
+      <div class="chips" id="rs-medication">
+        <div class="chip" onclick="toggleRsChip(this)">低用量ピル</div>
+        <div class="chip" onclick="toggleRsChip(this)">ジエノゲスト</div>
+        <div class="chip" onclick="toggleRsChip(this)">漢方薬</div>
+        <div class="chip" onclick="toggleRsChip(this)">鎮痛剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">鉄剤</div>
+        <div class="chip" onclick="toggleRsChip(this)">サプリメント</div>
+        <div class="chip" onclick="toggleRsChip(this)">その他</div>
+      </div>
+    </div>
+
+    <!-- エネルギーレベル -->
+    <div class="section-card">
+      <div class="section-label">ENERGY</div>
+      <div class="section-title serif">エネルギーレベル</div>
+      <div style="display:flex;justify-content:center;gap:6px;padding:8px 0;" id="rs-energy">
+        <button class="chip" onclick="selectEnergy(this,1)" data-val="1" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">1<span style="font-size:9px;">ぐったり</span></button>
+        <button class="chip" onclick="selectEnergy(this,2)" data-val="2" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">2<span style="font-size:9px;">低い</span></button>
+        <button class="chip" onclick="selectEnergy(this,3)" data-val="3" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">3<span style="font-size:9px;">普通</span></button>
+        <button class="chip" onclick="selectEnergy(this,4)" data-val="4" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">4<span style="font-size:9px;">良い</span></button>
+        <button class="chip" onclick="selectEnergy(this,5)" data-val="5" style="width:52px;height:52px;border-radius:50%;font-size:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;">5<span style="font-size:9px;">絶好調</span></button>
+      </div>
+    </div>
+
+    <!-- 睡眠 -->
+    <div class="section-card">
+      <div class="section-label">SLEEP</div>
+      <div class="section-title serif">睡眠</div>
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">就寝</div>
+          <input type="time" id="rs-sleep-bed" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">起床</div>
+          <input type="time" id="rs-sleep-wake" style="width:100%;padding:10px;border:1px solid #e8ddd8;border-radius:12px;font-size:14px;font-family:Noto Sans JP,sans-serif;background:var(--white);color:var(--ink);">
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">睡眠の質</div>
+      <div style="display:flex;gap:6px;" id="rs-sleep-quality">
+        <button class="chip" onclick="selectSleepQuality(this,1)" data-val="1" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">1 最悪</button>
+        <button class="chip" onclick="selectSleepQuality(this,2)" data-val="2" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">2 悪い</button>
+        <button class="chip" onclick="selectSleepQuality(this,3)" data-val="3" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">3 普通</button>
+        <button class="chip" onclick="selectSleepQuality(this,4)" data-val="4" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">4 良い</button>
+        <button class="chip" onclick="selectSleepQuality(this,5)" data-val="5" style="flex:1;text-align:center;padding:8px 4px;border-radius:12px;font-size:11px;">5 最高</button>
+      </div>
+    </div>
+
+    <!-- 生活ファクター -->
+    <div class="section-card">
+      <div class="section-label">FACTORS</div>
+      <div class="section-title serif">生活ファクター</div>
+      <div class="chips" id="rs-factors">
+        <div class="chip" onclick="toggleRsChip(this)">カフェイン</div>
+        <div class="chip" onclick="toggleRsChip(this)">アルコール</div>
+        <div class="chip" onclick="toggleRsChip(this)">運動した</div>
+        <div class="chip" onclick="toggleRsChip(this)">ストレス高</div>
+        <div class="chip" onclick="toggleRsChip(this)">仕事が忙しい</div>
+        <div class="chip" onclick="toggleRsChip(this)">外出した</div>
+        <div class="chip" onclick="toggleRsChip(this)">雨・低気圧</div>
+        <div class="chip" onclick="toggleRsChip(this)">夜更かし</div>
+        <div class="chip" onclick="toggleRsChip(this)">入浴・半身浴</div>
+        <div class="chip" onclick="toggleRsChip(this)">瞑想・リラックス</div>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="text" id="rs-factor-custom" placeholder="＋ 自分だけのファクターを追加" style="width:100%;padding:10px 14px;border:1px dashed #e8ddd8;border-radius:12px;font-size:12px;font-family:Noto Sans JP,sans-serif;background:transparent;color:var(--ink);outline:none;" onkeydown="if(event.key==='Enter'){addCustomFactor();event.preventDefault();}">
+      </div>
+    </div>
+
+    <!-- お通じ（回数カウント付き） -->
+    <div class="section-card">
+      <div class="section-label">BOWEL</div>
+      <div class="section-title serif">お通じ</div>
+      <!-- 回数カウント -->
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">回数</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="adjustBowelCount(-1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid #e8ddd8;background:var(--white);font-size:18px;color:var(--ink-mid);cursor:pointer;display:flex;align-items:center;justify-content:center;">−</button>
+          <span id="bowel-count-display" style="font-size:22px;font-weight:600;color:var(--ink);min-width:32px;text-align:center;">0</span>
+          <button onclick="adjustBowelCount(1)" style="width:36px;height:36px;border-radius:50%;border:1.5px solid var(--rose);background:var(--rose-pale);font-size:18px;color:var(--rose);cursor:pointer;display:flex;align-items:center;justify-content:center;">＋</button>
+          <span style="font-size:13px;color:var(--ink-light);">回</span>
+        </div>
+      </div>
+      <!-- 状態チップ -->
+      <div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">状態</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;" id="rs-bowel">
+        <button class="chip" onclick="selectBowel(this,'なし')">なし</button>
+        <button class="chip" onclick="selectBowel(this,'硬い（コロコロ）')">硬い（コロコロ）</button>
+        <button class="chip" onclick="selectBowel(this,'やや硬い')">やや硬い</button>
+        <button class="chip" onclick="selectBowel(this,'普通')">普通</button>
+        <button class="chip" onclick="selectBowel(this,'やや軟らかい')">やや軟らかい</button>
+        <button class="chip" onclick="selectBowel(this,'軟便・下痢')">軟便・下痢</button>
+      </div>
+    </div>
+
+    <!-- メモ -->
+    <div class="section-card">
+      <div class="section-label">JOURNAL</div>
+      <div class="section-title serif">今日のメモ</div>
+      <textarea class="modal-textarea" id="rs-note" rows="4" placeholder="自由にメモを残しましょう…&#10;体調の変化、気づいたこと、感謝していることなど"></textarea>
+    </div>
+  </div><!-- /rec-details-section -->
+
+  <!-- ===== STEP 4: 疾患セルフチェック（疾患設定時のみ表示） ===== -->
+  <div class="section-card" id="disease-questions" style="display:none;margin:0 20px 16px;"></div>
+
+  <div style="padding:0 24px 40px;">
+    <button class="btn-primary" id="save-record-btn" onclick="if(this.disabled)return;this.disabled=true;this.textContent='保存中...';saveRecordScreen();setTimeout(function(){var b=document.getElementById('save-record-btn');if(b){b.disabled=false;b.textContent='この内容で記録する';}},2000);" style="border-radius:16px;font-size:16px;padding:18px;">この内容で記録する</button>
+    <button class="btn-secondary" onclick="draftRecordScreen()" style="width:100%;margin-top:10px;border-radius:16px;font-size:14px;padding:14px;">一時保存する（あとで追記）</button>
+    <div id="draft-indicator" style="display:none;text-align:center;margin-top:10px;font-size:12px;color:var(--sage);font-weight:500;"></div>
+  </div>
+</div>
+
+    <!-- PREMIUM -->
+    <div id="screen-premium" class="screen">
+      <div class="spacer-top"></div>
+      <div class="settings-header">
+        <div class="settings-title">PRO</div>
+      </div>
+
+      <!-- Hero (JS で描画) -->
+      <div id="pro-hero" style="margin:4px 20px 24px;"></div>
+
+      <!-- 分析・インサイト -->
+      <div class="pf-category-label">📊 &nbsp;分析・インサイト</div>
+      <div class="pf-grid">
+        <div class="pf-grid-card" onclick="premiumGate(openAIAnalysis)">
+          <div class="pf-grid-icon" style="background:#ede8f8;">✨</div>
+          <div class="pf-grid-title">AIパターン解析</div>
+          <div class="pf-grid-sub">90日分の記録から体調パターンを発見</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+        <div class="pf-grid-card" onclick="premiumGate(openFlareupReport)">
+          <div class="pf-grid-icon" style="background:#fff0e6;">🔥</div>
+          <div class="pf-grid-title">フレアアップ分析</div>
+          <div class="pf-grid-sub">体調急変のトリガーを特定</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+        <div class="pf-grid-card" onclick="premiumGate(openCorrelationReport)">
+          <div class="pf-grid-icon" style="background:#e8f5ee;">🔬</div>
+          <div class="pf-grid-title">要因効果レポート</div>
+          <div class="pf-grid-sub">生活要因と症状の相関を分析</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+        <div class="pf-grid-card" onclick="premiumGate(openCyclePhaseReport)">
+          <div class="pf-grid-icon" style="background:#fdeef2;">🌸</div>
+          <div class="pf-grid-title">周期フェーズ分析</div>
+          <div class="pf-grid-sub">各生理期で体調を比較</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+      </div>
+
+      <!-- レポート -->
+      <div class="pf-category-label">📋 &nbsp;レポート</div>
+      <div class="pf-grid" style="margin-bottom:20px;">
+        <div class="pf-grid-card" onclick="premiumGate(openDoctorSummary)">
+          <div class="pf-grid-icon" style="background:#e8f6f2;">🩺</div>
+          <div class="pf-grid-title">からだサマリー</div>
+          <div class="pf-grid-sub">30日の体調を自動まとめ</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+        <div class="pf-grid-card" onclick="premiumGate(openMonthlyReport)">
+          <div class="pf-grid-icon" style="background:#e8f0f8;">📊</div>
+          <div class="pf-grid-title">月次レポート PDF</div>
+          <div class="pf-grid-sub">月ごとのデータを可視化・保存</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+      </div>
+
+      <!-- 健康トラッキング -->
+      <div class="pf-category-label">🌡️ &nbsp;健康トラッキング</div>
+      <div class="pf-wide-card" onclick="premiumGate(openTempReport)">
+        <div class="pf-grid-icon" style="background:#fff4e6;flex-shrink:0;">🌡️</div>
+        <div style="flex:1;">
+          <div class="pf-grid-title" style="font-size:13px;">体温パターン解析</div>
+          <div class="pf-grid-sub">低温期・高温期の自動判定と疾患別警戒値チェック</div>
+        </div>
+        <span class="pf-lock-badge" style="position:static;flex-shrink:0;font-size:9px;font-weight:700;background:var(--rose);color:white;padding:3px 8px;border-radius:8px;">PRO</span>
+      </div>
+      <div class="pf-grid" style="margin-bottom:20px;">
+        <div class="pf-grid-card" onclick="premiumGate(openExperiments)">
+          <div class="pf-grid-icon" style="background:#eef2f8;">🧪</div>
+          <div class="pf-grid-title">ヘルス実験</div>
+          <div class="pf-grid-sub">仮説を立てて30日間検証</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+        <div class="pf-grid-card" onclick="openSyncModal()">
+          <div class="pf-grid-icon" style="background:#f0eef8;">🔄</div>
+          <div class="pf-grid-title">デバイス間同期</div>
+          <div class="pf-grid-sub" id="syncStatusBrief">未ログイン</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+      </div>
+
+      <div style="height:24px;"></div>
+    </div>
+
+   <!-- SETTINGS (v2 wellness editorial) -->
+   <div id="screen-settings" class="screen">
+  <!-- 共通固定ヘッダー -->
+  <div id="set-header"></div>
+  <div class="set-scroll">
+
+    <!-- ── ヘッダー ── -->
+    <div class="set-header">
+      <div class="set-header-text">
+        <h1 class="set-title">設定</h1>
+        <p class="set-subtitle">あなたらしく使えるよう、<br>静かに整えていきましょう。</p>
+      </div>
+      <button class="set-profile-pill" onclick="showScreen('premium')" id="settings-upgrade-btn">
+        <div class="set-profile-pill-icon">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <div class="set-profile-pill-text">
+          <div class="set-profile-pill-name" id="settings-name-display">ゲスト</div>
+          <div class="set-profile-pill-plan" id="settings-premium-badge-text">プレミアム会員 ✦</div>
+        </div>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.38;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+      </button>
+    </div>
+
+    <!-- ── 今のわたしの状態 ── -->
+    <div class="set-section">
+      <div class="set-card set-status-card">
+        <div class="set-status-main">
+          <div class="set-status-body">
+            <div class="set-status-eyebrow">今のわたしの状態</div>
+            <div class="set-status-heading" id="set-status-heading">最近、睡眠を重視しています</div>
+            <div class="set-status-note" id="set-status-note">5月は「睡眠の質」がテーマになっています</div>
+            <button class="set-status-btn" onclick="">状態を変更する</button>
+          </div>
+          <div class="set-status-illo" aria-hidden="true">
+            <svg width="84" height="104" viewBox="0 0 84 104" fill="none">
+              <path d="M42 98 C42 98 42 55 42 34" stroke="#C8B8A8" stroke-width="1.3" stroke-linecap="round"/>
+              <path d="M42 70 C32 59 16 56 14 42 C25 40 39 50 42 70Z" fill="#D8C8B8" opacity="0.52"/>
+              <path d="M42 57 C52 46 68 43 70 30 C59 28 46 37 42 57Z" fill="#BFD8C1" opacity="0.5"/>
+              <path d="M42 82 C35 73 24 71 21 61 C29 59 41 66 42 82Z" fill="#D8C8B8" opacity="0.46"/>
+              <path d="M42 46 C48 35 61 30 65 20 C54 18 43 27 42 46Z" fill="#E8C0C8" opacity="0.46"/>
+              <path d="M42 34 C36 24 42 14 48 10 C52 20 48 30 42 34Z" fill="#BFD8C1" opacity="0.42"/>
+            </svg>
+          </div>
+        </div>
+        <div class="set-status-stats">
+          <div class="set-stat-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.52;flex-shrink:0;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div class="set-stat-num" id="settings-record-count">0</div>
+              <div class="set-stat-label">記録日数</div>
+            </div>
+          </div>
+          <div class="set-stat-item">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.52;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <div>
+              <div class="set-stat-num" id="settings-streak">0</div>
+              <div class="set-stat-label">連続日数</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── わたしに合わせる ── -->
+    <div class="set-section">
+      <div class="set-section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        <span>わたしに合わせる</span>
+      </div>
+      <div class="set-section-desc">あなたの体や目標に合わせて、ホーム画面を最適化します</div>
+      <div class="set-card">
+        <div class="set-row" onclick="openSymptomSettings()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#fdf0f2;" id="settings-icon-symptom"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">気になる症状</div>
+              <div class="set-row-sub" id="symptom-setting-display">頭痛、疲労感、肌荒れ など</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <span class="set-row-badge-text">設定する</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="set-row" onclick="openDiseaseSettings()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#f3f0fd;" id="settings-icon-disease"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">気になる疾患</div>
+              <div class="set-row-sub" id="disease-setting-display">設定する</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="set-row" onclick="toggleVisionEdit()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#fff3e0;" id="settings-icon-profile"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">わたしの目標</div>
+              <div class="set-row-sub" id="vision-display-text">タップして設定</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="set-row" onclick="">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#fffbef;" id="settings-icon-priority"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">重視したいこと（優先度）</div>
+              <div class="set-row-sub">今は「睡眠の質」を最も重視しています</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+      <div id="vision-edit" style="display:none;margin:10px 0 0;">
+        <div style="background:rgba(255,255,255,0.82);border-radius:22px;padding:18px;border:1px solid rgba(120,110,100,0.08);">
+          <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;line-height:1.65;">選ぶ or 自分の言葉で</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;" id="vision-presets"></div>
+          <input type="text" id="vision-input" placeholder="例: 体調の変化に気づき、自分のリズムを大切にする" style="width:100%;border:1px solid rgba(120,110,100,0.14);border-radius:13px;padding:11px 14px;font-size:13px;font-family:var(--font-body);background:rgba(255,255,255,0.9);box-sizing:border-box;color:var(--ink);outline:none;">
+          <button onclick="saveVision()" style="margin-top:10px;width:100%;padding:12px;background:var(--rose);color:white;border:none;border-radius:13px;font-size:13px;font-family:var(--font-body);cursor:pointer;font-weight:500;">保存</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 見た目と使い心地 ── -->
+    <div class="set-section">
+      <div class="set-section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        <span>見た目と使い心地</span>
+      </div>
+      <div class="set-section-desc">毎日使うから、自分が心地よい見た目に</div>
+      <div class="set-card">
+        <div class="set-theme-row" id="theme-picker">
+          <div class="set-theme-card" onclick="applyTheme('sakura')" id="theme-btn-sakura">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f4d0d4,#cc8890);" id="theme-dot-sakura">
+              <svg class="set-theme-check" id="theme-check-sakura" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">桜</span>
+          </div>
+          <div class="set-theme-card" onclick="applyTheme('coral')" id="theme-btn-coral">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f5c0a0,#d07050);" id="theme-dot-coral">
+              <svg class="set-theme-check" id="theme-check-coral" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">珊瑚</span>
+          </div>
+          <div class="set-theme-card" onclick="applyTheme('midnight')" id="theme-btn-midnight">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#8a6080,#2a1830);" id="theme-dot-midnight">
+              <svg class="set-theme-check" id="theme-check-midnight" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">深夜</span>
+          </div>
+          <div class="set-theme-card" onclick="applyTheme('forest')" id="theme-btn-forest">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#a0d4b0,#4a9060);" id="theme-dot-forest">
+              <svg class="set-theme-check" id="theme-check-forest" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">若葉</span>
+          </div>
+          <div class="set-theme-card" onclick="applyTheme('sky')" id="theme-btn-sky">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#9acce8,#3e8cc8);" id="theme-dot-sky">
+              <svg class="set-theme-check" id="theme-check-sky" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">空</span>
+          </div>
+          <div class="set-theme-card" onclick="applyTheme('honey')" id="theme-btn-honey">
+            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f0d080,#c88030);" id="theme-dot-honey">
+              <svg class="set-theme-check" id="theme-check-honey" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <span class="set-theme-lbl">蜂蜜</span>
+          </div>
+        </div>
+        <div class="set-row" onclick="">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#f0ede8;" id="settings-icon-density"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">表示の濃さ</div>
+              <div class="set-row-sub">情報の量を調整します</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <span style="font-size:11.5px;color:rgba(43,33,28,0.48);">標準</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="set-row" onclick="">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#eef4ef;" id="settings-icon-home-info"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">ホームに表示する情報</div>
+              <div class="set-row-sub">よく使う項目を選んでカスタマイズ</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+        <div class="set-row" onclick="toggleFastingFeature()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#f5ecd8;" id="settings-icon-reminder"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">通知の設定</div>
+              <div class="set-row-sub">リマインダーやお知らせの設定</div>
+            </div>
+          </div>
+          <div class="set-row-r">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── データと安心 ── -->
+    <div class="set-section">
+      <div class="set-section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>データと安心</span>
+      </div>
+      <div class="set-section-desc">あなたの大切な記録を、いつでも安全に</div>
+      <div class="set-card">
+        <div class="set-row" onclick="premiumGate(exportJSON)">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#e8f4f2;" id="settings-icon-backup"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">データをバックアップ <span class="set-pro-tag">PRO</span></div>
+              <div class="set-row-sub">iCloudに安全にバックアップします</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="set-row" onclick="exportCSV()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#e8f3ee;" id="settings-icon-export"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">記録をCSVで書き出す</div>
+              <div class="set-row-sub">受診時の資料に。Excel・スプレッドシートで開けます</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="set-row" onclick="premiumGate(manualCloudRestore)">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#e8f4f0;" id="settings-icon-restore"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">クラウドから復元 <span class="set-pro-tag">PRO</span></div>
+              <div class="set-row-sub">データが消えた場合に使用</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="set-row" onclick="premiumGate(openRestoreUI)">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#edf0f8;" id="settings-icon-history"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">バックアップ履歴 <span class="set-pro-tag">PRO</span></div>
+              <div class="set-row-sub">過去のスナップショットから復元</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="set-row" onclick="showDiagnosisUI()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#f0ebe6;" id="settings-icon-diagnosis"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">データ診断・修復</div>
+              <div class="set-row-sub">3箇所のデータを比較・自動修復</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+        <div class="set-row" onclick="showConfirmModal('すべての記録を削除しますか？', clearData)">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#fde8e8;" id="settings-icon-delete"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text" style="color:#c47878;">データをリセット</div>
+              <div class="set-row-sub">すべての記録を削除します</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── フィードバック ── -->
+    <div class="set-section">
+      <div class="set-section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span>一緒に育てる ippo</span>
+      </div>
+      <div class="set-section-desc">あなたの声が、次の機能をつくります</div>
+      <div class="set-card set-feedback-card">
+        <div class="set-stars" id="fb-stars">
+          <span class="fb-star" onclick="setRating(1)">☆</span>
+          <span class="fb-star" onclick="setRating(2)">☆</span>
+          <span class="fb-star" onclick="setRating(3)">☆</span>
+          <span class="fb-star" onclick="setRating(4)">☆</span>
+          <span class="fb-star" onclick="setRating(5)">☆</span>
+        </div>
+        <div class="set-feedback-hint">ご感想やご要望をお聞かせください（任意）</div>
+        <textarea id="fb-comment" placeholder="ご感想やご要望をお聞かせください（任意）" style="width:100%;border:1px solid rgba(42,35,32,0.08);border-radius:16px;padding:12px 16px;font-family:var(--font-body);font-size:13px;color:var(--ink);background:rgba(248,243,239,0.5);resize:none;min-height:80px;outline:none;box-sizing:border-box;margin-bottom:16px;line-height:1.7;"></textarea>
+        <button class="set-feedback-btn fb-submit" onclick="submitFeedback()">♡ フィードバックを送る</button>
+      </div>
+    </div>
+
+    <!-- ── About ── -->
+    <div class="set-section">
+      <div class="set-section-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>About</span>
+      </div>
+      <div class="set-card set-about-full">
+        <a href="index.html" class="set-row" style="text-decoration:none;">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#eef4f8;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.56;"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            </div>
+            <div class="set-row-texts">
+              <div class="set-row-text">ippo 公式サイト</div>
+              <div class="set-row-sub">機能・プラン・ストーリー</div>
+            </div>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.32;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+        <div class="set-row" style="cursor:default;pointer-events:none;">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#eef5ee;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7aad82" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M12 12C12 12 8 9 6 6c3 0 6 2 6 6z"/><path d="M12 12C12 12 16 9 18 6c-3 0-6 2-6 6z"/><path d="M12 12C12 12 9 16 8 19c2-1 4-4 4-7z"/><path d="M12 12C12 12 15 16 16 19c-2-1-4-4-4-7z"/></svg>
+            </div>
+            <div class="set-row-texts">
+              <div class="set-row-text" style="font-size:11.5px;line-height:1.65;white-space:normal;">このアプリは医療アドバイスを提供するものではありません。卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="set-version-footer" style="position:relative;overflow:hidden;">
+      ippo v1.0 — あなたのからだに寄り添うアプリ
+      <svg style="position:absolute;right:-8px;bottom:-16px;opacity:0.18;pointer-events:none;" width="80" height="100" viewBox="0 0 52 72" fill="none" aria-hidden="true">
+        <path d="M26 68 C26 68 26 42 26 28" stroke="#8abf9a" stroke-width="1.4" stroke-linecap="round"/>
+        <path d="M26 52 C19 44 10 42 8 33 C15 31 25 38 26 52Z" fill="#8abf9a"/>
+        <path d="M26 40 C33 32 42 30 44 21 C37 19 27 26 26 40Z" fill="#BFD8C1"/>
+        <path d="M26 62 C21 55 14 54 12 46 C18 44 26 50 26 62Z" fill="#8abf9a"/>
+      </svg>
+    </div>
+
+    <div style="height:44px;"></div>
+  </div>
+</div>
+
+<!-- Doctor Summary Modal -->
+<div class="ds-overlay" id="doctorSummaryOverlay">
+  <div class="ds-sheet">
+    <div class="ds-handle"></div>
+    <div class="ds-header">
+      <div class="ds-title">からだサマリー</div>
+      <div class="ds-subtitle">今月のあなたのからだの傾向</div>
+    </div>
+    <div class="ds-body" id="doctorSummaryBody">
+      <div class="ds-empty">読み込み中...</div>
+    </div>
+    <div class="ds-disclaimer">
+      ※ このサマリーは記録データをもとに傾向を整理したものです。医学的診断ではありません。
+    </div>
+    <div class="ds-footer">
+      <button class="ds-btn secondary" onclick="closeDoctorSummary()">閉じる</button>
+      <button class="ds-btn primary" onclick="copyDoctorSummary()">テキストをコピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- Monthly Report Modal -->
+<div class="mr-overlay" id="monthlyReportOverlay">
+  <div class="mr-sheet">
+    <div class="mr-handle"></div>
+    <div class="mr-header">
+      <div class="mr-title">月次レポート</div>
+      <div class="mr-subtitle">月ごとの体調データを可視化</div>
+    </div>
+    <div class="mr-body">
+      <div class="mr-month-selector">
+        <button class="mr-month-btn" onclick="changeReportMonth(-1)">←</button>
+        <div class="mr-month-label" id="mrMonthLabel">2026年4月</div>
+        <button class="mr-month-btn" onclick="changeReportMonth(1)">→</button>
+      </div>
+      <div id="monthlyReportBody">
+        <div class="mr-generating">読み込み中...</div>
+      </div>
+    </div>
+    <div class="mr-footer">
+      <button class="mr-btn secondary" onclick="closeMonthlyReport()">閉じる</button>
+      <button class="mr-btn primary" onclick="downloadReportPDF()">PDF ダウンロード</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Analysis Modal -->
+<div class="ai-overlay" id="aiAnalysisOverlay">
+  <div class="ai-sheet">
+    <div class="ai-handle"></div>
+    <div class="ai-header">
+      <div class="ai-title">AIパターン解析</div>
+      <div class="ai-subtitle">あなたの記録データからパターンを読み解きます</div>
+    </div>
+    <div class="ai-body" id="aiAnalysisBody">
+      <div class="ai-loading">
+        <div class="ai-loading-icon">✨</div>
+        <div class="ai-loading-text">読み込み中...</div>
+      </div>
+    </div>
+    <div class="ai-footer">
+      <button class="ai-btn secondary" onclick="closeAIAnalysis()">閉じる</button>
+      <button class="ai-btn primary" onclick="copyAIAnalysis()">テキストをコピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sync Modal -->
+<div class="sync-overlay" id="syncOverlay">
+  <div class="sync-sheet">
+    <div class="sync-handle"></div>
+    <div class="sync-header">
+      <div class="sync-title">デバイス間同期</div>
+      <div class="sync-subtitle">ログインすると、PC・スマホで同じデータにアクセスできます</div>
+    </div>
+    <div class="sync-body" id="syncBody"></div>
+    <div class="sync-footer">
+      <button class="sync-close-btn" onclick="closeSyncModal()">閉じる</button>
+    </div>
+  </div>
+</div>
+
+
+
+  <!-- ===== RECORD MODAL ===== -->
+  <div class="modal-overlay" id="record-modal" onclick="closeModal()">
+    <div class="modal-sheet" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+       <div class="modal-step-indicator" id="step-indicator">
+  <div class="step-dot active"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+  <div class="step-dot"></div>
+</div>
+        <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
+        <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" id="modal-back-btn" onclick="prevStep()">← 戻る</button>
+        <button class="btn-save" id="modal-next-btn" onclick="nextStep()">次へ →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SUCCESS OVERLAY ===== -->
+  <div class="success-overlay" id="success-overlay">
+    <div class="success-card">
+      <span class="success-emoji" id="success-emoji"></span>
+      <div class="success-title" id="success-title">記録できました</div>
+      <div class="success-sub" id="success-message">今日もからだの声を<br>聴いてくれてありがとう。<br>記録が積み重なるほど、<br>見えてくるものがあります。</div>
+      <button class="success-close" onclick="closeSuccess()">閉じる</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Supabase 初期化は src/services/supabase.js に移設 (window.supabase は同ファイルで設定) -->
+
+
+
+
+  <!-- Premium Lock Modal -->
+<div class="premium-lock-overlay" id="premiumLockOverlay">
+  <div class="premium-lock-card" style="max-height:90vh;overflow-y:auto;">
+    <div class="premium-lock-icon">✨</div>
+    <div class="premium-lock-title">プレミアム機能</div>
+    <div id="premium-dynamic-msg" style="display:none;"></div>
+
+    <!-- プラン選択 -->
+    <div style="display:flex;gap:8px;margin-bottom:18px;">
+      <div id="plan-card-monthly" onclick="selectPremiumPlan('monthly')" style="flex:1;border:2px solid #e8ddd8;border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.2s;">
+        <div style="font-size:10px;color:var(--ink-light);margin-bottom:3px;">月額プラン</div>
+        <div style="font-size:22px;font-family:'Shippori Mincho',serif;color:var(--ink);line-height:1;">¥580</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:2px;">/月</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:5px;line-height:1.4;">いつでも<br>解約可能</div>
+      </div>
+      <div id="plan-card-annual" onclick="selectPremiumPlan('annual')" style="flex:1;border:2px solid var(--rose);border-radius:14px;padding:14px 8px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#fff8f8,#fdf3f3);position:relative;transition:all 0.2s;">
+        <div style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--rose);color:white;font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;white-space:nowrap;">31% オフ</div>
+        <div style="font-size:10px;color:var(--rose);margin-bottom:3px;font-weight:600;">年額プラン</div>
+        <div style="font-size:22px;font-family:'Shippori Mincho',serif;color:var(--ink);line-height:1;">¥400</div>
+        <div style="font-size:10px;color:var(--ink-light);margin-top:2px;">/月</div>
+        <div style="font-size:10px;color:var(--rose);margin-top:5px;font-weight:500;">¥4,800/年<br>おすすめ</div>
+      </div>
+    </div>
+
+    <div class="premium-lock-features">
+      <div class="premium-lock-feature"><span class="check">✓</span>クラウド同期・復元</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>AIパターン解析（90日）</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>体温パターン解析・警戒値チェック</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>月次レポートPDF保存</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>要因効果・フレアアップ分析</div>
+      <div class="premium-lock-feature"><span class="check">✓</span>長期データ無制限保存</div>
+    </div>
+
+    <button id="stripe-main-btn" class="premium-lock-btn" onclick="startStripeCheckout()">年額プランで始める（¥4,800/年）</button>
+    <button id="stripe-sub-btn" class="premium-lock-btn" onclick="startStripeCheckout(_selectedPlan==='annual'?'monthly':'annual')" style="background:transparent;color:var(--ink-mid);border:1.5px solid #e8ddd8;font-size:13px;padding:12px;margin-top:4px;">月額プランで始める（¥580/月）</button>
+    <button class="premium-lock-close" onclick="closePremiumLock()">あとで</button>
+    <div style="font-size:10px;color:var(--ink-light);margin-top:10px;line-height:1.7;">クレジットカード決済のみ対応<br>年額プランは購入後30日以内の返金対応あり</div>
+  </div>
+</div>
+
+ 　 </div>  <!-- main-app を閉じる -->
+　</div>  <!-- app を閉じる -->
+
 </body>
 </html>
