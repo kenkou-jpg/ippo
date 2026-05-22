@@ -15,8 +15,9 @@
 /* ─── Screen background ──────────────────────────────────── */
 #screen-insights {
   background:
-    radial-gradient(circle at 82% 4%, rgba(139,127,214,.09), transparent 42%),
-    radial-gradient(circle at 10% -2%, rgba(239,199,176,.11), transparent 36%),
+    radial-gradient(circle at 72% 12%, rgba(139,127,214,.12), transparent 36%),
+    radial-gradient(circle at 20% 0%,  rgba(239,199,176,.14), transparent 30%),
+    radial-gradient(circle at 50% 60%, rgba(255,255,255,.18), transparent 42%),
     #faf7f4;
   min-height:100vh;
   font-family:'Noto Sans JP','Hiragino Sans',sans-serif;
@@ -33,11 +34,11 @@
 /* ─── Card ───────────────────────────────────────────────── */
 .ipc {
   background:rgba(255,255,255,.84);
-  border:1px solid rgba(139,127,214,.12);
+  border:1px solid rgba(139,127,214,.08);
   border-radius:26px;
-  box-shadow:0 16px 40px rgba(58,47,102,.05);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
+  box-shadow:0 10px 28px rgba(58,47,102,.03);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
 }
 
 /* ─── PRO header bar ─────────────────────────────────────── */
@@ -71,12 +72,12 @@
   letter-spacing:.04em; margin-bottom:14px;
 }
 .ipr-hero-h1 {
-  font-size:46px; font-weight:800; line-height:1.5;
+  font-size:46px; font-weight:800; line-height:1.58;
   letter-spacing:-.02em; color:#18245a;
   margin:0 0 22px;
 }
 .ipr-hero-lead {
-  font-size:15px; color:#5d6482; line-height:2.05;
+  font-size:15px; color:#5d6482; line-height:2.2;
   margin-bottom:28px;
 }
 .ipr-hero-cta {
@@ -104,14 +105,14 @@
   filter:blur(50px); pointer-events:none;
 }
 .ipr-aura-lav {
-  width:280px;height:280px;
-  background:rgba(139,127,214,.21);
+  width:310px;height:310px;
+  background:rgba(139,127,214,.12);
   left:0;top:10px;
   animation:ipp-aura-a 14s ease-in-out infinite;
 }
 .ipr-aura-peach {
-  width:220px;height:220px;
-  background:rgba(239,199,176,.26);
+  width:250px;height:250px;
+  background:rgba(239,199,176,.13);
   right:-10px;top:55px;
   animation:ipp-aura-b 18s ease-in-out infinite 2s;
 }
@@ -119,8 +120,8 @@
   position:absolute;
   width:340px;height:100px;
   border-radius:50%;
-  filter:blur(34px);
-  background:rgba(255,255,255,.52);
+  filter:blur(38px);
+  background:rgba(255,255,255,.18);
   bottom:15px;left:-10px;
   pointer-events:none;
   animation:ipp-mist 18s ease-in-out infinite;
@@ -174,7 +175,7 @@
   color:#18245a; letter-spacing:-.018em;
   margin:14px 0 16px;
 }
-.ipr-ins-body { font-size:13.5px; color:#5d6482; line-height:1.95; flex:1; }
+.ipr-ins-body { font-size:13.5px; color:#5d6482; line-height:2.18; flex:1; }
 .ipr-ins-bottom { margin-top:24px; }
 .ipr-ins-link {
   font-size:12px; color:#8b7fd6; cursor:pointer;
@@ -204,8 +205,8 @@
 .ipr-dis-list li {
   display:flex; align-items:flex-start; gap:10px;
   padding:8px 0;
-  border-bottom:1px solid rgba(139,127,214,.07);
-  font-size:12.5px; color:#5d6482; line-height:1.9;
+  border-bottom:1px solid rgba(139,127,214,.06);
+  font-size:12.5px; color:#5d6482; line-height:2.45;
 }
 .ipr-dis-list li:last-child { border-bottom:none; }
 .ipr-dis-ico {
@@ -292,17 +293,18 @@
 .ipr-hints-card{
   padding:0;display:flex;flex-direction:column;
   position:relative;overflow:hidden;
+  min-height:280px;
   background:linear-gradient(168deg,rgba(243,240,255,.92) 0%,rgba(249,247,255,.88) 100%);
   border-color:rgba(195,188,232,.07);
-  box-shadow:0 10px 28px rgba(58,47,102,.04);
+  box-shadow:0 10px 28px rgba(58,47,102,.03);
   backdrop-filter:none;-webkit-backdrop-filter:none;
 }
 .ipr-hints-text{
   position:relative;z-index:2;
   font-size:13px;font-weight:400;
   color:rgba(88,82,126,.68);
-  line-height:1.9;letter-spacing:-.01em;
-  padding:30px 24px 0 28px;margin:0;
+  line-height:2.1;letter-spacing:-.01em;
+  padding:30px 24px 160px 28px;margin:0;
 }
 .ipr-hints-art{
   position:absolute;inset:0;
@@ -428,6 +430,12 @@
             </linearGradient>
             <filter id="h-blur4"><feGaussianBlur stdDeviation="5"/></filter>
             <filter id="h-blur2"><feGaussianBlur stdDeviation="2.5"/></filter>
+            <filter id="h-blur8" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter>
+            <filter id="h-blur14" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="14"/></filter>
+            <filter id="h-wc" x="-5%" y="-5%" width="110%" height="110%">
+              <feGaussianBlur stdDeviation="2.8" result="wb"/>
+              <feBlend in="SourceGraphic" in2="wb" mode="screen"/>
+            </filter>
             <filter id="h-grain">
               <feTurbulence type="fractalNoise" baseFrequency=".68" numOctaves="3" stitchTiles="stitch" result="n"/>
               <feColorMatrix type="saturate" values="0" in="n" result="g"/>
@@ -442,26 +450,34 @@
           <!-- ── Arch inner scene (clipped) ── -->
           <g clip-path="url(#arch-clip)">
             <rect width="500" height="370" fill="url(#h-sky)"/>
+            <!-- Back atmospheric haze — depth layer -->
+            <ellipse cx="210" cy="160" rx="200" ry="120" fill="rgba(240,232,248,.10)" filter="url(#h-blur14)"/>
+            <!-- Sun ambient glow — wide warm aura -->
+            <circle cx="210" cy="82" r="130" fill="rgba(255,240,210,.08)" filter="url(#h-blur14)"/>
             <!-- Sun glow + disk -->
             <circle cx="210" cy="82"  r="96" fill="url(#h-sun)"/>
             <circle cx="210" cy="86"  r="30" fill="#fff8ee" opacity=".96"/>
             <circle cx="210" cy="86"  r="20" fill="#fff3d4" opacity=".82"/>
-            <!-- Far mountains -->
-            <path d="M58 230 L105 182 L148 205 L188 165 L210 184 L235 158 L275 185 L308 154 L342 178 L362 165 L362 235 L58 235Z" fill="#b8b0d8" opacity=".58"/>
+            <!-- Far mountains — watercolor softened -->
+            <path d="M58 230 L105 182 L148 205 L188 165 L210 184 L235 158 L275 185 L308 154 L342 178 L362 165 L362 235 L58 235Z" fill="#b8b0d8" opacity=".50" filter="url(#h-wc)"/>
             <!-- Near mountains -->
-            <path d="M58 240 L112 200 L155 220 L198 192 L225 212 L258 188 L292 208 L328 185 L358 202 L362 200 L362 248 L58 248Z" fill="#9890c0" opacity=".62"/>
+            <path d="M58 240 L112 200 L155 220 L198 192 L225 212 L258 188 L292 208 L328 185 L358 202 L362 200 L362 248 L58 248Z" fill="#9890c0" opacity=".55"/>
+            <!-- Mid atmospheric haze between mountains and water -->
+            <ellipse cx="210" cy="248" rx="170" ry="28" fill="rgba(255,255,255,.12)" filter="url(#h-blur8)"/>
             <!-- Water / lake -->
             <ellipse cx="210" cy="292" rx="180" ry="42" fill="url(#h-water)" opacity=".78"/>
             <!-- Water shimmers -->
             <path d="M100 286 Q148 282 200 287 Q252 292 298 285 Q330 280 360 287" stroke="rgba(255,255,255,.62)" stroke-width="1.4" fill="none" stroke-linecap="round"/>
             <path d="M120 300 Q165 296 210 300 Q258 304 305 298 Q335 294 360 299" stroke="rgba(255,255,255,.42)" stroke-width="1" fill="none" stroke-linecap="round"/>
-            <!-- Mist wisps -->
-            <ellipse cx="145" cy="258" rx="105" ry="26" fill="white" opacity=".30" filter="url(#h-blur4)"/>
-            <ellipse cx="292" cy="252" rx="88" ry="22" fill="white" opacity=".24" filter="url(#h-blur4)"/>
+            <!-- Mist wisps — natural opacity 0.12–0.18 -->
+            <ellipse cx="145" cy="258" rx="105" ry="26" fill="white" opacity=".17" filter="url(#h-blur8)"/>
+            <ellipse cx="292" cy="252" rx="88" ry="22" fill="white" opacity=".14" filter="url(#h-blur8)"/>
+            <!-- Foreground mist grounding layer -->
+            <ellipse cx="210" cy="272" rx="155" ry="30" fill="rgba(255,255,255,.13)" filter="url(#h-blur8)"/>
             <!-- Ground mist -->
             <rect x="58" y="310" width="304" height="45" fill="url(#h-mist-fade)"/>
-            <!-- Grain overlay -->
-            <rect x="0" y="0" width="500" height="370" fill="rgba(210,192,185,.055)" filter="url(#h-grain)"/>
+            <!-- Grain + watercolor texture -->
+            <rect x="0" y="0" width="500" height="370" fill="rgba(210,192,185,.042)" filter="url(#h-grain)"/>
           </g>
 
           <!-- ── Arch frame ── -->
@@ -787,55 +803,83 @@
         <p class="ipr-hints-text">睡眠が安定した翌日は、<br>症状が軽くなる傾向があります。</p>
         <svg class="ipr-hints-art" viewBox="0 0 280 340" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
           <defs>
-            <filter id="h-f10" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="10"/></filter>
-            <filter id="h-f16" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="16"/></filter>
-            <filter id="h-f22" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="22"/></filter>
-            <filter id="h-f28" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="28"/></filter>
-            <filter id="h-grain" x="0" y="0" width="100%" height="100%">
-              <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="4" stitchTiles="stitch"/>
+            <filter id="hm-f10" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="10"/></filter>
+            <filter id="hm-f16" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="16"/></filter>
+            <filter id="hm-f22" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="22"/></filter>
+            <filter id="hm-f28" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="28"/></filter>
+            <filter id="hm-f36" x="-140%" y="-140%" width="380%" height="380%"><feGaussianBlur stdDeviation="36"/></filter>
+            <filter id="hm-grain" x="0" y="0" width="100%" height="100%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.62" numOctaves="4" stitchTiles="stitch"/>
               <feColorMatrix type="saturate" values="0"/>
             </filter>
-            <radialGradient id="h-bg-glow" cx="50%" cy="82%" r="55%">
-              <stop offset="0%"  stop-color="#cbc5e6" stop-opacity=".13"/>
+            <radialGradient id="hm-bg-glow" cx="50%" cy="75%" r="60%">
+              <stop offset="0%"  stop-color="#cbc5e6" stop-opacity=".11"/>
               <stop offset="100%" stop-color="#cbc5e6" stop-opacity="0"/>
             </radialGradient>
-            <radialGradient id="h-moon" cx="36%" cy="34%" r="62%">
-              <stop offset="0%"  stop-color="#eeeaff"/>
-              <stop offset="52%" stop-color="#ddd8f2"/>
-              <stop offset="100%" stop-color="#cdc8e6"/>
+            <radialGradient id="hm-moon" cx="36%" cy="32%" r="62%">
+              <stop offset="0%"   stop-color="#f0eeff"/>
+              <stop offset="48%"  stop-color="#e2dcf8"/>
+              <stop offset="100%" stop-color="#cec8e8"/>
+            </radialGradient>
+            <radialGradient id="hm-lav-haze" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"  stop-color="rgba(218,210,255,.15)"/>
+              <stop offset="100%" stop-color="rgba(218,210,255,0)"/>
             </radialGradient>
           </defs>
+
           <!-- Ambient background glow -->
-          <rect width="280" height="340" fill="url(#h-bg-glow)"/>
-          <!-- Mist layers — slow drift, 18–28 s -->
-          <ellipse cx="140" cy="296" rx="158" ry="36"
-            fill="rgba(204,198,234,.18)" filter="url(#h-f22)"
-            style="animation:ipp-hints-mist-a 24s ease-in-out infinite"/>
-          <ellipse cx="60"  cy="308" rx="108" ry="28"
-            fill="rgba(208,202,238,.16)" filter="url(#h-f28)"
-            style="animation:ipp-hints-mist-b 21s ease-in-out infinite"/>
-          <ellipse cx="220" cy="300" rx="94"  ry="26"
-            fill="rgba(206,200,236,.20)" filter="url(#h-f22)"
-            style="animation:ipp-hints-mist-a 28s ease-in-out infinite 5s"/>
-          <!-- Moon outer glow — very soft ambient light -->
-          <circle cx="140" cy="268" r="132" fill="rgba(210,205,240,.10)" filter="url(#h-f28)"/>
-          <circle cx="140" cy="268" r="104" fill="rgba(218,212,246,.13)" filter="url(#h-f16)"/>
-          <!-- Moon disc — 14–20 s breathing float -->
+          <rect width="280" height="340" fill="url(#hm-bg-glow)"/>
+
+          <!-- Lavender haze — upper atmosphere -->
+          <ellipse cx="140" cy="180" rx="160" ry="110" fill="url(#hm-lav-haze)" filter="url(#hm-f36)"/>
+
+          <!-- Stars — barely visible, upper field -->
+          <circle cx="46"  cy="72"  r="1.4" fill="#c8c0e8" opacity=".22"/>
+          <circle cx="78"  cy="48"  r="1.0" fill="#c8c0e8" opacity=".18"/>
+          <circle cx="24"  cy="118" r="1.2" fill="#c8c0e8" opacity=".15"/>
+          <circle cx="108" cy="36"  r="0.9" fill="#c8c0e8" opacity=".14"/>
+          <circle cx="232" cy="62"  r="1.1" fill="#c8c0e8" opacity=".17"/>
+          <circle cx="258" cy="100" r="0.9" fill="#c8c0e8" opacity=".13"/>
+          <circle cx="196" cy="44"  r="0.8" fill="#c8c0e8" opacity=".12"/>
+
+          <!-- Moon ambient haze — outermost (bloom diffusion) -->
+          <circle cx="140" cy="252" r="148" fill="rgba(205,198,238,.08)" filter="url(#hm-f36)"/>
+          <!-- Moon outer glow -->
+          <circle cx="140" cy="252" r="116" fill="rgba(210,204,242,.10)" filter="url(#hm-f28)"/>
+          <!-- Moon mid glow — lavender bloom -->
+          <circle cx="140" cy="252" r="82"  fill="rgba(218,212,248,.13)" filter="url(#hm-f22)"/>
+          <!-- Moon inner bloom -->
+          <circle cx="140" cy="252" r="56"  fill="rgba(228,222,255,.16)" filter="url(#hm-f16)"/>
+
+          <!-- Moon disc + float animation -->
           <g style="animation:ipp-hints-moon 17s ease-in-out infinite">
-            <circle cx="140" cy="268" r="96" fill="url(#h-moon)" opacity=".83"/>
+            <circle cx="140" cy="252" r="38"  fill="url(#hm-moon)" opacity=".88"/>
+            <!-- Moon highlight (top-left rim) -->
+            <circle cx="133" cy="246" r="11"  fill="rgba(255,255,255,.22)" filter="url(#hm-f10)"/>
           </g>
-          <!-- Foreground mist — grounding layer over moon base -->
-          <ellipse cx="140" cy="324" rx="146" ry="32"
-            fill="rgba(234,230,254,.22)" filter="url(#h-f16)"/>
-          <!-- Stars — barely visible -->
-          <circle cx="46"  cy="94"  r="1.5" fill="#c4bedd" opacity=".26"/>
-          <circle cx="72"  cy="60"  r="1.1" fill="#c4bedd" opacity=".21"/>
-          <circle cx="28"  cy="138" r="1.3" fill="#c4bedd" opacity=".18"/>
-          <circle cx="112" cy="42"  r="0.9" fill="#c4bedd" opacity=".16"/>
-          <circle cx="226" cy="72"  r="1.2" fill="#c4bedd" opacity=".20"/>
-          <circle cx="254" cy="112" r="0.9" fill="#c4bedd" opacity=".15"/>
-          <!-- Grain texture — digital感を消す -->
-          <rect width="280" height="340" filter="url(#h-grain)" opacity=".04"/>
+
+          <!-- Mid fog layer — between stars and moon -->
+          <ellipse cx="140" cy="252" rx="124" ry="18"
+            fill="rgba(228,224,255,.12)" filter="url(#hm-f22)"
+            style="animation:ipp-hints-mist-a 22s ease-in-out infinite 3s"/>
+
+          <!-- Bottom mist layers — slow drift -->
+          <ellipse cx="140" cy="296" rx="158" ry="36"
+            fill="rgba(204,198,234,.17)" filter="url(#hm-f22)"
+            style="animation:ipp-hints-mist-a 24s ease-in-out infinite"/>
+          <ellipse cx="58"  cy="310" rx="108" ry="28"
+            fill="rgba(208,202,238,.15)" filter="url(#hm-f28)"
+            style="animation:ipp-hints-mist-b 21s ease-in-out infinite"/>
+          <ellipse cx="222" cy="302" rx="94"  ry="26"
+            fill="rgba(206,200,236,.18)" filter="url(#hm-f22)"
+            style="animation:ipp-hints-mist-a 28s ease-in-out infinite 5s"/>
+
+          <!-- Foreground mist — grounding layer -->
+          <ellipse cx="140" cy="326" rx="150" ry="34"
+            fill="rgba(234,230,254,.20)" filter="url(#hm-f16)"/>
+
+          <!-- Grain texture — watercolor感 -->
+          <rect width="280" height="340" filter="url(#hm-grain)" opacity=".045"/>
         </svg>
       </div>
 

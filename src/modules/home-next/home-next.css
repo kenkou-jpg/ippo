@@ -8,8 +8,8 @@
   /* ── Global design tokens (design-system.css と同期) ── */
   --bg-soft:      var(--ippo-bg-base, #FAF8F5);
   --card-bg:      var(--ippo-card-bg, #FFFFFF);
-  --border-soft:  rgba(0, 0, 0, 0.04);
-  --shadow-soft:  var(--ippo-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.015));
+  --border-soft:  rgba(139,127,214,0.08);
+  --shadow-soft:  var(--ippo-card-shadow, 0 10px 28px rgba(58,47,102,0.03));
   --radius-card:  var(--ippo-card-radius, 20px);
 
   /* アクセントカラー */
@@ -32,8 +32,8 @@
   /* ── Home-next スコープトークン ── */
   --hn-bg:             var(--ippo-bg-base, #FAF8F5);
   --hn-card-bg:        var(--ippo-card-bg, #FFFFFF);
-  --hn-card-border:    var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
-  --hn-card-shadow:    var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
+  --hn-card-border:    1px solid rgba(139,127,214,0.08);
+  --hn-card-shadow:    0 10px 28px rgba(58,47,102,0.03);
   --hn-card-radius:    var(--ippo-card-radius, 20px);
   --hn-card-radius-lg: 24px;
 
@@ -67,7 +67,11 @@
 
 /* ── スクリーン基盤 ──────────────────────────────────────── */
 #screen-home-next {
-  background: var(--hn-bg);
+  background:
+    radial-gradient(circle at 72% 12%, rgba(139,127,214,0.12), transparent 36%),
+    radial-gradient(circle at 20% 0%,  rgba(239,199,176,0.14), transparent 30%),
+    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.18), transparent 42%),
+    #FAF7F4;
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -392,7 +396,7 @@
   font-size: 18px;
   font-weight: 500;
   color: var(--hn-ink);
-  line-height: 1.65;
+  line-height: 1.58;
   letter-spacing: 0.05px;
   word-break: keep-all;
   overflow-wrap: break-word;
@@ -402,7 +406,7 @@
   font-family: var(--hn-font-ja);
   font-size: 13px;
   color: var(--hn-ink-sec);
-  line-height: 1.75;
+  line-height: 2.15;
   margin-top: 12px;
   font-weight: 300;
 }
