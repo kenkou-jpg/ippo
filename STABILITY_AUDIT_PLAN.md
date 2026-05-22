@@ -304,6 +304,95 @@
 
 ---
 
+## PHASE 7 — 本番前最終監査（2026-05-22）
+
+> 10ドメイン横断の最終チェック。優先度は P0/P1/P2/P3 で管理。
+
+### [x] PRE-1: インサイト画面 inline script が実行されない（screen-router）
+- **ファイル**: `src/modules/screen-router.js:68-74`
+- **根本原因**: `tmp.innerHTML + appendChild` では `<script>` が実行されない（ブラウザ仕様）
+- **修正**: HTML 注入前に `querySelectorAll('script')` で収集 → DOM 移動後に `createElement('script')` で再実行
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-2: インサイト画面が全面ハードコードモックデータ表示（PRO機能として完全に非機能）
+- **ファイル**: `src/screens/insights.html`
+- **根本原因**:
+  1. `renderInsightDiscoveries()` が `#ins-main-insight-text` を探すが、可視要素にその ID がなかった
+  2. 周期フェーズ・睡眠・体温・症状が固定文字列
+  3. SVG チャートが固定日付・固定座標
+  4. ヒントカード・実験カードが固定テキスト
+  5. ヒーロー挨拶が時刻非依存の固定文字列
+- **修正**:
+  - `id="ins-main-insight-text"` / `id="ins-main-insight-sub"` を可視 `.ipr-ins-h2` / `.ipr-ins-body` に付与
+  - 周期計算（lastPeriodDate + cycleLength）をインライン script に実装し cycle ring・status strip に反映
+  - SVG チャートを過去30日の実データ（痛み/気分/睡眠/体温）から動的生成
+  - ヒント・実験カードをレコードから導出したインサイトで更新
+  - 時刻ベースの挨拶（おはよう/こんにちは/おやすみ）
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-3: インサイト画面 疾患タブ×4 完全無反応
+- **ファイル**: `src/screens/insights.html:498-501`
+- **修正**: `window._iprSwitchDisTab(idx)` をタブに接続。子宮内膜症/PMS/IBS/片頭痛 4疾患分のコンテンツを inline script に定義し、タブ切替で subhead・リスト・注釈を更新
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-4: インサイト画面 CTA ボタン×6 完全無反応
+- **ファイル**: `src/screens/insights.html:465,486,544,615,632,656,668`
+- **修正**:
+  - ステータス「詳細をみる」→ `.ipr-analysis` へスクロール（旧: 非表示 pane への `switchInsTab` → 機能しなかった）
+  - 「根拠をみる」→ `.ipr-analysis` へスクロール
+  - グラフ「詳細をみる」→ `switchTab('calendar')`
+  - 「周期カレンダーを見る」→ `switchTab('calendar')`
+  - 「考えてみる」「実験を記録する」「すべてのヒントを見る」→ `openRecordScreen()`
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-5: カレンダー「レポートを見る」ボタン無反応
+- **ファイル**: `src/modules/calendar-next.js:559`
+- **修正**: `switchTab('insights')` を onclick に追加
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-6: 本番ビルドで saveState 失敗が完全サイレント
+- **ファイル**: `src/store/state.js:151`
+- **根本原因**: `esbuild: { drop: ['console'] }` が `console.warn('ippo: saveState failed')` を除去
+- **修正**: `window.dispatchEvent(new CustomEvent('ippo:save-error', {detail:{error:e}}))` を追加（console.warn は維持）
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-7: ルート `sw.js` が v6 のまま（public/sw.js は v7）
+- **ファイル**: `sw.js`（プロジェクトルート）
+- **修正**: `CACHE_VERSION = 'v7'` に同期
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-8: `app.html` 保存ボタンが `setTimeout(2000)` ハードコード
+- **ファイル**: `app.html:671`
+- **修正**: `Promise.resolve(saveRecordScreen()).finally(fn)` パターンに変更（`src/screens/record.html:309` と同一方式）
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-9: `manifest.json` description に「チャクラ・断食」（現スコープ外）
+- **ファイル**: `manifest.json`
+- **修正**: 「生理周期・症状・体調を記録して、あなただけの体のパターンを発見するヘルスケアアプリ」に更新
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-10: `LUNAR_MONTHS_TABLE` が 2027 年末で終端
+- **ファイル**: `src/modules/calendar-next.js`
+- **修正**: 2027〜2030 年分の朔日データ（新月日付）を追加、sentinel を 2031-01-23 に延長
+- **修正コミット**: 2026-05-22 このセッション
+
+### [x] PRE-11: 月齢 SVG UID が `Math.round(phase * 100000)` → 隣接日で衝突リスク
+- **ファイル**: `src/modules/calendar-next.js`（getMoonSVG / getMoonSVGCached）
+- **修正**: `uid = 'ipm-' + dateKey + Math.round(phase * 100000)` — `getMoonSVGCached` の日付キーを UID に含める
+- **修正コミット**: 2026-05-22 このセッション
+
+---
+
+## PHASE 8 — Insights PRO ボタン実装完了（2026-05-22）
+
+### [x] PRE-Prog: Insights 画面ボタン全件をプログラム的にワイヤリング
+- **ファイル**: `src/modules/tab-navigation.js`
+- **根本原因**: Vite `?raw` モジュールキャッシュが古い insights.html を保持し、HTML onclick 属性が DOM に反映されなかった
+- **修正**: `_wireInsightsScreen()` 関数を tab-navigation.js に実装。switchTab('insights') 呼び出し毎および起動時に実行し、全ボタン onclick をプログラム的に設定。`window._iprSwitchDisTab` も同関数内で毎回定義。状態 hydration（周期フェーズ・SVGチャート・ヒントカード）も同関数に移植。
+- **修正コミット**: 2026-05-22 このセッション
+
+---
+
 ## 完了サマリー（随時更新）
 
 | Phase | 総数 | 完了 | 残り |
@@ -314,7 +403,9 @@
 | PHASE 4 — Leaks | 5 | 5 | 0 |
 | PHASE 5 — Architecture | 5 | 5 | 0 |
 | PHASE 6 — Dead Code | 6 | 6 | 0 |
-| **合計** | **44** | **44** | **0** |
+| PHASE 7 — 本番前最終監査 | 11 | 11 | 0 |
+| PHASE 8 — Insights PRO | 1 | 1 | 0 |
+| **合計** | **57** | **57** | **0** |
 
 ---
 

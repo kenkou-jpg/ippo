@@ -1,7 +1,7 @@
 {
   "name": "ippo – からだの声を聴くセルフケア記録",
   "short_name": "ippo",
-  "description": "チャクラ・食事・断食・感情・基礎体温を記録して、からだのパターンを発見するウェルネスアプリ",
+  "description": "生理周期・症状・体調を記録して、あなただけの体のパターンを発見するヘルスケアアプリ",
   "start_url": "/app.html",
   "scope": "/",
   "display": "standalone",

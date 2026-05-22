@@ -151,6 +151,7 @@ export function saveState() {
   } catch(e) {
     saveErr = e;
     console.warn('ippo: saveState failed', e);
+    try { window.dispatchEvent(new CustomEvent('ippo:save-error', { detail: { error: e } })); } catch (_) {}
   }
   for (var _oi = 0; _oi < _postSaveHooks.length; _oi++) {
     try { _postSaveHooks[_oi](saveErr); } catch (_) {}

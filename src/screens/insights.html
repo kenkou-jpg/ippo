@@ -462,7 +462,7 @@
         </div>
       </div>
       <div class="ipr-stat-cell">
-        <button class="ipr-stat-detail" onclick="if(typeof window.switchInsTab==='function')window.switchInsTab('trends')">
+        <button class="ipr-stat-detail" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
           詳細をみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -476,14 +476,14 @@
       <div class="ipc ipr-ins-card">
         <div class="ipr-card-eyebrow">Today's Insight</div>
         <div class="ipr-card-title">今日の気づき ✦</div>
-        <h2 class="ipr-ins-h2">睡眠が短い日の翌日に、頭痛が出やすい傾向があります。</h2>
-        <p class="ipr-ins-body">
+        <h2 class="ipr-ins-h2" id="ins-main-insight-text">睡眠が短い日の翌日に、頭痛が出やすい傾向があります。</h2>
+        <p class="ipr-ins-body" id="ins-main-insight-sub">
           最近は、睡眠時間が6時間未満の日の翌日に頭痛を感じることが多いようです。
           少し早めに休むことで、つらさを減らせるかもしれません。
         </p>
         <div class="ipr-ins-bottom">
           <div style="font-size:10px;color:#a0a8c0;margin-bottom:10px;">あなたの記録から見えた傾向です</div>
-          <button class="ipr-ins-link">
+          <button class="ipr-ins-link" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
             根拠をみる
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -495,10 +495,10 @@
         <div class="ipr-card-eyebrow">Connections</div>
         <div class="ipr-card-title">疾患・症状と普段とのつながり</div>
         <div class="ipr-dis-tabs">
-          <button class="ipr-dis-tab active">子宮内膜症</button>
-          <button class="ipr-dis-tab">PMS</button>
-          <button class="ipr-dis-tab">過敏性腸症候群（IBS）</button>
-          <button class="ipr-dis-tab">片頭痛</button>
+          <button class="ipr-dis-tab active" onclick="window._iprSwitchDisTab(0)">子宮内膜症</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(1)">PMS</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(2)">過敏性腸症候群（IBS）</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(3)">片頭痛</button>
         </div>
         <div class="ipr-dis-subhead">子宮内膜症の症状と関連しやすい傾向</div>
         <ul class="ipr-dis-list">
@@ -541,7 +541,7 @@
             <div class="ipr-card-eyebrow">30-Day Trend</div>
             <div class="ipr-card-title">症状・体調の推移</div>
           </div>
-          <button class="ipr-graph-link">
+          <button class="ipr-graph-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
             詳細をみる
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -612,7 +612,7 @@
             <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#d8c8f0"></span><span>黄体期<br><span style="font-size:9px;color:#c0c8d8">15–28日</span></span></div>
           </div>
         </div>
-        <button class="ipr-cycle-link">
+        <button class="ipr-cycle-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
           周期カレンダーを見る
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -629,7 +629,7 @@
         <p class="ipr-reflect-sub">自分のからだからのサインに、やさしく耳を傾けてみましょう。</p>
         <p class="ipr-reflect-q">最近、調子が良かった日の共通点はありますか？</p>
         <p class="ipr-reflect-hint">小さな気づきが、これからのあなたの助けになります。</p>
-        <button class="ipr-reflect-link">
+        <button class="ipr-reflect-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           考えてみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -653,7 +653,7 @@
           <li><span class="ipr-exp-bullet-dot"></span>方法：いつもより30分早く寝るように意識する</li>
           <li><span class="ipr-exp-bullet-dot"></span>期待する変化：翌日の頭痛やだるさが軽くなる可能性</li>
         </ul>
-        <button class="ipr-exp-btn">
+        <button class="ipr-exp-btn" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           実験を記録する
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -665,7 +665,7 @@
       <div class="ipr-tips-head">
         <span class="ipr-tips-head-title">おすすめのヒント</span>
         <span class="ipr-tips-head-sub">あなたのデータから、今のあなたに合いそうなヒントをお届けします。</span>
-        <button class="ipr-tips-head-link">
+        <button class="ipr-tips-head-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           すべてのヒントを見る
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -711,20 +711,206 @@
 
   <script>
   (function(){
+    /* ── Disease tab content ─────────────────────────────── */
+    var _DIS = [
+      { sub:'子宮内膜症の症状と関連しやすい傾向',
+        items:[
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'排卵期前後にだるさ・体の重さが出やすい'},
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'睡眠不足が続くと、痛みが強くなる傾向があります'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'ストレスが高いと、症状が悪化する傾向があります'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'温かい飲み物をとると、落ち着きやすい傾向があります'}
+        ],
+        note:'過去3ヶ月の記録をもとにした、あなたの傾向です。'
+      },
+      { sub:'PMSの症状と関連しやすい傾向',
+        items:[
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前7〜10日に気分の落ち込みが現れやすい'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'甘いものへの欲求が増す時期があります'},
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'睡眠の乱れと症状の重さが連動しやすい傾向があります'},
+          {bg:'#edf5ef',stroke:'#5a9070',text:'軽い有酸素運動が症状を和らげることがあります'}
+        ],
+        note:'生理周期に合わせた記録が増えると、より正確な傾向が見えてきます。'
+      },
+      { sub:'過敏性腸症候群（IBS）と関連しやすい傾向',
+        items:[
+          {bg:'#fff0e6',stroke:'#d4845a',text:'ストレスが強い日にお腹の不調が出やすい傾向があります'},
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前後に症状が悪化しやすい傾向があります'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'冷たい飲食物で症状が誘発されやすい傾向があります'},
+          {bg:'#edf5ef',stroke:'#5a9070',text:'規則的な食事時間が腸の安定を助けます'}
+        ],
+        note:'食事・ストレス・生活習慣の記録が増えると傾向が明確になります。'
+      },
+      { sub:'片頭痛と関連しやすい傾向',
+        items:[
+          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前後に頭痛が出やすい傾向があります'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'睡眠不足や睡眠過多が誘発要因となりやすい'},
+          {bg:'#fff0e6',stroke:'#d4845a',text:'光・音・匂いへの敏感さが症状と連動しやすい'},
+          {bg:'#edf5ef',stroke:'#5a9070',text:'ストレスの解放期（週末など）に起こりやすい傾向があります'}
+        ],
+        note:'症状の記録が増えると、頭痛の予測精度が上がります。'
+      }
+    ];
+
+    window._iprSwitchDisTab = function(idx) {
+      document.querySelectorAll('.ipr-dis-tab').forEach(function(t,i){ t.classList.toggle('active',i===idx); });
+      var d=_DIS[idx]; if(!d) return;
+      var sh=document.querySelector('.ipr-dis-subhead'); if(sh) sh.textContent=d.sub;
+      var list=document.querySelector('.ipr-dis-list');
+      if(list) list.innerHTML=d.items.map(function(it){
+        return '<li><div class="ipr-dis-ico" style="background:'+it.bg+'">'
+          +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="'+it.stroke+'" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+          +'</div>'+it.text+'</li>';
+      }).join('');
+      var note=document.querySelector('.ipr-dis-note'); if(note) note.textContent=d.note;
+    };
+
+    /* ── Cycle phase ────────────────────────────────────── */
+    function _cycleInfo(s) {
+      if(!s||!s.lastPeriodDate) return null;
+      var last=new Date(s.lastPeriodDate+'T00:00:00'), now=new Date();
+      var cyc=s.cycleLength||28;
+      var raw=Math.floor((now-last)/86400000);
+      var dayNum=(raw%cyc)+1; if(dayNum<1) dayNum=1;
+      var phase=dayNum<=5?'月経期':dayNum<=13?'卵胞期':dayNum<=16?'排卵期':'黄体期';
+      return {phase:phase,dayNum:dayNum};
+    }
+
+    /* ── SVG chart rendering ────────────────────────────── */
+    function _renderChart(records) {
+      var svg=document.querySelector('.ipr-graph-card svg'); if(!svg) return;
+      var now=new Date();
+      var last30=(records||[]).filter(function(r){return (now-new Date(r.date))/86400000<=30;})
+        .sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+      if(last30.length<3) return;
+      var xs=[50,132,214,296,378,460,540];
+      var pts=xs.map(function(x,i){
+        var daysAgo=Math.round((6-i)*29/6);
+        var tgt=new Date(now); tgt.setDate(tgt.getDate()-daysAgo);
+        var cl=null, mn=4;
+        last30.forEach(function(r){ var df=Math.abs((new Date(r.date)-tgt)/86400000); if(df<mn){mn=df;cl=r;} });
+        return {x:x,date:tgt,r:cl};
+      });
+      function toY(p){ return Math.round(134-Math.min(100,Math.max(0,p))/100*120); }
+      var fns=[
+        function(r){return r?(r.painLevel||0)/10*100:null;},
+        function(r){return r?(r.mood||3)/5*100:null;},
+        function(r){return r?Math.min(100,(r.sleepHours||0)/10*100):null;},
+        function(r){if(!r||!r.basalTemp)return null; return Math.max(0,100-Math.abs(r.basalTemp-36.5)*100);}
+      ];
+      var avgs=fns.map(function(fn){
+        var vs=last30.map(fn).filter(function(v){return v!==null;});
+        return vs.length?vs.reduce(function(a,b){return a+b;},0)/vs.length:50;
+      });
+      var polys=svg.querySelectorAll('polyline');
+      var paths=svg.querySelectorAll('path');
+      var xt=svg.querySelectorAll('g[text-anchor="middle"] text');
+      var cg=[svg.querySelector('g[fill="#6da7e8"]'),svg.querySelector('g[stroke="#8b7fd6"]'),
+              svg.querySelector('g[stroke="#9d8bf2"]'),svg.querySelector('g[stroke="#e8b28a"]')];
+      var mo=['1','2','3','4','5','6','7','8','9','10','11','12'];
+      pts.forEach(function(p,i){ if(i<xt.length-1) xt[i].textContent=mo[p.date.getMonth()]+'/'+p.date.getDate(); });
+      fns.forEach(function(fn,si){
+        var ys=pts.map(function(p){var v=fn(p.r);return toY(v!==null?v:avgs[si]);});
+        var ps=pts.map(function(p,i){return p.x+','+ys[i];}).join(' ');
+        if(polys[si]) polys[si].setAttribute('points',ps);
+        if(paths[si]){
+          var d='M'+pts[0].x+','+ys[0];
+          for(var i=1;i<pts.length;i++) d+=' L'+pts[i].x+','+ys[i];
+          d+=' L540,134 L50,134Z'; paths[si].setAttribute('d',d);
+        }
+        if(cg[si]) cg[si].querySelectorAll('circle').forEach(function(c,ci){
+          if(ci<pts.length){c.setAttribute('cx',pts[ci].x);c.setAttribute('cy',ys[ci]);}
+        });
+      });
+    }
+
+    /* ── Quick insight for hints / experiment cards ──────── */
+    function _quickInsight(records) {
+      var now=new Date();
+      var r30=(records||[]).filter(function(r){return (now-new Date(r.date))/86400000<=30;});
+      if(r30.length<3) return null;
+      var ss=r30.filter(function(r){return(r.sleepHours||8)<6&&r.sleepHours>0;});
+      if(ss.length>=2){
+        var nps=ss.map(function(r){
+          var d=new Date(r.date); d.setDate(d.getDate()+1);
+          var nx=r30.find(function(r2){return new Date(r2.date).toDateString()===d.toDateString();});
+          return nx?(nx.painLevel||0):null;
+        }).filter(function(v){return v!==null;});
+        if(nps.length>=1&&nps.reduce(function(a,b){return a+b;},0)/nps.length>=2)
+          return {hint:'睡眠が安定した翌日は、症状が軽くなる傾向があります。',
+                  exp:'今週の実験：就寝時刻を30分早めてみる',
+                  expBody:'睡眠不足の翌日に症状が出やすい傾向があります。早めに休むことで、翌日の調子が変わるか試してみましょう。'};
+      }
+      var sc={};
+      r30.forEach(function(r){(r.symptoms||[]).forEach(function(s){sc[s]=(sc[s]||0)+1;});});
+      var top=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a];})[0];
+      if(top&&sc[top]>=3)
+        return {hint:'「'+top+'」が続いています。からだのサインに耳を傾けてみましょう。',
+                exp:'今週の実験：症状が出た時間帯を記録してみる',
+                expBody:'症状のパターンが見えることで、対策が立てやすくなります。詳しく記録しておきましょう。'};
+      return null;
+    }
+
+    /* ── Main hydration ─────────────────────────────────── */
     function _hydrate(){
       var s=(typeof window.getState==='function'?window.getState():null)||window.state||null;
       if(!s) return;
-      var r=s.records&&s.records.length?s.records[s.records.length-1]:null;
+      var records=s.records||[];
+      var r=records.length?records[records.length-1]:null;
+
+      /* Status strip */
       if(r){
         var sl=document.getElementById('ipp-stat-sleep');
-        if(sl&&r.sleepHours!=null) sl.textContent=r.sleepHours+'時間';
+        if(sl&&r.sleepHours!=null&&r.sleepHours>0) sl.textContent=r.sleepHours+'時間';
         var tp=document.getElementById('ipp-stat-temp');
         if(tp&&r.basalTemp) tp.textContent=r.basalTemp+'℃';
         var sy=document.getElementById('ipp-stat-symp');
         if(sy&&r.symptoms&&r.symptoms.length) sy.textContent=r.symptoms.slice(0,2).join('・');
       }
+
+      /* Cycle phase */
+      var ci=_cycleInfo(s);
+      if(ci){
+        var ph=document.getElementById('ipp-stat-phase'); if(ph) ph.textContent=ci.phase;
+        var cp=document.querySelector('.ipr-cycle-center-phase'); if(cp) cp.textContent=ci.phase;
+        var cd=document.querySelector('.ipr-cycle-center-day'); if(cd) cd.textContent='今日・周期'+ci.dayNum+'日目';
+        var pm={'月経期':0,'卵胞期':1,'排卵期':2,'黄体期':3};
+        document.querySelectorAll('.ipr-cycle-leg').forEach(function(el,i){ el.classList.toggle('cur',i===pm[ci.phase]); });
+      }
+
+      /* Hero greeting (time-aware) */
+      var hr=new Date().getHours();
+      var greetEl=document.querySelector('.ipr-hero-greeting');
+      if(greetEl) greetEl.textContent=hr<12?'おはようございます ☀':hr<18?'こんにちは ☀':'おやすみなさい 🌙';
+
+      /* Hero lead (sleep-based) */
+      var last7=records.filter(function(r2){return (new Date()-new Date(r2.date))/86400000<=7;});
+      var avg7=last7.length?last7.reduce(function(s2,r2){return s2+(r2.sleepHours||0);},0)/last7.length:0;
+      var leadEl=document.querySelector('.ipr-hero-lead');
+      if(leadEl&&last7.length>=2){
+        if(avg7>=7) leadEl.textContent='睡眠が安定しています。その調子を大切に。';
+        else if(avg7>0&&avg7<6) leadEl.textContent='少し休息が足りないかもしれません。自分を労わる時間を、大切に。';
+      }
+
+      /* Hints + experiment cards */
+      var qi=_quickInsight(records);
+      if(qi){
+        var ht=document.querySelector('.ipr-hints-text'); if(ht) ht.innerHTML=qi.hint;
+        var ep=document.querySelector('.ipr-exp-proposal'); if(ep) ep.textContent=qi.exp;
+        var eb=document.querySelector('.ipr-exp-body'); if(eb) eb.textContent=qi.expBody;
+      }
+
+      /* SVG chart */
+      _renderChart(records);
+
+      /* Disease tab init */
+      window._iprSwitchDisTab(0);
+
+      /* Main insight card (targets #ins-main-insight-text / #ins-main-insight-sub) */
+      if(typeof window.renderInsightDiscoveries==='function') window.renderInsightDiscoveries();
+      if(typeof window.renderMonthlySummaryText==='function') window.renderMonthlySummaryText();
     }
-    setTimeout(_hydrate,120);
+
+    setTimeout(_hydrate, 150);
   })();
   </script>
 

@@ -105,7 +105,7 @@ function getMoonPhaseName(age) {
 // - SVGは全て viewBox="0 0 24 24"、光学中心は cx=12, cy=12 固定。
 // - defs は各SVG内に閉じ込め、外部sprite参照切れで月が消える事故を避ける。
 
-function getMoonSVG(age) {
+function getMoonSVG(age, dateKey) {
   const { phase, phaseAngle, illumination, waxing } =
     getMoonIllumination(age);
 
@@ -123,7 +123,7 @@ function getMoonSVG(age) {
   const litPath =
     `M 12,3 A 9,9 0 0,${outerSweep} 12,21 A ${rx},9 0 0,${termSweep} 12,3 Z`;
 
-  const uid = `ipm-${Math.round(phase * 100000)}`;
+  const uid = `ipm-${dateKey || ''}${Math.round(phase * 100000)}`;
 
   let litCenter, litMid, litOuter;
   if (illumination < 0.22) {
@@ -224,7 +224,7 @@ const _moonSVGCache = new Map();
 function getMoonSVGCached(year, month, day) {
   const key = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
   if (_moonSVGCache.has(key)) return _moonSVGCache.get(key);
-  const svg = getMoonSVG(getMoonAge(year, month, day));
+  const svg = getMoonSVG(getMoonAge(year, month, day), key);
   if (_moonSVGCache.size > 120) _moonSVGCache.delete(_moonSVGCache.keys().next().value);
   _moonSVGCache.set(key, svg);
   return svg;
@@ -257,6 +257,37 @@ const LUNAR_MONTHS_TABLE = [
   { g: [2026, 11,  9], lm: 10 }, { g: [2026, 12,  9], lm: 11 },
   // sentinel for 2027
   { g: [2027,  1,  8], lm: 12 },
+  // 2027
+  { g: [2027,  2,  6], lm:  1 }, { g: [2027,  3,  8], lm:  2 },
+  { g: [2027,  4,  6], lm:  3 }, { g: [2027,  5,  6], lm:  4 },
+  { g: [2027,  6,  4], lm:  5 }, { g: [2027,  7,  4], lm:  6 },
+  { g: [2027,  8,  2], lm:  7 }, { g: [2027,  9,  1], lm:  8 },
+  { g: [2027,  9, 30], lm:  9 }, { g: [2027, 10, 30], lm: 10 },
+  { g: [2027, 11, 28], lm: 11 }, { g: [2027, 12, 28], lm: 12 },
+  // 2028
+  { g: [2028,  1, 26], lm:  1 }, { g: [2028,  2, 24], lm:  2 },
+  { g: [2028,  3, 25], lm:  3 }, { g: [2028,  4, 23], lm:  4 },
+  { g: [2028,  5, 23], lm:  5 }, { g: [2028,  6, 21], lm:  6 },
+  { g: [2028,  7, 21], lm:  7 }, { g: [2028,  8, 19], lm:  8 },
+  { g: [2028,  9, 18], lm:  9 }, { g: [2028, 10, 17], lm: 10 },
+  { g: [2028, 11, 16], lm: 11 }, { g: [2028, 12, 15], lm: 12 },
+  // 2029
+  { g: [2029,  1, 14], lm: 12 }, { g: [2029,  2, 13], lm:  1 },
+  { g: [2029,  3, 15], lm:  2 }, { g: [2029,  4, 13], lm:  3 },
+  { g: [2029,  5, 13], lm:  4 }, { g: [2029,  6, 11], lm:  5 },
+  { g: [2029,  7, 11], lm:  6 }, { g: [2029,  8,  9], lm:  7 },
+  { g: [2029,  9,  8], lm:  8 }, { g: [2029, 10,  7], lm:  9 },
+  { g: [2029, 11,  6], lm: 10 }, { g: [2029, 12,  5], lm: 11 },
+  // 2030
+  { g: [2030,  1,  4], lm: 12 }, { g: [2030,  2,  3], lm:  1 },
+  { g: [2030,  3,  5], lm:  2 }, { g: [2030,  4,  4], lm:  3 },
+  { g: [2030,  5,  3], lm:  4 }, { g: [2030,  6,  2], lm:  5 },
+  { g: [2030,  7,  1], lm:  6 }, { g: [2030,  7, 31], lm:  7 },
+  { g: [2030,  8, 29], lm:  8 }, { g: [2030,  9, 28], lm:  9 },
+  { g: [2030, 10, 27], lm: 10 }, { g: [2030, 11, 26], lm: 11 },
+  { g: [2030, 12, 25], lm: 12 },
+  // sentinel for 2031
+  { g: [2031,  1, 23], lm:  1 },
 ];
 
 function getLunarDate(year, month, day) {
@@ -556,7 +587,7 @@ function _buildMonthlySummary() {
         <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="rgba(42,35,32,0.45)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="4.5"/><line x1="7" y1="2" x2="7" y2="2.5"/><line x1="7" y1="11.5" x2="7" y2="12"/><line x1="2" y1="7" x2="2.5" y2="7"/><line x1="11.5" y1="7" x2="12" y2="7"/></svg>
       </span>
       <span class="cn-section-title">今月のふりかえり</span>
-      <button class="cn-report-btn">レポートを見る</button>
+      <button class="cn-report-btn" onclick="if(typeof window.switchTab==='function')window.switchTab('insights')">レポートを見る</button>
     </div>
     <div class="cn-summary-row">
       <div class="cn-summary-item">

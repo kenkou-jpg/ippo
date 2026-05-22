@@ -1,5 +1,5 @@
 // ============================================================
-//  ippo – src/modules/screen-router.js
+//  ippo – src/modules/screen-router.js  (2026-05-22)
 //  Priority 7: 画面遷移を state 経由に統一
 //
 //  showScreen(name) を経由することで「現在どの画面か」が
@@ -68,7 +68,15 @@ async function _ensureScreenLoaded(name) {
   if (SCREEN_HTML[name]) {
     const tmp = document.createElement('div');
     tmp.innerHTML = SCREEN_HTML[name];
+    // innerHTML はスクリプトを実行しないため、先に収集してから DOM 移動後に実行する
+    const inlineScripts = Array.from(tmp.querySelectorAll('script'));
     while (tmp.firstChild) container.appendChild(tmp.firstChild);
+    inlineScripts.forEach(function(s) {
+      const exec = document.createElement('script');
+      exec.textContent = s.textContent;
+      document.head.appendChild(exec);
+      document.head.removeChild(exec);
+    });
     if (name === 'calendar') _attachCalendarModalHandlers();
     return;
   }
