@@ -12,6 +12,7 @@ import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
 import { openProHub }                     from './pro-hub/pro-hub.js';
 import { triggerInsightSurface, showThinkingSheet } from './insight-recommendation-sheet.js';
+import { renderInsightsDynamic }          from './insights-dynamic-renderer.js';
 
 // Disease tab data for PRO insights screen
 var _IPR_DIS = [
@@ -281,6 +282,9 @@ function _wireInsightsScreen() {
 
   _renderInsChart(records);
   window._iprSwitchDisTab(0);
+
+  // Dynamic insight system: signal-based content rendering
+  renderInsightsDynamic(s, sc);
 }
 
 export async function switchTab(tab, btn) {
