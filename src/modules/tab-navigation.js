@@ -10,6 +10,7 @@
 import { ensureScreenLoaded, showScreen } from './screen-router.js';
 import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
+import { openProHub }                     from './pro-hub/pro-hub.js';
 
 // Disease tab data for PRO insights screen
 var _IPR_DIS = [
@@ -106,6 +107,19 @@ function _wireInsightsScreen() {
   if (insH2 && !insH2.id) insH2.id = 'ins-main-insight-text';
   var insBody = sc.querySelector('.ipr-ins-body');
   if (insBody && !insBody.id) insBody.id = 'ins-main-insight-sub';
+
+  // ── PRO badge → opens PRO hub panel ───────────────
+  var proBadge = sc.querySelector('.ipr-top-badge');
+  if (proBadge && !proBadge._proWired) {
+    proBadge._proWired = true;
+    proBadge.setAttribute('role', 'button');
+    proBadge.setAttribute('tabindex', '0');
+    proBadge.setAttribute('aria-label', 'PRO整理室を開く');
+    proBadge.addEventListener('click', openProHub);
+    proBadge.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProHub(); }
+    });
+  }
 
   // ── Button onclicks (programmatic override) ────────
   var statDetail = sc.querySelector('.ipr-stat-detail');
@@ -231,8 +245,8 @@ export async function switchTab(tab, btn) {
   window.scrollTo(0, 0);
 
   if (tab === 'insights') {
-    // 共通ヘッダーシェルを描画（HOME と同一システム）
-    renderSharedHeader(document.getElementById('ins-header'));
+    // 共通ヘッダーシェルを描画（PRO整理室ボタン付き）
+    renderSharedHeader(document.getElementById('ins-header'), { isInsights: true });
     // 新デザイン: おすすめタブをデフォルト表示
     if (typeof window.switchInsTab === 'function') window.switchInsTab('recommended');
     if (typeof window.renderInsightDiscoveries === 'function') window.renderInsightDiscoveries();
@@ -269,7 +283,9 @@ window.switchTab = switchTab;
 // startup 時 state.currentScreen='insights' で自動表示された場合は
 // switchTab を経由しないため、遅延してワイヤリングを補完する。
 setTimeout(function() {
-  if (document.getElementById('screen-insights')?.classList.contains('active')) {
+  var sc = document.getElementById('screen-insights');
+  if (sc && sc.classList.contains('active')) {
+    renderSharedHeader(document.getElementById('ins-header'), { isInsights: true });
     _wireInsightsScreen();
   }
 }, 400);

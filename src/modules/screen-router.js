@@ -12,14 +12,16 @@
 // ============================================================
 
 import { getState } from '../store/state.js';
-import insightsHtml  from '../screens/insights.html?raw';
-import homeNextHtml  from '../screens/home-next.html?raw';
+import insightsHtml   from '../screens/insights.html?raw';
+import homeNextHtml   from '../screens/home-next.html?raw';
+import proFeatureHtml from '../screens/pro-feature.html?raw';
 
 // Vite ?raw でバンドルされた画面 HTML マップ。
 // fetch に依存しないため本番環境でも確実に動作する。
 const SCREEN_HTML = {
-  insights:    insightsHtml,
-  'home-next': homeNextHtml,
+  insights:       insightsHtml,
+  'home-next':    homeNextHtml,
+  'pro-feature':  proFeatureHtml,
 };
 
 const _loadedScreens = new Set();

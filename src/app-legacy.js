@@ -11731,6 +11731,7 @@ if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMont
 if (typeof openRestoreUI === "function") window.openRestoreUI = openRestoreUI;
 if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
 if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
+if (typeof openTempReport === "function") window.openTempReport = openTempReport;
 if (typeof parseMealMemo === "function") window.parseMealMemo = parseMealMemo;
 if (typeof parseMealFree === "function") window.parseMealFree = parseMealFree;
 if (typeof postCommunityReply === "function") window.postCommunityReply = postCommunityReply;

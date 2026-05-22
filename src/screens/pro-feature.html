@@ -1,0 +1,550 @@
+<style>
+/* ============================================================
+   ippo PRO Feature screen — generic parameterized screen
+============================================================ */
+#screen-pro-feature {
+  background: #f8f5f3;
+  min-height: 100vh;
+  font-family: 'Noto Sans JP','Hiragino Sans',sans-serif;
+  color: #18245a;
+}
+.pfr {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 20px 110px;
+}
+
+/* ─── Back bar ───────────────────────────────────────────── */
+.pfr-back {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 0 8px;
+  padding-top: max(14px, calc(env(safe-area-inset-top, 0px) + 10px));
+}
+.pfr-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,0.80);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b9ab8;
+  cursor: pointer;
+  transition: background 160ms, color 160ms;
+  box-shadow: 0 1px 6px rgba(31,38,135,.05);
+}
+.pfr-back-btn:hover { background: rgba(255,255,255,0.96); color: #18245a; }
+.pfr-back-btn svg { width: 14px; height: 14px; }
+.pfr-breadcrumb {
+  font-size: 11px;
+  color: #c0c8d8;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── Hero ───────────────────────────────────────────────── */
+.pfr-hero {
+  padding: 24px 0 20px;
+}
+.pfr-hero-ico {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(31,38,135,.08);
+}
+.pfr-hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: rgba(139,127,214,.10);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #8b7fd6;
+  letter-spacing: .06em;
+  margin-bottom: 10px;
+}
+.pfr-hero-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: #18245a;
+  letter-spacing: -.03em;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+.pfr-hero-desc {
+  font-size: 14px;
+  color: #5a6a90;
+  line-height: 1.7;
+  max-width: 480px;
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.pfr-card {
+  background: rgba(255,255,255,.86);
+  border: 1px solid rgba(255,255,255,.52);
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(31,38,135,.04);
+  padding: 20px 22px;
+  margin-bottom: 14px;
+}
+.pfr-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #18245a;
+  letter-spacing: .02em;
+  margin-bottom: 10px;
+}
+
+/* ─── Coming soon state ──────────────────────────────────── */
+.pfr-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 20px;
+  gap: 10px;
+}
+.pfr-soon-ico { font-size: 36px; margin-bottom: 4px; }
+.pfr-soon-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #18245a;
+}
+.pfr-soon-desc {
+  font-size: 12px;
+  color: #8b9ab8;
+  line-height: 1.6;
+  max-width: 300px;
+}
+.pfr-soon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: rgba(139,127,214,.08);
+  border: 1px solid rgba(139,127,214,.18);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8b7fd6;
+  margin-top: 4px;
+}
+
+/* ─── What you can do bullets ────────────────────────────── */
+.pfr-points { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.pfr-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  color: #3a4a72;
+  line-height: 1.55;
+}
+.pfr-point-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(139,127,214,.5);
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+
+/* ─── Related flow ───────────────────────────────────────── */
+.pfr-related {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pfr-related-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: rgba(255,255,255,.80);
+  border: 1px solid rgba(139,127,214,.15);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #18245a;
+  cursor: pointer;
+  transition: background 160ms, border-color 160ms;
+}
+.pfr-related-chip:hover {
+  background: rgba(244,240,255,.9);
+  border-color: rgba(139,127,214,.30);
+}
+.pfr-related-chip-ico { font-size: 13px; }
+
+/* ─── CTA ────────────────────────────────────────────────── */
+.pfr-cta {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+.pfr-cta-primary {
+  flex: 1;
+  min-width: 160px;
+  padding: 13px 20px;
+  background: linear-gradient(135deg, #8b7fd6, #6f65c4);
+  border: none;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 160ms, transform 160ms;
+  text-align: center;
+}
+.pfr-cta-primary:hover { opacity: .88; transform: translateY(-1px); }
+.pfr-cta-secondary {
+  padding: 13px 20px;
+  background: rgba(255,255,255,.80);
+  border: 1px solid rgba(139,127,214,.22);
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8b7fd6;
+  cursor: pointer;
+  transition: background 160ms;
+}
+.pfr-cta-secondary:hover { background: rgba(244,240,255,.9); }
+</style>
+
+<div id="screen-pro-feature" class="screen">
+  <div class="pfr">
+
+    <!-- Back navigation -->
+    <div class="pfr-back">
+      <button class="pfr-back-btn" id="pfr-back-btn">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L6 8l4 5"/></svg>
+        インサイトへ戻る
+      </button>
+      <span class="pfr-breadcrumb">
+        <span>インサイト</span>
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 1l3 3-3 3"/></svg>
+        <span id="pfr-bread-name">PRO整理室</span>
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 1l3 3-3 3"/></svg>
+        <span id="pfr-bread-feature">—</span>
+      </span>
+    </div>
+
+    <!-- Hero -->
+    <div class="pfr-hero">
+      <div class="pfr-hero-ico" id="pfr-ico" style="background:rgba(139,127,214,.12)">🔮</div>
+      <div class="pfr-hero-tag">
+        <svg width="8" height="8" viewBox="0 0 12 12" fill="currentColor"><polygon points="6 1 7.55 4.18 11 4.64 8.5 7.07 9.09 10.5 6 8.86 2.91 10.5 3.5 7.07 1 4.64 4.45 4.18"/></svg>
+        PRO機能
+      </div>
+      <div class="pfr-hero-name" id="pfr-name">機能名</div>
+      <div class="pfr-hero-desc" id="pfr-desc">この機能の説明がここに入ります。</div>
+    </div>
+
+    <!-- Main card: what this feature does -->
+    <div class="pfr-card">
+      <div class="pfr-card-title" id="pfr-points-title">この機能でできること</div>
+      <ul class="pfr-points" id="pfr-points-list">
+        <li class="pfr-point"><span class="pfr-point-dot"></span><span>読み込み中…</span></li>
+      </ul>
+    </div>
+
+    <!-- Coming soon card -->
+    <div class="pfr-card">
+      <div class="pfr-soon">
+        <div class="pfr-soon-ico" id="pfr-soon-ico">🌱</div>
+        <div class="pfr-soon-title">この機能は実装準備中です</div>
+        <div class="pfr-soon-desc" id="pfr-soon-desc">
+          あなたの記録データをもとに、より深い洞察を提供できるよう開発を進めています。
+        </div>
+        <div class="pfr-soon-badge">
+          <svg width="8" height="8" viewBox="0 0 12 12" fill="currentColor"><polygon points="6 1 7.55 4.18 11 4.64 8.5 7.07 9.09 10.5 6 8.86 2.91 10.5 3.5 7.07 1 4.64 4.45 4.18"/></svg>
+          まもなく提供予定
+        </div>
+      </div>
+    </div>
+
+    <!-- Related features -->
+    <div class="pfr-card">
+      <div class="pfr-card-title">関連する機能を探す</div>
+      <div class="pfr-related" id="pfr-related"></div>
+    </div>
+
+    <!-- CTA -->
+    <div class="pfr-cta">
+      <button class="pfr-cta-primary" id="pfr-cta-hub">PRO整理室に戻る</button>
+      <button class="pfr-cta-secondary" id="pfr-cta-insights">インサイトを見る</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function() {
+  // ─── Feature content map ───────────────────────────────
+  var CONTENT = {
+    'ai-pattern': {
+      points: [
+        '過去3〜6ヶ月の記録からあなた固有のパターンをAIが検出',
+        '症状・睡眠・体温・気分の相関関係を自動で分析',
+        '「なぜこの症状が出やすいか」のパターンを可視化',
+        '周期に連動した体調変化の予測精度を向上',
+      ],
+      related: ['bbt-pattern','cycle-compare','factor-report'],
+    },
+    'bbt-pattern': {
+      points: [
+        '基礎体温の二相性パターンを自動で解析・グラフ表示',
+        '排卵タイミングの推定精度を向上',
+        '体温の異常変動をアラートで通知',
+        '季節・気温との相関関係を分析',
+      ],
+      related: ['ai-pattern','cycle-compare','flare-analysis'],
+    },
+    'flare-analysis': {
+      points: [
+        '症状が急に悪化した日の共通要因を特定',
+        'ストレス・睡眠・食事と症状悪化の相関をスコア化',
+        'フレアアップの前兆パターンを学習・警告',
+        '症状悪化を防ぐための具体的アドバイスを提供',
+      ],
+      related: ['ai-pattern','experiments','factor-report'],
+    },
+    'cycle-compare': {
+      points: [
+        '直近3〜12周期を横並びで比較表示',
+        '周期ごとの症状・体調の変化をグラフで可視化',
+        '改善している指標・悪化している指標を色分け表示',
+        '生活習慣の変化と周期の変化を重ねて分析',
+      ],
+      related: ['ai-pattern','bbt-pattern','factor-report'],
+    },
+    'experiments': {
+      points: [
+        '「早寝」「食事改善」などの実験を設定し効果を測定',
+        '実験前後の症状スコアを自動で比較',
+        '継続日数・達成率をトラッキング',
+        '有効だった習慣を「マイルーティン」として保存',
+      ],
+      related: ['factor-report','ai-pattern','flare-analysis'],
+    },
+    'factor-report': {
+      points: [
+        '睡眠・ストレス・食事・運動ごとの影響度を数値化',
+        'あなたの症状に最も影響する要因トップ5を表示',
+        '月次・週次のレポートをPDF/画像で出力',
+        '医師への説明資料としても活用可能',
+      ],
+      related: ['experiments','ai-pattern','doctor-summary'],
+    },
+    'cloud-sync': {
+      points: [
+        '全記録をリアルタイムでクラウドに自動バックアップ',
+        'スマートフォン・タブレット間でシームレスに同期',
+        '機種変更・アプリ再インストール後も即座に復元',
+        '暗号化された安全なクラウドストレージを使用',
+      ],
+      related: ['backup','restore','data-health'],
+    },
+    'backup': {
+      points: [
+        '任意のタイミングで記録のスナップショットを保存',
+        '最大10件のバックアップポイントを管理',
+        'Wi-Fi接続時の自動バックアップスケジュール設定',
+        'バックアップファイルをローカルにも保存可能',
+      ],
+      related: ['cloud-sync','restore','export'],
+    },
+    'restore': {
+      points: [
+        '過去のバックアップポイントを一覧から選択して復元',
+        '復元前に記録の概要（件数・期間）を確認可能',
+        '部分復元：特定期間の記録のみ戻すことも可能',
+        '復元操作は完全に可逆で、元の状態にも戻せる',
+      ],
+      related: ['backup','cloud-sync','data-health'],
+    },
+    'data-health': {
+      points: [
+        '記録の欠損・矛盾・異常値を自動で検出',
+        '記録の継続率・品質スコアをダッシュボード表示',
+        '分析精度を上げるための記録改善アドバイス',
+        'データ整合性レポートを定期生成',
+      ],
+      related: ['backup','export','ai-pattern'],
+    },
+    'export': {
+      points: [
+        '全記録をCSV形式でダウンロード（Excel対応）',
+        'JSON形式でのエクスポート（他サービス連携用）',
+        '期間指定・項目指定でのフィルターエクスポート',
+        '医療機関との情報共有用フォーマットにも対応予定',
+      ],
+      related: ['monthly-pdf','doctor-summary','data-health'],
+    },
+    'body-summary': {
+      points: [
+        '体調の全体像を1枚のサマリーシートにまとめる',
+        '直近1ヶ月の主要指標（睡眠・痛み・気分・体温）を集計',
+        '特記すべき変化・パターンをAIが自動でピックアップ',
+        '受診時の会話の出発点として活用できるフォーマット',
+      ],
+      related: ['monthly-pdf','doctor-summary','symptom-trends'],
+    },
+    'monthly-pdf': {
+      points: [
+        '1ヶ月分の全記録を美しいPDFレポートに自動変換',
+        'カレンダービュー・グラフ・サマリーを1枚に統合',
+        'スマートフォンから直接印刷・共有が可能',
+        '受診前に自動リマインダーでレポート生成を通知',
+      ],
+      related: ['body-summary','doctor-summary','factor-report'],
+    },
+    'doctor-summary': {
+      points: [
+        '次回受診に向けた症状・経過まとめシートを自動生成',
+        '「先生に伝えたいこと」を記録から自動抽出',
+        '受診日・医療機関・処方薬の管理機能付き',
+        '前回受診からの変化点をわかりやすく整理',
+      ],
+      related: ['body-summary','monthly-pdf','condition-summary'],
+    },
+    'symptom-trends': {
+      points: [
+        '症状ごとの推移を時系列グラフで可視化',
+        '複数の症状を重ねて相関関係を確認',
+        '周期フェーズ別の症状出現パターンを表示',
+        'グラフを画像として保存・共有可能',
+      ],
+      related: ['flare-analysis','cycle-compare','doctor-summary'],
+    },
+    'condition-summary': {
+      points: [
+        '子宮内膜症・PMS・IBSなど疾患ごとの観察ポイントを整理',
+        '疾患特有の症状パターンをあなたの記録と照合',
+        '定期的な疾患観察レポートを自動生成',
+        '複数疾患の同時管理・相互影響の可視化',
+      ],
+      related: ['doctor-summary','symptom-trends','factor-report'],
+    },
+  };
+
+  var ALL_FEATURES = [
+    {key:'ai-pattern',name:'AIパターン解析',ico:'🔮',bg:'rgba(139,127,214,.12)'},
+    {key:'bbt-pattern',name:'体温パターン解析',ico:'🌡',bg:'rgba(212,132,154,.10)'},
+    {key:'flare-analysis',name:'フレアアップ分析',ico:'🔥',bg:'rgba(212,132,90,.10)'},
+    {key:'cycle-compare',name:'周期比較',ico:'📊',bg:'rgba(74,144,200,.10)'},
+    {key:'experiments',name:'ヘルス実験',ico:'🧪',bg:'rgba(90,144,112,.10)'},
+    {key:'factor-report',name:'要因効果レポート',ico:'📋',bg:'rgba(200,160,64,.10)'},
+    {key:'cloud-sync',name:'クラウド同期',ico:'☁',bg:'rgba(74,144,200,.10)'},
+    {key:'backup',name:'バックアップ',ico:'💾',bg:'rgba(139,127,214,.12)'},
+    {key:'restore',name:'復元',ico:'🔄',bg:'rgba(90,144,112,.10)'},
+    {key:'data-health',name:'データ診断',ico:'🔍',bg:'rgba(200,160,64,.10)'},
+    {key:'export',name:'データ出力',ico:'📤',bg:'rgba(212,132,90,.10)'},
+    {key:'body-summary',name:'からだサマリー',ico:'🌿',bg:'rgba(90,144,112,.10)'},
+    {key:'monthly-pdf',name:'月次PDFレポート',ico:'📄',bg:'rgba(139,127,214,.12)'},
+    {key:'doctor-summary',name:'受診用まとめ',ico:'🏥',bg:'rgba(74,144,200,.10)'},
+    {key:'symptom-trends',name:'症状推移グラフ',ico:'📈',bg:'rgba(212,132,154,.10)'},
+    {key:'condition-summary',name:'疾患観察まとめ',ico:'🔬',bg:'rgba(200,160,64,.10)'},
+  ];
+
+  window.hydrateProFeature = function(feat) {
+    if (!feat) return;
+    var sc = document.getElementById('screen-pro-feature');
+    if (!sc || !sc.classList.contains('active')) return;
+
+    // Hero
+    var icoEl = document.getElementById('pfr-ico');
+    if (icoEl) { icoEl.textContent = feat.ico || '★'; icoEl.style.background = feat.bg || 'rgba(139,127,214,.12)'; }
+    var nameEl = document.getElementById('pfr-name');
+    if (nameEl) nameEl.textContent = feat.name || feat.key;
+    var descEl = document.getElementById('pfr-desc');
+    if (descEl) descEl.textContent = feat.desc || '';
+    var breadEl = document.getElementById('pfr-bread-feature');
+    if (breadEl) breadEl.textContent = feat.name || feat.key;
+
+    // Points
+    var c = CONTENT[feat.key] || { points: [feat.desc || 'この機能の詳細準備中です。'], related: [] };
+    var list = document.getElementById('pfr-points-list');
+    if (list) {
+      list.innerHTML = c.points.map(function(p) {
+        return '<li class="pfr-point"><span class="pfr-point-dot"></span><span>' + p + '</span></li>';
+      }).join('');
+    }
+
+    // Related
+    var rel = document.getElementById('pfr-related');
+    if (rel && c.related) {
+      rel.innerHTML = c.related.map(function(k) {
+        var f = ALL_FEATURES.find(function(x) { return x.key === k; });
+        if (!f) return '';
+        return '<div class="pfr-related-chip" data-pro-key="' + k + '">'
+          + '<span class="pfr-related-chip-ico">' + f.ico + '</span>' + f.name + '</div>';
+      }).join('');
+      rel.querySelectorAll('[data-pro-key]').forEach(function(chip) {
+        chip.addEventListener('click', function() {
+          window._proCurrentFeature = ALL_FEATURES.find(function(x) { return x.key === chip.dataset.proKey; }) || { key: chip.dataset.proKey };
+          if (typeof window.hydrateProFeature === 'function') window.hydrateProFeature(window._proCurrentFeature);
+        });
+      });
+    }
+
+    // Soon ico
+    var soonIco = document.getElementById('pfr-soon-ico');
+    if (soonIco) soonIco.textContent = feat.ico || '🌱';
+    var soonDesc = document.getElementById('pfr-soon-desc');
+    if (soonDesc) soonDesc.textContent = feat.name ? feat.name + 'は現在開発中です。記録が積み重なることで、より精度の高い分析が可能になります。' : 'この機能は準備中です。';
+  };
+
+  // Wire buttons (executed once on inject)
+  function _wire() {
+    var backBtn = document.getElementById('pfr-back-btn');
+    if (backBtn && !backBtn._wired) {
+      backBtn._wired = true;
+      backBtn.addEventListener('click', function() {
+        if (typeof window.openProHub === 'function') window.openProHub();
+        else if (typeof window.switchTab === 'function') window.switchTab('insights');
+      });
+    }
+    var hubBtn = document.getElementById('pfr-cta-hub');
+    if (hubBtn && !hubBtn._wired) {
+      hubBtn._wired = true;
+      hubBtn.addEventListener('click', function() {
+        if (typeof window.switchTab === 'function') window.switchTab('insights');
+        setTimeout(function() { if (typeof window.openProHub === 'function') window.openProHub(); }, 300);
+      });
+    }
+    var insBtn = document.getElementById('pfr-cta-insights');
+    if (insBtn && !insBtn._wired) {
+      insBtn._wired = true;
+      insBtn.addEventListener('click', function() {
+        if (typeof window.switchTab === 'function') window.switchTab('insights');
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _wire);
+  } else {
+    setTimeout(_wire, 0);
+  }
+
+  // Auto-hydrate if feature is already set (e.g., navigated before script ran)
+  setTimeout(function() {
+    if (window._proCurrentFeature) {
+      window.hydrateProFeature(window._proCurrentFeature);
+    }
+  }, 80);
+})();
+</script>
