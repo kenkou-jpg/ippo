@@ -11,28 +11,9 @@ import {
   CYCLE_PHASES,
 } from './home-next-config.js';
 
-// ── ボタニカルSVG (大きめ・存在感あり) ──────────────────
+// ── Hero アートレイヤー (hero-art.webp) ──────────────────
 
-const BOTANICAL_SVG = `<svg class="hn-hero-botanical" viewBox="0 0 130 116" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <!-- メイン茎 -->
-  <path d="M65 110 Q60 80 46 54 Q38 38 26 16" stroke="#C8D8BE" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-  <!-- 左葉1 (大) -->
-  <path d="M46 54 Q24 46 16 24 Q36 34 46 54Z" fill="#C8D8BE" opacity="0.75"/>
-  <!-- 左葉2 -->
-  <path d="M53 70 Q30 64 28 46 Q44 56 53 70Z" fill="#D4E2CA" opacity="0.62"/>
-  <!-- 右葉1 (大) -->
-  <path d="M46 54 Q60 38 66 16 Q52 38 46 54Z" fill="#BFD0B2" opacity="0.65"/>
-  <!-- 右葉2 -->
-  <path d="M50 68 Q68 54 76 34 Q58 50 50 68Z" fill="#CBD9BF" opacity="0.54"/>
-  <!-- 先端小葉 左 -->
-  <path d="M30 26 Q18 14 24 4 Q34 16 30 26Z" fill="#B8CAAC" opacity="0.58"/>
-  <!-- 先端小葉 右 -->
-  <path d="M28 28 Q40 16 48 6 Q36 22 28 28Z" fill="#C4D4B6" opacity="0.50"/>
-  <!-- 右下葉 -->
-  <path d="M58 82 Q76 74 82 58 Q68 70 58 82Z" fill="#C8D8BE" opacity="0.44"/>
-  <!-- 茎サブ枝 -->
-  <path d="M46 54 Q56 60 62 74" stroke="#D4E2CA" stroke-width="1.0" fill="none" stroke-linecap="round" opacity="0.6"/>
-</svg>`;
+const HERO_ART = `<div class="hero-art" aria-hidden="true"></div>`;
 
 // ── 直近レコード集計 ─────────────────────────────────────
 
@@ -117,7 +98,7 @@ export function renderHero(container, config, state) {
 
   container.innerHTML = `
     <div class="hn-hero hn-anim-1">
-      ${BOTANICAL_SVG}
+      ${HERO_ART}
       <span class="hn-hero-tag">今日のあなた</span>
       <div class="hn-hero-body">
         <div class="hn-hero-message">${escMsg(message)}</div>

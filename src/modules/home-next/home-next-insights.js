@@ -251,14 +251,9 @@ function findBestInsight(records, config) {
   return candidates[0];
 }
 
-// ── インサイトカード 右下デコレーション ──────────────────
+// ── Moon Mist アートレイヤー (moon-mist-art.webp) ────────
 
-const INSIGHT_DECO = `<svg class="hn-insight-deco" viewBox="0 0 88 88" fill="none" aria-hidden="true">
-  <path d="M82 82 Q65 60 44 52 Q56 56 82 82Z" fill="#C8D8BE" opacity="0.42"/>
-  <path d="M82 82 Q76 56 60 42 Q68 60 82 82Z" fill="#D4E2CA" opacity="0.34"/>
-  <path d="M82 82 Q82 58 70 42 Q73 62 82 82Z" fill="#BFD0B2" opacity="0.36"/>
-  <path d="M68 82 Q56 68 44 62 Q52 60 68 82Z" fill="#CBD9BF" opacity="0.30"/>
-</svg>`;
+const MOON_ART = `<div class="moon-art" aria-hidden="true"></div>`;
 
 // ── インサイトカード HTML ─────────────────────────────────
 
@@ -272,7 +267,7 @@ export function renderInsights(container, state, config) {
 
   container.innerHTML = `
     <div class="hn-insight-card hn-anim-4">
-      ${INSIGHT_DECO}
+      ${MOON_ART}
       <div class="hn-insight-tag-row">
         <span class="hn-insight-sparkle">✦</span>
         <span class="hn-insight-tag-label">今日のインサイト</span>
