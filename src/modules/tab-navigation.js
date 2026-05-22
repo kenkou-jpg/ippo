@@ -11,6 +11,7 @@ import { ensureScreenLoaded, showScreen } from './screen-router.js';
 import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
 import { openProHub }                     from './pro-hub/pro-hub.js';
+import { triggerInsightSurface, showThinkingSheet } from './insight-recommendation-sheet.js';
 
 // Disease tab data for PRO insights screen
 var _IPR_DIS = [
@@ -121,21 +122,75 @@ function _wireInsightsScreen() {
     });
   }
 
+  // ── Status strip cells → recommendation sheet ──────
+  // Map each stat cell (睡眠/周期/症状/体温) to its resolver type.
+  var statTypes = ['sleep', 'cycle', 'symptom', 'bbt'];
+  sc.querySelectorAll('.ipr-stat-cell').forEach(function(cell, idx) {
+    if (idx >= statTypes.length) return; // skip 詳細をみる cell
+    if (cell._irsWired) return;
+    cell._irsWired = true;
+    cell.classList.add('ipr-stat-cell--clickable');
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('tabindex', '0');
+    cell.setAttribute('aria-label', cell.querySelector('.ipr-stat-label')?.textContent + 'の詳細を見る');
+    var type = statTypes[idx];
+    cell.addEventListener('click', function() { triggerInsightSurface(type); });
+    cell.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerInsightSurface(type); }
+    });
+  });
+
   // ── Button onclicks (programmatic override) ────────
   var statDetail = sc.querySelector('.ipr-stat-detail');
   if (statDetail) statDetail.onclick = function() { document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+
+  // ── 今日の気づきカード ─────────────────────────────────
+  // カードタイトル/eyebrow クリック → insight推薦シート（「どう深めるか」の入口）
+  var insCard = sc.querySelector('.ipr-ins-card');
+  if (insCard && !insCard._irsWired) {
+    insCard._irsWired = true;
+    var insCardTitle = insCard.querySelector('.ipr-card-title');
+    if (insCardTitle) {
+      insCardTitle.style.cursor = 'pointer';
+      insCardTitle.addEventListener('click', function() { triggerInsightSurface('insight'); });
+    }
+  }
+  // "根拠をみる" → 分析チャートセクションへスクロール（根拠 = 実際のデータ）
   var insLink = sc.querySelector('.ipr-ins-link');
   if (insLink) insLink.onclick = function() { document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'}); };
+
+  // ── 30日チャート・周期フェーズ ───────────────────────────
+  // "詳細をみる" → カレンダー
   var graphLink = sc.querySelector('.ipr-graph-link');
   if (graphLink) graphLink.onclick = function() { if (typeof window.switchTab === 'function') window.switchTab('calendar'); };
+  // "周期カレンダーを見る" → カレンダー
   var cycleLink = sc.querySelector('.ipr-cycle-link');
   if (cycleLink) cycleLink.onclick = function() { if (typeof window.switchTab === 'function') window.switchTab('calendar'); };
+
+  // ── 自分に問いかけるカード ────────────────────────────────
+  // "考えてみる" → Thinking Sheet（トピック選択 → 推薦シート）
   var reflectLink = sc.querySelector('.ipr-reflect-link');
-  if (reflectLink) reflectLink.onclick = function() { if (typeof window.openRecordScreen === 'function') window.openRecordScreen(); };
+  if (reflectLink) reflectLink.onclick = function() { showThinkingSheet(); };
+
+  // ── 実験提案カード ────────────────────────────────────────
+  // カードタイトル/eyebrow クリック → experiment推薦シート（「どう試すか」の入口）
+  var expCard = sc.querySelector('.ipr-exp-card');
+  if (expCard && !expCard._irsWired) {
+    expCard._irsWired = true;
+    var expCardTitle = expCard.querySelector('.ipr-card-title');
+    if (expCardTitle) {
+      expCardTitle.style.cursor = 'pointer';
+      expCardTitle.addEventListener('click', function() { triggerInsightSurface('experiment'); });
+    }
+  }
+  // "実験を記録する" → 記録画面（ボタン名通りの動作）
   var expBtn = sc.querySelector('.ipr-exp-btn');
   if (expBtn) expBtn.onclick = function() { if (typeof window.openRecordScreen === 'function') window.openRecordScreen(); };
+
+  // ── ヒントカード ──────────────────────────────────────────
+  // "すべてのヒントを見る" → insight推薦シート（パターン解析への案内）
   var tipsLink = sc.querySelector('.ipr-tips-head-link');
-  if (tipsLink) tipsLink.onclick = function() { if (typeof window.openRecordScreen === 'function') window.openRecordScreen(); };
+  if (tipsLink) tipsLink.onclick = function() { triggerInsightSurface('insight'); };
 
   // ── Disease tab switcher (always fresh definition) ─
   window._iprSwitchDisTab = function(idx) {
