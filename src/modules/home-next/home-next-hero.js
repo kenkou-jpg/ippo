@@ -11,10 +11,6 @@ import {
   CYCLE_PHASES,
 } from './home-next-config.js';
 
-// ── Hero アートレイヤー (hero-art.webp) ──────────────────
-
-const HERO_ART = `<div class="hero-art" aria-hidden="true"></div>`;
-
 // ── 直近レコード集計 ─────────────────────────────────────
 
 function getRecentStats(records, days = 3) {
@@ -98,7 +94,6 @@ export function renderHero(container, config, state) {
 
   container.innerHTML = `
     <div class="hn-hero hn-anim-1">
-      ${HERO_ART}
       <span class="hn-hero-tag">今日のあなた</span>
       <div class="hn-hero-body">
         <div class="hn-hero-message">${escMsg(message)}</div>

@@ -251,10 +251,6 @@ function findBestInsight(records, config) {
   return candidates[0];
 }
 
-// ── Moon Mist アートレイヤー (moon-mist-art.webp) ────────
-
-const MOON_ART = `<div class="moon-art" aria-hidden="true"></div>`;
-
 // ── インサイトカード HTML ─────────────────────────────────
 
 export function renderInsights(container, state, config) {
@@ -267,7 +263,6 @@ export function renderInsights(container, state, config) {
 
   container.innerHTML = `
     <div class="hn-insight-card hn-anim-4">
-      ${MOON_ART}
       <div class="hn-insight-tag-row">
         <span class="hn-insight-sparkle">✦</span>
         <span class="hn-insight-tag-label">今日のインサイト</span>
