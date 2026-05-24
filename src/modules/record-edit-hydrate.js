@@ -221,18 +221,82 @@ function fillElement(el, value) {
 }
 
 function hydrateChips(record) {
+  // Single-value chip groups: each chip maps to one scalar record field.
+  // Matching only against the specific field prevents cross-contamination
+  // between groups that share the same data-val range (e.g. mood/energy/sleep all use 1-5).
+  const SCALAR_GROUPS = [
+    { sel: '#rs-mood',          key: 'mood'         },
+    { sel: '#rs-energy',        key: 'energy'       },
+    { sel: '#rs-sleep-quality', key: 'sleepQuality' },
+  ];
+
+  // Specific-attribute chips map to named record array fields.
+  const ATTR_KEY_MAP = {
+    'data-symptom': ['symptoms'],
+    'data-food':    ['foodContent', 'food', 'meals'],
+    'data-emotion': ['emotions', 'emotion'],
+    'data-feel':    ['feel', 'feelings'],
+    'data-chakra':  ['chakra', 'chakras'],
+  };
+  const SPECIFIC_ATTRS = ['data-symptom', 'data-feel', 'data-food', 'data-emotion', 'data-chakra'];
+
   const chipLike = document.querySelectorAll('[data-val], [data-value], [data-symptom], [data-feel], [data-food], [data-emotion], [data-chakra]');
   let changed = 0;
 
   chipLike.forEach(function(el) {
-    const value = el.getAttribute('data-val') || el.getAttribute('data-value') || el.getAttribute('data-symptom') || el.getAttribute('data-feel') || el.getAttribute('data-food') || el.getAttribute('data-emotion') || el.getAttribute('data-chakra');
-    if (!value) return;
+    // ① Scalar single-select container — match only against its own field
+    for (let i = 0; i < SCALAR_GROUPS.length; i++) {
+      const grp = SCALAR_GROUPS[i];
+      if (el.closest(grp.sel)) {
+        const chipVal = el.getAttribute('data-val') || el.getAttribute('data-value');
+        const recVal  = record[grp.key];
+        if (chipVal && recVal !== undefined && recVal !== null) {
+          if (String(recVal) === String(chipVal)) {
+            el.classList.add('selected');
+            el.setAttribute('aria-pressed', 'true');
+            changed++;
+          }
+        }
+        return;
+      }
+    }
 
-    const allRecordValues = Object.values(record).flatMap(function(v) {
-      return Array.isArray(v) ? v.map(String) : [String(v)];
+    // ② Specific-attribute chips — match against named array fields only
+    for (let i = 0; i < SPECIFIC_ATTRS.length; i++) {
+      const attr = SPECIFIC_ATTRS[i];
+      if (el.hasAttribute(attr)) {
+        const attrVal = el.getAttribute(attr);
+        if (!attrVal) return;
+        const keys = ATTR_KEY_MAP[attr] || [];
+        let matched = false;
+        for (let j = 0; j < keys.length; j++) {
+          const recVal = record[keys[j]];
+          if (Array.isArray(recVal)) {
+            if (recVal.map(String).includes(String(attrVal))) { matched = true; break; }
+          } else if (recVal !== undefined && recVal !== null) {
+            if (String(recVal) === String(attrVal)) { matched = true; break; }
+          }
+        }
+        if (matched) {
+          el.classList.add('selected');
+          el.setAttribute('aria-pressed', 'true');
+          changed++;
+        }
+        return;
+      }
+    }
+
+    // ③ Generic data-val/data-value chips outside known containers:
+    //    Only match against array values — never scalars — to prevent cross-contamination.
+    const chipVal = el.getAttribute('data-val') || el.getAttribute('data-value');
+    if (!chipVal) return;
+    let arrayMatched = false;
+    Object.values(record).forEach(function(v) {
+      if (!arrayMatched && Array.isArray(v) && v.map(String).includes(String(chipVal))) {
+        arrayMatched = true;
+      }
     });
-
-    if (allRecordValues.includes(String(value))) {
+    if (arrayMatched) {
       el.classList.add('selected');
       el.setAttribute('aria-pressed', 'true');
       changed++;

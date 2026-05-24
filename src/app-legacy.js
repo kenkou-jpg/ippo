@@ -5519,7 +5519,10 @@ function handleHomeCTA(){
     return (r.date || r.record_date || '').slice(0, 10) === today;
   });
   if (rec) {
-    openDayDetail(new Date().getDate());
+    var _todayForCTA = new Date();
+    calYear  = _todayForCTA.getFullYear();
+    calMonth = _todayForCTA.getMonth();
+    openDayDetail(_todayForCTA.getDate());
   } else {
     openRecordModal();
   }
@@ -7112,7 +7115,11 @@ function openDayDetail(d){
   var ds = dateObj.toDateString();
   var w = dateObj.getDay();
   var isoDateStr = dateObj.getFullYear()+'-'+String(dateObj.getMonth()+1).padStart(2,'0')+'-'+String(dateObj.getDate()).padStart(2,'0');
-  var recs = state.records.filter(function(r){ return new Date(r.date).toDateString() === ds; });
+  var recs = state.records.filter(function(r){
+    if(r.date) return new Date(r.date).toDateString() === ds;
+    if(r.record_date) return new Date(r.record_date + 'T00:00:00').toDateString() === ds;
+    return false;
+  });
   document.getElementById('dmDate').textContent = calYear+'年'+(calMonth+1)+'月'+d+'日（'+WDAY[w]+'）';
   var body = document.getElementById('dmBody');
   if(recs.length === 0){
@@ -7412,8 +7419,12 @@ function openRecordScreen(){
     var editDateStr = targetDate.toDateString();
     var editRec = null;
     for(var ri=0; ri<state.records.length; ri++){
-      if(new Date(state.records[ri].date).toDateString() === editDateStr){
-        editRec = state.records[ri];
+      var _r = state.records[ri];
+      var _rDateStr = _r.date ? new Date(_r.date).toDateString()
+                    : _r.record_date ? new Date(_r.record_date + 'T00:00:00').toDateString()
+                    : '';
+      if(_rDateStr === editDateStr){
+        editRec = _r;
         break;
       }
     }
@@ -7462,7 +7473,7 @@ function openRecordScreen(){
       var hasPainOnEdit = (editRec.painLevel && editRec.painLevel > 0)
         || (editRec.painLocation && editRec.painLocation.length)
         || (editRec.painType && editRec.painType.length)
-        || (function(){ var painSyms = ['頭痛','腰痛','下腹部痛','関節痛']; var found = false; document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ if(painSyms.indexOf(c.textContent)!==-1) found=true; }); return found; })();
+        || (function(){ var painSyms = ['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛']; var found = false; document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ if(painSyms.indexOf(c.textContent)!==-1) found=true; }); return found; })();
       var painSection = document.getElementById('pain-detail-section');
       if(painSection){ painSection.style.display = hasPainOnEdit ? 'block' : 'none'; }
       // 服薬を復元
@@ -7526,10 +7537,10 @@ function openRecordScreen(){
           if(c.textContent === editRec.dischargeAmount) c.classList.add('selected');
         });
       }
-      // おりもの状態復元
-      if(editRec.dischargeType){
+      // おりもの状態復元（dischargeType は配列で保存される）
+      if(editRec.dischargeType && editRec.dischargeType.length){
         document.querySelectorAll('#rs-discharge-type .chip').forEach(function(c){
-          if(c.textContent === editRec.dischargeType) c.classList.add('selected');
+          if(editRec.dischargeType.indexOf(c.textContent) !== -1) c.classList.add('selected');
         });
       }
       // 経血詳細セクション表示
@@ -7560,7 +7571,20 @@ function openRecordScreen(){
     // P1-3: クイック記録ターゲットへスクロール（編集モード）
     (function() {
       var _t = window.__ippoQuickRecordTarget; window.__ippoQuickRecordTarget = null;
-      if (_t) { var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' }, _id = _m[_t]; if (_id) setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300); }
+      if (_t) {
+        var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
+        var _id = _m[_t];
+        if (_id) {
+          // 食事・体温・メモは詳細セクション内なので折りたたみを開く
+          if (_t === 'food' || _t === 'temp' || _t === 'note') {
+            var _ds = document.getElementById('rec-details-section');
+            var _da = document.getElementById('rec-details-arrow');
+            if (_ds) { _ds.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
+            if (_da) { _da.textContent = '▴'; }
+          }
+          setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
+        }
+      }
     })();
     return;
   }
@@ -7691,6 +7715,13 @@ function openRecordScreen(){
     var _qrMap = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
     var _qrId = _qrMap[_qrt];
     if (_qrId) {
+      // 食事・体温・メモは詳細セクション内なので折りたたみを開く
+      if (_qrt === 'food' || _qrt === 'temp' || _qrt === 'note') {
+        var _qrDs = document.getElementById('rec-details-section');
+        var _qrDa = document.getElementById('rec-details-arrow');
+        if (_qrDs) { _qrDs.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
+        if (_qrDa) { _qrDa.textContent = '▴'; }
+      }
       setTimeout(function() {
         var _qrEl = document.getElementById(_qrId);
         if (_qrEl) _qrEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -7786,7 +7817,7 @@ function _updateMealParseFreetextLegacy(){
     document.getElementById('parse-meal-count').textContent = result.mealCount;
     document.getElementById('parse-first-time').textContent = result.firstTime;
     document.getElementById('parse-last-time').textContent = result.lastTime;
-    document.getElementById('parse-fasting').textContent = result.fastingHours;
+    var _fastEl = document.getElementById('parse-fasting'); if(_fastEl) _fastEl.textContent = result.fastingHours;
   } else {
     box.style.display = 'none';
   }
