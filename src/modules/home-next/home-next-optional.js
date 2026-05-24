@@ -4,58 +4,6 @@
 //  食事・ファスティング・血糖などのカード
 // ============================================================
 
-// ── ファスティング表示 ────────────────────────────────────
-
-function buildFastingRow(state) {
-  if (!state.fastingActive) {
-    return `
-      <div class="hn-optional-row">
-        <div class="hn-optional-left">
-          <div class="hn-optional-icon">⏱</div>
-          <div>
-            <div class="hn-optional-name">ファスティング</div>
-            <div class="hn-optional-sub">現在停止中</div>
-          </div>
-        </div>
-        <div class="hn-optional-value muted">—</div>
-      </div>`;
-  }
-
-  const start   = state.fastingStart ? new Date(state.fastingStart) : null;
-  const goal    = state.fastGoal || 12;
-  let elapsed   = '—';
-  let remaining = '';
-
-  if (start) {
-    const elapsedMs  = Date.now() - start.getTime();
-    const elapsedH   = Math.floor(elapsedMs / 3600000);
-    const elapsedM   = Math.floor((elapsedMs % 3600000) / 60000);
-    elapsed = `${elapsedH}h ${elapsedM}m`;
-
-    const goalMs  = goal * 3600000;
-    const leftMs  = goalMs - elapsedMs;
-    if (leftMs > 0) {
-      const leftH = Math.floor(leftMs / 3600000);
-      const leftM = Math.floor((leftMs % 3600000) / 60000);
-      remaining = `目標まで ${leftH}h ${leftM}m`;
-    } else {
-      remaining = `目標達成`;
-    }
-  }
-
-  return `
-    <div class="hn-optional-row">
-      <div class="hn-optional-left">
-        <div class="hn-optional-icon">⏱</div>
-        <div>
-          <div class="hn-optional-name">ファスティング中</div>
-          <div class="hn-optional-sub">${remaining}</div>
-        </div>
-      </div>
-      <div class="hn-optional-value">${elapsed}</div>
-    </div>`;
-}
-
 // ── 食事ロウ（フード記録ONの場合） ───────────────────────
 
 function buildFoodRow(state) {
@@ -92,11 +40,6 @@ function shouldShowFoodModule(config, state) {
   return inConfig && userOn;
 }
 
-function shouldShowFastingModule(state) {
-  // ファスティングが実際に稼働中のときのみ表示（fastGoal だけでは表示しない）
-  return state.fastingActive === true;
-}
-
 // ── メインレンダリング ────────────────────────────────────
 
 export function renderOptionalModules(container, config, state) {
@@ -104,10 +47,6 @@ export function renderOptionalModules(container, config, state) {
 
   if (shouldShowFoodModule(config, state)) {
     rows.push(buildFoodRow(state));
-  }
-
-  if (shouldShowFastingModule(state)) {
-    rows.push(buildFastingRow(state));
   }
 
   if (rows.length === 0) {

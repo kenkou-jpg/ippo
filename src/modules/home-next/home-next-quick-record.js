@@ -41,12 +41,12 @@ const ICON_NOTE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" st
 // ── クイック記録ボタン定義 ────────────────────────────────
 
 const QUICK_ITEMS = [
-  { icon: ICON_PERIOD,  label: '生理',  bg: '#F5EAEA' },
-  { icon: ICON_MOOD,    label: '気分',  bg: '#EEF3EB' },
-  { icon: ICON_SYMPTOM, label: '症状',  bg: '#F5EDE3' },
-  { icon: ICON_FOOD,    label: '食事',  bg: '#EEF3EB' },
-  { icon: ICON_TEMP,    label: '体温',  bg: '#F2EDE6' },
-  { icon: ICON_NOTE,    label: 'メモ',  bg: '#EEF3EB' },
+  { icon: ICON_PERIOD,  label: '生理',  bg: '#F5EAEA', target: 'period'  },
+  { icon: ICON_MOOD,    label: '気分',  bg: '#EEF3EB', target: 'mood'    },
+  { icon: ICON_SYMPTOM, label: '症状',  bg: '#F5EDE3', target: 'symptom' },
+  { icon: ICON_FOOD,    label: '食事',  bg: '#EEF3EB', target: 'food'    },
+  { icon: ICON_TEMP,    label: '体温',  bg: '#F2EDE6', target: 'temp'    },
+  { icon: ICON_NOTE,    label: 'メモ',  bg: '#EEF3EB', target: 'note'    },
 ];
 
 // ── 今日の記録状態 ────────────────────────────────────────
@@ -132,13 +132,14 @@ function buildTrendMiniChart(records) {
 // ── アイコングリッドHTML ──────────────────────────────────
 
 function buildQuickGrid() {
-  const openRecord = `if(typeof handleHomeCTA==='function'){handleHomeCTA();}else if(typeof openRecordScreen==='function'){openRecordScreen();}`;
-
-  return QUICK_ITEMS.map(item => `
+  return QUICK_ITEMS.map(item => {
+    const openRecord = `window.__ippoQuickRecordTarget='${item.target}';if(typeof openRecordScreen==='function'){openRecordScreen();}`;
+    return `
     <div class="hn-quick-item" onclick="${openRecord}">
       <div class="hn-quick-icon-wrap" style="background:${item.bg}">${item.icon}</div>
       <div class="hn-quick-name">${item.label}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── メインレンダリング ────────────────────────────────────
