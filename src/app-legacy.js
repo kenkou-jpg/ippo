@@ -7571,7 +7571,20 @@ function openRecordScreen(){
     // P1-3: クイック記録ターゲットへスクロール（編集モード）
     (function() {
       var _t = window.__ippoQuickRecordTarget; window.__ippoQuickRecordTarget = null;
-      if (_t) { var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' }, _id = _m[_t]; if (_id) setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300); }
+      if (_t) {
+        var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
+        var _id = _m[_t];
+        if (_id) {
+          // 食事・体温・メモは詳細セクション内なので折りたたみを開く
+          if (_t === 'food' || _t === 'temp' || _t === 'note') {
+            var _ds = document.getElementById('rec-details-section');
+            var _da = document.getElementById('rec-details-arrow');
+            if (_ds) { _ds.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
+            if (_da) { _da.textContent = '▴'; }
+          }
+          setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
+        }
+      }
     })();
     return;
   }
@@ -7702,6 +7715,13 @@ function openRecordScreen(){
     var _qrMap = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
     var _qrId = _qrMap[_qrt];
     if (_qrId) {
+      // 食事・体温・メモは詳細セクション内なので折りたたみを開く
+      if (_qrt === 'food' || _qrt === 'temp' || _qrt === 'note') {
+        var _qrDs = document.getElementById('rec-details-section');
+        var _qrDa = document.getElementById('rec-details-arrow');
+        if (_qrDs) { _qrDs.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
+        if (_qrDa) { _qrDa.textContent = '▴'; }
+      }
       setTimeout(function() {
         var _qrEl = document.getElementById(_qrId);
         if (_qrEl) _qrEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
