@@ -622,64 +622,6 @@ h1, h2, h3, .serif { font-family: var(--font-serif); }
   margin-bottom: 24px;
 }
 
-/* ===== FASTING TIMER WIDGET ===== */
-.fasting-widget {
-  background: var(--fasting-bg);
-  border-radius: 20px;
-  padding: 20px;
-  margin: 0 24px 20px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-}
-.fasting-widget::before {
-  content: '';
-  position: absolute;
-  top: -20px; right: -20px;
-  width: 80px; height: 80px;
-  border-radius: 50%;
-  background: var(--fasting-spot);
-}
-.fw-label { font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); margin-bottom: 8px; }
-.fw-timer {
-  font-family: var(--font-serif);
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  margin-bottom: 4px;
-}
-.fw-status { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 16px; }
-.fw-buttons { display: flex; gap: 8px; }
-.fw-btn {
-  flex: 1;
-  padding: 10px;
-  border-radius: 12px;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
-}
-.fw-btn.start { background: var(--rose); color: white; }
-.fw-btn.stop { background: rgba(255,255,255,0.15); color: white; }
-.fw-btn:hover { opacity: 0.85; }
-.fw-goal-pills { display: flex; gap: 6px; margin-bottom: 14px; pointer-events: auto; }
-.fw-pill {
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 11px;
-  background: rgba(255,255,255,0.1);
-  color: rgba(255,255,255,0.7);
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.2s;
-  pointer-events: auto;
-  position: relative;
-  z-index: 10;
-}
-.fw-pill.active { background: var(--rose); color: white; border-color: var(--rose); }
-
 /* ===== MILESTONE BADGE ===== */
 .milestone-row {
   display: flex;
@@ -2875,7 +2817,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   }
 
   /* メインカラム（左） */
-  #screen-home.active > .fasting-widget,
   #screen-home.active > .today-msg,
   #screen-home.active > .record-cta,
   #screen-home.active > .share-section {

@@ -4970,8 +4970,15 @@ function getSuccessMessage(record) {
 }
 
 function closeSuccess() {
-  document.getElementById('success-overlay').classList.remove('active');
-  switchTab('home', document.querySelector('.nav-item'));
+  if (window.__ippoSuccessOverlayTimer) {
+    clearTimeout(window.__ippoSuccessOverlayTimer);
+    window.__ippoSuccessOverlayTimer = null;
+  }
+  var overlay = document.getElementById('success-overlay');
+  if (overlay) {
+    overlay.classList.remove('active');
+    overlay.style.opacity = '';
+  }
 }
 
 // ===== MISC =====
@@ -5407,7 +5414,13 @@ function editPastRecord(dateStr) {
   if (dayModal) dayModal.style.display = 'none';
   
   var rec = state.records.find(function(r) {
-    return (r.record_date || (r.date && r.date.slice(0,10))) === dateStr;
+    if (r.record_date && r.record_date.slice(0, 10) === dateStr) return true;
+    if (r.date) {
+      var _d = new Date(r.date);
+      var _local = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
+      if (_local === dateStr) return true;
+    }
+    return false;
   });
   
   state.draft = {
@@ -7082,7 +7095,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
   if (typeof updateTodayMessage === 'function') updateTodayMessage();
   applyFastingVisibility();
-  updateFastingWidgetPhase();
+  if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
   var fastDisplay = document.getElementById('fast-goal-display');
   if(fastDisplay) fastDisplay.textContent = (state.fastingGoal || 16) + 'h';
   loadCommunityTopic();
@@ -7544,6 +7557,11 @@ function openRecordScreen(){
     // 編集モードでは下書き復元をスキップ
     document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('screen-record').classList.add('active');
+    // P1-3: クイック記録ターゲットへスクロール（編集モード）
+    (function() {
+      var _t = window.__ippoQuickRecordTarget; window.__ippoQuickRecordTarget = null;
+      if (_t) { var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' }, _id = _m[_t]; if (_id) setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300); }
+    })();
     return;
   }
 
@@ -7665,7 +7683,20 @@ function openRecordScreen(){
     }
   }, 300);
 
+  // P1-3: クイック記録ターゲットへスクロール
+  var _qrt = window.__ippoQuickRecordTarget;
+  window.__ippoQuickRecordTarget = null;
   window.scrollTo(0, 0);
+  if (_qrt) {
+    var _qrMap = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
+    var _qrId = _qrMap[_qrt];
+    if (_qrId) {
+      setTimeout(function() {
+        var _qrEl = document.getElementById(_qrId);
+        if (_qrEl) _qrEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
+    }
+  }
 }
 
 function selectTempMethod(method){
@@ -9252,12 +9283,20 @@ function draftRecordScreen(){
   if(di){ di.textContent='一時保存しました'; di.style.display='block'; di.style.color='var(--sage)'; setTimeout(function(){ di.style.display='none'; }, 2500); }
 }
 
+function toLocalDateKey(date) {
+  var d = date instanceof Date ? date : new Date(date);
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
 function saveRecordScreen(){
   try {
     var data = gatherRecordData();
    var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
 var todayStr = targetDate.toDateString();
-    var targetDateSlice = targetDate.toISOString().slice(0, 10);
+    var targetDateSlice = toLocalDateKey(targetDate);
     var rec = null;
     for(var i=0; i<state.records.length; i++){
       var _r = state.records[i];
@@ -9343,7 +9382,13 @@ var todayStr = targetDate.toDateString();
 
     // 保存を即座に実行
     try {
-      localStorage.setItem('ippo_state', JSON.stringify(state));
+      if (typeof window.saveState === 'function') {
+        window.saveState();
+      } else if (typeof saveState === 'function') {
+        saveState();
+      } else {
+        localStorage.setItem('ippo_state', JSON.stringify(state));
+      }
     } catch(storageErr) {
       showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
       console.error('Storage error:', storageErr);
@@ -9376,7 +9421,7 @@ var todayStr = targetDate.toDateString();
     updateHomeNumbers();
     updateHomeDiseaseAdvice();
     checkAndShowTempAlert();
-    updateFastingWidgetPhase();
+    if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
     updateStats();
     updateHistory();
     buildCalendar();
@@ -9429,17 +9474,22 @@ var todayStr = targetDate.toDateString();
       feedbackHtml += '</div>';
       document.getElementById('success-message').innerHTML = feedbackHtml;
       so.classList.add('active');
-      // 2秒後に自動で閉じる
-      setTimeout(function(){
+      // P0-3: 前のタイマーをクリアしてから新タイマーをセット
+      if (window.__ippoSuccessOverlayTimer) {
+        clearTimeout(window.__ippoSuccessOverlayTimer);
+        window.__ippoSuccessOverlayTimer = null;
+      }
+      window.__ippoSuccessOverlayTimer = setTimeout(function() {
         var overlay = document.getElementById('success-overlay');
-        if(overlay && overlay.classList.contains('active')){
+        if (overlay && overlay.classList.contains('active')) {
           overlay.style.transition = 'opacity 0.5s ease';
           overlay.style.opacity = '0';
-          setTimeout(function(){
+          setTimeout(function() {
             overlay.classList.remove('active');
             overlay.style.opacity = '';
             overlay.style.transition = '';
-            switchTab('home', document.querySelector('.nav-item'));
+            window.__ippoSuccessOverlayTimer = null;
+            // P0-1: ホーム強制遷移を削除
           }, 500);
         }
       }, 2000);
