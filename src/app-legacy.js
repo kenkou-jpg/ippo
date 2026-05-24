@@ -11809,6 +11809,7 @@ if (typeof openExperiments === "function") window.openExperiments = openExperime
 if (typeof openFlareupReport === "function") window.openFlareupReport = openFlareupReport;
 if (typeof openIDB === "function") window.openIDB = openIDB;
 if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMonthlyReport;
+if (typeof openRecordScreen === "function") window.openRecordScreen = openRecordScreen;
 if (typeof openRestoreUI === "function") window.openRestoreUI = openRestoreUI;
 if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
 if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
