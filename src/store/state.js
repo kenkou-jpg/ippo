@@ -125,6 +125,13 @@ export function getState() {
 // ─── setState ─────────────────────────────────────────────────
 // _state を更新する唯一の関数。フック経由で legacy bare `state` も同期する。
 export function setState(newState) {
+  // null レコードを除去してクラッシュを防ぐ
+  if (newState && Array.isArray(newState.records)) {
+    var hasNull = newState.records.some(function(r) { return r == null; });
+    if (hasNull) {
+      newState = Object.assign({}, newState, { records: newState.records.filter(Boolean) });
+    }
+  }
   for (var i = 0; i < _preHooks.length; i++) {
     try {
       if (_preHooks[i](newState, _state) === false) return;

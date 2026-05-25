@@ -152,8 +152,8 @@ export function getRecordsFromLocalStorage() {
 
 export function getRecords() {
   const s = getState();
-  if (Array.isArray(s?.records)) return s.records;
-  return getRecordsFromLocalStorage();
+  if (Array.isArray(s?.records)) return s.records.filter(Boolean);
+  return getRecordsFromLocalStorage().filter(Boolean);
 }
 
 export function getRecordDateCandidates(record) {

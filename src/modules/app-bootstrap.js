@@ -17,7 +17,7 @@ import { autoRecoveryCheck } from '../services/recovery.js';
 function repairStats(state) {
   if (!state.records || state.records.length === 0) return;
   var uniqueDays = {};
-  state.records.forEach(function (r) {
+  state.records.filter(Boolean).forEach(function (r) {
     var d = r.date || (r.record_date ? r.record_date.slice(0, 10) + 'T00:00:00' : '');
     if (d) uniqueDays[new Date(d).toDateString()] = true;
   });
