@@ -471,6 +471,32 @@ animation: mistDrift 28s ease-in-out infinite; }
   right:48px !important;
   bottom:-10px !important;
 }
+   /* ─── Reflection row FIX ───────────────────────── */
+
+.ipr-reflect-wrap{
+  display:grid !important;
+
+  grid-template-columns:
+    1fr .9fr 1fr !important;
+
+  gap:24px !important;
+
+  align-items:start !important;
+}
+
+/* ─── Moon card FIX ───────────────────────────── */
+
+.ipr-hints-card{
+  height:140px !important;
+
+  min-height:140px !important;
+
+  max-height:140px !important;
+
+  align-self:start !important;
+
+  overflow:hidden !important;
+}
 </style>
 
 <div id="screen-insights" class="screen">
