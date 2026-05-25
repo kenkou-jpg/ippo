@@ -60,14 +60,14 @@
 
 /* ─── HERO ───────────────────────────────────────────────── */
 .ipr-hero {
-  display: grid;
-  grid-template-columns: 55fr 45fr;
-  gap: 16px;
-  align-items: center;
-  margin-bottom: 18px;
-  min-height: 260px;
-  padding: 32px 0 24px;
   position: relative;
+
+  min-height: 520px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
   overflow: hidden;
 }
 .ipr-hero > div:first-child {
@@ -102,25 +102,25 @@
 /* ─── Hero art layer ────────────────────────────────────── */
 .hero-art {
   position: absolute;
-  top: -6px;
-  right: 0;
 
-  width: 420px;
-  height: 290px;
+  top: 50%;
+  right: 40px;
 
-  background-image:url('/hero-window-soft.png?v=2');
+  transform: translateY(-50%);
+
+  width: 520px !important;
+  height: 520px !important;
+
+  background-image:url('/hero-window-soft.png?v=3');
+
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: right center;
+  background-position: center;
 
   opacity: .98;
   pointer-events: none;
+
   z-index: 0;
-
-  filter: saturate(.94) brightness(1.01);
-  mix-blend-mode: normal;
-
-  animation: heroFloat 26s ease-in-out infinite;
 }
 .hero-art::before,.hero-art::after { display: none; content: none; }
 
