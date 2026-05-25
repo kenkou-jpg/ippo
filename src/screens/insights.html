@@ -103,24 +103,18 @@
 .hero-art {
   position: absolute;
 
-  top: 50%;
-  right: 24px;
+  inset: 0;
 
-  transform: translateY(-50%);
-
-  width: 340px !important;
-  height: 340px !important;
-
-  background-image: url('/hero-window-soft.png?v=5');
+  background-image:
+    url('/hero-window-soft.png?v=6');
 
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 
   opacity: .98;
-  pointer-events: none;
 
-  z-index: 0;
+  pointer-events: none;
 }
 .hero-art::before,.hero-art::after { display: none; content: none; }
 
@@ -144,8 +138,17 @@
 /* ─── Art wrap ───────────────────────────────────────────── */
 .ipr-art {
   position: relative;
-  height: 290px;
-  overflow: hidden;
+
+  width: 380px;
+  min-width: 380px;
+
+  height: 340px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  overflow: visible;
 }
 
 /* ─── Status strip ───────────────────────────────────────── */
