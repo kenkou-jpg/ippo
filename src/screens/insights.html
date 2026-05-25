@@ -22,13 +22,21 @@
   color: #18245a;
 }
 
-/* ─── Root: max-width 900px ──────────────────────────────── */
+/* ─── Root: Desktop width ──────────────────────────────── */
 .ipr {
-  max-width: 900px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 0 20px 110px;
+  padding: 0 40px 120px;
 }
 
+/* ─── Trends row balance ──────────────────────────────── */
+.ipr-trends{
+  display:grid;
+  grid-template-columns:1.35fr 1fr;
+  gap:24px;
+  align-items:stretch;
+}
+   
 /* ─── Card ───────────────────────────────────────────────── */
 .ipc {
   background: rgba(255,255,255,.78);
