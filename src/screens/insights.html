@@ -102,17 +102,24 @@
 /* ─── Hero art layer ────────────────────────────────────── */
 .hero-art {
   position: absolute;
-  top: 4px; right: 0;
-  width: 290px; height: 290px;
+  top: -6px;
+  right: 0;
+
+  width: 420px;
+  height: 290px;
+
   background-image:url('/hero-window-soft.png?v=2');
   background-size: contain;
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: right center;
+
   opacity: .98;
   pointer-events: none;
   z-index: 0;
+
   filter: saturate(.94) brightness(1.01);
   mix-blend-mode: normal;
+
   animation: heroFloat 26s ease-in-out infinite;
 }
 .hero-art::before,.hero-art::after { display: none; content: none; }
