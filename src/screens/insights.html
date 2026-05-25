@@ -124,37 +124,20 @@
 
 /* ─── Moon mist art layer ───────────────────────────────── */
 .moon-art {
-  position: absolute;
+position: absolute; 
+left: 50%; bottom: -16px; 
+width: 190px; height: 190px; 
+background-image: url('/assets/art/moon-mist-art.webp'); 
+background-size: contain; background-repeat: no-repeat; 
+background-position: center; 
+opacity: .94; 
+pointer-events: none; 
+z-index: 0; 
+filter: blur(0.2px) saturate(0.92); 
+animation: mistDrift 28s ease-in-out infinite; } 
 
-  left: 50%;
-  bottom: -8px;
-
-  transform: translateX(-50%);
-
-  width: 150px;
-  height: 150px;
-
-  background-image: url('/assets/art/moon-mist-art.webp');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-
-  opacity: .94;
-
-  pointer-events: none;
-  z-index: 0;
-
-  filter: blur(0.2px) saturate(0.96);
-
-  animation: mistDrift 28s ease-in-out infinite;
-}
-
-.moon-art::before,
-.moon-art::after {
-  display: none;
-  content: none;
-}
-
+.moon-art::before,.moon-art::after { display: none; content: none; }
+   
 /* ─── Art wrap ───────────────────────────────────────────── */
 .ipr-art {
   position: relative;
