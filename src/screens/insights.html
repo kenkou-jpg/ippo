@@ -29,6 +29,8 @@
   padding: 0 40px 24px;
 }
 
+
+
 /* ─── Trends row balance ──────────────────────────────── */
 .ipr-trends{
   display:grid;
@@ -311,10 +313,10 @@ animation: mistDrift 28s ease-in-out infinite; }
   margin-top: 10px; align-self: flex-start;
 }
 
-/* ─── Bottom 3-col: 各280px / min-h200px ────────────────── */
-.ipr-bottom3{display:grid; grid-template-columns:1fr .72fr 1fr;gap:24px;align-items:start;margin-bottom:18px;}
+/* ─── Bottom 2-col: Reflection / Experiment ─────────────── */
+.ipr-bottom3{display:grid; grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-bottom:18px;}
 /* ─── Reflect card ───────────────────────────────────────── */
-.ipr-reflect-card { padding: 22px 22px 26px; display: flex; flex-direction: column; min-height: 200px; border-radius: 20px; }
+.ipr-reflect-card { padding: 28px 28px 32px; display: flex; flex-direction: column; min-height: 240px; border-radius: 20px; }
 .ipr-reflect-sub  { font-size: 11px; color: #a0a8c0; line-height: 1.75; margin-top: 6px; }
 .ipr-reflect-q    { font-size: 16px; font-weight: 700; color: #18245a; line-height: 1.65; margin: 14px 0 10px; letter-spacing: -.01em; }
 .ipr-reflect-hint { font-size: 11.5px; color: #5d6482; line-height: 1.8; flex: 1; }
@@ -354,7 +356,7 @@ animation: mistDrift 28s ease-in-out infinite; }
 .ipr-exp-sub { font-size: 11px; color: #a0a8c0; line-height: 1.75; margin: 6px 0 0; }
 
 /* ─── Experiment card ────────────────────────────────────── */
-.ipr-exp-card { padding: 22px 22px 26px; display: flex; flex-direction: column; position: relative; overflow: hidden; border-radius: 20px; min-height: auto; }
+.ipr-exp-card { padding: 28px 28px 32px; display: flex; flex-direction: column; position: relative; overflow: hidden; border-radius: 20px; min-height: 240px; }
 .ipr-exp-proposal { font-size: 13px; font-weight: 700; color: #18245a; line-height: 1.6; margin: 10px 0 8px; letter-spacing: -.01em; }
 .ipr-exp-body     { font-size: 11.5px; color: #5d6482; line-height: 1.85; flex: 1; }
 .ipr-exp-bullets  { list-style: none; padding: 0; margin: 8px 0 0; }
@@ -423,7 +425,6 @@ animation: mistDrift 28s ease-in-out infinite; }
   .ipr-stat-cell:nth-child(4) { display: none; }
   .ipr-stat-cell:last-child { grid-column: 1/-1; justify-content: center; border-right: none; border-top: 1px solid rgba(139,127,214,.08); padding-top: 10px; margin-top: 8px; }
   .ipr-main,.ipr-analysis { grid-template-columns: 1fr; gap: 14px; }
-  .ipr-bottom3 { grid-template-columns: 1fr; gap: 14px; }
   .ipr-tips-grid { grid-template-columns: 1fr; }
   .ipc { border-radius: 18px; }
   .ipr-ins-card,.ipr-dis-card,.ipr-graph-card,.ipr-reflect-card,.ipr-exp-card { min-height: 0; }
@@ -431,47 +432,10 @@ animation: mistDrift 28s ease-in-out infinite; }
   .ipr-tip-item { min-height: 0; }
   .moon-art { width: 150px; height: 150px; }
 }
-/* ─── Reflection row FIX ───────────────────────── */
-
-.ipr-reflect-wrap{
-  display:grid !important;
-
-  grid-template-columns:
-    1fr .9fr 1fr !important;
-
-  gap:24px !important;
-
-  align-items:start !important;
-}
-
-/* ─── Moon card FIX ───────────────────────────── */
-
-.ipr-hints-card{
-  width:100% !important;
-
-  height:140px !important;
-
-  min-height:140px !important;
-
-  max-height:140px !important;
-
-  margin-top:24px !important;
-
-  border-radius:28px !important;
-
-  align-self:start !important;
-
-  overflow:hidden !important;
-}
-
-/* ─── Moon art ─────────────────────────────────────── */
-
-.moon-art{
-  width:180px !important;
-  height:180px !important;
-
-  right:48px !important;
-  bottom:-10px !important;
+/* ─── Reflection / Experiment 2col responsive ─────────── */
+@media(max-width:767px){
+  .ipr-bottom3 { grid-template-columns: 1fr; gap: 14px; }
+  .ipr-reflect-card,.ipr-exp-card { min-height: 0; }
 }
 </style>
 
@@ -718,12 +682,6 @@ animation: mistDrift 28s ease-in-out infinite; }
           考えてみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-      </div>
-
-      <!-- 過去の記録からのヒント（Moon Mist） -->
-      <div class="ipc ipr-hints-card">
-        <p class="ipr-hints-text">睡眠が安定した翌日は、<br>症状が軽くなる傾向があります。</p>
-        <div class="moon-art" aria-hidden="true"></div>
       </div>
 
       <!-- 小さく試してみる -->
