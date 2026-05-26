@@ -286,6 +286,29 @@ function findBestInsight(records, config) {
     }
   }
 
+  // ─ PHASE 6: companion intelligence — context-aware ranking ─
+  {
+    const ci  = window.ippoCompanionIntelligence;
+    const eng = window.ippoInsightEngine;
+    if (ci && eng) {
+      try {
+        const ctx = ci.getCompanionContext();
+        if (ctx) {
+          let ranked = ci.rankInsightPriorities(eng.getInsights(), ctx);
+          // 上位インサイト (free tier) を高優先候補として追加
+          const top = ranked.find(i => i.tier === 'free' && i.score >= 30);
+          if (top) {
+            candidates.push({
+              priority: 8,
+              main:     top.main,
+              sub:      top.sub,
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
   if (!candidates.length) return null;
 
   // 優先度順で1件だけ

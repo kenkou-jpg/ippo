@@ -337,25 +337,58 @@ export function applyGentleToneGuard(insights, currentMode) {
 //  将来の AI-assisted insight generation 用 hook
 // ─────────────────────────────────────────────────────────────
 
-/** PHASE 6: LLM-assisted gentle insight generation (stub) */
+/**
+ * PHASE 6: gentle insight generation (local-first).
+ * companion-intelligence.js の generateReflections に委譲。
+ * 将来 AI provider を差し込む場合はここを置き換える。
+ */
 export function generateGentleInsight(context) {
-  return null;
+  const ci = window.ippoCompanionIntelligence;
+  if (!ci || !context) return null;
+  try {
+    const refs = ci.generateReflections(context);
+    if (!refs || refs.length === 0) return null;
+    return { text: refs[0].text, type: refs[0].type };
+  } catch (_) {
+    return null;
+  }
 }
 
-/** PHASE 6: personalized suggestion synthesis from signals (stub) */
+/**
+ * PHASE 6: gentle suggestion synthesis (local-first).
+ * companion-intelligence.js の generateGentleSuggestion に委譲。
+ */
 export function generateAdaptiveSuggestion(signals, context) {
-  return null;
+  const ci = window.ippoCompanionIntelligence;
+  if (!ci || !context) return null;
+  try {
+    return ci.generateGentleSuggestion(context);
+  } catch (_) {
+    return null;
+  }
 }
 
-/** PHASE 6: build full tendency context for AI generation (stub) */
+/**
+ * PHASE 6: full tendency context builder (local-first).
+ * companion-intelligence.js の buildCompanionContext に委譲。
+ * 将来 AI provider へのコンテキスト渡しに使う。
+ */
 export function buildTendencyContext(state) {
+  const ci = window.ippoCompanionIntelligence;
+  if (ci && state) {
+    try {
+      return ci.buildCompanionContext(state);
+    } catch (_) {}
+  }
+
+  // フォールバック (companion-intelligence 未ロード時)
   const as = window.ippoAdaptiveSignals;
   return {
     symptoms:        [],
     emotions:        [],
     sleepPatterns:   null,
     cycle:           null,
-    adaptiveSignals: as ? as.getAdaptiveSignals() : null,
+    adaptiveSignals: as ? (function() { try { return as.getAdaptiveSignals(); } catch(_) { return null; } })() : null,
     settingsProfile: (state && state.settingsProfile) || null,
   };
 }
