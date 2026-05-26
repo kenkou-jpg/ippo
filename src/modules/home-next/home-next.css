@@ -6,10 +6,10 @@
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
   /* ── Global design tokens (design-system.css と同期) ── */
-  --bg-soft:      var(--ippo-bg-base, #FAF8F5);
-  --card-bg:      var(--ippo-card-bg, #FFFFFF);
-  --border-soft:  rgba(139,127,214,0.08);
-  --shadow-soft:  var(--ippo-card-shadow, 0 10px 28px rgba(58,47,102,0.03));
+  --bg-soft:      var(--ippo-bg-base, #F7F4EF);
+  --card-bg:      var(--ippo-card-bg, rgba(255,252,248,.98));
+  --border-soft:  rgba(221,216,208,.32);
+  --shadow-soft:  var(--ippo-card-shadow, 0 8px 24px rgba(94,84,66,.035));
   --radius-card:  var(--ippo-card-radius, 20px);
 
   /* アクセントカラー */
@@ -30,10 +30,10 @@
   --space-40: 40px;
 
   /* ── Home-next スコープトークン ── */
-  --hn-bg:             var(--ippo-bg-base, #FAF8F5);
-  --hn-card-bg:        var(--ippo-card-bg, #FFFFFF);
-  --hn-card-border:    1px solid rgba(139,127,214,0.08);
-  --hn-card-shadow:    0 10px 28px rgba(58,47,102,0.03);
+  --hn-bg:             var(--ippo-bg-base, #F7F4EF);
+  --hn-card-bg:        var(--ippo-card-bg, rgba(255,252,248,.98));
+  --hn-card-border:    1px solid rgba(221,216,208,.32);
+  --hn-card-shadow:    0 8px 24px rgba(94,84,66,.035);
   --hn-card-radius:    var(--ippo-card-radius, 20px);
   --hn-card-radius-lg: 24px;
 
@@ -68,10 +68,10 @@
 /* ── スクリーン基盤 ──────────────────────────────────────── */
 #screen-home-next {
   background:
-    radial-gradient(circle at 72% 12%, rgba(139,127,214,0.12), transparent 36%),
-    radial-gradient(circle at 20% 0%,  rgba(239,199,176,0.14), transparent 30%),
-    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.18), transparent 42%),
-    #FAF7F4;
+    radial-gradient(circle at 72% 12%, rgba(207,220,198,0.10), transparent 36%),
+    radial-gradient(circle at 20% 0%,  rgba(239,224,206,0.12), transparent 30%),
+    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.10), transparent 42%),
+    #F7F4EF;
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -355,25 +355,41 @@
 
 /* ── ヒーローカード ──────────────────────────────────────── */
 .hn-hero {
-  /* ❶ テキスト可読グラデーション (左→右フェード) */
-  /* ❷ 左 Blob: 淡いラベンダー (CSS再現) */
-  /* ❸ 固定ビジュアル: hero-window-soft.webp */
-  background-color: var(--hn-cream);
-  background-image:
-    linear-gradient(to right, rgba(253,246,240,1.00) 34%, rgba(253,246,240,0.88) 50%, transparent 66%),
-    radial-gradient(ellipse 44% 68% at 5% 44%, rgba(207,196,232,0.30), transparent 72%),
-    url('./images/hero-window-soft.webp');
-  background-size: 100% 100%, 100% 100%, contain;
-  background-position: left center, left center, right center;
-  background-repeat: no-repeat;
-  border: var(--hn-card-border);
+  background:
+    linear-gradient(to right, rgba(249,247,243,.98) 34%, rgba(249,247,243,.88) 52%, transparent 70%),
+    linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
+  background-color: #F7F4EF;
+  border: 1px solid rgba(221,216,208,.32);
   border-radius: var(--hn-card-radius-lg);
-  box-shadow: var(--hn-card-shadow);
+  box-shadow: 0 8px 24px rgba(94,84,66,.035);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   padding: 24px 22px 20px;
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
   min-height: 200px;
+}
+
+.hn-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('./images/hero-window-soft.webp');
+  background-size: contain;
+  background-position: right center;
+  background-repeat: no-repeat;
+  opacity: 0.48;
+  filter: saturate(0.78) brightness(1.04);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hn-hero-tag,
+.hn-hero-body,
+.hn-hero-footer {
+  position: relative;
+  z-index: 1;
 }
 
 /* 画像背景に切り替えたため非表示 */
@@ -399,8 +415,8 @@
 .hn-hero-message {
   font-family: var(--hn-font-ja);
   font-size: 18px;
-  font-weight: 500;
-  color: var(--hn-ink);
+  font-weight: 620;
+  color: #2f2a28;
   line-height: 1.58;
   letter-spacing: 0.05px;
   word-break: keep-all;
@@ -410,8 +426,8 @@
 .hn-hero-desc {
   font-family: var(--hn-font-ja);
   font-size: 13px;
-  color: var(--hn-ink-sec);
-  line-height: 2.15;
+  color: #948d84;
+  line-height: 1.9;
   margin-top: 12px;
   font-weight: 300;
 }
@@ -422,7 +438,7 @@
   justify-content: space-between;
   margin-top: 16px;
   padding-top: 14px;
-  border-top: 1px solid rgba(0, 0, 0, 0.048);
+  border-top: 1px solid rgba(94,84,66,.06);
 }
 
 .hn-hero-link {
@@ -456,13 +472,15 @@
 /* ── モバイル: 縦積みレイアウト (≤480px) ────────────────── */
 @media (max-width: 480px) {
   .hn-hero {
-    /* 画像を上部・中央に配置し、テキストを下に押し下げる */
-    background-size: 100% 100%, 100% 100%, 92% auto;
-    background-position: left bottom, left bottom, center top;
-    /* 画像高さ = カード幅の約56% (画像比率 16:9 → 9/16 ≈ 0.5625) */
+    background: linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
+    background-color: #F7F4EF;
     padding-top: calc(58vw + 12px);
     padding-bottom: 20px;
     min-height: auto;
+  }
+  .hn-hero::after {
+    background-size: 92% auto;
+    background-position: center top;
   }
   .hn-hero-body {
     max-width: 100%;
