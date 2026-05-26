@@ -355,7 +355,17 @@
 
 /* ── ヒーローカード ──────────────────────────────────────── */
 .hn-hero {
-  background: var(--hn-cream);
+  /* ❶ テキスト可読グラデーション (左→右フェード) */
+  /* ❷ 左 Blob: 淡いラベンダー (CSS再現) */
+  /* ❸ 固定ビジュアル: hero-window-soft.webp */
+  background-color: var(--hn-cream);
+  background-image:
+    linear-gradient(to right, rgba(253,246,240,1.00) 34%, rgba(253,246,240,0.88) 50%, transparent 66%),
+    radial-gradient(ellipse 44% 68% at 5% 44%, rgba(207,196,232,0.30), transparent 72%),
+    url('./images/hero-window-soft.webp');
+  background-size: 100% 100%, 100% 100%, contain;
+  background-position: left center, left center, right center;
+  background-repeat: no-repeat;
   border: var(--hn-card-border);
   border-radius: var(--hn-card-radius-lg);
   box-shadow: var(--hn-card-shadow);
@@ -363,17 +373,12 @@
   margin-bottom: 20px;
   position: relative;
   overflow: hidden;
+  min-height: 200px;
 }
 
-/* ボタニカルSVG装飾 (大きめ・存在感) */
+/* 画像背景に切り替えたため非表示 */
 .hn-hero-botanical {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 130px;
-  height: 116px;
-  pointer-events: none;
-  opacity: 0.88;
+  display: none;
 }
 
 /* "今日のあなた" ラベル */
@@ -386,9 +391,9 @@
   display: block;
 }
 
-/* コンテンツエリア (botanical のスペースを確保) */
+/* コンテンツエリア: 右画像領域を確保し左55%に収める */
 .hn-hero-body {
-  max-width: calc(100% - 106px);
+  max-width: 55%;
 }
 
 .hn-hero-message {
@@ -446,6 +451,22 @@
   color: var(--hn-sage);
   font-weight: 500;
   margin-left: 4px;
+}
+
+/* ── モバイル: 縦積みレイアウト (≤480px) ────────────────── */
+@media (max-width: 480px) {
+  .hn-hero {
+    /* 画像を上部・中央に配置し、テキストを下に押し下げる */
+    background-size: 100% 100%, 100% 100%, 92% auto;
+    background-position: left bottom, left bottom, center top;
+    /* 画像高さ = カード幅の約56% (画像比率 16:9 → 9/16 ≈ 0.5625) */
+    padding-top: calc(58vw + 12px);
+    padding-bottom: 20px;
+    min-height: auto;
+  }
+  .hn-hero-body {
+    max-width: 100%;
+  }
 }
 
 /* ── 状態セクション ──────────────────────────────────────── */
