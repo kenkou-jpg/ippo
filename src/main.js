@@ -210,6 +210,11 @@ import './services/insight-engine.js';
 // rollback: この1行を削除するだけで全機能がバイパスされる
 import './services/adaptive-signals.js';
 
+// ─── Settings Profile (個人化基盤: state 確定後・bootstrap 前) ──
+// rollback: 以下2行を削除するだけで全機能がバイパスされる
+import { initSettingsProfile } from './services/settings-profile.js';
+import './modules/settings-panel.js';
+
 // ─── PHASE 6: Companion Intelligence Layer ────────────────
 // companion-memory → companion-intelligence の順で依存関係を満たす
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
@@ -260,6 +265,9 @@ if (typeof window.ippoMarkViteReady === 'function') {
     hasOpenRecordScreen: typeof openRecordScreen === 'function',
   });
 }
+
+// ─── Settings Profile 初期化 (bootstrap 前に state へ注入) ───
+initSettingsProfile();
 
 // ─── Startup ownership signal ────────────────────────────
 bootstrap();
