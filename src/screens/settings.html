@@ -30,7 +30,7 @@
             <div class="set-status-eyebrow">今のわたしの状態</div>
             <div class="set-status-heading" id="set-status-heading">最近、睡眠を重視しています</div>
             <div class="set-status-note" id="set-status-note">5月は「睡眠の質」がテーマになっています</div>
-            <button class="set-status-btn" onclick="showToast('この機能は準備中です')">状態を変更する</button>
+            <button class="set-status-btn" onclick="openSettingsPanel('mode')">状態を変更する</button>
           </div>
           <div class="set-status-illo" aria-hidden="true">
             <svg width="84" height="104" viewBox="0 0 84 104" fill="none">
@@ -107,12 +107,12 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
           </div>
         </div>
-        <div class="set-row" onclick="showToast('この機能は準備中です')">
+        <div class="set-row" onclick="openSettingsPanel('priority')">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#fffbef;" id="settings-icon-priority"></div>
             <div class="set-row-texts">
               <div class="set-row-text">重視したいこと（優先度）</div>
-              <div class="set-row-sub">今は「睡眠の質」を最も重視しています</div>
+              <div class="set-row-sub" id="sp-priority-sub">設定する</div>
             </div>
           </div>
           <div class="set-row-r">
@@ -176,25 +176,25 @@
             <span class="set-theme-lbl">蜂蜜</span>
           </div>
         </div>
-        <div class="set-row" onclick="showToast('この機能は準備中です')">
+        <div class="set-row" onclick="openSettingsPanel('style')">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#f0ede8;" id="settings-icon-density"></div>
             <div class="set-row-texts">
-              <div class="set-row-text">表示の濃さ</div>
-              <div class="set-row-sub">情報の量を調整します</div>
+              <div class="set-row-text">表示スタイル</div>
+              <div class="set-row-sub" id="sp-style-sub">バランス</div>
             </div>
           </div>
           <div class="set-row-r">
-            <span style="font-size:11.5px;color:rgba(43,33,28,0.48);">標準</span>
+            <span id="sp-style-badge" style="font-size:11.5px;color:rgba(43,33,28,0.48);">バランス</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
           </div>
         </div>
-        <div class="set-row" onclick="showToast('この機能は準備中です')">
+        <div class="set-row" onclick="openSettingsPanel('modules')">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#eef4ef;" id="settings-icon-home-info"></div>
             <div class="set-row-texts">
               <div class="set-row-text">ホームに表示する情報</div>
-              <div class="set-row-sub">よく使う項目を選んでカスタマイズ</div>
+              <div class="set-row-sub" id="sp-modules-sub">5項目を表示中</div>
             </div>
           </div>
           <div class="set-row-r">
@@ -424,4 +424,79 @@
       <button class="sync-close-btn" onclick="closeSyncModal()">閉じる</button>
     </div>
   </div>
+</div>
+
+<!-- ── Settings Profile Panels ───────────────────────────── -->
+<style>
+.sp-overlay{display:none;position:fixed;inset:0;background:rgba(30,20,15,.38);z-index:2000;opacity:0;transition:opacity .22s ease;}
+.sp-overlay.sp-active{display:block;opacity:1;}
+.sp-panel{position:fixed;left:0;right:0;bottom:0;z-index:2001;background:#faf7f4;border-radius:22px 22px 0 0;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-width:640px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,0);}
+.sp-panel.sp-active{transform:translateY(0);}
+.sp-handle{width:36px;height:4px;background:rgba(120,100,90,.18);border-radius:2px;margin:12px auto 0;}
+.sp-header{padding:16px 22px 14px;border-bottom:1px solid rgba(120,100,90,.07);}
+.sp-title{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:600;color:#2b211c;margin-bottom:5px;}
+.sp-desc{font-size:12px;color:rgba(43,33,28,.56);line-height:1.65;}
+.sp-options{padding:10px 14px 6px;display:flex;flex-direction:column;gap:6px;}
+.sp-option{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:white;border:1px solid rgba(120,100,90,.1);border-radius:14px;cursor:pointer;text-align:left;font-family:'Noto Sans JP',sans-serif;transition:background .14s,border-color .14s;-webkit-tap-highlight-color:transparent;width:100%;box-sizing:border-box;}
+.sp-option:active{background:rgba(180,110,120,.06);}
+.sp-option.sp-option-active{background:rgba(180,110,120,.06);border-color:rgba(180,110,120,.3);}
+.sp-option-label{font-size:13.5px;color:#2b211c;font-weight:400;}
+.sp-option-desc{display:block;font-size:11.5px;color:rgba(43,33,28,.52);margin-top:3px;line-height:1.5;}
+.sp-option-check{font-size:13px;color:#b47080;flex-shrink:0;font-weight:600;margin-left:10px;}
+.sp-option-style{align-items:flex-start;}
+.sp-option-style>div{flex:1;}
+.sp-chips{padding:10px 14px 6px;display:flex;flex-wrap:wrap;gap:8px;}
+.sp-chip{padding:9px 16px;background:white;border:1px solid rgba(120,100,90,.14);border-radius:99px;font-size:12.5px;color:rgba(43,33,28,.72);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:background .14s,border-color .14s,color .14s;-webkit-tap-highlight-color:transparent;}
+.sp-chip.sp-chip-active{background:rgba(180,110,120,.08);border-color:rgba(180,110,120,.32);color:#b47080;font-weight:500;}
+.sp-chip:active{opacity:.75;}
+.sp-close{display:block;width:calc(100% - 28px);margin:10px 14px 18px;padding:13px;background:rgba(43,33,28,.05);border:none;border-radius:14px;font-size:13.5px;color:rgba(43,33,28,.6);cursor:pointer;font-family:'Noto Sans JP',sans-serif;text-align:center;}
+.sp-close:active{background:rgba(43,33,28,.1);}
+</style>
+
+<!-- Panel A: 状態を変更する -->
+<div class="sp-overlay" id="sp-overlay-mode" onclick="closeSettingsPanel('mode')"></div>
+<div class="sp-panel" id="sp-panel-mode">
+  <div class="sp-handle"></div>
+  <div class="sp-header">
+    <div class="sp-title">今のあなたに近い状態は？</div>
+    <div class="sp-desc">今の状態に合わせて、ホームや提案のトーンを少し調整します。<br>いつでも変えられます。</div>
+  </div>
+  <div class="sp-options" id="sp-options-mode"></div>
+  <button class="sp-close" onclick="closeSettingsPanel('mode')">閉じる</button>
+</div>
+
+<!-- Panel B: 重視したいこと -->
+<div class="sp-overlay" id="sp-overlay-priority" onclick="closeSettingsPanel('priority')"></div>
+<div class="sp-panel" id="sp-panel-priority">
+  <div class="sp-handle"></div>
+  <div class="sp-header">
+    <div class="sp-title">今、どんなことを大切にしたいですか？</div>
+    <div class="sp-desc">ホームやインサイトで優先して見せる内容を調整します。</div>
+  </div>
+  <div class="sp-options" id="sp-options-priority"></div>
+  <button class="sp-close" onclick="closeSettingsPanel('priority')">閉じる</button>
+</div>
+
+<!-- Panel C: 表示スタイル -->
+<div class="sp-overlay" id="sp-overlay-style" onclick="closeSettingsPanel('style')"></div>
+<div class="sp-panel" id="sp-panel-style">
+  <div class="sp-handle"></div>
+  <div class="sp-header">
+    <div class="sp-title">どのくらい詳しく表示しますか？</div>
+    <div class="sp-desc">いつでも変えられます。</div>
+  </div>
+  <div class="sp-options" id="sp-options-style"></div>
+  <button class="sp-close" onclick="closeSettingsPanel('style')">閉じる</button>
+</div>
+
+<!-- Panel D: ホームに表示する情報 -->
+<div class="sp-overlay" id="sp-overlay-modules" onclick="closeSettingsPanel('modules')"></div>
+<div class="sp-panel" id="sp-panel-modules">
+  <div class="sp-handle"></div>
+  <div class="sp-header">
+    <div class="sp-title">ホームに表示する情報</div>
+    <div class="sp-desc">よく見る項目を選んで、ホームをあなたに合わせます。タップでON/OFFを切り替えます。</div>
+  </div>
+  <div class="sp-chips" id="sp-options-modules"></div>
+  <button class="sp-close" onclick="closeSettingsPanel('modules')">閉じる</button>
 </div>

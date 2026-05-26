@@ -55,7 +55,21 @@ function getGreeting() {
   return 'おつかれさまです、';
 }
 
+// currentMode ごとのサブグリーティング
+const MODE_SUB_GREETINGS = {
+  tired:       '今日は、ゆっくり過ごす方向でいきましょう。',
+  overworked:  '少し立ち止まって、からだを労わる日にしましょう。',
+  anxious:     'からだの声を静かに聴いていきましょう。',
+  recovery:    '回復を優先できるよう、静かな表示に整えています。',
+  fluctuating: '波があるのは自然なことです。今日のあなたを確認してみましょう。',
+  slow:        'ゆっくり整えていきましょう。急がなくていいです。',
+};
+
 function getSubGreeting(state, records) {
+  // settingsProfile.currentMode があればモード優先
+  const mode = (state.settingsProfile && state.settingsProfile.currentMode) || '';
+  if (mode && MODE_SUB_GREETINGS[mode]) return MODE_SUB_GREETINGS[mode];
+
   // 今日の記録があれば状態に合わせた一言
   const today = new Date().toISOString().slice(0, 10);
   const todayRec = (records || []).find(r =>
@@ -97,8 +111,11 @@ function renderGreeting(container, state) {
 // ── メインレンダリング ────────────────────────────────────
 
 function renderAll() {
-  const state  = getState();
-  const config = getHomeConfiguration(state.myDiseases || []);
+  const state   = getState();
+  const config  = getHomeConfiguration(state.myDiseases || []);
+  const profile = (state.settingsProfile) || {};
+  const homeModules   = Array.isArray(profile.homeModules)   ? profile.homeModules   : null;
+  const displayStyle  = profile.displayStyle || 'balanced';
 
   const header         = document.getElementById('hn-header');
   const greeting       = document.getElementById('hn-greeting');
@@ -114,32 +131,64 @@ function renderAll() {
   const experiment     = document.getElementById('hn-experiment');
   const record         = document.getElementById('hn-record');
 
-  // Adaptive Calmness: currentMode を data-mode 属性でスクリーンに付与
+  // Adaptive Calmness: currentMode + displayStyle を data 属性でスクリーンに付与
   const screenEl = document.getElementById('screen-home-next');
   if (screenEl) {
-    const currentMode = (state.settingsProfile && state.settingsProfile.currentMode) || '';
+    const currentMode = profile.currentMode || '';
     screenEl.setAttribute('data-mode', currentMode);
+    screenEl.setAttribute('data-display', displayStyle);
   }
 
-  if (header)         renderSharedHeader(header);
-  if (greeting)       renderGreeting(greeting, state);
-  if (hero)           renderHero(hero, config, state);
-  if (dailyNote)      renderDailyNote(dailyNote, config, state);
-  if (status)         renderStatusCards(status, config, state);
-  if (personalize)    renderPersonalizeSection(personalize, config, state);
-  if (optional)       renderOptionalModules(optional, config, state);
-  if (recovery)       renderRecovery(recovery);
-  if (reflections)    renderReflections(reflections);
-  if (insights)       renderInsights(insights, state, config);
+  // homeModules: 含まれない場合は要素を空にしてスキップ
+  function _moduleEnabled(id) {
+    return !homeModules || homeModules.indexOf(id) !== -1;
+  }
+
+  if (header)      renderSharedHeader(header);
+  if (greeting)    renderGreeting(greeting, state);
+  if (hero)        renderHero(hero, config, state);
+  if (dailyNote)   renderDailyNote(dailyNote, config, state);
+  if (status)      renderStatusCards(status, config, state);
+  if (personalize) renderPersonalizeSection(personalize, config, state);
+  if (optional)    renderOptionalModules(optional, config, state);
+
+  // recoveryTrend モジュール制御
+  if (recovery) {
+    if (_moduleEnabled('recoveryTrend')) renderRecovery(recovery);
+    else recovery.innerHTML = '';
+  }
+
+  if (reflections) renderReflections(reflections);
+
+  // todayInsight モジュール制御
+  if (insights) {
+    if (_moduleEnabled('todayInsight')) renderInsights(insights, state, config);
+    else insights.innerHTML = '';
+  }
+
   if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
-  if (experiment)     renderExperiment(experiment);
-  if (record)         renderQuickRecord(record, state);
+
+  // experimentSuggestion モジュール制御
+  if (experiment) {
+    if (_moduleEnabled('experimentSuggestion')) renderExperiment(experiment);
+    else experiment.innerHTML = '';
+  }
+
+  if (record) renderQuickRecord(record, state);
 
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
   if (typeof window.updateUnlock       === 'function') window.updateUnlock();
   if (typeof window.initReminders      === 'function') window.initReminders();
 }
+
+// settings-profile-changed イベントでホームを再描画
+window.addEventListener('ippo:settings-profile-changed', function() {
+  try {
+    const screenEl = document.getElementById('screen-home-next');
+    if (screenEl && screenEl.classList.contains('active')) renderAll();
+  } catch (_) {}
+});
 
 // ── showHomeNext ─────────────────────────────────────────
 

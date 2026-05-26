@@ -862,6 +862,14 @@
   font-weight: 300;
 }
 
+.hn-insight-mode-note {
+  font-size: 11px;
+  color: var(--hn-ink-sec);
+  opacity: 0.68;
+  margin-bottom: 10px;
+  font-style: italic;
+}
+
 .hn-insight-link {
   font-family: var(--hn-font-ja);
   font-size: 12px;

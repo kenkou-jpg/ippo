@@ -11,6 +11,9 @@ export function updateSettingsHero() {
     ? window.isAdminOrPremium()
     : false;
 
+  // Settings profile パネルの表示テキストを更新
+  if (typeof window.initSettingsPanels === 'function') window.initSettingsPanels();
+
   const nameEl = document.getElementById('settings-name-display');
   if (nameEl) nameEl.textContent = state.name || 'ゲスト';
 

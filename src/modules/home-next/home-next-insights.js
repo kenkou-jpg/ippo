@@ -319,12 +319,30 @@ function findBestInsight(records, config) {
 // ── インサイトカード HTML ─────────────────────────────────
 
 export function renderInsights(container, state, config) {
-  const insight = findBestInsight(state.records || [], config || {});
+  const profile      = (state.settingsProfile) || {};
+  const displayStyle = profile.displayStyle || 'balanced';
+  const currentMode  = profile.currentMode || '';
+  const records      = state.records || [];
+
+  // displayStyle === 'gentle': 記録少ない段階ではインサイト非表示
+  if (displayStyle === 'gentle' && records.length < 7) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const insight = findBestInsight(records, config || {});
 
   if (!insight) {
     container.innerHTML = '';
     return;
   }
+
+  // currentMode に応じた補足ノート (不安を煽らない)
+  const modeNote = (currentMode === 'anxious')
+    ? '<div class="hn-insight-mode-note">傾向としての観察です。確定ではありません。</div>'
+    : (currentMode === 'tired' || currentMode === 'recovery')
+    ? '<div class="hn-insight-mode-note">無理せず、参考程度に。</div>'
+    : '';
 
   container.innerHTML = `
     <div class="hn-insight-card hn-anim-4">
@@ -334,6 +352,7 @@ export function renderInsights(container, state, config) {
       </div>
       <div class="hn-insight-main">${esc(insight.main)}</div>
       <div class="hn-insight-sub">${esc(insight.sub)}</div>
+      ${modeNote}
       <button class="hn-insight-link"
         onclick="if(typeof window.switchTab==='function')window.switchTab('insights',null)">
         詳しく見る &rsaquo;
