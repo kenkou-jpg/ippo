@@ -244,6 +244,48 @@ function findBestInsight(records, config) {
     }
   }
 
+  // ─ PHASE 4: adaptive signal observation (gentle noticing) ─
+  {
+    const svc = window.ippoAdaptiveSignals;
+    if (svc) {
+      try {
+        const signals = svc.getAdaptiveSignals();
+        const entries = Object.entries(signals.symptoms || {})
+          .filter(e => e[1].count >= 5)
+          .sort((a, b) => b[1].count - a[1].count);
+        if (entries.length > 0) {
+          const [topKey, topSig] = entries[0];
+          const label = svc.symKeyToLabel(topKey);
+          if (label) {
+            candidates.push({
+              priority: 5,
+              main: `最近、${label}の記録が続いているようです`,
+              sub:  '気になる変化を観察し続けることで、からだのパターンが少しずつ見えてきます。',
+            });
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  // ─ PHASE 5: gentle tendency observations from engine cache ─
+  {
+    const eng = window.ippoInsightEngine;
+    if (eng) {
+      try {
+        const engineInsights = eng.getInsights();
+        const gentle = engineInsights.filter(i => i._source === 'gentle_tendency' && i.tier === 'free');
+        for (const gi of gentle.slice(0, 1)) {
+          candidates.push({
+            priority: 6,
+            main:     gi.main,
+            sub:      gi.sub,
+          });
+        }
+      } catch (_) {}
+    }
+  }
+
   if (!candidates.length) return null;
 
   // 優先度順で1件だけ

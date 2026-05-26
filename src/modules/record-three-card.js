@@ -140,6 +140,7 @@ function _initState() {
     // key → { severity: null, types: [], locations: [] }
     symptoms: {},
     emotions: { tags: [], memo: '' },
+    adaptiveResponses: [],  // PHASE 4: followup question answers
   };
 }
 
@@ -169,6 +170,14 @@ function _showCard(n) {
   var bottomHint = document.getElementById('rtc-bottom-hint');
   if (bottomHint) {
     bottomHint.style.display = n === 1 ? '' : 'none';
+  }
+
+  // PHASE 4: render adaptive questions on first visit to Card 2
+  if (n === 2) {
+    var adaptiveSec = document.getElementById('rtc-adaptive-section');
+    if (adaptiveSec && adaptiveSec.childElementCount === 0) {
+      _renderAdaptiveQuestions(adaptiveSec);
+    }
   }
 
   var screen = document.getElementById('screen-record-three-card');
@@ -390,6 +399,7 @@ function _buildPayload() {
     snapshot: Object.assign({}, _state.snapshot),
     symptomDetails: symptomList,
     emotions: { tags: _state.emotions.tags.slice(), memo: _state.emotions.memo },
+    adaptiveResponses: (_state.adaptiveResponses || []).slice(),  // PHASE 4
 
     // Mapped to existing schema for compatibility
     mood: { great: 5, good: 4, normal: 3, slightlyBad: 2, tough: 1 }[_state.snapshot.condition] || null,
@@ -476,6 +486,93 @@ function _showSuccessState() {
   setTimeout(function () { _close(); }, 1800);
 }
 
+// ─── Adaptive Questions (PHASE 4) ────────────────────────────
+// Card 2 の下部に gentle followup を表示する。
+// window.ippoAdaptiveSignals がなければ何もしない (rollback safe)。
+
+function _renderAdaptiveQuestions(container) {
+  if (!container) return;
+  var svc = window.ippoAdaptiveSignals;
+  if (!svc) return;
+
+  var state = typeof window.getState === 'function' ? window.getState() : null;
+  var settingsProfile = state && state.settingsProfile;
+  var candidates;
+  try {
+    candidates = svc.getAdaptiveCandidates(settingsProfile);
+  } catch (_) { return; }
+
+  if (!candidates || candidates.length === 0) return;
+
+  var html = '<div class="rtc-adaptive-section">' +
+    '<div class="rtc-adaptive-heading">気になったことがあれば</div>';
+
+  candidates.forEach(function (q) {
+    html += '<div class="rtc-adaptive-item">';
+    html += '<div class="rtc-adaptive-q">' + q.label + '</div>';
+    html += '<div class="rtc-adaptive-answers">';
+    (q.answers || []).forEach(function (a) {
+      html +=
+        '<button class="rtc-adaptive-chip"' +
+        ' data-qid="' + q.id + '"' +
+        ' data-symkey="' + q.symptomKey + '"' +
+        ' data-answer="' + a + '"' +
+        ' onclick="if(window._rtcAnswerAdaptive)window._rtcAnswerAdaptive(this)">' +
+        a + '</button>';
+    });
+    html += '</div></div>';
+  });
+
+  html += '<div class="rtc-adaptive-skip-row">' +
+    '<button class="rtc-adaptive-skip" onclick="if(window._rtcSkipAdaptive)window._rtcSkipAdaptive()">スキップ</button>' +
+    '</div>';
+  html += '</div>';
+
+  container.innerHTML = html;
+}
+
+function _answerAdaptive(el) {
+  var qid    = el.getAttribute('data-qid');
+  var symKey = el.getAttribute('data-symkey');
+  var answer = el.getAttribute('data-answer');
+
+  // Visual feedback: deselect siblings, select tapped chip
+  var row = el.parentElement;
+  if (row) {
+    row.querySelectorAll('.rtc-adaptive-chip').forEach(function (b) {
+      b.classList.remove('selected');
+    });
+  }
+  el.classList.add('selected');
+
+  // Store in session state (included in save payload)
+  if (!_state.adaptiveResponses) _state.adaptiveResponses = [];
+  _state.adaptiveResponses = _state.adaptiveResponses.filter(function (r) {
+    return r.questionId !== qid;
+  });
+  _state.adaptiveResponses.push({
+    questionId: qid,
+    answer:     answer,
+    timestamp:  new Date().toISOString(),
+  });
+
+  // Persist immediately: marks followup as shown, updates followupsShown count
+  var svc = window.ippoAdaptiveSignals;
+  if (svc) {
+    try { svc.recordAdaptiveResponse(qid, answer, symKey); } catch (_) {}
+  }
+}
+
+function _skipAdaptive() {
+  var sec = document.getElementById('rtc-adaptive-section');
+  if (!sec) return;
+  sec.style.transition = 'opacity 0.3s ease';
+  sec.style.opacity    = '0';
+  setTimeout(function () {
+    if (sec.parentNode) sec.innerHTML = '';
+  }, 300);
+}
+
 // ─── Screen Initialization ────────────────────────────────────
 function _initScreen() {
   _state = _initState();
@@ -529,6 +626,10 @@ window.rtcGoNext          = _goNext;
 window.rtcGoBack          = _goBack;
 window.rtcClose           = _close;
 window.rtcAddSymptom      = function () { /* PHASE 4 placeholder */ };
+
+// PHASE 4: adaptive question handlers
+window._rtcAnswerAdaptive = _answerAdaptive;
+window._rtcSkipAdaptive   = _skipAdaptive;
 
 window.openThreeCardRecord = openThreeCardRecord;
 

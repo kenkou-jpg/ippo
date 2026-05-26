@@ -26,6 +26,11 @@ import {
   filterByProfile,
 } from './insight-tendency.js';
 
+import {
+  computeGentleTendencies,
+  applyGentleToneGuard,
+} from './gentle-tendency.js';
+
 // ─────────────────────────────────────────────────────────────
 //  Cache
 // ─────────────────────────────────────────────────────────────
@@ -139,6 +144,8 @@ function _buildContext(state) {
     // PHASE 3: displayStyle / priorityFocus (from settingsProfile if configured)
     displayStyle:    (state.settingsProfile && state.settingsProfile.displayStyle)  || 'balanced',
     priorityFocus:   (state.settingsProfile && state.settingsProfile.priorityFocus) || null,
+    // PHASE 5: currentMode (tired / recovery / anxious / null)
+    currentMode:     (state.settingsProfile && state.settingsProfile.currentMode)   || null,
   };
 }
 
@@ -686,10 +693,30 @@ function _runEngine(state) {
     results.push(t);
   }
 
+  // PHASE 5: gentle tendency insights (positive observations + adaptive synthesis)
+  const gentleTendencies = computeGentleTendencies(records, context);
+  for (const t of gentleTendencies) {
+    if (!t) continue;
+    t.score = _computeScore({
+      base:         t.type === 'pattern' ? 35 : 18,
+      priorityKey:  t.priorityKey,
+      context,
+      evidenceDays: t.evidenceDays,
+      windowDays:   30,
+      confidence:   t.confidence,
+    });
+    t.generatedAt = new Date().toISOString();
+    t.ttlMs       = _CACHE_TTL;
+    results.push(t);
+  }
+
   results.sort((a, b) => b.score - a.score);
 
+  // PHASE 5: apply gentle tone guard (currentMode adjustment)
+  const toneAdjusted = applyGentleToneGuard(results, context.currentMode);
+
   // PHASE 3: apply displayStyle / priorityFocus profile filter
-  return filterByProfile(results, context.displayStyle, context.priorityFocus);
+  return filterByProfile(toneAdjusted, context.displayStyle, context.priorityFocus);
 }
 
 // ─────────────────────────────────────────────────────────────
