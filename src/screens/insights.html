@@ -16,8 +16,7 @@
 
 /* ─── Screen background ──────────────────────────────────── */
 #screen-insights {
-  background-color: #fdfbfb;
-  background-image: none;
+  background-color: #fbf9fa; background-image: none;
   min-height: 100vh;
   font-family: 'Noto Sans JP','Hiragino Sans',sans-serif;
   color: #18195c;
@@ -430,27 +429,6 @@ animation: mistDrift 28s ease-in-out infinite; }
 /* ─── Shared ─────────────────────────────────────────────── */
 .ipr-chev { display: inline-block; vertical-align: middle; }
 
-/* ─── Space Art: 静かな双葉装飾 ─────────────────────────── */
-.insight-space-art {
-  position: relative;
-  height: 88px;
-  pointer-events: none;
-  overflow: hidden;
-}
-.insight-space-sprout {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: auto;
-  min-width: 800px;
-  opacity: 0.18;
-  filter: blur(0.2px) saturate(0.68);
-  pointer-events: none;
-  display: block;
-  z-index: 1;
-}
-
 /* ─── Responsive ─────────────────────────────────────────── */
 @media(max-width:767px){
   .ipr { padding: 0 12px 90px; }
@@ -469,8 +447,6 @@ animation: mistDrift 28s ease-in-out infinite; }
   .ipr-ins-h2 { font-size: 22px; }
   .ipr-tip-item { min-height: 0; }
   .moon-art { width: 150px; height: 150px; }
-  .insight-space-art { height: 52px; }
-  .insight-space-sprout { min-width: 500px; }
 }
 /* ─── Reflection / Experiment 2col responsive ─────────── */
 @media(max-width:767px){
@@ -741,11 +717,6 @@ animation: mistDrift 28s ease-in-out infinite; }
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
-    </div>
-
-    <!-- ═══ SPACE ART: 静かな双葉 ══════════════════════════ -->
-    <div class="insight-space-art" aria-hidden="true">
-      <img class="insight-space-sprout" src="/images/innsaitoleaf.png" alt="">
     </div>
 
     <!-- ═══ TIPS ROW ════════════════════════════════════════ -->
