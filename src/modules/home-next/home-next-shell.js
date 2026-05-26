@@ -21,6 +21,8 @@ import { renderQuickRecord }         from './home-next-quick-record.js';
 import { renderPersonalizeSection }  from './home-next-personalize.js';
 import { renderDailyNote }           from './home-next-daily-note.js';
 import { renderMedicalSummary }      from './home-next-medical-summary.js';
+import { renderReflections }         from './home-next-reflections.js';
+import { renderRecovery, renderExperiment } from './home-next-recovery.js';
 
 // ── Feature flag ─────────────────────────────────────────
 
@@ -105,9 +107,19 @@ function renderAll() {
   const status         = document.getElementById('hn-status');
   const personalize    = document.getElementById('hn-personalize');
   const optional       = document.getElementById('hn-optional');
+  const recovery       = document.getElementById('hn-recovery');
+  const reflections    = document.getElementById('hn-reflections');
   const insights       = document.getElementById('hn-insights');
   const medicalSummary = document.getElementById('hn-medical-summary');
+  const experiment     = document.getElementById('hn-experiment');
   const record         = document.getElementById('hn-record');
+
+  // Adaptive Calmness: currentMode を data-mode 属性でスクリーンに付与
+  const screenEl = document.getElementById('screen-home-next');
+  if (screenEl) {
+    const currentMode = (state.settingsProfile && state.settingsProfile.currentMode) || '';
+    screenEl.setAttribute('data-mode', currentMode);
+  }
 
   if (header)         renderSharedHeader(header);
   if (greeting)       renderGreeting(greeting, state);
@@ -116,8 +128,11 @@ function renderAll() {
   if (status)         renderStatusCards(status, config, state);
   if (personalize)    renderPersonalizeSection(personalize, config, state);
   if (optional)       renderOptionalModules(optional, config, state);
+  if (recovery)       renderRecovery(recovery);
+  if (reflections)    renderReflections(reflections);
   if (insights)       renderInsights(insights, state, config);
   if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
+  if (experiment)     renderExperiment(experiment);
   if (record)         renderQuickRecord(record, state);
 
   // 既存 window bridge 関数も更新

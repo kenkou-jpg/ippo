@@ -978,3 +978,237 @@
 .hn-scroll::-webkit-scrollbar { display: none; }
 .hn-scroll { scrollbar-width: none; }
 
+/* ── PHASE 7: Recovery Journey / Life Integration ────────── */
+
+#hn-recovery {
+  padding: 0 4px;
+}
+
+.hn-recovery-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0 var(--space-4);
+}
+
+/* Recovery Journey Card */
+.hn-recovery-card {
+  padding: var(--space-20);
+  background: var(--hn-card-bg);
+  border-radius: var(--hn-card-radius);
+  border: var(--hn-card-border);
+  box-shadow: var(--hn-card-shadow);
+}
+
+.hn-recovery-card.hn-recovery-recovery {
+  border-left: 3px solid var(--hn-sage);
+}
+
+.hn-recovery-card.hn-recovery-stable {
+  border-left: 3px solid var(--hn-leaf);
+}
+
+.hn-recovery-label {
+  font-family: var(--hn-font-ja);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--hn-sage);
+  text-transform: uppercase;
+  margin-bottom: var(--space-8);
+}
+
+.hn-recovery-text {
+  font-family: var(--hn-font-ja);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--hn-ink);
+  margin: 0 0 var(--space-12);
+  font-weight: 400;
+}
+
+/* Recovery Rhythm Dots (14-day sparkline) */
+.hn-rhythm-track {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding-top: var(--space-4);
+  opacity: 0.75;
+}
+
+.hn-rhy-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.hn-rhy-dot.hn-rhy-good   { background: var(--hn-sage); }
+.hn-rhy-dot.hn-rhy-normal { background: var(--hn-beige); }
+.hn-rhy-dot.hn-rhy-low    { background: var(--hn-terra-pale); }
+.hn-rhy-dot.hn-rhy-empty  { background: rgba(200,195,188,.25); }
+
+/* Emotional Climate Card */
+.hn-climate-card {
+  padding: var(--space-16) var(--space-20);
+  border-left: 2px solid rgba(167,139,250,.25);
+  background: transparent;
+}
+
+.hn-climate-card.hn-climate-calm {
+  border-left-color: var(--hn-sage-mid);
+}
+
+.hn-climate-card.hn-climate-tension {
+  border-left-color: rgba(196,148,106,.35);
+}
+
+.hn-climate-text {
+  font-family: var(--hn-font-ja);
+  font-size: 13.5px;
+  line-height: 1.78;
+  color: var(--hn-ink-mid);
+  margin: 0;
+  font-weight: 300;
+}
+
+/* Seasonal Card */
+.hn-seasonal-card {
+  padding: var(--space-12) var(--space-16);
+  background: rgba(157,176,149,.05);
+  border-radius: 10px;
+  border: 1px dashed rgba(157,176,149,.25);
+}
+
+.hn-seasonal-text {
+  font-family: var(--hn-font-ja);
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--hn-ink-sec);
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+/* Gentle Experiment Card */
+#hn-experiment {
+  padding: 0 4px;
+}
+
+.hn-experiment-card {
+  padding: var(--space-20);
+  background: linear-gradient(135deg, rgba(157,176,149,.08), rgba(232,221,212,.12));
+  border-radius: var(--hn-card-radius);
+  border: 1px solid rgba(157,176,149,.18);
+  margin: 0 var(--space-4);
+}
+
+.hn-experiment-text {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--hn-ink-mid);
+  margin: 0;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.015em;
+}
+
+/* ── PHASE 7: Adaptive Calmness Layer ────────────────────── */
+/* data-mode 属性で currentMode を受け取り UI の静けさを変える */
+
+/* anxious: 情報密度を下げ、余白を広げ、強い表現を抑制 */
+#screen-home-next[data-mode="anxious"] .hn-insight-card {
+  opacity: 0.75;
+}
+#screen-home-next[data-mode="anxious"] .hn-reflections {
+  gap: var(--space-20);
+}
+#screen-home-next[data-mode="anxious"] .hn-recovery-card .hn-rhythm-track {
+  display: none;
+}
+#screen-home-next[data-mode="anxious"] .hn-climate-card.hn-climate-tension {
+  display: none;
+}
+#screen-home-next[data-mode="anxious"] .hn-anim-3,
+#screen-home-next[data-mode="anxious"] .hn-anim-4,
+#screen-home-next[data-mode="anxious"] .hn-anim-5 {
+  animation-duration: 0.1s;
+}
+
+/* tired / recovery: recovery cards を visual 的に前面に */
+#screen-home-next[data-mode="tired"] .hn-recovery-card,
+#screen-home-next[data-mode="recovery"] .hn-recovery-card {
+  border-left-width: 3px;
+  border-left-color: var(--hn-sage);
+}
+
+/* ── anim-5 (experiment card) ────────────────────────────── */
+@keyframes hn-fadein {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hn-anim-5 {
+  animation: hn-fadein 0.5s ease both;
+  animation-delay: 0.25s;
+}
+
+/* ── PHASE 6: Reflection Cards ──────────────────────────── */
+
+#hn-reflections {
+  padding: 0 4px;
+}
+
+.hn-reflections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  padding: 0 var(--space-4);
+}
+
+/* 観察・傾向 reflection */
+.hn-reflection-card {
+  padding: var(--space-16) var(--space-20);
+  border-left: 2px solid rgba(157, 176, 149, 0.30);
+  background: transparent;
+}
+
+.hn-reflection-card.hn-reflection-positive {
+  border-left-color: var(--hn-sage);
+}
+
+.hn-reflection-card.hn-reflection-encouragement {
+  border-left-color: var(--hn-terra-pale);
+}
+
+.hn-reflection-text {
+  font-family: var(--hn-font-ja);
+  font-size: 13.5px;
+  line-height: 1.8;
+  color: var(--hn-ink-mid);
+  margin: 0;
+  font-weight: 300;
+  letter-spacing: 0.01em;
+}
+
+/* gentle suggestion カード */
+.hn-suggestion-card {
+  padding: var(--space-16) var(--space-20);
+  background: rgba(157, 176, 149, 0.07);
+  border-radius: 14px;
+  border: 1px solid rgba(157, 176, 149, 0.16);
+}
+
+.hn-suggestion-text {
+  font-family: var(--hn-font-ja);
+  font-size: 13px;
+  line-height: 1.85;
+  color: var(--hn-ink-sec);
+  margin: 0;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.015em;
+}
+
+

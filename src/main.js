@@ -210,6 +210,18 @@ import './services/insight-engine.js';
 // rollback: この1行を削除するだけで全機能がバイパスされる
 import './services/adaptive-signals.js';
 
+// ─── PHASE 6: Companion Intelligence Layer ────────────────
+// companion-memory → companion-intelligence の順で依存関係を満たす
+// rollback: 以下2行を削除するだけで全機能がバイパスされる
+import './services/companion-memory.js';
+import './services/companion-intelligence.js';
+
+// ─── PHASE 7: Recovery Journey / Life Integration Layer ──
+// life-rhythm-memory → recovery-journey の順で依存関係を満たす
+// rollback: 以下2行を削除するだけで全機能がバイパスされる
+import './services/life-rhythm-memory.js';
+import './services/recovery-journey.js';
+
 // C-5: app-legacy.js の cloud sync ガードが `typeof window.supabase` を参照するため
 // supabase.js の side-effect に加えて main.js でも明示的に公開する。
 // (removal condition: app-legacy.js の window.supabase 参照が全廃されたら削除可)
