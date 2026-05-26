@@ -155,6 +155,15 @@ import './modules/screen-router.js';
 // ─── Phase D-1: UI navigation modules ────────────────────
 import './modules/tab-navigation.js';
 
+// ─── 3-Card Record Flow (after tab-navigation + record.js) ───
+// Overrides window.openRecordScreen with the new 3-card experience.
+import './modules/record-three-card.js';
+
+// ─── 3-Card PHASE 2: save pipeline integration ────────────
+// Installs window.rtcSaveDelegate — connects 3-card save to official pipeline.
+// Must load after record-three-card.js (delegate is checked at call time, not load time).
+import './modules/record-three-card-save.js';
+
 // record modal open/close
 import './modules/record-modal-controller.js';
 

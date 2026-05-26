@@ -21,6 +21,11 @@ import {
   getObservations,
 } from '../data/disease-contexts.js';
 
+import {
+  computeTendencyInsights,
+  filterByProfile,
+} from './insight-tendency.js';
+
 // ─────────────────────────────────────────────────────────────
 //  Cache
 // ─────────────────────────────────────────────────────────────
@@ -131,6 +136,9 @@ function _buildContext(state) {
     },
     insightPriority: config.insightPriority || [],
     watchSigns:      config.watchSigns     || [],
+    // PHASE 3: displayStyle / priorityFocus (from settingsProfile if configured)
+    displayStyle:    (state.settingsProfile && state.settingsProfile.displayStyle)  || 'balanced',
+    priorityFocus:   (state.settingsProfile && state.settingsProfile.priorityFocus) || null,
   };
 }
 
@@ -661,8 +669,27 @@ function _runEngine(state) {
     }
   }
 
+  // PHASE 3: tendency insights (symptomDetails + emotions linkage)
+  const tendencies = computeTendencyInsights(records, context);
+  for (const t of tendencies) {
+    if (!t) continue;
+    t.score = _computeScore({
+      base:         t.type === 'pattern' ? 40 : 20,
+      priorityKey:  t.priorityKey,
+      context,
+      evidenceDays: t.evidenceDays,
+      windowDays:   t.tier === 'pro' ? 30 : 14,
+      confidence:   t.confidence,
+    });
+    t.generatedAt = new Date().toISOString();
+    t.ttlMs       = _CACHE_TTL;
+    results.push(t);
+  }
+
   results.sort((a, b) => b.score - a.score);
-  return results;
+
+  // PHASE 3: apply displayStyle / priorityFocus profile filter
+  return filterByProfile(results, context.displayStyle, context.priorityFocus);
 }
 
 // ─────────────────────────────────────────────────────────────
