@@ -206,6 +206,10 @@ import {
 // ─── Insight Engine (post-save hook 自動登録) ─────────────
 import './services/insight-engine.js';
 
+// ─── PHASE 4: Adaptive Signal Layer (post-save hook 自動登録) ──
+// rollback: この1行を削除するだけで全機能がバイパスされる
+import './services/adaptive-signals.js';
+
 // C-5: app-legacy.js の cloud sync ガードが `typeof window.supabase` を参照するため
 // supabase.js の side-effect に加えて main.js でも明示的に公開する。
 // (removal condition: app-legacy.js の window.supabase 参照が全廃されたら削除可)
