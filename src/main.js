@@ -155,6 +155,10 @@ import './modules/screen-router.js';
 // ─── Phase D-1: UI navigation modules ────────────────────
 import './modules/tab-navigation.js';
 
+// ─── 3-Card Record Flow (after tab-navigation + record.js) ───
+// Overrides window.openRecordScreen with the new 3-card experience.
+import './modules/record-three-card.js';
+
 // record modal open/close
 import './modules/record-modal-controller.js';
 

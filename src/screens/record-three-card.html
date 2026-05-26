@@ -1,0 +1,618 @@
+<div id="screen-record-three-card" class="screen">
+<style>
+/* ── 3-Card Record Flow ──────────────────────────────────────── */
+#screen-record-three-card {
+  background: #faf8f5;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Sticky progress header */
+.rtc-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(250,248,245,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 14px 20px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.rtc-back-btn {
+  border: none;
+  background: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #9e8f8b;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.rtc-progress-track {
+  flex: 1;
+  height: 4px;
+  background: #ece5e0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rtc-progress-fill {
+  height: 100%;
+  background: var(--rose, #b8707a);
+  border-radius: 2px;
+  transition: width 0.45s cubic-bezier(0.4,0,0.2,1);
+}
+.rtc-step-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  color: #b8a8a4;
+  flex-shrink: 0;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* Hint banner (card 2) */
+.rtc-hint-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: #f5f0ff;
+  border: 1px solid #ddd4f8;
+  border-radius: 12px;
+  padding: 11px 16px;
+  margin: 0 20px 18px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #6b5b95;
+  line-height: 1.5;
+}
+
+/* Card area wrapper */
+.rtc-card-area {
+  padding: 20px 20px 0;
+  display: none;
+}
+.rtc-card-area.visible {
+  display: block;
+}
+
+/* Card headings */
+.rtc-card-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 21px;
+  font-weight: 600;
+  color: #3a2f42;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+.rtc-card-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #a89c98;
+  margin-bottom: 26px;
+  line-height: 1.6;
+}
+
+/* Section */
+.rtc-section {
+  margin-bottom: 26px;
+}
+.rtc-section-label {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: #5c4f5c;
+  margin-bottom: 13px;
+  line-height: 1.5;
+}
+
+/* ── Mood chips (条件・エネルギー) ── */
+.rtc-mood-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+}
+.rtc-mood-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 3px 10px;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 10px;
+  color: #7a6e7a;
+  transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.rtc-mood-chip.selected {
+  border-color: var(--rose, #b8707a);
+  background: #fff2f4;
+  color: var(--rose, #b8707a);
+}
+.rtc-mood-chip:active { transform: scale(0.95); }
+
+/* ── Option chips (睡眠) ── */
+.rtc-option-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rtc-option-chip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #5c4f5c;
+  transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  text-align: left;
+  width: 100%;
+}
+.rtc-option-chip.selected {
+  border-color: var(--rose, #b8707a);
+  background: #fff2f4;
+  color: var(--rose, #b8707a);
+}
+.rtc-option-chip:active { transform: scale(0.98); }
+
+/* ── Symptom chips (card 2) ── */
+.rtc-symptom-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.rtc-symptom-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 11px 3px 9px;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 9.5px;
+  color: #7a6e7a;
+  transition: border-color 0.18s, background 0.18s, color 0.18s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  position: relative;
+  line-height: 1.3;
+  text-align: center;
+}
+.rtc-symptom-chip.selected {
+  border-color: var(--rose, #b8707a);
+  background: #fff2f4;
+  color: var(--rose, #b8707a);
+}
+.rtc-symptom-chip:active { transform: scale(0.93); }
+.rtc-check {
+  display: none;
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 14px;
+  height: 14px;
+  background: var(--rose, #b8707a);
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+}
+.rtc-symptom-chip.selected .rtc-check { display: flex; }
+
+/* ── Symptom detail expansion ── */
+.rtc-detail-card {
+  background: #ffffff;
+  border: 1.5px solid #f0e5e3;
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+  animation: rtcExpand 0.25s cubic-bezier(0.4,0,0.2,1);
+}
+@keyframes rtcExpand {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes rtcCollapse {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-6px); }
+}
+.rtc-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.rtc-detail-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #5c4f5c;
+}
+.rtc-detail-close {
+  border: none;
+  background: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #b8a8a4;
+  cursor: pointer;
+  padding: 4px 8px;
+  -webkit-tap-highlight-color: transparent;
+}
+.rtc-detail-section { margin-bottom: 12px; }
+.rtc-detail-q {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #a89c98;
+  margin-bottom: 8px;
+}
+.rtc-detail-chips {
+  display: flex;
+  gap: 7px;
+}
+.rtc-detail-chips--wrap { flex-wrap: wrap; }
+.rtc-detail-chip {
+  padding: 7px 13px;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 20px;
+  background: #ffffff;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #7a6e7a;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+.rtc-detail-chip.selected {
+  border-color: var(--rose, #b8707a);
+  background: #fff2f4;
+  color: var(--rose, #b8707a);
+}
+
+/* Add symptom button */
+.rtc-add-symptom-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px dashed #d4c8c4;
+  border-radius: 13px;
+  background: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: var(--rose, #b8707a);
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rtc-add-symptom-btn:active { background: #fff2f4; }
+.rtc-add-symptom-btn svg:last-child { margin-left: auto; }
+
+/* ── Emotion chips (card 3) ── */
+.rtc-emotion-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.rtc-emotion-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 15px 6px 13px;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 16px;
+  background: #ffffff;
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #7a6e7a;
+  transition: border-color 0.18s, background 0.18s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.rtc-emotion-chip.selected {
+  border-color: var(--rose, #b8707a);
+  background: #fff2f4;
+  color: var(--rose, #b8707a);
+}
+.rtc-emotion-chip:active { transform: scale(0.95); }
+
+/* Memo textarea */
+.rtc-memo {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #ebe3e0;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #5c4f5c;
+  background: #ffffff;
+  resize: none;
+  min-height: 110px;
+  outline: none;
+  line-height: 1.75;
+  transition: border-color 0.2s;
+}
+.rtc-memo:focus { border-color: var(--rose, #b8707a); }
+.rtc-memo::placeholder { color: #c8b9b5; }
+
+/* Navigation */
+.rtc-nav {
+  display: flex;
+  gap: 12px;
+  padding: 20px 20px 12px;
+}
+.rtc-nav-back {
+  padding: 14px 18px;
+  border: 1.5px solid #d8ccc8;
+  border-radius: 14px;
+  background: #ffffff;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  color: #9e8f8b;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rtc-nav-back:active { background: #f5f0ee; }
+.rtc-nav-next {
+  flex: 1;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 14px;
+  background: var(--rose, #b8707a);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  cursor: pointer;
+  letter-spacing: 0.03em;
+  transition: opacity 0.2s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.rtc-nav-next:active { opacity: 0.88; transform: scale(0.98); }
+
+/* Bottom hint */
+.rtc-bottom-hint {
+  text-align: center;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  color: #c8b9b5;
+  padding: 4px 20px 28px;
+}
+
+/* Success state */
+.rtc-success {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 72px 40px 40px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+.rtc-success.active { opacity: 1; }
+.rtc-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f9e8ec, #f0e0f8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+.rtc-success-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #3a2f42;
+  margin-bottom: 10px;
+}
+.rtc-success-body {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #9e8f8b;
+  line-height: 1.8;
+}
+</style>
+
+<!-- ── PROGRESS HEADER ────────────────────────────────────── -->
+<div class="rtc-header">
+  <button class="rtc-back-btn" onclick="if(window.rtcClose)window.rtcClose()">← ホームへ</button>
+  <div class="rtc-progress-track">
+    <div class="rtc-progress-fill" id="rtc-progress-fill" style="width:33.33%"></div>
+  </div>
+  <span class="rtc-step-label" id="rtc-step-label">1 / 3</span>
+</div>
+
+<!-- ── HINT BANNER (card 2 only) ─────────────────────────── -->
+<div class="rtc-hint-banner" id="rtc-hint-banner">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"/><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/></svg>
+  症状の強さも一緒に記録すると、変化がわかります
+</div>
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CARD 1: 今日のからだの状態                               -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="rtc-card-area" id="rtc-card-1">
+  <div class="rtc-card-title">今日のからだの状態を<br>教えてください</div>
+  <div class="rtc-card-sub">比較してみると、変化に気づきやすくなります</div>
+
+  <!-- ① 全体の調子 -->
+  <div class="rtc-section">
+    <div class="rtc-section-label">① 全体の調子はどうですか？</div>
+    <div class="rtc-mood-row" id="rtc-condition">
+      <button class="rtc-mood-chip" onclick="rtcSelect('condition','great',this)">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 13c1 2.5 3.5 4 5 4s4-1.5 5-4"/><circle cx="9.5" cy="9.5" r="1.2" fill="currentColor"/><circle cx="16.5" cy="9.5" r="1.2" fill="currentColor"/></svg>
+        <span>とても良い</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('condition','good',this)">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M9 14.5c1 1.5 6 1.5 8 0"/><circle cx="9.5" cy="10" r="1.2" fill="currentColor"/><circle cx="16.5" cy="10" r="1.2" fill="currentColor"/></svg>
+        <span>良い</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('condition','normal',this)">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><line x1="9" y1="16" x2="17" y2="16"/><circle cx="9.5" cy="10" r="1.2" fill="currentColor"/><circle cx="16.5" cy="10" r="1.2" fill="currentColor"/></svg>
+        <span>ふつう</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('condition','slightlyBad',this)">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M9 18c1.5-1.5 6-1.5 8 0"/><circle cx="9.5" cy="10" r="1.2" fill="currentColor"/><circle cx="16.5" cy="10" r="1.2" fill="currentColor"/></svg>
+        <span>やや不調</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('condition','tough',this)">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><circle cx="13" cy="13" r="11"/><path d="M8 19c1.5-2.5 7-2.5 10 0"/><line x1="8" y1="9" x2="10.5" y2="11"/><line x1="15.5" y1="9" x2="18" y2="11"/></svg>
+        <span>つらい</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ② 睡眠 -->
+  <div class="rtc-section">
+    <div class="rtc-section-label">② 昨日の睡眠はどうでしたか？</div>
+    <div class="rtc-option-chips" id="rtc-sleep">
+      <button class="rtc-option-chip" onclick="rtcSelect('sleep','wellSlept',this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        よく眠れた
+      </button>
+      <button class="rtc-option-chip" onclick="rtcSelect('sleep','soSo',this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M15 8l2 2-2 2" stroke-width="1.5" opacity="0.5"/></svg>
+        まあまあ
+      </button>
+      <button class="rtc-option-chip" onclick="rtcSelect('sleep','wokeUp',this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M13 9l2 2-2 2"/></svg>
+        途中で起きた
+      </button>
+      <button class="rtc-option-chip" onclick="rtcSelect('sleep','hardlySlept',this)">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" opacity="0.4"/><line x1="8" y1="8" x2="16" y2="16"/><line x1="16" y1="8" x2="8" y2="16"/></svg>
+        ほとんど眠れなかった
+      </button>
+    </div>
+  </div>
+
+  <!-- ③ エネルギー -->
+  <div class="rtc-section">
+    <div class="rtc-section-label">③ 今日のエネルギー（元気度）はどのくらいですか？</div>
+    <div class="rtc-mood-row" id="rtc-energy">
+      <button class="rtc-mood-chip" onclick="rtcSelect('energy','plenty',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><rect x="4" y="9" width="14" height="7" rx="1" fill="currentColor" opacity="0.25"/></svg>
+        <span>たっぷり</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('energy','soSo',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><rect x="4" y="9" width="10" height="7" rx="1" fill="currentColor" opacity="0.25"/></svg>
+        <span>まあまあ</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('energy','normal',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><rect x="4" y="9" width="7" height="7" rx="1" fill="currentColor" opacity="0.25"/></svg>
+        <span>普通</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('energy','low',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/><rect x="4" y="9" width="3" height="7" rx="1" fill="currentColor" opacity="0.25"/></svg>
+        <span>少ない</span>
+      </button>
+      <button class="rtc-mood-chip" onclick="rtcSelect('energy','hardlyAny',this)">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" opacity="0.5"><rect x="2" y="7" width="18" height="11" rx="2"/><path d="M22 11v3"/></svg>
+        <span>ほとんどない</span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- end card 1 -->
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CARD 2: 症状記録                                         -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="rtc-card-area" id="rtc-card-2">
+  <div class="rtc-card-title">気になる症状を<br>選んでください<span style="font-family:'Noto Sans JP',sans-serif;font-size:14px;font-weight:400">（複数選択可）</span></div>
+  <div class="rtc-card-sub">選んだ症状は、タップすると詳しく記録できます</div>
+
+  <!-- Symptom chips (built by JS) -->
+  <div class="rtc-symptom-grid" id="rtc-symptom-grid"></div>
+
+  <!-- Expanded detail sections (inserted by JS) -->
+  <div id="rtc-symptom-details"></div>
+
+  <!-- Add custom symptom -->
+  <button class="rtc-add-symptom-btn" onclick="if(window.rtcAddSymptom)window.rtcAddSymptom()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    あなたに合わせた症状を追加・編集する
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+  </button>
+</div>
+<!-- end card 2 -->
+
+<!-- ════════════════════════════════════════════════════════ -->
+<!-- CARD 3: 感情・ひとことメモ                               -->
+<!-- ════════════════════════════════════════════════════════ -->
+<div class="rtc-card-area" id="rtc-card-3">
+  <div class="rtc-card-title">今日の気持ちと<br>ひとことメモ</div>
+  <div class="rtc-card-sub">心の状態や、気づいたことを自由に残せます</div>
+
+  <!-- ① 感情タグ -->
+  <div class="rtc-section">
+    <div class="rtc-section-label">① 今日の気持ちはどんな感じですか？</div>
+    <div class="rtc-emotion-grid" id="rtc-emotions"></div>
+  </div>
+
+  <!-- ② 自由メモ -->
+  <div class="rtc-section">
+    <div class="rtc-section-label">② 今日感じたこと・気づいたことを自由にメモしてください（任意）</div>
+    <textarea class="rtc-memo" id="rtc-memo" rows="4"
+      placeholder="例：仕事のあと、ぐったりしたけど&#10;お風呂に入ったら少し楽になった。"></textarea>
+  </div>
+</div>
+<!-- end card 3 -->
+
+<!-- ── SUCCESS STATE ──────────────────────────────────────── -->
+<div class="rtc-success" id="rtc-success">
+  <div class="rtc-success-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#b8707a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="rtc-success-title">記録しました</div>
+  <div class="rtc-success-body">
+    小さな記録が、<br>あなたの理解につながっていきます
+  </div>
+</div>
+
+<!-- ── NAVIGATION ─────────────────────────────────────────── -->
+<div class="rtc-nav" id="rtc-nav">
+  <button class="rtc-nav-back" id="rtc-btn-back" onclick="if(window.rtcGoBack)window.rtcGoBack()" style="display:none">← 戻る</button>
+  <button class="rtc-nav-next" id="rtc-btn-next" onclick="if(window.rtcGoNext)window.rtcGoNext()">次へ →</button>
+</div>
+
+<!-- ── BOTTOM HINT ────────────────────────────────────────── -->
+<div class="rtc-bottom-hint" id="rtc-bottom-hint">
+  💡 小さな変化を知ることが、あなたの理解につながります
+</div>
+
+</div>
