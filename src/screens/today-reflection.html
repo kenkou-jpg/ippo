@@ -1,14 +1,14 @@
 <div id="screen-today-reflection" class="screen">
 <style>
-/* ── Today Reflection Screen ──────────────────────────────── */
+/* ── Today Reflection — quiet journal surface ──────────────── */
 #screen-today-reflection {
   background: #faf8f5;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: 40px;
+  padding-bottom: 56px;
 }
 
-/* Header */
+/* Header — identical feel to 3-card */
 .trf-header {
   position: sticky;
   top: 0;
@@ -29,11 +29,10 @@
   font-size: 13px;
   color: #9e8f8b;
   cursor: pointer;
-  padding: 6px 10px 6px 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  padding: 4px 0;
+  white-space: nowrap;
   flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 .trf-header-title {
   font-family: 'Noto Sans JP', sans-serif;
@@ -46,179 +45,193 @@
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 12px;
   color: #9e8f8b;
-}
-
-/* Body */
-.trf-body {
-  padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-/* Check badge */
-.trf-done-badge {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f0ede8;
-  border-radius: 12px;
-  padding: 10px 14px;
-  margin-bottom: 4px;
-}
-.trf-done-icon {
-  width: 28px;
-  height: 28px;
-  background: #c8a49a;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 14px;
   flex-shrink: 0;
 }
-.trf-done-text {
+
+/* ── Outer body wrapper ── */
+.trf-body {
+  padding: 24px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Single calm surface — one card, soft sections float inside ── */
+.trf-surface {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.055);
+  overflow: hidden;
+}
+
+/* ── Date/time anchor — top of the surface ── */
+.trf-anchor {
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.045);
+}
+.trf-anchor-date {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #3a2f42;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.trf-anchor-sub {
   font-family: 'Noto Sans JP', sans-serif;
-  font-size: 13px;
-  color: #7a6a66;
+  font-size: 12px;
+  color: #b0a09c;
   line-height: 1.5;
 }
 
-/* Cards */
-.trf-card {
-  background: #fff;
-  border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+/* ── Snapshot 3-col text row ── */
+.trf-snap-section {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
 }
-.trf-card-label {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: #b0a09c;
-  text-transform: uppercase;
-  margin-bottom: 12px;
+.trf-snap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
 }
-.trf-snapshot-row {
-  display: flex;
-  gap: 10px;
-}
-.trf-snapshot-item {
-  flex: 1;
-  background: #faf8f5;
-  border-radius: 12px;
-  padding: 10px 8px;
+.trf-snap-col {
+  padding: 4px 10px;
   text-align: center;
+  border-right: 1px solid #f0ebe6;
 }
-.trf-snapshot-emoji {
-  font-size: 22px;
-  margin-bottom: 4px;
-}
-.trf-snapshot-label {
+.trf-snap-col:first-child { padding-left: 0; text-align: left; }
+.trf-snap-col:last-child  { padding-right: 0; text-align: right; border-right: none; }
+.trf-snap-lbl {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 10px;
-  color: #9e8f8b;
-  margin-bottom: 3px;
+  color: #c0b0ac;
+  margin-bottom: 5px;
+  letter-spacing: 0.04em;
 }
-.trf-snapshot-value {
+.trf-snap-val {
   font-family: 'Noto Sans JP', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
+  color: #4a3838;
   font-weight: 500;
-  color: #5a4a46;
+  line-height: 1.35;
+}
+.trf-snap-val.trf-unrecorded {
+  color: #c8bcb8;
+  font-weight: 400;
 }
 
-/* Symptom chips */
-.trf-symptom-list {
+/* ── Inner sections — soft, floating ── */
+.trf-section {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.trf-section:last-child {
+  border-bottom: none;
+}
+.trf-section-lbl {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  color: #c0b0ac;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* Symptom chips — keep pill shape, soften palette */
+.trf-chip-row {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 .trf-symptom-chip {
-  background: #f5ede9;
+  background: #faf4f2;
+  border: 1px solid #edddd8;
   border-radius: 20px;
-  padding: 5px 12px;
+  padding: 5px 13px;
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 12px;
-  color: #7a4a40;
-}
-.trf-no-content {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 13px;
-  color: #b0a09c;
+  color: #8a5a50;
+  letter-spacing: 0.02em;
 }
 
 /* Emotion tags */
-.trf-emotion-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-.trf-emotion-tag {
-  background: #eef3f8;
+.trf-emotion-chip {
+  background: #f2f5fa;
+  border: 1px solid #dde4ee;
   border-radius: 20px;
-  padding: 5px 12px;
+  padding: 5px 13px;
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 12px;
-  color: #4a5a7a;
+  color: #4a5a72;
+  letter-spacing: 0.02em;
 }
 
-/* Memo */
-.trf-memo-text {
+/* Memo text — journal tone */
+.trf-memo {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 13px;
   color: #5a4a46;
-  line-height: 1.8;
+  line-height: 1.9;
   white-space: pre-wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.04);
 }
 
-/* Gentle observation */
-.trf-observation {
-  background: linear-gradient(135deg, #f7f2ee 0%, #f0ede8 100%);
-  border-radius: 16px;
-  padding: 16px;
-  border-left: 3px solid #c8a49a;
-}
-.trf-observation-label {
-  font-family: 'Noto Sans JP', sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: #9e8f8b;
-  margin-bottom: 8px;
-}
-.trf-observation-text {
+/* Empty state */
+.trf-empty {
   font-family: 'Noto Sans JP', sans-serif;
   font-size: 13px;
-  color: #6a5a56;
-  line-height: 1.8;
+  color: #c8bcb8;
+  font-style: italic;
 }
 
-/* Footer */
+/* Observation — no label, just quiet text */
+.trf-obs {
+  padding: 20px 22px 22px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+.trf-obs-text {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #7a6a66;
+  line-height: 1.85;
+  font-style: italic;
+  padding-left: 14px;
+  border-left: 2px solid #e0d0cc;
+}
+
+/* ── Footer ── */
 .trf-footer {
-  padding: 16px 16px 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  padding: 20px 20px 0;
 }
 .trf-edit-btn {
   width: 100%;
   padding: 14px;
-  background: #f0ede8;
-  color: #7a6a66;
+  background: #f5f0ed;
+  color: #8a7a76;
   border: none;
   border-radius: 14px;
   font-family: 'Noto Sans JP', sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.03em;
 }
-.trf-edit-btn:active {
-  opacity: 0.75;
+.trf-edit-btn:active { opacity: 0.72; transform: scale(0.99); }
+
+/* Loading placeholder */
+.trf-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: #c0b0ac;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
 }
 </style>
 
@@ -229,15 +242,13 @@
 </div>
 
 <div class="trf-body" id="trf-body">
-  <!-- Populated by today-reflection.js -->
-  <div style="text-align:center;padding:40px 0;color:#b0a09c;font-family:'Noto Sans JP',sans-serif;font-size:13px;">
-    読み込み中...
-  </div>
+  <div class="trf-loading">読み込み中…</div>
 </div>
 
 <div class="trf-footer">
   <button class="trf-edit-btn" id="trf-edit-btn">
-    ✏️ 記録を編集する
+    記録を編集する
   </button>
 </div>
+
 </div>
