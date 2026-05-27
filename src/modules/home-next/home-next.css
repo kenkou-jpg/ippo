@@ -111,7 +111,10 @@
 
 /* ===== SETTINGS — SUNNY IVORY ===== */
 
-#screen-settings {
+#screen-settings,
+#screen-settings .hn-scroll,
+#screen-settings .settings-scroll,
+#screen-settings .settings-body {
   background: #FFFDF7;
 }
 
