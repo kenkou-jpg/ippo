@@ -849,7 +849,7 @@ export function renderStatusCards(container, config, state) {
     <div class="hn-anim-2">
       <div class="hn-section-row">
         <span class="hn-section-title">あなたの状態</span>
-        <span class="hn-section-edit" onclick="if(typeof window.switchTab==='function')window.switchTab('record',null)">編集</span>
+        <span class="hn-section-edit" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen();else if(typeof window.switchTab==='function')window.switchTab('record',null)">編集</span>
       </div>
       <div class="hn-sc-row">${cards}</div>
     </div>
