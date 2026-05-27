@@ -83,6 +83,17 @@
   border-bottom: 1px solid transparent;
 }
 
+/* ===== CALENDAR THEME ===== */
+
+#screen-calendar {
+  background: #FFFDF7;
+}
+
+#screen-calendar .hn-header {
+  background: #F9F7EF;
+  border-bottom: 1px solid transparent;
+}
+
 #screen-insights {
   background: var(--hn-bg);
 }
