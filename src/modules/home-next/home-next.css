@@ -77,6 +77,13 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* ===== HOME HEADER COLOR ===== */
+
+#screen-home-next .hn-header {
+  background: #F4F3ED;
+  border-bottom: 1px solid transparent;
+}
+
 #screen-insights {
   background: var(--hn-bg);
 }
