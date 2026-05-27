@@ -401,13 +401,27 @@ function _buildPayload() {
     emotions: { tags: _state.emotions.tags.slice(), memo: _state.emotions.memo },
     adaptiveResponses: (_state.adaptiveResponses || []).slice(),  // PHASE 4
 
-    // Daily check-in identity flag (2026-05-27):
-    // Distinguishes records saved via the 3-card daily check-in flow from
-    // records saved via other paths (calendar edit, quick edit, etc.).
-    // Used by home CTA to decide: "今日を記録する" vs "✓ 今日をふり返る".
+    // Daily check-in identity flag + frozen snapshot (2026-05-27):
+    // - uiFlow: distinguishes this save path from calendar/quick/symptom edits.
+    // - completedAt: ISO timestamp of when the intentional check-in was completed.
+    // - checkinSnapshot: immutable copy of the data entered during this check-in.
+    //
+    // WHY checkinSnapshot:
+    //   mergeRecordPreservingExisting() overwrites non-empty fields when other
+    //   save paths (calendar edit, symptom edit, etc.) write to the same record.
+    //   By storing the check-in data inside meta, which other paths never touch,
+    //   today-reflection.js always reads the ORIGINAL intentional check-in data
+    //   regardless of subsequent edits to the live record fields.
     meta: {
       uiFlow: 'daily-checkin',
       completedAt: new Date().toISOString(),
+      // Frozen at check-in time. Never overwritten by other save paths.
+      checkinSnapshot: {
+        snapshot: Object.assign({}, _state.snapshot),
+        symptomDetails: symptomList.map(function(s) { return Object.assign({}, s); }),
+        emotions: { tags: _state.emotions.tags.slice(), memo: _state.emotions.memo },
+        note: _state.emotions.memo,
+      },
     },
 
     // Mapped to existing schema for compatibility

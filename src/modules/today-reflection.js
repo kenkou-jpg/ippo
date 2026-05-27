@@ -8,7 +8,6 @@
 // - 再入力不可 (quiet reflection only)、編集は再び3カード経由
 // ============================================================
 
-import { findRecordByDate } from './record-repository.js';
 import { getState } from '../store/state.js';
 
 // ─── helpers ─────────────────────────────────────────────────
@@ -124,10 +123,27 @@ function _renderScreen(rec) {
 
   let html = '';
 
-  // Done badge
+  // Done badge — show completedAt time if available
+  const completedAt = rec.meta && rec.meta.completedAt;
+  const completedTimeStr = (function() {
+    if (!completedAt) return '';
+    try {
+      const d = new Date(completedAt);
+      return d.getHours() + ':' + String(d.getMinutes()).padStart(2, '0');
+    } catch(e) { return ''; }
+  })();
+  const frozenNote = rec._fromFrozenSnapshot
+    ? 'チェックイン時点のスナップショットを表示しています。'
+    : 'チェックイン時のデータを表示しています。';
+
   html += '<div class="trf-done-badge">';
   html += '<div class="trf-done-icon">✓</div>';
-  html += '<div class="trf-done-text">今日のチェックインが完了しています。<br>ゆっくり振り返りましょう。</div>';
+  html += '<div class="trf-done-text">';
+  html += completedTimeStr
+    ? (escapeHtml(completedTimeStr) + ' にチェックインが完了しました。')
+    : '今日のチェックインが完了しています。';
+  html += '<br><span style="font-size:11px;opacity:0.75;">' + frozenNote + '</span>';
+  html += '</div>';
   html += '</div>';
 
   // Snapshot card (condition / sleep / energy)
@@ -201,6 +217,56 @@ function _renderScreen(rec) {
   body.innerHTML = html;
 }
 
+// ─── stable check-in record retrieval ────────────────────────
+//
+// Returns a "view record" that always reflects the ORIGINAL intentional
+// daily check-in data, even if the live record was subsequently edited
+// via calendar/symptom/quick edit paths.
+//
+// Priority:
+//   1. record.meta.checkinSnapshot  — frozen at check-in time (new saves)
+//   2. record fields directly        — fallback for pre-fix saves
+//   3. null                          — no daily check-in record for today
+//
+// Other save paths do NOT include a `meta` key in their payloads, so
+// mergeRecordPreservingExisting() preserves meta intact after any edit.
+function _getCheckinRecord(date) {
+  const s = getState();
+  if (!s) return null;
+
+  const today = date || todayLocal();
+
+  // Find the single record that carries the daily-checkin flag for this date.
+  // (There is normally only one record per date; upsertRecord merges in-place.)
+  const rec = (s.records || []).find(function(r) {
+    const d = (r.date || r.record_date || '').slice(0, 10);
+    return d === today && r.meta && r.meta.uiFlow === 'daily-checkin';
+  });
+
+  if (!rec) return null;
+
+  // NEW saves (post-fix): reconstruct a stable view from the frozen snapshot.
+  if (rec.meta.checkinSnapshot) {
+    const frozen = rec.meta.checkinSnapshot;
+    return {
+      record_date: today,
+      // Core snapshot fields from the frozen copy:
+      snapshot:       frozen.snapshot       || {},
+      symptomDetails: frozen.symptomDetails || [],
+      emotions:       frozen.emotions       || { tags: [], memo: '' },
+      note:           frozen.note           || '',
+      // Expose meta so callers can read completedAt etc.
+      meta: rec.meta,
+      _fromFrozenSnapshot: true,
+    };
+  }
+
+  // LEGACY saves (pre-fix): no frozen snapshot — use the live record fields
+  // as-is. These records may have been mutated by subsequent edits, but
+  // this is the best we can do without the frozen copy.
+  return rec;
+}
+
 // ─── main export ─────────────────────────────────────────────
 
 export function openTodayReflection() {
@@ -213,8 +279,8 @@ export function openTodayReflection() {
     headerDate.textContent = (now.getMonth() + 1) + '月' + now.getDate() + '日';
   }
 
-  // Find today's record
-  const rec = findRecordByDate(date);
+  // Get the stable check-in record (prioritises meta.checkinSnapshot)
+  const rec = _getCheckinRecord(date);
 
   // Render content (showScreen first, then render so DOM exists)
   if (typeof window.showScreen === 'function') {
