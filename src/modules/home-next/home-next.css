@@ -81,6 +81,13 @@
   background: var(--hn-bg);
 }
 
+/* ===== INSIGHTS HEADER COLOR ===== */
+
+#screen-insights .hn-header {
+  background: #fdf9f8;
+  border-bottom: 1px solid transparent;
+}
+
 .hn-scroll {
   padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
 }
