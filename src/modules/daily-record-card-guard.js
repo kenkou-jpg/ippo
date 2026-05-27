@@ -125,8 +125,18 @@ function openTodayRecord() {
     try { window.ippoMarkRecordEditIntent('daily-card-guard', date); } catch(e) {}
   }
 
-  openRecordScreen();
+  // ISOLATION FIX (2026-05-27):
+  // Use window.openRecordScreen (dynamically resolved) so the 3-card UI override
+  // from record-three-card.js takes effect. The static import from record.js called
+  // switchTab('record') → screen-record (legacy step dots) which was wrong.
+  if (typeof window.openRecordScreen === 'function') {
+    window.openRecordScreen();
+  } else {
+    openRecordScreen(); // fallback: record.js (legacy) — only if 3-card not loaded
+  }
 
+  // ensureRecordCardsVisible is a no-op when screen-record-three-card is shown
+  // (the function guards on screen-record existing), but keep for safety.
   setTimeout(ensureRecordCardsVisible, 0);
   setTimeout(ensureRecordCardsVisible, 150);
   setTimeout(ensureRecordCardsVisible, 400);

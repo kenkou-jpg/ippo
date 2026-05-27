@@ -357,8 +357,14 @@
       </button>
     </nav>
 
-<!-- ===== RECORD SCREEN ===== -->
-<div id="screen-record" class="screen">
+<!-- ===== RECORD SCREEN (LEGACY — SOFT-ISOLATED 2026-05-27) =====
+     Status   : soft-isolated. Normal flow no longer routes here.
+                Home CTA / bottom-nav all use window.openRecordScreen
+                → screen-record-three-card via record-three-card.js.
+     Deletion : confirm zero-usage (record.js openRecordScreen + editing
+                flow) before removing this block and src/screens/record.html.
+===== -->
+<div id="screen-record" class="screen" data-legacy-isolated="2026-05-27" data-replacement="screen-record-three-card">
   <div class="spacer-top"></div>
   <div style="padding:0 24px 16px;">
     <button type="button" onclick="switchTab('home', document.querySelector('.nav-item'))" aria-label="ホームに戻る" style="display:inline-flex;align-items:center;gap:6px;background:none;border:none;color:var(--ink-light);font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;padding:0 0 12px;letter-spacing:0.03em;">← 戻る</button>
@@ -1273,8 +1279,13 @@
 
 
 
-  <!-- ===== RECORD MODAL ===== -->
-  <div class="modal-overlay" id="record-modal" onclick="closeModal()">
+  <!-- ===== RECORD MODAL (LEGACY — SOFT-ISOLATED 2026-05-27) =====
+       Status   : soft-isolated. openRecordModal() / buildSteps() / renderStep()
+                  are unreachable in normal flow (handleHomeCTA fallback only).
+       Deletion : can be removed once openRecordModal + buildSteps + renderStep
+                  are confirmed unreferenced in app-legacy.js.
+  ===== -->
+  <div class="modal-overlay" id="record-modal" onclick="closeModal()" data-legacy-isolated="2026-05-27">
     <div class="modal-sheet" onclick="event.stopPropagation()">
       <div class="modal-handle"></div>
       <div class="modal-header">
