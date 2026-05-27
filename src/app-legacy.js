@@ -5514,21 +5514,22 @@ function updateHomeCTA(){
 
 
 function handleHomeCTA(){
+  // daily check-in 完了フラグを確認 (2026-05-27):
+  // record.meta.uiFlow === 'daily-checkin' が立っていれば「ふり返り」画面へ。
+  // 未完了 or 他の入力経路からの保存のみの場合は3カードUIを開く。
   var today = new Date().toISOString().slice(0, 10);
-  var rec = (state.records || []).find(function(r) {
+  var s = (typeof getState === 'function') ? getState() : state;
+  var rec = s && (s.records || []).find(function(r) {
     return (r.date || r.record_date || '').slice(0, 10) === today;
   });
-  if (rec) {
-    var _todayForCTA = new Date();
-    calYear  = _todayForCTA.getFullYear();
-    calMonth = _todayForCTA.getMonth();
-    openDayDetail(_todayForCTA.getDate());
+  var isDailyCheckinDone = !!(rec && rec.meta && rec.meta.uiFlow === 'daily-checkin');
+
+  if (isDailyCheckinDone && typeof window.openTodayReflection === 'function') {
+    window.openTodayReflection();
+  } else if (typeof window.openRecordScreen === 'function') {
+    window.openRecordScreen();
   } else {
-    if (typeof window.openRecordScreen === 'function') {
-      window.openRecordScreen();
-    } else {
-      openRecordModal(); // fallback: record-three-card.js 未ロード時のみ
-    }
+    openRecordModal(); // fallback: record-three-card.js 未ロード時のみ
   }
 }
 

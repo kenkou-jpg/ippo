@@ -348,6 +348,14 @@ export function changeHomeCalMonth(delta) {
 
 // ── CTA カード ────────────────────────────────────────────────
 
+// daily-checkin 完了フラグの確認。
+// record.meta.uiFlow === 'daily-checkin' が設定された記録のみ「完了」扱い。
+// 他の入力経路（カレンダー編集・クイック編集等）でのみ保存された記録は対象外。
+function _isDailyCheckinCompleted(rec) {
+  if (!rec) return false;
+  return !!(rec.meta && rec.meta.uiFlow === 'daily-checkin');
+}
+
 export function updateHomeCTAState() {
   var s = getState() || {};
   var today = new Date().toISOString().slice(0, 10);
@@ -360,17 +368,17 @@ export function updateHomeCTAState() {
   var sub   = document.getElementById('home-cta-sub');
   if (!card) return;
 
-  if (rec) {
+  var completed = _isDailyCheckinCompleted(rec);
+
+  if (completed) {
     card.style.background = 'var(--rose-dark)';
     card.style.opacity = '0.85';
-    if (title) title.textContent = '✓ 今日の記録完了';
-    if (sub) sub.textContent = typeof window.buildComparisonComment === 'function'
-      ? window.buildComparisonComment(rec)
-      : '';
+    if (title) title.textContent = '✓ 今日をふり返る';
+    if (sub)   sub.textContent   = 'チェックイン完了 — 静かに振り返る';
   } else {
     card.style.background = 'var(--rose-dark)';
     card.style.opacity = '1';
-    if (title) title.textContent = '+ 今日を記録する';
+    if (title) title.textContent = '今日を記録する';
     if (sub)   sub.textContent   = '今日はまだ記録していません';
   }
 }

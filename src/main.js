@@ -164,6 +164,11 @@ import './modules/record-three-card.js';
 // Must load after record-three-card.js (delegate is checked at call time, not load time).
 import './modules/record-three-card-save.js';
 
+// ─── Today Reflection (post-checkin quiet view) ───────────
+// Exposes window.openTodayReflection — shown after daily check-in complete.
+// Must load after record-three-card.js (screen shares showScreen infrastructure).
+import './modules/today-reflection.js';
+
 // record modal open/close
 import './modules/record-modal-controller.js';
 

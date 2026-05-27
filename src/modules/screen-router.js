@@ -16,6 +16,7 @@ import insightsHtml        from '../screens/insights.html?raw';
 import homeNextHtml        from '../screens/home-next.html?raw';
 import proFeatureHtml      from '../screens/pro-feature.html?raw';
 import threeCardHtml       from '../screens/record-three-card.html?raw';
+import todayReflectionHtml from '../screens/today-reflection.html?raw';
 
 // Vite ?raw でバンドルされた画面 HTML マップ。
 // fetch に依存しないため本番環境でも確実に動作する。
@@ -24,6 +25,7 @@ const SCREEN_HTML = {
   'home-next':           homeNextHtml,
   'pro-feature':         proFeatureHtml,
   'record-three-card':   threeCardHtml,
+  'today-reflection':    todayReflectionHtml,
 };
 
 const _loadedScreens = new Set();

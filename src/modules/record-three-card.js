@@ -401,6 +401,15 @@ function _buildPayload() {
     emotions: { tags: _state.emotions.tags.slice(), memo: _state.emotions.memo },
     adaptiveResponses: (_state.adaptiveResponses || []).slice(),  // PHASE 4
 
+    // Daily check-in identity flag (2026-05-27):
+    // Distinguishes records saved via the 3-card daily check-in flow from
+    // records saved via other paths (calendar edit, quick edit, etc.).
+    // Used by home CTA to decide: "今日を記録する" vs "✓ 今日をふり返る".
+    meta: {
+      uiFlow: 'daily-checkin',
+      completedAt: new Date().toISOString(),
+    },
+
     // Mapped to existing schema for compatibility
     mood: { great: 5, good: 4, normal: 3, slightlyBad: 2, tough: 1 }[_state.snapshot.condition] || null,
     sleepQuality: { wellSlept: 5, soSo: 4, wokeUp: 3, hardlySlept: 1 }[_state.snapshot.sleep] || null,
