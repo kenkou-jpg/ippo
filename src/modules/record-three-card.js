@@ -7,6 +7,8 @@
 //  Card 3: 感情・ひとことメモ
 // ============================================================
 
+import { buildCheckinSnapshot } from '../utils/checkin-snapshot.js';
+
 // ─── Symptom Configuration ───────────────────────────────────
 const SYMPTOMS = [
   {
@@ -400,6 +402,26 @@ function _buildPayload() {
     symptomDetails: symptomList,
     emotions: { tags: _state.emotions.tags.slice(), memo: _state.emotions.memo },
     adaptiveResponses: (_state.adaptiveResponses || []).slice(),  // PHASE 4
+
+    // Daily check-in identity flag + frozen snapshot:
+    // - uiFlow: distinguishes this save path from calendar/quick/symptom edits.
+    // - completedAt: ISO timestamp of when the intentional check-in was done.
+    // - checkinSnapshot: deep-frozen copy produced by buildCheckinSnapshot().
+    //
+    // WHY checkinSnapshot (see utils/checkin-snapshot.js for full rationale):
+    //   mergeRecordPreservingExisting() overwrites non-empty fields when other
+    //   save paths write to the same record. meta is never included by those
+    //   paths, so checkinSnapshot is permanently frozen after daily check-in.
+    meta: {
+      uiFlow: 'daily-checkin',
+      completedAt: new Date().toISOString(),
+      checkinSnapshot: buildCheckinSnapshot({
+        snapshot:    _state.snapshot,
+        symptomList: symptomList,
+        emotions:    _state.emotions,
+        note:        _state.emotions.memo,
+      }),
+    },
 
     // Mapped to existing schema for compatibility
     mood: { great: 5, good: 4, normal: 3, slightlyBad: 2, tough: 1 }[_state.snapshot.condition] || null,

@@ -1,0 +1,254 @@
+<div id="screen-today-reflection" class="screen">
+<style>
+/* ── Today Reflection — quiet journal surface ──────────────── */
+#screen-today-reflection {
+  background: #faf8f5;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 56px;
+}
+
+/* Header — identical feel to 3-card */
+.trf-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(250,248,245,0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 14px 20px 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.trf-back-btn {
+  border: none;
+  background: none;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #9e8f8b;
+  cursor: pointer;
+  padding: 4px 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.trf-header-title {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  color: #5a4a46;
+  flex: 1;
+}
+.trf-header-date {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #9e8f8b;
+  flex-shrink: 0;
+}
+
+/* ── Outer body wrapper ── */
+.trf-body {
+  padding: 24px 20px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ── Single calm surface — one card, soft sections float inside ── */
+.trf-surface {
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.055);
+  overflow: hidden;
+}
+
+/* ── Date/time anchor — top of the surface ── */
+.trf-anchor {
+  padding: 22px 22px 16px;
+  border-bottom: 1px solid rgba(0,0,0,0.045);
+}
+.trf-anchor-date {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #3a2f42;
+  line-height: 1.3;
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.trf-anchor-sub {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #b0a09c;
+  line-height: 1.5;
+}
+
+/* ── Snapshot 3-col text row ── */
+.trf-snap-section {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.trf-snap-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+.trf-snap-col {
+  padding: 4px 10px;
+  text-align: center;
+  border-right: 1px solid #f0ebe6;
+}
+.trf-snap-col:first-child { padding-left: 0; text-align: left; }
+.trf-snap-col:last-child  { padding-right: 0; text-align: right; border-right: none; }
+.trf-snap-lbl {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 10px;
+  color: #c0b0ac;
+  margin-bottom: 5px;
+  letter-spacing: 0.04em;
+}
+.trf-snap-val {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #4a3838;
+  font-weight: 500;
+  line-height: 1.35;
+}
+.trf-snap-val.trf-unrecorded {
+  color: #c8bcb8;
+  font-weight: 400;
+}
+
+/* ── Inner sections — soft, floating ── */
+.trf-section {
+  padding: 18px 22px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+.trf-section:last-child {
+  border-bottom: none;
+}
+.trf-section-lbl {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 11px;
+  color: #c0b0ac;
+  margin-bottom: 12px;
+  letter-spacing: 0.05em;
+}
+
+/* Symptom chips — keep pill shape, soften palette */
+.trf-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trf-symptom-chip {
+  background: #faf4f2;
+  border: 1px solid #edddd8;
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #8a5a50;
+  letter-spacing: 0.02em;
+}
+
+/* Emotion tags */
+.trf-emotion-chip {
+  background: #f2f5fa;
+  border: 1px solid #dde4ee;
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 12px;
+  color: #4a5a72;
+  letter-spacing: 0.02em;
+}
+
+/* Memo text — journal tone */
+.trf-memo {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #5a4a46;
+  line-height: 1.9;
+  white-space: pre-wrap;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+
+/* Empty state */
+.trf-empty {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #c8bcb8;
+  font-style: italic;
+}
+
+/* Observation — no label, just quiet text */
+.trf-obs {
+  padding: 20px 22px 22px;
+  border-top: 1px solid rgba(0,0,0,0.04);
+}
+.trf-obs-text {
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  color: #7a6a66;
+  line-height: 1.85;
+  font-style: italic;
+  padding-left: 14px;
+  border-left: 2px solid #e0d0cc;
+}
+
+/* ── Footer ── */
+.trf-footer {
+  padding: 20px 20px 0;
+}
+.trf-edit-btn {
+  width: 100%;
+  padding: 14px;
+  background: #f5f0ed;
+  color: #8a7a76;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: 0.03em;
+}
+.trf-edit-btn:active { opacity: 0.72; transform: scale(0.99); }
+
+/* Loading placeholder */
+.trf-loading {
+  text-align: center;
+  padding: 48px 0;
+  color: #c0b0ac;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+}
+</style>
+
+<div class="trf-header">
+  <button class="trf-back-btn" id="trf-back-btn">← ホーム</button>
+  <span class="trf-header-title">今日のふり返り</span>
+  <span class="trf-header-date" id="trf-header-date"></span>
+</div>
+
+<div class="trf-body" id="trf-body">
+  <div class="trf-loading">読み込み中…</div>
+</div>
+
+<div class="trf-footer">
+  <button class="trf-edit-btn" id="trf-edit-btn">
+    記録を編集する
+  </button>
+</div>
+
+</div>

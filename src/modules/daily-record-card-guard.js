@@ -105,8 +105,26 @@ function getTodayRecordStatus() {
   };
 }
 
+// daily-checkin 完了フラグ確認 (2026-05-27):
+// record.meta.uiFlow === 'daily-checkin' のみを「完了」とみなす。
+// カレンダー編集・クイック編集等の他の保存経路は対象外。
+function isDailyCheckinCompleted(record) {
+  if (!record) return false;
+  return !!(record.meta && record.meta.uiFlow === 'daily-checkin');
+}
+
 function openTodayRecord() {
   const date = todayLocal();
+  const record = findRecordByDate(date);
+
+  // チェックイン完了済み → ふり返り画面へ
+  if (isDailyCheckinCompleted(record)) {
+    if (typeof window.openTodayReflection === 'function') {
+      window.openTodayReflection();
+      return;
+    }
+    // fallback: openTodayReflection not yet loaded → fall through to 3-card
+  }
 
   try {
     const s = getState();
@@ -144,18 +162,21 @@ function openTodayRecord() {
 
 function patchHomeCta() {
   const status = getTodayRecordStatus();
+  const todayRecord = findRecordByDate(todayLocal());
+  const checkinDone = isDailyCheckinCompleted(todayRecord);
+
   const title = document.getElementById('home-cta-title');
   const sub = document.getElementById('home-cta-sub');
   const card = document.getElementById('home-cta-card');
   const wrap = document.getElementById('home-record-cta');
 
   if (title) {
-    title.textContent = status.complete ? '今日の記録を編集する' : '今日を記録する';
+    title.textContent = checkinDone ? '✓ 今日をふり返る' : '今日を記録する';
   }
 
   if (sub) {
-    sub.textContent = status.complete
-      ? '3カードはいつでも見直せます'
+    sub.textContent = checkinDone
+      ? 'チェックイン完了 — 静かに振り返る'
       : '3カードを今日も記録しましょう';
   }
 
