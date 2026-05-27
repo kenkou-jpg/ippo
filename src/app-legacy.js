@@ -5524,7 +5524,11 @@ function handleHomeCTA(){
     calMonth = _todayForCTA.getMonth();
     openDayDetail(_todayForCTA.getDate());
   } else {
-    openRecordModal();
+    if (typeof window.openRecordScreen === 'function') {
+      window.openRecordScreen();
+    } else {
+      openRecordModal(); // fallback: record-three-card.js 未ロード時のみ
+    }
   }
 }
 
