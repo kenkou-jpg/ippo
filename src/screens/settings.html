@@ -70,19 +70,6 @@
       </div>
       <div class="set-section-desc">あなたの体や目標に合わせて、ホーム画面を最適化します</div>
       <div class="set-card">
-        <div class="set-row" onclick="openSymptomSettings()">
-          <div class="set-row-l">
-            <div class="set-row-icon" style="background:#fdf0f2;" id="settings-icon-symptom"></div>
-            <div class="set-row-texts">
-              <div class="set-row-text">気になる症状</div>
-              <div class="set-row-sub" id="symptom-setting-display">頭痛、疲労感、肌荒れ など</div>
-            </div>
-          </div>
-          <div class="set-row-r">
-            <span class="set-row-badge-text">設定する</span>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
-          </div>
-        </div>
         <div class="set-row" onclick="openDiseaseSettings()">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#f3f0fd;" id="settings-icon-disease"></div>
@@ -138,44 +125,6 @@
       </div>
       <div class="set-section-desc">毎日使うから、自分が心地よい見た目に</div>
       <div class="set-card">
-        <div class="set-theme-row" id="theme-picker">
-          <div class="set-theme-card" onclick="applyTheme('sakura')" id="theme-btn-sakura">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f4d0d4,#cc8890);" id="theme-dot-sakura">
-              <svg class="set-theme-check" id="theme-check-sakura" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">桜</span>
-          </div>
-          <div class="set-theme-card" onclick="applyTheme('coral')" id="theme-btn-coral">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f5c0a0,#d07050);" id="theme-dot-coral">
-              <svg class="set-theme-check" id="theme-check-coral" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">珊瑚</span>
-          </div>
-          <div class="set-theme-card" onclick="applyTheme('midnight')" id="theme-btn-midnight">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#8a6080,#2a1830);" id="theme-dot-midnight">
-              <svg class="set-theme-check" id="theme-check-midnight" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">深夜</span>
-          </div>
-          <div class="set-theme-card" onclick="applyTheme('forest')" id="theme-btn-forest">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#a0d4b0,#4a9060);" id="theme-dot-forest">
-              <svg class="set-theme-check" id="theme-check-forest" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">若葉</span>
-          </div>
-          <div class="set-theme-card" onclick="applyTheme('sky')" id="theme-btn-sky">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#9acce8,#3e8cc8);" id="theme-dot-sky">
-              <svg class="set-theme-check" id="theme-check-sky" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">空</span>
-          </div>
-          <div class="set-theme-card" onclick="applyTheme('honey')" id="theme-btn-honey">
-            <div class="set-theme-swatch" style="background:linear-gradient(150deg,#f0d080,#c88030);" id="theme-dot-honey">
-              <svg class="set-theme-check" id="theme-check-honey" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-            </div>
-            <span class="set-theme-lbl">蜂蜜</span>
-          </div>
-        </div>
         <div class="set-row" onclick="openSettingsPanel('style')">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#f0ede8;" id="settings-icon-density"></div>
@@ -201,16 +150,16 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
           </div>
         </div>
-        <div class="set-row" onclick="showToast('通知設定は準備中です')">
+        <div class="set-row" style="opacity:0.52;pointer-events:none;" aria-disabled="true">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#f5ecd8;" id="settings-icon-reminder"></div>
             <div class="set-row-texts">
               <div class="set-row-text">通知の設定</div>
-              <div class="set-row-sub">リマインダーやお知らせの設定</div>
+              <div class="set-row-sub">近日公開予定</div>
             </div>
           </div>
           <div class="set-row-r">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+            <span style="font-size:10px;color:rgba(43,33,28,0.38);background:rgba(43,33,28,0.06);padding:3px 8px;border-radius:6px;white-space:nowrap;">準備中</span>
           </div>
         </div>
       </div>
@@ -331,13 +280,15 @@
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.32;flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
         </a>
       </div>
-      <div class="set-disclaimer-full">
-        <p>このアプリは医療アドバイスを提供するものではありません。卵巣嚢腫・PCOS・子宮内膜症などは婦人科への受診をおすすめします。</p>
-      </div>
+      <!-- Cleanup: 医療注意文はカードをやめ、バージョン表記と同サイズの静かな補足へ -->
+
     </div>
 
     <div class="set-version-footer">
       ippo v1.0 — あなたのからだに寄り添うアプリ
+    </div>
+    <div style="text-align:center;font-size:10px;color:rgba(43,33,28,0.32);line-height:1.7;padding:0 28px 4px;">
+      このアプリは医療アドバイスを提供するものではありません。<br>気になる症状は婦人科への受診をおすすめします。
     </div>
 
     <div style="height:44px;"></div>

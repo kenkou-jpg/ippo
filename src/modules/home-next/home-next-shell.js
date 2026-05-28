@@ -5,6 +5,37 @@
 //  Feature flag: localStorage['ippo_home_next'] === '1'
 //  ON のとき window.showMain を showHomeNext に差し替える。
 //  既存の home / calendar / record / persistence は一切変更しない。
+//
+//  Phase B: settings-store 統合
+//  - 設定は window.getSettingsStore() 経由で取得（state.settingsProfile 直接依存を排除）
+//  - trackedConditions → getHomeConfiguration() に渡す（state.myDiseases フォールバック付き）
+//  - fallback: getSettingsStore が未定義なら state.settingsProfile へ後退（安全な並走）
+//
+// ─── home-next Feature Parity Map (Phase B: migration prep) ──
+// ✅ covered by home-next  ┆  ⬜ legacy-only (未移植)
+//
+// ✅ Hero / greeting       ┆  ⬜ 週間カレンダーバー (buildHomeWeekRow)
+// ✅ Status cards          ┆  ⬜ 今日のCTA状態 (updateHomeCTAState)
+// ✅ Today insight         ┆  ⬜ 数値ハイライト (updateHomeNumbers)
+// ✅ Disease-aware config  ┆  ⬜ フェーズバナー (updateHomePhaseBanner)
+// ✅ homeModules filter    ┆  ⬜ todayMessage (updateTodayMessage)
+// ✅ displayStyle CSS attr ┆
+// ✅ currentMode CSS attr  ┆
+// ✅ Quick record CTA      ┆
+// ✅ Recovery trend        ┆
+// ✅ Daily note            ┆
+// ✅ Personalize section   ┆
+// ✅ Medical summary       ┆
+// ✅ Reflections           ┆
+// ✅ Experiment suggestion ┆
+//
+// Legacy dependency map (home-renderer.js → screen-home):
+//   window.buildHomeWeekRow        → home-renderer.js:buildHomeWeekRow
+//   window.updateHomeInsightCard   → home-renderer.js:updateHomeInsightCard
+//   window.updateHomeDiseaseAdvice → home-renderer.js:updateHomeDiseaseAdvice
+//   window.updateHomeNumbers       → home-renderer.js:updateHomeNumbers
+//   window.updateHomeCTAState      → home-renderer.js:updateHomeCTAState
+//   window.showMain                → app-legacy.js:showMain (→ home-next が上書き)
 // ============================================================
 
 import './home-next.css';
@@ -66,8 +97,10 @@ const MODE_SUB_GREETINGS = {
 };
 
 function getSubGreeting(state, records) {
-  // settingsProfile.currentMode があればモード優先
-  const mode = (state.settingsProfile && state.settingsProfile.currentMode) || '';
+  // Phase B: settings-store 経由で currentMode を取得（直接 state.settingsProfile に依存しない）
+  const mode = (typeof window.getSettingsStore === 'function'
+    ? window.getSettingsStore().currentMode
+    : (state.settingsProfile && state.settingsProfile.currentMode)) || '';
   if (mode && MODE_SUB_GREETINGS[mode]) return MODE_SUB_GREETINGS[mode];
 
   // 今日の記録があれば状態に合わせた一言
@@ -111,11 +144,22 @@ function renderGreeting(container, state) {
 // ── メインレンダリング ────────────────────────────────────
 
 function renderAll() {
-  const state   = getState();
-  const config  = getHomeConfiguration(state.myDiseases || []);
-  const profile = (state.settingsProfile) || {};
-  const homeModules   = Array.isArray(profile.homeModules)   ? profile.homeModules   : null;
-  const displayStyle  = profile.displayStyle || 'balanced';
+  const state = getState();
+
+  // Phase B: settings-store 経由で設定を取得（state.settingsProfile 直接依存を排除）
+  // fallback: getSettingsStore 未定義の場合は state.settingsProfile に後退（安全な並走）
+  const store       = typeof window.getSettingsStore === 'function'
+    ? window.getSettingsStore()
+    : (state.settingsProfile || {});
+  const profile     = store; // alias: 既存の読み箇所との互換
+  const homeModules = Array.isArray(profile.homeModules)  ? profile.homeModules  : null;
+  const displayStyle = profile.displayStyle || 'balanced';
+
+  // trackedConditions: settings-store に統一。未設定なら state.myDiseases にフォールバック。
+  const conditions = (Array.isArray(store.trackedConditions) && store.trackedConditions.length)
+    ? store.trackedConditions
+    : (state.myDiseases || []);
+  const config = getHomeConfiguration(conditions);
 
   const header         = document.getElementById('hn-header');
   const greeting       = document.getElementById('hn-greeting');

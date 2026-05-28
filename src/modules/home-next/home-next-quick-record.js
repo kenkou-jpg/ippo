@@ -61,8 +61,12 @@ function getTodayRecord(records) {
 // ── トレンド一行テキスト ──────────────────────────────────
 
 function getTrendText(state) {
-  const records  = state.records || [];
-  const diseases = state.myDiseases || [];
+  const records = state.records || [];
+  // Phase E: settings-store の trackedConditions を優先使用
+  const store    = typeof window.getSettingsStore === 'function' ? window.getSettingsStore() : {};
+  const diseases = (Array.isArray(store.trackedConditions) && store.trackedConditions.length)
+    ? store.trackedConditions
+    : (state.myDiseases || []);
 
   if (records.length < 3) return '';
 
@@ -150,6 +154,13 @@ export function renderQuickRecord(container, state) {
   const trendText = getTrendText(state);
   const isDone    = !!todayRec;
 
+  // Phase E: getAdaptiveCopy() でモード別 CTA ラベルを取得
+  // fallback: 固定テキストを維持（後方互換）
+  const adaptiveCopy = typeof window.getAdaptiveCopy === 'function'
+    ? window.getAdaptiveCopy()
+    : null;
+  const ctaLabel = (adaptiveCopy && adaptiveCopy.ctaLabel) || '今日を記録する';
+
   const openRecord = `if(typeof handleHomeCTA==='function'){handleHomeCTA();}else if(typeof openRecordScreen==='function'){openRecordScreen();}`;
 
   const trendRow = trendText ? `
@@ -177,7 +188,7 @@ export function renderQuickRecord(container, state) {
       : `<div class="hn-record-cta hn-anim-5" onclick="${openRecord}" style="cursor:pointer;display:flex;align-items:center;gap:10px;padding:13px 16px;background:#FFFFFF;border:1px solid #EEE9E4;border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,0.035);margin-bottom:8px;">
           <div style="width:32px;height:32px;border-radius:10px;background:#EEF3EB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">+</div>
           <div>
-            <div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#2A2320;">今日を記録する</div>
+            <div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#2A2320;">${esc(ctaLabel)}</div>
             <div style="font-size:11px;color:#AFA298;margin-top:1px;">今日はまだ記録していません</div>
           </div>
           <span style="margin-left:auto;color:#AFA298;font-size:16px;">›</span>

@@ -220,6 +220,21 @@ import './services/adaptive-signals.js';
 import { initSettingsProfile } from './services/settings-profile.js';
 import './modules/settings-panel.js';
 
+// ─── Phase A: Settings Store (settings-profile の後に import) ──
+// 統一設定 source of truth。trackedConditions / reminderSettings を追加管理。
+// rollback: 以下2行を削除するだけで全機能がバイパスされる
+import { initStore as _initSettingsStore } from './services/settings-store.js';
+
+// ─── Phase C: Context Engine (settings-store の後・companion より前) ──
+// UI トーン / 密度 / フォーカスを on-demand で計算。5min キャッシュ。
+// rollback: この1行を削除するだけで全機能がバイパスされる
+import './services/context-engine.js';
+
+// ─── Phase D: Recommendation Engine (context-engine の後) ────
+// rule-based 推薦・adaptive copy・insight 密度計算。
+// rollback: この1行を削除するだけで全機能がバイパスされる
+import './services/recommendation-engine.js';
+
 // ─── PHASE 6: Companion Intelligence Layer ────────────────
 // companion-memory → companion-intelligence の順で依存関係を満たす
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
@@ -271,11 +286,19 @@ if (typeof window.ippoMarkViteReady === 'function') {
   });
 }
 
-// ─── Settings Profile 初期化 (bootstrap 前に state へ注入) ───
-initSettingsProfile();
-
 // ─── Startup ownership signal ────────────────────────────
 bootstrap();
+
+// ─── Settings Profile 初期化 (bootstrap 後に state へ注入) ───
+// PR-1: bootstrap() が setState({...INITIAL_STATE,...saved}) で settingsProfile を消すため
+// bootstrap 完了後に注入する。getSettingsProfile() は localStorage fallback を持つため
+// bootstrap 中も実用上は動作するが、state への一貫した注入を保証する。
+initSettingsProfile();
+
+// ─── Phase A: Settings Store 初期化 (initSettingsProfile の直後) ──
+// initSettingsProfile() が state.settingsProfile を注入した後に実行することで
+// 既存設定値を settings-store に取り込む。
+_initSettingsStore();
 
 // Phase 5: premium sync を auth-ready 待ちで開始
 startPremiumSync();

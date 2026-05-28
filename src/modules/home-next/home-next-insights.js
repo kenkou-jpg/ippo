@@ -319,13 +319,21 @@ function findBestInsight(records, config) {
 // ── インサイトカード HTML ─────────────────────────────────
 
 export function renderInsights(container, state, config) {
-  const profile      = (state.settingsProfile) || {};
-  const displayStyle = profile.displayStyle || 'balanced';
-  const currentMode  = profile.currentMode || '';
+  // Phase E: settings-store 経由で設定を取得（state.settingsProfile 直接依存を排除）
+  const store       = typeof window.getSettingsStore === 'function'
+    ? window.getSettingsStore()
+    : (state.settingsProfile || {});
+  const displayStyle = store.displayStyle || 'balanced';
+  const currentMode  = store.currentMode  || '';
   const records      = state.records || [];
 
-  // displayStyle === 'gentle': 記録少ない段階ではインサイト非表示
-  if (displayStyle === 'gentle' && records.length < 7) {
+  // Phase E: getInsightDensity() でコンテキスト別の表示閾値を取得
+  const density = typeof window.getInsightDensity === 'function'
+    ? window.getInsightDensity()
+    : (displayStyle === 'gentle' ? 'low' : 'medium');
+
+  // density が 'low' (gentle モード / low-weight モード) → 記録少ない段階では非表示
+  if (density === 'low' && records.length < 7) {
     container.innerHTML = '';
     return;
   }
@@ -337,12 +345,22 @@ export function renderInsights(container, state, config) {
     return;
   }
 
-  // currentMode に応じた補足ノート (不安を煽らない)
-  const modeNote = (currentMode === 'anxious')
-    ? '<div class="hn-insight-mode-note">傾向としての観察です。確定ではありません。</div>'
-    : (currentMode === 'tired' || currentMode === 'recovery')
-    ? '<div class="hn-insight-mode-note">無理せず、参考程度に。</div>'
-    : '';
+  // Phase E: getAdaptiveCopy() でコンテキスト調整済みの補足ノートを生成
+  // 不安を煽らない・断定しない・静かなトーンを維持
+  const adaptiveCopy = typeof window.getAdaptiveCopy === 'function'
+    ? window.getAdaptiveCopy()
+    : null;
+  const modeNote = (function() {
+    if (adaptiveCopy && adaptiveCopy.recoveryHint) {
+      return '<div class="hn-insight-mode-note">' + esc(adaptiveCopy.recoveryHint) + '</div>';
+    }
+    // fallback: hardcoded (Phase E 以前の挙動を維持)
+    if (currentMode === 'anxious')
+      return '<div class="hn-insight-mode-note">傾向としての観察です。確定ではありません。</div>';
+    if (currentMode === 'tired' || currentMode === 'recovery' || currentMode === 'slow')
+      return '<div class="hn-insight-mode-note">無理せず、参考程度に。</div>';
+    return '';
+  })();
 
   container.innerHTML = `
     <div class="hn-insight-card hn-anim-4">

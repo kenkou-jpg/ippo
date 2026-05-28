@@ -121,9 +121,21 @@ function _computeStats(records) {
 // ─────────────────────────────────────────────────────────────
 
 function _buildContext(state) {
-  const diseases = state.myDiseases || [];
-  const config   = getHomeConfiguration(diseases);
-  const records  = (state.records || []).slice(-365);
+  // Phase Next-2: settings-store を正式 source of truth として参照。
+  // fallback: getSettingsStore 未定義 → state.settingsProfile → {} の順で後退。
+  const _ss = (typeof window.getSettingsStore === 'function')
+    ? window.getSettingsStore()
+    : (state.settingsProfile || {});
+
+  // trackedConditions を diseases の正本とする。
+  // state.myDiseases は settings-store の双方向同期で常に一致しているが、
+  // settings-store が未初期化の起動極初期を想定して fallback を維持する。
+  const diseases = (Array.isArray(_ss.trackedConditions) && _ss.trackedConditions.length)
+    ? _ss.trackedConditions
+    : (state.myDiseases || []);
+
+  const config  = getHomeConfiguration(diseases);
+  const records = (state.records || []).slice(-365);
 
   return {
     profileKey:      config.profileKey,
@@ -141,11 +153,10 @@ function _buildContext(state) {
     },
     insightPriority: config.insightPriority || [],
     watchSigns:      config.watchSigns     || [],
-    // PHASE 3: displayStyle / priorityFocus (from settingsProfile if configured)
-    displayStyle:    (state.settingsProfile && state.settingsProfile.displayStyle)  || 'balanced',
-    priorityFocus:   (state.settingsProfile && state.settingsProfile.priorityFocus) || null,
-    // PHASE 5: currentMode (tired / recovery / anxious / null)
-    currentMode:     (state.settingsProfile && state.settingsProfile.currentMode)   || null,
+    // Phase Next-2: settings-store から直接取得（state.settingsProfile 経由を廃止）
+    displayStyle:    _ss.displayStyle  || 'balanced',
+    priorityFocus:   _ss.priorityFocus || null,
+    currentMode:     _ss.currentMode   || null,
   };
 }
 
