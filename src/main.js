@@ -215,9 +215,9 @@ import './services/insight-engine.js';
 // rollback: この1行を削除するだけで全機能がバイパスされる
 import './services/adaptive-signals.js';
 
-// ─── Settings Profile (個人化基盤: state 確定後・bootstrap 前) ──
+// ─── Settings Profile (互換レイヤー: window.getSettingsProfile 等を公開) ──
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
-import { initSettingsProfile } from './services/settings-profile.js';
+import './services/settings-profile.js';
 import './modules/settings-panel.js';
 
 // ─── Phase A: Settings Store (settings-profile の後に import) ──
@@ -289,15 +289,9 @@ if (typeof window.ippoMarkViteReady === 'function') {
 // ─── Startup ownership signal ────────────────────────────
 bootstrap();
 
-// ─── Settings Profile 初期化 (bootstrap 後に state へ注入) ───
-// PR-1: bootstrap() が setState({...INITIAL_STATE,...saved}) で settingsProfile を消すため
-// bootstrap 完了後に注入する。getSettingsProfile() は localStorage fallback を持つため
-// bootstrap 中も実用上は動作するが、state への一貫した注入を保証する。
-initSettingsProfile();
-
-// ─── Phase A: Settings Store 初期化 (initSettingsProfile の直後) ──
-// initSettingsProfile() が state.settingsProfile を注入した後に実行することで
-// 既存設定値を settings-store に取り込む。
+// ─── Phase A: Settings Store 初期化 (bootstrap 直後) ──
+// settings-store が source of truth。localStorage から直接 hydrate して
+// state.settingsProfile へ注入する。settings-profile.js の initSettingsProfile() は不要。
 _initSettingsStore();
 
 // Phase 5: premium sync を auth-ready 待ちで開始

@@ -389,7 +389,9 @@ export function buildTendencyContext(state) {
     sleepPatterns:   null,
     cycle:           null,
     adaptiveSignals: as ? (function() { try { return as.getAdaptiveSignals(); } catch(_) { return null; } })() : null,
-    settingsProfile: (state && state.settingsProfile) || null,
+    settingsProfile: (typeof window.getSettingsStore === 'function'
+      ? window.getSettingsStore()
+      : (state && state.settingsProfile)) || null,
   };
 }
 

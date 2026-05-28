@@ -70,7 +70,9 @@ const _NEG_EMOTIONS = ['anxious', 'irritated', 'down'];
  */
 export function buildCompanionContext(state) {
   const records = (state && state.records) || [];
-  const profile = (state && state.settingsProfile) || {};
+  const profile = (typeof window.getSettingsStore === 'function'
+    ? window.getSettingsStore()
+    : (state && state.settingsProfile)) || {};
 
   const recent14 = _sliceDays(records, 14);
   const recent30 = _sliceDays(records, 30);
@@ -456,7 +458,9 @@ function _onPostSave() {
   }
 
   updateCompanionMemory({
-    settingsProfile:     state.settingsProfile,
+    settingsProfile: (typeof window.getSettingsStore === 'function'
+      ? window.getSettingsStore()
+      : state.settingsProfile),
     activeInsightTopics: activeTopics,
   });
 }
