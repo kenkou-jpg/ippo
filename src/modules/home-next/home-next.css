@@ -29,13 +29,19 @@
   --space-32: 32px;
   --space-40: 40px;
 
-  /* ── Home-next スコープトークン ── */
-  --hn-bg:             var(--ippo-bg-base, #F7F4EF);
-  --hn-card-bg:        var(--ippo-card-bg, rgba(255,252,248,.98));
-  --hn-card-border:    1px solid rgba(221,216,208,.32);
-  --hn-card-shadow:    0 8px 24px rgba(94,84,66,.035);
-  --hn-card-radius:    var(--ippo-card-radius, 20px);
-  --hn-card-radius-lg: 24px;
+/* ── Home-next スコープトークン ── */
+
+--hn-bg:             #F5FBF7;
+
+--hn-card-bg:        rgba(248,253,249,.98);
+
+--hn-card-border:    1px solid rgba(168,220,193,.16);
+
+--hn-card-shadow:    0 8px 24px rgba(120,150,130,.05);
+
+--hn-card-radius:    var(--ippo-card-radius, 20px);
+
+--hn-card-radius-lg: 24px;
 
   /* テキスト: 温かいグレー系 */
   --hn-ink:       #2A2320;
@@ -44,10 +50,10 @@
   --hn-ink-muted: #AFA298;
 
   /* アクセント: セージグリーン */
-  --hn-sage:        #9DB095;
-  --hn-sage-mid:    #B0C2A8;
-  --hn-sage-pale:   #EEF3EB;
-
+  --hn-sage:      #A8DCC1;
+　--hn-sage-mid:  #BFE7CF;
+　--hn-sage-pale: #E3F4EA;
+   
   /* 痛みドット: テラコッタウォーム */
   --hn-terra:      #C4946A;
   --hn-terra-pale: #F5EDE3;
