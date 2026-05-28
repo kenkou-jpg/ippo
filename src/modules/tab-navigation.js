@@ -333,6 +333,12 @@ export async function switchTab(tab, btn) {
 
   if (tab === 'settings') {
     renderSharedHeader(document.getElementById('set-header'));
+    // PR-3: 設定画面を開くたびに最新 state を反映する
+    // tab-navigation.js はこれらの関数を直接 import しないため window.* 経由で呼ぶ
+    if (typeof window.updateSettingsHero       === 'function') window.updateSettingsHero();
+    if (typeof window.initSettingsPanels       === 'function') window.initSettingsPanels();
+    if (typeof window.updateDiseaseSettingDisplay === 'function') window.updateDiseaseSettingDisplay();
+    if (typeof window.updateSymptomSettingDisplay === 'function') window.updateSymptomSettingDisplay();
   }
 }
 

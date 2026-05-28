@@ -5,6 +5,47 @@
 
 import { showScreen } from './screen-router.js';
 import { getState, saveState } from '../store/state.js';
+// Phase Next-2: settings-store 経由で取得（direct import 廃止）
+// fallback: getSettingsStore 未定義なら getSettingsProfile（並走期間の安全網）
+function _getProfileForModules() {
+  if (typeof window.getSettingsStore  === 'function') return window.getSettingsStore();
+  if (typeof window.getSettingsProfile === 'function') return window.getSettingsProfile();
+  return {};
+}
+
+// ── PR-6: homeModules visibility helper ──────────────────────
+// settingsProfile.homeModules に基づきホームカードの表示/非表示を制御する。
+// MODULE_OPTIONS id → DOM element id のマッピング（標準ホームで対応するもののみ）
+var _HOME_MODULE_DOM_MAP = {
+  todayInsight:    'home-insight-card',
+  frequentSymptoms:'home-disease-advice',
+};
+
+export function applyHomeModulesVisibility() {
+  try {
+    var profile = _getProfileForModules();
+    var modules = profile.homeModules;
+    // homeModules が未設定 (null/undefined) の場合は全表示（デフォルト動作を維持）
+    if (!Array.isArray(modules)) return;
+    Object.keys(_HOME_MODULE_DOM_MAP).forEach(function(moduleId) {
+      var domId = _HOME_MODULE_DOM_MAP[moduleId];
+      var el = document.getElementById(domId);
+      if (!el) return;
+      var shouldShow = modules.indexOf(moduleId) !== -1;
+      // display:none が既に設定されている場合は上書きしない
+      // （updateHomeInsightCard 等がコンテンツ不足で自ら hide する場合を尊重）
+      if (!shouldShow) {
+        el.dataset.moduleHidden = '1';
+        el.style.display = 'none';
+      } else {
+        el.dataset.moduleHidden = '0';
+        // 再表示は各 update 関数に委ねる（コンテンツが揃った場合のみ表示）
+      }
+    });
+  } catch (e) {
+    // homeModules 制御は非クリティカル – エラー時はサイレントスキップ
+  }
+}
 
 // ── ヘルパー ─────────────────────────────────────────────────
 
@@ -187,6 +228,9 @@ export function updateHomeInsightCard() {
   var text = document.getElementById('home-insight-text');
   if (!card || !text) return;
 
+  // PR-6: homeModules で非表示指定されていればスキップ
+  if (card.dataset.moduleHidden === '1') return;
+
   var s = getState();
   var records = s.records || [];
   if (records.length < 3) { card.style.display = 'none'; return; }
@@ -271,6 +315,9 @@ export function updateHomeDiseaseAdvice() {
   var card = document.getElementById('home-disease-advice');
   var text = document.getElementById('home-disease-advice-text');
   if (!card || !text) return;
+
+  // PR-6: homeModules で非表示指定されていればスキップ
+  if (card.dataset.moduleHidden === '1') return;
 
   var s = getState();
   var diseases = s.myDiseases || [];
@@ -388,6 +435,9 @@ export function updateHomeCTAState() {
 export function showMain() {
   showScreen('home');
 
+  // PR-6: homeModules visibility を最初に適用する（各 update 関数より前）
+  applyHomeModulesVisibility();
+
   // モジュール内で完結する関数を直接呼ぶ
   updateGreeting();
   updateStats();
@@ -425,7 +475,8 @@ export function showMain() {
 // ── window bridge 登録 ────────────────────────────────────────
 // モジュール実行後に window.* を上書きしてモジュール版が優先される
 
-window.showMain              = showMain;
+window.showMain                   = showMain;
+window.applyHomeModulesVisibility = applyHomeModulesVisibility;
 window.updateDate            = updateDate;
 window.updateGreeting        = updateGreeting;
 window.updateStats           = updateStats;
@@ -453,6 +504,16 @@ window.ippoHomeRenderer = {
   updateHomeDiseaseAdvice,
   updateHomeCTAState,
 };
+
+// PR-6: homeModules 変更時にホームへリアルタイム反映
+// settings で toggle → saveSettingsProfile → ippo:settings-profile-changed → ここで更新
+window.addEventListener('ippo:settings-profile-changed', function() {
+  var homeEl = document.getElementById('screen-home');
+  if (!homeEl || !homeEl.classList.contains('active')) return;
+  applyHomeModulesVisibility();
+  updateHomeInsightCard();
+  updateHomeDiseaseAdvice();
+});
 
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('home-renderer-module-loaded');

@@ -334,10 +334,20 @@ export function computeTendencyInsights(records, context) {
 //  Public: displayStyle / priorityFocus filter
 // ─────────────────────────────────────────────────────────────
 
+// PR-4: settings-panel.js の PRIORITY_OPTIONS.id と完全一致させる
+// 旧: emotion/overwork_prevention/recording_habit/anxiety_reduction が未定義で
+//     4/7 の選択肢が insight ソートに反映されていなかった
 const _FOCUS_KEY_MAP = {
+  // 既存（変更なし）
   sleep:                  'sleep_pain',
   cycle:                  'cycle_mood',
   symptom_understanding:  'symptom_pattern',
+  // PR-4 追加: PRIORITY_OPTIONS.id に合わせた追加 4 択
+  emotion:                'emotion_pattern',
+  overwork_prevention:    'sleep_pain',       // 無理しすぎ → 睡眠/疲労パターン優先
+  recording_habit:        'symptom_pattern',  // 記録継続 → 症状パターン優先（習慣化）
+  anxiety_reduction:      'emotion_pattern',  // 不安低減 → 感情パターン優先
+  // レガシーキー（後方互換）
   '感情整理':              'emotion_pattern',
   'emotion整理':           'emotion_pattern',
 };

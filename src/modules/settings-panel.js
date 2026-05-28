@@ -4,7 +4,12 @@
 //  設定 = 伴走の調整。静かに、押しつけない。
 // ============================================================
 
-import { getSettingsProfile, saveSettingsProfile } from '../services/settings-profile.js';
+// Phase Next-2: settings-store が正式 source of truth となった。
+// settings-profile.js の関数名をエイリアスで継続使用し、呼び出し側への影響を最小化する。
+import {
+  getStore     as getSettingsProfile,
+  saveStore    as saveSettingsProfile,
+} from '../services/settings-store.js';
 
 // ── 選択肢定義 ───────────────────────────────────────────────
 

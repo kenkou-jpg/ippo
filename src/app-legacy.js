@@ -2377,6 +2377,10 @@ function obInit() {
       cycleChips.appendChild(btn);
     });
   }
+  // PR-2: 既存の myDiseases を _obDiseasesSelected に preload
+  // オンボーディング再表示時に空配列で上書きされるのを防ぐ
+  _obDiseasesSelected = (state.myDiseases || []).slice();
+
   // 疾患リスト生成
   var diseaseList = document.getElementById('ob-disease-list-new');
   if (diseaseList) {
@@ -2392,16 +2396,20 @@ function obInit() {
       categories[cat].forEach(function(d) {
         var cfg = DISEASE_CONFIG[d];
         if (!cfg) return;
-        html += '<div class="ob-chip" data-ob-disease="' + d.replace(/"/g, '&quot;') + '" '
+        // PR-2: 保存済み疾患は選択済み状態で描画
+        var preSelected = _obDiseasesSelected.indexOf(d) !== -1;
+        html += '<div class="ob-chip' + (preSelected ? ' selected' : '') + '" data-ob-disease="' + d.replace(/"/g, '&quot;') + '" '
+          + 'data-selected="' + (preSelected ? '1' : '0') + '" '
           + 'style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
         html += '<div>';
         html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + d + '</div>';
         html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'
           + cfg.questions.length + '項目のセルフチェック対応</div>';
         html += '</div>';
-        html += '<div class="ob-check-mark" style="width:20px;height:20px;border-radius:50%;'
-          + 'border:1.5px solid #e8ddd8;flex-shrink:0;display:flex;align-items:center;'
-          + 'justify-content:center;font-size:11px;color:transparent;transition:all 0.2s;">✓</div>';
+        var checkStyle = preSelected
+          ? 'width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rose);background:var(--rose);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;transition:all 0.2s;'
+          : 'width:20px;height:20px;border-radius:50%;border:1.5px solid #e8ddd8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.2s;';
+        html += '<div class="ob-check-mark" style="' + checkStyle + '">✓</div>';
         html += '</div>';
       });
     });

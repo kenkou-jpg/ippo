@@ -1,7 +1,17 @@
 // ============================================================
 //  ippo – src/services/settings-profile.js
-//  Settings Profile: 伴走調整のための個人化 state レイヤー
-//  localStorage key: ippo_settings_profile (ippo_state から独立)
+//  ⚠️  【互換レイヤー】Phase Next-2 以降、正式 source of truth は
+//      settings-store.js (window.getSettingsStore) に移行済み。
+//
+//  このファイルは以下の目的で残す:
+//  - main.js の initSettingsProfile() による起動時 state 注入
+//  - companion-intelligence.js 等の state.settingsProfile 経由の参照
+//  - 移行完了まで settings-store との並走（同一 key / 同一 event）
+//
+//  削除条件（すべて満たした時点で削除可）:
+//  - main.js が initSettingsProfile() を initSettingsStore() に一本化済み
+//  - companion-intelligence.js が settings-store を直接参照済み
+//  - state.settingsProfile への直接参照が全廃済み
 //
 //  設計: 設定 = 伴走の調整。機能スイッチではなく人格合わせ。
 // ============================================================

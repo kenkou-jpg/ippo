@@ -1308,4 +1308,46 @@
   letter-spacing: 0.015em;
 }
 
+/* ── PR-5: displayStyle visual variation ─────────────────── */
+/* data-display 属性で表示スタイルを受け取り、density と tone を変える */
 
+/* gentle: 情報密度を下げ、余白を広げ、カードの主張を弱める */
+#screen-home-next[data-display="gentle"] .hn-section {
+  gap: var(--space-20);
+}
+#screen-home-next[data-display="gentle"] .hn-insight-card {
+  background: rgba(248, 244, 240, 0.60);
+  border-color: rgba(157, 176, 149, 0.18);
+}
+#screen-home-next[data-display="gentle"] .hn-status-card {
+  background: rgba(248, 244, 240, 0.60);
+}
+#screen-home-next[data-display="gentle"] .hn-climate-card.hn-climate-tension {
+  display: none;
+}
+#screen-home-next[data-display="gentle"] .hn-insight-label,
+#screen-home-next[data-display="gentle"] .hn-section-label {
+  font-size: 9.5px;
+  opacity: 0.52;
+}
+
+/* deep: 情報量を増やし、カードの境界を明確にする */
+#screen-home-next[data-display="deep"] .hn-section {
+  gap: var(--space-8);
+}
+#screen-home-next[data-display="deep"] .hn-insight-card {
+  border-color: rgba(120, 100, 90, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+}
+#screen-home-next[data-display="deep"] .hn-status-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(120, 100, 90, 0.12);
+}
+#screen-home-next[data-display="deep"] .hn-insight-text {
+  font-size: 13.5px;
+  line-height: 1.85;
+}
+#screen-home-next[data-display="deep"] .hn-section-label {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+}
