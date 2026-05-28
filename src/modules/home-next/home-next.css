@@ -422,33 +422,38 @@
 
 /* ── ヒーローカード ──────────────────────────────────────── */
 .hn-hero {
- background:
- linear-gradient(
- to right,
- rgba(255,255,255,.82) 34%,
- rgba(248,252,248,.76) 52%,
- transparent 70%
- ),
 
- linear-gradient(
- 180deg,
- rgba(255,255,255,.90) 0%,
- rgba(248,252,248,.82) 100%
- );
+  background:
+    linear-gradient(
+      to right,
+      rgba(255,255,255,.82) 34%,
+      rgba(248,252,248,.76) 52%,
+      transparent 70%
+    ),
 
-  background-color: #FAFCF8;
-  border: 1px solid rgba(188,210,190,.18);
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.90) 0%,
+      rgba(248,252,248,.82) 100%
+    );
+
+  background-color: var(--hn-card-bg);
+
+  border: var(--hn-card-border);
+
   border-radius: var(--hn-card-radius-lg);
-  box-shadow:
-  0 8px 24px rgba(140,160,145,.05);
+
+  box-shadow: var(--hn-card-shadow);
 
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 
   padding: 24px 22px 20px;
   margin-bottom: 20px;
+
   position: relative;
   overflow: hidden;
+
   min-height: 200px;
 }
 
@@ -551,23 +556,24 @@
 }
 
 /* ── モバイル: 縦積みレイアウト (≤480px) ────────────────── */
+
 @media (max-width: 480px) {
-  .hn-hero {
-    background: linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
-    background-color: #F7F4EF;
-    padding-top: calc(58vw + 12px);
-    padding-bottom: 20px;
-    min-height: auto;
-  }
+.hn-hero {background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(248,252,248,.84) 100%);
+          background-color: var(--hn-card-bg);
+          padding-top: calc(58vw + 12px);
+          padding-bottom: 20px;
+          min-height: auto;}
+
   .hn-hero::after {
     background-size: 92% auto;
     background-position: center top;
   }
+
   .hn-hero-body {
     max-width: 100%;
   }
-}
 
+}
 /* ── 状態セクション ──────────────────────────────────────── */
 .hn-section-row {
   display: flex;
