@@ -423,15 +423,29 @@
 
 /* ── ヒーローカード ──────────────────────────────────────── */
 .hn-hero {
-  background:
-    linear-gradient(to right, rgba(249,247,243,.98) 34%, rgba(249,247,243,.88) 52%, transparent 70%),
-    linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
-  background-color: #F7F4EF;
-  border: 1px solid rgba(221,216,208,.32);
+ background:
+ linear-gradient(
+ to right,
+ rgba(255,255,255,.82) 34%,
+ rgba(248,252,248,.76) 52%,
+ transparent 70%
+ ),
+
+ linear-gradient(
+ 180deg,
+ rgba(255,255,255,.90) 0%,
+ rgba(248,252,248,.82) 100%
+ );
+
+  background-color: #FAFCF8;
+  border: 1px solid rgba(188,210,190,.18);
   border-radius: var(--hn-card-radius-lg);
-  box-shadow: 0 8px 24px rgba(94,84,66,.035);
+  box-shadow:
+  0 8px 24px rgba(140,160,145,.05);
+
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+
   padding: 24px 22px 20px;
   margin-bottom: 20px;
   position: relative;
