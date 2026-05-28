@@ -36,6 +36,28 @@ function repairStats(state) {
   }
 }
 
+// symptomDetails Object → Array schema 1回限り移行
+// legacy modal が書いた Object { symptomName: {intensity,...} } を
+// three-card 準拠 Array [{symptom, severity, types, locations}] へ変換。
+// consumer は全て Array .forEach() を前提とするため Object が残ると TypeError。
+function repairSymptomDetailsSchema(state) {
+  if (!Array.isArray(state.records)) return false;
+  var dirty = false;
+  state.records.forEach(function(r) {
+    if (!r || r.symptomDetails == null) return;
+    var sd = r.symptomDetails;
+    if (Array.isArray(sd)) return; // 既に Array → スキップ
+    if (typeof sd === 'object') {
+      r.symptomDetails = Object.keys(sd).map(function(symptom) {
+        var v = sd[symptom] || {};
+        return { symptom: symptom, severity: v.intensity || 0, types: [], locations: [] };
+      });
+      dirty = true;
+    }
+  });
+  return dirty;
+}
+
 // fastingActive フラグの不整合をリセットする（24h 超 / start なし）
 // resumeFasting() の呼び出しは呼び出し元で判断する
 function repairFastingState(state) {
@@ -90,6 +112,9 @@ export function bootstrap() {
   if (state.name && !state._onboardingDone) {
     state._onboardingDone = true;
   }
+
+  // ── 3b. symptomDetails schema 修復 ───────────────────────────
+  if (repairSymptomDetailsSchema(state)) saveState();
 
   // ── 4. Stats 修復 ─────────────────────────────────────────
   repairStats(state);
@@ -169,6 +194,7 @@ export function bootstrap() {
           }
         }
         setState(cloudData);
+        if (repairSymptomDetailsSchema(getState())) saveState(); // cloud data も修復
         if (typeof window.updateStats === 'function') window.updateStats();
         if (typeof window.updateHistory === 'function') window.updateHistory();
         if (typeof window.buildCalendar === 'function') window.buildCalendar();
