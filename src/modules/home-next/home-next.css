@@ -136,28 +136,20 @@
    Header と背景を完全一致
    ========================================================= */
 
+/* ===== SETTINGS BACKGROUND ===== */
+
 #screen-settings,
-#screen-settings .set-scroll,
-#screen-settings .settings-shell,
-#screen-settings .settings-layout,
-#screen-settings .settings-content,
-#screen-settings .hn-scroll {
+#screen-settings .set-scroll {
   background: #FAFCF8;
 }
 
 /* ===== SETTINGS HEADER ===== */
 
-#screen-settings .hn-header,
-#screen-settings #set-header,
-#screen-settings .hn-header-inner {
+#set-header,
+#set-header .hn-header,
+#set-header .hn-header-inner {
   background: #FAFCF8;
   border-bottom: 1px solid transparent;
-}
-
-/* ===== SETTINGS ROOT WRAPPER FIX ===== */
-
-#screen-settings {
-  min-height: 100dvh;
 }
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
