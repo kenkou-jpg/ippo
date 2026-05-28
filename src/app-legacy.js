@@ -4873,6 +4873,8 @@ function selectBowelCount(symptomName, count, el) {
 function saveRecord() {
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
+  // Object schema を排除: consumer は全て Array schema (三カード) を前提とする
+  delete currentRecord.symptomDetails;
 
   // ★ 編集モードの場合は編集対象日を使用
   if (state.editingDate) {
@@ -5534,6 +5536,10 @@ function handleHomeCTA(){
 
   if (isDailyCheckinDone && typeof window.openTodayReflection === 'function') {
     window.openTodayReflection();
+  } else if (rec && !isDailyCheckinDone && typeof window.openLegacyRecordScreen === 'function') {
+    // legacy 保存済みレコードがある場合 → 編集モードで legacy 画面を開く
+    state.editingDate = today;
+    window.openLegacyRecordScreen();
   } else if (typeof window.openRecordScreen === 'function') {
     window.openRecordScreen();
   } else {
