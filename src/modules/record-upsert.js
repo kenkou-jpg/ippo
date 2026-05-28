@@ -47,6 +47,15 @@ export function mergeRecordPreservingExisting(existingRecord, nextRecord) {
     const nextValue = next[key];
     const existingValue = existing[key];
 
+    // Array/Object schema 衝突: 次の値がArrayで既存がObject(非Array)の場合は schema 移行を優先
+    const isSchemaConflict = Array.isArray(nextValue)
+      && existingValue !== null && existingValue !== undefined
+      && typeof existingValue === 'object' && !Array.isArray(existingValue);
+    if (isSchemaConflict) {
+      merged[key] = cloneRecordValue(nextValue);
+      return;
+    }
+
     if (isEmptyRecordValue(nextValue) && !isEmptyRecordValue(existingValue)) {
       merged[key] = cloneRecordValue(existingValue);
       return;
