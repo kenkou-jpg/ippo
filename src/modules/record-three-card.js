@@ -517,8 +517,10 @@ function _renderAdaptiveQuestions(container) {
   var svc = window.ippoAdaptiveSignals;
   if (!svc) return;
 
-  var state = typeof window.getState === 'function' ? window.getState() : null;
-  var settingsProfile = state && state.settingsProfile;
+  // PHASE 5: settings-store 経由に切り替え（state.settingsProfile 直接依存を排除）
+  var settingsProfile = typeof window.getSettingsStore === 'function'
+    ? window.getSettingsStore()
+    : (typeof window.getState === 'function' ? (window.getState().settingsProfile || {}) : {});
   var candidates;
   try {
     candidates = svc.getAdaptiveCandidates(settingsProfile);

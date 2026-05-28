@@ -181,6 +181,15 @@ function renderAll() {
     const currentMode = profile.currentMode || '';
     screenEl.setAttribute('data-mode', currentMode);
     screenEl.setAttribute('data-display', displayStyle);
+    // PHASE 4: context-engine の emotionalTone / uiDensity を data 属性として付与
+    // CSS セレクタ [data-tone] / [data-density] でテーマ調整に利用可能
+    const ctx = typeof window.getCompanionContext === 'function'
+      ? window.getCompanionContext()
+      : null;
+    if (ctx) {
+      screenEl.setAttribute('data-tone',    ctx.emotionalTone || '');
+      screenEl.setAttribute('data-density', ctx.uiDensity     || '');
+    }
   }
 
   // homeModules: 含まれない場合は要素を空にしてスキップ
@@ -223,7 +232,9 @@ function renderAll() {
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
   if (typeof window.updateUnlock       === 'function') window.updateUnlock();
-  if (typeof window.initReminders      === 'function') window.initReminders();
+  // PHASE 6: initReminders() 呼び出しを削除
+  // home-next.html には #reminder-list が存在しないため完全な no-op だった
+  // リマインダーは settings 画面側の reminders-ui.js が担当
 }
 
 // settings-profile-changed イベントでホームを再描画
