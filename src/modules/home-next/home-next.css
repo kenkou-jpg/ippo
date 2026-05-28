@@ -122,7 +122,7 @@
 /* ===== INSIGHTS HEADER COLOR ===== */
 
 #screen-insights .hn-header {
-  background: #fdf9f8;
+  background: #FDF9F8;
   border-bottom: 1px solid transparent;
 }
 
@@ -130,27 +130,34 @@
   padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
 }
 
-/* ===== SETTINGS — SUNNY IVORY ===== */
 
-#screen-settings {
-  background: #FFFDF7;
+/* =========================================================
+   SETTINGS — SUNNY IVORY
+   Header と背景を完全一致
+   ========================================================= */
+
+#screen-settings,
+#screen-settings .set-scroll,
+#screen-settings .settings-shell,
+#screen-settings .settings-layout,
+#screen-settings .settings-content,
+#screen-settings .hn-scroll {
+  background: #FAFCF8;
 }
 
-#screen-settings .set-scroll {
-  background: #FFFDF7;
-}
+/* ===== SETTINGS HEADER ===== */
 
-#screen-settings .hn-header {
-  background: #FFFDF7;
+#screen-settings .hn-header,
+#screen-settings #set-header,
+#screen-settings .hn-header-inner {
+  background: #FAFCF8;
   border-bottom: 1px solid transparent;
 }
 
-/* ← これ追加 */
+/* ===== SETTINGS ROOT WRAPPER FIX ===== */
 
-#screen-settings .settings-shell,
-#screen-settings .settings-layout,
-#screen-settings .settings-content {
-  background: #FFFDF7;
+#screen-settings {
+  min-height: 100dvh;
 }
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
