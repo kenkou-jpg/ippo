@@ -332,6 +332,16 @@ export async function switchTab(tab, btn) {
   }
 
   if (tab === 'settings') {
+    // PHASE 1: sp-overlay.sp-active 残留を解消（設定パネルが開いたまま他タブ→設定に戻ると
+    //          position:fixed overlay が残りタップを全て吸収する問題の修正）
+    ['mode', 'priority', 'style', 'modules'].forEach(function(t) {
+      var ov = document.getElementById('sp-overlay-' + t);
+      var pn = document.getElementById('sp-panel-'  + t);
+      if (ov) ov.classList.remove('sp-active');
+      if (pn) pn.classList.remove('sp-active');
+    });
+    document.body.style.overflow = '';
+
     renderSharedHeader(document.getElementById('set-header'));
     // PR-3: 設定画面を開くたびに最新 state を反映する
     // tab-navigation.js はこれらの関数を直接 import しないため window.* 経由で呼ぶ

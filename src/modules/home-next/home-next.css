@@ -126,8 +126,45 @@
   border-bottom: 1px solid transparent;
 }
 
-.hn-scroll {
-  padding: 0 16px calc(80px + env(safe-area-inset-bottom, 0px));
+/* =========================================================
+   SCREEN SCROLL LAYOUT
+   ========================================================= */
+
+/* ホーム・設定: scroll container が horizontal padding を担当 */
+.hn-scroll,
+.set-scroll {
+  padding:
+    var(--screen-top-space)
+    16px
+    calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+/* カレンダー: 内部コンポーネントが horizontal spacing を管理するため
+   vertical のみ統一 */
+.cn-scroll {
+  padding-top:    var(--screen-top-space);
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
+/* =========================================================
+   SCREEN INTRO
+   ========================================================= */
+.screen-intro {
+  margin-bottom: var(--screen-intro-gap);
+}
+
+/* =========================================================
+   SCREEN CARD
+   ========================================================= */
+.screen-card {
+  margin-bottom: var(--screen-card-gap);
+}
+
+/* =========================================================
+   SCREEN SECTION
+   ========================================================= */
+.screen-section {
+  margin-bottom: var(--screen-section-gap);
 }
 
 
@@ -309,7 +346,7 @@
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
   padding: 16px 18px 14px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
 }
 
 /* 疾患タグ行 */
@@ -389,8 +426,7 @@
 
 /* ── グリーティングセクション ────────────────────────────── */
 .hn-greeting {
-  /* ヘッダーが sticky なので top の safe-area 分は不要 */
-  padding: 12px 0 18px;
+  margin-bottom: var(--screen-intro-gap);
 }
 
 .hn-greeting-time {
@@ -449,8 +485,7 @@
   -webkit-backdrop-filter: blur(12px);
 
   padding: 24px 22px 20px;
-  margin-bottom: 20px;
-
+  margin-bottom: var(--screen-card-gap);
   position: relative;
   overflow: hidden;
 
@@ -601,7 +636,7 @@
 .hn-sc-row {
   display: flex;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
 }
 
 .hn-status-card {
@@ -763,7 +798,7 @@
   border-radius: 16px;
   box-shadow: var(--hn-card-shadow);
   padding: 20px 16px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
 }
 
 .hn-week-grid {
@@ -812,7 +847,7 @@
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
   padding: 20px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
 }
 
 .hn-optional-head {
@@ -895,7 +930,7 @@
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
   padding: 24px 22px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
   position: relative;
   overflow: hidden;
 }
@@ -978,7 +1013,7 @@
   border-radius: var(--hn-card-radius);
   box-shadow: var(--hn-card-shadow);
   padding: 20px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap);
 }
 
 .hn-quick-title {
@@ -1066,8 +1101,8 @@
 }
 
 /* ── ユーティリティ ──────────────────────────────────────── */
-.hn-mb        { margin-bottom: 20px; }
-.hn-section   { margin-bottom: 40px; }  /* セクション間の大きな余白 */
+.hn-mb        { margin-bottom: var(--screen-card-gap); }
+.hn-section   { margin-bottom: var(--screen-section-gap); }
 
 /* スクロールバー非表示 */
 .hn-scroll::-webkit-scrollbar { display: none; }

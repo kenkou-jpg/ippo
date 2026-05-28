@@ -137,7 +137,7 @@ function buildTrendMiniChart(records) {
 
 function buildQuickGrid() {
   return QUICK_ITEMS.map(item => {
-    const openRecord = `window.__ippoQuickRecordTarget='${item.target}';if(typeof openRecordScreen==='function'){openRecordScreen();}`;
+    const openRecord = `window.__ippoQuickRecordTarget='${item.target}';if(typeof window.openRecordScreen==='function'){window.openRecordScreen();}`;
     return `
     <div class="hn-quick-item" onclick="${openRecord}">
       <div class="hn-quick-icon-wrap" style="background:${item.bg}">${item.icon}</div>
@@ -161,7 +161,7 @@ export function renderQuickRecord(container, state) {
     : null;
   const ctaLabel = (adaptiveCopy && adaptiveCopy.ctaLabel) || '今日を記録する';
 
-  const openRecord = `if(typeof handleHomeCTA==='function'){handleHomeCTA();}else if(typeof openRecordScreen==='function'){openRecordScreen();}`;
+  const openRecord = `if(typeof window.handleHomeCTA==='function'){window.handleHomeCTA();}else if(typeof window.openRecordScreen==='function'){window.openRecordScreen();}`;
 
   const trendRow = trendText ? `
     <div class="hn-quick-trend" onclick="${openRecord}" style="cursor:pointer">
