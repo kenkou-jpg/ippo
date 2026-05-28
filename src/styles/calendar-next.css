@@ -18,12 +18,12 @@
 .cn-scroll {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  /* padding は home-next.css の .cn-scroll 統一ルールで管理 */
 }
 
 /* ── ページタイトル ── */
 .cn-page-header {
-  padding: 24px 24px 16px;
+  padding: 0 24px var(--screen-intro-gap);
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -79,9 +79,7 @@
   border: var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
   box-shadow: var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
 }
-.cn-scroll > .cn-card:first-of-type {
-  margin-top: 20px;
-}
+/* first-card top margin 補正は .cn-page-header の screen-intro-gap で吸収 */
 
 /* ── 月ナビ ── */
 .cn-month-nav {

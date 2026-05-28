@@ -27,4 +27,10 @@
   --ippo-header-blur:   18px;
   --ippo-header-border: 1px solid rgba(42,35,32,0.04);
   --ippo-header-height: 72px;
+
+  /* ── Screen Layout Tokens ────────────────────────────── */
+  --screen-top-space:   24px;  /* header 下の余白 */
+  --screen-intro-gap:   24px;  /* intro block 下の余白 */
+  --screen-card-gap:    20px;  /* card 間隔 */
+  --screen-section-gap: 32px;  /* section 間隔 */
 }
