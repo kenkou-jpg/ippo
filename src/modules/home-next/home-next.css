@@ -132,7 +132,10 @@
 
 /* ===== SETTINGS — SUNNY IVORY ===== */
 
-#screen-settings,
+#screen-settings {
+  background: #FFFDF7;
+}
+
 #screen-settings .set-scroll {
   background: #FFFDF7;
 }
@@ -140,6 +143,14 @@
 #screen-settings .hn-header {
   background: #FFFDF7;
   border-bottom: 1px solid transparent;
+}
+
+/* ← これ追加 */
+
+#screen-settings .settings-shell,
+#screen-settings .settings-layout,
+#screen-settings .settings-content {
+  background: #FFFDF7;
 }
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
