@@ -15,7 +15,7 @@
 //  更新手順: CACHE_VERSION を上げる → PR → main にマージ → deploy
 // ============================================================
 // 更新時は CACHE_VERSION を上げてください
-const CACHE_VERSION = 'v7';
+const CACHE_VERSION = 'v8';
 const CACHE_NAME = 'ippo-' + CACHE_VERSION;
 
 // App Shell: 必ずキャッシュするファイル
