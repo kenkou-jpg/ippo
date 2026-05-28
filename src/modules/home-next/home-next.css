@@ -31,13 +31,13 @@
 
 /* ── Home-next スコープトークン ── */
 
---hn-bg:             var(--ippo-bg-base, #F7F4EF);
+--hn-bg:             #FAFCF8;
 
---hn-card-bg:        var(--ippo-card-bg, rgba(255,252,248,.98));
+--hn-card-bg:        rgba(255,255,255,.82);
 
---hn-card-border:    1px solid rgba(221,216,208,.32);
+--hn-card-border:    1px solid rgba(188,210,190,.18);
 
---hn-card-shadow:    0 8px 24px rgba(94,84,66,.035);
+--hn-card-shadow:    0 8px 24px rgba(140,160,145,.05);
 
 --hn-card-radius:    var(--ippo-card-radius, 20px);
 
@@ -50,9 +50,9 @@
   --hn-ink-muted: #AFA298;
 
   /* アクセント: セージグリーン */
-  --hn-sage:      #9DB095;
-　--hn-sage-mid:  #B0C2A8;
-　--hn-sage-pale: #EEF3EB;
+  --hn-sage:      #B8D8B8;
+  --hn-sage-mid:  #CFE7CF;
+  --hn-sage-pale: #EFF7EF;
    
   /* 痛みドット: テラコッタウォーム */
   --hn-terra:      #C4946A;
@@ -74,10 +74,25 @@
 /* ── スクリーン基盤 ──────────────────────────────────────── */
 #screen-home-next {
   background:
-    radial-gradient(circle at 72% 12%, rgba(191,231,207,0.10), transparent 36%),
-    radial-gradient(circle at 20% 0%, rgba(217,240,226,0.10), transparent 30%),
-    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.08), transparent 42%),
-    #F5FBF7;
+    radial-gradient(
+      circle at 72% 12%,
+      rgba(216,232,216,0.08),
+      transparent 36%
+    ),
+
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(236,244,233,0.08),
+      transparent 30%
+    ),
+
+    radial-gradient(
+      circle at 50% 60%,
+      rgba(255,255,255,0.06),
+      transparent 42%
+    ),
+
+    #FAFCF8;
 
   min-height: 100dvh;
   overflow-y: auto;
@@ -85,7 +100,7 @@
 }
 
 #screen-home-next .hn-header {
-  background: #ECF7EF;
+  background: #FAFCF8;
   border-bottom: 1px solid transparent;
 }
 
