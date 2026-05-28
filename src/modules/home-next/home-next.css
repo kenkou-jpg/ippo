@@ -6,7 +6,7 @@
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
   /* ── Global design tokens (design-system.css と同期) ── */
-  --bg-soft:      var(--ippo-bg-base, #F7F4EF);
+  --bg-soft:      var(--ippo-bg-base, #FFFFD1);
   --card-bg:      var(--ippo-card-bg, rgba(255,252,248,.98));
   --border-soft:  rgba(221,216,208,.32);
   --shadow-soft:  var(--ippo-card-shadow, 0 8px 24px rgba(94,84,66,.035));
@@ -29,13 +29,19 @@
   --space-32: 32px;
   --space-40: 40px;
 
-  /* ── Home-next スコープトークン ── */
-  --hn-bg:             var(--ippo-bg-base, #F7F4EF);
-  --hn-card-bg:        var(--ippo-card-bg, rgba(255,252,248,.98));
-  --hn-card-border:    1px solid rgba(221,216,208,.32);
-  --hn-card-shadow:    0 8px 24px rgba(94,84,66,.035);
-  --hn-card-radius:    var(--ippo-card-radius, 20px);
-  --hn-card-radius-lg: 24px;
+/* ── Home-next スコープトークン ── */
+
+--hn-bg:             #FAFCF8;
+
+--hn-card-bg:        rgba(255,255,255,.82);
+
+--hn-card-border:    1px solid rgba(188,210,190,.18);
+
+--hn-card-shadow:    0 8px 24px rgba(140,160,145,.05);
+
+--hn-card-radius:    var(--ippo-card-radius, 20px);
+
+--hn-card-radius-lg: 24px;
 
   /* テキスト: 温かいグレー系 */
   --hn-ink:       #2A2320;
@@ -44,10 +50,10 @@
   --hn-ink-muted: #AFA298;
 
   /* アクセント: セージグリーン */
-  --hn-sage:        #9DB095;
-  --hn-sage-mid:    #B0C2A8;
-  --hn-sage-pale:   #EEF3EB;
-
+  --hn-sage:      #B8D8B8;
+  --hn-sage-mid:  #CFE7CF;
+  --hn-sage-pale: #EFF7EF;
+   
   /* 痛みドット: テラコッタウォーム */
   --hn-terra:      #C4946A;
   --hn-terra-pale: #F5EDE3;
@@ -68,17 +74,56 @@
 /* ── スクリーン基盤 ──────────────────────────────────────── */
 #screen-home-next {
   background:
-    radial-gradient(circle at 72% 12%, rgba(207,220,198,0.10), transparent 36%),
-    radial-gradient(circle at 20% 0%,  rgba(239,224,206,0.12), transparent 30%),
-    radial-gradient(circle at 50% 60%, rgba(255,255,255,0.10), transparent 42%),
-    #F7F4EF;
+    radial-gradient(
+      circle at 72% 12%,
+      rgba(216,232,216,0.08),
+      transparent 36%
+    ),
+
+    radial-gradient(
+      circle at 20% 0%,
+      rgba(236,244,233,0.08),
+      transparent 30%
+    ),
+
+    radial-gradient(
+      circle at 50% 60%,
+      rgba(255,255,255,0.06),
+      transparent 42%
+    ),
+
+    #FAFCF8;
+
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
+#screen-home-next .hn-header {
+  background: #FAFCF8;
+  border-bottom: 1px solid transparent;
+}
+
+/* ===== CALENDAR THEME ===== */
+
+#screen-calendar {
+  background: #FFFDF7;
+}
+
+#screen-calendar .hn-header {
+  background: #FFFDF7;
+  border-bottom: 1px solid transparent;
+}
+
 #screen-insights {
   background: var(--hn-bg);
+}
+
+/* ===== INSIGHTS HEADER COLOR ===== */
+
+#screen-insights .hn-header {
+  background: #FDF9F8;
+  border-bottom: 1px solid transparent;
 }
 
 /* =========================================================
@@ -120,6 +165,28 @@
    ========================================================= */
 .screen-section {
   margin-bottom: var(--screen-section-gap);
+}
+
+
+/* =========================================================
+   SETTINGS — SUNNY IVORY
+   Header と背景を完全一致
+   ========================================================= */
+
+/* ===== SETTINGS BACKGROUND ===== */
+
+#screen-settings,
+#screen-settings .set-scroll {
+  background: #FFFDF7;
+}
+
+/* ===== SETTINGS HEADER ===== */
+
+#set-header,
+#set-header .hn-header,
+#set-header .hn-header-inner {
+  background: #FFFDF7;
+  border-bottom: 1px solid transparent;
 }
 
 /* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
@@ -391,19 +458,37 @@
 
 /* ── ヒーローカード ──────────────────────────────────────── */
 .hn-hero {
+
   background:
-    linear-gradient(to right, rgba(249,247,243,.98) 34%, rgba(249,247,243,.88) 52%, transparent 70%),
-    linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
-  background-color: #F7F4EF;
-  border: 1px solid rgba(221,216,208,.32);
+    linear-gradient(
+      to right,
+      rgba(255,255,255,.82) 34%,
+      rgba(248,252,248,.76) 52%,
+      transparent 70%
+    ),
+
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.90) 0%,
+      rgba(248,252,248,.82) 100%
+    );
+
+  background-color: var(--hn-card-bg);
+
+  border: var(--hn-card-border);
+
   border-radius: var(--hn-card-radius-lg);
-  box-shadow: 0 8px 24px rgba(94,84,66,.035);
+
+  box-shadow: var(--hn-card-shadow);
+
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+
   padding: 24px 22px 20px;
   margin-bottom: var(--screen-card-gap);
   position: relative;
   overflow: hidden;
+
   min-height: 200px;
 }
 
@@ -506,23 +591,24 @@
 }
 
 /* ── モバイル: 縦積みレイアウト (≤480px) ────────────────── */
+
 @media (max-width: 480px) {
-  .hn-hero {
-    background: linear-gradient(180deg, rgba(249,247,243,.96) 0%, rgba(245,243,239,.94) 100%);
-    background-color: #F7F4EF;
-    padding-top: calc(58vw + 12px);
-    padding-bottom: 20px;
-    min-height: auto;
-  }
+.hn-hero {background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(248,252,248,.84) 100%);
+          background-color: var(--hn-card-bg);
+          padding-top: calc(58vw + 12px);
+          padding-bottom: 20px;
+          min-height: auto;}
+
   .hn-hero::after {
     background-size: 92% auto;
     background-position: center top;
   }
+
   .hn-hero-body {
     max-width: 100%;
   }
-}
 
+}
 /* ── 状態セクション ──────────────────────────────────────── */
 .hn-section-row {
   display: flex;
