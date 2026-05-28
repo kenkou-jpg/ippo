@@ -137,7 +137,7 @@ function buildTrendMiniChart(records) {
 
 function buildQuickGrid() {
   return QUICK_ITEMS.map(item => {
-    const openRecord = `window.__ippoQuickRecordTarget='${item.target}';if(typeof window.openRecordScreen==='function'){window.openRecordScreen();}`;
+    const openRecord = `window.__ippoQuickRecordTarget='${item.target}';if(typeof window.openLegacyRecordScreen==='function'){window.openLegacyRecordScreen();}`;
     return `
     <div class="hn-quick-item" onclick="${openRecord}">
       <div class="hn-quick-icon-wrap" style="background:${item.bg}">${item.icon}</div>

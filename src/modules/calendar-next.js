@@ -540,7 +540,7 @@ function _buildBodyMemo() {
         <svg viewBox="0 0 14 14" width="13" height="13" fill="none" stroke="rgba(42,35,32,0.45)" stroke-width="1.3" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg"><path d="M7 12 C7 12 2.5 8.5 2.5 5 A4.5 4.5 0 0 1 11.5 5 C11.5 8.5 7 12 7 12z"/><line x1="7" y1="12" x2="7" y2="7.5"/></svg>
       </span>
       <span class="cn-section-title">今日のからだメモ</span>
-      <button class="cn-record-btn" onclick="state.editingDate=null; openRecordScreen()">記録する</button>
+      <button class="cn-record-btn" onclick="state.editingDate=null; if(typeof window.openLegacyRecordScreen==='function'){window.openLegacyRecordScreen();}">記録する</button>
     </div>
     <div class="cn-memo-row">
       <div class="cn-memo-item">
