@@ -11822,7 +11822,14 @@ if (typeof openExperiments === "function") window.openExperiments = openExperime
 if (typeof openFlareupReport === "function") window.openFlareupReport = openFlareupReport;
 if (typeof openIDB === "function") window.openIDB = openIDB;
 if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMonthlyReport;
-if (typeof openRecordScreen === "function") window.openRecordScreen = openRecordScreen;
+// FIX (2026-05-28): Vite bundles record-modules (containing record-three-card.js) as a
+// static import dependency of the main chunk, so record-three-card.js evaluates BEFORE
+// this file and sets window.openRecordScreen = openThreeCardRecord. Unconditionally
+// overwriting here would revert that override back to the legacy screen.
+// Guard: only set if NOT already claimed by a newer module (record-three-card.js etc.).
+if (typeof openRecordScreen === "function" && typeof window.openRecordScreen !== 'function') {
+  window.openRecordScreen = openRecordScreen;
+}
 if (typeof openRestoreUI === "function") window.openRestoreUI = openRestoreUI;
 if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
 if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
