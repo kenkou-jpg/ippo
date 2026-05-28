@@ -186,7 +186,7 @@ function _wireInsightsScreen() {
   }
   // "実験を記録する" → 記録画面（ボタン名通りの動作）
   var expBtn = sc.querySelector('.ipr-exp-btn');
-  if (expBtn) expBtn.onclick = function() { if (typeof window.openRecordScreen === 'function') window.openRecordScreen(); };
+  if (expBtn) expBtn.onclick = function() { if (typeof window.openLegacyRecordScreen === 'function') window.openLegacyRecordScreen(); };
 
   // ── ヒントカード ──────────────────────────────────────────
   // "すべてのヒントを見る" → insight推薦シート（パターン解析への案内）

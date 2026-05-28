@@ -5474,8 +5474,8 @@ function editPastRecord(dateStr) {
   var navItems = document.querySelectorAll('.nav-item');
   if(navItems[2]) navItems[2].classList.add('active');
   
-  if(typeof openRecordScreen === 'function') openRecordScreen();
-  
+  if(typeof window.openLegacyRecordScreen === 'function') window.openLegacyRecordScreen();
+
   // タイトルを対象日に変更
   setTimeout(function() {
     var d = new Date(dateStr);
