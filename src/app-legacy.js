@@ -11830,6 +11830,9 @@ if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMont
 if (typeof openRecordScreen === "function" && typeof window.openRecordScreen !== 'function') {
   window.openRecordScreen = openRecordScreen;
 }
+// Always export legacy function separately so the ➕ nav button can explicitly open
+// the legacy STEP1/2/3 screen (vs home CTA which uses openRecordScreen → three-card).
+if (typeof openRecordScreen === "function") window.openLegacyRecordScreen = openRecordScreen;
 if (typeof openRestoreUI === "function") window.openRestoreUI = openRestoreUI;
 if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
 if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
