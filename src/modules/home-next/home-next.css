@@ -6,7 +6,7 @@
 /* ── CSS変数 ──────────────────────────────────────────────── */
 :root {
   /* ── Global design tokens (design-system.css と同期) ── */
-  --bg-soft:      var(--ippo-bg-base, #F7F4EF);
+  --bg-soft:      var(--ippo-bg-base, #FFFFD1);
   --card-bg:      var(--ippo-card-bg, rgba(255,252,248,.98));
   --border-soft:  rgba(221,216,208,.32);
   --shadow-soft:  var(--ippo-card-shadow, 0 8px 24px rgba(94,84,66,.035));
