@@ -154,6 +154,78 @@ export function getCycleInfo(state) {
   return { lastPeriod, cycleLength, cycleDay };
 }
 
+// ─── Period comparison ────────────────────────────────────────
+/**
+ * 直近 N 日 vs その前 N 日を比較してデルタを返す。
+ * @param {Object[]} records
+ * @param {number}   [days=30]
+ * @returns {{ curr: Object, prev: Object, delta: Object }}
+ */
+export function calcPeriodComparison(records, days = 30) {
+  const now      = new Date();
+  const cutCurr  = new Date(now - days * 86400000);
+  const cutPrev  = new Date(now - days * 2 * 86400000);
+  const curr = (records || []).filter(r => {
+    const d = new Date(r.date || r.record_date || '');
+    return d >= cutCurr && !isNaN(d);
+  });
+  const prev = (records || []).filter(r => {
+    const d = new Date(r.date || r.record_date || '');
+    return d >= cutPrev && d < cutCurr && !isNaN(d);
+  });
+  const _agg = recs => ({
+    count:     recs.length,
+    painDays:  calcPainDays(recs, 2),
+    flareDays: calcFlareDays(recs, 4),
+    avgSleep:  parseFloat(calcAvgSleep(recs) ?? 0),
+  });
+  const c = _agg(curr);
+  const p = _agg(prev);
+  const sign = v => v > 0 ? `+${v}` : `${v}`;
+  return {
+    curr, prev,
+    delta: {
+      painDays:  { val: c.painDays  - p.painDays,  str: sign(c.painDays  - p.painDays)  + '日' },
+      flareDays: { val: c.flareDays - p.flareDays, str: sign(c.flareDays - p.flareDays) + '日' },
+      avgSleep:  { val: +(c.avgSleep - p.avgSleep).toFixed(1),
+                   str: sign(+(c.avgSleep - p.avgSleep).toFixed(1)) + '時間' },
+      recordFreq: {
+        val: c.count - p.count,
+        str: p.count > 0
+          ? sign(Math.round((c.count - p.count) / p.count * 100)) + '%'
+          : (c.count > 0 ? '+新規' : '変化なし'),
+      },
+    },
+  };
+}
+
+/**
+ * 症状の増加・減少を前後比較で返す。
+ * @param {Object[]} curr - 直近 N 日の記録
+ * @param {Object[]} prev - 前 N 日の記録
+ * @returns {{ increased: string[], decreased: string[], topCurrent: string|null }}
+ */
+export function calcSymptomChanges(curr, prev) {
+  const freq = recs => {
+    const m = {};
+    recs.forEach(r => (r.symptoms || []).forEach(s => { m[s] = (m[s] || 0) + 1; }));
+    return m;
+  };
+  const cf = freq(curr);
+  const pf = freq(prev);
+  const allSyms = new Set([...Object.keys(cf), ...Object.keys(pf)]);
+  const increased = [], decreased = [];
+  allSyms.forEach(s => {
+    const delta = (cf[s] || 0) - (pf[s] || 0);
+    if (delta > 0) increased.push(s);
+    else if (delta < 0) decreased.push(s);
+  });
+  increased.sort((a, b) => (cf[b] || 0) - (cf[a] || 0));
+  decreased.sort((a, b) => (pf[b] || 0) - (pf[a] || 0));
+  const topCurrent = Object.entries(cf).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  return { increased: increased.slice(0, 3), decreased: decreased.slice(0, 3), topCurrent };
+}
+
 // ─── Record date utilities ────────────────────────────────────
 /**
  * 記録の日付文字列（YYYY-MM-DD）を返す。

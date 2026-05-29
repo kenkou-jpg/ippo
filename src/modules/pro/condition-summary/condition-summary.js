@@ -20,8 +20,11 @@ import {
   getProState, esc,
   getLastNDays,
   calcFlareDays, calcPainDays, calcSleepPainCorr,
+  calcDiseaseSymptomFreq,
 } from '../shared/pro-metric-utils.js';
 import {
+  renderSummarySection,
+  renderStatCard,
   renderAlertBox,
   renderEmptyState,
 } from '../shared/render/index.js';
@@ -75,6 +78,37 @@ function _aggregateDisease(disease, records90) {
     .slice(0, 3)
     .map(([sym, cnt]) => ({ sym, cnt, extra: true }));
 
+  // 前半45日 vs 後半45日の症状比較
+  const half = Math.floor(DAYS / 2);
+  const now  = new Date();
+  const cutMid  = new Date(now - half * 86400000);
+  const cutFull = new Date(now - DAYS * 86400000);
+  const recentHalf = records90.filter(r => new Date(r.date || r.record_date || '') >= cutMid);
+  const prevHalf   = records90.filter(r => {
+    const d = new Date(r.date || r.record_date || '');
+    return d >= cutFull && d < cutMid;
+  });
+  const freqRecent = calcDiseaseSymptomFreq(recentHalf, specificSymptoms);
+  const freqPrev   = calcDiseaseSymptomFreq(prevHalf,   specificSymptoms);
+  const freqMap    = Object.fromEntries(freqPrev.map(({ sym, cnt }) => [sym, cnt]));
+  const worsened   = freqRecent.filter(({ sym, cnt }) => cnt > (freqMap[sym] ?? 0) && cnt > 0)
+    .sort((a, b) => b.cnt - a.cnt).slice(0, 3);
+  const stable     = freqRecent.filter(({ sym, cnt }) => cnt <= (freqMap[sym] ?? 0) && cnt > 0)
+    .sort((a, b) => b.cnt - a.cnt).slice(0, 3);
+
+  // ルールベース観察メモ
+  const obs = [];
+  if (calcFlareDays(recentHalf, 4) > calcFlareDays(prevHalf, 4)) {
+    obs.push('最近の期間でフレアが増加しています');
+  }
+  const recentSleepShort = recentHalf.filter(r => r.sleepHours > 0 && r.sleepHours < 6).length;
+  if (recentSleepShort >= 3) {
+    obs.push('睡眠6時間未満の日が増えています（症状悪化と関連しやすい傾向）');
+  }
+  if (worsened.length > 0) {
+    obs.push(`${worsened[0].sym}が最近 ${worsened[0].cnt} 日と増加傾向です`);
+  }
+
   return {
     cfg,
     disease,
@@ -84,6 +118,9 @@ function _aggregateDisease(disease, records90) {
     flareDays:       calcFlareDays(records90, 4),
     painDays:        calcPainDays(records90, 2),
     sleepCorr:       calcSleepPainCorr(records90),
+    worsened,
+    stable,
+    observations:    obs,
   };
 }
 
@@ -131,6 +168,34 @@ function _buildDiseaseCard(disease, records90) {
     ? `<div class="pob-tip">💡 ${esc(cfg.trackingTips)}</div>`
     : '';
 
+  // 最近悪化した項目
+  let worsenedHtml = '';
+  if (d.worsened.length > 0 && d.recordCount >= 14) {
+    const rows = d.worsened.map(({ sym }) =>
+      `<div class="cos-sym-row cos-sym-worsened"><span>▲ ${esc(sym)}</span><span class="cos-sym-count">増加傾向</span></div>`
+    ).join('');
+    worsenedHtml = renderSummarySection('最近悪化した項目', `<div class="cos-sym-list">${rows}</div>`);
+  }
+
+  // 安定している項目
+  let stableHtml = '';
+  if (d.stable.length > 0 && d.recordCount >= 14) {
+    const rows = d.stable.map(({ sym }) =>
+      `<div class="cos-sym-row cos-sym-stable"><span>✓ ${esc(sym)}</span><span class="cos-sym-count">安定</span></div>`
+    ).join('');
+    stableHtml = renderSummarySection('安定している項目', `<div class="cos-sym-list">${rows}</div>`);
+  }
+
+  // 疾患観察メモ
+  let obsHtml = '';
+  if (d.observations.length > 0) {
+    const items = d.observations.map(o => `<li>${esc(o)}</li>`).join('');
+    obsHtml = renderAlertBox('info',
+      `<div class="pob-info-label">🔍 観察ポイント</div><ul style="margin:.4rem 0 0 1.2rem;padding:0;line-height:1.7">${items}</ul>`,
+      'cos-card-status'
+    );
+  }
+
   return `
     <div class="cos-disease-card">
       <div class="cos-disease-header">
@@ -140,6 +205,9 @@ function _buildDiseaseCard(disease, records90) {
       <div class="cos-label">関連症状の出現（過去${DAYS}日）</div>
       <div class="cos-sym-list">${symHtml}</div>
       ${flareHtml}
+      ${worsenedHtml}
+      ${stableHtml}
+      ${obsHtml}
       ${sleepHtml}
       ${tipHtml}
     </div>`;
