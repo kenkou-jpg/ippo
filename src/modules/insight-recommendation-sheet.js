@@ -49,11 +49,15 @@ function _navigate(key) {
     'symptom-trends':    () => {
       if (typeof window.switchTab !== 'function') return;
       const p = window.switchTab('insights', null);
-      if (p && typeof p.then === 'function') {
-        p.then(() => {
-          if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
-        });
-      }
+      // switchInsTab('trends') は ins-tab-btn-* 廃止により no-op のため使わない。
+      // insights は単一スクロール画面。.ipr-graph-card へ直接スクロール。
+      const _scroll = () => {
+        if (typeof window.renderProSymptomTrends === 'function') window.renderProSymptomTrends();
+        const graph = document.querySelector('.ipr-graph-card');
+        if (graph) graph.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      };
+      if (p && typeof p.then === 'function') p.then(_scroll);
+      else _scroll();
     },
   };
   _log('recommendation_selected', { key });

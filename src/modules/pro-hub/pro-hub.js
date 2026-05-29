@@ -251,15 +251,17 @@ const LEGACY_HANDLERS = {
   'doctor-summary':   () => typeof window.openDoctorVisitSummary  === 'function' && window.openDoctorVisitSummary(),
   // src/modules/pro/condition-summary/condition-summary.js
   'condition-summary':() => typeof window.openConditionSummary    === 'function' && window.openConditionSummary(),
-  // ins-pane-trends を正式 PRO 画面として昇格（既存資産再利用）
+  // insights へ遷移し「症状・体調の推移」セクションへスクロール
+  // 旧 switchInsTab('trends') は ins-tab-btn-* 廃止により no-op のため使わない
   'symptom-trends':   () => {
     if (typeof window.switchTab !== 'function') return;
     const p = window.switchTab('insights', null);
-    // switchTab 完了後に trends サブタブへ確実に切り替える
     const _afterSwitch = () => {
-      if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
-      // PRO サマリーを ins-pane-trends 末尾に注入
+      // PRO サマリーを .ipr-graph-card の直後に注入
       if (typeof window.renderProSymptomTrends === 'function') window.renderProSymptomTrends();
+      // .ipr-graph-card = insights画面の「症状・体調の推移」セクション
+      const graph = document.querySelector('.ipr-graph-card');
+      if (graph) graph.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     if (p && typeof p.then === 'function') p.then(_afterSwitch);
     else _afterSwitch();
