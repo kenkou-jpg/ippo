@@ -256,11 +256,13 @@ const LEGACY_HANDLERS = {
     if (typeof window.switchTab !== 'function') return;
     const p = window.switchTab('insights', null);
     // switchTab 完了後に trends サブタブへ確実に切り替える
-    if (p && typeof p.then === 'function') {
-      p.then(() => {
-        if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
-      });
-    }
+    const _afterSwitch = () => {
+      if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
+      // PRO サマリーを ins-pane-trends 末尾に注入
+      if (typeof window.renderProSymptomTrends === 'function') window.renderProSymptomTrends();
+    };
+    if (p && typeof p.then === 'function') p.then(_afterSwitch);
+    else _afterSwitch();
   },
 };
 

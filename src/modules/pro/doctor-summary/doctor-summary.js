@@ -21,12 +21,14 @@ import {
   calcFlareDays, calcPainDays,
   calcAvgSleep, calcAvgTemp,
   getCycleInfo, getSortedDates,
+  calcPeriodComparison, calcSymptomChanges,
 } from '../shared/pro-metric-utils.js';
 import { copyToClipboard } from '../shared/pro-copy-utils.js';
 import {
   renderSummarySection,
   renderStatCard,
   renderAlertBox,
+  renderMetricRow,
   renderEmptyState,
 } from '../shared/render/index.js';
 
@@ -67,6 +69,8 @@ function _aggregate() {
   const allRec = s?.records || [];
   const r30    = getLastNDays(allRec, DAYS);
   const dates  = getSortedDates(r30);
+  const cmp    = calcPeriodComparison(allRec, DAYS);
+  const symChg = calcSymptomChanges(cmp.curr, cmp.prev);
 
   return {
     totalDays:   r30.length,
@@ -78,6 +82,8 @@ function _aggregate() {
     avgTemp:     calcAvgTemp(r30),
     ...getCycleInfo(s),
     myDiseases:  s?.myDiseases ?? (s?.myDisease ? [s.myDisease] : []),
+    comparison:  cmp,
+    symChanges:  symChg,
   };
 }
 
@@ -157,6 +163,54 @@ function _buildSections(data) {
     ));
   }
 
+  // ── 最近の変化（前30日比）
+  const { delta, prev } = data.comparison;
+  if (prev.count >= 3) {
+    const changeRows = [];
+    if (delta.painDays.val !== 0)
+      changeRows.push(renderMetricRow({
+        label: '痛みの日数',
+        value: delta.painDays.str + (delta.painDays.val > 0 ? ' ▲' : ' ▼'),
+      }));
+    if (delta.flareDays.val !== 0)
+      changeRows.push(renderMetricRow({
+        label: 'フレア日数',
+        value: delta.flareDays.str + (delta.flareDays.val > 0 ? ' ▲' : ' ▼'),
+      }));
+    if (Math.abs(delta.avgSleep.val) >= 0.3)
+      changeRows.push(renderMetricRow({
+        label: '睡眠時間',
+        value: delta.avgSleep.str + (delta.avgSleep.val > 0 ? ' ▲' : ' ▼'),
+      }));
+    if (delta.recordFreq.val !== 0)
+      changeRows.push(renderMetricRow({
+        label: '記録頻度',
+        value: delta.recordFreq.str,
+      }));
+    if (changeRows.length > 0) {
+      s.push(renderSummarySection('最近の変化（前の30日比）',
+        `<div class="pob-card">${changeRows.join('')}</div>`
+      ));
+    }
+  }
+
+  // ── 受診メモ（増えた症状・減った症状・一番困っている症状）
+  const { increased, decreased, topCurrent } = data.symChanges;
+  const memoLines = [];
+  if (topCurrent)
+    memoLines.push(`<li>一番困っている症状：<strong>${esc(topCurrent)}</strong></li>`);
+  if (increased.length > 0)
+    memoLines.push(`<li>最近増えた症状：${increased.map(esc).join('、')}</li>`);
+  if (decreased.length > 0)
+    memoLines.push(`<li>最近減った症状：${decreased.map(esc).join('、')}</li>`);
+  if (memoLines.length > 0) {
+    s.push(renderSummarySection('受診時に伝えたいこと',
+      renderAlertBox('info',
+        `<div class="pob-info-label">📋 受診メモ（自動生成）</div><ul style="margin:.4rem 0 0 1.2rem;padding:0;line-height:1.7">${memoLines.join('')}</ul>`
+      )
+    ));
+  }
+
   // ── 受診のポイント
   s.push(renderSummarySection(null,
     renderAlertBox('info',
@@ -197,6 +251,28 @@ function _buildCopyText(data) {
   if (data.avgTemp)  lines.push(`◆ 平均基礎体温: ${data.avgTemp}℃`, '');
   if (data.myDiseases.length > 0) {
     lines.push(`◆ 追跡中の疾患: ${data.myDiseases.join('、')}`, '');
+  }
+  // 最近の変化
+  const { delta, prev } = data.comparison;
+  if (prev.count >= 3) {
+    const changeItems = [];
+    if (delta.painDays.val !== 0)  changeItems.push(`  痛みの日数 ${delta.painDays.str}`);
+    if (delta.flareDays.val !== 0) changeItems.push(`  フレア日数 ${delta.flareDays.str}`);
+    if (Math.abs(delta.avgSleep.val) >= 0.3) changeItems.push(`  睡眠時間 ${delta.avgSleep.str}`);
+    if (changeItems.length > 0) {
+      lines.push('◆ 最近の変化（前の30日比）');
+      changeItems.forEach(l => lines.push(l));
+      lines.push('');
+    }
+  }
+  // 受診メモ
+  const { increased, decreased, topCurrent } = data.symChanges;
+  if (topCurrent || increased.length > 0 || decreased.length > 0) {
+    lines.push('◆ 受診時に伝えたいこと');
+    if (topCurrent)        lines.push(`  一番困っている症状: ${topCurrent}`);
+    if (increased.length)  lines.push(`  最近増えた症状: ${increased.join('、')}`);
+    if (decreased.length)  lines.push(`  最近減った症状: ${decreased.join('、')}`);
+    lines.push('');
   }
   lines.push('※ このまとめは ippo アプリの記録データをもとに生成しています。医学的診断ではありません。');
   return lines.join('\n');

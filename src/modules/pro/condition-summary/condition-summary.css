@@ -74,3 +74,7 @@
 
 /* ── Status boxes inside disease card — add top spacing ──── */
 .cos-card-status { margin-top: 10px; }
+
+/* ── Worsened / Stable symptom rows ─────────────────────── */
+.cos-sym-worsened span:first-child { color: #d45a5a; }
+.cos-sym-stable   span:first-child { color: #5a9070; }
