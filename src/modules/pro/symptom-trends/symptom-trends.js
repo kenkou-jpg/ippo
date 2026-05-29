@@ -132,16 +132,18 @@ function _buildTrendsSummary() {
     </div>`;
 }
 
-// ─── Inject into ins-pane-trends ─────────────────────────────
+// ─── Inject after .ipr-graph-card (visible in current single-scroll design) ──
+// ins-pane-trends は display:none 永久固定のため使わない。
+// 実際の「症状・体調の推移」は .ipr-graph-card として常時表示されている。
 export function renderProSymptomTrends() {
-  const pane = document.getElementById('ins-pane-trends');
-  if (!pane) return;
+  const anchor = document.querySelector('.ipr-graph-card');
+  if (!anchor) return;
 
   // 既存の PRO サマリーを削除して再描画
   const old = document.getElementById(CONTAINER_ID);
   if (old) old.remove();
 
-  pane.insertAdjacentHTML('beforeend', _buildTrendsSummary());
+  anchor.insertAdjacentHTML('afterend', _buildTrendsSummary());
 }
 
 // ─── Expose globally ─────────────────────────────────────────
