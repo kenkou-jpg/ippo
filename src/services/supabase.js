@@ -214,7 +214,12 @@ export function cloudRestore() {
 
         if (cloudDate > localDate) {
           var safeCloud = Object.assign({}, cloudState);
-          var mergedState = Object.assign({}, s, safeCloud);
+          var mergedState = Object.assign({}, s);
+          Object.keys(safeCloud).forEach(function(key) {
+            if (safeCloud[key] !== undefined && safeCloud[key] !== null) {
+              mergedState[key] = safeCloud[key];
+            }
+          });
           mergedState.records   = mergedRecords;
           mergedState.lastSaved = cloudDate.toISOString();
           setState(mergedState);
