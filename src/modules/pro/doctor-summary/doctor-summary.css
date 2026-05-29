@@ -1,0 +1,14 @@
+/* ================================================================
+   ippo – src/modules/pro/doctor-summary/doctor-summary.css
+   受診用まとめ — feature-specific overrides
+
+   共通スタイルは pro-overlay-base.css (pob-*) から継承。
+   このファイルは doctor-summary 固有の差分のみを記述する。
+   ================================================================ */
+@import '../shared/pro-overlay-base.css';
+
+/*
+  現時点では doctor-summary 固有の上書きは不要。
+  将来 feature 固有のアクセントカラーや追加レイアウトが
+  必要になった場合はここに追記する。
+*/

@@ -1,0 +1,309 @@
+/* ================================================================
+   ippo – src/modules/pro/shared/pro-overlay-base.css
+   PRO overlay の共有構造スタイル
+
+   使用方法:
+     各 PRO feature の CSS でこのファイルをインポートする。
+     feature 固有の上書きはインポート後に行う。
+
+   クラス prefix: pob- (PRO Overlay Base)
+
+   共有するもの: 構造・アニメーション・タイポグラフィ・部品
+   共有しないもの: feature の責務・title・data・state
+   ================================================================ */
+
+/* ── Overlay backdrop ─────────────────────────────────────── */
+.pob-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(44, 36, 32, 0.38);
+  z-index: 6100;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.pob-overlay.pob-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Sheet ────────────────────────────────────────────────── */
+.pob-sheet {
+  width: 100%;
+  max-height: 92dvh;
+  background: var(--cream, #faf8f3);
+  border-radius: 24px 24px 0 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.34, 1.1, 0.64, 1);
+}
+.pob-overlay.pob-open .pob-sheet {
+  transform: translateY(0);
+}
+
+/* ── Handle ───────────────────────────────────────────────── */
+.pob-handle {
+  width: 40px;
+  height: 4px;
+  background: rgba(44, 36, 32, 0.12);
+  border-radius: 2px;
+  margin: 12px auto 0;
+}
+
+/* ── Header ───────────────────────────────────────────────── */
+.pob-header {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid rgba(44, 36, 32, 0.07);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.pob-title {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 18px;
+  color: var(--ink, #2a2320);
+  line-height: 1.3;
+}
+.pob-subtitle {
+  font-size: 11px;
+  color: rgba(44, 36, 32, 0.48);
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+.pob-close-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+  color: rgba(44, 36, 32, 0.38);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: -2px;
+  transition: background 0.1s;
+}
+.pob-close-btn:active { background: rgba(44, 36, 32, 0.06); }
+
+/* ── Body ─────────────────────────────────────────────────── */
+.pob-body {
+  padding: 18px 20px 8px;
+}
+.pob-loading {
+  text-align: center;
+  padding: 40px 16px;
+  font-size: 13px;
+  color: rgba(44, 36, 32, 0.42);
+  line-height: 1.7;
+}
+.pob-empty {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 13px;
+  color: rgba(44, 36, 32, 0.45);
+  line-height: 1.9;
+}
+
+/* ── Section ──────────────────────────────────────────────── */
+.pob-section {
+  margin-bottom: 20px;
+}
+.pob-section-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(44, 36, 32, 0.38);
+  margin-bottom: 9px;
+}
+
+/* ── Card ─────────────────────────────────────────────────── */
+.pob-card {
+  background: var(--white, #fff);
+  border-radius: 14px;
+  padding: 2px 16px;
+  border: 1px solid rgba(44, 36, 32, 0.06);
+}
+
+/* ── Row ──────────────────────────────────────────────────── */
+.pob-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(44, 36, 32, 0.05);
+  font-size: 13px;
+  color: var(--ink, #2a2320);
+  line-height: 1.4;
+}
+.pob-row:last-child { border-bottom: none; }
+.pob-row-label {
+  font-size: 12px;
+  color: rgba(44, 36, 32, 0.48);
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+.pob-row-value { text-align: right; }
+.pob-count-badge {
+  font-size: 11px;
+  color: rgba(44, 36, 32, 0.38);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
+/* ── Status boxes ─────────────────────────────────────────── */
+.pob-alert {
+  background: rgba(212, 132, 90, 0.07);
+  border: 1px solid rgba(212, 132, 90, 0.22);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: rgba(44, 36, 32, 0.72);
+  line-height: 1.7;
+}
+.pob-good {
+  background: rgba(90, 144, 112, 0.06);
+  border: 1px solid rgba(90, 144, 112, 0.2);
+  border-radius: 12px;
+  padding: 12px 14px;
+  font-size: 12.5px;
+  color: rgba(44, 36, 32, 0.7);
+  line-height: 1.7;
+}
+.pob-info {
+  background: rgba(74, 144, 200, 0.05);
+  border: 1px solid rgba(74, 144, 200, 0.18);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-size: 12.5px;
+  color: rgba(44, 36, 32, 0.7);
+  line-height: 1.75;
+}
+.pob-info-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(74, 144, 200, 0.8);
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ── Tip ──────────────────────────────────────────────────── */
+.pob-tip {
+  font-size: 12px;
+  color: rgba(44, 36, 32, 0.5);
+  line-height: 1.75;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(44, 36, 32, 0.05);
+}
+.pob-no-data {
+  font-size: 12px;
+  color: rgba(44, 36, 32, 0.38);
+  padding: 6px 0 10px;
+  line-height: 1.6;
+}
+
+/* ── Empty state ──────────────────────────────────────────── */
+.pob-empty-state {
+  text-align: center;
+  padding: 36px 20px;
+}
+.pob-empty-icon   { font-size: 38px; margin-bottom: 14px; }
+.pob-empty-title  {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink, #2a2320);
+  margin-bottom: 10px;
+}
+.pob-empty-desc {
+  font-size: 12.5px;
+  color: rgba(44, 36, 32, 0.5);
+  line-height: 1.85;
+  margin-bottom: 22px;
+}
+.pob-empty-action {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid rgba(44, 36, 32, 0.16);
+  border-radius: 20px;
+  padding: 10px 22px;
+  font-size: 13px;
+  color: rgba(44, 36, 32, 0.58);
+  cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+  transition: background 0.15s;
+}
+.pob-empty-action:active { background: rgba(44, 36, 32, 0.05); }
+
+/* ── Timeline ─────────────────────────────────────────────── */
+/* ※ 将来用 — renderTimeline.js と組み合わせて使用 */
+.pob-timeline { margin-bottom: 4px; }
+.pob-tl-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(44, 36, 32, 0.05);
+  font-size: 12.5px;
+  color: var(--ink, #2a2320);
+}
+.pob-tl-row:last-child { border-bottom: none; }
+.pob-tl-date {
+  font-size: 11px;
+  color: rgba(44, 36, 32, 0.45);
+  flex-shrink: 0;
+  min-width: 84px;
+}
+.pob-tl-label { flex: 1; line-height: 1.4; }
+
+/* ── Disclaimer ───────────────────────────────────────────── */
+.pob-disclaimer {
+  font-size: 10px;
+  color: rgba(44, 36, 32, 0.35);
+  text-align: center;
+  padding: 4px 16px 12px;
+  line-height: 1.7;
+}
+
+/* ── Footer ───────────────────────────────────────────────── */
+.pob-footer {
+  padding: 10px 20px 28px;
+  display: flex;
+  gap: 10px;
+}
+.pob-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-family: 'Noto Sans JP', sans-serif;
+  cursor: pointer;
+  font-weight: 500;
+  border: none;
+  transition: opacity 0.15s;
+}
+.pob-btn:active { opacity: 0.75; }
+.pob-btn-primary {
+  background: var(--rose, #c47b8a);
+  color: #fff;
+}
+.pob-btn-secondary {
+  background: transparent;
+  border: 1px solid rgba(44, 36, 32, 0.12);
+  color: rgba(44, 36, 32, 0.58);
+}
+.pob-btn-full {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(44, 36, 32, 0.12);
+  color: rgba(44, 36, 32, 0.58);
+}

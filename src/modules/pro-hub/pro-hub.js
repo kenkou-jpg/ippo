@@ -210,8 +210,26 @@ export function closeProHub() {
   setTimeout(() => { if (!_isOpen) document.body.style.overflow = ''; }, 260);
 }
 
-// ─── Map: feature key → existing window function ──────────
-// Functions already implemented in app-legacy.js
+// ─── Map: feature key → dedicated window function ─────────
+//
+// 設計ルール: 1 feature = 1 screen owner
+// このマップに登録できるのは「専用実装が完成している機能」のみ。
+//
+// 未完成機能はここに登録しない。
+// → _navigateToPro() が pro-feature fallback 画面へ安全に遷移する。
+//
+// 絶対禁止:
+//   - 別機能の overlay/screen を流用する
+//   - 既存 screen への仮接続（temporary redirect）
+//   - title だけ差し替えた擬似 screen
+//
+// 新規 PRO 機能を追加する際は下記チェックリストをクリアしてから登録すること:
+//   1. 専用 screen / overlay が存在するか
+//   2. 専用 render / mount が存在するか
+//   3. close 処理が存在するか
+//   4. 他 feature の screen・overlay・state を流用していないか
+//   5. 未達なら pro-feature fallback（このマップから除外）
+//
 const LEGACY_HANDLERS = {
   'ai-pattern':       () => typeof window.openAIAnalysis       === 'function' && window.openAIAnalysis(),
   'bbt-pattern':      () => typeof window.openTempReport       === 'function' && window.openTempReport(),
@@ -226,11 +244,24 @@ const LEGACY_HANDLERS = {
   'restore':          () => typeof window.openRestoreUI         === 'function' && window.openRestoreUI(),
   'export':           () => typeof window.showExportMenu        === 'function' ? window.showExportMenu()
                           : typeof window.exportCSV             === 'function' && window.exportCSV(),
-  'body-summary':     () => typeof window.openDoctorSummary     === 'function' && window.openDoctorSummary(),
-  'doctor-summary':   () => typeof window.openDoctorSummary     === 'function' && window.openDoctorSummary(),
-  'monthly-pdf':      () => typeof window.openMonthlyReport     === 'function' && window.openMonthlyReport(),
-  'symptom-trends':   () => typeof window.switchTab             === 'function' && window.switchTab('insights', null),
-  'condition-summary':() => typeof window.openDiseaseSettings   === 'function' && window.openDiseaseSettings(),
+  'body-summary':     () => typeof window.openDoctorSummary       === 'function' && window.openDoctorSummary(),
+  'monthly-pdf':      () => typeof window.openMonthlyReport       === 'function' && window.openMonthlyReport(),
+  // ── 専用実装完了済み: 以下はそれぞれ独立モジュールを持つ ───────────
+  // src/modules/pro/doctor-summary/doctor-summary.js
+  'doctor-summary':   () => typeof window.openDoctorVisitSummary  === 'function' && window.openDoctorVisitSummary(),
+  // src/modules/pro/condition-summary/condition-summary.js
+  'condition-summary':() => typeof window.openConditionSummary    === 'function' && window.openConditionSummary(),
+  // ins-pane-trends を正式 PRO 画面として昇格（既存資産再利用）
+  'symptom-trends':   () => {
+    if (typeof window.switchTab !== 'function') return;
+    const p = window.switchTab('insights', null);
+    // switchTab 完了後に trends サブタブへ確実に切り替える
+    if (p && typeof p.then === 'function') {
+      p.then(() => {
+        if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
+      });
+    }
+  },
 };
 
 // ─── Navigate to PRO feature screen ───────────────────────

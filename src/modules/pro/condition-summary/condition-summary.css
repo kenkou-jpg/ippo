@@ -1,0 +1,76 @@
+/* ================================================================
+   ippo – src/modules/pro/condition-summary/condition-summary.css
+   疾患観察まとめ — feature-specific overrides
+
+   共通スタイルは pro-overlay-base.css (pob-*) から継承。
+   このファイルは condition-summary 固有の差分のみを記述する。
+
+   共有から引き継ぐもの:
+     overlay / sheet / handle / header / title / subtitle /
+     close-btn / body / loading / footer / button /
+     empty-state / alert / good / tip / no-data
+
+   ここで定義するもの:
+     cos-disease-card  — 疾患ごとのカード
+     cos-disease-header / cos-disease-icon / cos-disease-name
+     cos-label         — カード内セクション見出し
+     cos-sym-list / cos-sym-row / cos-sym-count
+     cos-card-status   — カード内 alert/good の上マージン
+   ================================================================ */
+@import '../shared/pro-overlay-base.css';
+
+/* ── Disease card ─────────────────────────────────────────── */
+.cos-disease-card {
+  background: var(--white, #fff);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(44, 36, 32, 0.06);
+}
+.cos-disease-header {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(44, 36, 32, 0.06);
+}
+.cos-disease-icon { font-size: 22px; }
+.cos-disease-name {
+  font-family: 'Shippori Mincho', serif;
+  font-size: 16px;
+  color: var(--ink, #2a2320);
+}
+
+/* ── Section label within disease card ───────────────────── */
+.cos-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: rgba(44, 36, 32, 0.36);
+  margin-bottom: 8px;
+  margin-top: 14px;
+}
+.cos-label:first-of-type { margin-top: 0; }
+
+/* ── Symptom rows ─────────────────────────────────────────── */
+.cos-sym-list { margin-bottom: 4px; }
+.cos-sym-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(44, 36, 32, 0.04);
+  font-size: 13px;
+  color: var(--ink, #2a2320);
+}
+.cos-sym-row:last-child { border-bottom: none; }
+.cos-sym-count {
+  font-size: 11px;
+  color: rgba(44, 36, 32, 0.38);
+  white-space: nowrap;
+}
+
+/* ── Status boxes inside disease card — add top spacing ──── */
+.cos-card-status { margin-top: 10px; }
