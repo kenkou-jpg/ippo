@@ -154,6 +154,7 @@ export function saveState() {
   try {
     var s = Object.assign({}, getState());
     s.lastSaved = new Date().toISOString();
+    _state.lastSaved = s.lastSaved;
     localStorage.setItem(STATE_KEY, JSON.stringify(s));
   } catch(e) {
     saveErr = e;
