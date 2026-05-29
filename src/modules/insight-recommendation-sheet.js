@@ -20,6 +20,19 @@ const THINKING_TOPICS = [
 
 // ─── Feature navigation (mirrors pro-hub LEGACY_HANDLERS) ─
 // Kept local to avoid circular imports with pro-hub.js.
+//
+// 設計ルール: 1 feature = 1 screen owner
+// 未接続機能はここに登録しない。ハンドラが存在しない場合は
+// openProHub() へフォールスルーし、ユーザーが自分で選択できるようにする。
+//
+// 絶対禁止:
+//   - 別機能の overlay/screen を流用する
+//   - 既存 screen への仮接続（temporary redirect）
+//
+// 未接続の機能（openProHub フォールスルー行き）:
+//   'symptom-trends'   — 専用実装なし。insights/trends pane への仮接続も禁止
+//   'condition-summary'— 専用実装なし。openDiseaseSettings() は設定モーダルのため流用禁止
+//
 function _navigate(key) {
   const HANDLERS = {
     'ai-pattern':        () => typeof window.openAIAnalysis        === 'function' && window.openAIAnalysis(),
@@ -28,14 +41,32 @@ function _navigate(key) {
     'cycle-compare':     () => typeof window.openCyclePhaseReport  === 'function' && window.openCyclePhaseReport(),
     'experiments':       () => typeof window.openExperiments       === 'function' && window.openExperiments(),
     'factor-report':     () => typeof window.openCorrelationReport === 'function' && window.openCorrelationReport(),
-    'body-summary':      () => typeof window.openDoctorSummary     === 'function' && window.openDoctorSummary(),
-    'monthly-pdf':       () => typeof window.openMonthlyReport     === 'function' && window.openMonthlyReport(),
-    'symptom-trends':    () => typeof window.switchTab             === 'function' && window.switchTab('insights'),
-    'condition-summary': () => typeof window.openDiseaseSettings   === 'function' && window.openDiseaseSettings(),
+    'body-summary':      () => typeof window.openDoctorSummary      === 'function' && window.openDoctorSummary(),
+    'monthly-pdf':       () => typeof window.openMonthlyReport      === 'function' && window.openMonthlyReport(),
+    // ── 専用実装完了済み ─────────────────────────────────────────────
+    'doctor-summary':    () => typeof window.openDoctorVisitSummary === 'function' && window.openDoctorVisitSummary(),
+    'condition-summary': () => typeof window.openConditionSummary   === 'function' && window.openConditionSummary(),
+    'symptom-trends':    () => {
+      if (typeof window.switchTab !== 'function') return;
+      const p = window.switchTab('insights', null);
+      if (p && typeof p.then === 'function') {
+        p.then(() => {
+          if (typeof window.switchInsTab === 'function') window.switchInsTab('trends');
+        });
+      }
+    },
   };
   _log('recommendation_selected', { key });
   _hideAll();
-  setTimeout(() => { const h = HANDLERS[key]; if (h) h(); }, 180);
+  setTimeout(() => {
+    const h = HANDLERS[key];
+    if (h) {
+      h();
+    } else {
+      // 未接続機能: PRO整理室を開いてユーザーが自分で選択できるようにする
+      if (typeof window.openProHub === 'function') window.openProHub();
+    }
+  }, 180);
 }
 
 // ─── Analytics ────────────────────────────────────────────

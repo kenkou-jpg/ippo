@@ -193,6 +193,12 @@ import './modules/home-renderer.js';
 // フラグ OFF の場合は既存 home に影響しない。
 import './modules/home-next/home-next-shell.js';
 
+// ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
+// 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
+// window.openDoctorVisitSummary / window.openConditionSummary を公開。
+import './modules/pro/doctor-summary/doctor-summary.js';
+import './modules/pro/condition-summary/condition-summary.js';
+
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync } from './services/supabase.js';
 
