@@ -11,7 +11,6 @@ ALTER TABLE public.profiles
 -- ─── RLS 有効化 ──────────────────────────────────────────────
 ALTER TABLE public.records          ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.profiles         ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.community_posts  ENABLE ROW LEVEL SECURITY;
 
 -- ─── records ポリシー ────────────────────────────────────────
 DROP POLICY IF EXISTS "records_select_own"  ON public.records;
@@ -57,24 +56,6 @@ CREATE POLICY "profiles_update_own"
 -- （Supabase は Column Level Security を RLS ポリシーの WITH CHECK で制御）
 -- 注: フロントエンドからの is_premium 更新を完全にブロックするには
 --     Supabase のサービスロールキー経由のみで更新する運用とする。
-
--- ─── community_posts ポリシー ────────────────────────────────
-DROP POLICY IF EXISTS "community_posts_select_all"   ON public.community_posts;
-DROP POLICY IF EXISTS "community_posts_insert_auth"  ON public.community_posts;
-DROP POLICY IF EXISTS "community_posts_delete_own"   ON public.community_posts;
-
--- 全認証ユーザーが読める（匿名投稿のため user_id は SELECT で返さない運用）
-CREATE POLICY "community_posts_select_all"
-  ON public.community_posts FOR SELECT
-  USING (auth.role() = 'authenticated');
-
-CREATE POLICY "community_posts_insert_auth"
-  ON public.community_posts FOR INSERT
-  WITH CHECK (auth.role() = 'authenticated');
-
-CREATE POLICY "community_posts_delete_own"
-  ON public.community_posts FOR DELETE
-  USING (auth.uid() = user_id);
 
 -- ─── 新規ユーザー登録時に profiles を自動作成するトリガー ────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
