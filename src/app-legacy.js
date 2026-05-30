@@ -3352,7 +3352,7 @@ function showBingeUrgeSupport() {
   html += '</div>';
 
   // 記録ボタン
-  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();showScreen(\'record\');" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openRecordScreen===\'function\')window.openRecordScreen();" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
   html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:var(--ink-light);">このアプリは医療アドバイスを提供するものではありません。摂食障害が疑われる場合は専門家にご相談ください。</div>';
 
   html += '</div></div>';
@@ -5547,10 +5547,6 @@ function handleHomeCTA(){
 
   if (isDailyCheckinDone && typeof window.openTodayReflection === 'function') {
     window.openTodayReflection();
-  } else if (rec && !isDailyCheckinDone && typeof window.openLegacyRecordScreen === 'function') {
-    // legacy 保存済みレコードがある場合 → 編集モードで legacy 画面を開く
-    state.editingDate = today;
-    window.openLegacyRecordScreen();
   } else if (typeof window.openRecordScreen === 'function') {
     window.openRecordScreen();
   } else {
@@ -9385,7 +9381,10 @@ var todayStr = targetDate.toDateString();
     rec.lastMealTime = parsed ? parsed.lastTime : '';
     rec.mealCount = parsed ? parsed.mealCount : 0;
     rec.fasting = parsed ? parsed.fastingHours : 0;
-    rec.diseaseCheck = gatherDiseaseData();
+    var _newDiseaseCheck = gatherDiseaseData();
+    if (Object.keys(_newDiseaseCheck).length > 0) {
+      rec.diseaseCheck = _newDiseaseCheck;
+    }
     localStorage.removeItem('ippo_meal_draft');
     rec.temperature = data.temp;
     rec.tempMethod = data.tempMethod || 'sublingual';
@@ -9400,7 +9399,9 @@ var todayStr = targetDate.toDateString();
       });
       if(selected.length) bodyChoices[cat] = selected;
     });
-    rec.bodyChoices = bodyChoices;
+    if (Object.keys(bodyChoices).length > 0) {
+      rec.bodyChoices = bodyChoices;
+    }
     if(data.note) rec.note = data.note;
     // 痛みの詳細
     rec.painLocation = data.painLocation;
