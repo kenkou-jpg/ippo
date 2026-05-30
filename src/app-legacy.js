@@ -1252,6 +1252,10 @@ function cloudBackupAll(){
       reminders: state.reminders,
       _onboardingDone: state._onboardingDone
     };
+    // Fix: myDiseases が空配列の場合はクラウドの既存値を上書きしない。
+    if (!stateToSave.myDiseases || stateToSave.myDiseases.length === 0) {
+      delete stateToSave.myDiseases;
+    }
     var payload = {
       state: stateToSave,
       updated_at: new Date().toISOString()
@@ -1348,6 +1352,10 @@ function cloudRestore(){
         // クラウドが新しい：設定系（name・疾患・reminders等）はクラウドを採用
         // records だけはマージ結果を使用
         var safeCloud = Object.assign({}, cloudState);
+        // Fix: myDiseases が空配列の場合はローカルの設定済み値を保護する。
+        if (Array.isArray(safeCloud.myDiseases) && safeCloud.myDiseases.length === 0) {
+          delete safeCloud.myDiseases;
+        }
         state = Object.assign(state, safeCloud);
         state.records = mergedRecords;
         state.lastSaved = cloudDate.toISOString();
