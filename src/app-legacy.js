@@ -2619,6 +2619,7 @@ function obSaveDiseases() {
     display.textContent = state.myDiseases.length > 0
       ? state.myDiseases.join('・') : '設定する';
   }
+  saveState(); // Fix: オンボーディング疾患選択をリロード前に永続化
   obNext();
 }
 
