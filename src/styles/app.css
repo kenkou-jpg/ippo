@@ -115,9 +115,6 @@ html { scroll-behavior: smooth; }
 .home-header .greeting {
   color: rgba(255,255,255,0.9);
 }
-.app-logo span {
-  color: var(--gold);
-}
 
 /* === Premium Feel: CTAカード === */
 #home-cta-card {
@@ -307,59 +304,6 @@ h1, h2, h3, .serif { font-family: var(--font-serif); }
   font-weight: 300;
 }
 
-/* ===== BEFORE/AFTER CARDS ===== */
-.before-after {
-  width: 100%;
-  margin-bottom: 40px;
-}
-.ba-label {
-  font-size: 10px;
-  letter-spacing: 0.2em;
-  color: var(--ink-light);
-  margin-bottom: 12px;
-  text-transform: uppercase;
-}
-.ba-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.ba-card {
-  background: var(--white);
-  border-radius: 14px;
-  padding: 16px 14px;
-  text-align: left;
-  box-shadow: var(--shadow-card);
-}
-.ba-card.after {
-  background: linear-gradient(135deg, #fdf3f3, #f9edd8);
-  border: 1px solid var(--rose-light);
-}
-.ba-card-tag {
-  font-size: 9px;
-  letter-spacing: 0.15em;
-  padding: 3px 8px;
-  border-radius: 20px;
-  display: inline-block;
-  margin-bottom: 10px;
-  font-weight: 500;
-}
-.ba-card.before .ba-card-tag { background: var(--bg-subtle); color: var(--ink-light); }
-.ba-card.after .ba-card-tag { background: var(--rose-light); color: var(--rose); }
-.ba-card-text {
-  font-size: 12px;
-  line-height: 1.7;
-  color: var(--ink-mid);
-}
-.ba-card.after .ba-card-text { color: var(--ink); }
-.ba-arrow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 4px 0;
-  color: var(--rose);
-  font-size: 18px;
-}
 
 .welcome-name-section { width: 100%; }
 .welcome-name-label {
@@ -412,40 +356,6 @@ h1, h2, h3, .serif { font-family: var(--font-serif); }
   padding: 8px;
 }
 
-/* ===== APP HEADER BAR ===== */
-.app-header-bar {
-  position: relative;
-  width: 100%;
-  max-width: 430px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 20px;
-  background: rgba(250,246,242,0.92);
-  border-bottom: 1px solid rgba(200,180,170,0.15);
-}
-.app-logo {
-  font-family: 'Inter', sans-serif;
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--ink);
-  letter-spacing: -0.02em;
-  text-decoration: none;
-}
-.app-logo span { color: var(--rose); }
-.app-header-link {
-  font-size: 0.7rem;
-  color: var(--ink-light);
-  text-decoration: none;
-  padding: 5px 12px;
-  border: 1px solid var(--border-ui);
-  border-radius: 20px;
-  transition: all 0.2s;
-}
-.app-header-link:hover {
-  color: var(--rose);
-  border-color: var(--rose-light);
-}
 
   
 /* ===== NAV ===== */
@@ -1588,42 +1498,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   cursor: pointer;
 }
 
-/* ===== HISTORY ===== */
-.history-list { padding: 0 24px; }
-.history-empty {
-  text-align: center;
-  padding: 40px 20px;
-  color: var(--ink-light);
-  font-size: 14px;
-  line-height: 1.8;
-}
-.history-item {
-  background: var(--white);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 10px;
-  box-shadow: var(--shadow-card-sm);
-  display: flex;
-  gap: 14px;
-  align-items: flex-start;
-}
-.history-date-col {
-  text-align: center;
-  flex-shrink: 0;
-  width: 44px;
-}
-.history-date-day { font-family: var(--font-serif); font-size: 22px; color: var(--ink); line-height: 1; }
-.history-date-month { font-size: 10px; color: var(--ink-light); }
-.history-content { flex: 1; }
-.history-item-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; font-weight: 500; }
-.history-item-tags { display: flex; flex-wrap: wrap; gap: 4px; }
-.history-tag {
-  font-size: 10px;
-  padding: 3px 8px;
-  border-radius: 10px;
-  background: var(--rose-pale);
-  color: var(--rose);
-}
 
 /* ===== ANIMATIONS ===== */
 .fade-in { animation: fadeIn 0.4s ease forwards; }
@@ -1635,31 +1509,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 /* ===== SCROLLBAR ===== */
 ::-webkit-scrollbar { width: 0; }
 
-/* ===== ADD TO HOME ===== */
-.add-home-banner {
-  margin: 0 24px 20px;
-  background: var(--sage-light);
-  border-radius: 16px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.ahb-icon { font-size: 22px; }
-.ahb-text { flex: 1; }
-.ahb-title { font-size: 13px; font-weight: 500; color: var(--ink); }
-.ahb-sub { font-size: 11px; color: var(--ink-light); }
-.ahb-btn {
-  background: var(--sage);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-  font-family: var(--font-body);
-}
 
 /* ===== SPACER ===== */
 .spacer-top { height: 56px; }
@@ -2611,7 +2460,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       0 2px 12px rgba(0, 0, 0, 0.04);
   }
 
-  .app-header-bar { max-width: var(--app-max-tablet); }
   .bottom-nav     { max-width: var(--app-max-tablet); }
 }
 
@@ -2629,7 +2477,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
       0 3px 20px rgba(0, 0, 0, 0.05);
   }
 
-  .app-header-bar { max-width: var(--app-max-desktop); }
   .bottom-nav     { max-width: var(--app-max-desktop); }
 
   /* ホーム画面: 2カラムグリッド（active 時のみ — .active なし時は .screen { display:none } を維持）
