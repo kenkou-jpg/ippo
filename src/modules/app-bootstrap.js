@@ -203,6 +203,15 @@ export function bootstrap() {
         if (typeof window.reorderRecordSections === 'function') window.reorderRecordSections();
         if (typeof window.updateFastingWidgetPhase === 'function') window.updateFastingWidgetPhase();
 
+        // home-next: cloudRestore 成功後、HOME が表示中であれば最新 state を反映する。
+        // window.ippoHomeNext.render は home-next-shell.js が公開する renderAll() の正式エイリアス。
+        // screen-home-next が active でない場合（calendar 表示中など）は実行しない。
+        var _hnScreen = document.getElementById('screen-home-next');
+        if (_hnScreen && _hnScreen.classList.contains('active') &&
+            window.ippoHomeNext && typeof window.ippoHomeNext.render === 'function') {
+          window.ippoHomeNext.render();
+        }
+
         // 別デバイスで初めてログインした場合: 復元後に名前があればメイン画面へ
         var welcomeEl = document.getElementById('screen-welcome');
         var shouldShowMainAfterRestore = window.ippoWelcomeRuntime
