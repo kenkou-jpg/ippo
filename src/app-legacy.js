@@ -3353,6 +3353,25 @@ function showBingeUrgeSupport() {
 
   // 記録ボタン
   html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openRecordScreen===\'function\')window.openRecordScreen();" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
+
+  // 理解する導線（記録から見えてくるかもしれません）
+  html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--cream);">';
+  html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--ink-mid);margin-bottom:10px;display:flex;align-items:center;gap:5px;">';
+  html += '<span style="display:inline-block;width:3px;height:11px;background:var(--ink-mid);border-radius:2px;"></span>記録から見えてくるかもしれません';
+  html += '</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openCorrelationReport===\'function\')window.openCorrelationReport();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
+  html += '<span style="font-size:18px;">🔬</span><div><div style="font-weight:600;">要因効果レポートを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">睡眠・気分・周期との関連を確認する</div></div>';
+  html += '</button>';
+  html += '<button onclick="(function(){document.getElementById(\'bingeUrgeOverlay\').remove();var nb=document.querySelector(\'.nav-item[onclick*=\\\'insights\\\']\');if(typeof window.switchTab===\'function\')window.switchTab(\'insights\',nb);})();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
+  html += '<span style="font-size:18px;">✨</span><div><div style="font-weight:600;">インサイトを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">記録データからパターンを読み解く</div></div>';
+  html += '</button>';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openExperiments===\'function\')window.openExperiments();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
+  html += '<span style="font-size:18px;">🧪</span><div><div style="font-weight:600;">ヘルス実験を試してみる</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">気になる要因を2週間追跡する</div></div>';
+  html += '</button>';
+  html += '</div>';
+  html += '</div>';
+
   html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:var(--ink-light);">このアプリは医療アドバイスを提供するものではありません。摂食障害が疑われる場合は専門家にご相談ください。</div>';
 
   html += '</div></div>';
