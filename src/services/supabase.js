@@ -123,6 +123,11 @@ export function cloudBackupAll() {
       reminders:      s.reminders,
       _onboardingDone: s._onboardingDone,
     };
+    // Fix: myDiseases が空配列の場合はクラウドの既存値を上書きしない。
+    // 未設定端末が設定済み端末の疾患データを消すのを防ぐ。
+    if (!stateToSave.myDiseases || stateToSave.myDiseases.length === 0) {
+      delete stateToSave.myDiseases;
+    }
     var payload = { state: stateToSave, updated_at: new Date().toISOString() };
 
     return supabase.from('user_data').update(payload).eq('user_id', userId).select()
@@ -217,6 +222,8 @@ export function cloudRestore() {
           var mergedState = Object.assign({}, s);
           Object.keys(safeCloud).forEach(function(key) {
             if (safeCloud[key] !== undefined && safeCloud[key] !== null) {
+              // Fix: myDiseases は空配列をスキップ。未設定端末がローカルの設定済み値を消すのを防ぐ。
+              if (key === 'myDiseases' && Array.isArray(safeCloud[key]) && safeCloud[key].length === 0) return;
               mergedState[key] = safeCloud[key];
             }
           });
