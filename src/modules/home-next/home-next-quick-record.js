@@ -162,9 +162,11 @@ export function renderQuickRecord(container, state) {
   const ctaLabel = (adaptiveCopy && adaptiveCopy.ctaLabel) || '今日を記録する';
 
   const openRecord = `if(typeof window.handleHomeCTA==='function'){window.handleHomeCTA();}else if(typeof window.openRecordScreen==='function'){window.openRecordScreen();}`;
+  // P13-P1: トレンド行は分析結果の要約 → 分析サーフェスへ
+  const openTrendAnalysis = `if(typeof window.triggerInsightSurface==='function'){window.triggerInsightSurface('insight');}else if(typeof window.switchTab==='function'){window.switchTab('insights');}`;
 
   const trendRow = trendText ? `
-    <div class="hn-quick-trend" onclick="${openRecord}" style="cursor:pointer">
+    <div class="hn-quick-trend" onclick="${openTrendAnalysis}" style="cursor:pointer">
       <div class="hn-quick-trend-text">${esc(trendText)}</div>
       ${buildTrendMiniChart(records)}
     </div>` : '';
