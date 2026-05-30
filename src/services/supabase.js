@@ -236,7 +236,7 @@ export function cloudRestore() {
         } else if (mergedCount > localRecs) {
           s.records = mergedRecords;
           s.totalDays = Object.keys(mergedRecords.reduce(function (acc, r) {
-            acc[new Date(r.date).toDateString()] = true; return acc;
+            acc[new Date(r.record_date || r.date).toDateString()] = true; return acc;
           }, {})).length;
           saveState();
           console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計' + mergedCount + '件');

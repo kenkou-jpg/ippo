@@ -440,20 +440,20 @@ function openDiseaseSettings(){
 // ===== 周期フェーズ連動分析 =====
 function calcCycleDay(recordDate, records){
   // 直近の生理開始日を探す
-  var sorted = records.slice().sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
+  var sorted = records.slice().sort(function(a,b){ return new Date(b.record_date || b.date) - new Date(a.record_date || a.date); });
   var target = new Date(recordDate).getTime();
   var lastPeriodStart = null;
 
   for(var i=0; i<sorted.length; i++){
     var r = sorted[i];
-    var rDate = new Date(r.date).getTime();
+    var rDate = new Date(r.record_date || r.date).getTime();
     if(rDate > target) continue;
     // 生理中の最初の日を探す
     if(r.menstrualCycle && r.menstrualCycle !== 'なし'){
       // この日の前日が生理でなければ、この日が開始日
       var prevDay = null;
       for(var j=0; j<sorted.length; j++){
-        var diff = rDate - new Date(sorted[j].date).getTime();
+        var diff = rDate - new Date(sorted[j].record_date || sorted[j].date).getTime();
         if(diff === -86400000){ prevDay = sorted[j]; break; }
       }
       if(!prevDay || !prevDay.menstrualCycle || prevDay.menstrualCycle === 'なし'){
@@ -488,7 +488,7 @@ function analyzeCyclePhases(records){
   };
 
   records.forEach(function(r){
-    var cd = calcCycleDay(r.date, records);
+    var cd = calcCycleDay(r.record_date || r.date, records);
     var phase = getCyclePhase(cd);
     if(!phase || !phases[phase]) return;
 
@@ -800,11 +800,11 @@ function completeExperiment(idx){
   // 実験前の期間（同じ日数だけ遡る）
   var preStart = new Date(start.getTime() - exp.days * 86400000);
   var preRecs = state.records.filter(function(r){
-    var d = new Date(r.date);
+    var d = new Date(r.record_date || r.date);
     return d >= preStart && d < start;
   });
   var duringRecs = state.records.filter(function(r){
-    var d = new Date(r.date);
+    var d = new Date(r.record_date || r.date);
     return d >= start && d <= end;
   });
 
@@ -893,7 +893,7 @@ function updateTimelineView(){
     }
 
     // フィルタ
-    var ds = new Date(r.date).toDateString();
+    var ds = new Date(r.record_date || r.date).toDateString();
     if(filter === 'pain') return r.painLevel && r.painLevel > 0;
     if(filter === 'flare') return !!flareDates[ds];
     if(filter === 'period') return r.menstrualCycle && r.menstrualCycle !== 'なし';
@@ -1367,7 +1367,7 @@ function cloudRestore(){
         // 設定系はローカルを保持
         state.records = mergedRecords;
         state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
-          acc[new Date(r.date).toDateString()]=true; return acc;
+          acc[new Date(r.record_date || r.date).toDateString()]=true; return acc;
         },{})).length;
         saveState();
         console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計'+mergedCount+'件');
@@ -1589,7 +1589,7 @@ function cloudSyncSafe(){
         }
         state.records = merged;
         state.totalDays = Object.keys(merged.reduce(function(acc,r){
-          acc[new Date(r.date).toDateString()]=true; return acc;
+          acc[new Date(r.record_date || r.date).toDateString()]=true; return acc;
         },{})).length;
         // クラウドにアップロード
         var rows = merged.map(function(r){
@@ -1948,7 +1948,7 @@ function manualCloudRestore(){
         state = Object.assign(state, cloudState);
         state.records = mergedRecords;
         state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
-          acc[new Date(r.date).toDateString()]=true; return acc;
+          acc[new Date(r.record_date || r.date).toDateString()]=true; return acc;
         },{})).length;
         state.lastSaved = cloudDate.toISOString();
         localStorage.setItem('ippo_state', JSON.stringify(state));
@@ -2891,8 +2891,9 @@ function calcPainFreeDays() {
   var month = now.getMonth();
   var count = 0;
   (state.records || []).forEach(function(r) {
-    if (!r.date) return;
-    var d = new Date(r.date);
+    var recordDate = r.record_date || r.date;
+    if (!recordDate) return;
+    var d = new Date(recordDate);
     if (d.getFullYear() === year && d.getMonth() === month) {
       var pain = r.painLevel;
       if (pain === null || pain === undefined || pain === 0) count++;
@@ -3861,7 +3862,7 @@ function renderInsightDiscoveries() {
   }
   var now = new Date();
   var records30 = (state.records || []).filter(function(r){
-    var d = new Date(r.date);
+    var d = new Date(r.record_date || r.date);
     return (now - d) / 86400000 <= 30;
   });
 
@@ -3884,8 +3885,8 @@ function renderInsightDiscoveries() {
   var shortSleepDays = records30.filter(function(r){ return (r.sleepHours || 8) < 6 && r.sleepHours > 0; });
   if (shortSleepDays.length >= 2) {
     var nextDayPains = shortSleepDays.map(function(r){
-      var d = new Date(r.date); d.setDate(d.getDate()+1);
-      var nx = records30.find(function(r2){ return new Date(r2.date).toDateString() === d.toDateString(); });
+      var d = new Date(r.record_date || r.date); d.setDate(d.getDate()+1);
+      var nx = records30.find(function(r2){ return new Date(r2.record_date || r2.date).toDateString() === d.toDateString(); });
       return nx ? (nx.painLevel || 0) : null;
     }).filter(function(v){ return v !== null; });
     if (nextDayPains.length >= 1) {
