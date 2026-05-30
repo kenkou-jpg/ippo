@@ -3448,7 +3448,8 @@ function endFast() {
     if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
   }
   if(!rec){
-    rec = { date: new Date().toISOString() };
+    var _now = new Date();
+    rec = { date: _now.toISOString(), record_date: _now.toISOString().slice(0, 10) };
     state.records.push(rec);
   }
   rec.fastingTimer = Math.round(elapsed * 10) / 10;
@@ -6462,7 +6463,8 @@ function saveEditRecord(){
 
   if(!rec){
     // 新規作成
-    rec = { date: new Date(editingDateStr).toISOString() };
+    var _editDate = new Date(editingDateStr);
+    rec = { date: _editDate.toISOString(), record_date: _editDate.toISOString().slice(0, 10) };
     state.records.push(rec);
   }
 
@@ -6971,6 +6973,7 @@ function saveQuickLog() {
     var rec = {
       id: generateRecordId(),
       date: today,
+      record_date: today,
       symptoms: _quickSelectedSymptoms.slice(),
       painLevel: _quickPainLevel >= 0 ? _quickPainLevel : null,
       createdAt: new Date().toISOString(),
@@ -9367,10 +9370,11 @@ var todayStr = targetDate.toDateString();
     }
     var isNew = false;
     if(!rec){
-      rec = { date: targetDate.toISOString() };
+      rec = { date: targetDate.toISOString(), record_date: targetDate.toISOString().slice(0, 10) };
       isNew = true;
     } else if(!rec.date) {
       rec.date = targetDate.toISOString();
+      if(!rec.record_date) rec.record_date = targetDate.toISOString().slice(0, 10);
     }
     var mealFreeEl = document.getElementById('rs-meal-free');
     var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
