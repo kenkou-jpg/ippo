@@ -184,9 +184,9 @@ function _wireInsightsScreen() {
       expCardTitle.addEventListener('click', function() { triggerInsightSurface('experiment'); });
     }
   }
-  // "実験を記録する" → 記録画面（ボタン名通りの動作）
+  // "実験を記録する" → ヘルス実験画面（P13-P0: 実験導線修正）
   var expBtn = sc.querySelector('.ipr-exp-btn');
-  if (expBtn) expBtn.onclick = function() { if (typeof window.openRecordScreen === 'function') window.openRecordScreen(); };
+  if (expBtn) expBtn.onclick = function() { if (typeof window.openExperiments === 'function') window.openExperiments(); };
 
   // ── ヒントカード ──────────────────────────────────────────
   // "すべてのヒントを見る" → insight推薦シート（パターン解析への案内）
