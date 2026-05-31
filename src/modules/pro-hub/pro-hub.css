@@ -174,65 +174,95 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 14px 18px;
+  padding: 16px 20px;
   padding-bottom: max(32px, calc(env(safe-area-inset-bottom, 0px) + 24px));
 }
 .pho-body::-webkit-scrollbar { width: 0; }
 
 /* ─── Section ────────────────────────────────────────────── */
 .pho-section {
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 .pho-section-head {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  margin-bottom: 9px;
+  margin-bottom: 12px;
   padding: 0 2px;
 }
 .pho-section-icon {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  font-size: 12px;
+  font-size: 13px;
+  margin-top: 1px;
 }
-.pho-section-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #18245a;
-  letter-spacing: 0.02em;
+.pho-section-head-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
   flex: 1;
 }
-.pho-section-more {
-  font-size: 10px;
+.pho-section-num {
+  font-size: 9px;
+  font-weight: 700;
   color: #a8b4cc;
-  cursor: pointer;
-  transition: color 160ms;
-  white-space: nowrap;
+  letter-spacing: 0.05em;
 }
-.pho-section-more:hover { color: #8b7fd6; }
+.pho-section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #18245a;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+.pho-section-psych {
+  font-size: 11px;
+  color: #a8b4cc;
+  line-height: 1.4;
+  font-weight: 400;
+}
+
+/* ─── 試してみる special section ─────────────────────────── */
+.pho-section-try {
+  background: linear-gradient(135deg, rgba(240,248,244,0.6), rgba(255,255,255,0.5));
+  border: 1px solid rgba(90,144,112,0.14);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+}
+.pho-try-bridge {
+  font-size: 11px;
+  color: #5a9070;
+  font-weight: 500;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  background: rgba(90,144,112,0.07);
+  border-radius: 8px;
+  border-left: 2.5px solid rgba(90,144,112,0.35);
+}
 
 /* ─── Cards ──────────────────────────────────────────────── */
 .pho-cards {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
 }
 .pho-card {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 12px;
+  padding: 14px 16px;
   background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 14px;
+  border: 1px solid rgba(139, 127, 214, 0.10);
+  border-radius: 20px;
   cursor: pointer;
   transition: background 160ms, transform 160ms, box-shadow 160ms;
-  box-shadow: 0 1px 6px rgba(31, 38, 135, 0.04);
+  box-shadow: 0 6px 20px rgba(58, 47, 102, 0.04);
   text-decoration: none;
   outline: none;
   -webkit-tap-highlight-color: transparent;
@@ -240,7 +270,7 @@
 .pho-card:hover {
   background: rgba(255, 255, 255, 0.96);
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(31, 38, 135, 0.07);
+  box-shadow: 0 8px 24px rgba(58, 47, 102, 0.07);
 }
 .pho-card:active { transform: translateY(0); }
 .pho-card.pho-rec {
@@ -267,10 +297,10 @@
   line-height: 1.3;
 }
 .pho-card-desc {
-  font-size: 10px;
+  font-size: 12px;
   color: #8b9ab8;
-  line-height: 1.5;
-  margin-top: 1px;
+  line-height: 1.55;
+  margin-top: 2px;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -301,11 +331,11 @@
 /* ─── Flow ───────────────────────────────────────────────── */
 .pho-flow { margin-bottom: 8px; }
 .pho-flow-label {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: #a8b4cc;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  text-transform: none;
   margin-bottom: 12px;
   padding: 0 2px;
 }
@@ -355,7 +385,7 @@
   line-height: 1.3;
 }
 .pho-flow-sub {
-  font-size: 10px;
+  font-size: 11px;
   color: #a8b4cc;
   line-height: 1.4;
   margin-top: 1px;
@@ -399,9 +429,130 @@
 .hn-pro-btn:active { transform: translateY(0) scale(0.97); }
 .hn-pro-btn svg { width: 10px; height: 10px; }
 
-/* ─── Responsive ─────────────────────────────────────────── */
+/* ─── Responsive (Overlay) ───────────────────────────────── */
 @media (max-width: 640px) {
   .pho-panel { width: 100%; }
   .pho-header { padding-left: 18px; padding-right: 18px; }
   .pho-body { padding: 12px 14px; }
+}
+
+/* ─── Page mode ──────────────────────────────────────────── */
+#screen-pro-hub {
+  background: #FAFCF8;
+  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+
+.ph-page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: max(14px, calc(env(safe-area-inset-top, 0px) + 10px)) 18px 12px;
+  background: rgba(250, 248, 246, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(139, 127, 214, 0.08);
+}
+
+.ph-back-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139, 127, 214, 0.08);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  color: #8b7fd6;
+  flex-shrink: 0;
+  transition: background 160ms;
+}
+.ph-back-btn:hover { background: rgba(139, 127, 214, 0.16); }
+.ph-back-btn svg { width: 16px; height: 16px; }
+
+.ph-page-header-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #18245a;
+  letter-spacing: -0.01em;
+}
+
+.ph-scroll {
+  flex: 1;
+  padding: 20px 20px calc(80px + env(safe-area-inset-bottom, 0px));
+  max-width: var(--ippo-content-max, 430px);
+  width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* ── Hero ────────────────────────────────────────────────── */
+.ph-hero {
+  min-height: 200px;
+  padding: 28px 20px 22px;
+  border-radius: 24px;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    135deg,
+    rgba(244, 240, 255, 0.80) 0%,
+    rgba(255, 255, 255, 0.90) 55%,
+    rgba(236, 244, 236, 0.55) 100%
+  );
+  background-color: #FAFCF8;
+  border: 1px solid rgba(139, 127, 214, 0.12);
+  box-shadow: 0 8px 28px rgba(139, 127, 214, 0.06);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ph-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(139, 127, 214, 0.10);
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
+  color: #8b7fd6;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+  align-self: flex-start;
+}
+
+.ph-hero-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #18245a;
+  letter-spacing: -0.025em;
+  line-height: 1.3;
+  margin: 0 0 8px;
+}
+
+.ph-hero-sub {
+  font-size: 13px;
+  color: #8b9ab8;
+  line-height: 1.6;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* ── Page content root ───────────────────────────────────── */
+/* pho-body はOverlay用(flex+overflow-y:auto)のため、ページでは上書き */
+.pho-page-content .pho-body,
+#pro-hub-page-root .pho-body {
+  flex: none;
+  overflow-y: visible;
+  padding: 0;
 }

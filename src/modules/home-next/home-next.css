@@ -992,6 +992,12 @@
   font-style: italic;
 }
 
+.hn-insight-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
 .hn-insight-link {
   font-family: var(--hn-font-ja);
   font-size: 12px;
@@ -1004,6 +1010,9 @@
   align-items: center;
   gap: 3px;
   font-weight: 400;
+}
+.hn-insight-link--pro {
+  color: #8b7fd6;
 }
 
 /* ── クイック記録 ─────────────────────────────────────────── */

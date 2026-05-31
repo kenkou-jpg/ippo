@@ -1,0 +1,56 @@
+<div id="screen-pro-hub" class="screen">
+
+  <!-- ページヘッダー: 戻るボタン -->
+  <div class="ph-page-header">
+    <button class="ph-back-btn" id="ph-back-btn" aria-label="戻る">
+      <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 4l-6 6 6 6"/>
+      </svg>
+    </button>
+    <span class="ph-page-header-title">PRO整理室</span>
+  </div>
+
+  <div class="ph-scroll">
+
+    <!-- Hero: 感情の入口。機能カード・おすすめ・FLOW_STEPS・CTAボタンは禁止。 -->
+    <section class="ph-hero" aria-label="PRO整理室へようこそ">
+      <div class="ph-hero-badge">
+        <svg viewBox="0 0 12 12" fill="currentColor" width="8" height="8"><polygon points="6 1 7.55 4.18 11 4.64 8.5 7.07 9.09 10.5 6 8.86 2.91 10.5 3.5 7.07 1 4.64 4.45 4.18"/></svg>
+        PRO整理室
+      </div>
+      <h1 class="ph-hero-title">見えてきたことを、<br>少しずつ整理していきましょう。</h1>
+      <p class="ph-hero-sub">理解し、試し、振り返るための場所です。</p>
+    </section>
+
+    <!-- コンテンツルート: pro-hub.js の renderProHubPage() が描画 -->
+    <div id="pro-hub-page-root"></div>
+
+  </div>
+</div>
+<script>
+(function() {
+  // 戻るボタン
+  function _wireBack() {
+    var btn = document.getElementById('ph-back-btn');
+    if (!btn || btn._wired) return;
+    btn._wired = true;
+    btn.addEventListener('click', function() {
+      if (typeof window.goBackFromProHub === 'function') window.goBackFromProHub();
+      else if (typeof window.switchTab === 'function') window.switchTab('insights', null);
+    });
+  }
+
+  // コンテンツ描画
+  function _render() {
+    if (typeof window.renderProHubPage === 'function') {
+      window.renderProHubPage();
+    } else {
+      // renderProHubPage がまだロードされていない場合のフォールバック
+      document.addEventListener('ippo:pro-hub-ready', function() {}, { once: true });
+    }
+  }
+
+  _wireBack();
+  _render();
+})();
+</script>
