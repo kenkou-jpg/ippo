@@ -155,6 +155,18 @@
   color: #a99fcc;
   font-weight: 400;
 }
+.pho-recommend-empty {
+  padding: 10px 22px 4px;
+}
+.pho-recommend-empty-text {
+  font-size: 10px;
+  color: #a8b4cc;
+  line-height: 1.6;
+  padding: 7px 12px;
+  background: rgba(139, 127, 214, 0.05);
+  border-radius: 10px;
+  border: 1px solid rgba(139, 127, 214, 0.10);
+}
 
 /* ─── Body ───────────────────────────────────────────────── */
 .pho-body {
@@ -260,8 +272,9 @@
   line-height: 1.5;
   margin-top: 1px;
   overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 .pho-rec-tag {
   display: inline-flex;

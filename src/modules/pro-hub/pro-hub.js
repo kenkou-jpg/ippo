@@ -15,26 +15,26 @@ const SVG_STAR = `<svg viewBox="0 0 12 12" fill="currentColor"><polygon points="
 // ─── Feature data ──────────────────────────────────────────
 const FEATURES = {
   A: [
-    { key:'ai-pattern',      name:'AIパターン解析',    desc:'長期データからあなたの特徴を解析',        ico:'🔮', bg:'rgba(139,127,214,.12)' },
-    { key:'bbt-pattern',     name:'体温パターン解析',   desc:'体温変化からあなたのリズムを分析',         ico:'🌡', bg:'rgba(212,132,154,.10)' },
-    { key:'flare-analysis',  name:'フレアアップ分析',   desc:'症状が強まる要因とパターンを分析',         ico:'🔥', bg:'rgba(212,132,90,.10)'  },
-    { key:'cycle-compare',   name:'周期比較',           desc:'周期ごとの変化を比較・可視化',             ico:'📊', bg:'rgba(74,144,200,.10)'  },
-    { key:'experiments',     name:'ヘルス実験',         desc:'生活習慣の調整が体に与える影響を検証',      ico:'🧪', bg:'rgba(90,144,112,.10)'  },
-    { key:'factor-report',   name:'要因効果レポート',   desc:'要因ごとの影響度をレポートで確認',         ico:'📋', bg:'rgba(200,160,64,.10)'  },
+    { key:'ai-pattern',      name:'AIパターン解析',    desc:'症状・睡眠・体温の関係など、記録だけでは見えにくい長期の傾向を見つけます',      ico:'🔮', bg:'rgba(139,127,214,.12)' },
+    { key:'bbt-pattern',     name:'体温パターン解析',   desc:'体温の変化から、あなた固有のリズムや排卵のタイミングを見つけます',              ico:'🌡', bg:'rgba(212,132,154,.10)' },
+    { key:'flare-analysis',  name:'フレアアップ分析',   desc:'症状が強かった日に共通するきっかけや前兆を探します',                           ico:'🔥', bg:'rgba(212,132,90,.10)'  },
+    { key:'cycle-compare',   name:'周期比較',           desc:'調子の良かった周期と今を並べて、変化のヒントを探します',                        ico:'📊', bg:'rgba(74,144,200,.10)'  },
+    { key:'experiments',     name:'ヘルス実験',         desc:'試してみたことが本当に自分に合っていたか、記録をもとに振り返れます',             ico:'🧪', bg:'rgba(90,144,112,.10)'  },
+    { key:'factor-report',   name:'要因効果レポート',   desc:'睡眠・ストレスなど、どの要因が症状に影響していそうか整理します',                ico:'📋', bg:'rgba(200,160,64,.10)'  },
   ],
   B: [
-    { key:'cloud-sync',      name:'クラウド同期',       desc:'端末変更でも安全に記録を引き継ぐ',         ico:'☁',  bg:'rgba(74,144,200,.10)'  },
-    { key:'backup',          name:'バックアップ',        desc:'大切な記録を定期的に保存',                 ico:'💾', bg:'rgba(139,127,214,.12)' },
-    { key:'restore',         name:'復元',               desc:'過去のバックアップから記録を復元',          ico:'🔄', bg:'rgba(90,144,112,.10)'  },
-    { key:'data-health',     name:'データ診断',          desc:'記録の状態をチェックし最適化をサポート',   ico:'🔍', bg:'rgba(200,160,64,.10)'  },
-    { key:'export',          name:'データ出力',          desc:'CSV / JSON形式でデータを出力',            ico:'📤', bg:'rgba(212,132,90,.10)'  },
+    { key:'cloud-sync',      name:'クラウド同期',       desc:'積み重ねた記録を、端末が変わっても安全に引き継げます',                          ico:'☁',  bg:'rgba(74,144,200,.10)'  },
+    { key:'backup',          name:'バックアップ',        desc:'大切な記録をいつでもスナップショット保存しておけます',                          ico:'💾', bg:'rgba(139,127,214,.12)' },
+    { key:'restore',         name:'復元',               desc:'誤って消してしまった記録も、過去のバックアップから取り戻せます',                ico:'🔄', bg:'rgba(90,144,112,.10)'  },
+    { key:'data-health',     name:'データ診断',          desc:'記録の抜けや矛盾を自動でチェックして、分析の精度を保ちます',                   ico:'🔍', bg:'rgba(200,160,64,.10)'  },
+    { key:'export',          name:'データ出力',          desc:'自分の記録をCSVやJSONで取り出して、外部でも活用できます',                      ico:'📤', bg:'rgba(212,132,90,.10)'  },
   ],
   C: [
-    { key:'body-summary',    name:'からだサマリー',      desc:'あなたの状態の概要をわかりやすくまとめる',  ico:'🌿', bg:'rgba(90,144,112,.10)'  },
-    { key:'monthly-pdf',     name:'月次PDFレポート',     desc:'1ヶ月の記録PDFをまとめて出力',             ico:'📄', bg:'rgba(139,127,214,.12)' },
-    { key:'doctor-summary',  name:'受診用まとめ',        desc:'受診時に医師へ見せるまとめを作成',          ico:'🏥', bg:'rgba(74,144,200,.10)'  },
-    { key:'symptom-trends',  name:'症状推移グラフ',      desc:'症状の推移をグラフでわかりやすく表示',      ico:'📈', bg:'rgba(212,132,154,.10)' },
-    { key:'condition-summary',name:'疾患観察まとめ',     desc:'疾患ごとの観察ポイントを整理して確認',      ico:'🔬', bg:'rgba(200,160,64,.10)'  },
+    { key:'body-summary',    name:'からだサマリー',      desc:'今の状態をひと目で振り返れる形に整理します（自分向け）',                       ico:'🌿', bg:'rgba(90,144,112,.10)'  },
+    { key:'monthly-pdf',     name:'月次PDFレポート',     desc:'1ヶ月の記録を印刷・共有できるPDFにまとめます',                                ico:'📄', bg:'rgba(139,127,214,.12)' },
+    { key:'doctor-summary',  name:'受診用まとめ',        desc:'診察で伝えたい症状や変化を、医師に見せる形でまとめます（医師向け）',            ico:'🏥', bg:'rgba(74,144,200,.10)'  },
+    { key:'symptom-trends',  name:'症状推移グラフ',      desc:'複数の症状がどう推移しているか、周期と重ねてグラフで確認できます',              ico:'📈', bg:'rgba(212,132,154,.10)' },
+    { key:'condition-summary',name:'疾患観察まとめ',     desc:'疾患ごとの症状の変化を、長い視点でまとめて振り返れます（疾患向け）',           ico:'🔬', bg:'rgba(200,160,64,.10)'  },
   ],
 };
 
@@ -114,15 +114,21 @@ function _section(title, ico, bg, features, letter, recKeys) {
 function _buildPanelHTML(recs) {
   const recKeys = new Set(recs.map(r => r.key));
 
-  const recChips = recs.length ? `<div class="pho-recommend">${
-    recs.map(r => {
-      const f = ALL_FEATURES.find(f => f.key === r.key);
-      return f ? `<div class="pho-rec-chip" data-pro-key="${f.key}">
-        <div class="pho-rec-chip-dot"></div>${f.name}
-        <span class="pho-rec-reason">— ${r.reason}</span>
-      </div>` : '';
-    }).join('')
-  }</div>` : '';
+  const recChips = recs.length
+    ? `<div class="pho-recommend">${
+        recs.map(r => {
+          const f = ALL_FEATURES.find(f => f.key === r.key);
+          return f ? `<div class="pho-rec-chip" data-pro-key="${f.key}">
+            <div class="pho-rec-chip-dot"></div>${f.name}
+            <span class="pho-rec-reason">— ${r.reason}</span>
+          </div>` : '';
+        }).join('')
+      }</div>`
+    : `<div class="pho-recommend-empty">
+        <div class="pho-recommend-empty-text">
+          睡眠・気分・症状を記録すると<br>あなたへのおすすめが表示されます
+        </div>
+      </div>`;
 
   const flowHTML = FLOW_STEPS.map(step => `
     <div class="pho-flow-item" data-pro-key="${step.key}" role="button" tabindex="0">
@@ -148,13 +154,13 @@ function _buildPanelHTML(recs) {
   </div>
   ${recChips}
   <div class="pho-body" id="pho-body">
+    <div class="pho-flow">
+      <div class="pho-flow-label">活用の流れ</div>
+      <div class="pho-flow-steps">${flowHTML}</div>
+    </div>
     ${_section('深く理解する', '🔬', 'rgba(139,127,214,.10)', FEATURES.A, 'A', recKeys)}
     ${_section('記録を守る・整理する', '🛡', 'rgba(74,144,200,.10)', FEATURES.B, 'B', recKeys)}
     ${_section('医療相談に活かす', '🌿', 'rgba(90,144,112,.10)', FEATURES.C, 'C', recKeys)}
-    <div class="pho-flow">
-      <div class="pho-flow-label">おすすめの活用フロー</div>
-      <div class="pho-flow-steps">${flowHTML}</div>
-    </div>
   </div>
 </div>`;
 }
