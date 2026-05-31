@@ -15,6 +15,7 @@ import { getState } from '../store/state.js';
 import insightsHtml        from '../screens/insights.html?raw';
 import homeNextHtml        from '../screens/home-next.html?raw';
 import proFeatureHtml      from '../screens/pro-feature.html?raw';
+import proHubHtml          from '../screens/pro-hub.html?raw';
 import threeCardHtml       from '../screens/record-three-card.html?raw';
 import todayReflectionHtml from '../screens/today-reflection.html?raw';
 
@@ -24,6 +25,7 @@ const SCREEN_HTML = {
   insights:              insightsHtml,
   'home-next':           homeNextHtml,
   'pro-feature':         proFeatureHtml,
+  'pro-hub':             proHubHtml,
   'record-three-card':   threeCardHtml,
   'today-reflection':    todayReflectionHtml,
 };
