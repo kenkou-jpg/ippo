@@ -8,43 +8,83 @@ import './pro-hub.css';
 import { getState } from '../../store/state.js';
 
 // ─── SVG ──────────────────────────────────────────────────
-const SVG_CLOSE = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>`;
+const SVG_CLOSE   = `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l10 10M15 5L5 15"/></svg>`;
 const SVG_CHEVRON = `<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l4 5-4 5"/></svg>`;
-const SVG_STAR = `<svg viewBox="0 0 12 12" fill="currentColor"><polygon points="6 1 7.55 4.18 11 4.64 8.5 7.07 9.09 10.5 6 8.86 2.91 10.5 3.5 7.07 1 4.64 4.45 4.18"/></svg>`;
+const SVG_STAR    = `<svg viewBox="0 0 12 12" fill="currentColor"><polygon points="6 1 7.55 4.18 11 4.64 8.5 7.07 9.09 10.5 6 8.86 2.91 10.5 3.5 7.07 1 4.64 4.45 4.18"/></svg>`;
+
+// ─── Section SVG icons (Phase 1 migration) ────────────────
+// HOME準拠: stroke-width 1.4 / stroke-linecap round / fill none
+const SVG_UNDERSTAND = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="3" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="21" y2="12"/></svg>`;
+const SVG_TRY        = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v7.5l4 8a1 1 0 01-.9 1.5H5.9A1 1 0 015 18.5l4-8V3z"/><line x1="6.5" y1="8" x2="17.5" y2="8"/></svg>`;
+const SVG_REFLECT    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.5-3-9-6.5-9-11a9 9 0 0 1 18 0c0 4.5-4.5 8-9 11z"/><circle cx="12" cy="10" r="2.5" fill="currentColor" opacity="0.2" stroke="none"/></svg>`;
+const SVG_SHARE      = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/><line x1="8" y1="8" x2="16" y2="8"/></svg>`;
+const SVG_PROTECT    = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 L21 6.5 L21 13 C21 17.5 17 21 12 22.5 C7 21 3 17.5 3 13 L3 6.5 Z"/><polyline points="9 12.5 11.5 15.5 16 10"/></svg>`;
 
 // ─── Feature data ──────────────────────────────────────────
 // Journey sections: ① 理解する → ② 試してみる → ③ 振り返る → ④ 医師と共有する → ⑤ 記録を守る
+// ─── Functional card SVG icons ────────────────────────────
+// HOME準拠: viewBox 0 0 24 24 / stroke-width 1.4 / stroke-linecap round
+// color は各セクションアクセント色を icoColor で指定
+const _I = (paths) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+
+// ① 理解する
+const ICO_AI_PATTERN  = _I(`<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>`);
+const ICO_FLARE       = _I(`<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>`);
+const ICO_FACTOR      = _I(`<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>`);
+const ICO_CYCLE       = _I(`<circle cx="8.5" cy="12" r="5"/><circle cx="15.5" cy="12" r="5"/>`);
+const ICO_BBT         = _I(`<path d="M14 14.76V3.5a2.5 2.5 0 00-5 0v11.26a4.5 4.5 0 105 0z"/>`);
+
+// ② 試してみる
+const ICO_EXPERIMENT  = _I(`<path d="M9 3h6v7.5l4 8a1 1 0 01-.9 1.5H5.9A1 1 0 015 18.5l4-8V3z"/><line x1="6.5" y1="8" x2="17.5" y2="8"/>`);
+
+// ③ 振り返る
+const ICO_BODY_SUMMARY  = _I(`<path d="M12 21c-4.5-3-9-7-9-11a9 9 0 0118 0c0 4-4.5 8-9 11z"/><line x1="12" y1="10" x2="12" y2="15"/><line x1="9.5" y1="13" x2="14.5" y2="13"/>`);
+const ICO_SYMPTOM_TRENDS= _I(`<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>`);
+const ICO_CONDITION     = _I(`<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="13" y2="17"/>`);
+
+// ④ 医師と共有する
+const ICO_DOCTOR      = _I(`<circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>`);
+const ICO_MONTHLY_PDF = _I(`<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="11" y2="17"/>`);
+
+// ⑤ 記録を守る
+const ICO_CLOUD_SYNC  = _I(`<path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/><line x1="12" y1="14" x2="12" y2="19"/><polyline points="9.5 16.5 12 14 14.5 16.5"/>`);
+const ICO_BACKUP      = _I(`<path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/><polyline points="9.5 17.5 12 20 14.5 17.5"/><line x1="12" y1="13" x2="12" y2="20"/>`);
+const ICO_RESTORE     = _I(`<path d="M3 12a9 9 0 109-9 9.75 9.75 0 01-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/>`);
+const ICO_DIAGNOSE    = _I(`<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`);
+const ICO_EXPORT      = _I(`<path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>`);
+
 const FEATURES = {
   // ① 理解する: なぜこうなっているのか知りたい
   UNDERSTAND: [
-    { key:'ai-pattern',      name:'AIパターン解析',    desc:'症状・睡眠・体温の関係など、記録だけでは見えにくい長期の傾向を見つけます',      ico:'🔮', bg:'rgba(139,127,214,.12)' },
-    { key:'flare-analysis',  name:'フレアアップ分析',   desc:'症状が強かった日に共通するきっかけや前兆を探します',                           ico:'🔥', bg:'rgba(212,132,90,.10)'  },
-    { key:'factor-report',   name:'要因効果レポート',   desc:'睡眠・ストレスなど、どの要因が症状に影響していそうか整理します',                ico:'📋', bg:'rgba(200,160,64,.10)'  },
-    { key:'cycle-compare',   name:'周期比較',           desc:'調子の良かった周期と今を並べて、変化のヒントを探します',                        ico:'📊', bg:'rgba(74,144,200,.10)'  },
-    { key:'bbt-pattern',     name:'体温パターン解析',   desc:'体温の変化から、あなた固有のリズムや排卵のタイミングを見つけます',              ico:'🌡', bg:'rgba(212,132,154,.10)' },
+    { key:'ai-pattern',       name:'AIパターン解析',   desc:'症状・睡眠・体温の関係など、記録だけでは見えにくい長期の傾向を見つけます',   ico:ICO_AI_PATTERN,   icoColor:'#8b7fd6', bg:'rgba(139,127,214,.12)' },
+    { key:'flare-analysis',   name:'フレアアップ分析',  desc:'症状が強かった日に共通するきっかけや前兆を探します',                          ico:ICO_FLARE,        icoColor:'#d4845a', bg:'rgba(212,132,90,.12)'  },
+    { key:'factor-report',    name:'要因効果レポート',  desc:'睡眠・ストレスなど、どの要因が症状に影響していそうか整理します',               ico:ICO_FACTOR,       icoColor:'#c8a040', bg:'rgba(200,160,64,.12)'  },
+    { key:'cycle-compare',    name:'周期比較',          desc:'調子の良かった周期と今を並べて、変化のヒントを探します',                       ico:ICO_CYCLE,        icoColor:'#4a90c8', bg:'rgba(74,144,200,.12)'  },
+    { key:'bbt-pattern',      name:'体温パターン解析',  desc:'体温の変化から、あなた固有のリズムや排卵のタイミングを見つけます',             ico:ICO_BBT,          icoColor:'#d4849a', bg:'rgba(212,132,154,.12)' },
   ],
   // ② 試してみる: 専用セクション（experiments 単独）
   TRY: [
-    { key:'experiments',     name:'ヘルス実験',         desc:'試してみたことが本当に自分に合っていたか、記録をもとに振り返れます',             ico:'🧪', bg:'rgba(90,144,112,.10)'  },
+    { key:'experiments',      name:'ヘルス実験',        desc:'試してみたことが本当に自分に合っていたか、記録をもとに振り返れます',            ico:ICO_EXPERIMENT,   icoColor:'#5a9070', bg:'rgba(90,144,112,.12)'  },
   ],
   // ③ 振り返る: 今の自分の状態を整理したい
   REFLECT: [
-    { key:'body-summary',    name:'からだサマリー',      desc:'今の状態をひと目で振り返れる形に整理します（自分向け）',                       ico:'🌿', bg:'rgba(90,144,112,.10)'  },
-    { key:'symptom-trends',  name:'症状推移グラフ',      desc:'複数の症状がどう推移しているか、周期と重ねてグラフで確認できます',              ico:'📈', bg:'rgba(212,132,154,.10)' },
-    { key:'condition-summary',name:'疾患観察まとめ',     desc:'疾患ごとの症状の変化を、長い視点でまとめて振り返れます（疾患向け）',           ico:'🔬', bg:'rgba(200,160,64,.10)'  },
+    { key:'body-summary',     name:'からだサマリー',     desc:'今の状態をひと目で振り返れる形に整理します（自分向け）',                      ico:ICO_BODY_SUMMARY,  icoColor:'#5a9070', bg:'rgba(90,144,112,.12)'  },
+    { key:'symptom-trends',   name:'症状推移グラフ',     desc:'複数の症状がどう推移しているか、周期と重ねてグラフで確認できます',             ico:ICO_SYMPTOM_TRENDS,icoColor:'#d4849a', bg:'rgba(212,132,154,.12)' },
+    { key:'condition-summary',name:'疾患観察まとめ',     desc:'疾患ごとの症状の変化を、長い視点でまとめて振り返れます（疾患向け）',          ico:ICO_CONDITION,    icoColor:'#c8a040', bg:'rgba(200,160,64,.12)'  },
   ],
   // ④ 医師と共有する: 診察に持っていく形にしたい
   SHARE: [
-    { key:'doctor-summary',  name:'受診用まとめ',        desc:'診察で伝えたい症状や変化を、医師に見せる形でまとめます（医師向け）',            ico:'🏥', bg:'rgba(74,144,200,.10)'  },
-    { key:'monthly-pdf',     name:'月次PDFレポート',     desc:'1ヶ月の記録を印刷・共有できるPDFにまとめます',                                ico:'📄', bg:'rgba(139,127,214,.12)' },
+    { key:'doctor-summary',   name:'受診用まとめ',       desc:'診察で伝えたい症状や変化を、医師に見せる形でまとめます（医師向け）',           ico:ICO_DOCTOR,       icoColor:'#4a90c8', bg:'rgba(74,144,200,.12)'  },
+    { key:'monthly-pdf',      name:'月次PDFレポート',    desc:'1ヶ月の記録を印刷・共有できるPDFにまとめます',                               ico:ICO_MONTHLY_PDF,  icoColor:'#8b7fd6', bg:'rgba(139,127,214,.12)' },
   ],
   // ⑤ 記録を守る: 積み重ねた記録を失いたくない
   PROTECT: [
-    { key:'cloud-sync',      name:'クラウド同期',        desc:'積み重ねた記録を、端末が変わっても安全に引き継げます',                         ico:'☁',  bg:'rgba(74,144,200,.10)'  },
-    { key:'backup',          name:'バックアップ',        desc:'大切な記録をいつでもスナップショット保存しておけます',                          ico:'💾', bg:'rgba(139,127,214,.12)' },
-    { key:'restore',         name:'復元',               desc:'誤って消してしまった記録も、過去のバックアップから取り戻せます',                ico:'🔄', bg:'rgba(90,144,112,.10)'  },
-    { key:'data-health',     name:'データ診断',          desc:'記録の抜けや矛盾を自動でチェックして、分析の精度を保ちます',                   ico:'🔍', bg:'rgba(200,160,64,.10)'  },
-    { key:'export',          name:'データ出力',          desc:'自分の記録をCSVやJSONで取り出して、外部でも活用できます',                      ico:'📤', bg:'rgba(212,132,90,.10)'  },
+    { key:'cloud-sync',       name:'クラウド同期',       desc:'積み重ねた記録を、端末が変わっても安全に引き継げます',                        ico:ICO_CLOUD_SYNC,   icoColor:'#4a90c8', bg:'rgba(74,144,200,.12)'  },
+    { key:'backup',           name:'バックアップ',       desc:'大切な記録をいつでもスナップショット保存しておけます',                         ico:ICO_BACKUP,       icoColor:'#8b7fd6', bg:'rgba(139,127,214,.12)' },
+    { key:'restore',          name:'復元',              desc:'誤って消してしまった記録も、過去のバックアップから取り戻せます',               ico:ICO_RESTORE,      icoColor:'#5a9070', bg:'rgba(90,144,112,.12)'  },
+    { key:'data-health',      name:'データ診断',         desc:'記録の抜けや矛盾を自動でチェックして、分析の精度を保ちます',                  ico:ICO_DIAGNOSE,     icoColor:'#c8a040', bg:'rgba(200,160,64,.12)'  },
+    { key:'export',           name:'データ出力',         desc:'自分の記録をCSVやJSONで取り出して、外部でも活用できます',                     ico:ICO_EXPORT,       icoColor:'#d4845a', bg:'rgba(212,132,90,.12)'  },
   ],
 };
 
@@ -68,6 +108,68 @@ const FLOW_STEPS = [
 // ─── State ────────────────────────────────────────────────
 let _isOpen = false;
 let _previousScreen = null; // ページモード: どこから来たかを記憶
+
+// ─── Current Position ─────────────────────────────────────
+function _getCurrentPosition(s) {
+  const records     = s.records     || [];
+  const experiments = s.experiments || [];
+
+  // CASE 1: 記録が少ない
+  if (records.length < 4) {
+    return {
+      caseNum: 1,
+      message: '記録、続けていますね。<br>もう少し積み重なってきたら、ここに気づきが届きます。',
+      recKey: null,
+      recText: null,
+    };
+  }
+
+  // CASE 3 / 4: 実験あり
+  if (experiments.length > 0) {
+    const dates = records
+      .map(r => new Date(r.date || r.record_date))
+      .filter(d => !isNaN(d.getTime()));
+    const oldestMs = dates.length ? Math.min(...dates.map(d => d.getTime())) : Date.now();
+    const spanDays  = (Date.now() - oldestMs) / 86400000;
+
+    // CASE 4: 長期ユーザー（実験あり + 60日以上）
+    if (spanDays >= 60) {
+      return {
+        caseNum: 4,
+        message: '長く記録が続いています。<br>変化のパターンが見えやすくなってきた頃です。',
+        recKey: null,
+        recText: null,
+      };
+    }
+
+    // CASE 3: 実験中（スパン < 60日）
+    return {
+      caseNum: 3,
+      message: '実験、試してみているんですね。',
+      recKey: 'experiments',
+      recText: '続きはヘルス実験で確認できます。',
+    };
+  }
+
+  // CASE 2: 記録は十分、実験なし
+  return {
+    caseNum: 2,
+    message: '記録が積み重なって、少し傾向が見えてきました。',
+    recKey: 'ai-pattern',
+    recText: '気になることがあれば、AIパターン解析で深めてみましょう。',
+  };
+}
+
+function _buildPositionCard(pos) {
+  const recLine = pos.recKey
+    ? `<div class="pho-pos-rec" data-pro-key="${pos.recKey}">${pos.recText}</div>`
+    : '';
+  return `<div class="pho-position-card">
+    <div class="pho-pos-label">今のあなたは</div>
+    <div class="pho-pos-message">${pos.message}</div>
+    ${recLine}
+  </div>`;
+}
 
 // ─── Recommendations ──────────────────────────────────────
 function _getRecs() {
@@ -106,8 +208,9 @@ function _getRecs() {
 // ─── HTML builders ────────────────────────────────────────
 function _card(feat, recKeys) {
   const isRec = recKeys.has(feat.key);
+  const icoColorStyle = feat.icoColor ? `color:${feat.icoColor};` : '';
   return `<div class="pho-card${isRec ? ' pho-rec' : ''}" data-pro-key="${feat.key}" role="button" tabindex="0">
-    <div class="pho-card-ico" style="background:${feat.bg}">${feat.ico}</div>
+    <div class="pho-card-ico" style="background:${feat.bg};${icoColorStyle}">${feat.ico}</div>
     <div class="pho-card-body">
       <div class="pho-card-name">${feat.name}</div>
       <div class="pho-card-desc">${feat.desc}</div>
@@ -117,10 +220,11 @@ function _card(feat, recKeys) {
   </div>`;
 }
 
-function _section(num, title, userPsych, ico, bg, features, recKeys) {
+function _section(num, title, userPsych, ico, bg, features, recKeys, color) {
+  const colorStyle = color ? `color:${color};` : '';
   return `<div class="pho-section">
     <div class="pho-section-head">
-      <div class="pho-section-icon" style="background:${bg}">${ico}</div>
+      <div class="pho-section-icon" style="background:${bg};${colorStyle}">${ico}</div>
       <div class="pho-section-head-text">
         <span class="pho-section-num">${num}</span>
         <span class="pho-section-title">${title}</span>
@@ -135,7 +239,7 @@ function _sectionExperiments(feat, recKeys) {
   const isRec = recKeys.has(feat.key);
   return `<div class="pho-section pho-section-try">
     <div class="pho-section-head">
-      <div class="pho-section-icon" style="background:rgba(90,144,112,.10)">🧪</div>
+      <div class="pho-section-icon" style="background:rgba(90,144,112,.12);color:#5a9070">${SVG_TRY}</div>
       <div class="pho-section-head-text">
         <span class="pho-section-num">②</span>
         <span class="pho-section-title">試してみる</span>
@@ -362,6 +466,8 @@ async function _navigateToPro(key) {
 // Overlay用の _buildPanelHTML とは独立して、ページ用コンテンツのみを生成する。
 // Hero・backdrop・panel wrapper は pro-hub.html 側が持つため含めない。
 function _buildPageContent(recs) {
+  const s = (typeof window.getState === 'function' ? window.getState() : null) || getState();
+  const pos = _getCurrentPosition(s || {});
   const recKeys = new Set(recs.map(r => r.key));
 
   const recChips = recs.length
@@ -394,12 +500,13 @@ function _buildPageContent(recs) {
       <div class="pho-flow-label">体験の流れ</div>
       <div class="pho-flow-steps">${flowHTML}</div>
     </div>
+    ${_buildPositionCard(pos)}
     ${recChips}
-    ${_section('①', '理解する', 'なぜこうなっているのか知りたい', '🔮', 'rgba(139,127,214,.10)', FEATURES.UNDERSTAND, recKeys)}
+    ${_section('①', '理解する', 'なぜこうなっているのか知りたい', SVG_UNDERSTAND, 'rgba(139,127,214,.12)', FEATURES.UNDERSTAND, recKeys, '#8b7fd6')}
     ${_sectionExperiments(FEATURES.TRY[0], recKeys)}
-    ${_section('③', '振り返る', '今の自分の状態を整理したい', '🌿', 'rgba(90,144,112,.10)', FEATURES.REFLECT, recKeys)}
-    ${_section('④', '医師と共有する', '診察に持っていく形にしたい', '🏥', 'rgba(74,144,200,.10)', FEATURES.SHARE, recKeys)}
-    ${_section('⑤', '記録を守る', '積み重ねた記録を失いたくない', '🛡', 'rgba(200,160,64,.10)', FEATURES.PROTECT, recKeys)}
+    ${_section('③', '振り返る', '今の自分の状態を整理したい', SVG_REFLECT, 'rgba(90,144,112,.12)', FEATURES.REFLECT, recKeys, '#5a9070')}
+    ${_section('④', '医師と共有する', '診察に持っていく形にしたい', SVG_SHARE, 'rgba(74,144,200,.12)', FEATURES.SHARE, recKeys, '#4a90c8')}
+    ${_section('⑤', '記録を守る', '積み重ねた記録を失いたくない', SVG_PROTECT, 'rgba(200,160,64,.12)', FEATURES.PROTECT, recKeys, '#c8a040')}
   `;
 }
 
