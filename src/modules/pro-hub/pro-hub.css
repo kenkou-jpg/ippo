@@ -181,7 +181,7 @@
 
 /* ─── Section ────────────────────────────────────────────── */
 .pho-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--screen-section-gap, 32px);
 }
 .pho-section-head {
   display: flex;
@@ -191,15 +191,22 @@
   padding: 0 2px;
 }
 .pho-section-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   font-size: 13px;
   margin-top: 1px;
+  transition: transform 0.12s ease;
+}
+.pho-section-icon svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex-shrink: 0;
 }
 .pho-section-head-text {
   display: flex;
@@ -250,7 +257,7 @@
 .pho-cards {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--screen-card-gap, 20px);
 }
 .pho-card {
   display: flex;
@@ -287,6 +294,13 @@
   flex-shrink: 0;
   font-size: 17px;
   line-height: 1;
+}
+/* HOME準拠: SVGアイコンサイズ統一 */
+.pho-card-ico svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex-shrink: 0;
 }
 .pho-card-body { flex: 1; min-width: 0; }
 .pho-card-name {
@@ -438,7 +452,7 @@
 
 /* ─── Page mode ──────────────────────────────────────────── */
 #screen-pro-hub {
-  background: #FAFCF8;
+  background: var(--ippo-bg-base, #FAF8F5);
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
@@ -486,7 +500,7 @@
 
 .ph-scroll {
   flex: 1;
-  padding: 20px 20px calc(80px + env(safe-area-inset-bottom, 0px));
+  padding: var(--screen-top-space, 24px) 20px calc(80px + env(safe-area-inset-bottom, 0px));
   max-width: var(--ippo-content-max, 430px);
   width: 100%;
   margin: 0 auto;
@@ -495,26 +509,42 @@
 
 /* ── Hero ────────────────────────────────────────────────── */
 .ph-hero {
-  min-height: 200px;
-  padding: 28px 20px 22px;
+  min-height: 220px;
+  padding: 40px 20px 22px;
   border-radius: 24px;
-  margin-bottom: 20px;
+  margin-bottom: var(--screen-card-gap, 20px);
   background: linear-gradient(
     135deg,
     rgba(244, 240, 255, 0.80) 0%,
     rgba(255, 255, 255, 0.90) 55%,
     rgba(236, 244, 236, 0.55) 100%
   );
-  background-color: #FAFCF8;
+  background-color: var(--ippo-bg-base, #FAF8F5);
   border: 1px solid rgba(139, 127, 214, 0.12);
   box-shadow: 0 8px 28px rgba(139, 127, 214, 0.06);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  padding-top: 40px;
   position: relative;
   overflow: hidden;
 }
+
+/* PRO専用 SVGアート — 星座・光の軌跡 */
+.ph-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='220' viewBox='0 0 420 220'%3E%3Cg stroke='%238b7fd6' stroke-width='0.8' fill='none'%3E%3Cline x1='320' y1='30' x2='370' y2='60'/%3E%3Cline x1='370' y1='60' x2='355' y2='100'/%3E%3Cline x1='355' y1='100' x2='390' y2='120'/%3E%3Cline x1='390' y1='120' x2='360' y2='155'/%3E%3Cline x1='320' y1='30' x2='355' y2='100'/%3E%3Cline x1='280' y1='55' x2='320' y2='30'/%3E%3Cline x1='280' y1='55' x2='300' y2='90'/%3E%3Cline x1='300' y1='90' x2='355' y2='100'/%3E%3Cline x1='380' y1='175' x2='360' y2='155'/%3E%3Cline x1='310' y1='140' x2='355' y2='100'/%3E%3Cline x1='310' y1='140' x2='360' y2='155'/%3E%3C/g%3E%3Cg fill='%238b7fd6'%3E%3Ccircle cx='320' cy='30' r='2.2'/%3E%3Ccircle cx='370' cy='60' r='1.6'/%3E%3Ccircle cx='355' cy='100' r='2.6'/%3E%3Ccircle cx='390' cy='120' r='1.4'/%3E%3Ccircle cx='360' cy='155' r='1.8'/%3E%3Ccircle cx='380' cy='175' r='1.2'/%3E%3Ccircle cx='280' cy='55' r='1.6'/%3E%3Ccircle cx='300' cy='90' r='1.4'/%3E%3Ccircle cx='310' cy='140' r='1.6'/%3E%3Ccircle cx='340' cy='18' r='1.0'/%3E%3Ccircle cx='405' cy='88' r='1.0'/%3E%3Ccircle cx='265' cy='120' r='0.8'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: contain;
+  z-index: 0;
+}
+
+/* Hero内テキストをSVGの上に配置 */
+.ph-hero > * { position: relative; z-index: 1; }
 
 .ph-hero-badge {
   display: inline-flex;
@@ -547,6 +577,53 @@
   font-weight: 400;
   margin: 0;
 }
+
+/* ── Current Position card ───────────────────────────────── */
+.pho-position-card {
+  margin-bottom: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, rgba(244,240,255,0.70), rgba(255,255,255,0.85));
+  border: 1px solid rgba(139, 127, 214, 0.20);
+  border-radius: 18px;
+  box-shadow: 0 4px 16px rgba(139,127,214,0.07);
+}
+.pho-pos-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: #8b7fd6;
+  letter-spacing: 0.07em;
+  text-transform: none;
+  margin-bottom: 6px;
+}
+.pho-pos-message {
+  font-size: 13px;
+  font-weight: 500;
+  color: #18245a;
+  line-height: 1.5;
+  margin-bottom: 10px;
+}
+.pho-pos-location {
+  font-size: 11px;
+  color: #8b9ab8;
+  font-weight: 400;
+}
+.pho-pos-location span {
+  font-weight: 700;
+  color: #8b7fd6;
+}
+.pho-pos-rec {
+  display: inline-flex;
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b7fd6;
+  background: rgba(139,127,214,0.09);
+  border-radius: 99px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background 160ms;
+}
+.pho-pos-rec:hover { background: rgba(139,127,214,0.16); }
 
 /* ── Page content root ───────────────────────────────────── */
 /* pho-body はOverlay用(flex+overflow-y:auto)のため、ページでは上書き */
