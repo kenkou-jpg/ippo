@@ -6315,6 +6315,12 @@ function submitFeedback() {
 }
 
 function clearData() {
+  // P0-FIX-10: 意図的なリセットフラグをセット。
+  // cloudBackupAll の FIX-9 Guard が空 records の同期をブロックするため、
+  // ユーザー明示リセット時のみ Guard を通過させるためのフラグ。
+  // フラグは cloudBackupAll の Guard 内で消費される（delete）。
+  window.__ippoExplicitDataReset = true;
+
   state.records    = [];
   state.streak     = 0;
   state.totalDays  = 0;

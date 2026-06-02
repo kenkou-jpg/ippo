@@ -124,49 +124,116 @@ export function cloudBackupAll() {
       _onboardingDone: s._onboardingDone,
     };
     // Fix: myDiseases が空配列の場合はクラウドの既存値を上書きしない。
-    // 未設定端末が設定済み端末の疾患データを消すのを防ぐ。
     if (!stateToSave.myDiseases || stateToSave.myDiseases.length === 0) {
       delete stateToSave.myDiseases;
     }
     var payload = { state: stateToSave, updated_at: new Date().toISOString() };
 
-    return supabase.from('user_data').update(payload).eq('user_id', userId).select()
-      .then(function (result) {
-        if (result.error) {
-          console.warn('Backup UPDATE失敗:', result.error.message);
-          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result.error.message };
-          return;
-        }
-        if (result.data && result.data.length > 0) {
-          console.log('Cloud backup完了（更新）: ' + stateToSave.records.length + '件');
-          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
-          return result.data;
-        }
-        payload.user_id = userId;
-        return supabase.from('user_data').insert(payload).select().then(function (result2) {
-          if (result2.error) {
-            console.warn('Backup INSERT失敗:', result2.error.message);
-            window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result2.error.message };
-          } else {
-            console.log('Cloud backup完了（新規）');
-            window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'inserted' };
-          }
-          return result2.data;
-        });
-      })
-      .catch(function (e) {
-        window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: e.message || String(e) };
-        throw e;
-      })
-      .finally(function () {
-        _cloudBackupLock = false;
-        if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
-      });
+    // ─── P0-FIX-9: Empty Records Cloud Overwrite Guard ──────────
+    // records が空の場合、クラウドの既存データを上書きしない。
+    //
+    // 許可ケース:
+    //   A) window.__ippoExplicitDataReset === true（ユーザーが明示的にリセット）
+    //   B) クラウドも records が空（新規ユーザー）
+    //
+    // ブロックケース:
+    //   ローカル records=[] かつ クラウド records が存在する場合。
+    //   clearData() 後の誤同期・デプロイ起因リセット後の上書きを防ぐ。
+    if (!hasRecords) {
+      // 明示リセットフラグがあれば通過し、フラグを消費する
+      if (window.__ippoExplicitDataReset === true) {
+        delete window.__ippoExplicitDataReset;
+        console.log('[cloudBackupAll] explicit data reset — empty records sync allowed');
+      } else {
+        // クラウドの現在のレコード件数を確認してからブロック判定
+        return supabase.from('user_data')
+          .select('state')
+          .eq('user_id', userId)
+          .single()
+          .then(function(cloudResult) {
+            var cloudRecords =
+              cloudResult.data &&
+              cloudResult.data.state &&
+              Array.isArray(cloudResult.data.state.records)
+                ? cloudResult.data.state.records
+                : [];
+            if (cloudRecords.length > 0) {
+              // BLOCK: クラウドにデータがあるのにローカルが空 → 上書き禁止
+              console.warn(
+                '[cloudBackupAll] blocked empty-record overwrite:',
+                'local=0, cloud=' + cloudRecords.length
+              );
+              window.__ippoLastSyncStatus = {
+                ts:         new Date().toISOString(),
+                result:     'blocked',
+                reason:     'empty-record-overwrite-guard',
+                cloudCount: cloudRecords.length,
+              };
+              _cloudBackupLock = false;
+              if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+              return;
+            }
+            // CASE 3: クラウドも空 → 新規ユーザー正常ケース、通過
+            console.log('[cloudBackupAll] cloud also empty — new user sync allowed');
+            return _doCloudUpdate(userId, payload, stateToSave);
+          })
+          .catch(function(e) {
+            // SELECT 失敗時は安全側に倒してブロック
+            console.warn('[cloudBackupAll] guard SELECT failed — skipping to avoid overwrite:', e.message || e);
+            _cloudBackupLock = false;
+            if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+          });
+      }
+    }
+
+    // records あり or 明示リセット → 通常の upsert
+    return _doCloudUpdate(userId, payload, stateToSave);
   }).catch(function (e) {
     _cloudBackupLock = false;
     if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
     throw e;
   });
+}
+
+// ─── _doCloudUpdate: UPDATE → INSERT フォールバック ─────────
+// cloudBackupAll の実送信ロジックを分離。Guard 判定後に呼ぶ。
+function _doCloudUpdate(userId, payload, stateToSave) {
+  return supabase.from('user_data').update(payload).eq('user_id', userId).select()
+    .then(function (result) {
+      if (result.error) {
+        console.warn('Backup UPDATE失敗:', result.error.message);
+        window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result.error.message };
+        return;
+      }
+      if (result.data && result.data.length > 0) {
+        console.log('Cloud backup完了（更新）: ' + (stateToSave.records || []).length + '件');
+        window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
+        // P0-FIX-10: 同期成功時にリセットフラグを確実にクリア（残留防止）
+        delete window.__ippoExplicitDataReset;
+        return result.data;
+      }
+      payload.user_id = userId;
+      return supabase.from('user_data').insert(payload).select().then(function (result2) {
+        if (result2.error) {
+          console.warn('Backup INSERT失敗:', result2.error.message);
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: result2.error.message };
+        } else {
+          console.log('Cloud backup完了（新規）');
+          window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'inserted' };
+          // P0-FIX-10: INSERT 成功時もフラグをクリア
+          delete window.__ippoExplicitDataReset;
+        }
+        return result2.data;
+      });
+    })
+    .catch(function (e) {
+      window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'error', reason: e.message || String(e) };
+      throw e;
+    })
+    .finally(function () {
+      _cloudBackupLock = false;
+      if (typeof window.hideSyncIndicator === 'function') window.hideSyncIndicator();
+    });
 }
 
 export function cloudRestore() {
