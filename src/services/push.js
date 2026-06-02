@@ -72,16 +72,60 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })
       .then(function (reg) {
         console.log('[SW] 登録成功:', reg.scope);
-        // 新バージョンがあれば即適用
+
+        // P0-FIX-5: 新バージョン検知 → 記録入力中なら SKIP_WAITING を遅延させる。
+        // dirty フラグは record-draft-guard が管理する。
         reg.addEventListener('updatefound', function () {
           var newWorker = reg.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', function () {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('[SW] 新バージョン利用可能');
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', function () {
+            if (newWorker.state !== 'installed') return;
+            if (!navigator.serviceWorker.controller) return;
+
+            // dirty（入力中）なら即時更新せずユーザーに通知
+            var guard = window.ippoRecordDraftGuard;
+            var isDirty = guard && typeof guard.isDirty === 'function' && guard.isDirty();
+
+            if (isDirty) {
+              console.log('[SW] 新バージョンあり。記録入力中のため更新を延期。');
+              // ユーザーへのバナー表示
+              var banner = document.getElementById('ippo-sw-update-banner');
+              if (!banner) {
+                banner = document.createElement('div');
+                banner.id = 'ippo-sw-update-banner';
+                banner.style.cssText = [
+                  'position:fixed;top:0;left:0;right:0;background:#18245a;',
+                  'color:#fff;font-size:13px;padding:10px 16px;z-index:9999;',
+                  'display:flex;align-items:center;justify-content:space-between;',
+                ].join('');
+                banner.innerHTML = [
+                  '<span>新しいバージョンがあります。記録を保存してから更新できます。</span>',
+                  '<button id="ippo-sw-update-now" style="background:#8b7fd6;border:none;',
+                  'color:#fff;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer;">',
+                  '今すぐ更新</button>',
+                ].join('');
+                document.body.appendChild(banner);
+                document.getElementById('ippo-sw-update-now').addEventListener('click', function() {
+                  if (guard && typeof guard.saveDraft === 'function') guard.saveDraft();
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                  banner.remove();
+                });
               }
-            });
-          }
+            } else {
+              // dirty でなければ即時 SKIP_WAITING
+              newWorker.postMessage({ type: 'SKIP_WAITING' });
+              console.log('[SW] 新バージョンを適用しました。');
+            }
+          });
+        });
+
+        // controllerchange で自動リロード（SKIP_WAITING 後）
+        navigator.serviceWorker.addEventListener('controllerchange', function () {
+          // draft があれば退避してからリロード
+          var guard = window.ippoRecordDraftGuard;
+          if (guard && typeof guard.saveDraft === 'function') guard.saveDraft();
+          window.location.reload();
         });
       })
       .catch(function (err) {

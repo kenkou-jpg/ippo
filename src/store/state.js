@@ -155,6 +155,10 @@ export function saveState() {
     var s = Object.assign({}, getState());
     s.lastSaved = new Date().toISOString();
     _state.lastSaved = s.lastSaved;
+    // P0-FIX-2: currentScreen は UI 状態でありユーザーデータではない。
+    // 永続化するとブート時に pro-hub 等が初期表示される原因になるため除外。
+    // 画面遷移は showScreen()/switchTab() が毎回担保する。
+    delete s.currentScreen;
     localStorage.setItem(STATE_KEY, JSON.stringify(s));
   } catch(e) {
     saveErr = e;

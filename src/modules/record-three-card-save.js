@@ -25,6 +25,7 @@ import {
 } from './record/save.js';
 
 import { upsertRecord } from './record-upsert.js';
+import { syncRecordImmediately } from '../services/supabase.js';
 
 function _rtcPipelineSave(payload) {
   var ctx = createRecordSaveContext('rtc:saveRecord');
@@ -58,8 +59,29 @@ function _rtcPipelineSave(payload) {
   var finalized = finalizeRecordSaveContext(ctx, 'rtc:saveRecord');
   window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ = finalized;
 
-  // 5. Async cloud sync after 500ms — matches original bypass timing
-  //    syncRecordCloud auto-discovers window.cloudBackupAll via getCallable()
+  // 5. P0-FIX-3: record 単位の即時 Supabase upsert
+  //    saveState 完了直後に user_records へ upsert する。
+  //    失敗時は syncPending=true を立てて次回起動時に再試行。
+  //    全state backup (cloudBackupAll) は 500ms 遅延で継続。
+  var savedRecord = null;
+  try {
+    var _s = (typeof window.getState === 'function') ? window.getState() : null;
+    if (_s && Array.isArray(_s.records) && payload.record_date) {
+      savedRecord = _s.records.find(function(r) {
+        return r && r.id === payload.id;
+      }) || _s.records.find(function(r) {
+        return r && (r.record_date || (r.date || '').slice(0, 10)) === payload.record_date;
+      });
+    }
+  } catch(e) {}
+
+  if (savedRecord) {
+    syncRecordImmediately(savedRecord).catch(function(e) {
+      console.warn('[rtc:phase2] immediate sync error:', e);
+    });
+  }
+
+  // 6. Async full-state cloud sync after 500ms (フォールバック)
   setTimeout(function() {
     try {
       syncRecordCloud({ context: ctx });

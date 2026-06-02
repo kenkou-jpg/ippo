@@ -451,11 +451,19 @@
 }
 
 /* ─── Page mode ──────────────────────────────────────────── */
+/* P0-FIX-1: display:flex は .screen.active 経由でのみ有効にする。
+   ID セレクタ (#screen-pro-hub) の specificity (1,0,0) が
+   .screen { display:none } (0,1,0) を常に上書きしていたため、
+   DOM に注入された瞬間から全画面で常時表示されていた。 */
 #screen-pro-hub {
   background: var(--ippo-bg-base, #FAF8F5);
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* active 時のみ flex レイアウトを有効化 */
+#screen-pro-hub.active {
   display: flex;
   flex-direction: column;
 }

@@ -106,7 +106,11 @@ export function bootstrap() {
     delete state.myDisease;
     saveState();
   }
-  if (!state.myDiseases) state.myDiseases = [];
+  // P0-FIX-6: undefined / null の場合のみ [] で初期化する。
+  // 空配列 [] は「未設定」であり saveState の対象にしない。
+  // cloudRestore 後に [] が上書きするのを防ぐため、
+  // ここでは in-memory のみ設定し localStorage には書かない。
+  if (state.myDiseases == null) state.myDiseases = [];
 
   // ── 3. 既存ユーザー: オンボーディング済みフラグ補完 ──────────
   if (state.name && !state._onboardingDone) {
