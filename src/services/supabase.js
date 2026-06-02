@@ -208,6 +208,8 @@ function _doCloudUpdate(userId, payload, stateToSave) {
       if (result.data && result.data.length > 0) {
         console.log('Cloud backup完了（更新）: ' + (stateToSave.records || []).length + '件');
         window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'updated' };
+        // P0-FIX-10: 同期成功時にリセットフラグを確実にクリア（残留防止）
+        delete window.__ippoExplicitDataReset;
         return result.data;
       }
       payload.user_id = userId;
@@ -218,6 +220,8 @@ function _doCloudUpdate(userId, payload, stateToSave) {
         } else {
           console.log('Cloud backup完了（新規）');
           window.__ippoLastSyncStatus = { ts: new Date().toISOString(), result: 'success', reason: 'inserted' };
+          // P0-FIX-10: INSERT 成功時もフラグをクリア
+          delete window.__ippoExplicitDataReset;
         }
         return result2.data;
       });
