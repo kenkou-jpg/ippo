@@ -217,18 +217,33 @@ export function cloudRestore() {
         var mergedRecords = merge(s.records || [], cloudState.records || []);
         var mergedCount   = mergedRecords.length;
 
-        if (cloudDate > localDate) {
-          var safeCloud = Object.assign({}, cloudState);
-          var mergedState = Object.assign({}, s);
-          Object.keys(safeCloud).forEach(function(key) {
-            if (safeCloud[key] !== undefined && safeCloud[key] !== null) {
-              // Fix: myDiseases は空配列をスキップ。未設定端末がローカルの設定済み値を消すのを防ぐ。
-              if (key === 'myDiseases' && Array.isArray(safeCloud[key]) && safeCloud[key].length === 0) return;
-              mergedState[key] = safeCloud[key];
+        // P0-FIX-7: cloudRestore 安全マージ強化。
+        // クラウド状態でローカルを丸ごと置換しない。
+        // records は常に local + cloud のマージ。
+        // myDiseases は有効値（非空配列）を優先。
+        // currentScreen はユーザーデータではないため常に無視。
+        function _safeMergeState(local, cloud) {
+          var merged = Object.assign({}, local);
+          Object.keys(cloud).forEach(function(key) {
+            // currentScreen は永続化しない（P0-FIX-2）
+            if (key === 'currentScreen') return;
+            var cv = cloud[key];
+            if (cv === undefined || cv === null) return;
+            // myDiseases: 空配列はローカル値を消さない
+            if (key === 'myDiseases') {
+              if (!Array.isArray(cv) || cv.length === 0) return;
+              // クラウドに有効値がある場合のみ上書き
             }
+            merged[key] = cv;
           });
+          return merged;
+        }
+
+        if (cloudDate > localDate) {
+          var mergedState = _safeMergeState(s, cloudState);
           mergedState.records   = mergedRecords;
           mergedState.lastSaved = cloudDate.toISOString();
+          delete mergedState.currentScreen; // 念押し除外
           setState(mergedState);
           saveState();
           console.log('クラウド復元完了（マージ）: ローカル' + localRecs + '件 + クラウド' + cloudRecs + '件 → ' + mergedCount + '件');
@@ -259,9 +274,83 @@ export function initialCloudSync() {
   });
 }
 
-window.cloudBackupAll  = cloudBackupAll;
-window.cloudRestore    = cloudRestore;
-window.initialCloudSync = initialCloudSync;
+// ─── P0-FIX-3: syncRecordImmediately ────────────────────────
+// 記録保存直後に Supabase user_records へ record 単位で upsert する。
+// cloudBackupAll (全state) の代替ではなく、record レベルの安全網。
+// 成功: record.syncedAt を更新し saveState()
+// 失敗: record.syncPending = true を立てて saveState() / 次回再試行
+export function syncRecordImmediately(record) {
+  if (!supabase) {
+    // P0-FIX-8: クライアント未初期化時も syncPending を立てて
+    // 次回起動時の retrySyncPending() 対象にする。
+    if (record) {
+      record.syncPending = true;
+      if (typeof window.saveState === 'function') window.saveState();
+    }
+    return Promise.resolve({ ok: false, reason: 'no-client' });
+  }
+  if (!record || !record.id) return Promise.resolve({ ok: false, reason: 'no-id' });
+
+  return supabase.auth.getSession().then(function (res) {
+    var session = res.data && res.data.session;
+    if (!session || !session.user) {
+      return { ok: false, reason: 'not-logged-in' };
+    }
+    var userId = session.user.id;
+    var recordDate = record.record_date
+      || (record.date ? record.date.slice(0, 10) : new Date().toISOString().slice(0, 10));
+
+    var row = {
+      id:          record.id,
+      user_id:     userId,
+      record_date: recordDate,
+      data:        record,
+      updated_at:  new Date().toISOString(),
+    };
+
+    return supabase.from('user_records')
+      .upsert(row, { onConflict: 'id' })
+      .then(function (result) {
+        if (result.error) {
+          console.warn('[syncRecordImmediately] upsert失敗:', result.error.message);
+          // syncPending フラグを立てて次回起動時に再試行
+          record.syncPending = true;
+          delete record.syncedAt;
+          if (typeof window.saveState === 'function') window.saveState();
+          return { ok: false, reason: result.error.message };
+        }
+        // 成功: syncedAt を記録し syncPending を解除
+        record.syncedAt   = new Date().toISOString();
+        record.syncPending = false;
+        if (typeof window.saveState === 'function') window.saveState();
+        console.log('[syncRecordImmediately] 同期完了:', record.id, recordDate);
+        return { ok: true };
+      });
+  }).catch(function (e) {
+    record.syncPending = true;
+    delete record.syncedAt;
+    if (typeof window.saveState === 'function') window.saveState();
+    console.warn('[syncRecordImmediately] エラー:', e.message || e);
+    return { ok: false, reason: String(e) };
+  });
+}
+
+// syncPending フラグが立っているレコードを全件再同期する。
+// 起動時・visibilitychange 復帰時に呼ぶ。
+export function retrySyncPending() {
+  if (!supabase) return Promise.resolve();
+  var s = getState();
+  var pending = (s.records || []).filter(function (r) { return r && r.syncPending; });
+  if (!pending.length) return Promise.resolve();
+  console.log('[retrySyncPending] syncPending:', pending.length, '件');
+  return Promise.all(pending.map(function (r) { return syncRecordImmediately(r); }));
+}
+
+window.cloudBackupAll        = cloudBackupAll;
+window.cloudRestore          = cloudRestore;
+window.initialCloudSync      = initialCloudSync;
+window.syncRecordImmediately = syncRecordImmediately;
+window.retrySyncPending      = retrySyncPending;
 
 // ─── Single-access-point API ─────────────────────────────────
 // All code that needs the Supabase client should call getSupabaseClient()

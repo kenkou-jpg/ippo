@@ -58,7 +58,10 @@ self.addEventListener('install', event => {
       cache.addAll(APP_SHELL).then(() =>
         Promise.allSettled(OPTIONAL_ASSETS.map(url => cache.add(url).catch(() => {})))
       )
-    ).then(() => self.skipWaiting())
+    )
+    // P0-FIX-5: install 時の即時 skipWaiting を廃止。
+    // クライアントが SKIP_WAITING メッセージを送るまで待機する。
+    // これにより記録入力中のデプロイによる強制リロードを防ぐ。
   );
 });
 
@@ -143,14 +146,27 @@ self.addEventListener('notificationclick', event => {
 // Responds to { type: 'GET_VERSION' } messages from the client.
 // Enables stale-SW detection: client compares SW cache version with app version.
 self.addEventListener('message', event => {
-  if (!event.data || event.data.type !== 'GET_VERSION') return;
-  const port = event.ports && event.ports[0];
-  if (!port) return;
-  port.postMessage({
-    version:    CACHE_VERSION,
-    cacheName:  CACHE_NAME,
-    buildHash:  null, // future: inject __BUILD_HASH__ via CI
-  });
+  if (!event.data) return;
+
+  // Version query
+  if (event.data.type === 'GET_VERSION') {
+    const port = event.ports && event.ports[0];
+    if (!port) return;
+    port.postMessage({
+      version:    CACHE_VERSION,
+      cacheName:  CACHE_NAME,
+      buildHash:  null, // future: inject __BUILD_HASH__ via CI
+    });
+    return;
+  }
+
+  // P0-FIX-5: SKIP_WAITING — クライアントが安全と判断した後にのみ SW を更新する。
+  // record-draft-guard が isDirty() を確認してから postMessage する設計。
+  // isDirty() = true の間はクライアント側がこのメッセージを送らない。
+  if (event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+    return;
+  }
 });
 
 // ========== オフライン fallback ==========
