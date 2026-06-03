@@ -105,9 +105,19 @@ const FLOW_STEPS = [
   { num:5, text:'記録を守る',    sub:'クラウド保存・バックアップ',      key:'cloud-sync'     },
 ];
 
+// ─── Roadmap sections (P27) ───────────────────────────────
+const SECTIONS = [
+  { num:1, color:'#8b7fd6', title:'理解する',      sub:'原因やパターンを深く知る',  features:FEATURES.UNDERSTAND },
+  { num:2, color:'#5a9070', title:'試してみる',    sub:'自分に合う方法を見つける',  features:FEATURES.TRY       },
+  { num:3, color:'#d4845a', title:'振り返る',      sub:'これまでの記録を整理する',  features:FEATURES.REFLECT   },
+  { num:4, color:'#d4849a', title:'医師と共有する', sub:'診察をスムーズにする',      features:FEATURES.SHARE     },
+  { num:5, color:'#4a90c8', title:'記録を守る',    sub:'大切な記録を安心して残す', features:FEATURES.PROTECT   },
+];
+
 // ─── State ────────────────────────────────────────────────
 let _isOpen = false;
 let _previousScreen = null; // ページモード: どこから来たかを記憶
+let _activeSection = 0;     // アコーディオン: 展開中のセクション index
 
 // ─── Current Position ─────────────────────────────────────
 function _getCurrentPosition(s) {
@@ -449,52 +459,163 @@ async function _navigateToPro(key) {
   }
 }
 
-// ─── Page mode: content builder ───────────────────────────
-// Overlay用の _buildPanelHTML とは独立して、ページ用コンテンツのみを生成する。
-// Hero・backdrop・panel wrapper は pro-hub.html 側が持つため含めない。
-function _buildPageContent(recs) {
-  const s = (typeof window.getState === 'function' ? window.getState() : null) || getState();
-  const pos = _getCurrentPosition(s || {});
-  const recKeys = new Set(recs.map(r => r.key));
+// ─── P27-C: initial section from position case ────────────
+function _getInitialSection(pos) {
+  if (pos.caseNum === 3) return 1; // 試してみる
+  if (pos.caseNum === 4) return 2; // 振り返る
+  return 0;                        // 理解する (CASE1, CASE2)
+}
 
-  const recChips = recs.length
-    ? `<div class="pho-recommend">${
-        recs.map(r => {
-          const f = ALL_FEATURES.find(f => f.key === r.key);
-          return f ? `<div class="pho-rec-chip" data-pro-key="${f.key}">
-            <div class="pho-rec-chip-dot"></div>${f.name}
-            <span class="pho-rec-reason">— ${r.reason}</span>
-          </div>` : '';
-        }).join('')
-      }</div>`
-    : `<div class="pho-recommend-empty">
-        <div class="pho-recommend-empty-text">
-          睡眠・気分・症状を記録すると<br>あなたへのおすすめが表示されます
+// ─── P27-B: left column builder ───────────────────────────
+function _buildLeftColumn(activeIdx, pos) {
+  const chev = (up) =>
+    `<svg class="ph-road-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+      <path d="${up ? 'M4 10l4-4 4 4' : 'M4 6l4 4 4-4'}"/>
+    </svg>`;
+
+  const roadmapItems = SECTIONS.map((sec, i) => {
+    const active = i === activeIdx;
+    const numStyle = active
+      ? `background:${sec.color};border-color:${sec.color};color:#fff`
+      : `background:transparent;border-color:${sec.color};color:${sec.color}`;
+    return `
+      <div class="ph-road-item${active ? ' ph-road-active' : ''}" data-road-idx="${i}" role="button" tabindex="0" aria-expanded="${active}">
+        <div class="ph-road-connector">
+          <div class="ph-road-num" style="${numStyle}">${sec.num}</div>
+          ${i < SECTIONS.length - 1 ? '<div class="ph-road-line"></div>' : ''}
+        </div>
+        <div class="ph-road-body">
+          <div class="ph-road-row">
+            <div class="ph-road-texts">
+              <div class="ph-road-title">${sec.title}</div>
+              <div class="ph-road-sub">${sec.sub}</div>
+            </div>
+            <div class="ph-road-meta">
+              <span class="ph-road-count">${sec.features.length}項目</span>
+              ${chev(active)}
+            </div>
+          </div>
         </div>
       </div>`;
+  }).join('');
 
-  const flowHTML = FLOW_STEPS.map(step => `
-    <div class="pho-flow-item" data-pro-key="${step.key}" role="button" tabindex="0">
-      <div class="pho-flow-num">${step.num}</div>
-      <div>
-        <div class="pho-flow-text">${step.text}</div>
-        <div class="pho-flow-sub">${step.sub}</div>
+  const posCard = `
+    <div class="ph-pos-card">
+      <div class="ph-pos-badge">現在地</div>
+      <div class="ph-pos-icon-row">
+        <div class="ph-pos-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+        </div>
+        <div class="ph-pos-texts">
+          <div class="ph-pos-message">${pos.message}</div>
+          <div class="ph-pos-sub">次のステップに進んで、さらに理解を深めていきましょう。</div>
+        </div>
       </div>
-    </div>`).join('');
+    </div>`;
+
+  return `${posCard}<div class="ph-roadmap">${roadmapItems}</div>`;
+}
+
+// ─── P27-B: right column builder ──────────────────────────
+function _buildRightColumn(activeIdx, recKeys, pos) {
+  const sec = SECTIONS[activeIdx];
+  const recommended = SECTIONS[_getInitialSection(pos)];
+
+  const recBarSvg = `<svg viewBox="0 0 44 44" fill="none" width="44" height="44">
+    <rect x="2" y="26" width="7" height="16" rx="2" fill="rgba(139,127,214,.2)"/>
+    <rect x="12" y="18" width="7" height="24" rx="2" fill="rgba(139,127,214,.38)"/>
+    <rect x="22" y="10" width="7" height="32" rx="2" fill="rgba(139,127,214,.58)"/>
+    <rect x="32" y="6" width="7" height="36" rx="2" fill="#8b7fd6"/>
+  </svg>`;
+
+  const recommendCard = `
+    <div class="ph-rec-card">
+      <div class="ph-rec-label">おすすめのステップ</div>
+      <div class="ph-rec-body-row">
+        <div class="ph-rec-texts">
+          <div class="ph-rec-title">「${recommended.title}」から始めるのがおすすめです</div>
+          <div class="ph-rec-sub">AIがあなたの記録から、今見ておくと役立つ分析を提案します。</div>
+        </div>
+        <div class="ph-rec-graph">${recBarSvg}</div>
+      </div>
+    </div>`;
+
+  const chevRight = `<svg class="ph-detail-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l4 5-4 5"/></svg>`;
+
+  const detailCards = sec.features.map(feat => {
+    const showRec = recKeys.has(feat.key);
+    const recTag = showRec ? `<span class="ph-detail-rec-tag">おすすめ</span>` : '';
+    return `
+      <div class="ph-detail-card" data-pro-key="${feat.key}" role="button" tabindex="0">
+        <div class="ph-detail-card-ico" style="background:${feat.bg};color:${feat.icoColor}">${feat.ico}</div>
+        <div class="ph-detail-card-body">
+          <div class="ph-detail-card-name">${feat.name}${recTag}</div>
+          <div class="ph-detail-card-desc">${feat.desc}</div>
+        </div>
+        ${chevRight}
+      </div>`;
+  }).join('');
+
+  const expandedStep = `
+    <div class="ph-step-detail">
+      <div class="ph-step-detail-header">
+        <div class="ph-step-detail-num-title">
+          <div class="ph-step-detail-num" style="background:${sec.color}">${sec.num}</div>
+          <div>
+            <div class="ph-step-detail-title">${sec.title}</div>
+            <div class="ph-step-detail-sub">${sec.sub}</div>
+          </div>
+        </div>
+        <button class="ph-step-detail-close">閉じる
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>
+        </button>
+      </div>
+      <div class="ph-step-detail-cards">${detailCards}</div>
+    </div>`;
+
+  const collapsedSteps = SECTIONS
+    .filter((_, i) => i !== activeIdx)
+    .map(s => `
+      <div class="ph-step-collapsed" data-road-idx="${s.num - 1}" role="button" tabindex="0">
+        <div class="ph-step-col-num" style="background:${s.color}">${s.num}</div>
+        <div class="ph-step-col-texts">
+          <span class="ph-step-col-title">${s.title}</span>
+          <span class="ph-step-col-sub">${s.sub}</span>
+        </div>
+        <div class="ph-step-col-meta">
+          <span class="ph-step-col-count">${s.features.length}項目</span>
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+        </div>
+      </div>`).join('');
+
+  return `${recommendCard}${expandedStep}${collapsedSteps}`;
+}
+
+// ─── P27-B: partial DOM update for accordion ──────────────
+function _refreshLayout(root, recs, pos, activeIdx) {
+  _activeSection = activeIdx;
+  const recKeys = new Set(recs.map(r => r.key));
+  if (pos.caseNum === 2) recKeys.add('ai-pattern');
+
+  const leftCol = root.querySelector('#ph-left-col');
+  const rightCol = root.querySelector('#ph-right-col');
+  if (leftCol)  leftCol.innerHTML  = _buildLeftColumn(activeIdx, pos);
+  if (rightCol) rightCol.innerHTML = _buildRightColumn(activeIdx, recKeys, pos);
+}
+
+// ─── Page mode: content builder ───────────────────────────
+function _buildPageContent(recs, pos, activeIdx) {
+  const recKeys = new Set(recs.map(r => r.key));
+  if (pos.caseNum === 2) recKeys.add('ai-pattern'); // P27-C CASE2
 
   return `
-    <div class="pho-flow">
-      <div class="pho-flow-label">体験の流れ</div>
-      <div class="pho-flow-steps">${flowHTML}</div>
-    </div>
-    ${_buildPositionCard(pos)}
-    ${recChips}
-    ${_section('①', '理解する', 'なぜこうなっているのか知りたい', SVG_UNDERSTAND, 'rgba(139,127,214,.12)', FEATURES.UNDERSTAND, recKeys, '#8b7fd6')}
-    ${_sectionExperiments(FEATURES.TRY[0], recKeys)}
-    ${_section('③', '振り返る', '今の自分の状態を整理したい', SVG_REFLECT, 'rgba(90,144,112,.12)', FEATURES.REFLECT, recKeys, '#5a9070')}
-    ${_section('④', '医師と共有する', '診察に持っていく形にしたい', SVG_SHARE, 'rgba(74,144,200,.12)', FEATURES.SHARE, recKeys, '#4a90c8')}
-    ${_section('⑤', '記録を守る', '積み重ねた記録を失いたくない', SVG_PROTECT, 'rgba(200,160,64,.12)', FEATURES.PROTECT, recKeys, '#c8a040')}
-  `;
+    <div class="ph-layout">
+      <div class="ph-layout-left" id="ph-left-col">${_buildLeftColumn(activeIdx, pos)}</div>
+      <div class="ph-layout-right" id="ph-right-col">${_buildRightColumn(activeIdx, recKeys, pos)}</div>
+    </div>`;
 }
 
 // ─── Page mode: render & expose ───────────────────────────
@@ -503,19 +624,41 @@ export function renderProHubPage() {
   if (!root) return;
 
   const recs = _getRecs();
-  root.innerHTML = `<div class="pho-page-content">${_buildPageContent(recs)}</div>`;
+  const s = (typeof window.getState === 'function' ? window.getState() : null) || getState();
+  const pos = _getCurrentPosition(s || {});
 
-  // 重複リスナー防止: 既存ハンドラを解除してから再登録
+  // P27-C: initial section from current position
+  _activeSection = _getInitialSection(pos);
+
+  root.innerHTML = `<div class="pho-page-content">${_buildPageContent(recs, pos, _activeSection)}</div>`;
+
+  // Unified click handler (accordion + feature navigation)
   if (root._clickHandler) root.removeEventListener('click', root._clickHandler);
   root._clickHandler = e => {
-    const target = e.target.closest('[data-pro-key]');
-    if (target) _navigateToPro(target.dataset.proKey);
+    // Accordion: left roadmap item
+    const roadItem = e.target.closest('.ph-road-item[data-road-idx]');
+    if (roadItem) {
+      const idx = parseInt(roadItem.dataset.roadIdx);
+      if (!isNaN(idx)) { _refreshLayout(root, recs, pos, idx); return; }
+    }
+    // Accordion: collapsed step on right
+    const collapsed = e.target.closest('.ph-step-collapsed[data-road-idx]');
+    if (collapsed) {
+      const idx = parseInt(collapsed.dataset.roadIdx);
+      if (!isNaN(idx)) { _refreshLayout(root, recs, pos, idx); return; }
+    }
+    // 閉じるボタン: おすすめセクションへ戻る
+    if (e.target.closest('.ph-step-detail-close')) {
+      _refreshLayout(root, recs, pos, _getInitialSection(pos));
+      return;
+    }
+    // Feature navigation
+    const proKey = e.target.closest('[data-pro-key]');
+    if (proKey) _navigateToPro(proKey.dataset.proKey);
   };
   root.addEventListener('click', root._clickHandler);
 
-  // ページ先頭へスクロール
   window.scrollTo(0, 0);
-
   document.dispatchEvent(new CustomEvent('ippo:pro-hub-ready'));
 }
 
