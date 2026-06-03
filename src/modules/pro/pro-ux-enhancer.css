@@ -1,0 +1,51 @@
+/* ================================================================
+   ippo – src/modules/pro/pro-ux-enhancer.css
+   PRO UX 改善: AI解析 今見えていること / 実験空状態カード
+================================================================ */
+
+/* ── AIパターン解析: 今見えていること サマリー ── */
+.ai-ux-summary {
+  background: rgba(139, 127, 214, 0.08);
+  border: 1px solid rgba(139, 127, 214, 0.2);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+
+.ai-ux-summary-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b7fd6;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.ai-ux-summary-line {
+  font-size: 14px;
+  color: var(--ink-mid, #6b5f58);
+  line-height: 1.8;
+}
+
+/* ── ヘルス実験: 空状態説明カード ── */
+.ai-ux-exp-intro {
+  background: rgba(90, 144, 112, 0.08);
+  border: 1px solid rgba(90, 144, 112, 0.2);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.ai-ux-exp-intro-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #3d3530);
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.ai-ux-exp-intro-body {
+  font-size: 13px;
+  color: var(--ink-mid, #6b5f58);
+  line-height: 1.8;
+}
