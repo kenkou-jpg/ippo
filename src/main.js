@@ -200,6 +200,8 @@ import './modules/pro/doctor-summary/doctor-summary.js';
 import './modules/pro/condition-summary/condition-summary.js';
 // window.renderProSymptomTrends を公開。
 import './modules/pro/symptom-trends/symptom-trends.js';
+// PRO UX 改善: AI解析「今見えていること」/ 実験空状態カード
+import './modules/pro/pro-ux-enhancer.js';
 
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';

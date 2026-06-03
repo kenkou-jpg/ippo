@@ -58,10 +58,10 @@ const FEATURES = {
   // ① 理解する: なぜこうなっているのか知りたい
   UNDERSTAND: [
     { key:'ai-pattern',       name:'AIパターン解析',   desc:'症状・睡眠・体温の関係など、記録だけでは見えにくい長期の傾向を見つけます',   ico:ICO_AI_PATTERN,   icoColor:'#8b7fd6', bg:'rgba(139,127,214,.12)' },
-    { key:'flare-analysis',   name:'フレアアップ分析',  desc:'症状が強かった日に共通するきっかけや前兆を探します',                          ico:ICO_FLARE,        icoColor:'#d4845a', bg:'rgba(212,132,90,.12)'  },
-    { key:'factor-report',    name:'要因効果レポート',  desc:'睡眠・ストレスなど、どの要因が症状に影響していそうか整理します',               ico:ICO_FACTOR,       icoColor:'#c8a040', bg:'rgba(200,160,64,.12)'  },
-    { key:'cycle-compare',    name:'周期比較',          desc:'調子の良かった周期と今を並べて、変化のヒントを探します',                       ico:ICO_CYCLE,        icoColor:'#4a90c8', bg:'rgba(74,144,200,.12)'  },
-    { key:'bbt-pattern',      name:'体温パターン解析',  desc:'体温の変化から、あなた固有のリズムや排卵のタイミングを見つけます',             ico:ICO_BBT,          icoColor:'#d4849a', bg:'rgba(212,132,154,.12)' },
+    { key:'flare-analysis',   name:'症状が強かった日の共通点', desc:'症状が強かった日に共通するきっかけや前兆を探します',              ico:ICO_FLARE,        icoColor:'#d4845a', bg:'rgba(212,132,90,.12)'  },
+    { key:'factor-report',    name:'一緒に起きやすいこと',   desc:'睡眠・ストレスなど、どの習慣が体調と一緒に変わりやすいか整理します', ico:ICO_FACTOR,       icoColor:'#c8a040', bg:'rgba(200,160,64,.12)'  },
+    { key:'cycle-compare',    name:'周期ごとの体調の違い',   desc:'調子の良かった周期と今を並べて、変化のヒントを探します',              ico:ICO_CYCLE,        icoColor:'#4a90c8', bg:'rgba(74,144,200,.12)'  },
+    { key:'bbt-pattern',      name:'体温のリズム',           desc:'体温の変化から、あなた固有のリズムや排卵のタイミングを見つけます',    ico:ICO_BBT,          icoColor:'#d4849a', bg:'rgba(212,132,154,.12)' },
   ],
   // ② 試してみる: 専用セクション（experiments 単独）
   TRY: [
@@ -413,21 +413,8 @@ const LEGACY_HANDLERS = {
   'doctor-summary':   () => typeof window.openDoctorVisitSummary  === 'function' && window.openDoctorVisitSummary(),
   // src/modules/pro/condition-summary/condition-summary.js
   'condition-summary':() => typeof window.openConditionSummary    === 'function' && window.openConditionSummary(),
-  // insights へ遷移し「症状・体調の推移」セクションへスクロール
-  // 旧 switchInsTab('trends') は ins-tab-btn-* 廃止により no-op のため使わない
-  'symptom-trends':   () => {
-    if (typeof window.switchTab !== 'function') return;
-    const p = window.switchTab('insights', null);
-    const _afterSwitch = () => {
-      // PRO サマリーを .ipr-graph-card の直後に注入
-      if (typeof window.renderProSymptomTrends === 'function') window.renderProSymptomTrends();
-      // .ipr-graph-card = insights画面の「症状・体調の推移」セクション
-      const graph = document.querySelector('.ipr-graph-card');
-      if (graph) graph.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-    if (p && typeof p.then === 'function') p.then(_afterSwitch);
-    else _afterSwitch();
-  },
+  // src/modules/pro/symptom-trends/symptom-trends.js (P31)
+  'symptom-trends':   () => typeof window.openSymptomTrends === 'function' && window.openSymptomTrends(),
 };
 
 // ─── Navigate to PRO feature screen ───────────────────────

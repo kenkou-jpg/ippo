@@ -46,19 +46,7 @@ function _navigate(key) {
     // ── 専用実装完了済み ─────────────────────────────────────────────
     'doctor-summary':    () => typeof window.openDoctorVisitSummary === 'function' && window.openDoctorVisitSummary(),
     'condition-summary': () => typeof window.openConditionSummary   === 'function' && window.openConditionSummary(),
-    'symptom-trends':    () => {
-      if (typeof window.switchTab !== 'function') return;
-      const p = window.switchTab('insights', null);
-      // switchInsTab('trends') は ins-tab-btn-* 廃止により no-op のため使わない。
-      // insights は単一スクロール画面。.ipr-graph-card へ直接スクロール。
-      const _scroll = () => {
-        if (typeof window.renderProSymptomTrends === 'function') window.renderProSymptomTrends();
-        const graph = document.querySelector('.ipr-graph-card');
-        if (graph) graph.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      };
-      if (p && typeof p.then === 'function') p.then(_scroll);
-      else _scroll();
-    },
+    'symptom-trends':    () => typeof window.openSymptomTrends === 'function' && window.openSymptomTrends(),
   };
   _log('recommendation_selected', { key });
   _hideAll();
