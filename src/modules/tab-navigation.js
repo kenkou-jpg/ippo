@@ -123,28 +123,6 @@ function _wireInsightsScreen() {
     });
   }
 
-  // ── Status strip cells → recommendation sheet ──────
-  // Map each stat cell (睡眠/周期/症状/体温) to its resolver type.
-  var statTypes = ['sleep', 'cycle', 'symptom', 'bbt'];
-  sc.querySelectorAll('.ipr-stat-cell').forEach(function(cell, idx) {
-    if (idx >= statTypes.length) return; // skip 詳細をみる cell
-    if (cell._irsWired) return;
-    cell._irsWired = true;
-    cell.classList.add('ipr-stat-cell--clickable');
-    cell.setAttribute('role', 'button');
-    cell.setAttribute('tabindex', '0');
-    cell.setAttribute('aria-label', cell.querySelector('.ipr-stat-label')?.textContent + 'の詳細を見る');
-    var type = statTypes[idx];
-    cell.addEventListener('click', function() { triggerInsightSurface(type); });
-    cell.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerInsightSurface(type); }
-    });
-  });
-
-  // ── Button onclicks (programmatic override) ────────
-  var statDetail = sc.querySelector('.ipr-stat-detail');
-  if (statDetail) statDetail.onclick = function() { document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'}); };
-
   // ── 今日の気づきカード ─────────────────────────────────
   // カードタイトル/eyebrow クリック → insight推薦シート（「どう深めるか」の入口）
   var insCard = sc.querySelector('.ipr-ins-card');
@@ -216,21 +194,11 @@ function _wireInsightsScreen() {
   var records = s.records || [];
   var r = records.length ? records[records.length - 1] : null;
 
-  if (r) {
-    var sl = document.getElementById('ipp-stat-sleep');
-    if (sl && r.sleepHours != null && r.sleepHours > 0) sl.textContent = r.sleepHours + '時間';
-    var tp = document.getElementById('ipp-stat-temp');
-    if (tp && r.basalTemp) tp.textContent = r.basalTemp + '℃';
-    var sy = document.getElementById('ipp-stat-symp');
-    if (sy && r.symptoms && r.symptoms.length) sy.textContent = r.symptoms.slice(0, 2).join('・');
-  }
-
   if (s.lastPeriodDate) {
     var last = new Date(s.lastPeriodDate + 'T00:00:00'), now2 = new Date();
     var cyc = s.cycleLength || 28;
     var dayNum = (Math.floor((now2 - last) / 86400000) % cyc) + 1; if (dayNum < 1) dayNum = 1;
     var phase = dayNum <= 5 ? '月経期' : dayNum <= 13 ? '卵胞期' : dayNum <= 16 ? '排卵期' : '黄体期';
-    var phEl = document.getElementById('ipp-stat-phase'); if (phEl) phEl.textContent = phase;
     var cpEl = sc.querySelector('.ipr-cycle-center-phase'); if (cpEl) cpEl.textContent = phase;
     var cdEl = sc.querySelector('.ipr-cycle-center-day'); if (cdEl) cdEl.textContent = '今日・周期' + dayNum + '日目';
     var pm = {'月経期': 0, '卵胞期': 1, '排卵期': 2, '黄体期': 3};

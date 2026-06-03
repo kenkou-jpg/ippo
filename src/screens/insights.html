@@ -154,34 +154,6 @@ animation: mistDrift 28s ease-in-out infinite; }
 
   overflow: visible;
 }
-/* ─── Status strip ───────────────────────────────────────── */
-.ipr-status {
-  display: grid;
-  grid-template-columns: repeat(5,1fr);
-  padding: 14px 20px;
-  margin-bottom: var(--screen-card-gap);
-  gap: 0;
-  min-height: 72px;
-  border-radius: 18px;
-}
-.ipr-stat-cell {
-  display: flex; align-items: center; gap: 9px;
-  padding: 0 12px;
-  border-right: 1px solid rgba(139,127,214,.09);
-}
-.ipr-stat-cell:first-child { padding-left: 0; }
-.ipr-stat-cell:last-child  { border-right: none; padding-right: 0; justify-content: flex-end; }
-.ipr-stat-icon {
-  width: 30px; height: 30px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.ipr-stat-label { font-size: 9px; color: #8b9ab8; letter-spacing: .06em; margin-bottom: 2px; font-weight: 500; }
-.ipr-stat-val   { font-size: 13px; font-weight: 700; color: #18245a; letter-spacing: -.015em; line-height: 1; }
-.ipr-stat-detail {
-  font-size: 11.5px; color: #8b7fd6; cursor: pointer; font-weight: 500;
-  display: flex; align-items: center; gap: 3px; white-space: nowrap;
-}
 
 /* ─── Main 2-col: 左60% / 右40% ─────────────────────────── */
 /* 寸法: 今日の気づき 520px / 疾患・症状 340px */
@@ -418,10 +390,7 @@ animation: mistDrift 28s ease-in-out infinite; }
   .hero-art { width: 180px; height: 180px; top: 10px; right: 0; }
   .ipr-hero-h1 { font-size: 28px; margin-bottom: 12px; }
   .ipr-hero-lead { font-size: 13px; margin-bottom: 16px; }
-  .ipr-status { grid-template-columns: repeat(3,1fr); padding: 12px 14px; border-radius: 16px; }
-  .ipr-stat-cell:nth-child(4) { display: none; }
-  .ipr-stat-cell:last-child { grid-column: 1/-1; justify-content: center; border-right: none; border-top: 1px solid rgba(139,127,214,.08); padding-top: 10px; margin-top: 8px; }
-  .ipr-main,.ipr-analysis { grid-template-columns: 1fr; gap: 14px; }
+.ipr-main,.ipr-analysis { grid-template-columns: 1fr; gap: 14px; }
   .ipr-bottom3 { grid-template-columns: 1fr; gap: 14px; }
   .ipr-tips-grid { grid-template-columns: 1fr; }
   .ipc { border-radius: 18px; }
@@ -527,52 +496,6 @@ animation: mistDrift 28s ease-in-out infinite; }
       </div>
       <div class="hero-art" aria-hidden="true"></div>
     </section>
-
-    <!-- ═══ STATUS STRIP ════════════════════════════════════ -->
-    <div class="ipc ipr-status">
-      <div class="ipr-stat-cell">
-        <div class="ipr-stat-icon" style="background:#ede8ff">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </div>
-        <div class="ipr-stat-texts">
-          <div class="ipr-stat-label">睡眠</div>
-          <div class="ipr-stat-val" id="ipp-stat-sleep">6.5時間</div>
-        </div>
-      </div>
-      <div class="ipr-stat-cell">
-        <div class="ipr-stat-icon" style="background:#fff0e6">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d4845a" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <div class="ipr-stat-texts">
-          <div class="ipr-stat-label">周期</div>
-          <div class="ipr-stat-val" id="ipp-stat-phase">排卵期</div>
-        </div>
-      </div>
-      <div class="ipr-stat-cell">
-        <div class="ipr-stat-icon" style="background:#fff5e8">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d4905a" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        </div>
-        <div class="ipr-stat-texts">
-          <div class="ipr-stat-label">症状</div>
-          <div class="ipr-stat-val" id="ipp-stat-symp">頭痛・だるさ</div>
-        </div>
-      </div>
-      <div class="ipr-stat-cell">
-        <div class="ipr-stat-icon" style="background:#edf5ef">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#5a9070" stroke-width="1.6" stroke-linecap="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-        </div>
-        <div class="ipr-stat-texts">
-          <div class="ipr-stat-label">体温</div>
-          <div class="ipr-stat-val" id="ipp-stat-temp">36.58℃</div>
-        </div>
-      </div>
-      <div class="ipr-stat-cell">
-        <button class="ipr-stat-detail" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
-          詳細をみる
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-    </div>
 
     <!-- ═══ MAIN GRID 60/40 ══════════════════════════════════ -->
     <div class="ipr-main">
@@ -741,12 +664,6 @@ animation: mistDrift 28s ease-in-out infinite; }
           考えてみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
-      </div>
-
-      <!-- 過去の記録からのヒント（Moon Mist） -->
-      <div class="ipc ipr-hints-card">
-        <p class="ipr-hints-text">睡眠が安定した翌日は、<br>症状が軽くなる傾向があります。</p>
-        <div class="moon-art" aria-hidden="true"></div>
       </div>
 
       <!-- 小さく試してみる -->
@@ -1044,20 +961,9 @@ animation: mistDrift 28s ease-in-out infinite; }
       var records=s.records||[];
       var r=records.length?records[records.length-1]:null;
 
-      /* Status strip */
-      if(r){
-        var sl=document.getElementById('ipp-stat-sleep');
-        if(sl&&r.sleepHours!=null&&r.sleepHours>0) sl.textContent=r.sleepHours+'時間';
-        var tp=document.getElementById('ipp-stat-temp');
-        if(tp&&r.basalTemp) tp.textContent=r.basalTemp+'℃';
-        var sy=document.getElementById('ipp-stat-symp');
-        if(sy&&r.symptoms&&r.symptoms.length) sy.textContent=r.symptoms.slice(0,2).join('・');
-      }
-
       /* Cycle phase */
       var ci=_cycleInfo(s);
       if(ci){
-        var ph=document.getElementById('ipp-stat-phase'); if(ph) ph.textContent=ci.phase;
         var cp=document.querySelector('.ipr-cycle-center-phase'); if(cp) cp.textContent=ci.phase;
         var cd=document.querySelector('.ipr-cycle-center-day'); if(cd) cd.textContent='今日・周期'+ci.dayNum+'日目';
         var pm={'月経期':0,'卵胞期':1,'排卵期':2,'黄体期':3};
