@@ -42,7 +42,7 @@ function _ensureOverlay() {
     id:        'cos-overlay',
     ariaLabel: '疾患観察まとめ',
     title:     '疾患観察まとめ',
-    subtitle:  '疾患ごとの症状・傾向を理解のために整理します（過去90日）',
+    subtitle:  '疾患ごとに、症状が増えているか・安定しているかを確認できます（過去90日）',
     footer: [
       { id: 'cos-btn-close', label: '閉じる', cls: 'pob-btn pob-btn-full' },
     ],
@@ -202,11 +202,11 @@ function _buildDiseaseCard(disease, records90) {
         <span class="cos-disease-icon">${esc(cfg.icon ?? '🔬')}</span>
         <span class="cos-disease-name">${esc(disease)}</span>
       </div>
-      <div class="cos-label">関連症状の出現（過去${DAYS}日）</div>
-      <div class="cos-sym-list">${symHtml}</div>
       ${flareHtml}
       ${worsenedHtml}
       ${stableHtml}
+      <div class="cos-label">関連症状の記録（過去${DAYS}日）</div>
+      <div class="cos-sym-list">${symHtml}</div>
       ${obsHtml}
       ${sleepHtml}
       ${tipHtml}

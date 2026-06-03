@@ -1793,11 +1793,12 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   backdrop-filter: blur(6px);
   display: none;
   align-items: flex-end;
+  justify-content: center;
 }
 .mr-overlay.active { display: flex; }
 .mr-sheet {
   width: 100%;
-  max-width: 430px;
+  max-width: 100%;
   margin: 0 auto;
   background: var(--cream);
   border-radius: 24px 24px 0 0;
