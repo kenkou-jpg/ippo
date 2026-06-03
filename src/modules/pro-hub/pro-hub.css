@@ -520,25 +520,6 @@
   text-overflow: ellipsis;
 }
 
-.ph-usage-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 10px;
-  background: rgba(139, 127, 214, 0.08);
-  border: 1px solid rgba(139, 127, 214, 0.16);
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 600;
-  color: #8b7fd6;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: background 160ms;
-  white-space: nowrap;
-}
-.ph-usage-btn:hover { background: rgba(139, 127, 214, 0.15); }
-.ph-usage-btn svg { width: 13px; height: 13px; }
-
 .ph-scroll {
   flex: 1;
   padding: 16px 14px calc(80px + env(safe-area-inset-bottom, 0px));
@@ -547,53 +528,6 @@
   margin: 0 auto;
   box-sizing: border-box;
 }
-
-/* ── Current Position card ───────────────────────────────── */
-.pho-position-card {
-  margin-bottom: 14px;
-  padding: 16px 18px;
-  background: linear-gradient(135deg, rgba(244,240,255,0.70), rgba(255,255,255,0.85));
-  border: 1px solid rgba(139, 127, 214, 0.20);
-  border-radius: 18px;
-  box-shadow: 0 4px 16px rgba(139,127,214,0.07);
-}
-.pho-pos-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: #8b7fd6;
-  letter-spacing: 0.07em;
-  text-transform: none;
-  margin-bottom: 6px;
-}
-.pho-pos-message {
-  font-size: 13px;
-  font-weight: 500;
-  color: #18245a;
-  line-height: 1.5;
-  margin-bottom: 10px;
-}
-.pho-pos-location {
-  font-size: 11px;
-  color: #8b9ab8;
-  font-weight: 400;
-}
-.pho-pos-location span {
-  font-weight: 700;
-  color: #8b7fd6;
-}
-.pho-pos-rec {
-  display: inline-flex;
-  margin-top: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #8b7fd6;
-  background: rgba(139,127,214,0.09);
-  border-radius: 99px;
-  padding: 4px 10px;
-  cursor: pointer;
-  transition: background 160ms;
-}
-.pho-pos-rec:hover { background: rgba(139,127,214,0.16); }
 
 /* ── Page content root ───────────────────────────────────── */
 /* pho-body はOverlay用(flex+overflow-y:auto)のため、ページでは上書き */
@@ -724,54 +658,6 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
-}
-
-/* Current position card */
-.ph-pos-card {
-  background: linear-gradient(135deg, rgba(244,240,255,0.75), rgba(255,255,255,0.88));
-  border: 1px solid rgba(139,127,214,0.18);
-  border-radius: 20px;
-  padding: 14px 14px 12px;
-  box-shadow: 0 3px 14px rgba(139,127,214,0.07);
-}
-.ph-pos-badge {
-  font-size: 9px;
-  font-weight: 700;
-  color: #8b7fd6;
-  letter-spacing: 0.07em;
-  margin-bottom: 8px;
-}
-.ph-pos-icon-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.ph-pos-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: rgba(139,127,214,0.12);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: #8b7fd6;
-}
-.ph-pos-icon svg { width: 18px; height: 18px; }
-.ph-pos-texts { flex: 1; min-width: 0; }
-.ph-pos-message {
-  font-size: 12px;
-  font-weight: 700;
-  color: #18245a;
-  line-height: 1.45;
-  letter-spacing: -0.01em;
-}
-.ph-pos-sub {
-  font-size: 10px;
-  color: #8b9ab8;
-  line-height: 1.5;
-  margin-top: 4px;
-  font-weight: 400;
 }
 
 /* Roadmap list */
@@ -948,47 +834,6 @@
   flex-direction: column;
   gap: 10px;
   min-width: 0;
-}
-
-/* Recommend card */
-.ph-rec-card {
-  background: linear-gradient(135deg, rgba(244,240,255,0.60), rgba(255,255,255,0.90));
-  border: 1px solid rgba(139,127,214,0.16);
-  border-radius: 20px;
-  padding: 14px 14px 12px;
-  box-shadow: 0 3px 14px rgba(139,127,214,0.06);
-}
-.ph-rec-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: #8b7fd6;
-  letter-spacing: 0.06em;
-  margin-bottom: 6px;
-}
-.ph-rec-body-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-.ph-rec-texts { flex: 1; min-width: 0; }
-.ph-rec-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: #18245a;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-}
-.ph-rec-sub {
-  font-size: 10px;
-  color: #8b9ab8;
-  line-height: 1.5;
-  margin-top: 4px;
-  font-weight: 400;
-}
-.ph-rec-graph {
-  flex-shrink: 0;
-  display: flex;
-  align-items: flex-end;
 }
 
 /* Step detail (expanded) */
@@ -1191,118 +1036,9 @@
 }
 .ph-step-col-meta svg { width: 13px; height: 13px; }
 
-/* ── Usage section ───────────────────────────────────────── */
-.ph-usage-section {
-  margin-top: 8px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(139,127,214,0.08);
-}
-
-.ph-usage-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #18245a;
-  margin-bottom: 14px;
-  letter-spacing: -0.01em;
-}
-
-.ph-usage-flow {
-  display: flex;
-  align-items: stretch;
-  gap: 4px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  padding-bottom: 4px;
-}
-.ph-usage-flow::-webkit-scrollbar { display: none; }
-
-.ph-usage-step {
-  flex: 1;
-  min-width: 80px;
-  background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(139,127,214,0.10);
-  border-radius: 14px;
-  padding: 10px 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.ph-usage-step-header {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  margin-bottom: 2px;
-}
-
-.ph-usage-step-num {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: rgba(139,127,214,0.12);
-  border: 1px solid rgba(139,127,214,0.22);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  font-weight: 700;
-  color: #8b7fd6;
-  flex-shrink: 0;
-}
-
-.ph-usage-step-title {
-  font-size: 9px;
-  font-weight: 700;
-  color: #18245a;
-  line-height: 1.3;
-}
-
-.ph-usage-step-sub {
-  font-size: 8.5px;
-  color: #a8b4cc;
-  line-height: 1.4;
-}
-
-.ph-usage-step-mock {
-  height: 28px;
-  border-radius: 6px;
-  background: rgba(139,127,214,0.06);
-  margin-top: 4px;
-}
-
-.ph-usage-arrow {
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  color: #c8cedd;
-  flex-shrink: 0;
-  padding-bottom: 8px;
-}
-
-.ph-usage-footer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 16px;
-  padding: 10px 14px;
-  background: rgba(139,127,214,0.04);
-  border-radius: 12px;
-  font-size: 10px;
-  color: #a8b4cc;
-  flex-wrap: wrap;
-}
-.ph-usage-footer svg { flex-shrink: 0; color: #8b7fd6; }
-.ph-usage-footer span { color: #8b9ab8; }
-
 /* ── Responsive: stack on narrow screens ─────────────────── */
 @media (max-width: 480px) {
   .ph-layout {
     grid-template-columns: 1fr;
-  }
-  .ph-usage-flow {
-    gap: 3px;
-  }
-  .ph-usage-step {
-    min-width: 70px;
   }
 }
