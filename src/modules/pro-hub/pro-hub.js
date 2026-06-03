@@ -455,7 +455,7 @@ function _getInitialSection(pos) {
   return 0;                        // 理解する (CASE1, CASE2)
 }
 
-// ─── P27-B: left column builder ───────────────────────────
+// ─── P32-C: left column builder ───────────────────────────
 function _buildLeftColumn(activeIdx) {
   const chev = (up) =>
     `<svg class="ph-road-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
@@ -488,13 +488,12 @@ function _buildLeftColumn(activeIdx) {
       </div>`;
   }).join('');
 
-  return `<div class="ph-roadmap">${roadmapItems}</div>`;
+  return `<div class="ph-left-card"><div class="ph-roadmap">${roadmapItems}</div></div>`;
 }
 
-// ─── P27-B: right column builder ──────────────────────────
+// ─── P32-C: right column builder ──────────────────────────
 function _buildRightColumn(activeIdx, recKeys) {
   const sec = SECTIONS[activeIdx];
-
   const chevRight = `<svg class="ph-detail-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l4 5-4 5"/></svg>`;
 
   const detailCards = sec.features.map(feat => {
@@ -511,39 +510,7 @@ function _buildRightColumn(activeIdx, recKeys) {
       </div>`;
   }).join('');
 
-  const expandedStep = `
-    <div class="ph-step-detail">
-      <div class="ph-step-detail-header">
-        <div class="ph-step-detail-num-title">
-          <div class="ph-step-detail-num" style="background:${sec.color}">${sec.num}</div>
-          <div>
-            <div class="ph-step-detail-title">${sec.title}</div>
-            <div class="ph-step-detail-sub">${sec.sub}</div>
-          </div>
-        </div>
-        <button class="ph-step-detail-close">閉じる
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4-4 4 4"/></svg>
-        </button>
-      </div>
-      <div class="ph-step-detail-cards">${detailCards}</div>
-    </div>`;
-
-  const collapsedSteps = SECTIONS
-    .filter((_, i) => i !== activeIdx)
-    .map(s => `
-      <div class="ph-step-collapsed" data-road-idx="${s.num - 1}" role="button" tabindex="0">
-        <div class="ph-step-col-num" style="background:${s.color}">${s.num}</div>
-        <div class="ph-step-col-texts">
-          <span class="ph-step-col-title">${s.title}</span>
-          <span class="ph-step-col-sub">${s.sub}</span>
-        </div>
-        <div class="ph-step-col-meta">
-          <span class="ph-step-col-count">${s.features.length}項目</span>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
-        </div>
-      </div>`).join('');
-
-  return `${expandedStep}${collapsedSteps}`;
+  return `<div class="ph-right-card">${detailCards}</div>`;
 }
 
 // ─── P27-B: partial DOM update for accordion ──────────────
@@ -592,17 +559,6 @@ export function renderProHubPage() {
     if (roadItem) {
       const idx = parseInt(roadItem.dataset.roadIdx);
       if (!isNaN(idx)) { _refreshLayout(root, recs, pos, idx); return; }
-    }
-    // Accordion: collapsed step on right
-    const collapsed = e.target.closest('.ph-step-collapsed[data-road-idx]');
-    if (collapsed) {
-      const idx = parseInt(collapsed.dataset.roadIdx);
-      if (!isNaN(idx)) { _refreshLayout(root, recs, pos, idx); return; }
-    }
-    // 閉じるボタン: おすすめセクションへ戻る
-    if (e.target.closest('.ph-step-detail-close')) {
-      _refreshLayout(root, recs, pos, _getInitialSection(pos));
-      return;
     }
     // Feature navigation
     const proKey = e.target.closest('[data-pro-key]');
