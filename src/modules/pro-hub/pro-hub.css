@@ -659,17 +659,20 @@
 }
 .pha-overlay.pha-open { display: flex; }
 
-/* 分析シートの幅を app シェルに追従させる (既存 768/1100px breakpoint 流用) */
-.pha-overlay .ai-sheet {
+/* 分析シート・AI解析シートの幅を app シェルに追従させる (既存 768/1100px breakpoint 流用) */
+.pha-overlay .ai-sheet,
+.ai-overlay .ai-sheet {
   max-width: 100%;
 }
 @media (min-width: 768px) {
-  .pha-overlay .ai-sheet {
+  .pha-overlay .ai-sheet,
+  .ai-overlay .ai-sheet {
     max-width: var(--app-max-tablet, 600px);
   }
 }
 @media (min-width: 1100px) {
-  .pha-overlay .ai-sheet {
+  .pha-overlay .ai-sheet,
+  .ai-overlay .ai-sheet {
     max-width: var(--app-max-desktop, 860px);
   }
 }
