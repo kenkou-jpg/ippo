@@ -170,17 +170,6 @@ function _getCurrentPosition(s) {
   };
 }
 
-function _buildPositionCard(pos) {
-  const recLine = pos.recKey
-    ? `<div class="pho-pos-rec" data-pro-key="${pos.recKey}">${pos.recText}</div>`
-    : '';
-  return `<div class="pho-position-card">
-    <div class="pho-pos-label">今のあなたは</div>
-    <div class="pho-pos-message">${pos.message}</div>
-    ${recLine}
-  </div>`;
-}
-
 // ─── Recommendations ──────────────────────────────────────
 function _getRecs() {
   const s = (typeof window.getState === 'function' ? window.getState() : null) || getState();
@@ -467,7 +456,7 @@ function _getInitialSection(pos) {
 }
 
 // ─── P27-B: left column builder ───────────────────────────
-function _buildLeftColumn(activeIdx, pos) {
+function _buildLeftColumn(activeIdx) {
   const chev = (up) =>
     `<svg class="ph-road-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
       <path d="${up ? 'M4 10l4-4 4 4' : 'M4 6l4 4 4-4'}"/>
@@ -499,49 +488,12 @@ function _buildLeftColumn(activeIdx, pos) {
       </div>`;
   }).join('');
 
-  const posCard = `
-    <div class="ph-pos-card">
-      <div class="ph-pos-badge">現在地</div>
-      <div class="ph-pos-icon-row">
-        <div class="ph-pos-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-            <circle cx="12" cy="9" r="2.5"/>
-          </svg>
-        </div>
-        <div class="ph-pos-texts">
-          <div class="ph-pos-message">${pos.message}</div>
-          <div class="ph-pos-sub">次のステップに進んで、さらに理解を深めていきましょう。</div>
-        </div>
-      </div>
-    </div>`;
-
-  return `${posCard}<div class="ph-roadmap">${roadmapItems}</div>`;
+  return `<div class="ph-roadmap">${roadmapItems}</div>`;
 }
 
 // ─── P27-B: right column builder ──────────────────────────
-function _buildRightColumn(activeIdx, recKeys, pos) {
+function _buildRightColumn(activeIdx, recKeys) {
   const sec = SECTIONS[activeIdx];
-  const recommended = SECTIONS[_getInitialSection(pos)];
-
-  const recBarSvg = `<svg viewBox="0 0 44 44" fill="none" width="44" height="44">
-    <rect x="2" y="26" width="7" height="16" rx="2" fill="rgba(139,127,214,.2)"/>
-    <rect x="12" y="18" width="7" height="24" rx="2" fill="rgba(139,127,214,.38)"/>
-    <rect x="22" y="10" width="7" height="32" rx="2" fill="rgba(139,127,214,.58)"/>
-    <rect x="32" y="6" width="7" height="36" rx="2" fill="#8b7fd6"/>
-  </svg>`;
-
-  const recommendCard = `
-    <div class="ph-rec-card">
-      <div class="ph-rec-label">おすすめのステップ</div>
-      <div class="ph-rec-body-row">
-        <div class="ph-rec-texts">
-          <div class="ph-rec-title">「${recommended.title}」から始めるのがおすすめです</div>
-          <div class="ph-rec-sub">AIがあなたの記録から、今見ておくと役立つ分析を提案します。</div>
-        </div>
-        <div class="ph-rec-graph">${recBarSvg}</div>
-      </div>
-    </div>`;
 
   const chevRight = `<svg class="ph-detail-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l4 5-4 5"/></svg>`;
 
@@ -591,7 +543,7 @@ function _buildRightColumn(activeIdx, recKeys, pos) {
         </div>
       </div>`).join('');
 
-  return `${recommendCard}${expandedStep}${collapsedSteps}`;
+  return `${expandedStep}${collapsedSteps}`;
 }
 
 // ─── P27-B: partial DOM update for accordion ──────────────
@@ -602,8 +554,8 @@ function _refreshLayout(root, recs, pos, activeIdx) {
 
   const leftCol = root.querySelector('#ph-left-col');
   const rightCol = root.querySelector('#ph-right-col');
-  if (leftCol)  leftCol.innerHTML  = _buildLeftColumn(activeIdx, pos);
-  if (rightCol) rightCol.innerHTML = _buildRightColumn(activeIdx, recKeys, pos);
+  if (leftCol)  leftCol.innerHTML  = _buildLeftColumn(activeIdx);
+  if (rightCol) rightCol.innerHTML = _buildRightColumn(activeIdx, recKeys);
 }
 
 // ─── Page mode: content builder ───────────────────────────
@@ -613,8 +565,8 @@ function _buildPageContent(recs, pos, activeIdx) {
 
   return `
     <div class="ph-layout">
-      <div class="ph-layout-left" id="ph-left-col">${_buildLeftColumn(activeIdx, pos)}</div>
-      <div class="ph-layout-right" id="ph-right-col">${_buildRightColumn(activeIdx, recKeys, pos)}</div>
+      <div class="ph-layout-left" id="ph-left-col">${_buildLeftColumn(activeIdx)}</div>
+      <div class="ph-layout-right" id="ph-right-col">${_buildRightColumn(activeIdx, recKeys)}</div>
     </div>`;
 }
 
