@@ -641,3 +641,104 @@
   overflow-y: visible;
   padding: 0;
 }
+
+/* ─── PRO分析画面 共有オーバーレイ (P29-B1) ──────────────── */
+/* 5つの分析画面が共有するボトムシート型オーバーレイ。
+   シート本体(.ai-sheet)・ハンドル(.ai-handle)・ヘッダー(.ai-header/.ai-title/.ai-subtitle)・
+   ボディ(.ai-body)・フッター(.ai-footer/.ai-btn)は app.css の既存クラスを再利用。 */
+.pha-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 820;
+  background: rgba(44, 36, 32, 0.50);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+}
+.pha-overlay.pha-open { display: flex; }
+
+/* 分析シート・AI解析シートの幅を app シェルに追従させる (既存 768/1100px breakpoint 流用) */
+.pha-overlay .ai-sheet,
+.ai-overlay .ai-sheet {
+  max-width: 100%;
+}
+@media (min-width: 768px) {
+  .pha-overlay .ai-sheet,
+  .ai-overlay .ai-sheet {
+    max-width: var(--app-max-tablet, 600px);
+  }
+}
+@media (min-width: 1100px) {
+  .pha-overlay .ai-sheet,
+  .ai-overlay .ai-sheet {
+    max-width: var(--app-max-desktop, 860px);
+  }
+}
+
+/* セクション見出し */
+.pha-section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink, #2A2320);
+  margin-bottom: 12px;
+}
+
+/* コンテンツカード */
+.pha-card {
+  background: var(--white, #fff);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 1px 6px var(--shadow, rgba(44,36,32,0.06));
+  margin-bottom: 16px;
+}
+
+/* 分析対象メタブロック */
+.pha-meta {
+  background: rgba(200, 180, 170, 0.15);
+  border-radius: 14px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--ink-mid, #6B5D58);
+}
+
+/* 2カラムメトリクスグリッド */
+.pha-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* メトリクスセル */
+.pha-metric {
+  background: var(--cream, #FAF8F5);
+  border-radius: 10px;
+  padding: 12px;
+  text-align: center;
+}
+
+/* プログレスバートラック */
+.pha-bar {
+  height: 8px;
+  background: #e8ddd8;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+/* 体温マップセル (P29-A P1修正: 6/8px → 9/10px) */
+.pha-temp-map  { display: flex; gap: 2px; flex-wrap: wrap; }
+.pha-temp-cell {
+  width: 28px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+.pha-temp-day { font-size: 9px; }
+.pha-temp-val { font-size: 10px; font-weight: 600; }

@@ -32,6 +32,7 @@
 /* ── Sheet ────────────────────────────────────────────────── */
 .pob-sheet {
   width: 100%;
+  max-width: 100%;
   max-height: 92dvh;
   background: var(--cream, #faf8f3);
   border-radius: 24px 24px 0 0;
@@ -42,6 +43,12 @@
 }
 .pob-overlay.pob-open .pob-sheet {
   transform: translateY(0);
+}
+@media (min-width: 768px) {
+  .pob-sheet { max-width: var(--app-max-tablet, 600px); }
+}
+@media (min-width: 1100px) {
+  .pob-sheet { max-width: var(--app-max-desktop, 860px); }
 }
 
 /* ── Handle ───────────────────────────────────────────────── */
