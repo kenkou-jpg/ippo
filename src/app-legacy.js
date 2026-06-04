@@ -645,6 +645,96 @@ function openCyclePhaseReport(){
   document.body.insertAdjacentHTML('beforeend', html);
 }
   // ===== ヘルスエクスペリメント =====
+
+/**
+ * 進行中実験の「今見えていること」コンパニオン層を生成する。
+ * records は state.records 全体を渡す。新規AI・外部API呼び出しなし。
+ */
+function _buildExperimentCompanion(exp, records) {
+  var now = new Date();
+  var startDate = new Date(exp.startDate);
+  var cut7  = new Date(now - 7  * 86400000);
+  var cut14 = new Date(now - 14 * 86400000);
+
+  // 実験開始日以降 かつ 直近7日
+  var curr = (records || []).filter(function(r) {
+    var d = new Date(r.record_date || r.date || '');
+    return !isNaN(d) && d >= startDate && d >= cut7;
+  });
+  // 直近7日より前の7日間（実験開始前でもOK、比較基準として使用）
+  var prev = (records || []).filter(function(r) {
+    var d = new Date(r.record_date || r.date || '');
+    return !isNaN(d) && d >= cut14 && d < cut7;
+  });
+
+  function avgOf(recs, key) {
+    var vals = recs.map(function(r) { return r[key]; }).filter(function(v) { return v != null && v > 0; });
+    if (!vals.length) return null;
+    return vals.reduce(function(a, b) { return a + b; }, 0) / vals.length;
+  }
+  function avgSymptomCount(recs) {
+    if (!recs.length) return null;
+    var total = recs.reduce(function(a, r) { return a + ((r.symptoms || []).length + (r.symptomDetails || []).length); }, 0);
+    return total / recs.length;
+  }
+
+  var metrics = [];
+
+  // 睡眠（sleepQuality または sleepHours）
+  var cSleep = avgOf(curr, 'sleepQuality') ?? avgOf(curr, 'sleepHours');
+  var pSleep = avgOf(prev, 'sleepQuality') ?? avgOf(prev, 'sleepHours');
+  if (cSleep !== null && pSleep !== null) {
+    var sleepDiff = cSleep - pSleep;
+    metrics.push({ label: '睡眠', arrow: sleepDiff > 0.3 ? '↑' : sleepDiff < -0.3 ? '↓' : '→' });
+  } else if (cSleep !== null) {
+    metrics.push({ label: '睡眠', arrow: '→' });
+  }
+
+  // 気分（mood）
+  var cMood = avgOf(curr, 'mood');
+  var pMood = avgOf(prev, 'mood');
+  if (cMood !== null && pMood !== null) {
+    var moodDiff = cMood - pMood;
+    metrics.push({ label: '気分', arrow: moodDiff > 0.3 ? '↑' : moodDiff < -0.3 ? '↓' : '→' });
+  } else if (cMood !== null) {
+    metrics.push({ label: '気分', arrow: '→' });
+  }
+
+  // 症状（少ないほど↑）
+  var cSym = avgSymptomCount(curr);
+  var pSym = avgSymptomCount(prev);
+  if (cSym !== null && pSym !== null) {
+    var symDiff = cSym - pSym;
+    // 症状が減った→改善→↑、増えた→悪化→↓
+    metrics.push({ label: '症状', arrow: symDiff < -0.3 ? '↑' : symDiff > 0.3 ? '↓' : '→' });
+  } else if (cSym !== null) {
+    metrics.push({ label: '症状', arrow: '→' });
+  }
+
+  if (!metrics.length) return '';
+
+  var arrowColor = function(a) {
+    return a === '↑' ? '#5a9070' : a === '↓' ? '#c07070' : '#8a8080';
+  };
+
+  var itemsHtml = metrics.map(function(m) {
+    return '<div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;">'
+      + '<span style="font-size:18px;line-height:1;color:' + arrowColor(m.arrow) + ';font-weight:600;">' + m.arrow + '</span>'
+      + '<span style="font-size:10px;color:var(--ink-light);">' + m.label + '</span>'
+      + '</div>';
+  }).join('');
+
+  var dataNote = curr.length === 0
+    ? '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">この7日間の記録がありません</div>'
+    : '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">直近' + curr.length + '件の記録をもとに</div>';
+
+  return '<div style="margin-top:10px;padding:10px 12px;background:rgba(90,144,112,.06);border-radius:10px;border:1px solid rgba(90,144,112,.14);">'
+    + '<div style="font-size:10px;font-weight:600;color:var(--sage);margin-bottom:8px;letter-spacing:.04em;">今見えていること</div>'
+    + '<div style="display:flex;gap:16px;">' + itemsHtml + '</div>'
+    + dataNote
+    + '</div>';
+}
+
 var EXPERIMENT_PRESETS = [
   {title:'グルテンフリー30日', factor:'グルテン', condition:'avoid', days:30, hypothesis:'グルテンを避けると腹部の不快感に変化があるか試してみる'},
   {title:'毎日30分の運動', factor:'運動した', condition:'do', days:30, hypothesis:'運動習慣がエネルギーや睡眠の質に与える影響を記録する'},
@@ -683,14 +773,17 @@ function openExperiments(){
         + '<div style="font-size:12px;color:var(--ink-mid);margin-bottom:10px;">💡 '+exp.hypothesis+'</div>'
         + '<div class="pha-bar" style="margin-bottom:8px;"><div style="height:100%;width:'+progress+'%;background:var(--sage);border-radius:4px;transition:width 0.3s;"></div></div>'
         + '<div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ink-light);">'
-        + '<span>'+elapsed+'/'+exp.days+'日経過</span><span>'+progress+'%</span></div>';
+        + '<span>'+elapsed+'/'+exp.days+'日経過</span><span>'+progress+'%</span></div>'
+        + _buildExperimentCompanion(exp, state.records || []);
 
+      html += '<div style="display:flex;gap:8px;margin-top:10px;">'
+        + '<button onclick="showExperimentReport('+idx+')" style="flex:1;padding:8px;background:rgba(90,144,112,.1);color:#5a9070;border:1px solid rgba(90,144,112,.25);border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;font-weight:500;">📊 詳細レポート</button>';
       if(elapsed >= exp.days){
-        html += '<button onclick="completeExperiment('+idx+')" style="width:100%;margin-top:10px;padding:10px;background:var(--sage);color:white;border:none;border-radius:10px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">📊 結果を見る</button>';
+        html += '<button onclick="completeExperiment('+idx+')" style="flex:1;padding:8px;background:var(--sage);color:white;border:none;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">完了にする</button>';
       } else {
-        html += '<button onclick="cancelExperiment('+idx+')" style="width:100%;margin-top:10px;padding:8px;background:transparent;color:var(--ink-light);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">中止する</button>';
+        html += '<button onclick="cancelExperiment('+idx+')" style="flex:1;padding:8px;background:transparent;color:var(--ink-light);border:1px solid #e8ddd8;border-radius:10px;font-size:11px;font-family:Noto Sans JP,sans-serif;cursor:pointer;">中止する</button>';
       }
-      html += '</div>';
+      html += '</div></div>';
     });
   }
 
@@ -853,6 +946,174 @@ function completeExperiment(idx){
   document.getElementById('expOverlay').remove();
   openExperiments();
 }
+
+// ===== 実験レポート =====
+function showExperimentReport(idx) {
+  var exp = state.experiments[idx];
+  if (!exp) return;
+
+  function _esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  var records = state.records || [];
+  var start   = new Date(exp.startDate);
+  var end     = new Date(start.getTime() + exp.days * 86400000);
+  var preStart = new Date(start.getTime() - exp.days * 86400000);
+
+  var preRecs    = records.filter(function(r) { var d = new Date(r.record_date || r.date || ''); return !isNaN(d) && d >= preStart && d < start; });
+  var duringRecs = records.filter(function(r) { var d = new Date(r.record_date || r.date || ''); return !isNaN(d) && d >= start && d <= end; });
+
+  // ── ヘルパー ──────────────────────────────────────────
+  function avg(recs, key) {
+    var vals = recs.map(function(r) { return parseFloat(r[key]); }).filter(function(v) { return !isNaN(v) && v > 0; });
+    if (!vals.length) return null;
+    return Math.round(vals.reduce(function(a, b) { return a + b; }, 0) / vals.length * 10) / 10;
+  }
+  function avgSymCount(recs) {
+    if (!recs.length) return null;
+    var total = recs.reduce(function(a, r) { return a + (r.symptoms || []).length + (r.symptomDetails || []).length; }, 0);
+    return Math.round(total / recs.length * 10) / 10;
+  }
+  function avgTemp(recs) {
+    var vals = recs.map(function(r) { return parseFloat(r.basalTemp || r.temperature); }).filter(function(v) { return !isNaN(v) && v > 30; });
+    if (!vals.length) return null;
+    return Math.round(vals.reduce(function(a, b) { return a + b; }, 0) / vals.length * 100) / 100;
+  }
+  function fmtDate(d) { return d.getFullYear() + '/' + (d.getMonth() + 1) + '/' + d.getDate(); }
+
+  // ── スパークライン SVG ──────────────────────────────────
+  function sparkline(vals, color, invertY) {
+    if (!vals || vals.length < 2) return '<span style="color:var(--ink-light);font-size:10px;">—</span>';
+    var mn = Math.min.apply(null, vals), mx = Math.max.apply(null, vals);
+    var range = mx - mn || 1;
+    var W = 60, H = 24, pad = 2;
+    var pts = vals.map(function(v, i) {
+      var x = pad + i / (vals.length - 1) * (W - pad * 2);
+      var norm = (v - mn) / range;
+      var y = invertY ? pad + norm * (H - pad * 2) : (H - pad) - norm * (H - pad * 2);
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+    return '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" style="vertical-align:middle;">'
+      + '<polyline points="' + pts + '" fill="none" stroke="' + color + '" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '</svg>';
+  }
+  function getVals(recs, key) {
+    return recs.slice().sort(function(a, b) { return new Date(a.record_date || a.date) - new Date(b.record_date || b.date); })
+      .map(function(r) { return parseFloat(r[key]); }).filter(function(v) { return !isNaN(v) && v > 0; });
+  }
+  function getSymVals(recs) {
+    return recs.slice().sort(function(a, b) { return new Date(a.record_date || a.date) - new Date(b.record_date || b.date); })
+      .map(function(r) { return (r.symptoms || []).length + (r.symptomDetails || []).length; });
+  }
+  function getTempVals(recs) {
+    return recs.slice().sort(function(a, b) { return new Date(a.record_date || a.date) - new Date(b.record_date || b.date); })
+      .map(function(r) { return parseFloat(r.basalTemp || r.temperature); }).filter(function(v) { return !isNaN(v) && v > 30; });
+  }
+
+  // ── 比較行レンダリング ──────────────────────────────────
+  function diffArrow(pre, dur, invertGood) {
+    if (pre === null || dur === null) return '';
+    var diff = Math.round((dur - pre) * 10) / 10;
+    if (diff === 0) return '<span style="color:#8a8080;">→ 変化なし</span>';
+    var up = diff > 0;
+    var good = invertGood ? !up : up;
+    var color = good ? '#5a9070' : '#c07070';
+    var arrow = up ? '↑' : '↓';
+    return '<span style="color:' + color + ';font-weight:600;">' + arrow + ' ' + (diff > 0 ? '+' : '') + diff + '</span>';
+  }
+  function metricRow(label, preVal, durVal, preSpark, durSpark, invertGood, unit) {
+    unit = unit || '';
+    var noData = preVal === null && durVal === null;
+    if (noData) return '';
+    var preStr = preVal !== null ? preVal + unit : '—';
+    var durStr = durVal !== null ? durVal + unit : '—';
+    var arrow  = diffArrow(preVal, durVal, invertGood);
+    return '<div style="margin-bottom:16px;">'
+      + '<div style="font-size:11px;font-weight:600;color:var(--ink);margin-bottom:6px;">' + label + '</div>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+      + '<div style="background:var(--cream);border-radius:8px;padding:8px 10px;">'
+      + '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">開始前</div>'
+      + (preSpark || '') + '<div style="font-size:13px;font-weight:500;color:var(--ink-mid);margin-top:2px;">' + preStr + '</div>'
+      + '</div>'
+      + '<div style="background:rgba(90,144,112,.08);border-radius:8px;padding:8px 10px;border:1px solid rgba(90,144,112,.18);">'
+      + '<div style="font-size:9px;color:var(--sage);margin-bottom:4px;">実験中</div>'
+      + (durSpark || '') + '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-top:2px;">' + durStr + '</div>'
+      + '</div>'
+      + '</div>'
+      + (arrow ? '<div style="font-size:12px;margin-top:6px;padding-left:2px;">' + arrow + '</div>' : '')
+      + '</div>';
+  }
+
+  // ── データ集計 ─────────────────────────────────────────
+  var sleep    = { pre: avg(preRecs, 'sleepQuality') ?? avg(preRecs, 'sleepHours'),   dur: avg(duringRecs, 'sleepQuality') ?? avg(duringRecs, 'sleepHours') };
+  var mood     = { pre: avg(preRecs, 'mood'),           dur: avg(duringRecs, 'mood') };
+  var symptoms = { pre: avgSymCount(preRecs),            dur: avgSymCount(duringRecs) };
+  var temp     = { pre: avgTemp(preRecs),                dur: avgTemp(duringRecs) };
+
+  var sleepField = avg(preRecs, 'sleepQuality') !== null ? 'sleepQuality' : 'sleepHours';
+
+  var elapsed  = Math.floor((new Date() - start) / 86400000);
+  var hasData  = preRecs.length > 0 || duringRecs.length > 0;
+
+  // ── HTML構築 ──────────────────────────────────────────
+  var html = '<div class="pha-overlay pha-open" id="expReportOverlay" onclick="if(event.target===this)this.remove()">'
+    + '<div class="ai-sheet"><div class="ai-handle"></div>'
+    + '<div class="ai-header" style="display:flex;align-items:center;gap:10px;">'
+    + '<div class="pho-section-icon" style="background:rgba(90,144,112,.12);color:#5a9070;flex-shrink:0;">📊</div>'
+    + '<div><div class="ai-title">実験レポート</div><div class="ai-subtitle">' + _esc(exp.title) + '</div></div>'
+    + '</div><div class="ai-body">';
+
+  // 実験概要
+  html += '<div style="background:rgba(90,144,112,.06);border-radius:12px;padding:12px 14px;margin-bottom:16px;border:1px solid rgba(90,144,112,.14);">'
+    + '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">'
+    + '<div><div style="font-size:9px;color:var(--ink-light);margin-bottom:2px;">開始日</div><div style="font-size:12px;font-weight:500;color:var(--ink);">' + fmtDate(start) + '</div></div>'
+    + '<div><div style="font-size:9px;color:var(--ink-light);margin-bottom:2px;">経過日数</div><div style="font-size:12px;font-weight:500;color:var(--ink);">' + elapsed + '日</div></div>'
+    + '<div><div style="font-size:9px;color:var(--ink-light);margin-bottom:2px;">期間</div><div style="font-size:12px;font-weight:500;color:var(--ink);">' + exp.days + '日間</div></div>'
+    + '</div>'
+    + '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(90,144,112,.12);font-size:11px;color:var(--ink-mid);">💡 ' + _esc(exp.hypothesis) + '</div>'
+    + '</div>';
+
+  if (!hasData) {
+    html += '<div style="text-align:center;padding:24px;color:var(--ink-light);font-size:13px;">まだ記録がありません。<br>記録を続けると比較データが表示されます。</div>';
+  } else {
+    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:12px;">比較期間：開始前 ' + preRecs.length + '件 ／ 実験中 ' + duringRecs.length + '件の記録</div>';
+
+    // 各指標
+    html += metricRow('睡眠の質 / 睡眠時間', sleep.pre, sleep.dur,
+      sparkline(getVals(preRecs, sleepField), '#aac0b5', false),
+      sparkline(getVals(duringRecs, sleepField), '#5a9070', false),
+      false);
+
+    html += metricRow('気分', mood.pre, mood.dur,
+      sparkline(getVals(preRecs, 'mood'), '#c0aab5', false),
+      sparkline(getVals(duringRecs, 'mood'), '#9070a0', false),
+      false);
+
+    html += metricRow('症状の多さ（件/日）', symptoms.pre, symptoms.dur,
+      sparkline(getSymVals(preRecs), '#c0b5aa', true),
+      sparkline(getSymVals(duringRecs), '#c07070', true),
+      true);  // 症状は減少が良い
+
+    html += metricRow('基礎体温', temp.pre, temp.dur,
+      sparkline(getTempVals(preRecs), '#aab5c0', false),
+      sparkline(getTempVals(duringRecs), '#7090c0', false),
+      false, '℃');
+
+    if (preRecs.length < 3 || duringRecs.length < 3) {
+      html += '<div style="padding:10px 12px;background:rgba(180,140,60,.08);border-radius:8px;border:1px solid rgba(180,140,60,.2);font-size:11px;color:#806030;margin-top:4px;">'
+        + '⚠️ データが少ないため参考値です（実験前 ' + preRecs.length + '件 / 実験中 ' + duringRecs.length + '件）</div>';
+    }
+  }
+
+  html += '</div>'
+    + '<div class="ai-footer" style="display:flex;gap:8px;">'
+    + '<button class="ai-btn secondary" onclick="document.getElementById(\'expReportOverlay\').remove()" style="flex:1;">閉じる</button>'
+    + '</div>'
+    + '</div></div>';
+
+  document.getElementById('expOverlay') && document.getElementById('expOverlay').remove();
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
 // ===== タイムライン =====
 var _tlPage = 1;
 var _tlPerPage = 15;
@@ -11891,6 +12152,7 @@ if (typeof openDiseaseSettings === "function") window.openDiseaseSettings = open
 if (typeof openDoctorSummary === "function") window.openDoctorSummary = openDoctorSummary;
 if (typeof openEditRecord === "function") window.openEditRecord = openEditRecord;
 if (typeof openExperiments === "function") window.openExperiments = openExperiments;
+if (typeof showExperimentReport === "function") window.showExperimentReport = showExperimentReport;
 if (typeof openFlareupReport === "function") window.openFlareupReport = openFlareupReport;
 if (typeof openIDB === "function") window.openIDB = openIDB;
 if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMonthlyReport;
