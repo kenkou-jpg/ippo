@@ -9941,6 +9941,12 @@ var todayStr = targetDate.toDateString();
       return;
     }
 
+    // P0-A: 保存成功後 draft を即削除し dirtyFlag をリセット
+    localStorage.removeItem('ippo_record_draft');
+    if (window.ippoRecordDraftGuard && typeof window.ippoRecordDraftGuard.markClean === 'function') {
+      window.ippoRecordDraftGuard.markClean();
+    }
+
     // 最近使った症状を記録（自動昇格ロジック用）
     if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
 
