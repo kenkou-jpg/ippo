@@ -39,6 +39,9 @@ function _gatherDraft() {
   // legacy: draftRecordScreen() は既存の ippo_draft に書く
   //         ここでは getState の直近レコードを退避する
 
+  // P0-A 修正②: dirtyFlag が立っていない（編集中でない）ならドラフト収集不要
+  if (!_dirtyFlag) return null;
+
   var s = (typeof window.getState === 'function') ? window.getState() : null;
   if (!s) return null;
 
@@ -51,8 +54,8 @@ function _gatherDraft() {
     var todayRec = s.records.find(function(r) {
       return r && (r.record_date || (r.date || '').slice(0, 10)) === today;
     });
-    // 同期済み (syncedAt あり) なら退避不要
-    if (todayRec && !todayRec.syncedAt && !todayRec.syncPending) {
+    // 同期済み・保存済み (syncedAt / record_date あり) なら退避不要
+    if (todayRec && !todayRec.syncedAt && !todayRec.syncPending && !todayRec.record_date) {
       payload = todayRec;
     }
   }
@@ -83,9 +86,17 @@ function _saveDraft() {
 // ─── ドラフト照合（正式保存済みなら不要） ─────────────────
 function _isDraftAlreadySaved(draft) {
   try {
+    if (!draft || !draft.targetDate) return false;
     var s = (typeof window.getState === 'function') ? window.getState() : null;
-    if (!s || !draft || !draft.targetDate) return false;
-    return (s.records || []).some(function(r) {
+    var records = (s && s.records) || [];
+    // P0-A 修正③: state 未ハイドレート時は localStorage から直接取得
+    if (records.length === 0) {
+      try {
+        var ls = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+        records = ls.records || [];
+      } catch(_) {}
+    }
+    return records.some(function(r) {
       var d = r && (r.record_date || (r.date || '').slice(0, 10));
       return d === draft.targetDate && (r.syncedAt || r.updatedAt || r.record_date);
     });
