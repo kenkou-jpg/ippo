@@ -69,6 +69,7 @@ function _gatherDraft() {
 
 // ─── ドラフト保存 ─────────────────────────────────────────
 function _saveDraft() {
+  if (!_dirtyFlag) return; // P0-A: markClean() 後は再作成しない
   try {
     var draft = _gatherDraft();
     if (!draft) return;
@@ -86,7 +87,7 @@ function _isDraftAlreadySaved(draft) {
     if (!s || !draft || !draft.targetDate) return false;
     return (s.records || []).some(function(r) {
       var d = r && (r.record_date || (r.date || '').slice(0, 10));
-      return d === draft.targetDate && (r.syncedAt || r.updatedAt);
+      return d === draft.targetDate && (r.syncedAt || r.updatedAt || r.record_date);
     });
   } catch(e) {
     return false;
