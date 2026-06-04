@@ -93,8 +93,8 @@ function _migrateFromLegacy(raw) {
     if (raw.reminderSettings)
       base.reminderSettings = _mergeReminder(base.reminderSettings, raw.reminderSettings);
 
-    // trackedConditions: 既存ならそのまま使用
-    if (Array.isArray(raw.trackedConditions)) {
+    // trackedConditions: 有効値（非空）のみ使用。空配列は「未設定」として扱う。
+    if (Array.isArray(raw.trackedConditions) && raw.trackedConditions.length) {
       base.trackedConditions = raw.trackedConditions.slice();
     }
   }
@@ -124,9 +124,23 @@ export function loadStore() {
 
 // ─── getStore ─────────────────────────────────────────────────
 // in-memory singleton を返す。未初期化の場合は loadStore() で初期化。
+// trackedConditions が空かつ state.myDiseases に有効値がある場合は lazy sync する。
+// cloudRestore が initStore() より後に完了した場合の欠落を補完するため。
 export function getStore() {
   if (!_store) {
     _store = loadStore();
+  }
+  // Lazy sync: trackedConditions が空 + state.myDiseases に有効値あり → 補完
+  // 「空 = 削除」にしない設計: 空は「未設定」として state 側の有効値を優先する
+  if (_store.trackedConditions.length === 0) {
+    try {
+      var st = typeof window.getState === 'function' ? window.getState() : null;
+      if (st && Array.isArray(st.myDiseases) && st.myDiseases.length) {
+        _store = Object.assign({}, _store, { trackedConditions: st.myDiseases.slice() });
+        try { localStorage.setItem(STORE_KEY, JSON.stringify(_store)); } catch (_) {}
+        _notify(_store);
+      }
+    } catch (_) {}
   }
   return _store;
 }
