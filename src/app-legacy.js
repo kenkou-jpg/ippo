@@ -646,9 +646,92 @@ function openCyclePhaseReport(){
 }
   // ===== ヘルスエクスペリメント =====
 
+// ─── P38: 疾患別コンパニオン指標ルール ─────────────────────────
+// 各疾患の重点指標を定義。key は _expMetric() で集計可能なフィールド。
+// metrics: 表示順に最大3件。invertGood=true は低下が改善を意味する。
+var _DISEASE_COMPANION_RULES = {
+  '卵巣嚢腫':     [{ label:'痛み',   key:'pain',     invertGood:true  },
+                   { label:'張り',   key:'bloating', invertGood:true  },
+                   { label:'睡眠',   key:'sleep',    invertGood:false }],
+  'PCOS':          [{ label:'体温',   key:'temp',     invertGood:false },
+                   { label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'気分',   key:'mood',     invertGood:false }],
+  '子宮内膜症':   [{ label:'痛み',   key:'pain',     invertGood:true  },
+                   { label:'疲労',   key:'fatigue',  invertGood:true  },
+                   { label:'睡眠',   key:'sleep',    invertGood:false }],
+  '子宮筋腫':     [{ label:'出血',   key:'bleeding', invertGood:true  },
+                   { label:'疲労',   key:'fatigue',  invertGood:true  },
+                   { label:'睡眠',   key:'sleep',    invertGood:false }],
+  'PMS/PMDD':     [{ label:'気分',   key:'mood',     invertGood:false },
+                   { label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'症状',   key:'symptoms', invertGood:true  }],
+  '子宮腺筋症':   [{ label:'痛み',   key:'pain',     invertGood:true  },
+                   { label:'出血',   key:'bleeding', invertGood:true  },
+                   { label:'睡眠',   key:'sleep',    invertGood:false }],
+  '更年期障害':   [{ label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'気分',   key:'mood',     invertGood:false },
+                   { label:'体温',   key:'temp',     invertGood:false }],
+  '不妊症':       [{ label:'体温',   key:'temp',     invertGood:false },
+                   { label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'気分',   key:'mood',     invertGood:false }],
+  '骨盤臓器脱':   [{ label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'疲労',   key:'fatigue',  invertGood:true  },
+                   { label:'症状',   key:'symptoms', invertGood:true  }],
+  '外陰痛症候群': [{ label:'痛み',   key:'pain',     invertGood:true  },
+                   { label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'気分',   key:'mood',     invertGood:false }],
+  // デフォルト（疾患未設定 or 未対応疾患）
+  '_default':     [{ label:'睡眠',   key:'sleep',    invertGood:false },
+                   { label:'気分',   key:'mood',     invertGood:false },
+                   { label:'症状',   key:'symptoms', invertGood:true  }],
+};
+
+/** 出血強度文字列 → 数値変換 */
+function _bleedingToNum(val) {
+  var MAP = { none:0, trace:1, light:2, moderate:3, heavy:4, very_heavy:5,
+              'なし':0, '少量':1, '軽い':2, '普通':3, '多い':4, '非常に多い':5 };
+  return MAP[val] != null ? MAP[val] : null;
+}
+
+/** 疾患別指標の集計 */
+function _expMetric(recs, key) {
+  if (!recs.length) return null;
+  function avg(vals) {
+    var v = vals.filter(function(x) { return x != null && !isNaN(x); });
+    return v.length ? v.reduce(function(a,b){return a+b;},0)/v.length : null;
+  }
+  switch (key) {
+    case 'sleep':
+      return avg(recs.map(function(r){ return r.sleepQuality || r.sleepHours || null; }).filter(function(v){return v>0;}));
+    case 'mood':
+      return avg(recs.map(function(r){ return r.mood||null; }).filter(function(v){return v>0;}));
+    case 'symptoms':
+      return avg(recs.map(function(r){ return (r.symptoms||[]).length+(r.symptomDetails||[]).length; }));
+    case 'pain':
+      return avg(recs.map(function(r){ return r.painLevel||null; }).filter(function(v){return v>0;}));
+    case 'fatigue': {
+      // energy を「疲労度 = 6 - energy」に変換（energy↑ = 疲労↓ = invertGood=true で改善↑）
+      var energyVals = recs.map(function(r){ return r.energy||null; }).filter(function(v){return v>0;});
+      if (energyVals.length) return 6 - avg(energyVals);
+      // fallback: 疲労症状カウント
+      return avg(recs.map(function(r){ return (r.symptoms||[]).filter(function(s){ return s.includes('疲'); }).length; }));
+    }
+    case 'temp':
+      return avg(recs.map(function(r){ return r.basalTemp||r.temperature||null; }).filter(function(v){return v>30;}));
+    case 'bleeding':
+      return avg(recs.map(function(r){ return _bleedingToNum(r.menstrualCycle); }).filter(function(v){return v!=null;}));
+    case 'bloating':
+      return avg(recs.map(function(r){
+        return (r.symptoms||[]).filter(function(s){ return /張り|膨満|bloat/i.test(s); }).length
+             + (r.symptomDetails||[]).filter(function(s){ return /張り|膨満/i.test(s.symptom||''); }).length;
+      }));
+    default: return null;
+  }
+}
+
 /**
  * 進行中実験の「今見えていること」コンパニオン層を生成する。
- * records は state.records 全体を渡す。新規AI・外部API呼び出しなし。
+ * P38: myDiseases に応じて疾患別指標を表示。新規AI呼び出しなし。
  */
 function _buildExperimentCompanion(exp, records) {
   var now = new Date();
@@ -656,60 +739,37 @@ function _buildExperimentCompanion(exp, records) {
   var cut7  = new Date(now - 7  * 86400000);
   var cut14 = new Date(now - 14 * 86400000);
 
-  // 実験開始日以降 かつ 直近7日
   var curr = (records || []).filter(function(r) {
     var d = new Date(r.record_date || r.date || '');
     return !isNaN(d) && d >= startDate && d >= cut7;
   });
-  // 直近7日より前の7日間（実験開始前でもOK、比較基準として使用）
   var prev = (records || []).filter(function(r) {
     var d = new Date(r.record_date || r.date || '');
     return !isNaN(d) && d >= cut14 && d < cut7;
   });
 
-  function avgOf(recs, key) {
-    var vals = recs.map(function(r) { return r[key]; }).filter(function(v) { return v != null && v > 0; });
-    if (!vals.length) return null;
-    return vals.reduce(function(a, b) { return a + b; }, 0) / vals.length;
-  }
-  function avgSymptomCount(recs) {
-    if (!recs.length) return null;
-    var total = recs.reduce(function(a, r) { return a + ((r.symptoms || []).length + (r.symptomDetails || []).length); }, 0);
-    return total / recs.length;
-  }
+  // P38: 疾患別ルール選択
+  var diseases = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
+  var primaryDisease = diseases[0] || '_default';
+  var rules = _DISEASE_COMPANION_RULES[primaryDisease] || _DISEASE_COMPANION_RULES['_default'];
 
   var metrics = [];
-
-  // 睡眠（sleepQuality または sleepHours）
-  var cSleep = avgOf(curr, 'sleepQuality') ?? avgOf(curr, 'sleepHours');
-  var pSleep = avgOf(prev, 'sleepQuality') ?? avgOf(prev, 'sleepHours');
-  if (cSleep !== null && pSleep !== null) {
-    var sleepDiff = cSleep - pSleep;
-    metrics.push({ label: '睡眠', arrow: sleepDiff > 0.3 ? '↑' : sleepDiff < -0.3 ? '↓' : '→' });
-  } else if (cSleep !== null) {
-    metrics.push({ label: '睡眠', arrow: '→' });
-  }
-
-  // 気分（mood）
-  var cMood = avgOf(curr, 'mood');
-  var pMood = avgOf(prev, 'mood');
-  if (cMood !== null && pMood !== null) {
-    var moodDiff = cMood - pMood;
-    metrics.push({ label: '気分', arrow: moodDiff > 0.3 ? '↑' : moodDiff < -0.3 ? '↓' : '→' });
-  } else if (cMood !== null) {
-    metrics.push({ label: '気分', arrow: '→' });
-  }
-
-  // 症状（少ないほど↑）
-  var cSym = avgSymptomCount(curr);
-  var pSym = avgSymptomCount(prev);
-  if (cSym !== null && pSym !== null) {
-    var symDiff = cSym - pSym;
-    // 症状が減った→改善→↑、増えた→悪化→↓
-    metrics.push({ label: '症状', arrow: symDiff < -0.3 ? '↑' : symDiff > 0.3 ? '↓' : '→' });
-  } else if (cSym !== null) {
-    metrics.push({ label: '症状', arrow: '→' });
-  }
+  rules.forEach(function(rule) {
+    var cVal = _expMetric(curr, rule.key);
+    var pVal = _expMetric(prev, rule.key);
+    if (cVal === null) return; // データなし → 表示しない
+    var arrow = '→';
+    if (pVal !== null) {
+      var diff = cVal - pVal;
+      var threshold = (rule.key === 'temp') ? 0.1 : 0.3;
+      if (rule.invertGood) {
+        arrow = diff < -threshold ? '↑' : diff > threshold ? '↓' : '→';
+      } else {
+        arrow = diff > threshold ? '↑' : diff < -threshold ? '↓' : '→';
+      }
+    }
+    metrics.push({ label: rule.label, arrow: arrow });
+  });
 
   if (!metrics.length) return '';
 
@@ -724,12 +784,17 @@ function _buildExperimentCompanion(exp, records) {
       + '</div>';
   }).join('');
 
+  // 疾患ラベル（デフォルト以外のとき表示）
+  var diseaseNote = (primaryDisease !== '_default')
+    ? '<span style="font-size:9px;color:var(--ink-light);opacity:.7;margin-left:6px;">' + primaryDisease + '</span>'
+    : '';
+
   var dataNote = curr.length === 0
     ? '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">この7日間の記録がありません</div>'
     : '<div style="font-size:10px;color:var(--ink-light);margin-top:4px;">直近' + curr.length + '件の記録をもとに</div>';
 
   return '<div style="margin-top:10px;padding:10px 12px;background:rgba(90,144,112,.06);border-radius:10px;border:1px solid rgba(90,144,112,.14);">'
-    + '<div style="font-size:10px;font-weight:600;color:var(--sage);margin-bottom:8px;letter-spacing:.04em;">今見えていること</div>'
+    + '<div style="font-size:10px;font-weight:600;color:var(--sage);margin-bottom:8px;letter-spacing:.04em;">今見えていること' + diseaseNote + '</div>'
     + '<div style="display:flex;gap:16px;">' + itemsHtml + '</div>'
     + dataNote
     + '</div>';
@@ -947,6 +1012,105 @@ function completeExperiment(idx){
   openExperiments();
 }
 
+// ===== P39: AI結果レポート生成 =====
+/**
+ * 実験前後の比較から自然言語サマリーを生成する。
+ * OpenAI禁止。既存 records 集計結果のみ利用。
+ * 医療表現・断定禁止。「傾向」「可能性」「見えていること」を使用。
+ *
+ * @param {boolean} isComplete - 実験完了済みか
+ * @param {{pre,dur}} sleep
+ * @param {{pre,dur}} mood
+ * @param {{pre,dur}} symptoms
+ * @param {{pre,dur}} temp
+ */
+function _buildAIResultReport(isComplete, sleep, mood, symptoms, temp) {
+  // ── 変化量計算 ──────────────────────────────────────────
+  function delta(o) {
+    if (o.pre == null || o.dur == null) return null;
+    return Math.round((o.dur - o.pre) * 10) / 10;
+  }
+  var dSleep = delta(sleep);
+  var dMood  = delta(mood);
+  var dSym   = delta(symptoms);
+  var dTemp  = delta(temp);
+
+  var SLEEP_THR = 0.3, MOOD_THR = 0.3, SYM_THR = 0.3, TEMP_THR = 0.1;
+
+  // ── 今回見えたこと ────────────────────────────────────
+  var seen = [];
+  if (dSleep != null && Math.abs(dSleep) > SLEEP_THR) {
+    var sleepDir = dSleep > 0 ? '改善傾向' : '低下傾向';
+    seen.push('睡眠の質に' + sleepDir + 'が見えていること（' + (dSleep > 0 ? '+' : '') + dSleep + '）');
+  }
+  if (dMood != null && Math.abs(dMood) > MOOD_THR) {
+    var moodDir = dMood > 0 ? '上向き傾向' : '波がある可能性';
+    seen.push('気分に' + moodDir + 'があります（' + (dMood > 0 ? '+' : '') + dMood + '）');
+  }
+  if (dSym != null && Math.abs(dSym) > SYM_THR) {
+    var symDir = dSym < 0 ? '症状が減る傾向' : '症状が増える傾向';
+    seen.push(symDir + 'が見えていること（' + (dSym > 0 ? '+' : '') + dSym + '件/日）');
+  }
+  if (dTemp != null && Math.abs(dTemp) > TEMP_THR) {
+    seen.push('体温に変動の傾向があります（' + (dTemp > 0 ? '+' : '') + dTemp + '℃）');
+  }
+
+  // ── 気になったこと（変化が小さかった指標） ─────────────
+  var flat = [];
+  if (dSleep != null && Math.abs(dSleep) <= SLEEP_THR) flat.push('睡眠の質');
+  if (dMood  != null && Math.abs(dMood)  <= MOOD_THR)  flat.push('気分');
+  if (dSym   != null && Math.abs(dSym)   <= SYM_THR)   flat.push('症状数');
+
+  // ── 次に試すなら（recommendation-engine 利用） ────────
+  var nextItems = [];
+  try {
+    if (typeof window.getRecommendations === 'function') {
+      var recs = window.getRecommendations({ limit: 2, types: ['action', 'recovery'] });
+      recs.forEach(function(r) { if (r.text) nextItems.push(r.text); });
+    }
+  } catch(e) { /* silent */ }
+  // フォールバック（エンジン不可時）
+  if (!nextItems.length) {
+    if (dSleep != null && dSleep < 0) nextItems.push('睡眠時間や就寝リズムに少し注意を向けてみるのも良いかもしれません。');
+    else if (dMood != null && dMood < 0) nextItems.push('気分の波があるとき、記録を振り返ると変化のパターンが見えやすくなることがあります。');
+    else nextItems.push('今の取り組みを続けながら、からだの変化を観察してみましょう。');
+  }
+
+  // 変化ゼロなら何も表示しない
+  if (!seen.length && !flat.length) return '';
+
+  var titleLabel = isComplete ? '実験のまとめ' : 'これまでに見えていること';
+
+  var html = '<div style="margin-top:16px;padding:12px 14px;background:rgba(90,112,160,.05);border-radius:12px;border:1px solid rgba(90,112,160,.14);">'
+    + '<div style="font-size:11px;font-weight:600;color:#5060a0;margin-bottom:10px;letter-spacing:.04em;">✦ ' + titleLabel + '</div>';
+
+  if (seen.length) {
+    html += '<div style="font-size:10px;font-weight:600;color:var(--ink-light);margin-bottom:4px;">今回見えていること</div>'
+      + '<ul style="margin:0 0 10px 0;padding-left:16px;">'
+      + seen.map(function(s){ return '<li style="font-size:11px;color:var(--ink-mid);line-height:1.7;">' + s + '</li>'; }).join('')
+      + '</ul>';
+  }
+
+  if (flat.length) {
+    html += '<div style="font-size:10px;font-weight:600;color:var(--ink-light);margin-bottom:4px;">気になったこと</div>'
+      + '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;margin-bottom:10px;">'
+      + flat.join('・') + 'は大きな変化が見えていません。記録を続けると、もう少しパターンが見えてくる可能性があります。'
+      + '</div>';
+  }
+
+  if (nextItems.length) {
+    html += '<div style="font-size:10px;font-weight:600;color:var(--ink-light);margin-bottom:4px;">次に試すなら</div>'
+      + '<ul style="margin:0;padding-left:16px;">'
+      + nextItems.map(function(s){ return '<li style="font-size:11px;color:var(--ink-mid);line-height:1.7;">' + s + '</li>'; }).join('')
+      + '</ul>';
+  }
+
+  html += '<div style="font-size:9px;color:var(--ink-light);margin-top:8px;opacity:.7;">※ これは記録をもとにした傾向の提示です。診断・治療の提案ではありません。</div>'
+    + '</div>';
+
+  return html;
+}
+
 // ===== 実験レポート =====
 function showExperimentReport(idx) {
   var exp = state.experiments[idx];
@@ -1102,6 +1266,9 @@ function showExperimentReport(idx) {
       html += '<div style="padding:10px 12px;background:rgba(180,140,60,.08);border-radius:8px;border:1px solid rgba(180,140,60,.2);font-size:11px;color:#806030;margin-top:4px;">'
         + '⚠️ データが少ないため参考値です（実験前 ' + preRecs.length + '件 / 実験中 ' + duringRecs.length + '件）</div>';
     }
+
+    // ── P39: AI結果レポート ──────────────────────────────────
+    html += _buildAIResultReport(elapsed >= exp.days, sleep, mood, symptoms, temp);
   }
 
   html += '</div>'
