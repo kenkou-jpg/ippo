@@ -1812,11 +1812,19 @@ function cloudRestore(){
         return true;
       } else if(mergedCount > localRecs){
         // ローカルが新しくてもクラウドに追加レコードがあればマージのみ実施
-        // 設定系はローカルを保持
+        // 設定系はローカルを保持（空の場合のみ Cloud から補完）
         state.records = mergedRecords;
         state.totalDays = Object.keys(mergedRecords.reduce(function(acc,r){
           acc[new Date(r.record_date || r.date).toDateString()]=true; return acc;
         },{})).length;
+        if (
+          (!Array.isArray(state.myDiseases) || state.myDiseases.length === 0) &&
+          Array.isArray(cloudState.myDiseases) && cloudState.myDiseases.length > 0
+        ) { state.myDiseases = cloudState.myDiseases.slice(); }
+        if (
+          (!Array.isArray(state.experiments) || state.experiments.length === 0) &&
+          Array.isArray(cloudState.experiments) && cloudState.experiments.length > 0
+        ) { state.experiments = cloudState.experiments.slice(); }
         saveState();
         console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計'+mergedCount+'件');
         return true;
@@ -11847,7 +11855,8 @@ async function syncNow() {
 
     btn.textContent = '同期完了 ✓';
     btn.style.background = '#8aab96';
-    
+    if (typeof cloudRestore === 'function') { cloudRestore().catch(function(){}); }
+
     setTimeout(() => {
       btn.textContent = original;
       btn.style.background = '';
