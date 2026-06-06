@@ -122,10 +122,14 @@ export function cloudBackupAll() {
       myDiseases:     s.myDiseases,
       reminders:      s.reminders,
       _onboardingDone: s._onboardingDone,
+      experiments:    s.experiments,
     };
     // Fix: myDiseases が空配列の場合はクラウドの既存値を上書きしない。
     if (!stateToSave.myDiseases || stateToSave.myDiseases.length === 0) {
       delete stateToSave.myDiseases;
+    }
+    if (!Array.isArray(stateToSave.experiments) || stateToSave.experiments.length === 0) {
+      delete stateToSave.experiments;
     }
     var payload = { state: stateToSave, updated_at: new Date().toISOString() };
 
@@ -320,6 +324,22 @@ export function cloudRestore() {
           s.totalDays = Object.keys(mergedRecords.reduce(function (acc, r) {
             acc[new Date(r.record_date || r.date).toDateString()] = true; return acc;
           }, {})).length;
+          if (
+            (!Array.isArray(s.myDiseases) || s.myDiseases.length === 0) &&
+            Array.isArray(cloudState.myDiseases) &&
+            cloudState.myDiseases.length > 0
+          ) {
+            s.myDiseases = cloudState.myDiseases.slice();
+            console.log('myDiseases をクラウドから補完:', s.myDiseases);
+          }
+          if (
+            (!Array.isArray(s.experiments) || s.experiments.length === 0) &&
+            Array.isArray(cloudState.experiments) &&
+            cloudState.experiments.length > 0
+          ) {
+            s.experiments = cloudState.experiments.slice();
+            console.log('experiments をクラウドから補完:', s.experiments);
+          }
           saveState();
           console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計' + mergedCount + '件');
           return true;
