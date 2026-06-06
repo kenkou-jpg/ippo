@@ -1436,6 +1436,13 @@ function saveDiseaseSettings(){
   state.myDiseases = selected;
   delete state.myDisease;
   saveState();
+  // Bridge fix (P0-B3): settings-store の trackedConditions を同期する。
+  // saveStore は trackedConditions 変更時に setState(myDiseases) を呼ぶが、
+  // ここでは saveState() 済みのため二重保存は起きない（saveStore 内の saveState は
+  // trackedConditions 変更時のみ実行され、state.myDiseases は既に同値のため冪等）。
+  if (typeof window.saveSettingsStore === 'function') {
+    window.saveSettingsStore({ trackedConditions: selected.slice() });
+  }
   // 疾患設定変更もクラウドに同期（記録保存を待たずに即時バックアップ）
   if(typeof cloudBackupAll === 'function') cloudBackupAll().catch(function(){});
   var display = document.getElementById('disease-setting-display');
