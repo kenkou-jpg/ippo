@@ -919,6 +919,7 @@ function startExperiment(presetIdx){
     status: 'active'
   });
   saveState();
+  if (typeof cloudBackupAll === 'function') { cloudBackupAll().catch(function(){}); }
   document.getElementById('expOverlay').remove();
   openExperiments();
 }
@@ -942,6 +943,7 @@ function startCustomExperiment(){
     status: 'active'
   });
   saveState();
+  if (typeof cloudBackupAll === 'function') { cloudBackupAll().catch(function(){}); }
   document.getElementById('expOverlay').remove();
   openExperiments();
 }
@@ -950,6 +952,7 @@ function cancelExperiment(idx){
   showConfirmModal('この実験を中止しますか？', function() {
     state.experiments[idx].status = 'cancelled';
     saveState();
+    if (typeof cloudBackupAll === 'function') { cloudBackupAll().catch(function(){}); }
     document.getElementById('expOverlay').remove();
     openExperiments();
   });
@@ -1008,6 +1011,7 @@ function completeExperiment(idx){
   exp.result = result;
   exp.endDate = new Date().toISOString();
   saveState();
+  if (typeof cloudBackupAll === 'function') { cloudBackupAll().catch(function(){}); }
   document.getElementById('expOverlay').remove();
   openExperiments();
 }
@@ -1690,11 +1694,15 @@ function cloudBackupAll(){
       lastSaved: state.lastSaved,
       myDiseases: state.myDiseases,
       reminders: state.reminders,
-      _onboardingDone: state._onboardingDone
+      _onboardingDone: state._onboardingDone,
+      experiments: state.experiments
     };
     // Fix: myDiseases が空配列の場合はクラウドの既存値を上書きしない。
     if (!stateToSave.myDiseases || stateToSave.myDiseases.length === 0) {
       delete stateToSave.myDiseases;
+    }
+    if (!Array.isArray(stateToSave.experiments) || stateToSave.experiments.length === 0) {
+      delete stateToSave.experiments;
     }
     var payload = {
       state: stateToSave,
