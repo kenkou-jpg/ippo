@@ -106,11 +106,6 @@ export function bootstrap() {
     delete state.myDisease;
     saveState();
   }
-  // P0-FIX-6: undefined / null の場合のみ [] で初期化する。
-  // 空配列 [] は「未設定」であり saveState の対象にしない。
-  // cloudRestore 後に [] が上書きするのを防ぐため、
-  // ここでは in-memory のみ設定し localStorage には書かない。
-  if (state.myDiseases == null) state.myDiseases = [];
 
   // ── 3. 既存ユーザー: オンボーディング済みフラグ補完 ──────────
   if (state.name && !state._onboardingDone) {
@@ -122,6 +117,18 @@ export function bootstrap() {
 
   // ── 4. Stats 修復 ─────────────────────────────────────────
   repairStats(state);
+
+  // ── P0-C1: myDiseases null ガードは repair 後に適用する ────────
+  // repair 系（repairSymptomDetailsSchema / repairStats）が saveState() を
+  // 呼んだ場合、myDiseases: [] が永続化されないようにするため、
+  // null ガードをこれら repair の完了後に移動する。
+  // repair 実行時点で myDiseases が null / undefined のままであれば、
+  // saveState() は null を書くか key 自体を省略する（undefined の場合）ため
+  // localStorage の myDiseases: [] 固定化を防げる。
+  // cloudRestore はその後に非同期で走るため、lastSaved が repair で
+  // 更新されていない限り cloudDate > localDate 判定が成立し
+  // クラウドの myDiseases を正しく復元できる。
+  if (state.myDiseases == null) state.myDiseases = [];
 
   // ── 5. 日付表示更新 ───────────────────────────────────────
   if (typeof window.updateDate === 'function') window.updateDate();
