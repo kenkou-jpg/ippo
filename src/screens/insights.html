@@ -555,7 +555,7 @@ animation: mistDrift 28s ease-in-out infinite; }
         <p class="ipr-doctor-summary" id="ins-doctor-summary" style="display:none"></p>
         <ul class="ipr-doctor-list" id="ins-doctor-list" style="display:none"></ul>
         <p class="ipr-doctor-empty" id="ins-doctor-empty">パターンが蓄積されると、受診に伝えるべき観察がまとまります。</p>
-        <button class="ipr-doctor-cta" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
+        <button class="ipr-doctor-cta" id="ins-doctor-cta" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
           記録を続ける
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -898,6 +898,16 @@ animation: mistDrift 28s ease-in-out infinite; }
               return '<li>'+h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</li>';
             }).join(''); drList.style.display=''; }
             if(drEmpty) drEmpty.style.display='none';
+            var drCta=document.getElementById('ins-doctor-cta');
+            if(drCta){
+              drCta.textContent='';
+              drCta.appendChild(document.createTextNode('受診用まとめを見る'));
+              var arr=document.createElementNS('http://www.w3.org/2000/svg','svg');
+              arr.setAttribute('width','10');arr.setAttribute('height','10');arr.setAttribute('viewBox','0 0 24 24');arr.setAttribute('fill','none');arr.setAttribute('stroke','currentColor');arr.setAttribute('stroke-width','2');arr.setAttribute('stroke-linecap','round');
+              var poly=document.createElementNS('http://www.w3.org/2000/svg','polyline');poly.setAttribute('points','9 18 15 12 9 6');arr.appendChild(poly);
+              drCta.appendChild(arr);
+              drCta.onclick=function(){if(typeof window.openDoctorVisitSummary==='function')window.openDoctorVisitSummary();};
+            }
           }
         }
       } catch(_){}
