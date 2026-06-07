@@ -120,22 +120,18 @@ function _wireInsightsScreen() {
       insCardTitle.addEventListener('click', function() { navigateInsightDirect('insight'); });
     }
   }
-  // "根拠をみる" → 分析チャートセクションへスクロール（根拠 = 実際のデータ）
-  var insLink = sc.querySelector('.ipr-ins-link');
-  if (insLink) insLink.onclick = function() { document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'}); };
-
   // ── 30日チャート・周期フェーズ ───────────────────────────
-  // "詳細をみる" → カレンダー
+  // "詳細をみる" → 症状推移グラフ（PRO機能）
   var graphLink = sc.querySelector('.ipr-graph-link');
-  if (graphLink) graphLink.onclick = function() { if (typeof window.switchTab === 'function') window.switchTab('calendar'); };
-  // "周期カレンダーを見る" → カレンダー
+  if (graphLink) graphLink.onclick = function() { if (typeof window.openSymptomTrends === 'function') window.openSymptomTrends(); };
+  // "周期ごとの体調の違いを見る" → 周期ごとの体調の違い（PRO機能）
   var cycleLink = sc.querySelector('.ipr-cycle-link');
-  if (cycleLink) cycleLink.onclick = function() { if (typeof window.switchTab === 'function') window.switchTab('calendar'); };
+  if (cycleLink) cycleLink.onclick = function() { if (typeof window.openCyclePhaseReport === 'function') window.openCyclePhaseReport(); };
 
   // ── 自分に問いかけるカード ────────────────────────────────
   // アイデア①: 「症状が強かった日の共通点」へ直結（Thinking Sheet 廃止）
   var reflectLink = sc.querySelector('.ipr-reflect-link');
-  if (reflectLink) reflectLink.onclick = function() { navigateToPro('flare-analysis'); };
+  if (reflectLink) reflectLink.onclick = function() { if (typeof window.openFlareupReport === 'function') window.openFlareupReport(); };
 
   // ── 実験提案カード ────────────────────────────────────────
   // アイデア①: カードタイトル・ボタン両方ともヘルス実験へ直結

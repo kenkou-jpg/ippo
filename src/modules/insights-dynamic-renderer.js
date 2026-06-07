@@ -384,15 +384,12 @@ function _renderAlternativeViews(sc) {
 
   const altEl = document.createElement('div');
   altEl.className = 'ipr-ins-alt-views';
-  altEl.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid rgba(139,127,214,.08);';
+  altEl.style.cssText = 'margin-top:2px;';
   altEl.innerHTML = `
-    <div style="font-size:10px;color:#a0a8c0;margin-bottom:8px;letter-spacing:.04em;">分析を開く</div>
+    <div style="font-size:10px;color:#a0a8c0;margin-bottom:6px;letter-spacing:.04em;">関連分析</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
       ${_DIRECT_SHORTCUTS.map(s =>
-        `<button class="ipr-alt-btn" data-key="${s.key}"
-          style="padding:5px 11px;border-radius:99px;background:rgba(139,127,214,.08);border:1px solid rgba(139,127,214,.14);color:#8b7fd6;font-size:10.5px;cursor:pointer;font-family:inherit;">
-          ${s.label}
-        </button>`
+        `<button class="ipr-chip ipr-alt-btn" data-key="${s.key}">${s.label}</button>`
       ).join('')}
     </div>
   `;

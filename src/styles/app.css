@@ -2542,6 +2542,27 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
     margin-left: auto;
     margin-right: auto;
   }
+
+  /* インサイト: PC幅でカードグリッドを最適化 */
+  #screen-insights .ipr {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+  #screen-insights .ipr-main {
+    grid-template-columns: minmax(0, 58fr) minmax(0, 42fr);
+    gap: 20px;
+  }
+  #screen-insights .ipr-analysis {
+    gap: 20px;
+  }
+  #screen-insights .ipr-bottom3 {
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  #screen-insights .ipr-tips-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
 }
 
 /* ===== SURFACE CARD TOKEN (main ブランチ互換) ===== */
