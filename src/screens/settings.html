@@ -164,14 +164,24 @@
       </div>
     </div>
 
-    <!-- ── データと安心 ── -->
+    <!-- ── PROデータ管理 ── -->
     <div class="set-section">
       <div class="set-section-label">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.62;flex-shrink:0;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span>データと安心</span>
+        <span>PROデータ管理</span>
       </div>
       <div class="set-section-desc">あなたの大切な記録を、いつでも安全に</div>
       <div class="set-card">
+        <div class="set-row" onclick="premiumGate(function(){if(typeof window.openSyncModal==='function')window.openSyncModal();})">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#e8f0f8;"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">クラウド同期 <span class="set-pro-tag">PRO</span></div>
+              <div class="set-row-sub">端末が変わっても記録を安全に引き継げます</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
         <div class="set-row" onclick="premiumGate(exportJSON)">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#e8f4f2;" id="settings-icon-backup"></div>
