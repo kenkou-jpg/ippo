@@ -81,10 +81,6 @@ function buildPhaseLabel(phase) {
 // ── ヒーローカードHTML ────────────────────────────────────
 
 export function renderHero(container, config, state) {
-  // PHASE 1-A: バナー描画停止（ロジック・getTodayAwareness は保持）
-  container.innerHTML = '';
-  return;
-
   const records               = state.records || [];
   const hour                  = new Date().getHours();
   const phase                 = getCyclePhase(state.lastPeriodDate, state.cycleLength);
