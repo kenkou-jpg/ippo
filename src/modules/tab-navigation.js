@@ -10,7 +10,6 @@
 import { ensureScreenLoaded, showScreen } from './screen-router.js';
 import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
-import { openProHub }                     from './pro-hub/pro-hub.js';
 import { triggerInsightSurface, showThinkingSheet } from './insight-recommendation-sheet.js';
 import { renderInsightsDynamic }          from './insights-dynamic-renderer.js';
 
@@ -109,19 +108,6 @@ function _wireInsightsScreen() {
   if (insH2 && !insH2.id) insH2.id = 'ins-main-insight-text';
   var insBody = sc.querySelector('.ipr-ins-body');
   if (insBody && !insBody.id) insBody.id = 'ins-main-insight-sub';
-
-  // ── PRO badge → opens PRO hub panel ───────────────
-  var proBadge = sc.querySelector('.ipr-top-badge');
-  if (proBadge && !proBadge._proWired) {
-    proBadge._proWired = true;
-    proBadge.setAttribute('role', 'button');
-    proBadge.setAttribute('tabindex', '0');
-    proBadge.setAttribute('aria-label', 'PRO整理室を開く');
-    proBadge.addEventListener('click', openProHub);
-    proBadge.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openProHub(); }
-    });
-  }
 
   // ── 今日の気づきカード ─────────────────────────────────
   // カードタイトル/eyebrow クリック → insight推薦シート（「どう深めるか」の入口）
