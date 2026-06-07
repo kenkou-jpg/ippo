@@ -9,20 +9,23 @@
 // 提供: window.ippoRuntimeDebugOverlay
 // ============================================================
 
-var _IS_DEV = false;
-try {
-  // Vite の import.meta.env.DEV が利用可能な場合
-  _IS_DEV = import.meta.env && import.meta.env.DEV;
-} catch (_) {}
+// import.meta.env.DEV を try-catch の外でトップレベルに直接使うことで
+// Viteが本番ビルド時に false へ静的置換 → dead code elimination が確実に動く。
+// try-catch 内では静的解析が止まるため絶対に入れてはいけない。
+const _IS_DEV = import.meta.env.DEV;
 
-var _FORCE_ENABLED = false;
-try {
-  _FORCE_ENABLED =
-    window.location.search.includes('ippo_debug=1') ||
-    localStorage.getItem('ippo_debug_overlay') === '1';
-} catch (_) {}
+// _FORCE_ENABLED は開発環境でのみ評価する。
+// 本番ビルドでは _IS_DEV === false に置換され、if ブロックごと除去される。
+let _FORCE_ENABLED = false;
+if (_IS_DEV) {
+  try {
+    _FORCE_ENABLED =
+      window.location.search.includes('ippo_debug=1') ||
+      localStorage.getItem('ippo_debug_overlay') === '1';
+  } catch (_) {}
+}
 
-var _ENABLED = _IS_DEV || _FORCE_ENABLED;
+const _ENABLED = _IS_DEV || _FORCE_ENABLED;
 
 if (!_ENABLED) {
   window.ippoRuntimeDebugOverlay = {
