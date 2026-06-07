@@ -368,7 +368,15 @@ function _renderExperiment(signals, sc) {
   }
 }
 
-// ─── "他の見方" section ───────────────────────────────────
+// ─── PRO直結ショートカット section ───────────────────────
+// アイデア①+③: 「他の見方」を廃止し、各機能へ直接遷移するショートカットに変更。
+// Recommendation Sheet は経由しない。
+
+const _DIRECT_SHORTCUTS = [
+  { key: 'ai-pattern',    label: 'AIパターン解析' },
+  { key: 'experiments',   label: 'ヘルス実験' },
+  { key: 'factor-report', label: '一緒に起きやすいこと' },
+];
 
 function _renderAlternativeViews(sc) {
   const insBottom = sc.querySelector('.ipr-ins-bottom');
@@ -378,20 +386,24 @@ function _renderAlternativeViews(sc) {
   altEl.className = 'ipr-ins-alt-views';
   altEl.style.cssText = 'margin-top:14px;padding-top:14px;border-top:1px solid rgba(139,127,214,.08);';
   altEl.innerHTML = `
-    <div style="font-size:10px;color:#a0a8c0;margin-bottom:8px;letter-spacing:.04em;">他の見方</div>
+    <div style="font-size:10px;color:#a0a8c0;margin-bottom:8px;letter-spacing:.04em;">分析を開く</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;">
-      <button class="ipr-alt-btn" data-type="ai-pattern"   style="padding:5px 11px;border-radius:99px;background:rgba(139,127,214,.08);border:1px solid rgba(139,127,214,.14);color:#8b7fd6;font-size:10.5px;cursor:pointer;font-family:inherit;">AIパターン解析</button>
-      <button class="ipr-alt-btn" data-type="experiment"   style="padding:5px 11px;border-radius:99px;background:rgba(139,127,214,.08);border:1px solid rgba(139,127,214,.14);color:#8b7fd6;font-size:10.5px;cursor:pointer;font-family:inherit;">ヘルス実験</button>
-      <button class="ipr-alt-btn" data-type="factor-report" style="padding:5px 11px;border-radius:99px;background:rgba(139,127,214,.08);border:1px solid rgba(139,127,214,.14);color:#8b7fd6;font-size:10.5px;cursor:pointer;font-family:inherit;">要因効果レポート</button>
+      ${_DIRECT_SHORTCUTS.map(s =>
+        `<button class="ipr-alt-btn" data-key="${s.key}"
+          style="padding:5px 11px;border-radius:99px;background:rgba(139,127,214,.08);border:1px solid rgba(139,127,214,.14);color:#8b7fd6;font-size:10.5px;cursor:pointer;font-family:inherit;">
+          ${s.label}
+        </button>`
+      ).join('')}
     </div>
   `;
 
   altEl.querySelectorAll('.ipr-alt-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      _log('alternative_selected', { key: type });
-      if (typeof window.triggerInsightSurface === 'function') {
-        window.triggerInsightSurface(type === 'ai-pattern' ? 'insight' : type);
+      const key = btn.dataset.key;
+      _log('shortcut_selected', { key });
+      // アイデア①: Recommendation Sheet を経由せず直接遷移
+      if (typeof window.navigateToPro === 'function') {
+        window.navigateToPro(key);
       }
     });
   });

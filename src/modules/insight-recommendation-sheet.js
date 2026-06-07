@@ -217,7 +217,26 @@ function _preload(key) {
   } catch (_) {}
 }
 
+// ─── Direct navigation (no sheet) ────────────────────────
+// アイデア①+③: Recommendation Sheet を経由せず直接遷移する。
+// resolver の primary.key を使い、ユーザーに選択させない。
+export function navigateInsightDirect(type) {
+  const rec = resolveInsightDestination(type);
+  if (rec?.primary?.key) {
+    _log('direct_navigate', { key: rec.primary.key, type });
+    _navigate(rec.primary.key);
+  }
+}
+
+// キーを直接指定して遷移（固定導線用）
+export function navigateToPro(key) {
+  _log('direct_navigate', { key, type: 'fixed' });
+  _navigate(key);
+}
+
 // ─── Public window API ────────────────────────────────────
 window.showInsightRecommendationSheet = showRecommendationSheet;
 window.showInsightThinkingSheet       = showThinkingSheet;
 window.triggerInsightSurface          = triggerInsightSurface;
+window.navigateInsightDirect          = navigateInsightDirect;
+window.navigateToPro                  = navigateToPro;
