@@ -151,8 +151,7 @@ function renderAll() {
   const store       = typeof window.getSettingsStore === 'function'
     ? window.getSettingsStore()
     : (state.settingsProfile || {});
-  const profile     = store; // alias: 既存の読み箇所との互換
-  const homeModules = Array.isArray(profile.homeModules)  ? profile.homeModules  : null;
+  const profile      = store; // alias: 既存の読み箇所との互換
   const displayStyle = profile.displayStyle || 'balanced';
 
   // trackedConditions: settings-store に統一。未設定なら state.myDiseases にフォールバック。
@@ -163,17 +162,17 @@ function renderAll() {
 
   const header         = document.getElementById('hn-header');
   const greeting       = document.getElementById('hn-greeting');
-  const hero           = document.getElementById('hn-hero');
-  const dailyNote      = document.getElementById('hn-daily-note');
   const status         = document.getElementById('hn-status');
-  const personalize    = document.getElementById('hn-personalize');
-  const optional       = document.getElementById('hn-optional');
-  const recovery       = document.getElementById('hn-recovery');
-  const reflections    = document.getElementById('hn-reflections');
   const insights       = document.getElementById('hn-insights');
   const medicalSummary = document.getElementById('hn-medical-summary');
-  const experiment     = document.getElementById('hn-experiment');
   const record         = document.getElementById('hn-record');
+
+  // PHASE 1: 除外セクションのコンテナをクリア（ファイル・ロジックは保持）
+  ['hn-hero','hn-daily-note','hn-personalize','hn-optional',
+   'hn-recovery','hn-reflections','hn-experiment'].forEach(function(id) {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = '';
+  });
 
   // Adaptive Calmness: currentMode + displayStyle を data 属性でスクリーンに付与
   const screenEl = document.getElementById('screen-home-next');
@@ -192,42 +191,12 @@ function renderAll() {
     }
   }
 
-  // homeModules: 含まれない場合は要素を空にしてスキップ
-  function _moduleEnabled(id) {
-    return !homeModules || homeModules.indexOf(id) !== -1;
-  }
-
-  if (header)      renderSharedHeader(header);
-  if (greeting)    renderGreeting(greeting, state);
-  if (hero)        renderHero(hero, config, state);
-  if (dailyNote)   renderDailyNote(dailyNote, config, state);
-  if (status)      renderStatusCards(status, config, state);
-  if (personalize) renderPersonalizeSection(personalize, config, state);
-  if (optional)    renderOptionalModules(optional, config, state);
-
-  // recoveryTrend モジュール制御
-  if (recovery) {
-    if (_moduleEnabled('recoveryTrend')) renderRecovery(recovery);
-    else recovery.innerHTML = '';
-  }
-
-  if (reflections) renderReflections(reflections);
-
-  // todayInsight モジュール制御
-  if (insights) {
-    if (_moduleEnabled('todayInsight')) renderInsights(insights, state, config);
-    else insights.innerHTML = '';
-  }
-
+  if (header)         renderSharedHeader(header);
+  if (greeting)       renderGreeting(greeting, state);
   if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
-
-  // experimentSuggestion モジュール制御
-  if (experiment) {
-    if (_moduleEnabled('experimentSuggestion')) renderExperiment(experiment);
-    else experiment.innerHTML = '';
-  }
-
-  if (record) renderQuickRecord(record, state);
+  if (status)         renderStatusCards(status, config, state);
+  if (insights)       renderInsights(insights, state, config);
+  if (record)         renderQuickRecord(record, state);
 
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();

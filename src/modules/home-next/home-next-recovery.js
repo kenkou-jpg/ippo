@@ -16,9 +16,6 @@ function _esc(str) {
 
 export function renderRecovery(container) {
   if (!container) return;
-  // PHASE 1-D/1-E: 描画停止（recovery-journey・companion-intelligence のロジックは保持）
-  container.innerHTML = '';
-  return;
 
   const rj = window.ippoRecoveryJourney;
   const ci = window.ippoCompanionIntelligence;
