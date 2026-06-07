@@ -1148,8 +1148,8 @@
 <style>
 .sp-overlay{display:none;position:fixed;inset:0;background:rgba(30,20,15,.38);z-index:2000;opacity:0;transition:opacity .22s ease;}
 .sp-overlay.sp-active{display:block;opacity:1;}
-.sp-panel{position:fixed;left:0;right:0;bottom:0;z-index:2001;background:#faf7f4;border-radius:22px 22px 0 0;max-height:80vh;overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);max-width:640px;margin:0 auto;padding-bottom:env(safe-area-inset-bottom,0);}
-.sp-panel.sp-active{transform:translateY(0);}
+.sp-panel{position:fixed;left:50%;bottom:0;z-index:2001;background:#faf7f4;border-radius:22px 22px 0 0;max-height:80vh;overflow-y:auto;width:100%;max-width:430px;transform:translateX(-50%) translateY(100%);transition:transform .28s cubic-bezier(.32,.72,0,1);padding-bottom:env(safe-area-inset-bottom,0);}
+.sp-panel.sp-active{transform:translateX(-50%) translateY(0);}
 .sp-handle{width:36px;height:4px;background:rgba(120,100,90,.18);border-radius:2px;margin:12px auto 0;}
 .sp-header{padding:16px 22px 14px;border-bottom:1px solid rgba(120,100,90,.07);}
 .sp-title{font-family:'Shippori Mincho',serif;font-size:16px;font-weight:600;color:#2b211c;margin-bottom:5px;}

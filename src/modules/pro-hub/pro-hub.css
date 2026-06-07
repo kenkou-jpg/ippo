@@ -26,9 +26,9 @@
 .pho-panel {
   position: fixed;
   top: 0;
-  right: 0;
+  right: max(0px, calc(50% - 215px));
   bottom: 0;
-  width: 420px;
+  width: 430px;
   max-width: 100vw;
   background: #faf8f6;
   z-index: 810;
@@ -544,7 +544,12 @@
    ボディ(.ai-body)・フッター(.ai-footer/.ai-btn)は app.css の既存クラスを再利用。 */
 .pha-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  transform: translateX(-50%);
   z-index: 820;
   background: rgba(44, 36, 32, 0.50);
   backdrop-filter: blur(6px);
