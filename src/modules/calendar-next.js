@@ -487,9 +487,6 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   const hasRecord = records.some(r => (r.date || r.record_date || '').slice(0, 10) === dateStr);
   if (hasRecord) cell.classList.add('cn-cell--has-record');
   
- const moonAge = getMoonAge(year, month, day);
- const lunar = getLunarDate(year, month, day);
-
   const dayEl = document.createElement('div');
   dayEl.className = 'cn-cell-day';
   dayEl.textContent = String(day);
@@ -498,13 +495,13 @@ function _buildCell(year, month, day, isOther, lastPeriod, cycleLength, periodLe
   moonEl.className = 'cn-moon';
   moonEl.innerHTML = getMoonSVGCached(year, month, day);
 
-const lunarEl = document.createElement('div');
-lunarEl.className = 'cn-cell-lunar';
-lunarEl.textContent = `旧暦 ${lunar.lm}/${lunar.ld}`;
-
-cell.appendChild(dayEl);
-cell.appendChild(moonEl);
-cell.appendChild(lunarEl);
+  cell.appendChild(dayEl);
+  cell.appendChild(moonEl);
+  if (hasRecord) {
+    const dotEl = document.createElement('span');
+    dotEl.className = 'cn-record-dot';
+    cell.appendChild(dotEl);
+  }
   cell.addEventListener('click', () => {
     // 既存の openDayDetail を利用
     window.calYear  = year;
