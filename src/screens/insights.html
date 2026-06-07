@@ -54,14 +54,15 @@
   justify-content: space-between;
   padding-bottom: var(--screen-intro-gap);
 }
-.ipr-top-label { font-size: 11px; color: #8b9ab8; letter-spacing: .06em; font-weight: 500; }
+.ipr-top-label { font-size: 13px; color: #18245a; letter-spacing: -.01em; font-weight: 600; }
 .ipr-top-badge {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 4px 11px;
   background: rgba(139,127,214,.09);
   border: 1px solid rgba(139,127,214,.2);
   border-radius: 99px;
-  font-size: 10px; font-weight: 700; color: #8b7fd6; letter-spacing: .05em;
+  font-size: 10px; font-weight: 600; color: #8b7fd6; letter-spacing: .02em;
+  cursor: pointer; font-family: inherit;
 }
 
 /* ─── HERO ───────────────────────────────────────────────── */
@@ -192,7 +193,7 @@ animation: mistDrift 28s ease-in-out infinite; }
 }
 
 /* ─── Disease card: w340 / min-h280 ─────────────────────── */
-.ipr-dis-card { padding: 24px 22px 28px; min-height: 280px; border-radius: 20px; }
+.ipr-dis-card { padding: 24px 24px 28px; min-height: 280px; border-radius: 20px; }
 .ipr-dis-tabs {
   display: flex; gap: 5px; flex-wrap: wrap;
   margin-top: 10px; margin-bottom: 14px;
@@ -235,7 +236,7 @@ animation: mistDrift 28s ease-in-out infinite; }
 }
 
 /* ─── Graph card ─────────────────────────────────────────── */
-.ipr-graph-card { padding: 22px 22px 20px; border-radius: 20px; position: relative; }
+.ipr-graph-card { padding: 22px 22px 22px; border-radius: 20px; position: relative; display: flex; flex-direction: column; }
 .ipr-graph-head { display: flex; align-items: center; justify-content: space-between; }
 .ipr-graph-link { font-size: 11.5px; color: #8b7fd6; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 3px; background: none; border: none; font-family: inherit; padding: 0; }
 .ipr-graph-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
@@ -243,7 +244,7 @@ animation: mistDrift 28s ease-in-out infinite; }
 .ipr-legend-dot  { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 
 /* ─── Cycle card ─────────────────────────────────────────── */
-.ipr-cycle-card { padding: 20px 18px; display: flex; flex-direction: column; border-radius: 20px; }
+.ipr-cycle-card { padding: 22px 22px 22px; display: flex; flex-direction: column; border-radius: 20px; }
 .ipr-cycle-inner {
   display: flex; align-items: center; gap: 10px;
   margin-top: 12px; flex: 1;
@@ -474,11 +475,11 @@ animation: mistDrift 28s ease-in-out infinite; }
 
     <!-- PRO sub-header -->
     <div class="ipr-top">
-      <span class="ipr-top-label">インサイト</span>
-      <span class="ipr-top-badge">
-        <svg width="8" height="8" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-        PRO
-      </span>
+      <span class="ipr-top-label">あなたの記録を深く振り返る</span>
+      <button class="ipr-top-badge" onclick="if(typeof window.openProHub==='function')window.openProHub()">
+        PRO機能を見る
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
 
     <!-- ═══ HERO ═══════════════════════════════════════════ -->
