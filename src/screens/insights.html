@@ -284,36 +284,19 @@ animation: mistDrift 28s ease-in-out infinite; }
   margin-top: 10px; align-self: flex-start;
 }
 
-/* ─── Bottom 3-col: Experiment / Know / Doctor ───────────── */
-.ipr-bottom3{display:grid; grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:start;margin-bottom:var(--screen-card-gap);}
-
-/* ─── Why card (②) ──────────────────────────────────────── */
-.ipr-why-card { padding: 22px 22px 26px; display: flex; flex-direction: column; border-radius: 20px; }
-.ipr-why-list { list-style: none; padding: 0; margin: 10px 0 0; flex: 1; }
-.ipr-why-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; color: #5d6482; padding: 7px 0; line-height: 1.75; border-bottom: 1px solid rgba(139,127,214,.07); }
-.ipr-why-list li:last-child { border-bottom: none; }
-.ipr-why-list li::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #c4b8e8; flex-shrink: 0; margin-top: 8px; }
-.ipr-why-note { font-size: 11px; color: #a0a8c0; margin-top: 12px; line-height: 1.7; }
-
-/* ─── Know card (④) ─────────────────────────────────────── */
-.ipr-know-card { padding: 22px 22px 26px; display: flex; flex-direction: column; border-radius: 20px; }
-
-/* ─── Doctor card (⑤) ───────────────────────────────────── */
-.ipr-doctor-card { padding: 22px 22px 26px; display: flex; flex-direction: column; border-radius: 20px; }
-.ipr-doctor-summary { font-size: 13px; font-weight: 600; color: #18245a; line-height: 1.65; margin: 10px 0 8px; letter-spacing: -.01em; }
-.ipr-doctor-list { list-style: none; padding: 0; margin: 0; flex: 1; }
-.ipr-doctor-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 11.5px; color: #5d6482; padding: 5px 0; line-height: 1.75; }
-.ipr-doctor-list li::before { content: ''; width: 4px; height: 4px; border-radius: 50%; background: #e07070; flex-shrink: 0; margin-top: 8px; }
-.ipr-doctor-empty { font-size: 12px; color: #a0a8c0; line-height: 1.8; margin-top: 10px; flex: 1; }
-.ipr-doctor-cta { display: inline-flex; align-items: center; gap: 5px; padding: 8px 14px; background: rgba(224,112,112,.08); border: 1px solid rgba(224,112,112,.18); color: #c06060; border-radius: 99px; font-size: 11.5px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 12px; }
-
-/* ─── Evidence card (⑥ 根拠を見る) ──────────────────────── */
-.ipr-evidence-card { padding: 22px 22px 26px; border-radius: 20px; margin-bottom: var(--screen-card-gap); }
-.ipr-evidence-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-.ipr-evidence-link { font-size: 11.5px; color: #8b7fd6; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 3px; background: none; border: none; font-family: inherit; padding: 0; }
-.ipr-evidence-inner { display: grid; grid-template-columns: 1.65fr 1fr; gap: 24px; align-items: start; }
-.ipr-evidence-graph { min-width: 0; }
-.ipr-evidence-cycle { min-width: 0; }
+/* ─── Bottom 2-col: Reflection / Experiment ─────────────── */
+.ipr-bottom3{display:grid; grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-bottom:var(--screen-card-gap);}
+/* ─── Reflect card ───────────────────────────────────────── */
+.ipr-reflect-card { padding: 22px 22px 26px; display: flex; flex-direction: column; min-height: 200px; border-radius: 20px; }
+.ipr-reflect-sub  { font-size: 11px; color: #a0a8c0; line-height: 1.75; margin-top: 6px; }
+.ipr-reflect-q    { font-size: 16px; font-weight: 700; color: #18245a; line-height: 1.65; margin: 14px 0 10px; letter-spacing: -.01em; }
+.ipr-reflect-hint { font-size: 11.5px; color: #5d6482; line-height: 1.8; flex: 1; }
+.ipr-reflect-link {
+  font-size: 11.5px; color: #8b7fd6; cursor: pointer; font-weight: 500;
+  display: inline-flex; align-items: center; gap: 3px;
+  background: none; border: none; font-family: inherit; padding: 0;
+  margin-top: 14px; align-self: flex-start;
+}
 
 /* ─── Hints card (Moon Mist) ─────────────────────────────── */
 .ipr-hints-card {
@@ -412,8 +395,7 @@ animation: mistDrift 28s ease-in-out infinite; }
   .ipr-bottom3 { grid-template-columns: 1fr; gap: 14px; }
   .ipr-tips-grid { grid-template-columns: 1fr; }
   .ipc { border-radius: 18px; }
-  .ipr-ins-card,.ipr-why-card,.ipr-exp-card,.ipr-know-card,.ipr-doctor-card { min-height: 0; }
-  .ipr-evidence-inner { grid-template-columns: 1fr; gap: 14px; }
+  .ipr-ins-card,.ipr-dis-card,.ipr-graph-card,.ipr-reflect-card,.ipr-exp-card { min-height: 0; }
   .ipr-ins-h2 { font-size: 22px; }
   .ipr-tip-item { min-height: 0; }
   .moon-art { width: 150px; height: 150px; }
@@ -494,7 +476,27 @@ animation: mistDrift 28s ease-in-out infinite; }
     <!-- PRO sub-header -->
     <div class="ipr-top">
       <span class="ipr-top-label">あなたの記録を深く振り返る</span>
+      <button class="ipr-top-badge" onclick="if(typeof window.openProHub==='function')window.openProHub()">
+        PRO機能を見る
+        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
     </div>
+
+    <!-- ═══ HERO ═══════════════════════════════════════════ -->
+    <section class="ipr-hero">
+      <div>
+        <div class="ipr-hero-greeting">おはようございます ☀</div>
+        <h1 class="ipr-hero-h1">今日のあなたへ、ひとつの気づきを。</h1>
+        <p class="ipr-hero-lead">昨日より少し休めていますね。<br>自分を労わる時間を、大切に。</p>
+        <button class="ipr-hero-cta" onclick="document.querySelector('.ipr-ins-h2')?.scrollIntoView({behavior:'smooth',block:'center'})">
+          今日の気づきを見る
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+      <div class="ipr-art">
+      </div>
+      <div class="hero-art" aria-hidden="true"></div>
+    </section>
 
     <!-- ═══ MAIN GRID 60/40 ══════════════════════════════════ -->
     <div class="ipr-main">
@@ -507,149 +509,169 @@ animation: mistDrift 28s ease-in-out infinite; }
         <p class="ipr-ins-body" id="ins-main-insight-sub"></p>
         <div class="ipr-ins-bottom">
           <div style="font-size:10px;color:#a0a8c0;margin-bottom:10px;"></div>
-          <button class="ipr-ins-link" onclick="document.querySelector('.ipr-evidence-card')?.scrollIntoView({behavior:'smooth',block:'start'})">
-            根拠を見る
+          <button class="ipr-ins-link" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
+            根拠をみる
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
         </div>
       </div>
 
-      <!-- ② なぜそう考えた？ -->
-      <div class="ipc ipr-why-card">
-        <div class="ipr-card-eyebrow">Why</div>
-        <div class="ipr-card-title">なぜそう考えた？</div>
-        <ul class="ipr-why-list" id="ins-why-list"></ul>
-        <p class="ipr-why-note" id="ins-why-note">記録が増えると、根拠が届きます。</p>
+      <!-- 疾患・症状とのつながり: 340px / min-h280px -->
+      <div class="ipc ipr-dis-card">
+        <div class="ipr-card-eyebrow">Connections</div>
+        <div class="ipr-card-title">疾患・症状と普段とのつながり</div>
+        <div class="ipr-dis-tabs"></div>
+        <div class="ipr-dis-subhead"></div>
+        <ul class="ipr-dis-list"></ul>
+        <p class="ipr-dis-note"></p>
       </div>
     </div>
 
-    <!-- ═══ BOTTOM 3: 試してみる / 自分について知る / 受診に備える ══ -->
+    <!-- ═══ ANALYSIS GRID 62/38 ══════════════════════════════ -->
+    <div class="ipr-analysis">
+
+      <!-- 症状・体調の推移 -->
+      <div class="ipc ipr-graph-card">
+        <div class="ipr-graph-head">
+          <div>
+            <div class="ipr-card-eyebrow">30-Day Trend</div>
+            <div class="ipr-card-title">症状・体調の推移</div>
+          </div>
+          <button class="ipr-graph-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
+            詳細をみる
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+
+        <svg viewBox="0 0 560 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:14px;overflow:visible" aria-label="症状推移グラフ">
+          <g stroke="rgba(93,100,130,.08)" stroke-width="1" fill="none">
+            <line x1="50" y1="20"  x2="540" y2="20"/>
+            <line x1="50" y1="57"  x2="540" y2="57"/>
+            <line x1="50" y1="95"  x2="540" y2="95"/>
+            <line x1="50" y1="132" x2="540" y2="132"/>
+            <line x1="50" y1="170" x2="540" y2="170"/>
+          </g>
+          <g font-size="8.5" fill="rgba(93,100,130,.38)" font-family="'Noto Sans JP',sans-serif" text-anchor="end">
+            <text x="42" y="24">100</text>
+            <text x="42" y="61">75</text>
+            <text x="42" y="99">50</text>
+            <text x="42" y="136">25</text>
+            <text x="42" y="174">0</text>
+          </g>
+          <g font-size="8.5" fill="rgba(93,100,130,.38)" font-family="'Noto Sans JP',sans-serif" text-anchor="middle">
+            <text x="50"  y="192">4/18</text>
+            <text x="132" y="192">4/23</text>
+            <text x="214" y="192">4/28</text>
+            <text x="296" y="192">5/3</text>
+            <text x="378" y="192">5/8</text>
+            <text x="460" y="192">5/13</text>
+            <text x="540" y="192" fill="rgba(139,127,214,.65)" font-weight="600">今日</text>
+          </g>
+          <line x1="540" y1="16" x2="540" y2="170" stroke="rgba(139,127,214,.18)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polyline points="50,84 132,58 214,74 296,84 378,58 460,84 540,76" fill="none" stroke="#e07070" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#e07070"><circle cx="50" cy="84" r="3"/><circle cx="132" cy="58" r="3"/><circle cx="214" cy="74" r="3"/><circle cx="296" cy="84" r="3"/><circle cx="378" cy="58" r="3"/><circle cx="460" cy="84" r="3"/><circle cx="540" cy="76" r="4"/></g>
+          <polyline points="50,46 132,64 214,57 296,46 378,57 460,46 540,57" fill="none" stroke="#8878d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#8878d8"><circle cx="50" cy="46" r="3"/><circle cx="132" cy="64" r="3"/><circle cx="214" cy="57" r="3"/><circle cx="296" cy="46" r="3"/><circle cx="378" cy="57" r="3"/><circle cx="460" cy="46" r="3"/><circle cx="540" cy="57" r="4"/></g>
+          <polyline points="50,64 132,74 214,64 296,74 378,64 460,57 540,64" fill="none" stroke="#60b890" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#60b890"><circle cx="50" cy="64" r="3"/><circle cx="132" cy="74" r="3"/><circle cx="214" cy="64" r="3"/><circle cx="296" cy="74" r="3"/><circle cx="378" cy="64" r="3"/><circle cx="460" cy="57" r="3"/><circle cx="540" cy="64" r="4"/></g>
+          <polyline points="50,118 132,110 214,120 296,113 378,120 460,126 540,118" fill="none" stroke="#d4b840" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <g fill="#d4b840"><circle cx="50" cy="118" r="3"/><circle cx="132" cy="110" r="3"/><circle cx="214" cy="120" r="3"/><circle cx="296" cy="113" r="3"/><circle cx="378" cy="120" r="3"/><circle cx="460" cy="126" r="3"/><circle cx="540" cy="118" r="4"/></g>
+          <g id="ipp-hit-areas"></g>
+        </svg>
+
+        <div class="ipr-graph-legend">
+          <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#e07070"></span>症状の重さ</span>
+          <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#8878d8"></span>気分の安定度</span>
+          <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#60b890"></span>睡眠の質</span>
+          <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#d4b840"></span>体温の安定度</span>
+        </div>
+        <div id="ipp-tooltip" aria-hidden="true">
+          <div id="ipp-tt-date"></div>
+          <div id="ipp-tt-rows"></div>
+        </div>
+        <div id="ipr-graph-empty" style="display:none;padding:40px 0;text-align:center;color:#a0a8c0;font-size:13px;line-height:1.7;">記録が3件以上になると表示されます</div>
+      </div>
+
+      <!-- 周期フェーズ -->
+      <div class="ipc ipr-cycle-card">
+        <div class="ipr-card-eyebrow">Cycle Phase</div>
+        <div class="ipr-card-title">周期フェーズ</div>
+        <div class="ipr-cycle-inner">
+          <div class="ipr-cycle-ring-wrap">
+            <div class="ipr-cycle-ring" aria-hidden="true"></div>
+            <div class="ipr-cycle-center">
+              <div class="ipr-cycle-center-lbl">現在のフェーズ</div>
+              <div class="ipr-cycle-center-phase" style="font-size:12px;color:#a0a8c0;">生理開始日を設定すると表示されます</div>
+              <div class="ipr-cycle-center-day"></div>
+            </div>
+          </div>
+          <div class="ipr-cycle-legend">
+            <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#f4b8b8"></span><span>月経期 1〜5日</span></div>
+            <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#c8dff8"></span><span>卵胞期 6〜13日</span></div>
+            <div class="ipr-cycle-leg cur"><span class="ipr-cycle-leg-dot" style="background:#8b7fd6"></span><span>排卵期 14日頃</span></div>
+            <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#a8d4a8"></span><span>黄体期 15〜28日</span></div>
+          </div>
+        </div>
+        <button class="ipr-cycle-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
+          周期カレンダーを見る
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══ BOTTOM 3: 各280px / min-h200px ══════════════════ -->
     <div class="ipr-bottom3">
 
-      <!-- ③ 試してみる価値 -->
-      <div class="ipc ipr-exp-card">
-        <div class="ipr-card-eyebrow">Experiment</div>
-        <div class="ipr-card-title">試してみる価値</div>
-        <div class="ipr-exp-list" id="ins-exp-list">
-          <p class="ipr-exp-sub">記録が増えると、提案が届きます。</p>
-        </div>
-        <button class="ipr-exp-btn" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
-          記録して試す
+      <!-- 自分に問いかける -->
+      <div class="ipc ipr-reflect-card">
+        <div class="ipr-card-eyebrow">Reflection</div>
+        <div class="ipr-card-title">自分に問いかける</div>
+        <p class="ipr-reflect-sub">自分のからだからのサインに、やさしく耳を傾けてみましょう。</p>
+        <p class="ipr-reflect-q" id="ipr-reflect-q">最近、調子が良かった日の共通点はありますか？</p>
+        <p class="ipr-reflect-hint">小さな気づきが、これからのあなたの助けになります。</p>
+        <button class="ipr-reflect-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
+          考えてみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
 
-      <!-- ④ 自分について知る -->
-      <div class="ipc ipr-know-card">
-        <div class="ipr-card-eyebrow">About You</div>
-        <div class="ipr-card-title">自分について知る</div>
-        <div class="ipr-dis-subhead" id="ins-know-subhead"></div>
-        <ul class="ipr-dis-list" id="ins-know-list"></ul>
-        <p class="ipr-dis-note" id="ins-know-note">疾患を設定すると傾向が表示されます。</p>
-      </div>
-
-      <!-- ⑤ 受診に備える -->
-      <div class="ipc ipr-doctor-card">
-        <div class="ipr-card-eyebrow">Doctor Ready</div>
-        <div class="ipr-card-title">受診に備える</div>
-        <p class="ipr-doctor-summary" id="ins-doctor-summary" style="display:none"></p>
-        <ul class="ipr-doctor-list" id="ins-doctor-list" style="display:none"></ul>
-        <p class="ipr-doctor-empty" id="ins-doctor-empty">パターンが蓄積されると、受診に伝えるべき観察がまとまります。</p>
-        <button class="ipr-doctor-cta" id="ins-doctor-cta" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
-          記録を続ける
+      <!-- 小さく試してみる -->
+      <div class="ipc ipr-exp-card">
+        <div class="ipr-card-eyebrow">Experiment</div>
+        <div class="ipr-card-title">小さく試してみる（実験提案）</div>
+        <p class="ipr-exp-sub">記録が増えると、提案が届きます。</p>
+        <p class="ipr-exp-proposal"></p>
+        <p class="ipr-exp-body"></p>
+        <ul class="ipr-exp-bullets" style="display:none"></ul>
+        <button class="ipr-exp-btn" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
+          実験を記録する
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- ═══ ⑥ 根拠を見る ═════════════════════════════════════ -->
-    <div class="ipc ipr-evidence-card">
-      <div class="ipr-evidence-head">
-        <div>
-          <div class="ipr-card-eyebrow">Evidence</div>
-          <div class="ipr-card-title">根拠を見る</div>
-        </div>
-        <button class="ipr-evidence-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
-          詳細をみる
+    <!-- ═══ TIPS ROW ════════════════════════════════════════ -->
+    <div class="ipc ipr-tips-card">
+      <div class="ipr-tips-head">
+        <span class="ipr-tips-head-title">おすすめのヒント</span>
+        <span class="ipr-tips-head-sub">からだを整えるためのヒント</span>
+        <button class="ipr-tips-head-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
+          すべてのヒントを見る
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
       </div>
-      <div class="ipr-evidence-inner">
-
-        <!-- 症状・体調の推移 (graph) -->
-        <div class="ipr-evidence-graph ipr-graph-card">
-          <div style="font-size:11px;color:#a0a8c0;margin-bottom:4px;letter-spacing:.03em;">30日間の推移</div>
-          <svg viewBox="0 0 560 210" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;margin-top:8px;overflow:visible" aria-label="症状推移グラフ">
-            <g stroke="rgba(93,100,130,.08)" stroke-width="1" fill="none">
-              <line x1="50" y1="20"  x2="540" y2="20"/>
-              <line x1="50" y1="57"  x2="540" y2="57"/>
-              <line x1="50" y1="95"  x2="540" y2="95"/>
-              <line x1="50" y1="132" x2="540" y2="132"/>
-              <line x1="50" y1="170" x2="540" y2="170"/>
-            </g>
-            <g font-size="8.5" fill="rgba(93,100,130,.38)" font-family="'Noto Sans JP',sans-serif" text-anchor="end">
-              <text x="42" y="24">100</text>
-              <text x="42" y="61">75</text>
-              <text x="42" y="99">50</text>
-              <text x="42" y="136">25</text>
-              <text x="42" y="174">0</text>
-            </g>
-            <g font-size="8.5" fill="rgba(93,100,130,.38)" font-family="'Noto Sans JP',sans-serif" text-anchor="middle">
-              <text x="50"  y="192">4/18</text>
-              <text x="132" y="192">4/23</text>
-              <text x="214" y="192">4/28</text>
-              <text x="296" y="192">5/3</text>
-              <text x="378" y="192">5/8</text>
-              <text x="460" y="192">5/13</text>
-              <text x="540" y="192" fill="rgba(139,127,214,.65)" font-weight="600">今日</text>
-            </g>
-            <line x1="540" y1="16" x2="540" y2="170" stroke="rgba(139,127,214,.18)" stroke-width="1.5" stroke-dasharray="4 3"/>
-            <polyline points="50,84 132,58 214,74 296,84 378,58 460,84 540,76" fill="none" stroke="#e07070" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <g fill="#e07070"><circle cx="50" cy="84" r="3"/><circle cx="132" cy="58" r="3"/><circle cx="214" cy="74" r="3"/><circle cx="296" cy="84" r="3"/><circle cx="378" cy="58" r="3"/><circle cx="460" cy="84" r="3"/><circle cx="540" cy="76" r="4"/></g>
-            <polyline points="50,46 132,64 214,57 296,46 378,57 460,46 540,57" fill="none" stroke="#8878d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <g fill="#8878d8"><circle cx="50" cy="46" r="3"/><circle cx="132" cy="64" r="3"/><circle cx="214" cy="57" r="3"/><circle cx="296" cy="46" r="3"/><circle cx="378" cy="57" r="3"/><circle cx="460" cy="46" r="3"/><circle cx="540" cy="57" r="4"/></g>
-            <polyline points="50,64 132,74 214,64 296,74 378,64 460,57 540,64" fill="none" stroke="#60b890" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <g fill="#60b890"><circle cx="50" cy="64" r="3"/><circle cx="132" cy="74" r="3"/><circle cx="214" cy="64" r="3"/><circle cx="296" cy="74" r="3"/><circle cx="378" cy="64" r="3"/><circle cx="460" cy="57" r="3"/><circle cx="540" cy="64" r="4"/></g>
-            <polyline points="50,118 132,110 214,120 296,113 378,120 460,126 540,118" fill="none" stroke="#d4b840" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <g fill="#d4b840"><circle cx="50" cy="118" r="3"/><circle cx="132" cy="110" r="3"/><circle cx="214" cy="120" r="3"/><circle cx="296" cy="113" r="3"/><circle cx="378" cy="120" r="3"/><circle cx="460" cy="126" r="3"/><circle cx="540" cy="118" r="4"/></g>
-            <g id="ipp-hit-areas"></g>
-          </svg>
-          <div class="ipr-graph-legend">
-            <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#e07070"></span>症状の重さ</span>
-            <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#8878d8"></span>気分の安定度</span>
-            <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#60b890"></span>睡眠の質</span>
-            <span class="ipr-legend-item"><span class="ipr-legend-dot" style="background:#d4b840"></span>体温の安定度</span>
+      <div class="ipr-tips-grid">
+        <div class="ipr-tip-item">
+          <div class="ipr-tip-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           </div>
-          <div id="ipp-tooltip" aria-hidden="true">
-            <div id="ipp-tt-date"></div>
-            <div id="ipp-tt-rows"></div>
-          </div>
-          <div id="ipr-graph-empty" style="display:none;padding:32px 0;text-align:center;color:#a0a8c0;font-size:13px;line-height:1.7;">記録が3件以上になると表示されます</div>
+          <p class="ipr-tip-text">眠る前にスマホを見る時間を減らすと、睡眠の質が上がりやすくなります</p>
         </div>
-
-        <!-- 周期フェーズ -->
-        <div class="ipr-evidence-cycle ipr-cycle-card" style="background:none;border:none;box-shadow:none;padding:0;">
-          <div style="font-size:11px;color:#a0a8c0;margin-bottom:12px;letter-spacing:.03em;">周期フェーズ</div>
-          <div class="ipr-cycle-inner">
-            <div class="ipr-cycle-ring-wrap">
-              <div class="ipr-cycle-ring" aria-hidden="true"></div>
-              <div class="ipr-cycle-center">
-                <div class="ipr-cycle-center-lbl">現在のフェーズ</div>
-                <div class="ipr-cycle-center-phase" style="font-size:12px;color:#a0a8c0;">生理開始日を設定すると表示されます</div>
-                <div class="ipr-cycle-center-day"></div>
-              </div>
-            </div>
-            <div class="ipr-cycle-legend">
-              <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#f4b8b8"></span><span>月経期 1〜5日</span></div>
-              <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#c8dff8"></span><span>卵胞期 6〜13日</span></div>
-              <div class="ipr-cycle-leg cur"><span class="ipr-cycle-leg-dot" style="background:#8b7fd6"></span><span>排卵期 14日頃</span></div>
-              <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#a8d4a8"></span><span>黄体期 15〜28日</span></div>
-            </div>
+        <div class="ipr-tip-item">
+          <div class="ipr-tip-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d4845a" stroke-width="1.6" stroke-linecap="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
           </div>
-          <button class="ipr-cycle-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
-            周期カレンダーを見る
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          <p class="ipr-tip-text">温かい飲み物を取り入れると、体の緊張がゆるみやすくなります</p>
         </div>
       </div>
     </div>
@@ -864,53 +886,26 @@ animation: mistDrift 28s ease-in-out infinite; }
         document.querySelectorAll('.ipr-cycle-leg').forEach(function(el,i){ el.classList.toggle('cur',i===pm[ci.phase]); });
       }
 
-      /* ② なぜそう考えた？ / ③ 試してみる価値 / ⑤ 受診に備える — generateInsightObject 経由 */
-      try {
-        var eng=window.ippoInsightEngine;
-        if(eng&&typeof eng.generateInsightObject==='function'){
-          var obj=eng.generateInsightObject(s);
+      /* Hero greeting (time-aware) */
+      var hr=new Date().getHours();
+      var greetEl=document.querySelector('.ipr-hero-greeting');
+      if(greetEl) greetEl.textContent=hr<12?'おはようございます ☀':hr<18?'こんにちは ☀':'おやすみなさい 🌙';
 
-          /* ② why list */
-          var whyList=document.getElementById('ins-why-list');
-          var whyNote=document.getElementById('ins-why-note');
-          if(whyList&&obj.why&&obj.why.length>0){
-            whyList.innerHTML=obj.why.map(function(w){return '<li>'+w.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</li>';}).join('');
-            if(whyNote) whyNote.style.display='none';
-          }
+      /* Hero lead (sleep-based) */
+      var last7=records.filter(function(r2){return (new Date()-new Date(r2.date))/86400000<=7;});
+      var avg7=last7.length?last7.reduce(function(s2,r2){return s2+(r2.sleepHours||0);},0)/last7.length:0;
+      var leadEl=document.querySelector('.ipr-hero-lead');
+      if(leadEl&&last7.length>=2){
+        if(avg7>=7) leadEl.textContent='睡眠が安定しています。その調子を大切に。';
+        else if(avg7>0&&avg7<6) leadEl.textContent='少し休息が足りないかもしれません。自分を労わる時間を、大切に。';
+      }
 
-          /* ③ experiments */
-          var expList=document.getElementById('ins-exp-list');
-          if(expList&&obj.experiments&&obj.experiments.length>0){
-            expList.innerHTML=obj.experiments.map(function(e){
-              var lbl=e.label.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-              return '<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:600;color:#18245a;line-height:1.55;margin-bottom:2px;">'+lbl+'</div>'
-                +'<div style="font-size:11px;color:#8b7fd6;">→ '+e.action.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</div></div>';
-            }).join('');
-          }
-
-          /* ⑤ doctorReady */
-          var drSum=document.getElementById('ins-doctor-summary');
-          var drList=document.getElementById('ins-doctor-list');
-          var drEmpty=document.getElementById('ins-doctor-empty');
-          if(obj.doctorReady&&obj.doctorReady.highlights&&obj.doctorReady.highlights.length>0){
-            if(drSum){ drSum.textContent=obj.doctorReady.summary||''; drSum.style.display=''; }
-            if(drList){ drList.innerHTML=obj.doctorReady.highlights.map(function(h){
-              return '<li>'+h.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')+'</li>';
-            }).join(''); drList.style.display=''; }
-            if(drEmpty) drEmpty.style.display='none';
-            var drCta=document.getElementById('ins-doctor-cta');
-            if(drCta){
-              drCta.textContent='';
-              drCta.appendChild(document.createTextNode('受診用まとめを見る'));
-              var arr=document.createElementNS('http://www.w3.org/2000/svg','svg');
-              arr.setAttribute('width','10');arr.setAttribute('height','10');arr.setAttribute('viewBox','0 0 24 24');arr.setAttribute('fill','none');arr.setAttribute('stroke','currentColor');arr.setAttribute('stroke-width','2');arr.setAttribute('stroke-linecap','round');
-              var poly=document.createElementNS('http://www.w3.org/2000/svg','polyline');poly.setAttribute('points','9 18 15 12 9 6');arr.appendChild(poly);
-              drCta.appendChild(arr);
-              drCta.onclick=function(){if(typeof window.openDoctorVisitSummary==='function')window.openDoctorVisitSummary();};
-            }
-          }
-        }
-      } catch(_){}
+      /* Experiment card (fallback via _quickInsight when IDR has no signal) */
+      var qi=_quickInsight(records);
+      if(qi){
+        var ep=document.querySelector('.ipr-exp-proposal'); if(ep&&!ep.textContent) ep.textContent=qi.exp;
+        var eb=document.querySelector('.ipr-exp-body'); if(eb&&!eb.textContent) eb.textContent=qi.expBody;
+      }
 
       /* SVG chart: show only when records >= 3 */
       var graphSvg=document.querySelector('.ipr-graph-card svg');
@@ -928,6 +923,10 @@ animation: mistDrift 28s ease-in-out infinite; }
         if(graphLegend) graphLegend.style.display='none';
         if(graphEmpty) graphEmpty.style.display='block';
       }
+
+      /* Reflection question: rotate from pool by day of week */
+      var rqEl=document.getElementById('ipr-reflect-q');
+      if(rqEl) rqEl.textContent=_REFLECT_QS[new Date().getDay()%_REFLECT_QS.length];
 
       /* Main insight card (targets #ins-main-insight-text / #ins-main-insight-sub) */
       if(typeof window.renderInsightDiscoveries==='function') window.renderInsightDiscoveries();
