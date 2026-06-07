@@ -61,6 +61,7 @@ function getRecentN(records, n) {
 // ── 棒グラフ SVG (睡眠) ──────────────────────────────────
 
 function buildBarChart(records) {
+  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   const recent  = getRecentN(records, 4);
   const ordered = [...recent].reverse();
   const bars    = ordered.length === 0
@@ -78,6 +79,7 @@ function buildBarChart(records) {
 // ── ドットスケール (痛み) ─────────────────────────────────
 
 function buildDotScale(painLevel) {
+  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   const level = painLevel ?? -1;
   let dots = '';
   for (let i = 1; i <= 5; i++) {
@@ -101,6 +103,7 @@ function buildMoodFaces(moodLevel) {
 // ── スパークライン SVG ────────────────────────────────────
 
 function buildSparkline(values, color = '#B0C2A8') {
+  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   if (!values || values.length < 2) {
     return `<svg class="hn-sparkline" viewBox="0 0 60 24">
       <line x1="0" y1="12" x2="60" y2="12" stroke="${color}" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.4"/>
@@ -347,6 +350,7 @@ function buildTempOrEnergyCard(records, priorityKey) {
 // ── 週間ストリップ ────────────────────────────────────────
 
 function buildWeekStrip(records) {
+  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   const today    = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   const dow      = today.getDay();
