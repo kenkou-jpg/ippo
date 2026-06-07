@@ -663,7 +663,7 @@
 .ph-left-card {
   background: rgba(255,255,255,0.92);
   border: 1px solid rgba(139,127,214,0.12);
-  border-radius: 24px;
+  border-radius: var(--ippo-card-radius);
   padding: 36px 28px;
   box-shadow: 0 4px 24px rgba(139,127,214,0.07);
   min-height: 560px;
@@ -799,7 +799,7 @@
 .ph-right-card {
   background: rgba(255,255,255,0.92);
   border: 1px solid rgba(139,127,214,0.12);
-  border-radius: 24px;
+  border-radius: var(--ippo-card-radius);
   padding: 24px 20px;
   box-shadow: 0 4px 24px rgba(139,127,214,0.07);
   min-height: 560px;

@@ -487,7 +487,7 @@ export function getObservations(contextKey) {
 export function getContextPhrase(contextKey, vocabKey) {
   const phrases = _VOCAB[contextKey]?.[vocabKey]?.contextPhrases;
   if (!phrases || phrases.length === 0) return null;
-  return phrases[Math.floor(Math.random() * phrases.length)];
+  return phrases[0];
 }
 
 // ─────────────────────────────────────────────────────────────
