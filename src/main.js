@@ -203,6 +203,33 @@ import './modules/pro/symptom-trends/symptom-trends.js';
 // PRO UX 改善: AI解析「今見えていること」/ 実験空状態カード
 import './modules/pro/pro-ux-enhancer.js';
 
+// ─── PR2: Analysis Module (Read Only) ────────────────────────
+// 11 PRO 機能の分析ロジックを UI から分離。analyzeX() / buildX() 形式で公開。
+import {
+  analyzePatterns,
+  analyzeFlareDays,
+  analyzeCoOccurrence,
+  analyzeCycle,
+  analyzeTemperature,
+  buildBodySummary,
+  analyzeCondition,
+  analyzeSymptomTrends,
+  buildDoctorSummary,
+  buildMonthlyReport,
+  analyzeExperiments,
+} from './modules/pro/analysis/analysis-module.js';
+window.analyzePatterns      = analyzePatterns;
+window.analyzeFlareDays     = analyzeFlareDays;
+window.analyzeCoOccurrence  = analyzeCoOccurrence;
+window.analyzeCycle         = analyzeCycle;
+window.analyzeTemperature   = analyzeTemperature;
+window.buildBodySummary     = buildBodySummary;
+window.analyzeCondition     = analyzeCondition;
+window.analyzeSymptomTrends = analyzeSymptomTrends;
+window.buildDoctorSummary   = buildDoctorSummary;
+window.buildMonthlyReport   = buildMonthlyReport;
+window.analyzeExperiments   = analyzeExperiments;
+
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';
 // P0-FIX-4: 記録入力中ドラフト保護 / P0-FIX-5: SW更新ガードと連携
