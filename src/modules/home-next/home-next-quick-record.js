@@ -165,11 +165,7 @@ export function renderQuickRecord(container, state) {
   // P13-P1: トレンド行は分析結果の要約 → 分析サーフェスへ
   const openTrendAnalysis = `if(typeof window.triggerInsightSurface==='function'){window.triggerInsightSurface('insight');}else if(typeof window.switchTab==='function'){window.switchTab('insights');}`;
 
-  const trendRow = trendText ? `
-    <div class="hn-quick-trend" onclick="${openTrendAnalysis}" style="cursor:pointer">
-      <div class="hn-quick-trend-text">${esc(trendText)}</div>
-      ${buildTrendMiniChart(records)}
-    </div>` : '';
+  const trendRow = ''; // PHASE 1-C: 描画停止（getTrendText・buildTrendMiniChart 保持）
 
   container.innerHTML = `
     <div class="hn-quick-card hn-anim-5">

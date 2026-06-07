@@ -220,10 +220,7 @@ export function renderMedicalSummary(container, config, state) {
         ${obsHtml}
       </div>
 
-      <button onclick="if(typeof window.switchTab==='function')window.switchTab('insights',null)"
-        style="display:block;width:100%;margin-top:16px;background:transparent;border:1px solid rgba(44,36,31,0.1);border-radius:12px;padding:11px;font-size:12px;color:rgba(44,36,31,0.52);cursor:pointer;font-family:'Noto Sans JP',sans-serif;letter-spacing:-0.01em;text-align:center;">
-        詳しい傾向を見る →
-      </button>
+      <!-- PHASE 1-G: 「詳しい傾向を見る」削除（switchTab・generateObservations 保持） -->
     </div>`;
 }
 
