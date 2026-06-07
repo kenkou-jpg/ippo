@@ -15,7 +15,12 @@
 /* ── Overlay backdrop ─────────────────────────────────────── */
 .pob-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 430px;
+  transform: translateX(-50%);
   background: rgba(44, 36, 32, 0.38);
   z-index: 6100;
   display: flex;
@@ -33,7 +38,7 @@
 /* ── Sheet ────────────────────────────────────────────────── */
 .pob-sheet {
   width: 100%;
-  max-width: 100%;
+  max-width: 430px;
   max-height: 92dvh;
   background: var(--cream, #faf8f3);
   border-radius: 24px 24px 0 0;
@@ -44,12 +49,6 @@
 }
 .pob-overlay.pob-open .pob-sheet {
   transform: translateY(0);
-}
-@media (min-width: 768px) {
-  .pob-sheet { max-width: var(--app-max-tablet, 600px); }
-}
-@media (min-width: 1100px) {
-  .pob-sheet { max-width: var(--app-max-desktop, 860px); }
 }
 
 /* ── Handle ───────────────────────────────────────────────── */
