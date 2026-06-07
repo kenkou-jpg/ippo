@@ -504,13 +504,10 @@ animation: mistDrift 28s ease-in-out infinite; }
       <div class="ipc ipr-ins-card">
         <div class="ipr-card-eyebrow">Today's Insight</div>
         <div class="ipr-card-title">今日の気づき ✦</div>
-        <h2 class="ipr-ins-h2" id="ins-main-insight-text">睡眠が短い日の翌日に、頭痛が出やすい傾向があります。</h2>
-        <p class="ipr-ins-body" id="ins-main-insight-sub">
-          最近は、睡眠時間が6時間未満の日の翌日に頭痛を感じることが多いようです。
-          少し早めに休むことで、つらさを減らせるかもしれません。
-        </p>
+        <h2 class="ipr-ins-h2" id="ins-main-insight-text">記録が増えると、ここに気づきが届きます</h2>
+        <p class="ipr-ins-body" id="ins-main-insight-sub"></p>
         <div class="ipr-ins-bottom">
-          <div style="font-size:10px;color:#a0a8c0;margin-bottom:10px;">あなたの記録から見えた傾向です</div>
+          <div style="font-size:10px;color:#a0a8c0;margin-bottom:10px;"></div>
           <button class="ipr-ins-link" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
             根拠をみる
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -522,40 +519,10 @@ animation: mistDrift 28s ease-in-out infinite; }
       <div class="ipc ipr-dis-card">
         <div class="ipr-card-eyebrow">Connections</div>
         <div class="ipr-card-title">疾患・症状と普段とのつながり</div>
-        <div class="ipr-dis-tabs">
-          <button class="ipr-dis-tab active" onclick="window._iprSwitchDisTab(0)">子宮内膜症</button>
-          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(1)">PMS</button>
-          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(2)">過敏性腸症候群（IBS）</button>
-          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(3)">片頭痛</button>
-        </div>
-        <div class="ipr-dis-subhead">子宮内膜症の症状と関連しやすい傾向</div>
-        <ul class="ipr-dis-list">
-          <li>
-            <div class="ipr-dis-ico" style="background:#ede8ff">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            </div>
-            排卵期前後にだるさ・体の重さが出やすい
-          </li>
-          <li>
-            <div class="ipr-dis-ico" style="background:#ede8ff">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-            </div>
-            睡眠不足が続くと、痛みが強くなる傾向があります
-          </li>
-          <li>
-            <div class="ipr-dis-ico" style="background:#fff0e6">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d4845a" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            ストレスが高いと、症状が悪化する傾向があります
-          </li>
-          <li>
-            <div class="ipr-dis-ico" style="background:#fff0e6">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d4845a" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            </div>
-            温かい飲み物をとると、落ち着きやすい傾向があります
-          </li>
-        </ul>
-        <p class="ipr-dis-note">過去3ヶ月の記録をもとにした、あなたの傾向です。</p>
+        <div class="ipr-dis-tabs"></div>
+        <div class="ipr-dis-subhead"></div>
+        <ul class="ipr-dis-list"></ul>
+        <p class="ipr-dis-note"></p>
       </div>
     </div>
 
@@ -621,6 +588,7 @@ animation: mistDrift 28s ease-in-out infinite; }
           <div id="ipp-tt-date"></div>
           <div id="ipp-tt-rows"></div>
         </div>
+        <div id="ipr-graph-empty" style="display:none;padding:40px 0;text-align:center;color:#a0a8c0;font-size:13px;line-height:1.7;">記録が3件以上になると表示されます</div>
       </div>
 
       <!-- 周期フェーズ -->
@@ -632,8 +600,8 @@ animation: mistDrift 28s ease-in-out infinite; }
             <div class="ipr-cycle-ring" aria-hidden="true"></div>
             <div class="ipr-cycle-center">
               <div class="ipr-cycle-center-lbl">現在のフェーズ</div>
-              <div class="ipr-cycle-center-phase">排卵期</div>
-              <div class="ipr-cycle-center-day">今日・周期12日目</div>
+              <div class="ipr-cycle-center-phase" style="font-size:12px;color:#a0a8c0;">生理開始日を設定すると表示されます</div>
+              <div class="ipr-cycle-center-day"></div>
             </div>
           </div>
           <div class="ipr-cycle-legend">
@@ -658,7 +626,7 @@ animation: mistDrift 28s ease-in-out infinite; }
         <div class="ipr-card-eyebrow">Reflection</div>
         <div class="ipr-card-title">自分に問いかける</div>
         <p class="ipr-reflect-sub">自分のからだからのサインに、やさしく耳を傾けてみましょう。</p>
-        <p class="ipr-reflect-q">最近、調子が良かった日の共通点はありますか？</p>
+        <p class="ipr-reflect-q" id="ipr-reflect-q">最近、調子が良かった日の共通点はありますか？</p>
         <p class="ipr-reflect-hint">小さな気づきが、これからのあなたの助けになります。</p>
         <button class="ipr-reflect-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           考えてみる
@@ -670,14 +638,10 @@ animation: mistDrift 28s ease-in-out infinite; }
       <div class="ipc ipr-exp-card">
         <div class="ipr-card-eyebrow">Experiment</div>
         <div class="ipr-card-title">小さく試してみる（実験提案）</div>
-        <p class="ipr-exp-sub">あなたの傾向をふまえ、試してみやすい実験を提案します。</p>
-        <p class="ipr-exp-proposal">今週の実験：睡眠時間を30分早く確保してみる</p>
-        <p class="ipr-exp-body">睡眠不足の日に頭痛が出やすい傾向があるため、少しでも睡眠時間を増やすことで、変化が期待できます。</p>
-        <ul class="ipr-exp-bullets">
-          <li><span class="ipr-exp-bullet-dot"></span>期間：今週7日間</li>
-          <li><span class="ipr-exp-bullet-dot"></span>方法：いつもより30分早く寝るように意識する</li>
-          <li><span class="ipr-exp-bullet-dot"></span>期待する変化：翌日の頭痛やだるさが軽くなる可能性</li>
-        </ul>
+        <p class="ipr-exp-sub">記録が増えると、提案が届きます。</p>
+        <p class="ipr-exp-proposal"></p>
+        <p class="ipr-exp-body"></p>
+        <ul class="ipr-exp-bullets" style="display:none"></ul>
         <button class="ipr-exp-btn" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           実験を記録する
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -689,7 +653,7 @@ animation: mistDrift 28s ease-in-out infinite; }
     <div class="ipc ipr-tips-card">
       <div class="ipr-tips-head">
         <span class="ipr-tips-head-title">おすすめのヒント</span>
-        <span class="ipr-tips-head-sub">あなたのデータから、今のあなたに合いそうなヒントをお届けします。</span>
+        <span class="ipr-tips-head-sub">からだを整えるためのヒント</span>
         <button class="ipr-tips-head-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
           すべてのヒントを見る
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
@@ -707,12 +671,6 @@ animation: mistDrift 28s ease-in-out infinite; }
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#d4845a" stroke-width="1.6" stroke-linecap="round"><path d="M17 8h1a4 4 0 0 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V8z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>
           </div>
           <p class="ipr-tip-text">温かい飲み物を取り入れると、体の緊張がゆるみやすくなります</p>
-        </div>
-        <div class="ipr-tip-item">
-          <div class="ipr-tip-icon">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#6a9e78" stroke-width="1.6" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <p class="ipr-tip-text">頑張りすぎた日は、予定を少し減らしてみましょう</p>
         </div>
       </div>
     </div>
@@ -736,59 +694,6 @@ animation: mistDrift 28s ease-in-out infinite; }
 
   <script>
   (function(){
-    /* ── Disease tab content ─────────────────────────────── */
-    var _DIS = [
-      { sub:'子宮内膜症の症状と関連しやすい傾向',
-        items:[
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'排卵期前後にだるさ・体の重さが出やすい'},
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'睡眠不足が続くと、痛みが強くなる傾向があります'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'ストレスが高いと、症状が悪化する傾向があります'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'温かい飲み物をとると、落ち着きやすい傾向があります'}
-        ],
-        note:'過去3ヶ月の記録をもとにした、あなたの傾向です。'
-      },
-      { sub:'PMSの症状と関連しやすい傾向',
-        items:[
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前7〜10日に気分の落ち込みが現れやすい'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'甘いものへの欲求が増す時期があります'},
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'睡眠の乱れと症状の重さが連動しやすい傾向があります'},
-          {bg:'#edf5ef',stroke:'#5a9070',text:'軽い有酸素運動が症状を和らげることがあります'}
-        ],
-        note:'生理周期に合わせた記録が増えると、より正確な傾向が見えてきます。'
-      },
-      { sub:'過敏性腸症候群（IBS）と関連しやすい傾向',
-        items:[
-          {bg:'#fff0e6',stroke:'#d4845a',text:'ストレスが強い日にお腹の不調が出やすい傾向があります'},
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前後に症状が悪化しやすい傾向があります'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'冷たい飲食物で症状が誘発されやすい傾向があります'},
-          {bg:'#edf5ef',stroke:'#5a9070',text:'規則的な食事時間が腸の安定を助けます'}
-        ],
-        note:'食事・ストレス・生活習慣の記録が増えると傾向が明確になります。'
-      },
-      { sub:'片頭痛と関連しやすい傾向',
-        items:[
-          {bg:'#ede8ff',stroke:'#8b7fd6',text:'生理前後に頭痛が出やすい傾向があります'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'睡眠不足や睡眠過多が誘発要因となりやすい'},
-          {bg:'#fff0e6',stroke:'#d4845a',text:'光・音・匂いへの敏感さが症状と連動しやすい'},
-          {bg:'#edf5ef',stroke:'#5a9070',text:'ストレスの解放期（週末など）に起こりやすい傾向があります'}
-        ],
-        note:'症状の記録が増えると、頭痛の予測精度が上がります。'
-      }
-    ];
-
-    window._iprSwitchDisTab = function(idx) {
-      document.querySelectorAll('.ipr-dis-tab').forEach(function(t,i){ t.classList.toggle('active',i===idx); });
-      var d=_DIS[idx]; if(!d) return;
-      var sh=document.querySelector('.ipr-dis-subhead'); if(sh) sh.textContent=d.sub;
-      var list=document.querySelector('.ipr-dis-list');
-      if(list) list.innerHTML=d.items.map(function(it){
-        return '<li><div class="ipr-dis-ico" style="background:'+it.bg+'">'
-          +'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="'+it.stroke+'" stroke-width="1.6" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
-          +'</div>'+it.text+'</li>';
-      }).join('');
-      var note=document.querySelector('.ipr-dis-note'); if(note) note.textContent=d.note;
-    };
-
     /* ── Cycle phase ────────────────────────────────────── */
     function _cycleInfo(s) {
       if(!s||!s.lastPeriodDate) return null;
@@ -954,18 +859,28 @@ animation: mistDrift 28s ease-in-out infinite; }
       }
     }
 
+    /* ── Reflection question pool ───────────────────────── */
+    var _REFLECT_QS = [
+      '最近、調子が良かった日の共通点はありますか？',
+      'からだが「ありがとう」と言いたそうな瞬間はありましたか？',
+      '今週、自分を一番労われた出来事はなんでしたか？',
+      '疲れを感じたとき、どんなことで気持ちが楽になりましたか？',
+      'からだのサインに気づいたとき、どんな選択をしましたか？'
+    ];
+
     /* ── Main hydration ─────────────────────────────────── */
     function _hydrate(){
       var s=(typeof window.getState==='function'?window.getState():null)||window.state||null;
       if(!s) return;
       var records=s.records||[];
-      var r=records.length?records[records.length-1]:null;
 
       /* Cycle phase */
       var ci=_cycleInfo(s);
+      var cpEl=document.querySelector('.ipr-cycle-center-phase');
+      var cdEl=document.querySelector('.ipr-cycle-center-day');
       if(ci){
-        var cp=document.querySelector('.ipr-cycle-center-phase'); if(cp) cp.textContent=ci.phase;
-        var cd=document.querySelector('.ipr-cycle-center-day'); if(cd) cd.textContent='今日・周期'+ci.dayNum+'日目';
+        if(cpEl){ cpEl.textContent=ci.phase; cpEl.style.fontSize=''; cpEl.style.color=''; }
+        if(cdEl) cdEl.textContent='今日・周期'+ci.dayNum+'日目';
         var pm={'月経期':0,'卵胞期':1,'排卵期':2,'黄体期':3};
         document.querySelectorAll('.ipr-cycle-leg').forEach(function(el,i){ el.classList.toggle('cur',i===pm[ci.phase]); });
       }
@@ -984,20 +899,33 @@ animation: mistDrift 28s ease-in-out infinite; }
         else if(avg7>0&&avg7<6) leadEl.textContent='少し休息が足りないかもしれません。自分を労わる時間を、大切に。';
       }
 
-      /* Hints + experiment cards */
+      /* Experiment card (fallback via _quickInsight when IDR has no signal) */
       var qi=_quickInsight(records);
       if(qi){
-        var ht=document.querySelector('.ipr-hints-text'); if(ht) ht.innerHTML=qi.hint;
-        var ep=document.querySelector('.ipr-exp-proposal'); if(ep) ep.textContent=qi.exp;
-        var eb=document.querySelector('.ipr-exp-body'); if(eb) eb.textContent=qi.expBody;
+        var ep=document.querySelector('.ipr-exp-proposal'); if(ep&&!ep.textContent) ep.textContent=qi.exp;
+        var eb=document.querySelector('.ipr-exp-body'); if(eb&&!eb.textContent) eb.textContent=qi.expBody;
       }
 
-      /* SVG chart */
-      _renderChart(records);
-      _setupTooltip();
+      /* SVG chart: show only when records >= 3 */
+      var graphSvg=document.querySelector('.ipr-graph-card svg');
+      var graphLegend=document.querySelector('.ipr-graph-legend');
+      var graphEmpty=document.getElementById('ipr-graph-empty');
+      var last30=(records||[]).filter(function(r2){return (new Date()-new Date(r2.date))/86400000<=30;});
+      if(last30.length>=3){
+        if(graphSvg) graphSvg.style.display='';
+        if(graphLegend) graphLegend.style.display='';
+        if(graphEmpty) graphEmpty.style.display='none';
+        _renderChart(records);
+        _setupTooltip();
+      } else {
+        if(graphSvg) graphSvg.style.display='none';
+        if(graphLegend) graphLegend.style.display='none';
+        if(graphEmpty) graphEmpty.style.display='block';
+      }
 
-      /* Disease tab init */
-      window._iprSwitchDisTab(0);
+      /* Reflection question: rotate from pool by day of week */
+      var rqEl=document.getElementById('ipr-reflect-q');
+      if(rqEl) rqEl.textContent=_REFLECT_QS[new Date().getDay()%_REFLECT_QS.length];
 
       /* Main insight card (targets #ins-main-insight-text / #ins-main-insight-sub) */
       if(typeof window.renderInsightDiscoveries==='function') window.renderInsightDiscoveries();

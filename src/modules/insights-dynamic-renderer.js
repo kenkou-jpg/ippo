@@ -311,8 +311,8 @@ function _renderMainInsight(insights, signals, records, sc) {
   // Low data or no signal: calm fallback
   const recCount = records.length;
   if (recCount < 5) {
-    h2El.textContent = 'まだ大きな傾向は見えていません';
-    subEl.textContent = '記録を続けることで、少しずつ自分の傾向が見えてきます。もう少し記録を見ることもできます。';
+    h2El.textContent = '記録が増えると、ここに気づきが届きます';
+    subEl.textContent = '記録を続けることで、少しずつ自分の傾向が見えてきます。';
   } else {
     h2El.textContent = '気になる動きはありません';
     subEl.textContent = '最近の記録からは、特定のパターンはまだ見えていません。これからも、気づいたことを記録してみてください。';
