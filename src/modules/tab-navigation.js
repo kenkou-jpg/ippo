@@ -10,7 +10,7 @@
 import { ensureScreenLoaded, showScreen } from './screen-router.js';
 import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
-import { triggerInsightSurface, showThinkingSheet } from './insight-recommendation-sheet.js';
+import { triggerInsightSurface, showThinkingSheet, navigateInsightDirect, navigateToPro } from './insight-recommendation-sheet.js';
 import { renderInsightsDynamic }          from './insights-dynamic-renderer.js';
 
 // Disease tab data for PRO insights screen
@@ -110,14 +110,14 @@ function _wireInsightsScreen() {
   if (insBody && !insBody.id) insBody.id = 'ins-main-insight-sub';
 
   // ── 今日の気づきカード ─────────────────────────────────
-  // カードタイトル/eyebrow クリック → insight推薦シート（「どう深めるか」の入口）
+  // アイデア③: resolver の primary を直接遷移（Recommendation Sheet 廃止）
   var insCard = sc.querySelector('.ipr-ins-card');
   if (insCard && !insCard._irsWired) {
     insCard._irsWired = true;
     var insCardTitle = insCard.querySelector('.ipr-card-title');
     if (insCardTitle) {
       insCardTitle.style.cursor = 'pointer';
-      insCardTitle.addEventListener('click', function() { triggerInsightSurface('insight'); });
+      insCardTitle.addEventListener('click', function() { navigateInsightDirect('insight'); });
     }
   }
   // "根拠をみる" → 分析チャートセクションへスクロール（根拠 = 実際のデータ）
@@ -133,29 +133,30 @@ function _wireInsightsScreen() {
   if (cycleLink) cycleLink.onclick = function() { if (typeof window.switchTab === 'function') window.switchTab('calendar'); };
 
   // ── 自分に問いかけるカード ────────────────────────────────
-  // "考えてみる" → Thinking Sheet（トピック選択 → 推薦シート）
+  // アイデア①: 「症状が強かった日の共通点」へ直結（Thinking Sheet 廃止）
   var reflectLink = sc.querySelector('.ipr-reflect-link');
-  if (reflectLink) reflectLink.onclick = function() { showThinkingSheet(); };
+  if (reflectLink) reflectLink.onclick = function() { navigateToPro('flare-analysis'); };
 
   // ── 実験提案カード ────────────────────────────────────────
-  // カードタイトル/eyebrow クリック → experiment推薦シート（「どう試すか」の入口）
+  // アイデア①: カードタイトル・ボタン両方ともヘルス実験へ直結
   var expCard = sc.querySelector('.ipr-exp-card');
   if (expCard && !expCard._irsWired) {
     expCard._irsWired = true;
     var expCardTitle = expCard.querySelector('.ipr-card-title');
     if (expCardTitle) {
       expCardTitle.style.cursor = 'pointer';
-      expCardTitle.addEventListener('click', function() { triggerInsightSurface('experiment'); });
+      expCardTitle.addEventListener('click', function() {
+        if (typeof window.openExperiments === 'function') window.openExperiments();
+      });
     }
   }
-  // "実験を記録する" → ヘルス実験画面（P13-P0: 実験導線修正）
   var expBtn = sc.querySelector('.ipr-exp-btn');
   if (expBtn) expBtn.onclick = function() { if (typeof window.openExperiments === 'function') window.openExperiments(); };
 
   // ── ヒントカード ──────────────────────────────────────────
-  // "すべてのヒントを見る" → insight推薦シート（パターン解析への案内）
+  // アイデア③: resolver primary（通常 AIパターン解析）へ直接遷移
   var tipsLink = sc.querySelector('.ipr-tips-head-link');
-  if (tipsLink) tipsLink.onclick = function() { triggerInsightSurface('insight'); };
+  if (tipsLink) tipsLink.onclick = function() { navigateInsightDirect('insight'); };
 
   // ── Disease tab switcher (always fresh definition) ─
   window._iprSwitchDisTab = function(idx) {
