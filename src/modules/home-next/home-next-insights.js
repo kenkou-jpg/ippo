@@ -373,12 +373,8 @@ export function renderInsights(container, state, config) {
       ${modeNote}
       <div class="hn-insight-actions">
         <button class="hn-insight-link"
-          onclick="if(typeof window.switchTab==='function')window.switchTab('insights',null)">
+          onclick="if(typeof window.triggerInsightSurface==='function')window.triggerInsightSurface('insight')">
           詳しく見る &rsaquo;
-        </button>
-        <button class="hn-insight-link hn-insight-link--pro"
-          onclick="if(typeof window.openProHub==='function')window.openProHub()">
-          理解を深める &rsaquo;
         </button>
       </div>
     </div>`;

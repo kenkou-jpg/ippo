@@ -52,12 +52,7 @@ function _navigate(key) {
   _hideAll();
   setTimeout(() => {
     const h = HANDLERS[key];
-    if (h) {
-      h();
-    } else {
-      // 未接続機能: PRO整理室を開いてユーザーが自分で選択できるようにする
-      if (typeof window.openProHub === 'function') window.openProHub();
-    }
+    if (h) h();
   }, 180);
 }
 
