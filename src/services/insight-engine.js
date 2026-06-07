@@ -1,16 +1,16 @@
 // ============================================================
 //  ippo – src/services/insight-engine.js
-//  Record データから軽量な "気づき" を生成する Insight Engine
+//  Record データから構造化 Insight Object を生成する Insight Engine
 //
 //  【設計原則】
-//  - render毎計算禁止。post-save hook 経由、saveState()後のみ更新
+//  - Pure Read Only: 保存・キャッシュ・副作用なし
 //  - 全インサイトは explainable: reason + ruleId フィールド必須
-//  - Engine (_runEngine) は純粋関数。副作用なし
+//  - Engine (_runEngine) は純粋関数
 //  - FREE/PRO tier 判定は UI injection 時に行う。Engine は tier を設定するだけ
 //  - 50ms タイムアウトガード: ルール実行が超過したら残りをスキップ
 // ============================================================
 
-import { addPostSaveHook, getState }     from '../store/state.js';
+import { getState }     from '../store/state.js';
 import {
   getHomeConfiguration,
   getCyclePhase,
@@ -32,36 +32,7 @@ import {
 } from './gentle-tendency.js';
 
 // ─────────────────────────────────────────────────────────────
-//  Cache
-// ─────────────────────────────────────────────────────────────
-
-const _CACHE_KEY = 'ippo_insight_cache';
-const _CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
 const _ENGINE_TIMEOUT_MS = 50;
-
-export function invalidateInsightCache() {
-  try { localStorage.removeItem(_CACHE_KEY); } catch (_) {}
-}
-
-function _readCache() {
-  try {
-    const raw = localStorage.getItem(_CACHE_KEY);
-    if (!raw) return null;
-    const { insights, generatedAt, ttlMs } = JSON.parse(raw);
-    if (Date.now() - new Date(generatedAt).getTime() > ttlMs) return null;
-    return insights;
-  } catch (_) { return null; }
-}
-
-function _writeCache(insights, ttlMs = _CACHE_TTL) {
-  try {
-    localStorage.setItem(_CACHE_KEY, JSON.stringify({
-      insights,
-      generatedAt: new Date().toISOString(),
-      ttlMs,
-    }));
-  } catch (_) {}
-}
 
 // ─────────────────────────────────────────────────────────────
 //  Record helpers
@@ -679,8 +650,6 @@ function _runEngine(state) {
         windowDays:   insight.tier === 'pro' ? 30 : 7,
         confidence:   insight.confidence,
       });
-      insight.generatedAt = new Date().toISOString();
-      insight.ttlMs       = _CACHE_TTL;
       results.push(insight);
     } catch (e) {
       console.warn(`[insight-engine] rule "${key}" error:`, e);
@@ -699,8 +668,6 @@ function _runEngine(state) {
       windowDays:   t.tier === 'pro' ? 30 : 14,
       confidence:   t.confidence,
     });
-    t.generatedAt = new Date().toISOString();
-    t.ttlMs       = _CACHE_TTL;
     results.push(t);
   }
 
@@ -716,8 +683,6 @@ function _runEngine(state) {
       windowDays:   30,
       confidence:   t.confidence,
     });
-    t.generatedAt = new Date().toISOString();
-    t.ttlMs       = _CACHE_TTL;
     results.push(t);
   }
 
@@ -731,63 +696,70 @@ function _runEngine(state) {
 }
 
 // ─────────────────────────────────────────────────────────────
-//  Public API
+//  Public API  (Pure Read Only — no cache, no side-effects)
 // ─────────────────────────────────────────────────────────────
 
-/**
- * 全インサイトを返す。
- * キャッシュ有効期限内ならキャッシュ返却、miss時はEngineを実行してキャッシュに書く。
- * UI側はこれだけを呼ぶ。
- */
-export function getInsights() {
-  const cached = _readCache();
-  if (cached) return cached;
-
-  const insights = _runEngine(getState());
-  _writeCache(insights);
-  return insights;
+/** 全インサイトを返す (毎回計算、副作用なし) */
+export function getInsights(state) {
+  return _runEngine(state || getState());
 }
 
 /** score最高の1件を返す (HOME画面用) */
-export function getTopInsight() {
-  const all = getInsights();
+export function getTopInsight(state) {
+  const all = getInsights(state);
   return all.length > 0 ? all[0] : null;
 }
 
 /** tier='free' のみ返す */
-export function getFreeInsights() {
-  return getInsights().filter(i => i.tier === 'free');
+export function getFreeInsights(state) {
+  return getInsights(state).filter(i => i.tier === 'free');
 }
 
 /** tier='pro' のみ返す */
-export function getProInsights() {
-  return getInsights().filter(i => i.tier === 'pro');
+export function getProInsights(state) {
+  return getInsights(state).filter(i => i.tier === 'pro');
 }
 
 /**
- * キャッシュを無効化し、Engineを再実行してキャッシュを更新する。
- * saveRecord 後のみ呼ばれる (post-save hook 経由)。
+ * 構造化 Insight Object を生成する (PR3 主要 API)
+ *
+ * {
+ *   keyFinding:  string        — 最重要の気づき (score 最高の insight.main)
+ *   why:         string[]      — 根拠リスト (上位インサイトの sub から収集)
+ *   experiments: { label, action }[] — 試せること (action 付きインサイトから)
+ *   doctorReady: { summary, highlights } — 受診時に伝えるべき観察まとめ
+ * }
  */
-export function updateInsights() {
-  invalidateInsightCache();
-  const insights = _runEngine(getState());
-  _writeCache(insights);
-  return insights;
+export function generateInsightObject(state) {
+  const insights = getInsights(state);
+  if (insights.length === 0) {
+    return { keyFinding: null, why: [], experiments: [], doctorReady: null };
+  }
+
+  const top = insights[0];
+
+  const why = insights
+    .slice(0, 5)
+    .map(i => i.sub)
+    .filter(Boolean);
+
+  const experiments = insights
+    .filter(i => i.action)
+    .slice(0, 3)
+    .map(i => ({ label: i.main, action: i.action }));
+
+  // 受診メモ: 高スコア・疾患関連・パターン型を優先収集
+  const highlights = insights
+    .filter(i => i.type === 'pattern' || i.diseaseKey)
+    .slice(0, 4)
+    .map(i => i.main);
+
+  const doctorReady = highlights.length > 0
+    ? { summary: top.main, highlights }
+    : null;
+
+  return { keyFinding: top.main, why, experiments, doctorReady };
 }
-
-// ─────────────────────────────────────────────────────────────
-//  Post-save hook 登録
-//  saveState() → invalidate → Engine 再実行 (async で UI thread を塞がない)
-// ─────────────────────────────────────────────────────────────
-
-addPostSaveHook(function _insightPostSaveHook(saveErr) {
-  if (saveErr) return; // 保存失敗時は更新しない
-  invalidateInsightCache();
-  // 保存処理完了後に非同期で再計算 (50ms ガード付き)
-  setTimeout(function() {
-    try { updateInsights(); } catch (_) {}
-  }, 0);
-});
 
 // ─────────────────────────────────────────────────────────────
 //  Window 公開 (legacy script / devtools 用)
@@ -798,8 +770,7 @@ window.ippoInsightEngine = {
   getTopInsight,
   getFreeInsights,
   getProInsights,
-  updateInsights,
-  invalidateInsightCache,
+  generateInsightObject,
 };
 
 if (typeof window.ippoMarkBootEvent === 'function') {
