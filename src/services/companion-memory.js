@@ -9,14 +9,10 @@
 
 const _MEMORY_KEY = 'ippo_companion_memory';
 const _MAX_TOPICS = 8;
-const _MAX_PATTERNS = 10;
 
 const _DEFAULT = {
-  recurringPatterns: [],   // [{ type, firstSeen, lastSeen, count }]
   preferredTopics:   [],   // string[] — 傾向として強く出たトピック
   avoidedTopics:     [],   // string[] — 抑制すべきトピック
-  calmingPatterns:   [],   // [{ type, confidence }] — 安定パターン
-  recoveryPatterns:  [],   // [{ type, confidence }] — 回復パターン
   updatedAt:         '',
 };
 
