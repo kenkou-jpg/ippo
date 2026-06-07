@@ -186,11 +186,6 @@ animation: mistDrift 28s ease-in-out infinite; }
 }
 .ipr-ins-body { font-size: 12.5px; color: #5d6482; line-height: 1.95; flex: 1; }
 .ipr-ins-bottom { margin-top: 16px; }
-.ipr-ins-link {
-  font-size: 11.5px; color: #8b7fd6; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 3px; font-weight: 500;
-  background: none; border: none; font-family: inherit; padding: 0;
-}
 
 /* ─── Disease card: w340 / min-h280 ─────────────────────── */
 .ipr-dis-card { padding: 24px 24px 28px; min-height: 280px; border-radius: 20px; }
@@ -285,7 +280,7 @@ animation: mistDrift 28s ease-in-out infinite; }
 }
 
 /* ─── Bottom 2-col: Reflection / Experiment ─────────────── */
-.ipr-bottom3{display:grid; grid-template-columns:1fr 1fr;gap:24px;align-items:start;margin-bottom:var(--screen-card-gap);}
+.ipr-bottom3{display:grid; grid-template-columns:1fr 1fr;gap:20px;align-items:start;margin-bottom:var(--screen-card-gap);}
 /* ─── Reflect card ───────────────────────────────────────── */
 .ipr-reflect-card { padding: 22px 22px 26px; display: flex; flex-direction: column; min-height: 200px; border-radius: 20px; }
 .ipr-reflect-sub  { font-size: 11px; color: #a0a8c0; line-height: 1.75; margin-top: 6px; }
@@ -395,7 +390,7 @@ animation: mistDrift 28s ease-in-out infinite; }
   .ipr-bottom3 { grid-template-columns: 1fr; gap: 14px; }
   .ipr-tips-grid { grid-template-columns: 1fr; }
   .ipc { border-radius: 18px; }
-  .ipr-ins-card,.ipr-dis-card,.ipr-graph-card,.ipr-reflect-card,.ipr-exp-card { min-height: 0; }
+  .ipr-ins-card,.ipr-dis-card,.ipr-graph-card,.ipr-reflect-card,.ipr-exp-card,.ipr-visit-card { min-height: 0; }
   .ipr-ins-h2 { font-size: 22px; }
   .ipr-tip-item { min-height: 0; }
   .moon-art { width: 150px; height: 150px; }
@@ -466,6 +461,87 @@ animation: mistDrift 28s ease-in-out infinite; }
 
   overflow:hidden !important;
 }
+
+/* ─── Card header with icon ─────────────────── */
+.ipr-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 2px; }
+.ipr-card-header > div:first-child { flex: 1; min-width: 0; }
+.ipr-card-ico {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px;
+}
+.ipr-card-ico--brain  { background: rgba(139,127,214,.12); }
+.ipr-card-ico--person { background: rgba(212,132,154,.12); }
+.ipr-card-ico--cal    { background: rgba(212,160,60,.12); }
+.ipr-card-ico--bulb   { background: rgba(220,180,60,.12); }
+.ipr-card-ico--flask  { background: rgba(90,144,112,.12); }
+
+/* ─── 関連分析 label ─────────────────────────── */
+.ipr-rel-label { font-size: 10px; color: #a0a8c0; letter-spacing: .04em; margin-top: 14px; margin-bottom: 4px; }
+
+/* ─── Chips (PRO quick links) ───────────────── */
+.ipr-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.ipr-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(139,127,214,.07);
+  border: 1px solid rgba(139,127,214,.18);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #8b7fd6;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background .15s;
+}
+.ipr-chip:hover { background: rgba(139,127,214,.14); }
+
+/* ─── Disease card link ──────────────────────── */
+.ipr-dis-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b7fd6;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.ipr-dis-link:hover { opacity: .75; }
+
+/* ─── 受診に備えるカード（横長ストリップ）──── */
+.ipr-visit-card { padding: 18px 22px; margin-bottom: var(--screen-card-gap, 16px); border-radius: 20px; }
+.ipr-visit-head { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.ipr-visit-ico-wrap { flex-shrink: 0; }
+.ipr-visit-ico {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(212,132,154,.10);
+  display: flex; align-items: center; justify-content: center;
+}
+.ipr-visit-head-text { flex: 1; min-width: 0; }
+.ipr-visit-sub  { font-size: 11px; color: #a0a8c0; line-height: 1.65; margin-top: 2px; }
+.ipr-visit-cta { flex-shrink: 0; }
+.ipr-visit-rel  { flex-shrink: 0; }
+.ipr-visit-btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 8px 16px;
+  background: rgba(212,132,154,.14);
+  border: 1px solid rgba(212,132,154,.28);
+  border-radius: 99px;
+  font-size: 12px; font-weight: 600; color: #c46080;
+  cursor: pointer; font-family: inherit;
+  transition: background .15s; white-space: nowrap;
+}
+.ipr-visit-btn:hover { background: rgba(212,132,154,.22); }
 </style>
 
 <div id="screen-insights" class="screen">
@@ -503,27 +579,54 @@ animation: mistDrift 28s ease-in-out infinite; }
 
       <!-- 今日の気づき: 520px / min-h280px -->
       <div class="ipc ipr-ins-card">
-        <div class="ipr-card-eyebrow">Today's Insight</div>
-        <div class="ipr-card-title">今日の気づき ✦</div>
+        <div class="ipr-card-header">
+          <div>
+            <div class="ipr-card-eyebrow">Today's Insight</div>
+            <div class="ipr-card-title">今日の気づき ✦</div>
+          </div>
+          <div class="ipr-card-ico ipr-card-ico--brain" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8b7fd6" stroke-width="1.6" stroke-linecap="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg>
+          </div>
+        </div>
         <h2 class="ipr-ins-h2" id="ins-main-insight-text">記録が増えると、ここに気づきが届きます</h2>
         <p class="ipr-ins-body" id="ins-main-insight-sub"></p>
         <div class="ipr-ins-bottom">
           <div style="font-size:10px;color:#a0a8c0;margin-bottom:10px;"></div>
-          <button class="ipr-ins-link" onclick="document.querySelector('.ipr-analysis')?.scrollIntoView({behavior:'smooth',block:'start'})">
-            根拠をみる
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
+          <div class="ipr-ins-alt-views">
+            <div class="ipr-rel-label" style="margin-top:0;">関連分析</div>
+            <div class="ipr-chips" style="margin-top:6px;">
+              <button class="ipr-chip" onclick="if(typeof window.openAIAnalysis==='function')window.openAIAnalysis()">AIパターン解析</button>
+              <button class="ipr-chip" onclick="if(typeof window.openExperiments==='function')window.openExperiments()">ヘルス実験</button>
+              <button class="ipr-chip" onclick="if(typeof window.openCorrelationReport==='function')window.openCorrelationReport()">一緒に起きやすいこと</button>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- 疾患・症状とのつながり: 340px / min-h280px -->
       <div class="ipc ipr-dis-card">
-        <div class="ipr-card-eyebrow">Connections</div>
-        <div class="ipr-card-title">疾患・症状と普段とのつながり</div>
-        <div class="ipr-dis-tabs"></div>
+        <div class="ipr-card-header">
+          <div>
+            <div class="ipr-card-eyebrow">Connections</div>
+            <div class="ipr-card-title">疾患・症状とのつながり</div>
+          </div>
+          <div class="ipr-card-ico ipr-card-ico--person" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4849a" stroke-width="1.6" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+        </div>
+        <div class="ipr-dis-tabs">
+          <button class="ipr-dis-tab active" onclick="window._iprSwitchDisTab(0)">子宮内膜症</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(1)">PMS</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(2)">IBS</button>
+          <button class="ipr-dis-tab" onclick="window._iprSwitchDisTab(3)">片頭痛</button>
+        </div>
         <div class="ipr-dis-subhead"></div>
         <ul class="ipr-dis-list"></ul>
         <p class="ipr-dis-note"></p>
+        <div class="ipr-rel-label">関連分析</div>
+        <div class="ipr-chips" style="margin-top:6px;">
+          <button class="ipr-chip" onclick="if(typeof window.openConditionSummary==='function')window.openConditionSummary()">疾患観察まとめ</button>
+        </div>
       </div>
     </div>
 
@@ -590,12 +693,24 @@ animation: mistDrift 28s ease-in-out infinite; }
           <div id="ipp-tt-rows"></div>
         </div>
         <div id="ipr-graph-empty" style="display:none;padding:40px 0;text-align:center;color:#a0a8c0;font-size:13px;line-height:1.7;">記録が3件以上になると表示されます</div>
+        <div class="ipr-rel-label">関連分析</div>
+        <div class="ipr-chips" style="margin-top:6px;">
+          <button class="ipr-chip" onclick="if(typeof window.openSymptomTrends==='function')window.openSymptomTrends()">症状推移グラフ</button>
+          <button class="ipr-chip" onclick="if(typeof window.openDoctorSummary==='function')window.openDoctorSummary()">からだサマリー</button>
+        </div>
       </div>
 
       <!-- 周期フェーズ -->
       <div class="ipc ipr-cycle-card">
-        <div class="ipr-card-eyebrow">Cycle Phase</div>
-        <div class="ipr-card-title">周期フェーズ</div>
+        <div class="ipr-card-header">
+          <div>
+            <div class="ipr-card-eyebrow">Cycle Phase</div>
+            <div class="ipr-card-title">周期フェーズ</div>
+          </div>
+          <div class="ipr-card-ico ipr-card-ico--cal" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d4a03c" stroke-width="1.6" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          </div>
+        </div>
         <div class="ipr-cycle-inner">
           <div class="ipr-cycle-ring-wrap">
             <div class="ipr-cycle-ring" aria-hidden="true"></div>
@@ -612,10 +727,15 @@ animation: mistDrift 28s ease-in-out infinite; }
             <div class="ipr-cycle-leg"><span class="ipr-cycle-leg-dot" style="background:#a8d4a8"></span><span>黄体期 15〜28日</span></div>
           </div>
         </div>
-        <button class="ipr-cycle-link" onclick="if(typeof window.switchTab==='function')window.switchTab('calendar')">
-          周期カレンダーを見る
+        <button class="ipr-cycle-link" onclick="if(typeof window.openCyclePhaseReport==='function')window.openCyclePhaseReport()">
+          周期カレンダーをみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+        <div class="ipr-rel-label">関連分析</div>
+        <div class="ipr-chips" style="margin-top:6px;">
+          <button class="ipr-chip" onclick="if(typeof window.openCyclePhaseReport==='function')window.openCyclePhaseReport()">周期ごとの体調の違い</button>
+          <button class="ipr-chip" onclick="if(typeof window.openTempReport==='function')window.openTempReport()">体温のリズム</button>
+        </div>
       </div>
     </div>
 
@@ -624,29 +744,71 @@ animation: mistDrift 28s ease-in-out infinite; }
 
       <!-- 自分に問いかける -->
       <div class="ipc ipr-reflect-card">
-        <div class="ipr-card-eyebrow">Reflection</div>
-        <div class="ipr-card-title">自分に問いかける</div>
+        <div class="ipr-card-header">
+          <div>
+            <div class="ipr-card-eyebrow">Reflection</div>
+            <div class="ipr-card-title">自分に問いかける</div>
+          </div>
+          <div class="ipr-card-ico ipr-card-ico--bulb" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c8a830" stroke-width="1.6" stroke-linecap="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 1.97.8 2.8.57.83 1.17 1.33 1.2 2.2"/></svg>
+          </div>
+        </div>
         <p class="ipr-reflect-sub">自分のからだからのサインに、やさしく耳を傾けてみましょう。</p>
         <p class="ipr-reflect-q" id="ipr-reflect-q">最近、調子が良かった日の共通点はありますか？</p>
         <p class="ipr-reflect-hint">小さな気づきが、これからのあなたの助けになります。</p>
-        <button class="ipr-reflect-link" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
+        <button class="ipr-reflect-link" onclick="if(typeof window.openFlareupReport==='function')window.openFlareupReport()">
           考えてみる
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+        <div class="ipr-rel-label">関連分析</div>
+        <div class="ipr-chips" style="margin-top:6px;">
+          <button class="ipr-chip" onclick="if(typeof window.openFlareupReport==='function')window.openFlareupReport()">症状が強かった日の共通点</button>
+          <button class="ipr-chip" onclick="if(typeof window.openCorrelationReport==='function')window.openCorrelationReport()">一緒に起きやすいこと</button>
+        </div>
       </div>
 
       <!-- 小さく試してみる -->
       <div class="ipc ipr-exp-card">
-        <div class="ipr-card-eyebrow">Experiment</div>
-        <div class="ipr-card-title">小さく試してみる（実験提案）</div>
+        <div class="ipr-card-header">
+          <div>
+            <div class="ipr-card-eyebrow">Experiment</div>
+            <div class="ipr-card-title">小さく試してみる（実験提案）</div>
+          </div>
+          <div class="ipr-card-ico ipr-card-ico--flask" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5a9070" stroke-width="1.6" stroke-linecap="round"><path d="M9 3h6"/><path d="M10 3v7l-4 8h12l-4-8V3"/></svg>
+          </div>
+        </div>
         <p class="ipr-exp-sub">記録が増えると、提案が届きます。</p>
         <p class="ipr-exp-proposal"></p>
         <p class="ipr-exp-body"></p>
         <ul class="ipr-exp-bullets" style="display:none"></ul>
-        <button class="ipr-exp-btn" onclick="if(typeof window.openRecordScreen==='function')window.openRecordScreen()">
+        <button class="ipr-exp-btn" onclick="if(typeof window.openExperiments==='function')window.openExperiments()">
           実験を記録する
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
+      </div>
+
+    </div>
+
+    <!-- ═══ 受診に備える (横長ストリップ) ══════════════════ -->
+    <div class="ipc ipr-visit-card">
+      <div class="ipr-visit-head">
+        <div class="ipr-visit-ico-wrap">
+          <div class="ipr-visit-ico">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4849a" stroke-width="1.6" stroke-linecap="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          </div>
+        </div>
+        <div class="ipr-visit-head-text">
+          <div class="ipr-card-title" style="font-size:14px;margin-bottom:3px;">受診に備える</div>
+          <p class="ipr-visit-sub">受診時に伝える内容をまとめました。いつでも確認・出力できます。</p>
+        </div>
+        <div class="ipr-visit-rel">
+          <div class="ipr-rel-label" style="margin-top:0;margin-bottom:6px;">関連分析</div>
+          <div class="ipr-chips" style="margin-top:0;">
+            <button class="ipr-chip" onclick="if(typeof window.openDoctorVisitSummary==='function')window.openDoctorVisitSummary()">受診用まとめ</button>
+            <button class="ipr-chip" onclick="if(typeof window.openMonthlyReport==='function')window.openMonthlyReport()">月次PDFレポート</button>
+          </div>
+        </div>
       </div>
     </div>
 
