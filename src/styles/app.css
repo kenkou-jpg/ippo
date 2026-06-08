@@ -1784,48 +1784,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   text-align: center;
 }
 
-  /* ===== MONTHLY REPORT MODAL ===== */
-.mr-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
-  background: rgba(44,36,32,0.5);
-  backdrop-filter: blur(6px);
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-}
-.mr-overlay.active { display: flex; }
-.mr-sheet {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  background: var(--cream);
-  border-radius: 24px 24px 0 0;
-  padding: 0 0 40px;
-  max-height: 92vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease;
-}
-.mr-handle {
-  width: 36px; height: 4px;
-  background: rgba(44,36,32,0.15);
-  border-radius: 2px;
-  margin: 12px auto 20px;
-}
-.mr-header {
-  padding: 0 24px 16px;
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: 20px;
-}
-.mr-title {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-.mr-subtitle { font-size: 12px; color: var(--ink-light); }
-.mr-body { padding: 0 24px; }
 .mr-month-selector {
   display: flex;
   align-items: center;
@@ -1947,27 +1905,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   border-radius: 14px;
   border-left: 3px solid var(--rose);
 }
-.mr-footer {
-  padding: 16px 24px 0;
-  border-top: 1px solid var(--divider);
-  margin-top: 8px;
-  display: flex;
-  gap: 10px;
-}
-.mr-btn {
-  flex: 1;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.mr-btn.primary { background: var(--rose); color: white; }
-.mr-btn.primary:hover { background: var(--rose-hover); }
-.mr-btn.secondary { background: var(--bg-subtle); color: var(--ink-mid); }
 .mr-generating {
   text-align: center;
   padding: 20px;
@@ -2077,48 +2014,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 }
   
 
-/* === Block 2: AI 解析モーダル (元 app.html:15731-16095) === */
-  /* ===== AI ANALYSIS MODAL ===== */
-.ai-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 500;
-  background: rgba(44,36,32,0.5);
-  backdrop-filter: blur(6px);
-  display: none;
-  align-items: flex-end;
-}
-.ai-overlay.active { display: flex; }
-.ai-sheet {
-  width: 100%;
-  max-width: 430px;
-  margin: 0 auto;
-  background: var(--cream);
-  border-radius: 24px 24px 0 0;
-  padding: 0 0 40px;
-  max-height: 92vh;
-  overflow-y: auto;
-  animation: slideUp 0.3s ease;
-}
-.ai-handle {
-  width: 36px; height: 4px;
-  background: rgba(44,36,32,0.15);
-  border-radius: 2px;
-  margin: 12px auto 20px;
-}
-.ai-header {
-  padding: 0 24px 16px;
-  border-bottom: 1px solid var(--divider);
-  margin-bottom: 20px;
-}
-.ai-title {
-  font-family: var(--font-serif);
-  font-size: 20px;
-  color: var(--ink);
-  margin-bottom: 4px;
-}
-.ai-subtitle { font-size: 12px; color: var(--ink-light); }
-.ai-body { padding: 0 24px; }
 .ai-loading {
   text-align: center;
   padding: 40px 20px;
@@ -2194,27 +2089,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 }
 .ai-data-label { color: var(--ink-light); }
 .ai-data-value { color: var(--ink); font-weight: 500; }
-.ai-footer {
-  padding: 16px 24px 0;
-  border-top: 1px solid var(--divider);
-  margin-top: 8px;
-  display: flex;
-  gap: 10px;
-}
-.ai-btn {
-  flex: 1;
-  padding: 14px;
-  border-radius: 14px;
-  border: none;
-  font-family: var(--font-body);
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.ai-btn.primary { background: var(--rose); color: white; }
-.ai-btn.primary:hover { background: var(--rose-hover); }
-.ai-btn.secondary { background: var(--bg-subtle); color: var(--ink-mid); }
 .ai-error {
   text-align: center;
   padding: 32px 16px;
@@ -2582,8 +2456,6 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
   .success-overlay.active .success-card,
   .premium-lock-card { animation: none; }
   .ds-sheet,
-  .mr-sheet,
-  .ai-sheet,
   .sync-sheet { animation: none; }
   .fade-in { animation: none; opacity: 1; }
   .ob-step { animation: none; opacity: 1; }
