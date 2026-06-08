@@ -10913,6 +10913,7 @@ function updateMonthLabel() {
 }
 
 async function generateMonthlyReport() {
+  const token = _mrOverlayApi ? _mrOverlayApi.nextToken() : null;
   const body = document.getElementById('monthlyReportBody');
   body.innerHTML = '<div class="mr-generating">データを読み込み中...</div>';
 
@@ -11082,11 +11083,14 @@ async function generateMonthlyReport() {
 
     html += '</div>'; // mr-preview 閉じ
 
+    if (token !== null && _mrOverlayApi.isStale(token)) return;
     body.innerHTML = html;
 
   } catch (err) {
     console.error('Monthly report error:', err);
-    body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。</div>';
+    if (token === null || !_mrOverlayApi.isStale(token)) {
+      body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。</div>';
+    }
   }
 }
 
@@ -11255,7 +11259,9 @@ function closeAIAnalysis() {
 }
 
 async function runAIAnalysis() {
-  const body = _aiOverlayApi ? _aiOverlayApi.body : document.getElementById('aiAnalysisBody');
+  const api = _getAiOverlay();
+  const token = api.nextToken();
+  const body = api.body;
   body.innerHTML = '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">データを収集しています...</div></div>';
 
   try {
@@ -11291,6 +11297,8 @@ async function runAIAnalysis() {
       ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#e8f4ec;color:#4a7c5c;font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600;">✨ AI解析モード</span>'
       : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(200,180,170,0.2);color:var(--ink-light);font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600;">🏠 ローカル解析モード</span>';
 
+    if (api.isStale(token)) return;
+
     // データサマリーを先に表示
     let dataHtml = '<div class="ai-data-summary">';
     dataHtml += '<div class="ai-data-title" style="display:flex;justify-content:space-between;align-items:center;">解析対象データ ' + modeBadge + '</div>';
@@ -11307,6 +11315,7 @@ async function runAIAnalysis() {
     body.innerHTML = dataHtml + '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">パターンを読み解いています...</div></div>';
 
     const aiComment = await callAIAPI(summary);
+    if (api.isStale(token)) return;
 
     // 結果を表示
     let resultHtml = dataHtml;
@@ -11323,7 +11332,9 @@ async function runAIAnalysis() {
 
   } catch (err) {
     console.error('AI analysis error:', err);
-    body.innerHTML = '<div class="ai-error">解析中にエラーが発生しました。<br><br>' + (err.message || '') + '<br><br><button class="ai-retry-btn" onclick="runAIAnalysis()">もう一度試す</button></div>';
+    if (!api.isStale(token)) {
+      body.innerHTML = '<div class="ai-error">解析中にエラーが発生しました。<br><br>' + (err.message || '') + '<br><br><button class="ai-retry-btn" onclick="runAIAnalysis()">もう一度試す</button></div>';
+    }
   }
 }
 
