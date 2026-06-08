@@ -198,6 +198,8 @@ import './modules/home-next/home-next-shell.js';
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。
 import { createProOverlay } from './modules/pro/shared/pro-overlay-base.js';
 window.createProOverlay = createProOverlay;
+// window.openProHub / window.closeProHub / window.renderProHubPage を公開。
+import './modules/pro-hub/pro-hub.js';
 import './modules/pro/doctor-summary/doctor-summary.js';
 import './modules/pro/condition-summary/condition-summary.js';
 // window.renderProSymptomTrends を公開。
