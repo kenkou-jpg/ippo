@@ -10857,24 +10857,48 @@ function copyDoctorSummary() {
 
   // ===== MONTHLY REPORT (月次レポート) =====
 
+var _mrOverlayApi = null;
+
+function _getMrOverlay() {
+  if (!_mrOverlayApi) {
+    _mrOverlayApi = window.createProOverlay({
+      id: 'mr-pro-overlay',
+      ariaLabel: '月次レポート',
+      title: '月次レポート',
+      subtitle: '月ごとの体調データを可視化',
+      footer: [
+        { id: 'mr-close-btn', label: '閉じる', cls: 'pob-btn pob-btn-secondary' },
+        { id: 'mr-pdf-btn', label: 'PDF ダウンロード', cls: 'pob-btn pob-btn-primary' },
+      ],
+      onClose: closeMonthlyReport,
+    });
+    _mrOverlayApi.body.innerHTML =
+      '<div class="mr-month-selector">' +
+        '<button class="mr-month-btn" onclick="changeReportMonth(-1)">←</button>' +
+        '<div class="mr-month-label" id="mrMonthLabel"></div>' +
+        '<button class="mr-month-btn" onclick="changeReportMonth(1)">→</button>' +
+      '</div>' +
+      '<div id="monthlyReportBody"></div>';
+    _mrOverlayApi.getButton('mr-close-btn').addEventListener('click', closeMonthlyReport);
+    _mrOverlayApi.getButton('mr-pdf-btn').addEventListener('click', downloadReportPDF);
+  }
+  return _mrOverlayApi;
+}
+
 let reportYear = new Date().getFullYear();
 let reportMonth = new Date().getMonth(); // 0-indexed
 
 function openMonthlyReport() {
   reportYear = new Date().getFullYear();
   reportMonth = new Date().getMonth();
-  document.getElementById('monthlyReportOverlay').classList.add('active');
+  _getMrOverlay().open();
   updateMonthLabel();
   generateMonthlyReport();
 }
 
 function closeMonthlyReport() {
-  document.getElementById('monthlyReportOverlay').classList.remove('active');
+  if (_mrOverlayApi) _mrOverlayApi.close();
 }
-
-document.getElementById('monthlyReportOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeMonthlyReport();
-});
 
 function changeReportMonth(delta) {
   reportMonth += delta;
@@ -11068,7 +11092,8 @@ async function generateMonthlyReport() {
 
 // PDF ダウンロード
 async function downloadReportPDF() {
-  const btn = document.querySelector('.mr-btn.primary');
+  const btn = _mrOverlayApi ? _mrOverlayApi.getButton('mr-pdf-btn') : null;
+  if (!btn) return;
   const original = btn.textContent;
   btn.textContent = 'PDF 生成中...';
   btn.style.pointerEvents = 'none';
@@ -11199,21 +11224,38 @@ async function downloadReportPDF() {
 
 // AI analysis uses Edge Function (ai-analyze) — no client-side API key needed
 
+var _aiOverlayApi = null;
+
+function _getAiOverlay() {
+  if (!_aiOverlayApi) {
+    _aiOverlayApi = window.createProOverlay({
+      id: 'ai-pro-overlay',
+      ariaLabel: 'AIパターン解析',
+      title: 'AIパターン解析',
+      subtitle: 'あなたの記録データからパターンを読み解きます',
+      footer: [
+        { id: 'ai-close-btn', label: '閉じる', cls: 'pob-btn pob-btn-secondary' },
+        { id: 'ai-copy-btn', label: 'テキストをコピー', cls: 'pob-btn pob-btn-primary' },
+      ],
+      onClose: closeAIAnalysis,
+    });
+    _aiOverlayApi.getButton('ai-close-btn').addEventListener('click', closeAIAnalysis);
+    _aiOverlayApi.getButton('ai-copy-btn').addEventListener('click', copyAIAnalysis);
+  }
+  return _aiOverlayApi;
+}
+
 function openAIAnalysis() {
-  document.getElementById('aiAnalysisOverlay').classList.add('active');
+  _getAiOverlay().open();
   runAIAnalysis();
 }
 
 function closeAIAnalysis() {
-  document.getElementById('aiAnalysisOverlay').classList.remove('active');
+  if (_aiOverlayApi) _aiOverlayApi.close();
 }
 
-document.getElementById('aiAnalysisOverlay').addEventListener('click', function(e) {
-  if (e.target === this) closeAIAnalysis();
-});
-
 async function runAIAnalysis() {
-  const body = document.getElementById('aiAnalysisBody');
+  const body = _aiOverlayApi ? _aiOverlayApi.body : document.getElementById('aiAnalysisBody');
   body.innerHTML = '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">データを収集しています...</div></div>';
 
   try {
@@ -11614,7 +11656,8 @@ function generateLocalAnalysis(summary) {
 }
 
 function copyAIAnalysis() {
-  const resultEl = document.querySelector('.ai-result-text');
+  const body = _aiOverlayApi ? _aiOverlayApi.body : null;
+  const resultEl = body ? body.querySelector('.ai-result-text') : null;
   if (!resultEl) return;
 
   let text = '【ippo AIパターン解析】\n';
@@ -11623,7 +11666,8 @@ function copyAIAnalysis() {
   text += '\n\n※ このコメントはippoアプリの記録データに基づく参考情報です。医学的診断ではありません。';
 
   navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.ai-btn.primary');
+    const btn = _aiOverlayApi ? _aiOverlayApi.getButton('ai-copy-btn') : null;
+    if (!btn) return;
     const original = btn.textContent;
     btn.textContent = 'コピーしました ✓';
     btn.style.background = '#8aab96';

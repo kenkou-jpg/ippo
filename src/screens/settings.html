@@ -330,52 +330,6 @@
   </div>
 </div>
 
-<!-- Monthly Report Modal -->
-<div class="mr-overlay" id="monthlyReportOverlay">
-  <div class="mr-sheet">
-    <div class="mr-handle"></div>
-    <div class="mr-header">
-      <div class="mr-title">月次レポート</div>
-      <div class="mr-subtitle">月ごとの体調データを可視化</div>
-    </div>
-    <div class="mr-body">
-      <div class="mr-month-selector">
-        <button class="mr-month-btn" onclick="changeReportMonth(-1)">←</button>
-        <div class="mr-month-label" id="mrMonthLabel">2026年4月</div>
-        <button class="mr-month-btn" onclick="changeReportMonth(1)">→</button>
-      </div>
-      <div id="monthlyReportBody">
-        <div class="mr-generating">読み込み中...</div>
-      </div>
-    </div>
-    <div class="mr-footer">
-      <button class="mr-btn secondary" onclick="closeMonthlyReport()">閉じる</button>
-      <button class="mr-btn primary" onclick="downloadReportPDF()">PDF ダウンロード</button>
-    </div>
-  </div>
-</div>
-
-<!-- AI Analysis Modal -->
-<div class="ai-overlay" id="aiAnalysisOverlay">
-  <div class="ai-sheet">
-    <div class="ai-handle"></div>
-    <div class="ai-header">
-      <div class="ai-title">AIパターン解析</div>
-      <div class="ai-subtitle">あなたの記録データからパターンを読み解きます</div>
-    </div>
-    <div class="ai-body" id="aiAnalysisBody">
-      <div class="ai-loading">
-        <div class="ai-loading-icon">✨</div>
-        <div class="ai-loading-text">読み込み中...</div>
-      </div>
-    </div>
-    <div class="ai-footer">
-      <button class="ai-btn secondary" onclick="closeAIAnalysis()">閉じる</button>
-      <button class="ai-btn primary" onclick="copyAIAnalysis()">テキストをコピー</button>
-    </div>
-  </div>
-</div>
-
 <!-- Sync Modal -->
 <div class="sync-overlay" id="syncOverlay">
   <div class="sync-sheet">
