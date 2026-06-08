@@ -124,7 +124,8 @@ export function createProOverlay({ id, ariaLabel, title, subtitle, footer = [], 
       ${footerHTML}
     </div>`;
 
-  document.body.appendChild(overlay);
+  const mountRoot = document.getElementById('app') || document.body;
+  mountRoot.appendChild(overlay);
 
   const body = overlay.querySelector('.pob-body');
 
