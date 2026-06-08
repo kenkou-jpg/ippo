@@ -196,6 +196,8 @@ import './modules/home-next/home-next-shell.js';
 // ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
 // 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。
+import { createProOverlay } from './modules/pro/shared/pro-overlay-base.js';
+window.createProOverlay = createProOverlay;
 import './modules/pro/doctor-summary/doctor-summary.js';
 import './modules/pro/condition-summary/condition-summary.js';
 // window.renderProSymptomTrends を公開。

@@ -8798,7 +8798,8 @@ function calcTemperaturePhases(records) {
   };
 }
 
-  function openTempReport(){
+var _tempOverlayApi = null;
+function openTempReport(){
   var analysis = calcTemperaturePhases(state.records);
 
   // 分析対象メタ情報
@@ -8812,22 +8813,29 @@ function calcTemperaturePhases(records) {
     if(!isNaN(_tLd.getTime())) lastTempDate = (_tLd.getMonth()+1)+'月'+_tLd.getDate()+'日';
   }
 
-  var html = '<div class="pha-overlay pha-open" id="tempReportOverlay" onclick="if(event.target===this)this.remove()">'
-    + '<div class="ai-sheet"><div class="ai-handle"></div>'
-    + '<div class="ai-header" style="display:flex;align-items:center;gap:10px;">'
-    + '<div class="pho-section-icon" style="background:rgba(123,163,196,.12);color:#7ba3c4;flex-shrink:0;">'+_SVG_REFLECT+'</div>'
-    + '<div><div class="ai-title">体温のリズム</div><div class="ai-subtitle">'+analysis.count+'日分の体温記録から整理しています</div></div>'
-    + '</div><div class="ai-body">';
+  if (!_tempOverlayApi) {
+    _tempOverlayApi = window.createProOverlay({
+      id:        'tempReportOverlay',
+      ariaLabel: '体温のリズム',
+      title:     '体温のリズム',
+      subtitle:  '体温記録から整理しています',
+      footer:    [{ id: 'temp-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
+      onClose:   function(){ _tempOverlayApi.close(); },
+    });
+    _tempOverlayApi.getButton('temp-close').addEventListener('click', function(){ _tempOverlayApi.close(); });
+  }
+  _tempOverlayApi.overlay.querySelector('.pob-subtitle').textContent = analysis.count + '日分の体温記録から整理しています';
 
-  html += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
+  var bodyHtml = '';
+  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
     + tempRecs.length+'件の体温記録'+(lastTempDate?' ／ 最終記録 '+lastTempDate:'')+'</div>';
 
-  html += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
+  bodyHtml += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
     + '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;">ℹ️ この画面は記録から体温のリズムを整理するものです。診断や医療判断を行うものではありません。</div>'
     + '</div>';
 
   if(analysis.status === 'insufficient'){
-    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">🌡️ '+analysis.message+'<br>毎朝の基礎体温記録を続けましょう。</div>';
+    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">🌡️ '+analysis.message+'<br>毎朝の基礎体温記録を続けましょう。</div>';
   } else {
 
     // ① 今見えていること
@@ -8835,7 +8843,7 @@ function calcTemperaturePhases(records) {
     var bLabel = analysis.biphasic === 'clear' ? '明確' : analysis.biphasic === 'unclear' ? 'やや不明瞭' : 'なし';
     var bColor = analysis.biphasic === 'clear' ? '#6b9e78' : analysis.biphasic === 'unclear' ? '#d4a574' : '#c4878c';
 
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
       + '<div class="pha-card" style="margin-bottom:0;"><div class="pha-grid-2">'
       + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">低温期の平均</div><div style="font-size:18px;font-weight:600;color:#7ba3c4;">'+(analysis.avgLow||'-')+'℃</div></div>'
       + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">高温期の平均</div><div style="font-size:18px;font-weight:600;color:#c4878c;">'+(analysis.avgHigh||'-')+'℃</div></div>'
@@ -8844,12 +8852,12 @@ function calcTemperaturePhases(records) {
       + '</div></div></div>';
 
     // ② なぜそう考えた？
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
       + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">記録された体温を低温期・高温期に分類し、それぞれの平均と差を計算しています。差が大きいほど体温のリズムが安定していると考えられます。</div>'
       + '</div>';
 
-    // ③ 直近30日の体温マップ (P1修正: 6/8px → 9/10px)
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">直近30日の体温マップ</div>'
+    // ③ 直近30日の体温マップ
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">直近30日の体温マップ</div>'
       + '<div class="pha-card" style="margin-bottom:0;">'
       + '<div class="pha-temp-map">';
     var recentPhases = analysis.phases.slice(-30);
@@ -8858,39 +8866,39 @@ function calcTemperaturePhases(records) {
       var dayLabel = (d.getMonth()+1)+'/'+d.getDate();
       var bgColor = p.phase === 'low' ? '#d4e6f1' : '#f5cdd0';
       var textColor = p.phase === 'low' ? '#5b8fb9' : '#b85c6a';
-      html += '<div class="pha-temp-cell" style="background:'+bgColor+';" title="'+dayLabel+' '+p.temp+'℃">'
+      bodyHtml += '<div class="pha-temp-cell" style="background:'+bgColor+';" title="'+dayLabel+' '+p.temp+'℃">'
         + '<div class="pha-temp-day" style="color:'+textColor+';">'+d.getDate()+'</div>'
         + '<div class="pha-temp-val" style="color:'+textColor+';">'+p.temp.toFixed(1)+'</div>'
         + '</div>';
     });
-    html += '</div>'
+    bodyHtml += '</div>'
       + '<div style="display:flex;gap:12px;justify-content:center;margin-top:10px;">'
       + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#d4e6f1;border-radius:2px;"></div><span style="font-size:10px;color:var(--ink-light);">低温期</span></div>'
       + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#f5cdd0;border-radius:2px;"></div><span style="font-size:10px;color:var(--ink-light);">高温期</span></div>'
       + '</div></div></div>';
 
     // ④ 周期の目安
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">周期の目安</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">周期の目安</div>'
       + '<div class="pha-card" style="margin-bottom:0;">'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">低温期の長さ</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(analysis.lowPhaseDays||'-')+'日間</div></div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">高温期の長さ</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(analysis.highPhaseDays||'-')+'日間</div></div>';
 
     if(analysis.ovulationDate){
       var ovD = new Date(analysis.ovulationDate);
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">体温変化が見られた時期</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(ovD.getMonth()+1)+'月'+ovD.getDate()+'日ごろ</div></div>';
+      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">体温変化が見られた時期</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(ovD.getMonth()+1)+'月'+ovD.getDate()+'日ごろ</div></div>';
     }
     if(analysis.nextPeriod){
       var npD = new Date(analysis.nextPeriod);
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><div style="font-size:14px;color:var(--ink-mid);">次回月経の参考時期</div><div style="font-size:14px;font-weight:500;color:var(--rose);">'+(npD.getMonth()+1)+'月'+npD.getDate()+'日ごろ</div></div>';
+      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><div style="font-size:14px;color:var(--ink-mid);">次回月経の参考時期</div><div style="font-size:14px;font-weight:500;color:var(--rose);">'+(npD.getMonth()+1)+'月'+npD.getDate()+'日ごろ</div></div>';
     }
     if(analysis.mPattern){
-      html += '<div style="margin-top:10px;padding:10px 12px;background:#fdf3f3;border-radius:10px;"><div style="font-size:12px;color:#c4878c;font-weight:500;">⚠️ M字パターンが見られます</div><div style="font-size:12px;color:var(--ink-light);margin-top:4px;line-height:1.7;">高温期の途中で体温が一時的に下がる日がありました。黄体ホルモンの分泌が不安定な可能性があります。</div></div>';
+      bodyHtml += '<div style="margin-top:10px;padding:10px 12px;background:#fdf3f3;border-radius:10px;"><div style="font-size:12px;color:#c4878c;font-weight:500;">⚠️ M字パターンが見られます</div><div style="font-size:12px;color:var(--ink-light);margin-top:4px;line-height:1.7;">高温期の途中で体温が一時的に下がる日がありました。黄体ホルモンの分泌が不安定な可能性があります。</div></div>';
     }
-    html += '</div></div>';
+    bodyHtml += '</div></div>';
 
     // ⑤ 気になる点（アラート）
     if(analysis.alerts.length > 0){
-      html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">気になる点</div>'
+      bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">気になる点</div>'
         + '<div class="pha-card" style="margin-bottom:0;">';
       analysis.alerts.forEach(function(alert){
         var alertBg, alertBorder, alertText;
@@ -8898,11 +8906,11 @@ function calcTemperaturePhases(records) {
         else if(alert.level === 'danger'){ alertBg='#fde8e8'; alertBorder='#c4878c'; alertText='#c4878c'; }
         else if(alert.level === 'disease'){ alertBg='#fdf3e8'; alertBorder='#d4a574'; alertText='#a07840'; }
         else { alertBg='#fdf8e8'; alertBorder='#d4c474'; alertText='#8a7a40'; }
-        html += '<div style="padding:10px 12px;background:'+alertBg+';border-left:3px solid '+alertBorder+';border-radius:8px;margin-bottom:8px;">';
-        if(alert.disease) html += '<div style="font-size:12px;color:'+alertText+';font-weight:600;margin-bottom:4px;">'+alert.disease+'</div>';
-        html += '<div style="font-size:14px;color:'+alertText+';line-height:1.7;">'+alert.message+'</div></div>';
+        bodyHtml += '<div style="padding:10px 12px;background:'+alertBg+';border-left:3px solid '+alertBorder+';border-radius:8px;margin-bottom:8px;">';
+        if(alert.disease) bodyHtml += '<div style="font-size:12px;color:'+alertText+';font-weight:600;margin-bottom:4px;">'+alert.disease+'</div>';
+        bodyHtml += '<div style="font-size:14px;color:'+alertText+';line-height:1.7;">'+alert.message+'</div></div>';
       });
-      html += '<div style="margin-top:10px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:12px;color:var(--ink-light);line-height:1.7;">※ これらは統計データに基づく参考情報であり、医学的な診断ではありません。気になる場合は医師にご相談ください。</div>'
+      bodyHtml += '<div style="margin-top:10px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:12px;color:var(--ink-light);line-height:1.7;">※ これらは統計データに基づく参考情報であり、医学的な診断ではありません。気になる場合は医師にご相談ください。</div>'
         + '</div></div>';
     }
 
@@ -8912,24 +8920,21 @@ function calcTemperaturePhases(records) {
       {label:'高温期の平均', yours:analysis.avgHigh, normal:'36.7℃'},
       {label:'低温・高温の差', yours:analysis.tempDiff, normal:'0.3〜0.5℃'}
     ];
-    html += '<div style="margin-bottom:16px;"><div class="pha-section-title">一般的な参考値との比較</div>'
+    bodyHtml += '<div style="margin-bottom:16px;"><div class="pha-section-title">一般的な参考値との比較</div>'
       + '<div class="pha-card" style="margin-bottom:0;">'
       + '<div style="font-size:12px;color:var(--ink-light);margin-bottom:12px;">AMED研究（日本人女性31万人）に基づく参考値</div>';
     compItems.forEach(function(item){
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;">'
+      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;">'
         + '<div style="font-size:14px;color:var(--ink-mid);flex:1;">'+item.label+'</div>'
         + '<div style="font-size:14px;font-weight:500;color:var(--ink);flex:1;text-align:center;">'+(item.yours !== null ? item.yours+'℃' : '-')+'</div>'
         + '<div style="font-size:12px;color:var(--ink-light);flex:1;text-align:right;">目安: '+item.normal+'</div>'
         + '</div>';
     });
-    html += '</div></div>';
+    bodyHtml += '</div></div>';
   }
 
-  html += '</div>'
-    + '<div class="ai-footer"><button class="ai-btn secondary" onclick="document.getElementById(\'tempReportOverlay\').remove()">閉じる</button></div>'
-    + '</div></div>';
-
-  document.body.insertAdjacentHTML('beforeend', html);
+  _tempOverlayApi.body.innerHTML = bodyHtml;
+  _tempOverlayApi.open();
 }
 
 // ===== 体温教育カード =====
@@ -9446,6 +9451,7 @@ function renderComparisonChart(){
   }
 }
   // ===== 要因効果レポート =====
+var _corrOverlayApi = null;
 function openCorrelationReport(){
   var corr = calcFactorCorrelations(state.records);
   var factors = Object.keys(corr);
@@ -9461,26 +9467,32 @@ function openCorrelationReport(){
     if(!isNaN(_crLd.getTime())) lastDate = (_crLd.getMonth()+1)+'月'+_crLd.getDate()+'日';
   }
 
-  var html = '<div class="pha-overlay pha-open" id="corrReportOverlay" onclick="if(event.target===this)this.remove()">'
-    + '<div class="ai-sheet"><div class="ai-handle"></div>'
-    + '<div class="ai-header" style="display:flex;align-items:center;gap:10px;">'
-    + '<div class="pho-section-icon" style="background:rgba(90,144,112,.12);color:#5a9070;flex-shrink:0;">'+_SVG_SHARE+'</div>'
-    + '<div><div class="ai-title">一緒に起きやすいこと</div><div class="ai-subtitle">生活習慣と体調の記録を整理しています</div></div>'
-    + '</div><div class="ai-body">';
+  if (!_corrOverlayApi) {
+    _corrOverlayApi = window.createProOverlay({
+      id:        'corrReportOverlay',
+      ariaLabel: '一緒に起きやすいこと',
+      title:     '一緒に起きやすいこと',
+      subtitle:  '生活習慣と体調の記録を整理しています',
+      footer:    [{ id: 'corr-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
+      onClose:   function(){ _corrOverlayApi.close(); },
+    });
+    _corrOverlayApi.getButton('corr-close').addEventListener('click', function(){ _corrOverlayApi.close(); });
+  }
 
-  html += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
+  var bodyHtml = '';
+  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
     + totalRecs+'件の記録'+(lastDate?' ／ 最終記録 '+lastDate:'')+'</div>';
 
-  html += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
+  bodyHtml += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
     + '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;">ℹ️ この結果は傾向を整理したものであり、因果関係を示すものではありません。</div>'
     + '</div>';
 
   if(factors.length === 0){
-    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📊 まだ十分なデータがありません。<br>生活ファクターを記録した日が<br>各要因3日以上になると表示されます。</div>';
+    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📊 まだ十分なデータがありません。<br>生活ファクターを記録した日が<br>各要因3日以上になると表示されます。</div>';
   } else {
 
     // ① 今見えていること
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
       + '<div class="pha-card" style="margin-bottom:0;padding:14px;">';
     factors.slice(0,5).forEach(function(factor, fi){
       var data = corr[factor];
@@ -9488,25 +9500,25 @@ function openCorrelationReport(){
       var diff = wsData ? wsData.diff : null;
       var arrow = diff === null ? '—' : diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
       var color = diff === null ? '#9a8880' : diff > 0 ? '#6b9e78' : diff < 0 ? '#c4878c' : '#9a8880';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;'+(fi>0?'margin-top:8px;padding-top:8px;border-top:1px solid #f5f0ec;':'')+'">'
+      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;'+(fi>0?'margin-top:8px;padding-top:8px;border-top:1px solid #f5f0ec;':'')+'">'
         + '<div style="font-size:14px;color:var(--ink);">'+factor+'</div>'
         + '<div style="font-size:13px;font-weight:600;color:'+color+';">'+arrow+(diff !== null ? ' ウェルネス'+(diff > 0 ? '+' : '')+diff : '')+'</div>'
         + '</div>';
     });
-    html += '</div></div>';
+    bodyHtml += '</div></div>';
 
     // ② なぜそう考えた？
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
       + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">「その習慣があった日」と「なかった日」の体調データの平均を比べています。差が大きいほど関連が強い傾向があります。</div>'
       + '</div>';
 
     // ③ 詳しいデータ
-    html += '<div style="margin-bottom:8px;"><div class="pha-section-title">詳しいデータを見る</div>';
+    bodyHtml += '<div style="margin-bottom:8px;"><div class="pha-section-title">詳しいデータを見る</div>';
     var metricLabels = {energy:'エネルギー',sleepQuality:'睡眠の質',painLevel:'痛み',symptomCount:'症状の数',wellnessScore:'ウェルネス'};
 
     factors.forEach(function(factor){
       var data = corr[factor];
-      html += '<div class="pha-card">'
+      bodyHtml += '<div class="pha-card">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
         + '<div style="font-size:15px;font-weight:500;color:var(--ink);">'+factor+'</div>'
         + '<div style="font-size:12px;color:var(--ink-light);background:var(--cream);padding:3px 8px;border-radius:8px;">'+data.days+'日あり / '+data.totalDays+'日中</div>'
@@ -9522,7 +9534,7 @@ function openCorrelationReport(){
         var pctText = d.pct > 0 ? '+'+d.pct+'%' : d.pct+'%';
         var maxVal = Math.max(d.with, d.without) || 1;
 
-        html += '<div style="margin-bottom:12px;">'
+        bodyHtml += '<div style="margin-bottom:12px;">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
           + '<div style="font-size:13px;color:var(--ink-mid);">'+metricLabels[m]+'</div>'
           + '<div style="font-size:12px;font-weight:600;color:'+color+';">'+arrow+' '+pctText+'</div>'
@@ -9538,7 +9550,7 @@ function openCorrelationReport(){
       if(data.symptomEffects){
         var effects = Object.keys(data.symptomEffects);
         if(effects.length > 0){
-          html += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">'
+          bodyHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">'
             + '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">一緒に出やすい症状</div>';
           effects.sort(function(a,b){
             var ra = data.symptomEffects[a].ratio === '∞' ? 999 : data.symptomEffects[a].ratio;
@@ -9549,24 +9561,21 @@ function openCorrelationReport(){
             var eff = data.symptomEffects[s];
             var ratioText = eff.ratio === '∞' ? '∞' : eff.ratio + '倍';
             var ratioColor = (eff.ratio === '∞' || eff.ratio >= 1.5) ? '#c4878c' : eff.ratio >= 1.1 ? '#d4a574' : '#6b9e78';
-            html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">'
+            bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">'
               + '<div style="font-size:13px;color:var(--ink-mid);">'+s+'</div>'
               + '<div style="font-size:12px;font-weight:600;color:'+ratioColor+';">'+ratioText+'<span style="font-size:12px;color:var(--ink-light);margin-left:4px;">('+eff.withRate+'% / '+eff.withoutRate+'%)</span></div>'
               + '</div>';
           });
-          html += '</div>';
+          bodyHtml += '</div>';
         }
       }
-      html += '</div>';
+      bodyHtml += '</div>';
     });
-    html += '</div>';
+    bodyHtml += '</div>';
   }
 
-  html += '</div>'
-    + '<div class="ai-footer"><button class="ai-btn secondary" onclick="document.getElementById(\'corrReportOverlay\').remove()">閉じる</button></div>'
-    + '</div></div>';
-
-  document.body.insertAdjacentHTML('beforeend', html);
+  _corrOverlayApi.body.innerHTML = bodyHtml;
+  _corrOverlayApi.open();
 }
 
 // ===== フレアアップ自動検出 =====
@@ -9615,6 +9624,7 @@ function detectFlareups(records){
   return flareups;
 }
 
+var _flareupOverlayApi = null;
 function openFlareupReport(){
   var flareups = detectFlareups(state.records);
 
@@ -9637,63 +9647,69 @@ function openFlareupReport(){
     if(!isNaN(_flFd.getTime())) firstDate = (_flFd.getMonth()+1)+'月'+_flFd.getDate()+'日';
   }
 
-  var html = '<div class="pha-overlay pha-open" id="flareupOverlay" onclick="if(event.target===this)this.remove()">'
-    + '<div class="ai-sheet"><div class="ai-handle"></div>'
-    + '<div class="ai-header" style="display:flex;align-items:center;gap:10px;">'
-    + '<div class="pho-section-icon" style="background:rgba(196,135,140,.12);color:#c4878c;flex-shrink:0;">'+_SVG_REFLECT+'</div>'
-    + '<div><div class="ai-title">症状が強かった日の共通点</div><div class="ai-subtitle">症状が急に強くなった日とその前後を整理します</div></div>'
-    + '</div><div class="ai-body">';
+  if (!_flareupOverlayApi) {
+    _flareupOverlayApi = window.createProOverlay({
+      id:        'flareupOverlay',
+      ariaLabel: '症状が強かった日の共通点',
+      title:     '症状が強かった日の共通点',
+      subtitle:  '症状が急に強くなった日とその前後を整理します',
+      footer:    [{ id: 'flareup-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
+      onClose:   function(){ _flareupOverlayApi.close(); },
+    });
+    _flareupOverlayApi.getButton('flareup-close').addEventListener('click', function(){ _flareupOverlayApi.close(); });
+  }
 
-  html += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
+  var bodyHtml = '';
+  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
     + totalRecs+'件の記録'+(firstDate&&lastDate?' ／ '+firstDate+' 〜 '+lastDate:'')+'</div>';
 
   if(totalRecs < 2){
-    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📋 分析できる記録がまだ十分ではありません。<br>記録を続けると傾向が見えてきます。</div>';
+    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📋 分析できる記録がまだ十分ではありません。<br>記録を続けると傾向が見えてきます。</div>';
   } else if(flareups.length === 0){
-    html += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">✨ 急な変化は見られませんでした。<br><span style="font-size:12px;">（'+totalRecs+'件の記録を確認しました）</span></div>';
+    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">✨ 急な変化は見られませんでした。<br><span style="font-size:12px;">（'+totalRecs+'件の記録を確認しました）</span></div>';
   } else {
 
     // ① 今見えていること
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
       + '<div style="background:var(--rose-pale);border-radius:14px;padding:14px 16px;">'
       + '<div style="font-size:15px;color:var(--ink-mid);line-height:1.7;">'+flareups.length+'日、症状が急に強くなった日が見つかりました</div>'
       + '</div></div>';
 
     // ② なぜそう考えた？
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
       + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">前日と比べて、痛み・ウェルネス・症状の数・エネルギーのうちいずれかが急変した日を検出しています。</div>'
       + '</div>';
 
     // ③ 詳しいデータ
-    html += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">詳しいデータを見る</div>';
+    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">詳しいデータを見る</div>';
     flareups.slice().reverse().forEach(function(f){
-      html += '<div class="pha-card" style="border-left:3px solid var(--rose);">'
+      bodyHtml += '<div class="pha-card" style="border-left:3px solid var(--rose);">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
         + '<div style="font-size:15px;font-weight:600;color:var(--ink);">'+f.dateStr+'</div>'
         + '<div style="display:flex;gap:4px;">';
-      if(f.wellness !== undefined) html += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">WS:'+f.wellness+'</span>';
-      if(f.energy) html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;">⚡'+f.energy+'</span>';
-      if(f.painLevel) html += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">痛み'+f.painLevel+'</span>';
-      html += '</div></div>';
+      if(f.wellness !== undefined) bodyHtml += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">WS:'+f.wellness+'</span>';
+      if(f.energy) bodyHtml += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;">⚡'+f.energy+'</span>';
+      if(f.painLevel) bodyHtml += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">痛み'+f.painLevel+'</span>';
+      bodyHtml += '</div></div>';
 
-      html += '<div style="margin-bottom:8px;">';
+      bodyHtml += '<div style="margin-bottom:8px;">';
       f.reasons.forEach(function(r){
-        html += '<div style="font-size:13px;color:var(--rose);margin-bottom:4px;">🔺 '+r+'</div>';
+        bodyHtml += '<div style="font-size:13px;color:var(--rose);margin-bottom:4px;">🔺 '+r+'</div>';
       });
-      html += '</div>';
+      bodyHtml += '</div>';
 
       if(f.symptoms.length > 0){
-        html += '<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;">';
+        bodyHtml += '<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;">';
         f.symptoms.forEach(function(s){
-          html += '<span style="font-size:12px;background:var(--warm-light);color:var(--ink-mid);padding:3px 10px;border-radius:8px;">'+s+'</span>';
+          bodyHtml += '<span style="font-size:12px;background:var(--warm-light);color:var(--ink-mid);padding:3px 10px;border-radius:8px;">'+s+'</span>';
         });
-        html += '</div>';
+        bodyHtml += '</div>';
       }
-      if(f.factors.length > 0) html += '<div style="font-size:12px;color:var(--ink-light);margin-top:6px;">📋 当日の要因：'+f.factors.join('・')+'</div>';
-      if(f.prevFactors.length > 0) html += '<div style="font-size:12px;color:var(--ink-light);margin-top:3px;">📋 前日の要因：'+f.prevFactors.join('・')+'</div>';
-      html += '</div>';
+      if(f.factors.length > 0) bodyHtml += '<div style="font-size:12px;color:var(--ink-light);margin-top:6px;">📋 当日の要因：'+f.factors.join('・')+'</div>';
+      if(f.prevFactors.length > 0) bodyHtml += '<div style="font-size:12px;color:var(--ink-light);margin-top:3px;">📋 前日の要因：'+f.prevFactors.join('・')+'</div>';
+      bodyHtml += '</div>';
     });
-    html += '</div>';
+    bodyHtml += '</div>';
 
     // ④ 共通点（トリガー分析）
     var triggerCounts = {};
@@ -9704,26 +9720,23 @@ function openFlareupReport(){
     });
     var triggers = Object.entries(triggerCounts).sort(function(a,b){ return b[1]-a[1]; });
     if(triggers.length > 0){
-      html += '<div style="margin-bottom:16px;"><div class="pha-section-title">症状が強かった日に多かった要因</div>'
+      bodyHtml += '<div style="margin-bottom:16px;"><div class="pha-section-title">症状が強かった日に多かった要因</div>'
         + '<div class="pha-card" style="margin-bottom:0;">';
       triggers.slice(0,5).forEach(function(t){
         var pct = Math.round(t[1] / flareups.length * 100);
-        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
+        bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
           + '<div style="font-size:13px;color:var(--ink-mid);">'+t[0]+'</div>'
           + '<div style="display:flex;align-items:center;gap:6px;flex:1;margin-left:12px;">'
           + '<div class="pha-bar" style="flex:1;"><div style="height:100%;width:'+pct+'%;background:var(--rose);border-radius:4px;"></div></div>'
           + '<div style="font-size:11px;color:var(--ink-light);min-width:32px;text-align:right;">'+t[1]+'日</div>'
           + '</div></div>';
       });
-      html += '</div></div>';
+      bodyHtml += '</div></div>';
     }
   }
 
-  html += '</div>'
-    + '<div class="ai-footer"><button class="ai-btn secondary" onclick="document.getElementById(\'flareupOverlay\').remove()">閉じる</button></div>'
-    + '</div></div>';
-
-  document.body.insertAdjacentHTML('beforeend', html);
+  _flareupOverlayApi.body.innerHTML = bodyHtml;
+  _flareupOverlayApi.open();
 }
 
 function gatherRecordData(){
