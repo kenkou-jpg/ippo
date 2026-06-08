@@ -538,41 +538,16 @@
   padding: 0;
 }
 
-/* ─── PRO分析画面 共有オーバーレイ (P29-B1) ──────────────── */
-/* 5つの分析画面が共有するボトムシート型オーバーレイ。
-   シート本体(.ai-sheet)・ハンドル(.ai-handle)・ヘッダー(.ai-header/.ai-title/.ai-subtitle)・
-   ボディ(.ai-body)・フッター(.ai-footer/.ai-btn)は app.css の既存クラスを再利用。 */
-.pha-overlay {
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 100%;
-  max-width: 430px;
-  transform: translateX(-50%);
-  z-index: 820;
-  background: rgba(44, 36, 32, 0.50);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  display: none;
-  align-items: flex-end;
-  justify-content: center;
-}
-.pha-overlay.pha-open { display: flex; }
-
-/* 分析シート・AI解析シートの幅を app シェルに追従させる (既存 768/1100px breakpoint 流用) */
-.pha-overlay .ai-sheet,
+/* AI解析シートの幅を app シェルに追従させる (既存 768/1100px breakpoint 流用) */
 .ai-overlay .ai-sheet {
   max-width: 100%;
 }
 @media (min-width: 768px) {
-  .pha-overlay .ai-sheet,
   .ai-overlay .ai-sheet {
     max-width: var(--app-max-tablet, 600px);
   }
 }
 @media (min-width: 1100px) {
-  .pha-overlay .ai-sheet,
   .ai-overlay .ai-sheet {
     max-width: var(--app-max-desktop, 860px);
   }
