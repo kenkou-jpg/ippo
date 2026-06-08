@@ -313,7 +313,8 @@ function _init() {
   const recs = _getRecs();
   const wrap = document.createElement('div');
   wrap.innerHTML = _buildPanelHTML(recs);
-  while (wrap.firstChild) document.body.appendChild(wrap.firstChild);
+  const mountRoot = document.getElementById('app') || document.body;
+  while (wrap.firstChild) mountRoot.appendChild(wrap.firstChild);
 
   const backdrop = document.getElementById('pho-backdrop');
   const panel    = document.getElementById('pho-panel');

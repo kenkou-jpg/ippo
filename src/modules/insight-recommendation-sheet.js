@@ -71,24 +71,26 @@ let _thinkSheet = null;
 function _ensureDOM() {
   if (_backdrop) return;
 
+  const mountRoot = document.getElementById('app') || document.body;
+
   _backdrop = document.createElement('div');
   _backdrop.className = 'irs-backdrop';
   _backdrop.addEventListener('click', () => { _log('no_action_close', {}); _hideAll(); });
-  document.body.appendChild(_backdrop);
+  mountRoot.appendChild(_backdrop);
 
   _sheet = document.createElement('div');
   _sheet.className = 'irs-sheet';
   _sheet.setAttribute('role', 'dialog');
   _sheet.setAttribute('aria-modal', 'true');
   _sheet.setAttribute('aria-label', 'おすすめの見方');
-  document.body.appendChild(_sheet);
+  mountRoot.appendChild(_sheet);
 
   _thinkSheet = document.createElement('div');
   _thinkSheet.className = 'irs-sheet irs-think-sheet';
   _thinkSheet.setAttribute('role', 'dialog');
   _thinkSheet.setAttribute('aria-modal', 'true');
   _thinkSheet.setAttribute('aria-label', '気になっていること');
-  document.body.appendChild(_thinkSheet);
+  mountRoot.appendChild(_thinkSheet);
 
   document.addEventListener('keydown', e => { if (e.key === 'Escape') _hideAll(); });
 }
