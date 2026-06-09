@@ -282,18 +282,25 @@ function _renderDiseaseTabs(state, signals, sc) {
 
 // ─── Sample size badge ────────────────────────────────────
 
-const _CONF_LABEL = { high: '信頼度：高', medium: '信頼度：中', low: '信頼度：低', insufficient: null };
+const _CONF_LABEL   = { high: '信頼度：高', medium: '信頼度：中', low: '信頼度：低', insufficient: null };
+const _EFFECT_LABEL = { large: '効果量：大', medium: '効果量：中', small: '効果量：小', negligible: null };
 
 function _renderSampleBadge(insight, sc) {
   const el = sc.querySelector('.ipr-ins-bottom > div:first-child');
   if (!el) return;
-  const { sampleSize, confidenceLabel } = insight;
+  const { sampleSize, confidenceLabel, effectSize } = insight;
   if (!sampleSize || !confidenceLabel || confidenceLabel === 'insufficient') {
     el.textContent = '';
     return;
   }
-  const label = _CONF_LABEL[confidenceLabel];
-  el.textContent = label ? `${sampleSize}日分のデータ・${label}` : `${sampleSize}日分のデータ`;
+  const confLabel   = _CONF_LABEL[confidenceLabel];
+  const effectLabel = effectSize ? _EFFECT_LABEL[effectSize.label] : null;
+
+  const parts = [`${sampleSize}日分のデータ`];
+  if (confLabel)   parts.push(confLabel);
+  if (effectLabel) parts.push(effectLabel);
+
+  el.textContent = parts.join('・');
 }
 
 // ─── Main insight card renderer ───────────────────────────
