@@ -36,6 +36,8 @@ import {
   calcSymptomChanges,
 } from '../shared/pro-metric-utils.js';
 import { DISEASE_CONFIG } from '../../../constants/disease.js';
+import { detectFlares }        from '../../../analytics/flare-engine.js';
+import { calcLagCorrelations } from '../../../analytics/lag-correlation-engine.js';
 
 // ─── 1. AIパターン解析 ────────────────────────────────────────────
 /**
@@ -67,27 +69,88 @@ export function analyzePatterns(records) {
 // ─── 2. 症状が強かった日の共通点 ─────────────────────────────────
 /**
  * フレアアップ（症状急変）した日とその前後を検出する。
- * app-legacy.js の detectFlareups() を流用。
+ * Phase2 Strangler Pattern: flare-engine.js へ差し替え。
+ * app-legacy.js の window.detectFlareups は残存（並行稼働）。
+ * 戻り値は旧 detectFlareups() と完全互換の配列形式。
  * @param {Object[]} records - state.records
- * @returns {Object[]|null} - flareup 配列
+ * @returns {{ date: string, dateStr: string, reasons: string[],
+ *             painLevel: number, symptoms: string[], factors: string[],
+ *             wellness: null, energy: number, prevFactors: string[] }[]}
  */
 export function analyzeFlareDays(records) {
-  const fn = window.detectFlareups;
-  if (typeof fn !== 'function') return null;
-  return fn(records || []);
+  const result = detectFlares(records || []);
+  return _adaptFlaresToLegacy(result.flares);
 }
 
 // ─── 3. 一緒に起きやすいこと ────────────────────────────────────
 /**
- * 生活ファクターと体調指標の相関を計算する。
- * app-legacy.js の calcFactorCorrelations() を流用。
+ * 生活ファクターと症状の相関を計算する。
+ * Phase2 Strangler Pattern: lag-correlation-engine.js へ差し替え。
+ * app-legacy.js の window.calcFactorCorrelations は残存（並行稼働）。
+ * 戻り値は旧 calcFactorCorrelations() と互換のオブジェクト形式。
  * @param {Object[]} records - state.records
- * @returns {Object|null} - { [factor]: { days, totalDays, energy, painLevel, ... } }
+ * @returns {{ [factor: string]: { days: number, totalDays: number,
+ *             symptomEffects: object } }}
  */
 export function analyzeCoOccurrence(records) {
-  const fn = window.calcFactorCorrelations;
-  if (typeof fn !== 'function') return null;
-  return fn(records || []);
+  const recs    = records || [];
+  const lagData = calcLagCorrelations(recs);
+  return _adaptLagCorrToLegacy(lagData, recs.length);
+}
+
+// ─── アダプター（Phase2: 旧API互換変換）────────────────────────
+
+/**
+ * flare-engine の flares[] を旧 detectFlareups() 配列形式に変換する。
+ * @private
+ */
+function _adaptFlaresToLegacy(flares) {
+  return (flares || []).map(f => {
+    const d = new Date(f.date || '');
+    const dateStr = isNaN(d.getTime())
+      ? f.date || ''
+      : (d.getMonth() + 1) + '/' + d.getDate();
+
+    const reasons = [];
+    if (f.painLevel >= 6)               reasons.push('痛みレベル ' + f.painLevel + ' を記録');
+    if ((f.symptoms || []).length >= 3)  reasons.push('症状 ' + f.symptoms.length + ' 件が同日記録');
+    if (f.severity === 'severe')         reasons.push('重度フレア（痛み8以上）');
+
+    return {
+      date:        f.date,
+      dateStr,
+      reasons:     reasons.length > 0 ? reasons : ['体調急変を検出'],
+      painLevel:   f.painLevel  || 0,
+      symptoms:    f.symptoms   || [],
+      factors:     [],
+      wellness:    null,
+      energy:      0,
+      prevFactors: [],
+    };
+  });
+}
+
+/**
+ * lag-correlation-engine の配列を旧 calcFactorCorrelations() オブジェクト形式に変換する。
+ * @private
+ */
+function _adaptLagCorrToLegacy(lagData, totalDays) {
+  const result = {};
+  for (const item of (lagData || [])) {
+    if (!result[item.factor]) {
+      result[item.factor] = {
+        days:           item.sampleSize,
+        totalDays:      totalDays || 0,
+        symptomEffects: {},
+      };
+    }
+    result[item.factor].symptomEffects[item.symptom] = {
+      withRate:    Math.round(item.rate    * 100),
+      withoutRate: Math.round(item.baseRate * 100),
+      ratio:       item.relativeRisk,
+    };
+  }
+  return result;
 }
 
 // ─── 4. 周期ごとの体調の違い ─────────────────────────────────────
