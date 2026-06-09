@@ -16,12 +16,20 @@
 // ─────────────────────────────────────────────────────────────
 
 export const DISEASE_NAME_MAP = {
-  '子宮内膜症': 'endometriosis',
-  'PCOS':       'pcos',
-  'PMS':        'pms',
-  'PMDD':       'pmdd',
-  'PMS/PMDD':   'pms',   // 既存データとの互換キー（pmsとして扱う）
-  '卵巣嚢腫':   'ovarianCyst',
+  '子宮内膜症':   'endometriosis',
+  'PCOS':         'pcos',
+  'PMS':          'pms',
+  'PMDD':         'pmdd',
+  'PMS/PMDD':     'pms',          // 既存データとの互換キー（pmsとして扱う）
+  '卵巣嚢腫':     'ovarianCyst',
+  // Phase0追加 — 7疾患
+  '子宮筋腫':     'fibroid',
+  '子宮腺筋症':   'adenomyosis',
+  '更年期障害':   'menopause',
+  '不妊症':       'infertility',
+  '骨盤臓器脱':   'prolapse',
+  '慢性骨盤痛':   'chronicPelvicPain',
+  '外陰痛症候群': 'vulvodynia',
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -130,6 +138,95 @@ const _VOCAB = {
 
   },
 
+  // ── 子宮筋腫 ──────────────────────────────────────────
+  fibroid: {
+    pressureAndBleeding: {
+      signals:        ['下腹部痛', '腹部膨満', '経血量増加'],
+      contextPhrases: ['経血が増えてきた感覚', '下腹部に重みを感じる', '量の変化に気づく'],
+    },
+    chronicFatigue: {
+      signals:        ['倦怠感', '頭痛'],
+      contextPhrases: ['疲れが続く', '貧血のような感じ', '体が重い'],
+    },
+  },
+
+  // ── 子宮腺筋症 ──────────────────────────────────────────
+  adenomyosis: {
+    painBeyondMeds: {
+      signals:        ['下腹部痛', '腰痛', '倦怠感'],
+      contextPhrases: ['痛み止めが効きにくい', '痛みが深いところにある', '毎月つらさが増す'],
+    },
+    heavyFlow: {
+      signals:        ['経血量増加', '腹部膨満'],
+      contextPhrases: ['経血の量が増えた', '塊が出る', '日常生活への影響'],
+    },
+  },
+
+  // ── 更年期障害 ──────────────────────────────────────────
+  menopause: {
+    hotFlashWaves: {
+      signals:        ['ホットフラッシュ', 'のぼせ', '寝汗'],
+      contextPhrases: ['急に熱くなる', 'のぼせが波のように来る', '夜中に目が覚める'],
+    },
+    moodAndSleep: {
+      signals:        ['不眠', '気分の落ち込み', 'イライラ', '倦怠感'],
+      contextPhrases: ['眠れない夜が続く', '気持ちの波が大きい', '疲れが取れない'],
+    },
+    bodyChange: {
+      signals:        ['動悸', '関節痛', '集中力低下'],
+      contextPhrases: ['体の変化を感じる', '体が知らせるサイン', '自分の体を観察する'],
+    },
+  },
+
+  // ── 不妊症 ──────────────────────────────────────────
+  infertility: {
+    cycleObservation: {
+      signals:        ['おりもの変化', '下腹部痛'],
+      contextPhrases: ['体のサインを読む', '排卵の兆候', 'おりものの変化'],
+    },
+    emotionalFlow: {
+      signals:        ['気分の落ち込み', '不安感', '倦怠感'],
+      contextPhrases: ['揺れる気持ちを受け止める', 'ひとりで抱え込まない', '体と心のペースに合わせて'],
+    },
+  },
+
+  // ── 骨盤臓器脱 ──────────────────────────────────────────
+  prolapse: {
+    gravityAwareness: {
+      signals:        ['圧迫感', '骨盤内重だるさ', '尿漏れ'],
+      contextPhrases: ['立っていると感じる重さ', '体の内側の違和感', '日中に変化する感覚'],
+    },
+    dailyAdaptation: {
+      signals:        ['頻尿', '倦怠感'],
+      contextPhrases: ['体の変化と向き合う', '無理をしない選択', '骨盤底筋を意識する'],
+    },
+  },
+
+  // ── 慢性骨盤痛 ──────────────────────────────────────────
+  chronicPelvicPain: {
+    persistentPain: {
+      signals:        ['下腹部痛', '腰痛', '骨盤内重だるさ'],
+      contextPhrases: ['毎日そこにある痛み', '波のある不快感', '体の奥から来る感覚'],
+    },
+    painAndLife: {
+      signals:        ['倦怠感', '不眠', '集中力低下'],
+      contextPhrases: ['痛みと共に生きる', '記録が手がかりになる', '変化を見つける'],
+    },
+  },
+
+  // ── 外陰痛症候群 ──────────────────────────────────────────
+  vulvodynia: {
+    contactSensitivity: {
+      signals:        ['外陰部灼熱感', '刺痛', '座位痛'],
+      contextPhrases: ['接触で感じる痛み', '灼けるような感覚', '座るだけでつらい時'],
+    },
+    isolationAwareness: {
+      // 外陰痛は孤立感を生みやすい。寄り添いの視点を持つ
+      signals:        ['不安感', '不眠', '気分の落ち込み'],
+      contextPhrases: ['一人で抱えていませんか', 'この痛みは本物', '理解されにくい経験'],
+    },
+  },
+
   // ── 卵巣嚢腫 ──────────────────────────────────────────
   ovarianCyst: {
 
@@ -168,6 +265,319 @@ const _VOCAB = {
 // ─────────────────────────────────────────────────────────────
 
 export const DISEASE_CONTEXTS = {
+
+  // ══════════════════════════════════════════════════════════
+  //  子宮筋腫
+  // ══════════════════════════════════════════════════════════
+
+  fibroid: {
+    diseaseNameJa: '子宮筋腫',
+    vocabulary:    _VOCAB.fibroid,
+
+    lifeFlow: {
+      cycleSensitive:   true,
+      cumulativeNature: true,
+      primaryTiming:    'menstrual',
+      description:      '経血量の変化と下腹部の重さを、長い時間軸で観察していく日々',
+    },
+
+    observations: [
+      {
+        id:            'fibroid_heavy_flow',
+        vocabularyKey: 'pressureAndBleeding',
+        phrase:        '最近、経血の量が以前より増えていませんか？',
+        context:       '少しずつの変化も、記録を続けることで気づきやすくなります。',
+      },
+      {
+        id:            'fibroid_pressure',
+        vocabularyKey: 'pressureAndBleeding',
+        phrase:        '下腹部に圧迫感や重さを感じることはありますか？',
+        context:       '体が送るサインを、丁寧に記録してみて。',
+      },
+      {
+        id:            'fibroid_fatigue',
+        vocabularyKey: 'chronicFatigue',
+        phrase:        '疲れが続いている感じがしませんか？',
+        context:       '経血量の変化が体に影響していることがあります。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '変化を「記録」することで、医師への伝え方が変わる',
+      '経血量の増減は、体からの大事なメッセージ',
+      '焦らず、長い目で自分の体を見守る',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  子宮腺筋症
+  // ══════════════════════════════════════════════════════════
+
+  adenomyosis: {
+    diseaseNameJa: '子宮腺筋症',
+    vocabulary:    _VOCAB.adenomyosis,
+
+    lifeFlow: {
+      cycleSensitive:   true,
+      cumulativeNature: true,
+      primaryTiming:    'menstrual',
+      description:      '毎月の生理に伴う深い痛みと、長期的に変化していく体との対話',
+    },
+
+    observations: [
+      {
+        id:            'adeno_pain_meds',
+        vocabularyKey: 'painBeyondMeds',
+        phrase:        '痛み止めが効きにくいと感じることがありますか？',
+        context:       '痛みの感じ方を記録しておくと、治療の選択肢を考える手がかりになります。',
+      },
+      {
+        id:            'adeno_accumulation',
+        vocabularyKey: 'painBeyondMeds',
+        phrase:        '生理のたびに、少しずつつらさが増している感じがしますか？',
+        context:       '変化に気づくこと自体が、体との対話の第一歩です。',
+      },
+      {
+        id:            'adeno_heavy',
+        vocabularyKey: 'heavyFlow',
+        phrase:        '経血の量や塊が増えていませんか？',
+        context:       '量の変化も、体が語りかけているサインです。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '「耐えるしかない」ではなく、「記録して伝える」という選択',
+      '痛みの変化を言語化することが、治療の扉を開く',
+      '体への敬意は、観察から始まる',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  更年期障害
+  // ══════════════════════════════════════════════════════════
+
+  menopause: {
+    diseaseNameJa: '更年期障害',
+    vocabulary:    _VOCAB.menopause,
+
+    lifeFlow: {
+      cycleSensitive:   false,
+      cumulativeNature: false,
+      primaryTiming:    'any',
+      description:      '体と心が変化する移行期を、波として受け止めながら過ごす日々',
+    },
+
+    observations: [
+      {
+        id:            'meno_hotflash',
+        vocabularyKey: 'hotFlashWaves',
+        phrase:        '急に熱くなる感覚が一日に何度か来ていませんか？',
+        context:       'ホットフラッシュの頻度を記録すると、体の変化のパターンが見えてきます。',
+      },
+      {
+        id:            'meno_sleep',
+        vocabularyKey: 'moodAndSleep',
+        phrase:        '夜中に目が覚めることが増えていませんか？',
+        context:       '睡眠の変化も、体が移行期にいることを教えてくれています。',
+      },
+      {
+        id:            'meno_mood',
+        vocabularyKey: 'moodAndSleep',
+        phrase:        '気分の波が以前より大きくなっていませんか？',
+        context:       '感情の変化はホルモンの影響によるものです。自分を責めないで。',
+      },
+      {
+        id:            'meno_body',
+        vocabularyKey: 'bodyChange',
+        phrase:        '体のいろいろな場所に変化を感じていませんか？',
+        context:       '体が変化を知らせているサインを、記録として残していきましょう。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '更年期は「終わり」ではなく、「移行」の時間',
+      '体の変化を観察し、記録することが自分への理解になる',
+      '波のある時期こそ、休息と記録を大切に',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  不妊症
+  // ══════════════════════════════════════════════════════════
+
+  infertility: {
+    diseaseNameJa: '不妊症',
+    vocabulary:    _VOCAB.infertility,
+
+    lifeFlow: {
+      cycleSensitive:   true,
+      cumulativeNature: false,
+      primaryTiming:    'ovulation',
+      description:      '体のサインを読みながら、一周期ずつ丁寧に過ごしていく日々',
+    },
+
+    observations: [
+      {
+        id:            'infertility_cycle',
+        vocabularyKey: 'cycleObservation',
+        phrase:        '体が排卵のサインを送ってきていませんか？',
+        context:       'おりものの変化や体の感覚は、体からのメッセージです。',
+      },
+      {
+        id:            'infertility_emotion',
+        vocabularyKey: 'emotionalFlow',
+        phrase:        '気持ちが揺れやすい時期が続いていませんか？',
+        context:       '感情の波は、体と心が懸命に応えようとしているサインかもしれません。',
+      },
+      {
+        id:            'infertility_rest',
+        vocabularyKey: 'emotionalFlow',
+        phrase:        '今日は自分に優しくできていますか？',
+        context:       '治療中の体と心には、特別な休息が必要です。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '体のリズムを知ることは、自分を知ること',
+      '記録は治療のためだけでなく、自分への理解のために',
+      '感情の波も、体の一部として受け止める',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  骨盤臓器脱
+  // ══════════════════════════════════════════════════════════
+
+  prolapse: {
+    diseaseNameJa: '骨盤臓器脱',
+    vocabulary:    _VOCAB.prolapse,
+
+    lifeFlow: {
+      cycleSensitive:   false,
+      cumulativeNature: false,
+      primaryTiming:    'any',
+      description:      '姿勢や活動量によって変化する体の感覚を、観察しながら調整していく日々',
+    },
+
+    observations: [
+      {
+        id:            'prolapse_pressure',
+        vocabularyKey: 'gravityAwareness',
+        phrase:        '立っているときや動いているとき、下腹部に重さを感じますか？',
+        context:       '体の感覚の変化を記録することで、日常のパターンが見えてきます。',
+      },
+      {
+        id:            'prolapse_urinary',
+        vocabularyKey: 'gravityAwareness',
+        phrase:        '尿もれや頻尿が気になる時間帯がありますか？',
+        context:       '記録することで、医師への相談もより具体的になります。',
+      },
+      {
+        id:            'prolapse_activity',
+        vocabularyKey: 'dailyAdaptation',
+        phrase:        '骨盤底筋トレーニングを取り入れられていますか？',
+        context:       '少しずつの積み重ねが、体の変化につながります。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '体の変化に気づくことは、管理の第一歩',
+      '骨盤底筋を意識することを、日常のリズムに',
+      '記録は「悪化を恐れる」のではなく「変化を知る」ため',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  慢性骨盤痛
+  // ══════════════════════════════════════════════════════════
+
+  chronicPelvicPain: {
+    diseaseNameJa: '慢性骨盤痛',
+    vocabulary:    _VOCAB.chronicPelvicPain,
+
+    lifeFlow: {
+      cycleSensitive:   false,
+      cumulativeNature: true,
+      primaryTiming:    'any',
+      description:      '毎日そこにある痛みと向き合いながら、少しでも楽に過ごす方法を探す日々',
+    },
+
+    observations: [
+      {
+        id:            'cpp_daily_pain',
+        vocabularyKey: 'persistentPain',
+        phrase:        '今日の骨盤の痛みは、昨日と比べていかがですか？',
+        context:       '日々の変化を記録することで、痛みのパターンが見えてきます。',
+      },
+      {
+        id:            'cpp_trigger',
+        vocabularyKey: 'persistentPain',
+        phrase:        '痛みが強くなるタイミングやきっかけがありますか？',
+        context:       'トリガーを知ることが、日常を楽にする手がかりになります。',
+      },
+      {
+        id:            'cpp_fatigue',
+        vocabularyKey: 'painAndLife',
+        phrase:        '痛みが続く中で、疲れが溜まっていませんか？',
+        context:       '慢性的な痛みと疲れは繋がっています。休息も治療のうちです。',
+      },
+    ],
+
+    calmingPrinciples: [
+      '原因不明でも、記録は意味を持つ',
+      '痛みを「耐えるもの」から「観察するもの」へ',
+      '少しの変化に気づくことが、希望の糸口になる',
+    ],
+  },
+
+  // ══════════════════════════════════════════════════════════
+  //  外陰痛症候群
+  // ══════════════════════════════════════════════════════════
+
+  vulvodynia: {
+    diseaseNameJa: '外陰痛症候群',
+    vocabulary:    _VOCAB.vulvodynia,
+
+    lifeFlow: {
+      cycleSensitive:   false,
+      cumulativeNature: false,
+      primaryTiming:    'any',
+      description:      '見えにくい痛みを抱えながら、日常の中でできることを一つずつ探す日々',
+    },
+
+    observations: [
+      {
+        id:            'vulvo_burning',
+        vocabularyKey: 'contactSensitivity',
+        phrase:        '灼けるような感覚や刺すような痛みが続いていませんか？',
+        context:       'この痛みはあなたが感じている通りに本物です。記録が医師への伝え方を変えます。',
+      },
+      {
+        id:            'vulvo_sitting',
+        vocabularyKey: 'contactSensitivity',
+        phrase:        '座っている時間が長いと症状が強くなりますか？',
+        context:       '座位との相関を記録すると、日常の調整に役立ちます。',
+      },
+      {
+        id:            'vulvo_isolation',
+        vocabularyKey: 'isolationAwareness',
+        phrase:        'この痛みについて、誰かに話せていますか？',
+        context:       '外陰痛は孤立感を生みやすい疾患です。一人で抱えないで。',
+      },
+      {
+        id:            'vulvo_selfcare',
+        vocabularyKey: 'isolationAwareness',
+        phrase:        '今日、自分の体に優しくできていますか？',
+        context:       '小さなセルフケアの積み重ねが、体との関係を変えていきます。',
+      },
+    ],
+
+    calmingPrinciples: [
+      'この痛みはあなたのせいではない',
+      '見えにくい痛みこそ、記録が力になる',
+      '孤独を感じたとき、記録はあなたの体を証言してくれる',
+    ],
+  },
 
   // ══════════════════════════════════════════════════════════
   //  子宮内膜症
