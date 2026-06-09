@@ -31,6 +31,10 @@ import {
   applyGentleToneGuard,
 } from './gentle-tendency.js';
 
+// Phase1: 信頼度・効果量エンジン
+import { getSampleInfo, calcConfidence } from '../analytics/confidence-engine.js';
+import { calcCohenD } from '../analytics/effect-size-engine.js';
+
 // ─────────────────────────────────────────────────────────────
 const _ENGINE_TIMEOUT_MS = 50;
 
@@ -684,6 +688,20 @@ function _runEngine(state) {
       confidence:   t.confidence,
     });
     results.push(t);
+  }
+
+  // Phase1: sampleSize / confidenceLabel / effectSize を各インサイトに付与
+  const _s7  = _sliceDays(records, 7).length;
+  const _s30 = _sliceDays(records, 30).length;
+  const _s60 = _sliceDays(records, 60).length;
+  for (const insight of results) {
+    // windowDays は _computeScore と同じ基準で選択
+    const windowDays = insight.tier === 'pro'
+      ? (insight.ruleId && (insight.ruleId.includes('CYCLE') || insight.ruleId.includes('LUTEAL')) ? 60 : 30)
+      : 7;
+    insight.sampleSize      = windowDays <= 7 ? _s7 : windowDays <= 30 ? _s30 : _s60;
+    insight.confidenceLabel = calcConfidence(insight.sampleSize);
+    insight.effectSize      = null; // Phase2+ で per-rule 計算
   }
 
   results.sort((a, b) => b.score - a.score);
