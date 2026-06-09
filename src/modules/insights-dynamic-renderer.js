@@ -280,6 +280,22 @@ function _renderDiseaseTabs(state, signals, sc) {
   _showTab(0);
 }
 
+// ─── Sample size badge ────────────────────────────────────
+
+const _CONF_LABEL = { high: '信頼度：高', medium: '信頼度：中', low: '信頼度：低', insufficient: null };
+
+function _renderSampleBadge(insight, sc) {
+  const el = sc.querySelector('.ipr-ins-bottom > div:first-child');
+  if (!el) return;
+  const { sampleSize, confidenceLabel } = insight;
+  if (!sampleSize || !confidenceLabel || confidenceLabel === 'insufficient') {
+    el.textContent = '';
+    return;
+  }
+  const label = _CONF_LABEL[confidenceLabel];
+  el.textContent = label ? `${sampleSize}日分のデータ・${label}` : `${sampleSize}日分のデータ`;
+}
+
 // ─── Main insight card renderer ───────────────────────────
 
 function _renderMainInsight(insights, signals, records, sc) {
@@ -292,6 +308,7 @@ function _renderMainInsight(insights, signals, records, sc) {
   if (top) {
     h2El.textContent = top.main;
     subEl.textContent = top.sub;
+    _renderSampleBadge(top, sc);
     return;
   }
 
