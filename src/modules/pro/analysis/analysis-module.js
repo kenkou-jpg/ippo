@@ -44,6 +44,8 @@ import { getSampleInfo }       from '../../../analytics/confidence-engine.js';
 import { analyzeAll }          from '../../../disease/disease-registry.js';
 import { extractFeatures }     from '../../../ai/feature-engine.js';
 import { buildPrompt }         from '../../../ai/prompt-builder.js';
+// Phase3: cycle-engine（Strangler: window.analyzeCyclePhases 差し替え完了）
+import { analyzeCyclePhases as analyzeCyclePhasesEngine } from '../../../analytics/cycle-engine.js';
 // Phase4: 予測・体温エンジン
 import { analyzeTemperature as analyzeTemperatureEngine } from '../../../analytics/temperature-engine.js';
 import { predictNext }         from '../../../analytics/prediction-engine.js';
@@ -165,14 +167,14 @@ function _adaptLagCorrToLegacy(lagData, totalDays) {
 // ─── 4. 周期ごとの体調の違い ─────────────────────────────────────
 /**
  * 月経周期フェーズ別の平均体調を計算する。
- * app-legacy.js の analyzeCyclePhases() を流用。
+ * Phase3 Strangler Pattern: cycle-engine.js へ差し替え完了。
+ * app-legacy.js の window.analyzeCyclePhases は並行稼働のまま残存。
  * @param {Object[]} records - state.records
- * @returns {Object|null} - { 月経期: {...}, 卵胞期: {...}, ... }
+ * @param {Object}   [state] - { lastPeriodDate?, cycleLength? }
+ * @returns {Object}
  */
-export function analyzeCycle(records) {
-  const fn = window.analyzeCyclePhases;
-  if (typeof fn !== 'function') return null;
-  return fn(records || []);
+export function analyzeCycle(records, state = {}) {
+  return analyzeCyclePhasesEngine(records || [], state);
 }
 
 // ─── 5. 体温のリズム ─────────────────────────────────────────────
