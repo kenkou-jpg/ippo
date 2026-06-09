@@ -219,6 +219,9 @@ import {
   buildDoctorSummary,
   buildMonthlyReport,
   analyzeExperiments,
+  analyzeBaseline,
+  buildPredictionPayload,
+  buildAIPrompt,
 } from './modules/pro/analysis/analysis-module.js';
 window.analyzePatterns      = analyzePatterns;
 window.analyzeFlareDays     = analyzeFlareDays;
@@ -231,6 +234,9 @@ window.analyzeSymptomTrends = analyzeSymptomTrends;
 window.buildDoctorSummary   = buildDoctorSummary;
 window.buildMonthlyReport   = buildMonthlyReport;
 window.analyzeExperiments   = analyzeExperiments;
+window.analyzeBaseline         = analyzeBaseline;
+window.buildPredictionPayload  = buildPredictionPayload;
+window.buildAIPrompt           = buildAIPrompt;
 
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';

@@ -38,6 +38,15 @@ import {
 import { DISEASE_CONFIG } from '../../../constants/disease.js';
 import { detectFlares }        from '../../../analytics/flare-engine.js';
 import { calcLagCorrelations } from '../../../analytics/lag-correlation-engine.js';
+import { calcBaseline }        from '../../../analytics/baseline-engine.js';
+import { getSampleInfo }       from '../../../analytics/confidence-engine.js';
+// Phase3: Disease Layer + AI Layer
+import { analyzeAll }          from '../../../disease/disease-registry.js';
+import { extractFeatures }     from '../../../ai/feature-engine.js';
+import { buildPrompt }         from '../../../ai/prompt-builder.js';
+// Phase4: 予測・体温エンジン
+import { analyzeTemperature as analyzeTemperatureEngine } from '../../../analytics/temperature-engine.js';
+import { predictNext }         from '../../../analytics/prediction-engine.js';
 
 // ─── 1. AIパターン解析 ────────────────────────────────────────────
 /**
@@ -169,14 +178,13 @@ export function analyzeCycle(records) {
 // ─── 5. 体温のリズム ─────────────────────────────────────────────
 /**
  * 基礎体温から低温期・高温期・二相性を分析する。
- * app-legacy.js の calcTemperaturePhases() を流用。
+ * Phase4 Strangler Pattern: temperature-engine.js へ差し替え完了。
+ * app-legacy.js の calcTemperaturePhases() は並行稼働のまま残存。
  * @param {Object[]} records - state.records
- * @returns {Object|null}
+ * @returns {Object}
  */
 export function analyzeTemperature(records) {
-  const fn = window.calcTemperaturePhases;
-  if (typeof fn !== 'function') return null;
-  return fn(records || []);
+  return analyzeTemperatureEngine(records || []);
 }
 
 // ─── 6. からだサマリー ───────────────────────────────────────────
@@ -509,5 +517,121 @@ export function analyzeExperiments(experiments, records) {
     completed: allExp.filter(e => e.status === 'completed'),
     cancelled: allExp.filter(e => e.status === 'cancelled'),
     total:     allExp.length,
+  };
+}
+
+// ─── 12. ベースライン分析 ────────────────────────────────────────
+/**
+ * 個人ベースラインと直近の差分を返す。
+ * Phase2 Strangler Pattern: baseline-engine.js へ接続。
+ * @param {Object[]} records - state.records
+ * @param {{ baselineDays?: number, compareDays?: number }} [options]
+ * @returns {{
+ *   isBaselineEstablished: boolean,
+ *   baseline: object | null,
+ *   current: object | null,
+ *   deviation: object | null,
+ *   confidence: string,
+ *   sampleSize: number
+ * }}
+ */
+export function analyzeBaseline(records, options = {}) {
+  return calcBaseline(records || [], options);
+}
+
+// ─── 13. 予測ペイロード構築（Phase4） ────────────────────────────
+/**
+ * prediction-engine.js の predictNext() を呼び出し、
+ * ai-predict / cluster-batch 向けのペイロードを返す。
+ *
+ * 制約:
+ *   - 保存フローから呼ばれてはならない（pure read only）。
+ *   - 保存後フックへの登録禁止。
+ *   - 失敗しても保存処理に影響しない。
+ *
+ * ai-predict: 返却値の predictions フィールドをそのまま送信する。
+ * cluster-batch: 返却値を profiles.prediction_cache に書き込むことで
+ *               週次クラスタバッチが prediction_cache を読んで k-means を実行する。
+ *
+ * @param {Object[]} records - state.records
+ * @param {Object}   [state] - { myDiseases? }
+ * @returns {{
+ *   predictions: object,  // predictNext() 出力（ai-predict に渡す）
+ *   disease:     string | null,
+ * }}
+ */
+export function buildPredictionPayload(records, state = {}) {
+  const predictions = predictNext(records || []);
+  return {
+    predictions,
+    disease: (state.myDiseases || [])[0] || null,
+  };
+}
+
+// ─── 14. AI分析プロンプト構築（Phase3） ─────────────────────────
+/**
+ * records → analytics → disease-registry → feature-engine → prompt-builder
+ * の完全パイプラインを実行し、ai-analyze 新経路向けのペイロードを返す。
+ *
+ * Pure Read Only: Supabase への送信は呼び出し元（UI層）が行う。
+ * 返却値は ai-analyze の新経路フィールド (features / systemPrompt / userPrompt) に
+ * そのまま渡せる構造になっている。
+ *
+ * @param {Object[]} records  - state.records
+ * @param {Object}   state    - { myDiseases?, lastPeriodDate?, cycleLength? }
+ * @returns {{
+ *   features:     import('../../../ai/feature-engine.js').ClaudeFeatures,
+ *   systemPrompt: string,
+ *   userPrompt:   string,
+ *   model:        string,
+ *   maxTokens:    number,
+ * }}
+ */
+export function buildAIPrompt(records, state = {}) {
+  const recs = records || [];
+
+  // ── Step1: analytics 層 ──────────────────────────────────────
+  const sampleInfo     = getSampleInfo(recs);
+  const flares         = detectFlares(recs);
+
+  // ── Step2: disease-registry ──────────────────────────────────
+  const diseases       = state.myDiseases || [];
+  // DISEASE_NAME_MAP 変換: 日本語疾患名 → diseaseKey
+  const DISEASE_KEY_MAP = {
+    '子宮内膜症':   'endometriosis',
+    '卵巣嚢腫':     'ovarianCyst',
+    '子宮筋腫':     'fibroid',
+    '子宮腺筋症':   'adenomyosis',
+    'PCOS':         'pcos',
+    'PMS':          'pms',
+    'PMDD':         'pmdd',
+    'PMS/PMDD':     'pms',
+    '更年期障害':   'menopause',
+    '不妊症':       'infertility',
+    '骨盤臓器脱':   'prolapse',
+    '慢性骨盤痛':   'chronicPelvicPain',
+    '外陰痛症候群': 'vulvodynia',
+  };
+  const diseaseKeys    = diseases.map(d => DISEASE_KEY_MAP[d]).filter(Boolean);
+  const diseaseAnalysis = analyzeAll(diseaseKeys, recs, state);
+
+  // ── Step3: feature-engine ─────────────────────────────────────
+  const analyticsResults = { sampleInfo, flares, diseaseAnalysis };
+  const features         = extractFeatures(analyticsResults, {
+    diseases,
+    lastPeriodDate: state.lastPeriodDate,
+    cycleLength:    state.cycleLength,
+  });
+
+  // ── Step4: prompt-builder ─────────────────────────────────────
+  const prompt = buildPrompt(features);
+
+  // ── ai-analyze 新経路ペイロード ───────────────────────────────
+  return {
+    features,
+    systemPrompt: prompt.system,
+    userPrompt:   prompt.user,
+    model:        prompt.model,
+    maxTokens:    prompt.maxTokens,
   };
 }

@@ -628,6 +628,65 @@ RULES.disease_context_cyst = function(records, context) {
 };
 
 // ─────────────────────────────────────────────────────────────
+//  Phase1: per-rule effectSize 計算
+//  パターン型インサイトの2グループを calcCohenD に渡す。
+//  データ不足(< 3件)の場合は null を返す。
+// ─────────────────────────────────────────────────────────────
+
+function _computeEffectSize(insight, records, context) {
+  if (insight.type !== 'pattern') return null;
+
+  switch (insight.ruleId) {
+    case 'RULE_SLEEP_FATIGUE': {
+      const month = _sliceDays(records, 30);
+      const poorSleep = month.filter(r => (r.sleepQuality ?? 0) >= 3);
+      const goodSleep = month.filter(r => r.sleepQuality != null && (r.sleepQuality ?? 0) < 3);
+      // 疲労スコア = エネルギー逆転値 (energy 1=高疲労, 5=低疲労)
+      const toFatigue = r => r.energy != null ? 6 - r.energy : 3;
+      return calcCohenD(poorSleep.map(toFatigue), goodSleep.map(toFatigue));
+    }
+    case 'RULE_SLEEP_HEADACHE': {
+      const month = _sliceDays(records, 30);
+      const poorSleep = month.filter(r => (r.sleepQuality ?? 0) >= 3);
+      const goodSleep = month.filter(r => r.sleepQuality != null && (r.sleepQuality ?? 0) < 3);
+      return calcCohenD(
+        poorSleep.map(r => _hasSym(r, _SYM_HEADACHE) ? 1 : 0),
+        goodSleep.map(r => _hasSym(r, _SYM_HEADACHE) ? 1 : 0),
+      );
+    }
+    case 'RULE_CYCLE_MOOD': {
+      if (!context.lastPeriodDate || !context.cycleLength) return null;
+      const twoMonth = _sliceDays(records, 60);
+      const luteal = twoMonth.filter(r => _isLuteal(r, context.lastPeriodDate, context.cycleLength));
+      const other  = twoMonth.filter(r => !_isLuteal(r, context.lastPeriodDate, context.cycleLength));
+      return calcCohenD(
+        luteal.map(r => _hasSym(r, _SYM_MOOD) ? 1 : 0),
+        other.map(r  => _hasSym(r, _SYM_MOOD) ? 1 : 0),
+      );
+    }
+    case 'RULE_LUTEAL_FATIGUE': {
+      if (!context.lastPeriodDate || !context.cycleLength) return null;
+      const twoMonth = _sliceDays(records, 60);
+      const luteal = twoMonth.filter(r => _isLuteal(r, context.lastPeriodDate, context.cycleLength));
+      const other  = twoMonth.filter(r => !_isLuteal(r, context.lastPeriodDate, context.cycleLength));
+      const toFatigueScore = r => (_hasSym(r, _SYM_FATIGUE) || (r.energy != null && r.energy <= 2)) ? 1 : 0;
+      return calcCohenD(luteal.map(toFatigueScore), other.map(toFatigueScore));
+    }
+    case 'RULE_STRESS_SYMPTOMS': {
+      const month = _sliceDays(records, 30);
+      const stressDays    = month.filter(r =>  _hasSym(r, _SYM_STRESS));
+      const nonStressDays = month.filter(r => !_hasSym(r, _SYM_STRESS));
+      return calcCohenD(
+        stressDays.map(r    => _hasSym(r, _SYM_SOMATIC) ? 1 : 0),
+        nonStressDays.map(r => _hasSym(r, _SYM_SOMATIC) ? 1 : 0),
+      );
+    }
+    default:
+      return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
 //  Engine core
 // ─────────────────────────────────────────────────────────────
 
@@ -701,7 +760,7 @@ function _runEngine(state) {
       : 7;
     insight.sampleSize      = windowDays <= 7 ? _s7 : windowDays <= 30 ? _s30 : _s60;
     insight.confidenceLabel = calcConfidence(insight.sampleSize);
-    insight.effectSize      = null; // Phase2+ で per-rule 計算
+    insight.effectSize      = _computeEffectSize(insight, records, context);
   }
 
   results.sort((a, b) => b.score - a.score);
