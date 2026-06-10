@@ -41,7 +41,7 @@ import { calcLagCorrelations } from '../../../analytics/lag-correlation-engine.j
 import { calcBaseline }        from '../../../analytics/baseline-engine.js';
 import { getSampleInfo }       from '../../../analytics/confidence-engine.js';
 // Phase3: Disease Layer + AI Layer
-import { analyzeAll }          from '../../../disease/disease-registry.js';
+import { analyzeAll, resolveKeys } from '../../../disease/disease-registry.js';
 import { extractFeatures }     from '../../../ai/feature-engine.js';
 import { buildPrompt }         from '../../../ai/prompt-builder.js';
 // Phase3: cycle-engine（Strangler: window.analyzeCyclePhases 差し替え完了）
@@ -606,24 +606,8 @@ export function buildAIPrompt(records, state = {}) {
   const flares         = detectFlares(recs);
 
   // ── Step2: disease-registry ──────────────────────────────────
-  const diseases       = state.myDiseases || [];
-  // DISEASE_NAME_MAP 変換: 日本語疾患名 → diseaseKey
-  const DISEASE_KEY_MAP = {
-    '子宮内膜症':   'endometriosis',
-    '卵巣嚢腫':     'ovarianCyst',
-    '子宮筋腫':     'fibroid',
-    '子宮腺筋症':   'adenomyosis',
-    'PCOS':         'pcos',
-    'PMS':          'pms',
-    'PMDD':         'pmdd',
-    'PMS/PMDD':     'pms',
-    '更年期障害':   'menopause',
-    '不妊症':       'infertility',
-    '骨盤臓器脱':   'prolapse',
-    '慢性骨盤痛':   'chronicPelvicPain',
-    '外陰痛症候群': 'vulvodynia',
-  };
-  const diseaseKeys    = diseases.map(d => DISEASE_KEY_MAP[d]).filter(Boolean);
+  const diseases        = state.myDiseases || [];
+  const diseaseKeys     = resolveKeys(diseases);
   const diseaseAnalysis = analyzeAll(diseaseKeys, recs, state);
 
   // ── Step3: feature-engine ─────────────────────────────────────
