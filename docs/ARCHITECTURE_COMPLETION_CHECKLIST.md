@@ -317,20 +317,20 @@
 
 ## Disease Layer
 
-- [ ] Analyzer 出力の統一 (全11疾患で共通インターフェースを適用)
-- [ ] `BaseAnalyzer.analyze()` に `severity` を追加
-- [ ] `BaseAnalyzer.analyze()` に `riskLevel` を追加
-- [ ] `BaseAnalyzer.analyze()` に `recommendation` を追加
-- [ ] `EndometriosisAnalyzer` — `cyclePainCorrelation` / `nonMenstrualFlareProfile` 追加
-- [ ] `PCOSAnalyzer` — `weightCorrelation` 強化・`insulinResistanceProxy` 追加
-- [ ] `PMSPMDDAnalyzer` — `cycleVariance` / `moodCycleCorrelation` 追加
-- [ ] `OvarianCystAnalyzer` — 不足フィールドを補完
-- [ ] `FibroidAnalyzer` — 不足フィールドを補完
-- [ ] `MenopauseAnalyzer` — 不足フィールドを補完
-- [ ] `InfertilityAnalyzer` — 不足フィールドを補完
-- [ ] `ProlapseAnalyzer` — 不足フィールドを補完
-- [ ] `ChronicPelvicPainAnalyzer` — 不足フィールドを補完
-- [ ] `VulvodynamiaAnalyzer` — 不足フィールドを補完
+- [x] Analyzer 出力の統一 (全11疾患で共通インターフェースを適用)
+- [x] `BaseAnalyzer.analyze()` に `severity` を追加
+- [x] `BaseAnalyzer.analyze()` に `riskLevel` を追加
+- [x] `BaseAnalyzer.analyze()` に `recommendation` を追加
+- [x] `EndometriosisAnalyzer` — `cyclePainCorrelation` / `nonMenstrualFlareProfile` 追加
+- [x] `PCOSAnalyzer` — `weightCorrelation` 強化・`insulinResistanceProxy` 追加
+- [x] `PMSPMDDAnalyzer` — `cycleVariance` / `moodCycleCorrelation` 追加
+- [x] `OvarianCystAnalyzer` — `acutePainRisk` 追加
+- [x] `FibroidAnalyzer` — `bulkSymptomRate` 追加
+- [x] `MenopauseAnalyzer` — `genitourinarySymptoms` 追加
+- [x] `InfertilityAnalyzer` — `lutealPhaseData` 追加
+- [x] `ProlapseAnalyzer` — `pelvicFloorImpact` 追加
+- [x] `ChronicPelvicPainAnalyzer` — `chronicityIndex` 追加
+- [x] `VulvodynamiaAnalyzer` — `qualityOfLifeScore` 追加
 
 ## Home Insight
 
@@ -442,6 +442,61 @@
 
 ---
 
+# Domain Architecture Audit
+
+> 主要ドメインは実装完了後に個別監査を実施する。
+
+## Save Architecture Audit
+
+- [ ] Save Architecture 監査完了
+- [ ] RecordRepository 単一窓口確認
+- [ ] Save Entry Point 一覧との整合確認
+- [ ] 保存経路図との整合確認
+
+## Runtime Architecture Audit
+
+- [ ] Runtime Architecture 監査完了
+- [ ] Runtime 責務分離確認
+- [ ] Startup Flow 確認
+- [ ] Hydration Flow 確認
+
+## Premium Architecture Audit
+
+- [ ] Premium Architecture 監査完了
+- [ ] subscriptions テーブル確認
+- [ ] Stripe Webhook 確認
+- [ ] Realtime 同期確認
+- [ ] Single Source of Truth 確認
+- [ ] localStorage 依存ゼロ確認
+- [ ] window.isPremium 依存ゼロ確認
+
+## Disease Architecture Audit
+
+- [ ] Disease Layer 監査完了
+- [ ] 全11 Analyzer 共通 IF 確認
+- [ ] Analyzer 出力統一確認
+
+## Insight Architecture Audit
+
+- [ ] Insight Architecture 監査完了
+- [ ] 正規表現依存ゼロ確認
+- [ ] 構造データ参照確認
+
+## Design System Audit
+
+- [ ] Design System 監査完了
+- [ ] Token 以外の色指定ゼロ確認
+- [ ] ハードコード値削減確認
+
+## Edge Platform Audit
+
+- [ ] Edge Platform 監査完了
+- [ ] Auth 統一確認
+- [ ] Error 形式統一確認
+- [ ] Rate Limit 永続化確認
+
+---
+
 # Release Architecture Audit
 
 ## Final Validation
@@ -497,7 +552,7 @@
 | Runtime | 🔴 Not Started | 0% |
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
-| Disease | 🔴 Not Started | 0% |
+| Disease | 🟢 Complete | 100% |
 | Design System | 🔴 Not Started | 0% |
 | Edge Platform | 🔴 Not Started | 0% |
 | **Overall** | 🔴 Not Started | **0%** |

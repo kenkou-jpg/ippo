@@ -23,6 +23,7 @@ export class InfertilityAnalyzer extends BaseAnalyzer {
       emotionalTrend:       this._calcEmotionalTrend(records),
       stressCorrelation:    this._calcStressCorrelation(records),
       recordingConsistency: this._calcRecordingConsistency(records),
+      lutealPhaseData:      this._calcLutealPhaseData(records, state),
     };
   }
 
@@ -87,6 +88,50 @@ export class InfertilityAnalyzer extends BaseAnalyzer {
       (r.symptoms || []).some(s => emotionalSymptoms.includes(s)) ? 1 : 0
     );
     return pearsonR(xs, ys);
+  }
+
+  // 黄体期（排卵後〜生理前）の体調データ（排卵日後 cycleDay 17-28 相当）
+  _calcLutealPhaseData(records, state) {
+    const cycleLength    = state?.cycleLength || 28;
+    const lastPeriodDate = state?.lastPeriodDate;
+    if (!lastPeriodDate) {
+      const withCycleDay = records.filter(r => r.cycleDay != null);
+      if (!withCycleDay.length) return { detectable: false };
+      const luteal = withCycleDay.filter(r => r.cycleDay >= 17 && r.cycleDay <= cycleLength);
+      if (!luteal.length) return { detectable: false };
+      const emotSymptoms = ['不安感', '気分の落ち込み', '倦怠感'];
+      const withEmot = luteal.filter(r =>
+        (r.symptoms || []).some(s => emotSymptoms.includes(s))
+      );
+      return {
+        detectable:     true,
+        lutealDays:     luteal.length,
+        emotionalRate:  Math.round((withEmot.length / luteal.length) * 100) / 100,
+      };
+    }
+
+    // lastPeriodDate ベースでの計算
+    const addDays = (dateStr, n) => {
+      const d = new Date(dateStr + 'T00:00:00Z');
+      d.setUTCDate(d.getUTCDate() + n);
+      return d.toISOString().slice(0, 10);
+    };
+    const lutealStart = addDays(lastPeriodDate, cycleLength - 14);
+    const lutealEnd   = addDays(lastPeriodDate, cycleLength - 1);
+    const luteal = records.filter(r => {
+      const d = r.record_date || r.date;
+      return d && d >= lutealStart && d <= lutealEnd;
+    });
+    if (!luteal.length) return { detectable: false };
+    const emotSymptoms = ['不安感', '気分の落ち込み', '倦怠感'];
+    const withEmot = luteal.filter(r =>
+      (r.symptoms || []).some(s => emotSymptoms.includes(s))
+    );
+    return {
+      detectable:     true,
+      lutealDays:     luteal.length,
+      emotionalRate:  Math.round((withEmot.length / luteal.length) * 100) / 100,
+    };
   }
 
   // 記録継続率（排卵追跡の有効性評価）

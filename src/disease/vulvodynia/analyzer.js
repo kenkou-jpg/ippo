@@ -23,6 +23,7 @@ export class VulvodyniaAnalyzer extends BaseAnalyzer {
       burningSensation:   this._calcBurningSensation(records),
       painTrend:          this._calcPainTrend(records),
       stressCorrelation:  this._calcStressCorrelation(records),
+      qualityOfLifeScore: this._calcQualityOfLifeScore(records),
     };
   }
 
@@ -98,6 +99,23 @@ export class VulvodyniaAnalyzer extends BaseAnalyzer {
       recentRate: Math.round(recentRate * 100) / 100,
       priorRate:  Math.round(priorRate  * 100) / 100,
       direction:  delta > 0.05 ? 'worsening' : delta < -0.05 ? 'improving' : 'stable',
+    };
+  }
+
+  // 生活の質スコア: 活動制限・感情症状・睡眠への影響を総合した代理指標
+  _calcQualityOfLifeScore(records) {
+    if (!records.length) return { score: 0, level: 'low' };
+    const qolImpactSymptoms = ['外陰部灼熱感', '刺痛', '座位痛', '不安感', '気分の落ち込み', '不眠'];
+    const qolDays = records.filter(r =>
+      (r.symptoms || []).some(s => qolImpactSymptoms.includes(s))
+    );
+    const rate = Math.round((qolDays.length / records.length) * 100) / 100;
+    const level = rate >= 0.5 ? 'high' : rate >= 0.25 ? 'moderate' : 'low';
+    return {
+      rate,
+      level,
+      note: level === 'high'
+        ? '症状が日常生活に広く影響しています。心理的サポートを含めたケアが助けになることがあります。' : null,
     };
   }
 

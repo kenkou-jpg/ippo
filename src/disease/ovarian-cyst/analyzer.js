@@ -21,6 +21,7 @@ export class OvarianCystAnalyzer extends BaseAnalyzer {
       cyclicPainProfile:   this._calcCyclicPainProfile(records),
       painTrend:           this._calcPainTrend(records),
       factorCorrelations:  this._calcFactorCorrelations(records),
+      acutePainRisk:       this._calcAcutePainRisk(records),
     };
   }
 
@@ -80,6 +81,18 @@ export class OvarianCystAnalyzer extends BaseAnalyzer {
       recentRate: Math.round(recentRate * 100) / 100,
       priorRate:  Math.round(priorRate  * 100) / 100,
       direction:  delta > 0.05 ? 'worsening' : delta < -0.05 ? 'improving' : 'stable',
+    };
+  }
+
+  // 急性疼痛リスク: 突然の高痛み（painLevel >= 8）の出現率と最大痛みレベル
+  _calcAcutePainRisk(records) {
+    if (!records.length) return { rate: 0, maxPain: null };
+    const acuteDays = records.filter(r => r.painLevel >= 8);
+    return {
+      rate:    Math.round((acuteDays.length / records.length) * 100) / 100,
+      maxPain: acuteDays.length ? Math.max(...acuteDays.map(r => r.painLevel)) : null,
+      note:    acuteDays.length >= 2
+        ? '突然の強い痛みが複数回記録されています。卵巣嚢腫の破裂・茎捻転のサインの可能性があります。' : null,
     };
   }
 
