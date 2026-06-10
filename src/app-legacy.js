@@ -4208,6 +4208,23 @@ function updateHomeInsightCard() {
   var records = state.records || [];
   if (records.length < 3) { card.style.display = 'none'; return; }
 
+  if (typeof window.buildHomeInsight === 'function') {
+    var packet = window.buildHomeInsight(records, state);
+
+    var lines = [];
+    if (packet.reason)     lines.push(packet.reason.title + ' — ' + packet.reason.body);
+    if (packet.prediction) lines.push(packet.prediction.title + ' — ' + packet.prediction.body);
+
+    if (lines.length) {
+      text.innerHTML = lines.map(function(l) { return '<div>' + l + '</div>'; }).join('');
+      card.style.display = 'block';
+      var predEl = document.getElementById('home-prediction-text');
+      if (predEl && packet.prediction) predEl.textContent = packet.prediction.body;
+      return;
+    }
+  }
+
+  // フォールバック: 旧ロジック
   var today = new Date();
   var weekRecords = records.filter(function(r) {
     var d = new Date(r.date || r.record_date || '');
@@ -4221,23 +4238,9 @@ function updateHomeInsightCard() {
   var avgPain    = weekRecords.reduce(function(s, r) { return s + (r.painLevel || 0); }, 0) / weekRecords.length;
 
   var insight = '';
-  var diseases = state.myDiseases || [];
-
-  if (painDays >= 4) {
-    insight = '今週は' + painDays + '日間、痛みの記録があります。';
-    if (diseases.indexOf('子宮内膜症') !== -1) insight += '周期フェーズとの関係をインサイトで確認してみましょう。';
-  } else if (noPainDays >= 5) {
-    insight = '今週は' + noPainDays + '日、らくな日が続いています。';
-  } else if (avgPain > 0) {
-    insight = '今週の平均痛みスコアは ' + avgPain.toFixed(1) + '/4 でした。';
-  }
-
-  var lowSleepPainDays = weekRecords.filter(function(r) {
-    return r.sleepQuality >= 3 && r.painLevel >= 2;
-  }).length;
-  if (lowSleepPainDays >= 2) {
-    insight += '睡眠の質が低い日に痛みが重なるパターンがあります。';
-  }
+  if (painDays >= 4)       insight = '今週は' + painDays + '日間、痛みの記録があります。';
+  else if (noPainDays >= 5) insight = '今週は' + noPainDays + '日、らくな日が続いています。';
+  else if (avgPain > 0)    insight = '今週の平均痛みスコアは ' + avgPain.toFixed(1) + '/4 でした。';
 
   if (!insight) { card.style.display = 'none'; return; }
   text.textContent = insight;
@@ -11282,6 +11285,18 @@ async function runAIAnalysis() {
     }
 
     body.querySelector('.ai-loading-text').textContent = 'パターンを解析中...';
+
+    // PR-E1: Prediction / Cluster DB→State
+    if (window.loadProfileCache && window.supabase && window.supabaseUserId) {
+      try {
+        const cache = await window.loadProfileCache(window.supabase, window.supabaseUserId);
+        state.predictionCache = cache.predictionCache;
+        state.clusterId       = cache.clusterId;
+        state.clusterMeta     = cache.clusterMeta;
+      } catch (_e) {
+        // キャッシュ取得失敗時は従来分析継続
+      }
+    }
 
     // 新経路: buildAIPrompt → features
     const p        = window.buildAIPrompt(state.records, state);

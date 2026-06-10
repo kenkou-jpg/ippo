@@ -134,6 +134,56 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ─── Phase H5: InsightPacket → Retention 通知 ─────────────────
+/**
+ * InsightPacket を受け取り、翌朝の Retention 通知を1件スケジュールする。
+ * @param {{ reason: object|null, prediction: object|null, action: object }} packet
+ * @param {string} time — "HH:MM" 形式（省略時 "08:00"）
+ */
+export function scheduleInsightNotification(packet, time) {
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  const body = _buildInsightNotificationBody(packet);
+  if (!body) return;
+
+  const parts  = (time || '08:00').split(':');
+  const target = new Date();
+  target.setHours(parseInt(parts[0]), parseInt(parts[1]), 0, 0);
+  if (target <= new Date()) target.setDate(target.getDate() + 1);
+
+  const delay = target.getTime() - Date.now();
+  setTimeout(function () {
+    new Notification('ippo — 今日の体調', {
+      body,
+      icon: 'images/icon-192.png',
+      tag:  'ippo-insight',
+    });
+  }, delay);
+}
+
+function _buildInsightNotificationBody(packet) {
+  if (!packet) return null;
+
+  // 優先度: prediction → reason → action
+  if (packet.prediction?.body) {
+    const score = packet.prediction.body.match(/予測スコア\s*([\d.]+)/);
+    if (score && parseFloat(score[1]) >= 6) {
+      return '明日も体調に注意が必要かもしれません。ippo で確認しましょう。';
+    }
+  }
+
+  if (packet.reason?.body && /悪化/.test(packet.reason.body)) {
+    return '症状の変化が続いています。今日も記録を続けましょう。';
+  }
+
+  if (packet.action?.priority <= 3) {
+    return packet.action.body;
+  }
+
+  return '今日の記録をつけて、体のパターンを把握しましょう。';
+}
+
 // ─── window 互換（移行期間: 非モジュール <script> との共存） ──
-window.requestNotificationPermission = requestNotificationPermission;
-window.scheduleReminders             = scheduleReminders;
+window.requestNotificationPermission  = requestNotificationPermission;
+window.scheduleReminders              = scheduleReminders;
+window.scheduleInsightNotification    = scheduleInsightNotification;
