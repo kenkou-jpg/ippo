@@ -5865,7 +5865,7 @@ function updateHomeSummary(){
   }
 
   // ⑨ 体温パターンインサイト
-  var tempAnalysis = calcTemperaturePhases(state.records);
+  var tempAnalysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
   if(tempAnalysis.status === 'ready'){
     var hasAlerts = tempAnalysis.alerts.length > 0;
     var alertColor = hasAlerts ? (tempAnalysis.alerts.some(function(a){return a.level==='emergency';}) ? '#c44848' : tempAnalysis.alerts.some(function(a){return a.level==='danger';}) ? '#c4878c' : '#d4a574') : '#6b9e78';
@@ -7328,7 +7328,7 @@ function checkAndShowTempAlert() {
   // 既存 calcTemperaturePhases alerts チェック
   var tempCount = state.records.filter(function(r) { return r.temperature; }).length;
   if (tempCount >= 14) {
-    var analysis = calcTemperaturePhases(state.records);
+    var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
     if (analysis && analysis.alerts && analysis.alerts.length > 0) {
       var hasEmergency = analysis.alerts.some(function(a) {
         return a.level === 'emergency' || a.level === 'danger';
@@ -8813,7 +8813,7 @@ function calcTemperaturePhases(records) {
 
 var _tempOverlayApi = null;
 function openTempReport(){
-  var analysis = calcTemperaturePhases(state.records);
+  var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
 
   // 分析対象メタ情報
   var tempRecs = state.records.filter(function(r){ return r.temperature; });
@@ -8961,7 +8961,7 @@ function showTempEducation(){
 
   var diseases = state.myDiseases || [];
   var tempCount = state.records.filter(function(r){ return r.temperature; }).length;
-  var analysis = tempCount >= 14 ? calcTemperaturePhases(state.records) : null;
+  var analysis = tempCount >= 14 ? (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records) : null;
 
   // 表示条件：体温データ0件、または3日以上記録が途切れている
   var lastTempDate = null;
@@ -11271,12 +11271,9 @@ async function runAIAnalysis() {
     const fromDate = ninetyDaysAgo.toISOString().split('T')[0];
     const toDate = today.toISOString().split('T')[0];
 
-    // ローカルから取得
     const records = state.records.filter(function(r) {
       var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
       return d >= fromDate && d <= toDate;
-    }).map(function(r) {
-      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
     });
 
     if (records.length < 3) {
@@ -11286,8 +11283,9 @@ async function runAIAnalysis() {
 
     body.querySelector('.ai-loading-text').textContent = 'パターンを解析中...';
 
-    // データを集計して要約を作成
-    const summary = buildDataSummary(records);
+    // 新経路: buildAIPrompt → features
+    const p        = window.buildAIPrompt(state.records, state);
+    const features = p.features;
 
     // 解析モードをセッション状態で事前判定（表示用）
     const _sc = window.supabase;
@@ -11299,22 +11297,22 @@ async function runAIAnalysis() {
 
     if (api.isStale(token)) return;
 
-    // データサマリーを先に表示
     let dataHtml = '<div class="ai-data-summary">';
     dataHtml += '<div class="ai-data-title" style="display:flex;justify-content:space-between;align-items:center;">解析対象データ ' + modeBadge + '</div>';
     dataHtml += '<div class="ai-data-row"><span class="ai-data-label">期間</span><span class="ai-data-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
-    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">記録件数</span><span class="ai-data-value">' + records.length + ' 件</span></div>';
-    if (summary.avgTemp) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均体温</span><span class="ai-data-value">' + summary.avgTemp + ' ℃</span></div>';
-    if (summary.avgFasting) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">平均ファスティング</span><span class="ai-data-value">' + summary.avgFasting + ' 時間</span></div>';
-    if (summary.topSymptom) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多症状</span><span class="ai-data-value">' + summary.topSymptom + '</span></div>';
-    if (summary.topEmotion) dataHtml += '<div class="ai-data-row"><span class="ai-data-label">最多感情</span><span class="ai-data-value">' + summary.topEmotion + '</span></div>';
+    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">記録件数</span><span class="ai-data-value">' + features.sampleSize + ' 件</span></div>';
+    if (features.topSymptoms && features.topSymptoms.length) {
+      dataHtml += '<div class="ai-data-row"><span class="ai-data-label">主な症状</span><span class="ai-data-value">' + features.topSymptoms.slice(0, 2).join('・') + '</span></div>';
+    }
+    if (features.flareTrigger) {
+      dataHtml += '<div class="ai-data-row"><span class="ai-data-label">主なトリガー</span><span class="ai-data-value">' + features.flareTrigger + '</span></div>';
+    }
     if (!_isAI) dataHtml += '<div class="ai-data-row" style="margin-top:6px;"><span style="font-size:11px;color:var(--ink-light);">ℹ️ ログインするとAIによる詳細解析が利用できます</span></div>';
     dataHtml += '</div>';
 
-    // AI APIを呼び出し
     body.innerHTML = dataHtml + '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">パターンを読み解いています...</div></div>';
 
-    const aiComment = await callAIAPI(summary);
+    const aiComment = await callAIAPI({ features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt });
     if (api.isStale(token)) return;
 
     // 結果を表示
@@ -11338,168 +11336,17 @@ async function runAIAnalysis() {
   }
 }
 
-function buildDataSummary(records) {
-  const emotionCounts = {};
-  const symptomCounts = {};
-  const temperatures = [];
-  const fastingHours = [];
-  const scores = [];
-  const notes = [];
-  const cycleData = [];
-  const painData = [];
-  const medicationCounts = {};
-  const bloodDetails = [];
-  const energyLevels = [];
-  const sleepHoursArr = [];
-  const sleepQualityArr = [];
-  const factorCounts = {};
-  const bowelCounts = {};
-  const wellnessScores = [];
-  const smiScores = [];
-  const dailySummaries = [];
 
-  records.forEach(r => {
-    const d = r.data || {};
-    const daySummary = { date: r.record_date };
-
-    if (d.emotion) {
-      emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
-      daySummary.emotion = d.emotion;
-    }
-    if (d.symptoms && d.symptoms.length > 0) {
-      d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
-      daySummary.symptoms = d.symptoms;
-    }
-    if (d.temperature) {
-      temperatures.push(parseFloat(d.temperature));
-      daySummary.temp = parseFloat(d.temperature);
-    }
-    if (d.score) {
-      scores.push(Number(d.score));
-      daySummary.score = Number(d.score);
-    }
-    if (d.note && d.note.trim()) {
-      notes.push(d.note);
-      daySummary.note = d.note;
-    }
-    if (d.menstrualCycle && d.menstrualCycle.trim()) {
-      cycleData.push({ date: r.record_date, status: d.menstrualCycle });
-      daySummary.cycle = d.menstrualCycle;
-    }
-    if (d.firstMealTime && d.lastMealTime) {
-      const first = d.firstMealTime.split(':').map(Number);
-      const last = d.lastMealTime.split(':').map(Number);
-      const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
-      if (eating > 0) {
-        const fh = 24 - (eating / 60);
-        fastingHours.push(fh);
-        daySummary.fasting = fh.toFixed(1);
-      }
-    }
-    if (d.meals) daySummary.meals = d.meals;
-        // 痛みデータ
-    if (d.painLevel && d.painLevel > 0) {
-      painData.push({ date: r.record_date, level: d.painLevel, location: d.painLocation || [], type: d.painType || [] });
-      daySummary.painLevel = d.painLevel;
-      daySummary.painLocation = d.painLocation;
-    }
-    // 服薬データ
-    if (d.medication && d.medication.length > 0) {
-      d.medication.forEach(m => { medicationCounts[m] = (medicationCounts[m] || 0) + 1; });
-      daySummary.medication = d.medication;
-    }
-    // 経血詳細
-    if (d.bloodClot && d.bloodClot.length > 0) {
-      daySummary.bloodClot = d.bloodClot;
-    }
-    if (d.bloodColor && d.bloodColor.length > 0) {
-      daySummary.bloodColor = d.bloodColor;
-    }
-    if (d.menstrualCycle && d.menstrualCycle !== 'なし') {
-      bloodDetails.push({ date: r.record_date, flow: d.menstrualCycle, clot: d.bloodClot || [], color: d.bloodColor || [] });
-    }
-
-    // エネルギー
-    if(d.energy){
-      energyLevels.push(d.energy);
-      daySummary.energy = d.energy;
-    }
-    // 睡眠
-    if(d.sleepHours){
-      sleepHoursArr.push(d.sleepHours);
-      daySummary.sleepHours = d.sleepHours;
-    }
-    if(d.sleepQuality){
-      sleepQualityArr.push(d.sleepQuality);
-      daySummary.sleepQuality = d.sleepQuality;
-    }
-    // ファクター
-    if(d.factors && d.factors.length > 0){
-      d.factors.forEach(f => { factorCounts[f] = (factorCounts[f] || 0) + 1; });
-      daySummary.factors = d.factors;
-    }
-    // お通じ
-    if(d.bowel){
-      bowelCounts[d.bowel] = (bowelCounts[d.bowel] || 0) + 1;
-      daySummary.bowel = d.bowel;
-    }
-    // ウェルネススコア
-    if(d.wellnessScore !== undefined){
-      wellnessScores.push(d.wellnessScore);
-      daySummary.wellnessScore = d.wellnessScore;
-    }
-    // SMIスコア
-    if(d.smiScore !== undefined && d.smiScore !== null){
-      smiScores.push(d.smiScore);
-      daySummary.smiScore = d.smiScore;
-    }
-
-    dailySummaries.push(daySummary);
-  });
-
-  const topSymptom = Object.entries(symptomCounts).sort((a, b) => b[1] - a[1])[0];
-
-  return {
-    totalDays: records.length,
-    avgTemp: temperatures.length > 0 ? (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2) : null,
-    avgFasting: fastingHours.length > 0 ? (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1) : null,
-    topSymptom: topSymptom ? topSymptom[0] + '（' + topSymptom[1] + '日）' : null,
-    emotionCounts,
-    symptomCounts,
-    cycleData,
-    scores,
-    fastingHours,
-        painData,
-    medicationCounts,
-    bloodDetails,
-    avgPainLevel: painData.length > 0 ? (painData.reduce((a, b) => a + b.level, 0) / painData.length).toFixed(1) : null,
-    painDays: painData.length,
-    medicationDays: Object.values(medicationCounts).reduce((a, b) => a + b, 0),
-       avgEnergy: energyLevels.length > 0 ? (energyLevels.reduce((a,b) => a+b, 0) / energyLevels.length).toFixed(1) : null,
-    avgSleepHours: sleepHoursArr.length > 0 ? (sleepHoursArr.reduce((a,b) => a+b, 0) / sleepHoursArr.length).toFixed(1) : null,
-    avgSleepQuality: sleepQualityArr.length > 0 ? (sleepQualityArr.reduce((a,b) => a+b, 0) / sleepQualityArr.length).toFixed(1) : null,
-    factorCounts,
-    bowelCounts,
-    avgWellness: wellnessScores.length > 0 ? (wellnessScores.reduce((a,b) => a+b, 0) / wellnessScores.length).toFixed(0) : null,
-    avgSMI: smiScores.length > 0 ? (smiScores.reduce((a,b) => a+b, 0) / smiScores.length).toFixed(0) : null,
-    wellnessScores,
-    smiScores,
-    notes: notes.slice(-10),
-    dailySummaries: dailySummaries.slice(-30)
-  };
-}
-
-async function callAIAPI(summary) {
-  // Edge Function 経由で AI 解析を実行（クライアントに API キー不要）
+// PR-C4: features 経路のみ。旧 records/analysisType 分岐・generateLocalAnalysis 削除済み。
+async function callAIAPI(apiPayload) {
   var supabaseClient = window.supabase;
   var sessionData = supabaseClient ? (await supabaseClient.auth.getSession()).data?.session : null;
 
   if (!sessionData) {
-    return generateLocalAnalysis(summary);
+    return 'ログインするとAIによる詳細解析が利用できます。記録が蓄積されています。';
   }
 
   var supabaseUrl = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
-  var records = typeof state !== 'undefined' && state.records ? state.records : [];
 
   var resp = await fetch(supabaseUrl + '/functions/v1/ai-analyze', {
     method: 'POST',
@@ -11507,15 +11354,7 @@ async function callAIAPI(summary) {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + sessionData.access_token,
     },
-    body: JSON.stringify((function() {
-      try {
-        if (typeof window.buildAIPrompt === 'function') {
-          var p = window.buildAIPrompt(records, state);
-          return { features: p.features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt };
-        }
-      } catch (_) {}
-      return { records: records, analysisType: 'pattern' };
-    })()),
+    body: JSON.stringify(apiPayload),
   });
 
   if (!resp.ok) {
@@ -11526,152 +11365,8 @@ async function callAIAPI(summary) {
 
   var data = await resp.json();
   var content = data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? null;
-  if (!content) return generateLocalAnalysis(summary);
+  if (!content) throw new Error('AIの応答を取得できませんでした。');
   return content;
-}
-
-// APIキーなしのローカル解析（フォールバック）
-function generateLocalAnalysis(summary) {
-  let html = '';
-
-  html += '<p>' + summary.totalDays + '日分の記録を分析しました。';
-  if (summary.avgTemp) {
-    html += '基礎体温の平均は ' + summary.avgTemp + '℃ で';
-    const temp = parseFloat(summary.avgTemp);
-    if (temp >= 36.5) html += '、安定した範囲にあるようです。';
-    else html += '、やや低めの傾向があるかもしれません。';
-  }
-  html += '</p>';
-
-  if (summary.avgFasting) {
-    html += '<p>ファスティングは平均 ' + summary.avgFasting + ' 時間を維持しています。';
-    const fh = parseFloat(summary.avgFasting);
-    if (fh >= 16) html += '16時間以上をキープできているのは、継続力の表れです。';
-    else if (fh >= 14) html += '14時間台ですので、無理のないペースで続けられているようです。';
-    else html += 'まだ短めですが、少しずつ伸ばしていくのも一つの方法かもしれません。';
-    html += '</p>';
-  }
-
-  const topSymptoms = Object.entries(summary.symptomCounts).sort((a, b) => b[1] - a[1]);
-  if (topSymptoms.length > 0) {
-    html += '<p>症状としては「' + topSymptoms[0][0] + '」が ' + topSymptoms[0][1] + '日で最も多く記録されています。';
-    if (topSymptoms.length > 1) html += '次いで「' + topSymptoms[1][0] + '」が ' + topSymptoms[1][1] + '日です。';
-    html += '生理周期のどの時期に集中しているか、引き続き記録を重ねると傾向が見えてくるかもしれません。</p>';
-  }
-
-  if (Object.keys(summary.emotionCounts).length > 0) {
-    const topEmo = Object.entries(summary.emotionCounts).sort((a, b) => b[1] - a[1])[0];
-    html += '<p>感情面では「' + topEmo[0] + '」が ' + topEmo[1] + '日で最も多い傾向です。';
-    html += 'からだの状態と感情の波がどうつながっているか、記録が増えるほど見えてくるものがあるかもしれません。</p>';
-  }
-
-    // 痛みの分析
-  if (summary.painDays > 0) {
-    html += '<p>痛みの記録が ' + summary.painDays + '日あり、平均強度は ' + summary.avgPainLevel + '/10 です。';
-    const locations = [...new Set(summary.painData.flatMap(p => p.location))];
-    if (locations.length > 0) {
-      html += '主な部位は「' + locations.join('・') + '」です。';
-    }
-    // 痛みと生理周期の関連
-    const painWithCycle = summary.dailySummaries.filter(d => d.painLevel && d.painLevel > 0 && d.cycle && d.cycle !== 'なし');
-    if (painWithCycle.length > 0) {
-      html += '生理期間中の痛みが ' + painWithCycle.length + '日記録されており、周期との関連があるかもしれません。';
-    }
-    html += '</p>';
-  }
-
-  // 服薬の分析
-  if (Object.keys(summary.medicationCounts).length > 0) {
-    const topMed = Object.entries(summary.medicationCounts).sort((a, b) => b[1] - a[1]);
-    html += '<p>服薬記録では「' + topMed[0][0] + '」が ' + topMed[0][1] + '日で最も多く使用されています。';
-    // 鎮痛剤と痛みレベルの関連
-    if (summary.medicationCounts['鎮痛剤'] && summary.painDays > 0) {
-      const painWithMed = summary.dailySummaries.filter(d => d.medication && d.medication.indexOf('鎮痛剤') !== -1 && d.painLevel);
-      const painWithoutMed = summary.dailySummaries.filter(d => (!d.medication || d.medication.indexOf('鎮痛剤') === -1) && d.painLevel);
-      if (painWithMed.length > 0 && painWithoutMed.length > 0) {
-        const avgWithMed = (painWithMed.reduce((a, b) => a + b.painLevel, 0) / painWithMed.length).toFixed(1);
-        const avgWithoutMed = (painWithoutMed.reduce((a, b) => a + b.painLevel, 0) / painWithoutMed.length).toFixed(1);
-        html += '鎮痛剤使用日の平均痛み強度は ' + avgWithMed + '/10、未使用日は ' + avgWithoutMed + '/10 です。';
-      }
-    }
-    html += '</p>';
-  }
-
-  // 経血詳細の分析
-  if (summary.bloodDetails.length > 0) {
-    const heavyDays = summary.bloodDetails.filter(b => b.flow === '多い').length;
-    const clotDays = summary.bloodDetails.filter(b => b.clot.indexOf('塊あり') !== -1).length;
-    if (heavyDays > 0 || clotDays > 0) {
-      html += '<p>経血量「多い」が ' + heavyDays + '日';
-      if (clotDays > 0) html += '、塊ありが ' + clotDays + '日';
-      html += '記録されています。受診時にこの記録を共有すると、より具体的な相談ができるかもしれません。</p>';
-    }
-  }
-    // エネルギーの分析
-    if(summary.avgEnergy){
-      html += '<p>エネルギーレベルの平均は ' + summary.avgEnergy + '/5 です。';
-      var avgE = parseFloat(summary.avgEnergy);
-      if(avgE >= 4) html += '全体的に活力のある日が多いようです。';
-      else if(avgE >= 3) html += '安定した範囲ですが、低い日のパターンに注目してみると発見があるかもしれません。';
-      else html += 'やや低めの傾向です。睡眠や生活ファクターとの関連を見てみると、ヒントが見つかるかもしれません。';
-      html += '</p>';
-    }
-
-    // 睡眠の分析
-    if(summary.avgSleepHours){
-      html += '<p>平均睡眠時間は ' + summary.avgSleepHours + '時間';
-      if(summary.avgSleepQuality) html += '、睡眠の質は平均 ' + summary.avgSleepQuality + '/5';
-      html += 'です。';
-      var avgSH = parseFloat(summary.avgSleepHours);
-      if(avgSH < 6) html += '6時間未満が続くと体調に影響が出やすい傾向があります。';
-      else if(avgSH <= 8) html += '適切な範囲を維持できているようです。';
-      else html += '長めの睡眠が続いていますが、疲労感が抜けない場合は睡眠の質にも注目してみてください。';
-      html += '</p>';
-    }
-
-    // 生活ファクターの分析
-    if(Object.keys(summary.factorCounts).length > 0){
-      var topFactors = Object.entries(summary.factorCounts).sort((a,b) => b[1] - a[1]);
-      html += '<p>生活ファクターでは「' + topFactors[0][0] + '」が ' + topFactors[0][1] + '日で最も多く記録されています。';
-      if(topFactors.length > 1) html += '次いで「' + topFactors[1][0] + '」が ' + topFactors[1][1] + '日です。';
-      html += 'これらのファクターと症状やエネルギーの変化を照らし合わせると、興味深いパターンが見えてくるかもしれません。</p>';
-    }
-
-    // お通じの分析
-    if(Object.keys(summary.bowelCounts).length > 0){
-      var topBowel = Object.entries(summary.bowelCounts).sort((a,b) => b[1] - a[1])[0];
-      html += '<p>お通じは「' + topBowel[0] + '」が ' + topBowel[1] + '日で最も多い傾向です。';
-      if(summary.bowelCounts['なし'] && summary.bowelCounts['なし'] >= 3){
-        html += 'お通じなしの日が ' + summary.bowelCounts['なし'] + '日あり、食事内容や水分摂取との関連があるかもしれません。';
-      }
-      html += '</p>';
-    }
-
-    // ウェルネススコアの分析
-    if(summary.avgWellness){
-      var avgW = parseInt(summary.avgWellness);
-      html += '<p>ウェルネススコアの平均は ' + avgW + '/100 です。';
-      if(avgW >= 70) html += '全体的に良好な状態が続いているようです。';
-      else if(avgW >= 40) html += 'まずまずの状態ですが、スコアが下がる日の共通点を探ると改善のヒントが見つかるかもしれません。';
-      else html += '低めの傾向が続いています。無理せず、できることから少しずつ整えていけると良いですね。';
-      html += '</p>';
-    }
-
-    // SMIスコアの分析
-    if(summary.avgSMI){
-      var avgSMI = parseInt(summary.avgSMI);
-      html += '<p>更年期指数（SMI）の平均は ' + avgSMI + '/94 です。';
-      if(avgSMI <= 25) html += '現時点では大きな問題はなさそうです。';
-      else if(avgSMI <= 50) html += '軽〜中程度の症状が見られます。日々の変動を記録し続けることで、対策のヒントが見つかるかもしれません。';
-      else html += '症状が強めに出ている傾向です。この記録を持って専門医に相談されることをおすすめします。';
-      html += '</p>';
-    }
-
-  if (html === '') {
-    html = '<p>記録データがまだ少ないため、詳細なパターン解析が難しい状態です。毎日の記録を続けることで、より具体的な傾向が見えてきます。</p>';
-  }
-
-  return html;
 }
 
 function copyAIAnalysis() {
@@ -12238,7 +11933,7 @@ function premiumGate(callback) {
       if(callback === openTempReport){
         var tempCount = state.records.filter(function(r){return r.temperature;}).length;
         if(tempCount >= 14){
-          var analysis = calcTemperaturePhases(state.records);
+          var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
           if(analysis.status === 'ready' && analysis.alerts.length > 0){
             msg = '⚠️ あなたの体温データから'+analysis.alerts.length+'件の気になるパターンが検出されています。詳細な分析と医師相談の目安を確認できます。';
           } else {
@@ -12325,7 +12020,6 @@ if (typeof appendSymptomDetail === "function") window.appendSymptomDetail = appe
 if (typeof applyFastingVisibility === "function") window.applyFastingVisibility = applyFastingVisibility;
 if (typeof applySymptomChipPriority === "function") window.applySymptomChipPriority = applySymptomChipPriority;
 if (typeof buildComparisonComment === "function") window.buildComparisonComment = buildComparisonComment;
-if (typeof buildDataSummary === "function") window.buildDataSummary = buildDataSummary;
 if (typeof buildDayComparison === "function") window.buildDayComparison = buildDayComparison;
 if (typeof buildEffectiveLayer1 === "function") window.buildEffectiveLayer1 = buildEffectiveLayer1;
 if (typeof buildPhaseBar === "function") window.buildPhaseBar = buildPhaseBar;

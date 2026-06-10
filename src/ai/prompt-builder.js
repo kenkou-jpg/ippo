@@ -7,8 +7,8 @@
 //   - 疾患が未設定の場合は _default system prompt を使用する。
 //   - model・max_tokens はここで一元管理する。
 
-const MODEL   = 'claude-sonnet-4-20250514';
-const MAX_TOKENS = 800;
+const MODEL      = 'claude-sonnet-4-20250514';
+const MAX_TOKENS = 1000;
 
 // ─────────────────────────────────────────────────────────────
 //  疾患別 system prompt
@@ -145,11 +145,44 @@ function _buildUserPrompt(features) {
     lines.push('');
   }
 
+  if (features.prediction) {
+    lines.push(`## 翌日の体調予測（参考）`);
+    const p = features.prediction;
+    if (p.painForecast    !== null) lines.push(`- 痛みの予測: ${p.painForecast.toFixed(1)}/10`);
+    if (p.fatigueForecast !== null) lines.push(`- 疲労の予測: ${p.fatigueForecast.toFixed(1)}/10`);
+    if (p.headacheForecast !== null) lines.push(`- 頭痛リスク: ${Math.round(p.headacheForecast * 100)}%`);
+    if (p.sleepForecast   !== null) lines.push(`- 睡眠予測: ${p.sleepForecast.toFixed(1)}時間`);
+    lines.push(`- 予測信頼度: ${_confidenceLabel(p.confidence)}（${p.sampleSize}件の記録から）`);
+    lines.push(`- ※これは統計的傾向であり、診断や保証ではありません`);
+    lines.push('');
+  }
+
+  if (features.cluster) {
+    lines.push(`## 同じ傾向のユーザーとの比較`);
+    const c = features.cluster;
+    if (c.avgPain    !== null) lines.push(`- 同グループの平均痛み: ${c.avgPain.toFixed(1)}/10`);
+    if (c.avgFatigue !== null) lines.push(`- 同グループの平均疲労: ${c.avgFatigue.toFixed(1)}/10`);
+    if (c.avgSleep   !== null) lines.push(`- 同グループの平均睡眠: ${c.avgSleep.toFixed(1)}時間`);
+    if (c.clusterSize !== null) lines.push(`- グループ人数: 約${c.clusterSize}人`);
+    lines.push('');
+  }
+
+  if (features.temperature) {
+    lines.push(`## 体温リズム分析`);
+    const t = features.temperature;
+    lines.push(`- 二相性パターン: ${t.biphasicDetected ? '検出あり' : '検出なし'}`);
+    lines.push(`- 低温・高温の温度差: ${t.tempDiff}℃`);
+    if (t.ovulationEstimate) lines.push(`- 体温上昇が見られた時期: ${t.ovulationEstimate}ごろ`);
+    lines.push(`- 体温分析の信頼度: ${_confidenceLabel(t.confidence)}`);
+    lines.push('');
+  }
+
   lines.push(`## お願い`);
-  lines.push(`上記の記録データをもとに、以下を200字以内で教えてください：`);
+  lines.push(`上記の記録データをもとに、以下を250字以内で教えてください：`);
   lines.push(`1. 注目すべき症状パターン（1〜2点）`);
   lines.push(`2. 日常生活で試してみると良いこと（1点）`);
-  lines.push(`3. 医師への相談を検討すべき状況（該当する場合のみ）`);
+  lines.push(`3. 体温リズム・翌日予測など追加情報から気づいたこと（該当する場合のみ・1点）`);
+  lines.push(`4. 医師への相談を検討すべき状況（該当する場合のみ）`);
   lines.push(``);
   lines.push(`※ ${features.disclaimer}`);
 

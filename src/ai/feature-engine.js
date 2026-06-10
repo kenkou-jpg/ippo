@@ -9,18 +9,48 @@
 // 出力: ClaudeFeatures（文字列・数値・boolean のみ。生レコードなし）
 
 /**
+ * @typedef {Object} PredictionFeature
+ * @property {number|null} painForecast     — 翌日痛み予測 (0-10)
+ * @property {number|null} fatigueForecast  — 翌日疲労予測 (0-10)
+ * @property {number|null} headacheForecast — 翌日頭痛リスク (0-1)
+ * @property {number|null} sleepForecast    — 翌夜睡眠予測 (h)
+ * @property {string}      confidence       — 'high'|'medium'|'low'|'insufficient'
+ * @property {number}      sampleSize
+ */
+
+/**
+ * @typedef {Object} ClusterFeature
+ * @property {number|null} clusterId   — クラスタ番号 (0-4)
+ * @property {number|null} clusterSize — 同クラスタのユーザー数
+ * @property {number|null} avgPain     — 同クラスタ平均痛み
+ * @property {number|null} avgFatigue  — 同クラスタ平均疲労
+ * @property {number|null} avgSleep    — 同クラスタ平均睡眠
+ */
+
+/**
+ * @typedef {Object} TemperatureFeature
+ * @property {boolean}     biphasicDetected  — 二相性あり
+ * @property {string|null} ovulationEstimate — 推定排卵日 YYYY-MM-DD
+ * @property {number}      tempDiff          — 低温期・高温期の温度差
+ * @property {string}      confidence
+ */
+
+/**
  * @typedef {Object} ClaudeFeatures
- * @property {string}         period          — 分析期間ラベル
- * @property {number}         sampleSize      — 有効レコード数
- * @property {string}         confidence      — 'high'|'medium'|'low'|'insufficient'
- * @property {string[]}       topSymptoms     — 上位5症状名
- * @property {string}         trend           — 'worsening'|'stable'|'improving'
- * @property {string}         flareRate       — "25%" 形式
- * @property {string|null}    flareTrigger    — 最頻フレアトリガー
- * @property {string|null}    disease         — 疾患名（日本語）
- * @property {object|null}    diseaseSpecific — 疾患固有の分析結果
- * @property {boolean}        worsened        — 直近30日で悪化傾向か
- * @property {string}         disclaimer      — 医療免責文言（常に付与）
+ * @property {string}             period          — 分析期間ラベル
+ * @property {number}             sampleSize      — 有効レコード数
+ * @property {string}             confidence      — 'high'|'medium'|'low'|'insufficient'
+ * @property {string[]}           topSymptoms     — 上位5症状名
+ * @property {string}             trend           — 'worsening'|'stable'|'improving'
+ * @property {string}             flareRate       — "25%" 形式
+ * @property {string|null}        flareTrigger    — 最頻フレアトリガー
+ * @property {string|null}        disease         — 疾患名（日本語）
+ * @property {object|null}        diseaseSpecific — 疾患固有の分析結果
+ * @property {boolean}            worsened        — 直近30日で悪化傾向か
+ * @property {string}             disclaimer      — 医療免責文言（常に付与）
+ * @property {PredictionFeature|null}  prediction — PR-D1: 翌日予測
+ * @property {ClusterFeature|null}     cluster    — PR-D2: クラスタ比較
+ * @property {TemperatureFeature|null} temperature — PR-D3: 体温分析
  */
 
 /**
@@ -30,12 +60,15 @@
  *   sampleInfo?:     { sampleSize, confidence },
  *   flares?:         { flareRate, topTriggers },
  *   diseaseAnalysis?: object[],   // disease-registry の analyzeAll() 出力
+ *   prediction?:     predictNext() の出力 (PR-D1)
+ *   cluster?:        { clusterId, clusterSize, avgPain, avgFatigue, avgSleep } (PR-D2)
+ *   temperature?:    analyzeTemperature() の出力 (PR-D3)
  * }
  * @param {object} state — { diseases?, lastPeriodDate?, cycleLength? }
  * @returns {ClaudeFeatures}
  */
 export function extractFeatures(analyticsResults, state = {}) {
-  const { sampleInfo, flares, diseaseAnalysis } = analyticsResults || {};
+  const { sampleInfo, flares, diseaseAnalysis, prediction, cluster, temperature } = analyticsResults || {};
   const primaryDisease = diseaseAnalysis?.[0] || null;
 
   return {
@@ -50,6 +83,9 @@ export function extractFeatures(analyticsResults, state = {}) {
     diseaseSpecific: _safeDiseasePecific(primaryDisease),
     worsened:        primaryDisease?.trend?.direction === 'worsening',
     disclaimer:      'これは医療診断ではありません。症状が続く場合は医師にご相談ください。',
+    prediction:      _extractPrediction(prediction),
+    cluster:         _extractCluster(cluster),
+    temperature:     _extractTemperature(temperature),
   };
 }
 
@@ -102,4 +138,55 @@ function _trendLabel(trend) {
   return trend === 'worsening' ? '悪化傾向'
        : trend === 'improving' ? '改善傾向'
        : '安定';
+}
+
+// ─── PR-D1: Prediction ───────────────────────────────────────
+
+/**
+ * predictNext() 出力 → PredictionFeature（生レコードなし）
+ * @private
+ */
+function _extractPrediction(prediction) {
+  if (!prediction || prediction.confidence === 'insufficient') return null;
+  return {
+    painForecast:     prediction.pain?.value     ?? null,
+    fatigueForecast:  prediction.fatigue?.value  ?? null,
+    headacheForecast: prediction.headache?.value ?? null,
+    sleepForecast:    prediction.sleep?.value    ?? null,
+    confidence:       prediction.confidence      ?? 'low',
+    sampleSize:       prediction.sampleSize      ?? 0,
+  };
+}
+
+// ─── PR-D2: Cluster ──────────────────────────────────────────
+
+/**
+ * profiles.cluster_meta 読み込み結果 → ClusterFeature
+ * @private
+ */
+function _extractCluster(cluster) {
+  if (!cluster || cluster.clusterId === null || cluster.clusterId === undefined) return null;
+  return {
+    clusterId:   cluster.clusterId,
+    clusterSize: cluster.clusterSize  ?? null,
+    avgPain:     cluster.avgPain      ?? null,
+    avgFatigue:  cluster.avgFatigue   ?? null,
+    avgSleep:    cluster.avgSleep     ?? null,
+  };
+}
+
+// ─── PR-D3: Temperature ──────────────────────────────────────
+
+/**
+ * analyzeTemperature() 出力 → TemperatureFeature（readings/ewmaLine除去）
+ * @private
+ */
+function _extractTemperature(temperature) {
+  if (!temperature || temperature.confidence === 'insufficient') return null;
+  return {
+    biphasicDetected:  temperature.biphasicDetected  ?? false,
+    ovulationEstimate: temperature.ovulationEstimate ?? null,
+    tempDiff:          temperature.tempDiff          ?? 0,
+    confidence:        temperature.confidence        ?? 'low',
+  };
 }

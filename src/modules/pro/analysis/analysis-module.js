@@ -47,36 +47,19 @@ import { buildPrompt }         from '../../../ai/prompt-builder.js';
 // Phase3: cycle-engine（Strangler: window.analyzeCyclePhases 差し替え完了）
 import { analyzeCyclePhases as analyzeCyclePhasesEngine } from '../../../analytics/cycle-engine.js';
 // Phase4: 予測・体温エンジン
-import { analyzeTemperature as analyzeTemperatureEngine } from '../../../analytics/temperature-engine.js';
+import { analyzeTemperature as analyzeTemperatureEngine, analyzeTemperatureLegacy } from '../../../analytics/temperature-engine.js';
 import { predictNext }         from '../../../analytics/prediction-engine.js';
 // Layer B Step1: prediction_cache write path
 import { savePredictionCache } from '../../../services/prediction-cache-service.js';
 
 // ─── 1. AIパターン解析 ────────────────────────────────────────────
 /**
- * 90日分のrecordsから多面的なサマリーを生成する。
- * app-legacy.js の buildDataSummary() を流用。
- * @param {Object[]} records - state.records
- * @returns {Object|null}
+ * PR-C4: buildDataSummary 削除に伴い廃止。
+ * AIパターン解析は buildAIPrompt() → ai-analyze 新経路で行う。
+ * @returns {null}
  */
-export function analyzePatterns(records) {
-  const fn = window.buildDataSummary;
-  if (typeof fn !== 'function') return null;
-
-  const now = new Date();
-  const ago90 = new Date(now - 90 * 86400000);
-  const fromDate = ago90.toISOString().slice(0, 10);
-  const toDate   = now.toISOString().slice(0, 10);
-
-  // buildDataSummary は { record_date, data } 形式を期待する
-  const wrapped = (records || [])
-    .filter(r => {
-      const d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
-      return d >= fromDate && d <= toDate;
-    })
-    .map(r => ({ record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r }));
-
-  return fn(wrapped);
+export function analyzePatterns(_records) {
+  return null;
 }
 
 // ─── 2. 症状が強かった日の共通点 ─────────────────────────────────
@@ -190,6 +173,9 @@ export function analyzeCycle(records, state = {}) {
 export function analyzeTemperature(records) {
   return analyzeTemperatureEngine(records || []);
 }
+
+// PR-D3 Strangler: app-legacy.js calcTemperaturePhases() 互換 shim
+export { analyzeTemperatureLegacy };
 
 // ─── 6. からだサマリー ───────────────────────────────────────────
 /**
@@ -598,35 +584,70 @@ export function buildPredictionPayload(records, state = {}, context = null) {
  *   maxTokens:    number,
  * }}
  */
+/**
+ * PR-D1〜D4: records → analytics → disease → prediction + cluster + temperature
+ *             → feature-engine → prompt-builder の完全パイプライン。
+ *
+ * @param {Object[]} records
+ * @param {Object}   state   — { myDiseases?, lastPeriodDate?, cycleLength?,
+ *                               predictionCache?, clusterMeta?, clusterId? }
+ * @returns {{ features, systemPrompt, userPrompt, model, maxTokens }}
+ */
 export function buildAIPrompt(records, state = {}) {
   const recs = records || [];
 
   // ── Step1: analytics 層 ──────────────────────────────────────
-  const sampleInfo     = getSampleInfo(recs);
-  const flares         = detectFlares(recs);
+  const sampleInfo = getSampleInfo(recs);
+  const flares     = detectFlares(recs);
 
   // ── Step2: disease-registry ──────────────────────────────────
   const diseases        = state.myDiseases || [];
   const diseaseKeys     = resolveKeys(diseases);
   const diseaseAnalysis = analyzeAll(diseaseKeys, recs, state);
 
-  // ── Step3: feature-engine ─────────────────────────────────────
-  const analyticsResults = { sampleInfo, flares, diseaseAnalysis };
-  const features         = extractFeatures(analyticsResults, {
+  // ── Step3: PR-D1 Prediction（prediction_cache から取得済みデータを使用）──
+  // prediction_cache は buildPredictionPayload() が毎保存後に書き込む。
+  // ここでは再計算せず、呼び出し元が state.predictionCache として渡す。
+  const prediction = state.predictionCache || null;
+
+  // ── Step4: PR-D2 Cluster（profiles.cluster_meta を呼び出し元から受け取る）──
+  const cluster = _buildClusterInput(state);
+
+  // ── Step5: PR-D3 Temperature（temperature-engine で算出）────────
+  const temperature = analyzeTemperatureEngine(recs);
+
+  // ── Step6: feature-engine ────────────────────────────────────
+  const analyticsResults = { sampleInfo, flares, diseaseAnalysis, prediction, cluster, temperature };
+  const features = extractFeatures(analyticsResults, {
     diseases,
     lastPeriodDate: state.lastPeriodDate,
     cycleLength:    state.cycleLength,
   });
 
-  // ── Step4: prompt-builder ─────────────────────────────────────
+  // ── Step7: prompt-builder ─────────────────────────────────────
   const prompt = buildPrompt(features);
 
-  // ── ai-analyze 新経路ペイロード ───────────────────────────────
   return {
     features,
     systemPrompt: prompt.system,
     userPrompt:   prompt.user,
     model:        prompt.model,
     maxTokens:    prompt.maxTokens,
+  };
+}
+
+/**
+ * state.clusterId + state.clusterMeta → ClusterFeature 入力形式に変換。
+ * @private
+ */
+function _buildClusterInput(state) {
+  const meta = state.clusterMeta;
+  if (!meta || state.clusterId === null || state.clusterId === undefined) return null;
+  return {
+    clusterId:   state.clusterId,
+    clusterSize: meta.size      ?? null,
+    avgPain:     meta.avgPain   ?? null,
+    avgFatigue:  meta.avgFatigue ?? null,
+    avgSleep:    meta.avgSleep  ?? null,
   };
 }

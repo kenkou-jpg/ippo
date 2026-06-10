@@ -215,6 +215,7 @@ import {
   analyzeCoOccurrence,
   analyzeCycle,
   analyzeTemperature,
+  analyzeTemperatureLegacy,
   buildBodySummary,
   analyzeCondition,
   analyzeSymptomTrends,
@@ -225,11 +226,13 @@ import {
   buildPredictionPayload,
   buildAIPrompt,
 } from './modules/pro/analysis/analysis-module.js';
-window.analyzePatterns      = analyzePatterns;
-window.analyzeFlareDays     = analyzeFlareDays;
-window.analyzeCoOccurrence  = analyzeCoOccurrence;
-window.analyzeCycle         = analyzeCycle;
-window.analyzeTemperature   = analyzeTemperature;
+window.analyzePatterns          = analyzePatterns;
+window.analyzeFlareDays         = analyzeFlareDays;
+window.analyzeCoOccurrence      = analyzeCoOccurrence;
+window.analyzeCycle             = analyzeCycle;
+window.analyzeTemperature       = analyzeTemperature;
+// PR-D3: Strangler shim — app-legacy.js の calcTemperaturePhases() 呼び出しサイトが参照する
+window.analyzeTemperatureLegacy = analyzeTemperatureLegacy;
 window.buildBodySummary     = buildBodySummary;
 window.analyzeCondition     = analyzeCondition;
 window.analyzeSymptomTrends = analyzeSymptomTrends;
