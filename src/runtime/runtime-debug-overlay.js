@@ -236,4 +236,149 @@ if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('runtime-debug-overlay-loaded', { enabled: _ENABLED });
 }
 
+// ─── Data Diagnostics (moved from app-legacy.js Phase 4-B) ───
+
+function _mergeRecordsLocal(local, cloud) {
+  var merged = {};
+  local.forEach(function(r) { if (r.id) merged[r.id] = r; });
+  cloud.forEach(function(r) {
+    if (!r.id) return;
+    if (!merged[r.id]) { merged[r.id] = r; return; }
+    var lt = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
+    var ct = new Date(r.updatedAt || r.date || 0).getTime();
+    if (ct > lt) merged[r.id] = r;
+  });
+  return Object.values(merged).filter(function(r) { return !r.deleted_at; })
+    .sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+}
+
+function runSelfDiagnosis() {
+  var s = window.getState ? window.getState() : (window.state || {});
+  var results = { local: (s.records || []).length, idb: 0, cloud: 0, history: [] };
+  var sb = window.supabase;
+  var idbGet = typeof window.idbGetAllRecords === 'function'
+    ? window.idbGetAllRecords() : Promise.resolve([]);
+  return idbGet.then(function(recs) {
+    results.idb = recs.filter(function(r) { return !r.deleted_at; }).length;
+    if (!sb) return results;
+    return sb.auth.getSession();
+  }).then(function(res) {
+    if (!res || !res.data || !res.data.session) return results;
+    var userId = res.data.session.user.id;
+    return sb.from('user_records').select('id', { count: 'exact' })
+      .eq('user_id', userId).is('deleted_at', null)
+      .then(function(r) {
+        results.cloud = r.count || 0;
+        return sb.from('user_data_history').select('id,records_count,created_at')
+          .eq('user_id', userId).order('created_at', { ascending: false }).limit(5);
+      }).then(function(r) { results.history = r.data || []; return results; });
+  }).catch(function(e) { console.warn('診断エラー:', e); return results; });
+}
+
+function showDiagnosisUI() {
+  var overlay = document.createElement('div');
+  overlay.id = 'diagnosis-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+  var box = document.createElement('div');
+  box.style.cssText = 'background:white;border-radius:20px;padding:24px;margin:20px;max-width:360px;width:100%;';
+  box.innerHTML = '<div style="text-align:center;font-size:15px;font-weight:600;margin-bottom:16px;">🔍 データ診断中...</div><div id="diagnosis-result" style="font-size:13px;color:#666;text-align:center;">確認しています...</div>';
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', function(e) { if (e.target === overlay) overlay.remove(); }, { once: true });
+  runSelfDiagnosis().then(function(r) {
+    var best = Math.max(r.local, r.idb, r.cloud);
+    var source = best === r.cloud ? 'クラウド' : best === r.idb ? 'IndexedDB' : 'ローカル';
+    var needsRepair = r.local < best;
+    var html = '<div style="text-align:left;margin-bottom:16px;">';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">📱 ローカル: <b>' + r.local + '件</b></div>';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">💾 IndexedDB: <b>' + r.idb + '件</b></div>';
+    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">☁️ クラウド: <b>' + r.cloud + '件</b></div>';
+    html += '<div style="padding:8px 0;">📦 バックアップ: <b>' + r.history.length + '世代</b></div></div>';
+    if (needsRepair) {
+      html += '<div style="background:#fef3f2;border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:#c44848;">⚠️ データの不一致を検出。' + source + 'に' + best + '件あります。</div>';
+      html += '<button onclick="window.repairFromBest&&window.repairFromBest()" style="width:100%;padding:14px;background:#c4878c;color:white;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;">🔧 自動修復する</button>';
+    } else {
+      html += '<div style="background:#e8f4ec;border-radius:12px;padding:12px;font-size:12px;color:#2d6a3f;">✅ データは正常です。3箇所すべて一致しています。</div>';
+    }
+    if (r.history.length > 0) {
+      html += '<div style="margin-top:12px;font-size:12px;color:#888;">過去のバックアップ:';
+      r.history.forEach(function(h) {
+        html += '<div style="margin-top:6px;padding:8px;background:#f8f5f0;border-radius:8px;cursor:pointer;" onclick="window.restoreFromHistory&&window.restoreFromHistory(\'' + h.id + '\')">';
+        html += new Date(h.created_at).toLocaleString('ja-JP') + ' (' + h.records_count + '件) →復元</div>';
+      });
+      html += '</div>';
+    }
+    html += '<button onclick="document.getElementById(\'diagnosis-overlay\').remove()" style="width:100%;margin-top:12px;padding:12px;background:none;border:1px solid #ddd;border-radius:14px;font-size:13px;color:#888;cursor:pointer;">閉じる</button>';
+    document.getElementById('diagnosis-result').innerHTML = html;
+  });
+}
+
+function repairFromBest() {
+  var sb = window.supabase;
+  runSelfDiagnosis().then(function(r) {
+    var best = Math.max(r.local, r.idb, r.cloud);
+    var s = window.getState ? window.getState() : (window.state || {});
+    if (best === r.idb && r.idb > r.local) {
+      (typeof window.idbGetAllRecords === 'function' ? window.idbGetAllRecords() : Promise.resolve([]))
+        .then(function(recs) {
+          var merged = _mergeRecordsLocal(s.records || [], recs.filter(function(x) { return !x.deleted_at; }));
+          if (typeof window.setState === 'function') window.setState(Object.assign({}, s, { records: merged }));
+          if (typeof window.saveState === 'function') window.saveState();
+          if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, merged.length);
+          var el = document.getElementById('diagnosis-overlay');
+          if (el) el.remove();
+        });
+    } else if (best === r.cloud && r.cloud > r.local && sb) {
+      sb.auth.getSession().then(function(res) {
+        var userId = res.data.session.user.id;
+        return sb.from('user_records').select('data').eq('user_id', userId).is('deleted_at', null);
+      }).then(function(result) {
+        var cloudRecs = (result.data || []).map(function(row) { return row.data; });
+        var merged = _mergeRecordsLocal(s.records || [], cloudRecs);
+        if (typeof window.setState === 'function') window.setState(Object.assign({}, s, { records: merged }));
+        if (typeof window.saveState === 'function') window.saveState();
+        if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, merged.length);
+        var el = document.getElementById('diagnosis-overlay');
+        if (el) el.remove();
+      });
+    } else {
+      if (typeof window.showAlertModal === 'function') window.showAlertModal('ローカルデータが最新です。');
+      var el = document.getElementById('diagnosis-overlay');
+      if (el) el.remove();
+    }
+  });
+}
+
+function openRestoreUI() {
+  var sb = window.supabase;
+  if (!sb) { if (typeof window.showAlertModal === 'function') window.showAlertModal('通信エラー'); return; }
+  sb.auth.getSession().then(function(res) {
+    if (!res.data.session) { if (typeof window.showAlertModal === 'function') window.showAlertModal('ログインが必要です'); return; }
+    var userId = res.data.session.user.id;
+    sb.from('user_data_history').select('id,records_count,created_at')
+      .eq('user_id', userId).order('created_at', { ascending: false }).limit(5)
+      .then(function(r) {
+        if (!r.data || r.data.length === 0) {
+          if (typeof window.showAlertModal === 'function') window.showAlertModal('バックアップ履歴がありません');
+          return;
+        }
+        var msg = 'バックアップ履歴:\n\n';
+        r.data.forEach(function(h, i) {
+          msg += (i + 1) + '. ' + new Date(h.created_at).toLocaleString('ja-JP') + ' (' + h.records_count + '件)\n';
+        });
+        msg += '\n最新のバックアップから復元しますか？';
+        if (typeof window.showConfirmModal === 'function') {
+          window.showConfirmModal(msg, function() {
+            if (typeof window.restoreFromHistory === 'function') window.restoreFromHistory(r.data[0].id);
+          });
+        }
+      });
+  });
+}
+
+window.runSelfDiagnosis  = runSelfDiagnosis;
+window.showDiagnosisUI   = showDiagnosisUI;
+window.repairFromBest    = repairFromBest;
+window.openRestoreUI     = openRestoreUI;
+
 export {};

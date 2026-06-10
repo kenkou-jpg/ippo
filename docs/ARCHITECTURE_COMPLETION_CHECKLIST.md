@@ -232,19 +232,19 @@
 ### Phase 4-A — 重複済み関数の削除（約3,000行削減）
 
 - [x] legacy 内 IDB 操作群 (`openIDB` / `idbPutRecord` / `idbGetAllRecords` / `idbDeleteRecord` / `generateRecordId` / `ensureRecordIds` / `migrateToIDB`) を削除 → `record-repository.js` へ移植
-- [ ] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B (submitPremiumWaitlist 移行後)
+- [x] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B 完了
 - [x] legacy 内 sync 群 (`syncRecordToCloud` / `syncAllRecordsToCloud` / `pullRecordsFromCloud` / `cloudSyncSafe` / `saveBackupHistory`) を削除 → `services/supabase.js` が提供
 - [ ] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → Phase 4-C (legacy 直接呼び出しの移行後)
 - [ ] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `analyzeCyclePhases` / `getCurrentCyclePhase`) を削除 → Phase 4-C (rendering コード移行後)
 
 ### Phase 4-B — Runtime / Service 移行（約2,000行削減）
 
-- [ ] `saveState()` / `saveAndSync()` の save 処理を `save-transaction-guard.js` へ移行後 legacy 側削除
-- [ ] `autoRecoveryCheck()` / `repairFromBest()` の rollback 処理を `rollback-manager.js` へ移行後 legacy 側削除
-- [ ] `runSelfDiagnosis()` / `showDiagnosisUI()` を `production-diagnostics.js` / `runtime-debug-overlay.js` へ移行後 legacy 側削除
-- [ ] `submitPremiumWaitlist()` / `checkPremiumRegistered()` を `premium-service.js` へ移行後 legacy 側削除
-- [ ] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移行後 legacy 側削除
-- [ ] `openRestoreUI()` / `softDeleteRecord()` を `rollback-manager.js` / `record-repository.js` へ移行後 legacy 側削除
+- [x] `saveState()` bridge を `save-transaction-guard.js` (window.saveState) へ委譲 — legacy 側は window 経由で透過的に動作
+- [x] `repairFromBest()` / `runSelfDiagnosis()` / `showDiagnosisUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
+- [x] `openRestoreUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
+- [x] `submitPremiumWaitlist()` を Supabase SDK 直呼び出しへ書き換え・auth 群依存排除
+- [ ] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移行後 legacy 側削除 → Phase 4-C (getCurrentCyclePhase 依存)
+- [ ] `checkPremiumRegistered()` を `premium-service.js` へ移行後 legacy 側削除 → Phase 4-C
 
 ### Phase 4-C — Module 新設・移植（約4,000行削減）
 
