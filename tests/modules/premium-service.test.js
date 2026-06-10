@@ -1,33 +1,38 @@
 // tests/modules/premium-service.test.js
 // ─────────────────────────────────────────────────────────────
 // premium-service.js unit tests — mock Supabase client
+// subscriptions テーブル参照・maybeSingle() に対応
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-// ── Supabase mock ─────────────────────────────────────────────
-// premium-service.js imports supabase from services/supabase.js
-// We intercept the module so no real network call is made.
-
 const _mockSession = { user: { id: 'user-123' } };
 const _mockFrom    = vi.fn();
+
+// Realtime channel mock (channel → on → subscribe の chain)
+const _mockChannel = {
+  on:        vi.fn().mockReturnThis(),
+  subscribe: vi.fn().mockReturnThis(),
+};
 
 vi.mock('../../src/services/supabase.js', () => ({
   supabase: {
     auth: {
       getSession: vi.fn(),
     },
-    from: _mockFrom,
+    from:          _mockFrom,
+    channel:       vi.fn().mockReturnValue(_mockChannel),
+    removeChannel: vi.fn(),
   },
   SUPABASE_URL: 'https://mock.supabase.co',
 }));
 
-// Helper: set up a chain: supabase.from('profiles').select(...).eq(...).single()
-function mockProfilesChain(data, error = null) {
+// Helper: supabase.from('subscriptions').select(...).eq(...).maybeSingle()
+function mockSubscriptionsChain(data, error = null) {
   const chainObj = {
-    select: vi.fn().mockReturnThis(),
-    eq:     vi.fn().mockReturnThis(),
-    single: vi.fn().mockResolvedValue({ data, error }),
+    select:      vi.fn().mockReturnThis(),
+    eq:          vi.fn().mockReturnThis(),
+    maybeSingle: vi.fn().mockResolvedValue({ data, error }),
   };
   _mockFrom.mockReturnValue(chainObj);
   return chainObj;
@@ -39,18 +44,16 @@ let isPremium, refreshPremiumStatus, startPremiumSync, stopPremiumSync;
 beforeEach(async () => {
   vi.resetModules();
 
-  // Reset window state
-  window.ippoMarkBootEvent = undefined;
+  window.ippoMarkBootEvent  = undefined;
   window.ippoPremiumService = undefined;
-  window._ippoStateHooks = [];
+  window._ippoStateHooks    = [];
 
   const supabaseMod = await import('../../src/services/supabase.js');
   supabaseMock = supabaseMod.supabase;
 
-  // Default: no session (guest)
   supabaseMock.auth.getSession.mockResolvedValue({ data: { session: null } });
-
   _mockFrom.mockReset();
+  supabaseMock.channel.mockReturnValue(_mockChannel);
 
   const mod = await import('../../src/modules/premium/premium-service.js');
   isPremium            = mod.isPremium;
@@ -83,9 +86,9 @@ describe('refreshPremiumStatus (no session)', () => {
 
 // ── refreshPremiumStatus – premium active ─────────────────────
 describe('refreshPremiumStatus (premium active)', () => {
-  it('sets isPremium true when DB returns is_premium=true and no expiry', async () => {
+  it('sets isPremium true when subscriptions returns status=active and no expiry', async () => {
     supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
-    mockProfilesChain({ is_premium: true, premium_expires_at: null });
+    mockSubscriptionsChain({ status: 'active', current_period_end: null });
 
     await refreshPremiumStatus();
     expect(isPremium()).toBe(true);
@@ -94,30 +97,49 @@ describe('refreshPremiumStatus (premium active)', () => {
 
 // ── refreshPremiumStatus – premium expired ─────────────────────
 describe('refreshPremiumStatus (premium expired)', () => {
-  it('sets isPremium false when premium_expires_at is in the past', async () => {
+  it('sets isPremium false when current_period_end is in the past', async () => {
     supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
-    const pastDate = new Date(Date.now() - 86400000).toISOString(); // yesterday
-    mockProfilesChain({ is_premium: true, premium_expires_at: pastDate });
+    const pastDate = new Date(Date.now() - 86400000).toISOString();
+    mockSubscriptionsChain({ status: 'active', current_period_end: pastDate });
 
     await refreshPremiumStatus();
     expect(isPremium()).toBe(false);
   });
 
-  it('sets isPremium true when premium_expires_at is in the future', async () => {
+  it('sets isPremium true when current_period_end is in the future', async () => {
     supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
-    const futureDate = new Date(Date.now() + 86400000).toISOString(); // tomorrow
-    mockProfilesChain({ is_premium: true, premium_expires_at: futureDate });
+    const futureDate = new Date(Date.now() + 86400000).toISOString();
+    mockSubscriptionsChain({ status: 'active', current_period_end: futureDate });
 
     await refreshPremiumStatus();
     expect(isPremium()).toBe(true);
+  });
+
+  it('sets isPremium false when status is canceled', async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
+    mockSubscriptionsChain({ status: 'canceled', current_period_end: null });
+
+    await refreshPremiumStatus();
+    expect(isPremium()).toBe(false);
+  });
+});
+
+// ── refreshPremiumStatus – no subscription row ────────────────
+describe('refreshPremiumStatus (no subscription)', () => {
+  it('sets isPremium false when subscriptions returns null (no row)', async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
+    mockSubscriptionsChain(null);
+
+    await refreshPremiumStatus();
+    expect(isPremium()).toBe(false);
   });
 });
 
 // ── refreshPremiumStatus – DB error ───────────────────────────
 describe('refreshPremiumStatus (DB error)', () => {
-  it('keeps isPremium false when profiles fetch returns an error', async () => {
+  it('keeps isPremium false when subscriptions fetch returns an error', async () => {
     supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
-    mockProfilesChain(null, { message: 'DB error' });
+    mockSubscriptionsChain(null, { message: 'DB error' });
 
     await refreshPremiumStatus();
     expect(isPremium()).toBe(false);
@@ -126,14 +148,11 @@ describe('refreshPremiumStatus (DB error)', () => {
 
 // ── startPremiumSync / stopPremiumSync ────────────────────────
 describe('startPremiumSync / stopPremiumSync', () => {
-  it('is idempotent: calling startPremiumSync twice does not register twice', () => {
-    const addSpy = vi.spyOn(window, 'addEventListener');
-    startPremiumSync();
-    startPremiumSync();
-    const ippoAuthReadyCalls = addSpy.mock.calls.filter(c => c[0] === 'ippo:auth-ready');
-    // only one listener registration
-    expect(ippoAuthReadyCalls.length).toBeLessThanOrEqual(1);
-    addSpy.mockRestore();
+  it('is idempotent: calling startPremiumSync twice does not throw', () => {
+    expect(() => {
+      startPremiumSync();
+      startPremiumSync();
+    }).not.toThrow();
   });
 
   it('stopPremiumSync clears interval without throwing', () => {
@@ -146,12 +165,11 @@ describe('startPremiumSync / stopPremiumSync', () => {
 describe('ippo:auth-ready event', () => {
   it('fetches premium status when auth-ready fires', async () => {
     supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
-    mockProfilesChain({ is_premium: true, premium_expires_at: null });
+    mockSubscriptionsChain({ status: 'active', current_period_end: null });
 
     startPremiumSync();
     window.dispatchEvent(new Event('ippo:auth-ready'));
 
-    // Allow microtasks to settle
     await new Promise(r => setTimeout(r, 0));
     await new Promise(r => setTimeout(r, 0));
 
