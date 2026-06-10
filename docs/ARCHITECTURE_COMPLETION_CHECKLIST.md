@@ -234,8 +234,8 @@
 - [x] legacy 内 IDB 操作群 (`openIDB` / `idbPutRecord` / `idbGetAllRecords` / `idbDeleteRecord` / `generateRecordId` / `ensureRecordIds` / `migrateToIDB`) を削除 → `record-repository.js` へ移植
 - [x] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B 完了
 - [x] legacy 内 sync 群 (`syncRecordToCloud` / `syncAllRecordsToCloud` / `pullRecordsFromCloud` / `cloudSyncSafe` / `saveBackupHistory`) を削除 → `services/supabase.js` が提供
-- [ ] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → Phase 4-C (legacy 直接呼び出しの移行後)
-- [ ] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `analyzeCyclePhases` / `getCurrentCyclePhase`) を削除 → Phase 4-C (rendering コード移行後)
+- [x] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → `ui-notifications.js` が提供（Phase 4-C 完了）
+- [x] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `getCurrentCyclePhase`) を削除 → `analytics/cycle-engine.js` へ移植（Phase 4-C 完了）。`analyzeCyclePhases` は同ファイルに既存
 
 ### Phase 4-B — Runtime / Service 移行（約2,000行削減）
 
@@ -243,8 +243,8 @@
 - [x] `repairFromBest()` / `runSelfDiagnosis()` / `showDiagnosisUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
 - [x] `openRestoreUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
 - [x] `submitPremiumWaitlist()` を Supabase SDK 直呼び出しへ書き換え・auth 群依存排除
-- [ ] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移行後 legacy 側削除 → Phase 4-C (getCurrentCyclePhase 依存)
-- [ ] `checkPremiumRegistered()` を `premium-service.js` へ移行後 legacy 側削除 → Phase 4-C
+- [x] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移植後 legacy 側削除（Phase 4-C 完了）
+- [x] `checkPremiumRegistered()` を `premium-service.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 
 ### Phase 4-C — Module 新設・移植（約1,000行削減）
 
