@@ -78,8 +78,29 @@ if (typeof window.ippoMarkServiceReady === 'function') {
 
 // ── Phase E (Step 4): クラウド同期関数 ──────────────────────
 // cloudBackupAll / cloudRestore / initialCloudSync を app.html から移植。
-// window.state / mergeRecords / syncAllRecordsToCloud / showSyncIndicator 等は
-// 移行期間中 window.* 経由で委譲する。
+
+function mergeRecords(localRecords, cloudRecords) {
+  var merged = {};
+  localRecords.forEach(function (r) {
+    if (!r.id) r.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+    merged[r.id] = r;
+  });
+  cloudRecords.forEach(function (r) {
+    if (!r.id) return;
+    if (!merged[r.id]) {
+      merged[r.id] = r;
+    } else {
+      var lt = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
+      var ct = new Date(r.updatedAt || r.date || 0).getTime();
+      if (ct > lt) merged[r.id] = r;
+    }
+  });
+  var result = [];
+  Object.keys(merged).forEach(function (k) {
+    if (!merged[k].deleted_at) result.push(merged[k]);
+  });
+  return result.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+}
 
 var _cloudBackupLock = false;
 
@@ -282,10 +303,7 @@ export function cloudRestore() {
         var localRecs = (s.records || []).length;
         var cloudRecs = cloudState.records.length;
 
-        var merge = typeof window.mergeRecords === 'function'
-          ? window.mergeRecords
-          : function (a, b) { return a.concat(b); };
-        var mergedRecords = merge(s.records || [], cloudState.records || []);
+        var mergedRecords = mergeRecords(s.records || [], cloudState.records || []);
         var mergedCount   = mergedRecords.length;
 
         // P0-FIX-7: cloudRestore 安全マージ強化。
@@ -352,8 +370,7 @@ export function cloudRestore() {
 
 export function initialCloudSync() {
   if (localStorage.getItem('ippo_records_synced')) return Promise.resolve();
-  if (typeof window.syncAllRecordsToCloud !== 'function') return Promise.resolve();
-  return window.syncAllRecordsToCloud().then(function () {
+  return cloudBackupAll().then(function () {
     localStorage.setItem('ippo_records_synced', '1');
     console.log('初回クラウド同期完了');
   }).catch(function (e) {

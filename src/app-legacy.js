@@ -1848,165 +1848,12 @@ function cloudRestore(){
   });
 }
 
-  // ===== IndexedDB データ層 =====
-var IDB_NAME = 'ippo_db';
-var IDB_VERSION = 1;
-var IDB_STORE = 'records';
-
-function openIDB(){
-  return new Promise(function(resolve, reject){
-    var req = indexedDB.open(IDB_NAME, IDB_VERSION);
-    req.onupgradeneeded = function(e){
-      var db = e.target.result;
-      if(!db.objectStoreNames.contains(IDB_STORE)){
-        var store = db.createObjectStore(IDB_STORE, {keyPath:'id'});
-        store.createIndex('date','record_date',{unique:false});
-        store.createIndex('updated','updatedAt',{unique:false});
-      }
-    };
-    req.onsuccess = function(e){ resolve(e.target.result); };
-    req.onerror = function(e){ reject(e.target.error); };
-  });
-}
-
-function idbPutRecord(record){
-  return openIDB().then(function(db){
-    return new Promise(function(resolve, reject){
-      var tx = db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).put(record);
-      tx.oncomplete = function(){ resolve(); };
-      tx.onerror = function(e){ reject(e.target.error); };
-    });
-  });
-}
-
-function idbGetAllRecords(){
-  return openIDB().then(function(db){
-    return new Promise(function(resolve, reject){
-      var tx = db.transaction(IDB_STORE,'readonly');
-      var req = tx.objectStore(IDB_STORE).getAll();
-      req.onsuccess = function(){ resolve(req.result || []); };
-      req.onerror = function(e){ reject(e.target.error); };
-    });
-  });
-}
-
-function idbDeleteRecord(id){
-  return openIDB().then(function(db){
-    return new Promise(function(resolve, reject){
-      var tx = db.transaction(IDB_STORE,'readwrite');
-      tx.objectStore(IDB_STORE).delete(id);
-      tx.oncomplete = function(){ resolve(); };
-      tx.onerror = function(e){ reject(e.target.error); };
-    });
-  });
-}
-
-// ===== レコードID生成 =====
-function generateRecordId(){
-  return Date.now().toString(36) + Math.random().toString(36).substr(2,8);
-}
-
-function ensureRecordIds(){
-  var changed = false;
-  state.records.forEach(function(r){
-    if(!r.id){
-      r.id = generateRecordId();
-      changed = true;
-    }
-    if(!r.updatedAt){
-      r.updatedAt = r.date || new Date().toISOString();
-      changed = true;
-    }
-  });
-  return changed;
-}
-
-// ===== レコード個別同期 =====
-var _syncLock = false;
-
-function syncRecordToCloud(record){
-  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve();
-  return supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session || !session.user) return;
-    var userId = session.user.id;
-    var row = {
-      id: record.id,
-      user_id: userId,
-      record_date: record.date ? record.date.slice(0,10) : new Date().toISOString().slice(0,10),
-      data: record,
-      updated_at: record.updatedAt || new Date().toISOString(),
-      deleted_at: record.deleted_at || null
-    };
-    return supabase.from('user_records').upsert(row, {onConflict:'id'}).then(function(result){
-      if(result.error){
-        console.warn('レコード同期失敗:', record.id, result.error.message);
-      }
-    });
-  });
-}
-
-function syncAllRecordsToCloud(){
-  if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve();
-  if(_syncLock) return Promise.resolve();
-  _syncLock = true;
-  return supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session || !session.user){
-      _syncLock = false;
-      return;
-    }
-    var userId = session.user.id;
-    ensureRecordIds();
-    var rows = state.records.map(function(r){
-      return {
-        id: r.id,
-        user_id: userId,
-        record_date: r.date ? r.date.slice(0,10) : new Date().toISOString().slice(0,10),
-        data: r,
-        updated_at: r.updatedAt || new Date().toISOString(),
-        deleted_at: r.deleted_at || null
-      };
-    });
-    return supabase.from('user_records').upsert(rows, {onConflict:'id'}).then(function(result){
-      if(result.error){
-        console.warn('一括同期失敗:', result.error.message);
-      } else {
-        console.log('一括同期完了:', rows.length+'件');
-      }
-      _syncLock = false;
-    });
-  }).catch(function(e){
-    console.warn('同期エラー:', e);
-    _syncLock = false;
-  });
-}
-
-function pullRecordsFromCloud(){
-  return supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session || !session.user) return [];
-    var userId = session.user.id;
-    return supabase.from('user_records')
-      .select('*')
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .then(function(result){
-        if(result.error){
-          console.warn('クラウド取得失敗:', result.error.message);
-          return [];
-        }
-        return (result.data || []).map(function(row){ return row.data; });
-      });
-  });
-}
-
-// ===== マージエンジン =====
+// ===== Phase 4-A: ローカルヘルパー (window.* ブリッジ) =====
+// mergeRecords: legacy の cloudBackupAll / manualCloudRestore が内部で使用
 function mergeRecords(localRecords, cloudRecords){
   var merged = {};
   localRecords.forEach(function(r){
-    if(!r.id) r.id = generateRecordId();
+    if(!r.id) r.id = Date.now().toString(36) + Math.random().toString(36).substr(2,8);
     merged[r.id] = r;
   });
   cloudRecords.forEach(function(r){
@@ -2014,11 +1861,9 @@ function mergeRecords(localRecords, cloudRecords){
     if(!merged[r.id]){
       merged[r.id] = r;
     } else {
-      var localTime = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
-      var cloudTime = new Date(r.updatedAt || r.date || 0).getTime();
-      if(cloudTime > localTime){
-        merged[r.id] = r;
-      }
+      var lt = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
+      var ct = new Date(r.updatedAt || r.date || 0).getTime();
+      if(ct > lt) merged[r.id] = r;
     }
   });
   var result = [];
@@ -2028,162 +1873,38 @@ function mergeRecords(localRecords, cloudRecords){
   return result.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
 }
 
-// ===== 安全な同期（マージ方式） =====
-function cloudSyncSafe(){
-  if(_syncLock) return Promise.resolve();
-  _syncLock = true;
-  if(typeof showSyncIndicator === 'function') showSyncIndicator('データ同期中');
-  return supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session || !session.user){
-      _syncLock = false;
-      return;
-    }
-    var userId = session.user.id;
-    ensureRecordIds();
-    return supabase.from('user_records')
-      .select('*')
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .then(function(result){
-        var cloudRecords = (result.data || []).map(function(row){ return row.data; });
-        var localCount = state.records.length;
-        var cloudCount = cloudRecords.length;
-        var merged = mergeRecords(state.records, cloudRecords);
-        console.log('マージ同期: ローカル'+localCount+' + クラウド'+cloudCount+' → 結果'+merged.length);
-        if(merged.length < localCount && localCount - merged.length >= 2){
-          console.warn('マージ異常: データ減少のため中止');
-          _syncLock = false;
-          return;
-        }
-        state.records = merged;
-        state.totalDays = Object.keys(merged.reduce(function(acc,r){
-          acc[new Date(r.record_date || r.date).toDateString()]=true; return acc;
-        },{})).length;
-        // クラウドにアップロード
-        var rows = merged.map(function(r){
-          return {
-            id: r.id,
-            user_id: userId,
-            record_date: r.date ? r.date.slice(0,10) : new Date().toISOString().slice(0,10),
-            data: r,
-            updated_at: r.updatedAt || new Date().toISOString(),
-            deleted_at: null
-          };
-        });
-        return supabase.from('user_records').upsert(rows, {onConflict:'id'}).then(function(){
-          // IndexedDBにも保存
-          var promises = merged.map(function(r){ return idbPutRecord(r); });
-          return Promise.all(promises);
-        }).then(function(){
-          state.lastSaved = new Date().toISOString();
-          saveState();
-          // upsert成功後にバックアップ履歴保存
-          saveBackupHistory(userId);
-          console.log('安全同期完了: '+merged.length+'件');
-          _syncLock = false;
-          if(typeof hideSyncIndicator === 'function') hideSyncIndicator();
-        });
-      });
-  }).catch(function(e){
-    console.warn('安全同期エラー:', e);
-    _syncLock = false;
-    if(typeof showToast === 'function') showToast('データ同期に失敗しました。後で自動リトライします。', 'warn');
-  });
-}
-
-// ===== バックアップ履歴 =====
-function saveBackupHistory(userId){
-  var snapshot = {
-    name: state.name,
-    records: state.records,
-    totalDays: state.totalDays,
-    myDiseases: state.myDiseases
-  };
-  return supabase.from('user_data_history')
-    .insert({user_id: userId, records_count: state.records.length, state: snapshot})
-    .then(function(){
-      // 5世代超えたら古いものを削除
-      return supabase.from('user_data_history')
-        .select('id')
-        .eq('user_id', userId)
-        .order('created_at', {ascending:false})
-        .range(5,100);
-    }).then(function(old){
-      if(old.data && old.data.length > 0){
-        var ids = old.data.map(function(r){ return r.id; });
-        return supabase.from('user_data_history').delete().in('id', ids).then(function(){
-          console.log('古いバックアップ履歴を削除:', ids.length + '件');
-        });
-      }
-    }).catch(function(e){
-      console.warn('バックアップ履歴保存エラー:', e);
+// saveAndSync: UI コードから呼ばれる。IDB/sync は window.* ブリッジ経由
+function saveAndSync(){
+  if(typeof window.ensureRecordIds === 'function') window.ensureRecordIds();
+  if(typeof window.saveState === 'function') window.saveState();
+  else if(typeof saveState === 'function') saveState();
+  var latest = state.records[state.records.length - 1];
+  if(latest && typeof window.syncRecordImmediately === 'function'){
+    window.syncRecordImmediately(latest).catch(function(e){
+      console.warn('[legacy] saveAndSync: syncRecordImmediately 失敗', e);
     });
+  }
 }
 
-// ===== 論理削除 =====
+// softDeleteRecord: UI コードから呼ばれる
 function softDeleteRecord(recordId){
   var found = false;
   for(var i=0; i<state.records.length; i++){
     if(state.records[i].id === recordId){
       state.records[i].deleted_at = new Date().toISOString();
-      state.records[i].updatedAt = new Date().toISOString();
-      syncRecordToCloud(state.records[i]);
+      state.records[i].updatedAt  = new Date().toISOString();
+      if(typeof window.syncRecordImmediately === 'function') window.syncRecordImmediately(state.records[i]);
       state.records.splice(i,1);
       found = true;
       break;
     }
   }
   if(found){
-    saveState();
+    if(typeof window.saveState === 'function') window.saveState();
+    else if(typeof saveState === 'function') saveState();
     return true;
   }
   return false;
-}
-
-// ===== saveAndSync を新エンジンに接続 =====
-function saveAndSync(){
-  ensureRecordIds();
-  saveState();
-  // 最後に保存/変更されたレコードを個別同期
-  var latest = state.records[state.records.length - 1];
-  if(latest){
-    latest.updatedAt = new Date().toISOString();
-    idbPutRecord(latest);
-    syncRecordToCloud(latest).catch(function(e){
-      console.warn('個別同期失敗:', e);
-    });
-  }
-}
-// ===== 第1層：自動復元 =====
-function autoRecoveryCheck(){
-  var lastCount = parseInt(localStorage.getItem('ippo_last_record_count') || '0');
-  var currentCount = state.records.length;
-  if(lastCount > 0 && currentCount < lastCount && lastCount - currentCount >= 2){
-    console.warn('データ減少検知: '+lastCount+'件→'+currentCount+'件');
-    return idbGetAllRecords().then(function(idbRecs){
-      var activeRecs = idbRecs.filter(function(r){ return !r.deleted_at; });
-      if(activeRecs.length > currentCount){
-        state.records = mergeRecords(state.records, activeRecs);
-        saveState();
-        showRecoveryBanner(true, state.records.length);
-        console.log('IndexedDBから自動復元: '+state.records.length+'件');
-        localStorage.setItem('ippo_last_record_count', String(state.records.length));
-        return true;
-      }
-      return manualCloudRestore().then(function(){
-        showRecoveryBanner(true, state.records.length);
-        localStorage.setItem('ippo_last_record_count', String(state.records.length));
-        return true;
-      });
-    }).catch(function(e){
-      console.warn('自動復元失敗:', e);
-      showRecoveryBanner(false, 0);
-      return false;
-    });
-  }
-  localStorage.setItem('ippo_last_record_count', String(currentCount));
-  return Promise.resolve(false);
 }
 
 // ===== 第2層：バナー通知 =====
@@ -2269,7 +1990,10 @@ function showDiagnosisUI(){
 
 function runSelfDiagnosis(){
   var results = {local: state.records.length, idb: 0, cloud: 0, history: []};
-  return idbGetAllRecords().then(function(recs){
+  var _idbGetAll = typeof window.idbGetAllRecords === 'function'
+    ? window.idbGetAllRecords()
+    : Promise.resolve([]);
+  return _idbGetAll.then(function(recs){
     results.idb = recs.filter(function(r){ return !r.deleted_at; }).length;
     return supabase.auth.getSession();
   }).then(function(res){
@@ -2300,7 +2024,7 @@ function repairFromBest(){
   runSelfDiagnosis().then(function(r){
     var best = Math.max(r.local, r.idb, r.cloud);
     if(best === r.idb && r.idb > r.local){
-      idbGetAllRecords().then(function(recs){
+      (typeof window.idbGetAllRecords === 'function' ? window.idbGetAllRecords() : Promise.resolve([])).then(function(recs){
         state.records = mergeRecords(state.records, recs.filter(function(x){ return !x.deleted_at; }));
         saveState();
         showRecoveryBanner(true, state.records.length);
@@ -2352,31 +2076,6 @@ function restoreFromHistory(historyId){
       });
   });
 }
-// ===== localStorageからIndexedDBへの移行 =====
-function migrateToIDB(){
-  if(localStorage.getItem('ippo_idb_migrated')) return Promise.resolve();
-  ensureRecordIds();
-  var promises = state.records.map(function(r){ return idbPutRecord(r); });
-  return Promise.all(promises).then(function(){
-    localStorage.setItem('ippo_idb_migrated', '1');
-    console.log('IndexedDB移行完了:', state.records.length+'件');
-  }).catch(function(e){
-    console.warn('IndexedDB移行失敗:', e);
-  });
-}
-
-// ===== 初回の全レコード同期 =====
-function initialCloudSync(){
-  if(localStorage.getItem('ippo_records_synced')) return Promise.resolve();
-  return syncAllRecordsToCloud().then(function(){
-    localStorage.setItem('ippo_records_synced', '1');
-    console.log('初回クラウド同期完了');
-  }).catch(function(e){
-    console.warn('初回クラウド同期失敗（次回再試行）:', e);
-    // フラグを立てないので次回起動時に再試行される
-  });
-}
-
 // ===== 手動復元（強化版） =====
 function manualCloudRestore(){
   return supabase.auth.getSession().then(function(res){
@@ -7464,7 +7163,7 @@ function saveQuickLog() {
     existing.updatedAt = new Date().toISOString();
   } else {
     var rec = {
-      id: generateRecordId(),
+      id: (typeof window.generateRecordId === 'function' ? window.generateRecordId() : Date.now().toString(36) + Math.random().toString(36).substr(2,8)),
       date: today,
       record_date: today,
       symptoms: _quickSelectedSymptoms.slice(),
@@ -12067,7 +11766,6 @@ if (typeof closePremiumLock === "function") window.closePremiumLock = closePremi
 if (typeof closeSuccess === "function") window.closeSuccess = closeSuccess;
 if (typeof closeSymptomSettings === "function") window.closeSymptomSettings = closeSymptomSettings;
 if (typeof closeSyncModal === "function") window.closeSyncModal = closeSyncModal;
-if (typeof cloudSyncSafe === "function") window.cloudSyncSafe = cloudSyncSafe;
 if (typeof completeExperiment === "function") window.completeExperiment = completeExperiment;
 if (typeof completeOnboarding === "function") window.completeOnboarding = completeOnboarding;
 if (typeof confirmMealTime === "function") window.confirmMealTime = confirmMealTime;
@@ -12081,7 +11779,6 @@ if (typeof downloadDoctorPDF === "function") window.downloadDoctorPDF = download
 if (typeof draftRecordScreen === "function") window.draftRecordScreen = draftRecordScreen;
 if (typeof editPastRecord === "function") window.editPastRecord = editPastRecord;
 if (typeof endFast === "function") window.endFast = endFast;
-if (typeof ensureRecordIds === "function") window.ensureRecordIds = ensureRecordIds;
 if (typeof escapeHtml === "function") window.escapeHtml = escapeHtml;
 if (typeof exportCSV === "function") window.exportCSV = exportCSV;
 if (typeof exportJSON === "function") window.exportJSON = exportJSON;
@@ -12090,7 +11787,6 @@ if (typeof formatDiseaseCheck === "function") window.formatDiseaseCheck = format
 if (typeof gatherDiseaseData === "function") window.gatherDiseaseData = gatherDiseaseData;
 if (typeof gatherRecordData === "function") window.gatherRecordData = gatherRecordData;
 if (typeof generateLocalAnalysis === "function") window.generateLocalAnalysis = generateLocalAnalysis;
-if (typeof generateRecordId === "function") window.generateRecordId = generateRecordId;
 if (typeof getBodyCheckTitle === "function") window.getBodyCheckTitle = getBodyCheckTitle;
 if (typeof getCurrentCyclePhase === "function") window.getCurrentCyclePhase = getCurrentCyclePhase;
 if (typeof getCyclePhase === "function") window.getCyclePhase = getCyclePhase;
@@ -12107,9 +11803,6 @@ if (typeof getTimeAgo === "function") window.getTimeAgo = getTimeAgo;
 if (typeof handleHomeCTA === "function") window.handleHomeCTA = handleHomeCTA;
 if (typeof hideMessage === "function") window.hideMessage = hideMessage;
 if (typeof icon === "function") window.icon = icon;
-if (typeof idbDeleteRecord === "function") window.idbDeleteRecord = idbDeleteRecord;
-if (typeof idbGetAllRecords === "function") window.idbGetAllRecords = idbGetAllRecords;
-if (typeof idbPutRecord === "function") window.idbPutRecord = idbPutRecord;
 if (typeof initAdminPanel === "function") window.initAdminPanel = initAdminPanel;
 if (typeof initNavIcons === "function") window.initNavIcons = initNavIcons;
 if (typeof initQuickLog === "function") window.initQuickLog = initQuickLog;
@@ -12123,7 +11816,6 @@ if (typeof loadCommunityReplies === "function") window.loadCommunityReplies = lo
 if (typeof loadCommunityTopic === "function") window.loadCommunityTopic = loadCommunityTopic;
 if (typeof loadMoreTimeline === "function") window.loadMoreTimeline = loadMoreTimeline;
 if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
-if (typeof mergeRecords === "function") window.mergeRecords = mergeRecords;
 if (typeof nextStep === "function") window.nextStep = nextStep;
 if (typeof obBuildPeriodCalendar === "function") window.obBuildPeriodCalendar = obBuildPeriodCalendar;
 if (typeof obComplete === "function") window.obComplete = obComplete;
@@ -12172,7 +11864,6 @@ if (typeof parseMealFree === "function") window.parseMealFree = parseMealFree;
 if (typeof postCommunityReply === "function") window.postCommunityReply = postCommunityReply;
 if (typeof premiumGate === "function") window.premiumGate = premiumGate;
 if (typeof prevStep === "function") window.prevStep = prevStep;
-if (typeof pullRecordsFromCloud === "function") window.pullRecordsFromCloud = pullRecordsFromCloud;
 if (typeof renderBodyCheck === "function") window.renderBodyCheck = renderBodyCheck;
 if (typeof renderComparisonChart === "function") window.renderComparisonChart = renderComparisonChart;
 if (typeof renderEmotion === "function") window.renderEmotion = renderEmotion;
@@ -12194,8 +11885,6 @@ if (typeof repairFromBest === "function") window.repairFromBest = repairFromBest
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;
 if (typeof resumeFasting === "function") window.resumeFasting = resumeFasting;
 if (typeof runSelfDiagnosis === "function") window.runSelfDiagnosis = runSelfDiagnosis;
-if (typeof saveAndSync === "function") window.saveAndSync = saveAndSync;
-if (typeof saveBackupHistory === "function") window.saveBackupHistory = saveBackupHistory;
 if (typeof saveDiseaseSettings === "function") window.saveDiseaseSettings = saveDiseaseSettings;
 if (typeof saveEditRecord === "function") window.saveEditRecord = saveEditRecord;
 if (typeof saveMealDraft === "function") window.saveMealDraft = saveMealDraft;
@@ -12239,7 +11928,6 @@ if (typeof showRecoveryBanner === "function") window.showRecoveryBanner = showRe
 if (typeof showRecoveryGuide === "function") window.showRecoveryGuide = showRecoveryGuide;
 if (typeof showTempAlertBanner === "function") window.showTempAlertBanner = showTempAlertBanner;
 if (typeof showTempEducation === "function") window.showTempEducation = showTempEducation;
-if (typeof softDeleteRecord === "function") window.softDeleteRecord = softDeleteRecord;
 if (typeof startCustomExperiment === "function") window.startCustomExperiment = startCustomExperiment;
 if (typeof startExperiment === "function") window.startExperiment = startExperiment;
 if (typeof startFastTimer === "function") window.startFastTimer = startFastTimer;
@@ -12252,8 +11940,6 @@ if (typeof supabaseRefreshSession === "function") window.supabaseRefreshSession 
 if (typeof supabaseSignInAnonymous === "function") window.supabaseSignInAnonymous = supabaseSignInAnonymous;
 if (typeof switchInsTab === "function") window.switchInsTab = switchInsTab;
 if (typeof switchSymptomTab === "function") window.switchSymptomTab = switchSymptomTab;
-if (typeof syncAllRecordsToCloud === "function") window.syncAllRecordsToCloud = syncAllRecordsToCloud;
-if (typeof syncRecordToCloud === "function") window.syncRecordToCloud = syncRecordToCloud;
 if (typeof toggleArchiveReplies === "function") window.toggleArchiveReplies = toggleArchiveReplies;
 if (typeof toggleCGFactor === "function") window.toggleCGFactor = toggleCGFactor;
 if (typeof toggleDetailItem === "function") window.toggleDetailItem = toggleDetailItem;

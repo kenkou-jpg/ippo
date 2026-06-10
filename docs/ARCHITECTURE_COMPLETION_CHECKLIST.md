@@ -231,11 +231,11 @@
 
 ### Phase 4-A — 重複済み関数の削除（約3,000行削減）
 
-- [ ] legacy 内 IDB 操作群 (`openIDB` / `idbPutRecord` / `idbGetAllRecords` / `idbDeleteRecord` / `generateRecordId` / `ensureRecordIds` / `migrateToIDB`) を削除
-- [ ] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除
-- [ ] legacy 内 sync 群 (`syncRecordToCloud` / `syncAllRecordsToCloud` / `pullRecordsFromCloud` / `mergeRecords` / `cloudSyncSafe` / `saveBackupHistory`) を削除
-- [ ] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除
-- [ ] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `analyzeCyclePhases` / `getCurrentCyclePhase`) を削除
+- [x] legacy 内 IDB 操作群 (`openIDB` / `idbPutRecord` / `idbGetAllRecords` / `idbDeleteRecord` / `generateRecordId` / `ensureRecordIds` / `migrateToIDB`) を削除 → `record-repository.js` へ移植
+- [ ] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B (submitPremiumWaitlist 移行後)
+- [x] legacy 内 sync 群 (`syncRecordToCloud` / `syncAllRecordsToCloud` / `pullRecordsFromCloud` / `cloudSyncSafe` / `saveBackupHistory`) を削除 → `services/supabase.js` が提供
+- [ ] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → Phase 4-C (legacy 直接呼び出しの移行後)
+- [ ] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `analyzeCyclePhases` / `getCurrentCyclePhase`) を削除 → Phase 4-C (rendering コード移行後)
 
 ### Phase 4-B — Runtime / Service 移行（約2,000行削減）
 
