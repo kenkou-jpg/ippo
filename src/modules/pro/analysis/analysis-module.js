@@ -49,6 +49,8 @@ import { analyzeCyclePhases as analyzeCyclePhasesEngine } from '../../../analyti
 // Phase4: 予測・体温エンジン
 import { analyzeTemperature as analyzeTemperatureEngine } from '../../../analytics/temperature-engine.js';
 import { predictNext }         from '../../../analytics/prediction-engine.js';
+// Layer B Step1: prediction_cache write path
+import { savePredictionCache } from '../../../services/prediction-cache-service.js';
 
 // ─── 1. AIパターン解析 ────────────────────────────────────────────
 /**
@@ -562,8 +564,15 @@ export function analyzeBaseline(records, options = {}) {
  *   disease:     string | null,
  * }}
  */
-export function buildPredictionPayload(records, state = {}) {
+export function buildPredictionPayload(records, state = {}, context = null) {
   const predictions = predictNext(records || []);
+
+  // Layer B Step1: context が提供された場合のみ prediction_cache を書き込む。
+  // fire-and-forget — エラーは保存処理に影響しない。
+  if (context && context.supabase && context.userId) {
+    savePredictionCache(context.supabase, context.userId, predictions).catch(() => {});
+  }
+
   return {
     predictions,
     disease: (state.myDiseases || [])[0] || null,

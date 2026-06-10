@@ -11507,7 +11507,15 @@ async function callAIAPI(summary) {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ' + sessionData.access_token,
     },
-    body: JSON.stringify({ records: records, analysisType: 'pattern' }),
+    body: JSON.stringify((function() {
+      try {
+        if (typeof window.buildAIPrompt === 'function') {
+          var p = window.buildAIPrompt(records, state);
+          return { features: p.features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt };
+        }
+      } catch (_) {}
+      return { records: records, analysisType: 'pattern' };
+    })()),
   });
 
   if (!resp.ok) {

@@ -55,7 +55,7 @@ import './app-legacy.js';
 import './modules/ownership-map.js';
 
 // ─── State ───────────────────────────────────────────────
-import { saveState, loadState, STATE_KEY, INITIAL_STATE, getState } from './store/state.js';
+import { saveState, loadState, STATE_KEY, INITIAL_STATE, getState, addPostSaveHook } from './store/state.js';
 
 // ─── Runtime stabilization layer (state 確定後にロード) ────────
 import './runtime/hydration-guard.js';
@@ -263,6 +263,29 @@ import './services/insight-engine.js';
 // ─── PHASE 4: Adaptive Signal Layer (post-save hook 自動登録) ──
 // rollback: この1行を削除するだけで全機能がバイパスされる
 import './services/adaptive-signals.js';
+
+// ─── Layer B: prediction_cache post-save hook ─────────────────
+// rollback: 以下ブロックを削除するだけで全機能がバイパスされる
+addPostSaveHook(function _predictionCacheHook(saveErr) {
+  if (saveErr) return;
+
+  try {
+    if (!window.buildPredictionPayload) return;
+    if (!window.supabase) return;
+    if (!window.supabaseUserId) return;
+
+    const state = getState();
+
+    window.buildPredictionPayload(
+      state.records || [],
+      state,
+      {
+        supabase: window.supabase,
+        userId:   window.supabaseUserId,
+      }
+    );
+  } catch (_) {}
+});
 
 // ─── Settings Profile (互換レイヤー: window.getSettingsProfile 等を公開) ──
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
