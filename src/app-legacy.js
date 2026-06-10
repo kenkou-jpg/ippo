@@ -1545,80 +1545,6 @@ function updateDiseaseQuestions(){
 
 
 
-function supabaseHeaders(){
-  var h = {
-    'apikey': SUPABASE_KEY,
-    'Content-Type': 'application/json'
-  };
-  if(supabaseToken){
-    h['Authorization'] = 'Bearer ' + supabaseToken;
-  } else {
-    h['Authorization'] = 'Bearer ' + SUPABASE_KEY;
-  }
-  return h;
-}
-
-function supabaseAuth(endpoint, body){
-  return fetch(SUPABASE_URL + '/auth/v1/' + endpoint, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(body)
-  }).then(function(r){ return r.json(); });
-}
-
-function supabaseSignInAnonymous(){
-  return supabaseAuth('signup', {})
-    .then(function(data){
-      if(data.access_token){
-        supabaseToken = data.access_token;
-        supabaseUserId = data.user.id;
-        localStorage.setItem('ippo_sb_token', data.access_token);
-        localStorage.setItem('ippo_sb_refresh', data.refresh_token);
-        localStorage.setItem('ippo_sb_user_id', data.user.id);
-        console.log('Supabase: 匿名ユーザー作成', supabaseUserId);
-        _notifyAuthReady();
-        return data;
-      }
-      throw new Error(data.error_description || data.msg || 'signup failed');
-    });
-}
-
-function supabaseRefreshSession(){
-  var refreshToken = localStorage.getItem('ippo_sb_refresh');
-  if(!refreshToken) return Promise.reject('no refresh token');
-  return supabaseAuth('token?grant_type=refresh_token', {
-    refresh_token: refreshToken
-  }).then(function(data){
-    if(data.access_token){
-      supabaseToken = data.access_token;
-      supabaseUserId = data.user.id;
-      localStorage.setItem('ippo_sb_token', data.access_token);
-      localStorage.setItem('ippo_sb_refresh', data.refresh_token);
-      localStorage.setItem('ippo_sb_user_id', data.user.id);
-      _notifyAuthReady();
-      return data;
-    }
-    throw new Error('refresh failed');
-  });
-}
-
-function supabaseEnsureAuth(){
-  if(supabaseToken && supabaseUserId) return Promise.resolve();
-  var savedToken = localStorage.getItem('ippo_sb_token');
-  var savedUserId = localStorage.getItem('ippo_sb_user_id');
-  if(savedToken && savedUserId){
-    supabaseToken = savedToken;
-    supabaseUserId = savedUserId;
-    return supabaseRefreshSession().catch(function(){
-      return supabaseSignInAnonymous();
-    });
-  }
-  return supabaseSignInAnonymous();
-}
-
   // ===== プレミアム先行登録 =====
 function submitPremiumWaitlist(){
   var emailInput = document.getElementById('premium-email');
@@ -1627,30 +1553,19 @@ function submitPremiumWaitlist(){
     showAlertModal('メールアドレスを入力してください');
     return;
   }
-  supabaseEnsureAuth().then(function(){
-    return fetch(SUPABASE_URL + '/rest/v1/premium_waitlist', {
-      method: 'POST',
-      headers: Object.assign(supabaseHeaders(), {
-        'Prefer': 'return=representation'
-      }),
-      body: JSON.stringify({
-        email: email,
-        user_id: supabaseUserId
-      })
-    });
-  }).then(function(r){
-    if(r.ok){
+  if(!supabase){ showAlertModal('通信エラーが発生しました'); return; }
+  supabase.auth.getSession().then(function(res){
+    var userId = res.data.session ? res.data.session.user.id : null;
+    return supabase.from('premium_waitlist').insert({ email: email, user_id: userId });
+  }).then(function(result){
+    if(!result.error){
       document.getElementById('premium-form-area').style.display = 'none';
       document.getElementById('premium-done').style.display = 'block';
       localStorage.setItem('ippo_premium_registered', email);
+    } else if(result.error.code === '23505'){
+      showAlertModal('このメールアドレスは既に登録済みです');
     } else {
-      return r.json().then(function(data){
-        if(data.code === '23505'){
-          showAlertModal('このメールアドレスは既に登録済みです');
-        } else {
-          showAlertModal('送信に失敗しました。もう一度お試しください');
-        }
-      });
+      showAlertModal('送信に失敗しました。もう一度お試しください');
     }
   }).catch(function(e){
     console.warn('Waitlist error:', e);
@@ -1925,135 +1840,6 @@ function showRecoveryBanner(recovered, count){
 }
 
 // ===== 第3層：復元UI =====
-function openRestoreUI(){
-  supabase.auth.getSession().then(function(res){
-    if(!res.data.session){ showAlertModal('ログインが必要です'); return; }
-    var userId = res.data.session.user.id;
-    supabase.from('user_data_history')
-      .select('id,records_count,created_at')
-      .eq('user_id', userId)
-      .order('created_at', {ascending:false})
-      .limit(5)
-      .then(function(r){
-        if(!r.data || r.data.length === 0){ showAlertModal('バックアップ履歴がありません'); return; }
-        var msg = 'バックアップ履歴:\n\n';
-        r.data.forEach(function(h,i){
-          msg += (i+1)+'. '+new Date(h.created_at).toLocaleString('ja-JP')+' ('+h.records_count+'件)\n';
-        });
-        msg += '\n最新のバックアップから復元しますか？';
-        showConfirmModal(msg, function() {
-          restoreFromHistory(r.data[0].id);
-        });
-      });
-  });
-}
-
-// ===== 第4層：自動診断UI =====
-function showDiagnosisUI(){
-  var overlay = document.createElement('div');
-  overlay.id = 'diagnosis-overlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:white;border-radius:20px;padding:24px;margin:20px;max-width:360px;width:100%;';
-  box.innerHTML = '<div style="text-align:center;font-size:15px;font-weight:600;margin-bottom:16px;">🔍 データ診断中...</div><div id="diagnosis-result" style="font-size:13px;color:#666;text-align:center;">確認しています...</div>';
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  // EL-5: 動的生成 overlay は once:true で残留リスナーを防止
-  overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); }, { once: true });
-  runSelfDiagnosis().then(function(r){
-    var best = Math.max(r.local, r.idb, r.cloud);
-    var source = best === r.cloud ? 'クラウド' : best === r.idb ? 'IndexedDB' : 'ローカル';
-    var needsRepair = (r.local < best);
-    var html = '<div style="text-align:left;margin-bottom:16px;">';
-    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">📱 ローカル: <b>'+r.local+'件</b></div>';
-    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">💾 IndexedDB: <b>'+r.idb+'件</b></div>';
-    html += '<div style="padding:8px 0;border-bottom:1px solid #f0ebe6;">☁️ クラウド: <b>'+r.cloud+'件</b></div>';
-    html += '<div style="padding:8px 0;">📦 バックアップ: <b>'+r.history.length+'世代</b></div></div>';
-    if(needsRepair){
-      html += '<div style="background:#fef3f2;border-radius:12px;padding:12px;margin-bottom:16px;font-size:12px;color:#c44848;">⚠️ データの不一致を検出。'+source+'に'+best+'件あります。</div>';
-      html += '<button onclick="repairFromBest()" style="width:100%;padding:14px;background:#c4878c;color:white;border:none;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;">🔧 自動修復する</button>';
-    } else {
-      html += '<div style="background:#e8f4ec;border-radius:12px;padding:12px;font-size:12px;color:#2d6a3f;">✅ データは正常です。3箇所すべて一致しています。</div>';
-    }
-    if(r.history.length > 0){
-      html += '<div style="margin-top:12px;font-size:12px;color:#888;">過去のバックアップ:';
-      r.history.forEach(function(h){
-        html += '<div style="margin-top:6px;padding:8px;background:#f8f5f0;border-radius:8px;cursor:pointer;" onclick="restoreFromHistory(\''+h.id+'\')">';
-        html += new Date(h.created_at).toLocaleString('ja-JP')+' ('+h.records_count+'件) →復元</div>';
-      });
-      html += '</div>';
-    }
-    html += '<button onclick="document.getElementById(\'diagnosis-overlay\').remove()" style="width:100%;margin-top:12px;padding:12px;background:none;border:1px solid #ddd;border-radius:14px;font-size:13px;color:#888;cursor:pointer;">閉じる</button>';
-    document.getElementById('diagnosis-result').innerHTML = html;
-  });
-}
-
-function runSelfDiagnosis(){
-  var results = {local: state.records.length, idb: 0, cloud: 0, history: []};
-  var _idbGetAll = typeof window.idbGetAllRecords === 'function'
-    ? window.idbGetAllRecords()
-    : Promise.resolve([]);
-  return _idbGetAll.then(function(recs){
-    results.idb = recs.filter(function(r){ return !r.deleted_at; }).length;
-    return supabase.auth.getSession();
-  }).then(function(res){
-    if(!res.data.session) return results;
-    var userId = res.data.session.user.id;
-    return supabase.from('user_records')
-      .select('id', {count:'exact'})
-      .eq('user_id', userId)
-      .is('deleted_at', null)
-      .then(function(r){
-        results.cloud = r.count || 0;
-        return supabase.from('user_data_history')
-          .select('id,records_count,created_at')
-          .eq('user_id', userId)
-          .order('created_at', {ascending:false})
-          .limit(5);
-      }).then(function(r){
-        results.history = r.data || [];
-        return results;
-      });
-  }).catch(function(e){
-    console.warn('診断エラー:', e);
-    return results;
-  });
-}
-
-function repairFromBest(){
-  runSelfDiagnosis().then(function(r){
-    var best = Math.max(r.local, r.idb, r.cloud);
-    if(best === r.idb && r.idb > r.local){
-      (typeof window.idbGetAllRecords === 'function' ? window.idbGetAllRecords() : Promise.resolve([])).then(function(recs){
-        state.records = mergeRecords(state.records, recs.filter(function(x){ return !x.deleted_at; }));
-        saveState();
-        showRecoveryBanner(true, state.records.length);
-        var el = document.getElementById('diagnosis-overlay');
-        if(el) el.remove();
-      });
-    } else if(best === r.cloud && r.cloud > r.local){
-      supabase.auth.getSession().then(function(res){
-        var userId = res.data.session.user.id;
-        supabase.from('user_records')
-          .select('data')
-          .eq('user_id', userId)
-          .is('deleted_at', null)
-          .then(function(result){
-            var cloudRecs = result.data.map(function(row){ return row.data; });
-            state.records = mergeRecords(state.records, cloudRecs);
-            saveState();
-            showRecoveryBanner(true, state.records.length);
-            var el = document.getElementById('diagnosis-overlay');
-            if(el) el.remove();
-          });
-      });
-    } else {
-      showAlertModal('ローカルデータが最新です。');
-      var el = document.getElementById('diagnosis-overlay');
-      if(el) el.remove();
-    }
-  });
-}
 
 function restoreFromHistory(historyId){
   showConfirmModal('このバックアップから復元しますか？', function() {
@@ -2152,6 +1938,11 @@ var STEPS = [];
 // saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
 // インラインにも定義を維持する。モジュール実行後は window.saveState が上書きされる。
 function saveState() {
+  // store/state.js の saveState に委譲（save-transaction-guard のフックが動作する）
+  if (typeof window.saveState === 'function' && window.saveState !== saveState) {
+    window.saveState();
+    return;
+  }
   try {
     var s = state;
     s.lastSaved = new Date().toISOString();
@@ -11855,7 +11646,6 @@ if (typeof openRecordScreen === "function" && typeof window.openRecordScreen !==
 // Always export legacy function separately so the ➕ nav button can explicitly open
 // the legacy STEP1/2/3 screen (vs home CTA which uses openRecordScreen → three-card).
 if (typeof openRecordScreen === "function") window.openLegacyRecordScreen = openRecordScreen;
-if (typeof openRestoreUI === "function") window.openRestoreUI = openRestoreUI;
 if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
 if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
 if (typeof openTempReport === "function") window.openTempReport = openTempReport;
@@ -11881,10 +11671,8 @@ if (typeof renderSymptomLayers === "function") window.renderSymptomLayers = rend
 if (typeof renderTimeline === "function") window.renderTimeline = renderTimeline;
 if (typeof renderWellness === "function") window.renderWellness = renderWellness;
 if (typeof reorderRecordSections === "function") window.reorderRecordSections = reorderRecordSections;
-if (typeof repairFromBest === "function") window.repairFromBest = repairFromBest;
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;
 if (typeof resumeFasting === "function") window.resumeFasting = resumeFasting;
-if (typeof runSelfDiagnosis === "function") window.runSelfDiagnosis = runSelfDiagnosis;
 if (typeof saveDiseaseSettings === "function") window.saveDiseaseSettings = saveDiseaseSettings;
 if (typeof saveEditRecord === "function") window.saveEditRecord = saveEditRecord;
 if (typeof saveMealDraft === "function") window.saveMealDraft = saveMealDraft;
@@ -11919,7 +11707,6 @@ if (typeof shareApp === "function") window.shareApp = shareApp;
 if (typeof showAlertModal === "function") window.showAlertModal = showAlertModal;
 if (typeof showBingeUrgeSupport === "function") window.showBingeUrgeSupport = showBingeUrgeSupport;
 if (typeof showConfirmModal === "function") window.showConfirmModal = showConfirmModal;
-if (typeof showDiagnosisUI === "function") window.showDiagnosisUI = showDiagnosisUI;
 if (typeof showLoginForm === "function") window.showLoginForm = showLoginForm;
 if (typeof showMessage === "function") window.showMessage = showMessage;
 if (typeof showPrivacyInfo === "function") window.showPrivacyInfo = showPrivacyInfo;
@@ -11933,11 +11720,6 @@ if (typeof startExperiment === "function") window.startExperiment = startExperim
 if (typeof startFastTimer === "function") window.startFastTimer = startFastTimer;
 if (typeof submitFeedback === "function") window.submitFeedback = submitFeedback;
 if (typeof submitPremiumWaitlist === "function") window.submitPremiumWaitlist = submitPremiumWaitlist;
-if (typeof supabaseAuth === "function") window.supabaseAuth = supabaseAuth;
-if (typeof supabaseEnsureAuth === "function") window.supabaseEnsureAuth = supabaseEnsureAuth;
-if (typeof supabaseHeaders === "function") window.supabaseHeaders = supabaseHeaders;
-if (typeof supabaseRefreshSession === "function") window.supabaseRefreshSession = supabaseRefreshSession;
-if (typeof supabaseSignInAnonymous === "function") window.supabaseSignInAnonymous = supabaseSignInAnonymous;
 if (typeof switchInsTab === "function") window.switchInsTab = switchInsTab;
 if (typeof switchSymptomTab === "function") window.switchSymptomTab = switchSymptomTab;
 if (typeof toggleArchiveReplies === "function") window.toggleArchiveReplies = toggleArchiveReplies;
