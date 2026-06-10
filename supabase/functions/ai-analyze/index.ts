@@ -58,16 +58,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // Phase3: features / disease / systemPrompt を追加。
-  // 旧フィールド（records / analysisType）は後方互換のため維持。
-  // features が存在する場合は新経路（feature-engine経由）を使用。
-  // Phase4で旧経路（records直接渡し）を削除予定。
+  // PR-C4: features 経路のみ。records / analysisType 分岐削除済み。
   let body: {
-    records:      unknown[];
-    analysisType: string;
-    // Phase3追加（オプション）
-    features?:    Record<string, unknown>;
-    disease?:     string;
+    features:      Record<string, unknown>;
+    disease?:      string;
     systemPrompt?: string;
     userPrompt?:   string;
   };
@@ -80,19 +74,13 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const { records, analysisType, features, disease, systemPrompt: customSystemPrompt, userPrompt } = body;
+  const { features, disease, systemPrompt: customSystemPrompt, userPrompt } = body;
 
-  // features が渡された場合は新経路（records不要）
-  const isNewPath = features != null;
-
-  if (!isNewPath) {
-    // 旧経路: records必須チェック
-    if (!records || !Array.isArray(records)) {
-      return new Response(JSON.stringify({ error: 'records must be an array' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+  if (!features || typeof features !== 'object') {
+    return new Response(JSON.stringify({ error: 'features is required' }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 
   const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
@@ -103,28 +91,11 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  let finalSystem: string;
-  let finalUserContent: string;
-  let maxTokens = 1024;
-
-  if (isNewPath) {
-    // ── 新経路: feature-engine出力をそのまま受け取る ──────────────
-    // systemPrompt はクライアント側 prompt-builder.js が構築して渡す。
-    // features は生レコードを含まない構造化済みデータ。
-    finalSystem = customSystemPrompt || _defaultDiseaseSystemPrompt(disease);
-    finalUserContent = userPrompt || _buildFeaturesUserContent(features!);
-    maxTokens = 800;
-  } else {
-    // ── 旧経路: records生データを直接渡す（後方互換）──────────────
-    const analysisPrompts: Record<string, string> = {
-      pattern:  'Analyze these health records and identify patterns in symptoms, wellness, and energy levels.',
-      flareup:  'Analyze these health records to identify potential flare-up triggers and warning signs.',
-      factor:   'Analyze these health records to identify lifestyle factors that correlate with better or worse health outcomes.',
-    };
-    finalSystem = analysisPrompts[analysisType as string] ?? analysisPrompts.pattern;
-    finalUserContent = `Here are the health records (last 90 days):\n${JSON.stringify(records, null, 2)}`;
-    maxTokens = 1024;
-  }
+  // features 経路: feature-engine 出力をそのまま受け取る
+  // systemPrompt はクライアント側 prompt-builder.js が構築して渡す
+  const finalSystem      = customSystemPrompt || _defaultDiseaseSystemPrompt(disease);
+  const finalUserContent = userPrompt || _buildFeaturesUserContent(features);
+  const maxTokens        = 800;
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -146,7 +117,7 @@ Deno.serve(async (req: Request) => {
   const data = await response.json();
 
   return new Response(
-    JSON.stringify({ ...data, _path: isNewPath ? 'features' : 'legacy' }),
+    JSON.stringify({ ...data, _path: 'features' }),
     {
       status: response.status,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

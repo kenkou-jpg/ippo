@@ -147,3 +147,89 @@ function _insufficientResult(sampleSize) {
     sampleSize,
   };
 }
+
+// ─── Legacy Adapter (Strangler Pattern: PR-D3) ─────────────────
+// app-legacy.js の calcTemperaturePhases() 互換シェイムを返す。
+// window.analyzeTemperatureLegacy として公開し、5つの呼び出しサイトを置換する。
+
+/**
+ * analyzeTemperature() の出力を旧 calcTemperaturePhases() 互換形式に変換する。
+ *
+ * 旧 API: { status, count, tempDiff, phases, avgLow, avgHigh, biphasic,
+ *           mPattern, highPhaseDays, lowPhaseDays, ovulationDate, alerts }
+ *
+ * @param {object[]} records
+ * @returns {object} 旧 calcTemperaturePhases() 互換オブジェクト
+ */
+export function analyzeTemperatureLegacy(records) {
+  const result = analyzeTemperature(records);
+
+  if (result.confidence === 'insufficient') {
+    const remaining = Math.max(0, MIN_READINGS - result.sampleSize);
+    return {
+      status:   'insufficient',
+      count:    result.sampleSize,
+      required: MIN_READINGS,
+      message:  `あと${remaining}日分の記録が必要です（現在${result.sampleSize}日分）`,
+    };
+  }
+
+  // readings の date → raw temp マップ
+  const tempByDate = {};
+  result.readings.forEach(r => { tempByDate[r.date] = r.temp; });
+
+  // phases: 旧形式は { date, temp, phase }。raw temp を付与する。
+  const phases = result.phases.map(p => ({
+    date:  p.date,
+    temp:  tempByDate[p.date] ?? p.value,
+    phase: p.phase,
+  }));
+
+  // avgLow / avgHigh / maxTemp を raw readings から計算
+  const lowTemps  = phases.filter(p => p.phase === 'low').map(p => p.temp);
+  const highTemps = phases.filter(p => p.phase === 'high').map(p => p.temp);
+  const avgLow  = lowTemps.length
+    ? Math.round(lowTemps.reduce((a, b) => a + b, 0)  / lowTemps.length  * 100) / 100
+    : null;
+  const avgHigh = highTemps.length
+    ? Math.round(highTemps.reduce((a, b) => a + b, 0) / highTemps.length * 100) / 100
+    : null;
+  const maxTemp = result.readings.length
+    ? Math.max(...result.readings.map(r => r.temp))
+    : null;
+
+  const biphasic = result.biphasicDetected
+    ? (result.tempDiff >= 0.3 ? 'clear' : 'unclear')
+    : 'none';
+
+  return {
+    status:        'ready',
+    count:         result.sampleSize,
+    tempDiff:      result.tempDiff,
+    phases,
+    avgLow,
+    avgHigh,
+    biphasic,
+    mPattern:      false,
+    highPhaseDays: result.highPhaseDays,
+    lowPhaseDays:  result.lowPhaseDays,
+    ovulationDate: result.ovulationEstimate,
+    alerts:        _buildLegacyAlerts(avgLow, avgHigh, maxTemp),
+  };
+}
+
+function _buildLegacyAlerts(avgLow, avgHigh, maxTemp) {
+  const alerts = [];
+  if (maxTemp !== null && maxTemp >= 38.0) {
+    alerts.push({ level: 'emergency', message: `体温が${maxTemp}℃を記録しています。発熱の可能性があります。医師に相談することをお勧めします。` });
+  }
+  if (avgLow !== null && avgLow >= 37.0) {
+    alerts.push({ level: 'danger', message: `低温期の平均体温が${avgLow}℃と高めです。慢性炎症や甲状腺の問題が疑われる場合があります。` });
+  } else if (avgLow !== null && avgLow >= 36.5) {
+    alerts.push({ level: 'warning', message: `低温期の平均体温が${avgLow}℃とやや高めです。体温のパターンを継続して記録しましょう。` });
+  }
+  if (avgHigh !== null && avgHigh >= 37.5) {
+    alerts.push({ level: 'danger', message: `高温期の平均体温が${avgHigh}℃と高めです。` });
+  }
+  return alerts;
+}
