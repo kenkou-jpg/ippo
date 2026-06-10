@@ -12,6 +12,7 @@ import { saveState, STATE_KEY, INITIAL_STATE, migrateStorageKeys, getState, setS
 import { migrateToIDB }     from '../services/storage-migration.js';
 import { supabase, initialCloudSync, cloudRestore } from '../services/supabase.js';
 import { autoRecoveryCheck } from '../services/recovery.js';
+import { checkPremiumRegistered } from './premium/premium-service.js';
 
 // totalDays / streak の整合性を records から再計算して修復する
 function repairStats(state) {
@@ -134,7 +135,7 @@ export function bootstrap() {
   if (typeof window.updateDate === 'function') window.updateDate();
 
   // ── 6. Premium チェック ────────────────────────────────────
-  if (typeof window.checkPremiumRegistered === 'function') window.checkPremiumRegistered();
+  checkPremiumRegistered();
 
   // ── 7. IndexedDB 移行 → cloud sync → recovery チェーン ─────
   migrateToIDB()

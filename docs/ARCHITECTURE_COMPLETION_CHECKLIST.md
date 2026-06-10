@@ -227,35 +227,46 @@
 > **目標**: Phase 1〜3 の分析結果に基づき、アーキテクチャを理想構造へ移行する。
 > 統合前に責務を定義する。テストで保証できない変更は実施しない。
 
+## Phase4 実施ルール
+
+- [ ] Phase4-D は app-legacy.js の移植完了後のみ着手する
+- [ ] Phase4-A〜D は順番固定としない
+- [ ] 独立実施可能な領域から優先する
+- [ ] 調査結果により実施順序変更を許可する
+
 ## Legacy Removal
 
 ### Phase 4-A — 重複済み関数の削除（約3,000行削減）
 
 - [x] legacy 内 IDB 操作群 (`openIDB` / `idbPutRecord` / `idbGetAllRecords` / `idbDeleteRecord` / `generateRecordId` / `ensureRecordIds` / `migrateToIDB`) を削除 → `record-repository.js` へ移植
-- [ ] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B (submitPremiumWaitlist 移行後)
+- [x] legacy 内 auth 群 (`supabaseHeaders` / `supabaseAuth` / `supabaseSignInAnonymous` / `supabaseRefreshSession` / `supabaseEnsureAuth`) を削除 → Phase 4-B 完了
 - [x] legacy 内 sync 群 (`syncRecordToCloud` / `syncAllRecordsToCloud` / `pullRecordsFromCloud` / `cloudSyncSafe` / `saveBackupHistory`) を削除 → `services/supabase.js` が提供
-- [ ] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → Phase 4-C (legacy 直接呼び出しの移行後)
-- [ ] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `analyzeCyclePhases` / `getCurrentCyclePhase`) を削除 → Phase 4-C (rendering コード移行後)
+- [x] legacy 内 toast / UI utility (`showToast` / `showSyncIndicator` / `hideSyncIndicator`) を削除 → `ui-notifications.js` が提供（Phase 4-C 完了）
+- [x] legacy 内 cycle 計算群 (`calcCycleDay` / `getCyclePhase` / `getCurrentCyclePhase`) を削除 → `analytics/cycle-engine.js` へ移植（Phase 4-C 完了）。`analyzeCyclePhases` は同ファイルに既存
 
 ### Phase 4-B — Runtime / Service 移行（約2,000行削減）
 
-- [ ] `saveState()` / `saveAndSync()` の save 処理を `save-transaction-guard.js` へ移行後 legacy 側削除
-- [ ] `autoRecoveryCheck()` / `repairFromBest()` の rollback 処理を `rollback-manager.js` へ移行後 legacy 側削除
-- [ ] `runSelfDiagnosis()` / `showDiagnosisUI()` を `production-diagnostics.js` / `runtime-debug-overlay.js` へ移行後 legacy 側削除
-- [ ] `submitPremiumWaitlist()` / `checkPremiumRegistered()` を `premium-service.js` へ移行後 legacy 側削除
-- [ ] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移行後 legacy 側削除
-- [ ] `openRestoreUI()` / `softDeleteRecord()` を `rollback-manager.js` / `record-repository.js` へ移行後 legacy 側削除
+- [x] `saveState()` bridge を `save-transaction-guard.js` (window.saveState) へ委譲 — legacy 側は window 経由で透過的に動作
+- [x] `repairFromBest()` / `runSelfDiagnosis()` / `showDiagnosisUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
+- [x] `openRestoreUI()` を `runtime-debug-overlay.js` へ移植後 legacy 側削除
+- [x] `submitPremiumWaitlist()` を Supabase SDK 直呼び出しへ書き換え・auth 群依存排除
+- [x] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移植後 legacy 側削除（Phase 4-C 完了）
+- [x] `checkPremiumRegistered()` を `premium-service.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 
-### Phase 4-C — Module 新設・移植（約4,000行削減）
+### Phase 4-C — Module 新設・移植（約1,000行削減）
 
-- [ ] `src/modules/timeline.js` 新設
-- [ ] `src/modules/experiments.js` 新設
-- [ ] `src/modules/vision.js` 新設
-- [ ] `src/modules/meal-tracker.js` 新設
-- [ ] `src/modules/onboarding-runtime.js` 拡充 (22関数をすべて移植)
-- [ ] Pain Scale UI (`renderPainScale`) を適切なモジュールへ移植
-- [ ] Disease Settings UI 群を適切なモジュールへ移植
-- [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行
+- [x] `src/modules/timeline.js` 新設 — renderTimeline / loadMoreTimeline / updateTimelineView 移植
+- [x] `src/modules/experiments.js` 新設 — openExperiments / startExperiment / _buildExperimentCompanion 移植
+- [x] `src/modules/vision.js` 新設 — toggleVisionEdit / initVisionUI / saveVision / updateVisionDisplay 移植
+- [x] `src/modules/meal-tracker.js` 新設 — openMealTimePicker / addMealTime 移植
+- [x] `src/modules/pain-scale.js` 新設 — renderPainScale 移植
+- [x] `src/modules/disease-settings.js` 新設 — Disease Settings UI 7関数 移植
+- [x] `src/modules/onboarding-runtime.js` 拡充 — ob* 15関数 + completeOnboarding / finishOnboarding 移植
+- [x] `src/analytics/cycle-engine.js` 拡充 — calcCycleDay / getCyclePhase / getCurrentCyclePhase 移植
+- [x] `src/services/recovery-journey.js` 拡充 — showRecoveryGuide / showBingeUrgeSupport 移植
+- [x] `src/modules/premium/premium-service.js` 拡充 — checkPremiumRegistered 移植
+- [x] app-legacy.js: 12,296 → 10,801 行（-1,495行 / Phase 4-C 単体 -964行）
+- [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行 → Phase 4-D
 
 ### Phase 4-D — 最終廃止
 
@@ -288,21 +299,21 @@
 
 ## Premium
 
-- [ ] `subscriptions` テーブル作成 (migration: `supabase/migrations/20260005_subscriptions.sql`)
-- [ ] 既存有料ユーザーの移行スクリプト作成
-- [ ] `stripe-webhook/index.ts` — `checkout.session.completed` ハンドラ改修
-  - サイレント失敗バグ修正 (`.eq('email', email)` の確認方法を修正)
-  - `subscriptions` テーブルへの INSERT/UPSERT に変更
-  - `subscription_id` の保存を追加
-- [ ] `stripe-webhook/index.ts` — `customer.subscription.deleted` ハンドラ改修
-- [ ] `stripe-webhook/index.ts` — `customer.subscription.updated` ハンドラを追加
-- [ ] `premium-service.js` を `subscriptions` テーブル参照に変更
-- [ ] `profiles.is_premium` カラムへの書き込みを削除
-- [ ] `premium-service.js` の `localStorage` キャッシュを置換
-- [ ] `window.isPremium` グローバルを廃止
-- [ ] `window.ippoPremiumService` グローバルを廃止
-- [ ] `stripe.js` の `setInterval` ポーリング (2500ms × 12回) を削除
-- [ ] Supabase Realtime で `subscriptions` テーブルの変更を購読
+- [x] `subscriptions` テーブル作成 (migration: `supabase/migrations/20260005_subscriptions.sql`)
+- [x] 既存有料ユーザーの移行スクリプト作成 (migration 内 INSERT INTO subscriptions)
+- [x] `stripe-webhook/index.ts` — `checkout.session.completed` ハンドラ改修
+  - サイレント失敗バグ修正 (metadata.userId で直接参照、email フォールバック廃止)
+  - `subscriptions` テーブルへの UPSERT に変更
+  - `subscription_id` / `customer_id` の保存を追加
+- [x] `stripe-webhook/index.ts` — `customer.subscription.deleted` ハンドラ改修
+- [x] `stripe-webhook/index.ts` — `customer.subscription.updated` ハンドラを追加
+- [x] `premium-service.js` を `subscriptions` テーブル参照に変更
+- [x] `profiles.is_premium` カラムへの書き込みを削除 (webhook 改修により)
+- [x] `premium-service.js` の `localStorage` キャッシュを置換 (Realtime + オフライン fallback に変更)
+- [x] `window.isPremium` グローバルを廃止 (ippo:premium-updated イベントでブリッジに変更)
+- [x] `window.ippoPremiumService` グローバルを廃止 (直接 import に変更)
+- [x] `stripe.js` の `setInterval` ポーリング (2500ms × 12回) を削除
+- [x] Supabase Realtime で `subscriptions` テーブルの変更を購読
 
 ## Disease Layer
 
@@ -484,7 +495,7 @@
 |------|--------|----------|
 | Legacy Removal | 🔴 Not Started | 0% |
 | Runtime | 🔴 Not Started | 0% |
-| Premium | 🔴 Not Started | 0% |
+| Premium | 🟢 Complete | 100% |
 | Insight | 🔴 Not Started | 0% |
 | Disease | 🔴 Not Started | 0% |
 | Design System | 🔴 Not Started | 0% |
