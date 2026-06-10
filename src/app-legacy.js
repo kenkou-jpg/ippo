@@ -52,31 +52,7 @@ function _notifyAuthReady() {
 var _mealPendingType = '';
 var _mealPendingBtn = null;
 
-  function openMealTimePicker(){
-  var picker = document.getElementById('meal-time-picker');
-  var input = document.getElementById('meal-time-input');
-  var now = new Date();
-  var hh = String(now.getHours()).padStart(2,'0');
-  var mm = String(now.getMinutes()).padStart(2,'0');
-  if(input) input.value = hh + ':' + mm;
-  if(picker) picker.style.display = 'block';
-}
 
-function addMealTime(){
-  var ta = document.getElementById('rs-meal-free');
-  var input = document.getElementById('meal-time-input');
-  if(!ta || !input) return;
-  var time = input.value.replace(':','');
-  var current = ta.value.trim();
-  ta.value = current ? current + '\n' + time + ' ' : time + ' ';
-  var lines = ta.value.trim().split('\n').filter(function(l){ return l.trim(); });
-  lines.sort();
-  ta.value = lines.join('\n');
-  ta.focus();
-  ta.selectionStart = ta.selectionEnd = ta.value.length;
-  closeMealTimePicker();
-  if(typeof updateMealParse === 'function') updateMealParse();
-}
 
 function toggleMealEntry(type, btn){
   var ta = document.getElementById('rs-meal-free');
@@ -157,59 +133,11 @@ var VISION_PRESETS = [
   '体調を整えたい'
 ];
 
-function toggleVisionEdit(){
-  var edit = document.getElementById('vision-edit');
-  if(!edit) return;
-  edit.style.display = edit.style.display === 'none' ? 'block' : 'none';
-}
-
-function initVisionUI(){
-  var container = document.getElementById('vision-presets');
-  if(!container) return;
-  container.innerHTML = '';
-  VISION_PRESETS.forEach(function(text){
-    var btn = document.createElement('button');
-    btn.textContent = text;
-    btn.style.cssText = 'padding:6px 12px;border:1px solid #e8e0d8;border-radius:16px;background:var(--white);font-size:11px;font-family:Noto Sans JP,sans-serif;color:var(--ink);cursor:pointer;';
-    if(state.myVision === text){
-      btn.style.background = 'var(--rose)';
-      btn.style.color = 'white';
-      btn.style.borderColor = 'var(--rose)';
-    }
-    btn.onclick = function(){
-      document.getElementById('vision-input').value = text;
-      container.querySelectorAll('button').forEach(function(b){ b.style.background='var(--white)'; b.style.color='var(--ink)'; b.style.borderColor='#e8e0d8'; });
-      btn.style.background = 'var(--rose)';
-      btn.style.color = 'white';
-      btn.style.borderColor = 'var(--rose)';
-    };
-    container.appendChild(btn);
-  });
-  var input = document.getElementById('vision-input');
-  if(input && state.myVision) input.value = state.myVision;
-  updateVisionDisplay();
-}
-
-function saveVision(){
-  var input = document.getElementById('vision-input');
-  if(!input) return;
-  state.myVision = input.value.trim();
-  saveState();
-  updateVisionDisplay();
-  updateHomeVision();
-  document.getElementById('vision-edit').style.display = 'none';
-}
-
-function updateVisionDisplay(){
-  var el = document.getElementById('vision-display-text');
-  if(!el) return;
-  el.textContent = state.myVision || 'タップして設定';
-}
 
 
-function updateHomeVision(){
-  // ホーム画面への表示なし
-}
+
+
+
 
   
 
@@ -261,32 +189,7 @@ function initSettingsIcons() {
 }
 
 // ===== 痛みスケールボタン =====
-function renderPainScale(currentValue, fieldName) {
-  var faces = [
-    { icon: 'faceVeryGood', label: '痛みなし', v: 0 },
-    { icon: 'faceGood',     label: '軽い',     v: 1 },
-    { icon: 'faceNeutral',  label: '中程度',   v: 2 },
-    { icon: 'faceBad',      label: '強い',     v: 3 },
-    { icon: 'faceVeryBad',  label: 'とても強い', v: 4 }
-  ];
-  var html = '<div style="display:flex;gap:6px;">';
-  faces.forEach(function(f) {
-    var isSelected = currentValue === f.v;
-    var strokeColor = isSelected ? 'var(--rose)' : '#9a8e88';
-    html += '<button onclick="selectBodyCheckItem(\'' + fieldName + '\',' + f.v + ',this)" '
-      + 'style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;'
-      + 'padding:8px 4px;border-radius:10px;border:1.5px solid '
-      + (isSelected ? 'var(--rose)' : '#e8ddd8') + ';'
-      + 'background:' + (isSelected ? 'var(--rose-pale)' : 'var(--white)') + ';'
-      + 'cursor:pointer;transition:all 0.15s;">'
-      + ICONS[f.icon](22, strokeColor)
-      + '<span style="font-size:8px;color:' + (isSelected ? 'var(--rose)' : 'var(--ink-light)') + ';">'
-      + f.label + '</span>'
-      + '</button>';
-  });
-  html += '</div>';
-  return html;
-}
+function renderPainScale(v,f){return typeof window.renderPainScale==='function'?window.renderPainScale(v,f):''; }
 
 
 // ===== 症状詳細マスターデータ =====
@@ -398,86 +301,10 @@ var SYMPTOM_DETAIL_CONFIG = {
   }
 };
 
-function openDiseaseSettings(){
-  var currentArr = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
-  var diseases = Object.keys(DISEASE_CONFIG);
-  var categories = {};
-  diseases.forEach(function(d){
-    var cat = DISEASE_CONFIG[d].category || '一般';
-    if(!categories[cat]) categories[cat] = [];
-    categories[cat].push(d);
-  });
-
-  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;" id="diseaseOverlay" onclick="if(event.target===this)this.remove()">';
-  html += '<div style="background:var(--cream);border-radius:24px;padding:28px 22px;width:88%;max-width:360px;max-height:82vh;overflow-y:auto;box-shadow:0 12px 40px rgba(44,36,32,0.15);">';
-  html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">';
-  html += '<div style="font-family:Shippori Mincho,serif;font-size:17px;color:var(--ink);">気になる疾患を選択<span style="font-size:12px;color:var(--ink-light);margin-left:6px;">（複数可）</span></div>';
-  html += '<button onclick="document.getElementById(\'diseaseOverlay\').remove()" style="width:32px;height:32px;border-radius:50%;border:1px solid rgba(200,180,170,0.3);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>';
-  html += '</div>';
-  html += '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;margin-bottom:16px;">選択した疾患の専用セルフチェックが記録画面に追加されます。</div>';
-
-  var catKeys = Object.keys(categories);
-  for(var c=0;c<catKeys.length;c++){
-    html += '<div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin:12px 0 8px;text-transform:uppercase;">'+catKeys[c]+'</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">';
-    var catDiseases = categories[catKeys[c]];
-    for(var i=0;i<catDiseases.length;i++){
-      var d = catDiseases[i];
-      var sel = currentArr.indexOf(d) !== -1;
-      html += '<button onclick="toggleDiseaseChip(this,\''+d+'\')" data-disease="'+d+'" data-selected="'+(sel?'true':'false')+'" style="padding:8px 14px;border-radius:20px;background:'+(sel?'var(--rose-pale)':'var(--white)')+';border:1.5px solid '+(sel?'var(--rose)':'#e8ddd8')+';font-size:12px;color:'+(sel?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;transition:all 0.2s;box-shadow:0 1px 4px var(--shadow);">'+DISEASE_CONFIG[d].icon+' '+d+'</button>';
-    }
-    html += '</div>';
-  }
-
-  html += '<div style="margin-top:16px;display:flex;gap:8px;">';
-  html += '<button onclick="clearAllDiseases()" style="flex:1;padding:14px;background:var(--white);color:var(--ink-mid);border:1px solid #e8ddd8;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:13px;cursor:pointer;">クリア</button>';
-  html += '<button onclick="saveDiseaseSettings()" style="flex:2;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">保存する</button>';
-  html += '</div>';
-  html += '</div></div>';
-
-  document.body.insertAdjacentHTML('beforeend', html);
-}
 // ===== 周期フェーズ連動分析 =====
-function calcCycleDay(recordDate, records){
-  // 直近の生理開始日を探す
-  var sorted = records.slice().sort(function(a,b){ return new Date(b.record_date || b.date) - new Date(a.record_date || a.date); });
-  var target = new Date(recordDate).getTime();
-  var lastPeriodStart = null;
+function calcCycleDay(d,r){return typeof window.calcCycleDay==='function'?window.calcCycleDay(d,r):null;}
 
-  for(var i=0; i<sorted.length; i++){
-    var r = sorted[i];
-    var rDate = new Date(r.record_date || r.date).getTime();
-    if(rDate > target) continue;
-    // 生理中の最初の日を探す
-    if(r.menstrualCycle && r.menstrualCycle !== 'なし'){
-      // この日の前日が生理でなければ、この日が開始日
-      var prevDay = null;
-      for(var j=0; j<sorted.length; j++){
-        var diff = rDate - new Date(sorted[j].record_date || sorted[j].date).getTime();
-        if(diff === -86400000){ prevDay = sorted[j]; break; }
-      }
-      if(!prevDay || !prevDay.menstrualCycle || prevDay.menstrualCycle === 'なし'){
-        lastPeriodStart = rDate;
-        break;
-      }
-      // 前日も生理なら、さらに遡る
-      continue;
-    }
-  }
-
-  if(!lastPeriodStart) return null;
-  var dayDiff = Math.round((target - lastPeriodStart) / 86400000) + 1;
-  return dayDiff > 0 ? dayDiff : null;
-}
-
-function getCyclePhase(cycleDay){
-  if(!cycleDay) return null;
-  if(cycleDay <= 5) return '月経期';
-  if(cycleDay <= 13) return '卵胞期';
-  if(cycleDay <= 16) return '排卵期';
-  if(cycleDay <= 28) return '黄体期';
-  return '黄体期後期';
-}
+function getCyclePhase(cd){return typeof window.getCyclePhase==='function'?window.getCyclePhase(cd):null;}
 
 function analyzeCyclePhases(records){
   var phases = {
@@ -1302,245 +1129,14 @@ function showExperimentReport(idx) {
 var _tlPage = 1;
 var _tlPerPage = 15;
 
-function renderTimeline(){
-  _tlPage = 1;
-  updateTimelineView();
-}
 
-function loadMoreTimeline(){
-  _tlPage++;
-  updateTimelineView();
-}
 
-function updateTimelineView(){
-  var list = document.getElementById('tl-list');
-  var countEl = document.getElementById('tl-count');
-  var moreBtn = document.getElementById('tl-more');
-  if(!list) return;
 
-  var search = ((document.getElementById('tl-search')||{}).value||'').trim().toLowerCase();
-  var filter = (document.getElementById('tl-filter')||{}).value || 'all';
 
-  // フレアアップ日を事前計算
-  var flareDates = {};
-  detectFlareups(state.records).forEach(function(f){
-    flareDates[new Date(f.date).toDateString()] = f;
-  });
 
-  // フィルタリング
-  var filtered = state.records.filter(function(r){
-    // 検索
-    if(search){
-      var haystack = (
-        (r.symptoms||[]).join(' ') + ' ' +
-        (r.factors||[]).join(' ') + ' ' +
-        (r.note||'') + ' ' +
-        (r.bowel||'') + ' ' +
-        (r.menstrualCycle||'') + ' ' +
-        (r.medication||[]).join(' ')
-      ).toLowerCase();
-      if(haystack.indexOf(search) === -1) return false;
-    }
 
-    // フィルタ
-    var ds = new Date(r.record_date || r.date).toDateString();
-    if(filter === 'pain') return r.painLevel && r.painLevel > 0;
-    if(filter === 'flare') return !!flareDates[ds];
-    if(filter === 'period') return r.menstrualCycle && r.menstrualCycle !== 'なし';
-    if(filter === 'high-energy') return r.energy && r.energy >= 4;
-    if(filter === 'low-energy') return r.energy && r.energy <= 2;
-    return true;
-  });
 
-  // 日付降順
-  filtered.sort(function(a,b){ return new Date(b.date) - new Date(a.date); });
-
-  if(countEl) countEl.textContent = filtered.length + '件';
-
-  var show = filtered.slice(0, _tlPage * _tlPerPage);
-  if(moreBtn) moreBtn.style.display = show.length < filtered.length ? 'block' : 'none';
-
-  if(show.length === 0){
-    list.innerHTML = '<div style="text-align:center;padding:30px 0;color:var(--ink-light);font-size:12px;">'+(search||filter!=='all'?'条件に一致する記録がありません':'まだ記録がありません')+'</div>';
-    return;
-  }
-
-  var html = '';
-  show.forEach(function(r){
-    var d = new Date(r.date);
-    var ds = d.toDateString();
-    var dateStr = (d.getMonth()+1)+'/'+d.getDate()+'（'+['日','月','火','水','木','金','土'][d.getDay()]+'）';
-    var isFlare = !!flareDates[ds];
-
-    html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:8px;box-shadow:0 1px 4px var(--shadow);'+(isFlare?'border-left:3px solid var(--rose);':'')+'cursor:pointer;" onclick="editPastRecord(\''+r.date+'\')">';
-
-    // ヘッダー行
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-    html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">'+dateStr+'</div>';
-    html += '<div style="display:flex;gap:4px;">';
-    if(r.wellnessScore !== undefined) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:'+(r.wellnessScore>=70?'#e8f4ec':r.wellnessScore>=40?'var(--warm-light)':'#fde8e8')+';color:'+(r.wellnessScore>=70?'#4a7c5c':r.wellnessScore>=40?'#a07840':'#c4878c')+';">WS:'+r.wellnessScore+'</span>';
-    if(r.energy) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:#e8f4ec;color:#4a7c5c;">⚡'+r.energy+'</span>';
-    if(isFlare) html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:#fde8e8;color:var(--rose);">🔥</span>';
-    if(r.menstrualCycle && r.menstrualCycle !== 'なし') html += '<span style="font-size:9px;padding:2px 6px;border-radius:6px;background:var(--rose-pale);color:var(--rose);">🌸'+r.menstrualCycle+'</span>';
-    html += '</div></div>';
-
-    // コンテンツ行
-    var tags = [];
-    if(r.symptoms && r.symptoms.length) tags = tags.concat(r.symptoms.slice(0,4));
-    if(r.painLevel && r.painLevel > 0) tags.push('痛み'+r.painLevel+'/10');
-    if(r.sleepHours) tags.push('😴'+r.sleepHours+'h');
-    if(r.bowel) tags.push('🫧'+r.bowel);
-    if(r.factors && r.factors.length) tags = tags.concat(r.factors.slice(0,3).map(function(f){return '📋'+f;}));
-    if(r.medication && r.medication.length) tags.push('💊'+r.medication.join('・'));
-
-    if(tags.length > 0){
-      html += '<div style="display:flex;flex-wrap:wrap;gap:4px;">';
-      tags.forEach(function(t){
-        html += '<span style="font-size:9px;background:var(--cream);color:var(--ink-mid);padding:2px 7px;border-radius:6px;">'+t+'</span>';
-      });
-      html += '</div>';
-    }
-
-    if(r.note){
-      html += '<div style="font-size:10px;color:var(--ink-light);margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📝 '+r.note.substring(0,50)+'</div>';
-    }
-
-    html += '</div>';
-  });
-
-  if(_tlPage === 1){
-    list.innerHTML = html;
-  } else {
-    list.innerHTML += html;
-  }
-}
-
-function toggleDiseaseChip(btn, name){
-  var sel = btn.dataset.selected === 'true';
-  if(sel){
-    btn.dataset.selected = 'false';
-    btn.style.background = 'var(--white)';
-    btn.style.borderColor = '#e8ddd8';
-    btn.style.color = 'var(--ink-mid)';
-  } else {
-    btn.dataset.selected = 'true';
-    btn.style.background = 'var(--rose-pale)';
-    btn.style.borderColor = 'var(--rose)';
-    btn.style.color = 'var(--rose)';
-  }
-}
-
-function clearAllDiseases(){
-  var overlay = document.getElementById('diseaseOverlay');
-  if(!overlay) return;
-  overlay.querySelectorAll('[data-disease]').forEach(function(btn){
-    btn.dataset.selected = 'false';
-    btn.style.background = 'var(--white)';
-    btn.style.borderColor = '#e8ddd8';
-    btn.style.color = 'var(--ink-mid)';
-  });
-}
-
-function saveDiseaseSettings(){
-  var overlay = document.getElementById('diseaseOverlay');
-  if(!overlay) return;
-  var selected = [];
-  overlay.querySelectorAll('[data-disease]').forEach(function(btn){
-    if(btn.dataset.selected === 'true'){
-      selected.push(btn.getAttribute('data-disease'));
-    }
-  });
-  state.myDiseases = selected;
-  delete state.myDisease;
-  saveState();
-  // Bridge fix (P0-B3): settings-store の trackedConditions を同期する。
-  // saveStore は trackedConditions 変更時に setState(myDiseases) を呼ぶが、
-  // ここでは saveState() 済みのため二重保存は起きない（saveStore 内の saveState は
-  // trackedConditions 変更時のみ実行され、state.myDiseases は既に同値のため冪等）。
-  if (typeof window.saveSettingsStore === 'function') {
-    window.saveSettingsStore({ trackedConditions: selected.slice() });
-  }
-  // 疾患設定変更もクラウドに同期（記録保存を待たずに即時バックアップ）
-  if(typeof cloudBackupAll === 'function') cloudBackupAll().catch(function(){});
-  var display = document.getElementById('disease-setting-display');
-  if(display) display.textContent = selected.length ? selected.join('・') : '設定する';
-  overlay.remove();
-  updateDiseaseQuestions();
-  reorderRecordSections();
-}
-
-function selectDisease(name){
-  // 後方互換：単一選択時のショートカット
-  if(name){
-    state.myDiseases = [name];
-  } else {
-    state.myDiseases = [];
-  }
-  delete state.myDisease;
-  saveState();
-  var display = document.getElementById('disease-setting-display');
-  if(display) display.textContent = name || '設定する';
-  var overlay = document.getElementById('diseaseOverlay');
-  if(overlay) overlay.remove();
-  updateDiseaseQuestions();
-}
-
-function updateDiseaseQuestions(){
-  var container = document.getElementById('disease-questions');
-  if(!container) return;
-  var diseases = state.myDiseases || (state.myDisease ? [state.myDisease] : []);
-  var dot4 = document.getElementById('rec-dot-4');
-  if(!diseases.length){
-    container.style.display = 'none';
-    container.innerHTML = '';
-    if(dot4) dot4.style.display = 'none';
-    return;
-  }
-  // 4th dot を表示
-  if(dot4) dot4.style.display = 'block';
-  // 再描画前に現在の選択値を保存（記録タブ押下で選択値がリセットされるバグの修正）
-  var preserved = {};
-  container.querySelectorAll('[data-disease-q]').forEach(function(g){
-    var sel = g.querySelector('.chip.selected');
-    if(sel) preserved[g.getAttribute('data-disease-q')] = sel.textContent;
-  });
-  // STEPラベル + タイトル
-  var stepNum = 'STEP 4';
-  var titleNames = diseases.map(function(d){ return DISEASE_CONFIG[d] ? (DISEASE_CONFIG[d].icon+' '+d) : d; }).join(' / ');
-  var html = '<div style="font-size:10px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">'+stepNum+'</div>';
-  html += '<div class="section-title serif" style="margin-bottom:16px;">疾患セルフチェック</div>';
-  html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:16px;padding:8px 10px;background:var(--rose-pale);border-radius:10px;">'+titleNames+'</div>';
-  for(var d=0;d<diseases.length;d++){
-    var disease = diseases[d];
-    var config = DISEASE_CONFIG[disease];
-    if(!config) continue;
-    if(d > 0) html += '<div style="height:1px;background:#f0e8e4;margin:16px 0;"></div>';
-    html += '<div style="font-size:11px;letter-spacing:0.12em;color:var(--ink-light);margin-bottom:10px;">'+config.icon+' '+config.label+'</div>';
-    var questions = config.questions;
-    for(var i=0;i<questions.length;i++){
-      var q = questions[i];
-      html += '<div style="margin-bottom:14px;">';
-      html += '<div style="font-size:13px;color:var(--ink);margin-bottom:8px;">'+q.text+'</div>';
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;" data-disease-q="'+disease+'__'+q.id+'">';
-      for(var j=0;j<q.options.length;j++){
-        html += '<button class="chip" onclick="this.parentElement.querySelectorAll(\'.chip\').forEach(function(c){c.classList.remove(\'selected\')});this.classList.add(\'selected\');updateRecProgressDots();" style="font-size:12px;padding:6px 14px;border-radius:20px;cursor:pointer;">'+q.options[j]+'</button>';
-      }
-      html += '</div></div>';
-    }
-  }
-  container.innerHTML = html;
-  container.style.display = 'block';
-  // 保存した選択値を復元
-  Object.keys(preserved).forEach(function(key){
-    var group = container.querySelector('[data-disease-q="'+key+'"]');
-    if(group){
-      group.querySelectorAll('.chip').forEach(function(c){
-        if(c.textContent === preserved[key]) c.classList.add('selected');
-      });
-    }
-  });
-  updateRecProgressDots();
-}
+function updateDiseaseQuestions(){if(typeof window.updateDiseaseQuestions==='function')window.updateDiseaseQuestions();}
 
 
 
@@ -1574,14 +1170,6 @@ function submitPremiumWaitlist(){
 }
 
 // 既に登録済みなら完了表示
-function checkPremiumRegistered(){
-  if(localStorage.getItem('ippo_premium_registered')){
-    var form = document.getElementById('premium-form-area');
-    var done = document.getElementById('premium-done');
-    if(form) form.style.display = 'none';
-    if(done) done.style.display = 'block';
-  }
-}
 
   
 var _cloudBackupLock = false;
@@ -1954,40 +1542,9 @@ function saveState() {
 
 // ===== 同期インジケーター =====
 var _syncIndicatorTimer = null;
-function showSyncIndicator(msg){
-  var el = document.getElementById('ippo-sync-indicator');
-  var txt = document.getElementById('ippo-sync-text');
-  if(!el) return;
-  if(txt) txt.textContent = msg || '同期中';
-  el.style.display = 'flex';
-  if(_syncIndicatorTimer) clearTimeout(_syncIndicatorTimer);
-}
-function hideSyncIndicator(){
-  if(_syncIndicatorTimer) clearTimeout(_syncIndicatorTimer);
-  _syncIndicatorTimer = setTimeout(function(){
-    var el = document.getElementById('ippo-sync-indicator');
-    if(el) el.style.display = 'none';
-  }, 800);
-}
 
 // ===== トースト通知（ユーザー向けメッセージ） =====
 var _toastTimer = null;
-function showToast(msg, type){
-  if(_toastTimer) clearTimeout(_toastTimer);
-  var existing = document.getElementById('ippo-toast');
-  if(existing) existing.remove();
-  var toast = document.createElement('div');
-  toast.id = 'ippo-toast';
-  var bg = type === 'error' ? '#fef3f2' : type === 'warn' ? '#fff8e6' : '#e8f4ec';
-  var color = type === 'error' ? '#c44848' : type === 'warn' ? '#9a6a00' : '#2d6a3f';
-  toast.style.cssText = 'position:fixed;top:calc(env(safe-area-inset-top,0px) + 60px);left:50%;transform:translateX(-50%);max-width:390px;width:calc(100% - 32px);padding:12px 16px;background:'+bg+';color:'+color+';border-radius:12px;font-size:13px;font-family:Noto Sans JP,sans-serif;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.1);text-align:center;transition:opacity 0.3s;';
-  toast.textContent = msg;
-  document.body.appendChild(toast);
-  _toastTimer = setTimeout(function(){
-    toast.style.opacity = '0';
-    setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 300);
-  }, type === 'error' ? 5000 : 3000);
-}
 
 // ===== Escapeキーでモーダルを閉じる =====
 document.addEventListener('keydown', function(e){
@@ -2305,363 +1862,22 @@ var _obDiseasesSelected = [];
 var _obPurposeSelected = null;
 var _obReminderSelected = null;
 
-function obInit() {
-  // インジケーター生成
-  var indicator = document.getElementById('ob-indicator');
-  if (indicator) {
-    indicator.innerHTML = '';
-    for (var i = 1; i <= 7; i++) {
-      var dot = document.createElement('div');
-      dot.className = 'ob-dot';
-      dot.id = 'ob-dot-' + i;
-      indicator.appendChild(dot);
-    }
-  }
-  // 生年セレクトボックス生成
-  var sel = document.getElementById('ob-birth-year');
-  if (sel) {
-    var currentYear = new Date().getFullYear();
-    for (var y = currentYear - 10; y >= 1955; y--) {
-      var opt = document.createElement('option');
-      opt.value = y;
-      opt.textContent = y;
-      sel.appendChild(opt);
-    }
-  }
-  // 周期チップ生成
-  var cycleChips = document.getElementById('ob-cycle-chips');
-  if (cycleChips) {
-    var cycles = ['21日', '24日', '25日', '28日', '30日', '32日', '35日以上', '不規則'];
-    cycles.forEach(function(c) {
-      var btn = document.createElement('button');
-      btn.className = 'ob-chip-inline';
-      btn.textContent = c;
-      btn.onclick = function() {
-        cycleChips.querySelectorAll('.ob-chip-inline').forEach(function(b) { b.classList.remove('selected'); });
-        btn.classList.add('selected');
-        _obCycleSelected = c;
-      };
-      cycleChips.appendChild(btn);
-    });
-  }
-  // PR-2: 既存の myDiseases を _obDiseasesSelected に preload
-  // オンボーディング再表示時に空配列で上書きされるのを防ぐ
-  _obDiseasesSelected = (state.myDiseases || []).slice();
 
-  // 疾患リスト生成
-  var diseaseList = document.getElementById('ob-disease-list-new');
-  if (diseaseList) {
-    var categories = {
-      '婦人科疾患':       ['卵巣嚢腫', '子宮内膜症', '子宮筋腫', '子宮腺筋症'],
-      'ホルモン・周期':   ['PCOS', 'PMS/PMDD', '更年期障害', '不妊症・排卵障害'],
-      '骨盤・その他':     ['骨盤臓器脱', '外陰痛症候群', '慢性骨盤痛']
-    };
-    var html = '';
-    Object.keys(categories).forEach(function(cat) {
-      html += '<div style="font-size:10px;letter-spacing:0.12em;color:var(--ink-light);'
-        + 'margin:14px 0 7px;text-transform:uppercase;">' + cat + '</div>';
-      categories[cat].forEach(function(d) {
-        var cfg = DISEASE_CONFIG[d];
-        if (!cfg) return;
-        // PR-2: 保存済み疾患は選択済み状態で描画
-        var preSelected = _obDiseasesSelected.indexOf(d) !== -1;
-        html += '<div class="ob-chip' + (preSelected ? ' selected' : '') + '" data-ob-disease="' + d.replace(/"/g, '&quot;') + '" '
-          + 'data-selected="' + (preSelected ? '1' : '0') + '" '
-          + 'style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">';
-        html += '<div>';
-        html += '<div style="font-size:13px;font-weight:500;color:var(--ink);">' + d + '</div>';
-        html += '<div style="font-size:10px;color:var(--ink-light);margin-top:2px;">'
-          + cfg.questions.length + '項目のセルフチェック対応</div>';
-        html += '</div>';
-        var checkStyle = preSelected
-          ? 'width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rose);background:var(--rose);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;transition:all 0.2s;'
-          : 'width:20px;height:20px;border-radius:50%;border:1.5px solid #e8ddd8;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;color:transparent;transition:all 0.2s;';
-        html += '<div class="ob-check-mark" style="' + checkStyle + '">✓</div>';
-        html += '</div>';
-      });
-    });
-    diseaseList.innerHTML = html;
-  }
-  // 目的チップ生成
-  var purposeChips = document.getElementById('ob-purpose-chips');
-  if (purposeChips) {
-    var purposes = [
-      { v: 'clinic',  label: '診察前の記録を残したい',     sub: '医師に伝えやすい形でデータを整理します' },
-      { v: 'daily',   label: '毎日の体調を管理したい',     sub: 'からだのパターンを発見するサポートをします' },
-      { v: 'both',    label: '両方使いたい',               sub: '記録と診察サポートの両方に対応します' },
-      { v: 'unknown', label: 'まだわからない',             sub: 'あとで設定から変更できます' }
-    ];
-    purposes.forEach(function(p) {
-      var btn = document.createElement('button');
-      btn.className = 'ob-chip';
-      btn.innerHTML = '<div style="font-weight:500;">' + p.label + '</div>'
-        + '<div style="font-size:11px;color:var(--ink-light);margin-top:3px;">' + p.sub + '</div>';
-      btn.onclick = function() {
-        purposeChips.querySelectorAll('.ob-chip').forEach(function(b) { b.classList.remove('selected'); });
-        btn.classList.add('selected');
-        _obPurposeSelected = p.v;
-      };
-      purposeChips.appendChild(btn);
-    });
-  }
-  // リマインダーチップ生成
-  var reminderChips = document.getElementById('ob-reminder-chips');
-  if (reminderChips) {
-    var reminders = [
-      { v: '08:00', label: '朝 8:00 に通知',    sub: '記録を朝の習慣にする' },
-      { v: '12:00', label: '昼 12:00 に通知',   sub: '昼休みに記録する' },
-      { v: '21:00', label: '夜 21:00 に通知',   sub: '就寝前に今日を振り返る' },
-      { v: 'none',  label: 'リマインダーは不要', sub: 'あとで設定から変更できます' }
-    ];
-    reminders.forEach(function(r) {
-      var btn = document.createElement('button');
-      btn.className = 'ob-chip';
-      btn.innerHTML = '<div style="font-weight:500;">' + r.label + '</div>'
-        + '<div style="font-size:11px;color:var(--ink-light);margin-top:3px;">' + r.sub + '</div>';
-      btn.onclick = function() {
-        reminderChips.querySelectorAll('.ob-chip').forEach(function(b) { b.classList.remove('selected'); });
-        btn.classList.add('selected');
-        _obReminderSelected = r.v;
-      };
-      reminderChips.appendChild(btn);
-    });
-  }
-  // 生理日カレンダー生成
-  obBuildPeriodCalendar();
-}
 
-function obBuildPeriodCalendar() {
-  var container = document.getElementById('ob-period-calendar');
-  if (!container) return;
-  var now = new Date();
-  var months = [
-    new Date(now.getFullYear(), now.getMonth() - 1, 1),
-    new Date(now.getFullYear(), now.getMonth(), 1)
-  ];
-  var html = '';
-  months.forEach(function(firstDay) {
-    var year  = firstDay.getFullYear();
-    var month = firstDay.getMonth();
-    var daysInMonth = new Date(year, month + 1, 0).getDate();
-    var startDow = firstDay.getDay();
-    var monthLabel = (month + 1) + '月';
-    html += '<div style="margin-bottom:12px;">';
-    html += '<div style="font-size:11px;font-weight:500;color:var(--ink-light);text-align:center;margin-bottom:6px;">'
-      + year + '年 ' + monthLabel + '</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;'
-      + 'text-align:center;font-size:10px;color:var(--ink-light);margin-bottom:4px;">';
-    ['日','月','火','水','木','金','土'].forEach(function(d) {
-      html += '<div>' + d + '</div>';
-    });
-    html += '</div>';
-    html += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;">';
-    for (var i = 0; i < startDow; i++) html += '<div></div>';
-    for (var day = 1; day <= daysInMonth; day++) {
-      var dateStr = year + '-' + String(month + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
-      var todayStr = now.toISOString().slice(0, 10);
-      var isFuture = dateStr > todayStr;
-      var isSelected = _obPeriodSelected === dateStr;
-      html += '<div data-ob-date="' + dateStr + '" ' + (isFuture ? 'data-ob-date-future="1" ' : '')
-        + 'id="ob-cal-' + dateStr + '" '
-        + 'style="aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;'
-        + 'font-size:11px;cursor:' + (isFuture ? 'default' : 'pointer') + ';'
-        + 'transition:all 0.15s;'
-        + (isFuture ? 'color:#e0d0c8;' : isSelected ? 'background:var(--rose);color:white;font-weight:500;' : dateStr === todayStr ? 'border:1.5px solid var(--rose);color:var(--rose);' : 'color:var(--ink);')
-        + '">' + day + '</div>';
-    }
-    html += '</div></div>';
-  });
-  container.innerHTML = html;
-}
 
-function obSelectPeriodDay(dateStr) {
-  _obPeriodSelected = dateStr;
-  document.querySelectorAll('[id^="ob-cal-"]').forEach(function(el) {
-    var d = el.id.replace('ob-cal-', '');
-    var now = new Date().toISOString().slice(0, 10);
-    el.style.background = '';
-    el.style.color = d === now ? 'var(--rose)' : 'var(--ink)';
-    el.style.fontWeight = '';
-    if (d === now) el.style.border = '1.5px solid var(--rose)';
-    else el.style.border = '';
-  });
-  var sel = document.getElementById('ob-cal-' + dateStr);
-  if (sel) {
-    sel.style.background = 'var(--rose)';
-    sel.style.color = 'white';
-    sel.style.fontWeight = '500';
-    sel.style.border = '';
-  }
-  var disp = document.getElementById('ob-period-selected');
-  if (disp) {
-    var d = new Date(dateStr + 'T00:00:00');
-    disp.textContent = (d.getMonth() + 1) + '月' + d.getDate() + '日を選択中';
-  }
-}
 
-function obToggleDisease(el, disease) {
-  var isSelected = el.getAttribute('data-selected') === '1';
-  if (isSelected) {
-    el.setAttribute('data-selected', '0');
-    el.classList.remove('selected');
-    el.querySelector('.ob-check-mark').style.cssText =
-      'width:20px;height:20px;border-radius:50%;border:1.5px solid #e8ddd8;'
-      + 'flex-shrink:0;display:flex;align-items:center;justify-content:center;'
-      + 'font-size:11px;color:transparent;transition:all 0.2s;';
-    _obDiseasesSelected = _obDiseasesSelected.filter(function(d) { return d !== disease; });
-  } else {
-    el.setAttribute('data-selected', '1');
-    el.classList.add('selected');
-    el.querySelector('.ob-check-mark').style.cssText =
-      'width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rose);'
-      + 'background:var(--rose);flex-shrink:0;display:flex;align-items:center;'
-      + 'justify-content:center;font-size:11px;color:white;transition:all 0.2s;';
-    if (_obDiseasesSelected.indexOf(disease) === -1) _obDiseasesSelected.push(disease);
-  }
-}
 
-function obShowStep(n) {
-  for (var i = 0; i <= 8; i++) {
-    var el = document.getElementById('ob-step-' + i);
-    if (el) el.style.display = 'none';
-  }
-  var target = document.getElementById('ob-step-' + n);
-  if (target) target.style.display = 'block';
-  var indicator = document.getElementById('ob-indicator');
-  if (n >= 1 && n <= 7) {
-    if (indicator) indicator.style.display = 'flex';
-    for (var i = 1; i <= 7; i++) {
-      var dot = document.getElementById('ob-dot-' + i);
-      if (dot) dot.className = 'ob-dot' + (i <= n ? ' active' : '');
-    }
-  } else {
-    if (indicator) indicator.style.display = 'none';
-  }
-  _obStep = n;
-  window.scrollTo(0, 0);
-}
 
-function obNext() {
-  obShowStep(_obStep + 1);
-}
 
-function obSkipAll() {
-  completeOnboarding();
-}
 
-function obSaveName() {
-  var val = (document.getElementById('ob-name-input').value || '').trim();
-  if (val) state.name = val;
-  var disp = document.getElementById('ob-name-display');
-  if (disp) disp.textContent = val || 'あなた';
-  obNext();
-}
 
-function obSaveBirth() {
-  var val = document.getElementById('ob-birth-year').value;
-  if (val) state.birthYear = parseInt(val);
-  obNext();
-}
 
-function obSavePeriod() {
-  if (_obPeriodSelected) {
-    state.lastPeriodDate = _obPeriodSelected;
-  }
-  obNext();
-}
 
-function obSaveCycle() {
-  if (_obCycleSelected) {
-    var num = parseInt(_obCycleSelected);
-    state.cycleLength = isNaN(num) ? 28 : num;
-    state.cycleIrregular = _obCycleSelected === '不規則';
-  }
-  obNext();
-}
 
-function obSaveDiseases() {
-  state.myDiseases = _obDiseasesSelected.slice();
-  var display = document.getElementById('disease-setting-display');
-  if (display) {
-    display.textContent = state.myDiseases.length > 0
-      ? state.myDiseases.join('・') : '設定する';
-  }
-  saveState(); // Fix: オンボーディング疾患選択をリロード前に永続化
-  obNext();
-}
 
-function obSavePurpose() {
-  if (_obPurposeSelected) state.purpose = _obPurposeSelected;
-  obNext();
-}
 
-function obSaveReminder() {
-  if (_obReminderSelected && _obReminderSelected !== 'none') {
-    state.reminderTime = _obReminderSelected;
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }
-  obComplete();
-}
 
-function obComplete() {
-  if (state.lastPeriodDate && state.cycleLength) {
-    var summary = document.getElementById('ob-cycle-summary');
-    var phaseEl = document.getElementById('ob-cycle-phase');
-    var nextEl  = document.getElementById('ob-cycle-next');
-    if (summary && phaseEl && nextEl) {
-      var today  = new Date();
-      var last   = new Date(state.lastPeriodDate + 'T00:00:00');
-      var dayNum = Math.floor((today - last) / 86400000) + 1;
-      var phase  = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : null;
-      phaseEl.textContent = '周期 ' + dayNum + '日目' + (phase ? '（' + phase + '）' : '');
-      var daysLeft = state.cycleLength - dayNum;
-      nextEl.textContent = daysLeft > 0
-        ? '次の生理まで約 ' + daysLeft + ' 日'
-        : '生理が近い時期です';
-      summary.style.display = 'block';
-    }
-  }
-  obShowStep(8);
-}
 
-function completeOnboarding() {
-  state._onboardingDone = true;
-  saveState();
-  finishOnboarding();
-}
-
-function finishOnboarding() {
-  document.getElementById('screen-welcome').style.display = 'none';
-  document.getElementById('main-app').style.display = 'block';
-  updateGreeting();
-  updateStats();
-  updateUnlock();
-  updateHistory();
-  buildCalendar();
-  updateSettingsHero();
-  buildHomeWeekRow();
-  updateHomeInsightCard();
-  updateHomeNumbers();
-  updateHomeDiseaseAdvice();
-  updateHomeCTAState();
-  if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
-  if (typeof updateTodayMessage === 'function') updateTodayMessage();
-
-  // バグ18: ホームバナー非表示フラグを復元
-  try {
-    if (localStorage.getItem('ippo_hide_add_home') === '1') {
-      var banner = document.getElementById('add-home-banner');
-      if (banner) banner.style.display = 'none';
-    }
-  } catch(e) {}
-
-  initReminders();
-
-  // 疾患選択に基づいて記録画面セクションの順序を調整
-  reorderRecordSections();
-}
 function reorderRecordSections() {
   var diseases = state.myDiseases || [];
   if (diseases.length === 0) return;
@@ -3151,11 +2367,7 @@ var FAST_RECOVERY_FOODS = {
   '卵巣嚢腫':  { color: '#7a9eb0', icon: '🩵', foods: [['ベリー類・ブルーベリー','アントシアニンで活性酸素（ROS）を中和'],['ブロッコリー・芽キャベツ','DIM・アブラナ科でエストロゲン代謝サポート'],['サーモン・えごまオイル','オメガ3・EPA/DHAで嚢腫周囲の炎症を抑制'],['玄米・さつまいも（少量）','低GIでインスリン安定・ホルモンバランス改善']] }
 };
 
-function getCurrentCyclePhase() {
-  var today = new Date().toISOString();
-  var cd = calcCycleDay(today, state.records || []);
-  return getCyclePhase(cd);
-}
+function getCurrentCyclePhase(){return typeof window.getCurrentCyclePhase==='function'?window.getCurrentCyclePhase():null;}
 
 function updateFastingWidgetPhase() {
   var infoEl = document.getElementById('fast-phase-info');
@@ -3203,142 +2415,9 @@ function updateFastingWidgetPhase() {
   if (bingeBtnWrap) bingeBtnWrap.style.display = showBingeBtn ? 'block' : 'none';
 }
 
-function showRecoveryGuide() {
-  var phase = getCurrentCyclePhase();
-  var diseases = state.myDiseases || [];
-
-  // 疾患別回復食ルーティング（優先順位順）
-  var diseaseRecoveryKey = null;
-  ['PCOS', '子宮内膜症', '卵巣嚢腫', '子宮腺筋症', '子宮筋腫'].forEach(function(dk) {
-    if (!diseaseRecoveryKey && diseases.indexOf(dk) !== -1 && FAST_RECOVERY_FOODS[dk]) {
-      diseaseRecoveryKey = dk;
-    }
-  });
-
-  var foodKey = diseaseRecoveryKey || (phase || '卵胞期');
-  var foodData = FAST_RECOVERY_FOODS[foodKey] || FAST_RECOVERY_FOODS['卵胞期'];
-
-  var cardEl   = document.getElementById('fast-recovery-card');
-  var contentEl = document.getElementById('fast-recovery-content');
-  if (!cardEl || !contentEl) return;
-
-  // 疾患別表示テキスト定義
-  var diseaseLabels = {
-    'PCOS':    '低GI・血糖安定を意識した回復食です。',
-    '子宮内膜症': '抗炎症・低エストロゲンを意識した回復食です。',
-    '卵巣嚢腫':  '抗酸化（ROS軽減）・抗炎症・低GIを意識した回復食です。',
-    '子宮腺筋症': '抗炎症サポートの回復食です。',
-    '子宮筋腫':  'エストロゲン代謝を助ける食物繊維豊富な回復食です。'
-  };
-
-  var html = '';
-  html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;">';
-  if (diseaseRecoveryKey) {
-    html += '<strong style="color:var(--rose);">' + diseaseRecoveryKey + (phase ? ' × ' + phase : '') + '</strong> — ';
-    html += diseaseLabels[diseaseRecoveryKey] || '回復食の参考にしてください。';
-  } else if (phase) {
-    html += '今日は <strong style="color:var(--rose);">' + phase + '</strong> です。回復食の参考にしてください。';
-  } else {
-    html += '断食後は消化に優しい食品から始めましょう。';
-  }
-  html += '</div>';
-  html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
-  foodData.foods.forEach(function(f) {
-    html += '<div style="background:var(--bg);border-radius:10px;padding:10px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">' + f[0] + '</div>';
-    html += '<div style="font-size:10px;color:var(--ink-light);">' + f[1] + '</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  html += '<div style="margin-top:10px;padding:8px 10px;background:var(--rose-pale,#f9eced);border-radius:10px;font-size:10px;color:var(--ink-light);line-height:1.6;">';
-  html += '⚠️ このアプリは医療アドバイスを提供するものではありません。体調に合わせて判断してください。';
-  html += '</div>';
-
-  contentEl.innerHTML = html;
-  cardEl.style.display = 'block';
-  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-}
+function showRecoveryGuide(){if(typeof window.showRecoveryGuide==='function')window.showRecoveryGuide();}
 
 // 過食衝動サポートモーダル（研究エビデンスに基づく）
-function showBingeUrgeSupport() {
-  var phase = getCurrentCyclePhase();
-  var diseases = state.myDiseases || [];
-
-  // 最も適切なサポートキーを選択（BEDエビデンスが強い順）
-  // 子宮内膜症 OR 2.94 > PCOS OR 1.53 > その他
-  var supportKey = 'default';
-  ['子宮内膜症', 'PCOS', '子宮腺筋症', '子宮筋腫', 'PMS/PMDD', '更年期障害'].forEach(function(dk) {
-    if (supportKey === 'default' && diseases.indexOf(dk) !== -1 && BINGE_URGE_SUPPORT[dk]) supportKey = dk;
-  });
-  if (supportKey === 'default' && (phase === '黄体期後期' || phase === '黄体期')) supportKey = phase;
-
-  var support = BINGE_URGE_SUPPORT[supportKey] || BINGE_URGE_SUPPORT['default'];
-
-  var techniques = [
-    { icon: '🌬️', title: '深呼吸 4-7-8', desc: '4秒吸って・7秒止めて・8秒かけて吐く。これを3回繰り返す。' },
-    { icon: '☕', title: '温かい飲み物', desc: 'ハーブティーや白湯をゆっくり飲む。胃を温め、満足感を高める。' },
-    { icon: '🫧', title: '5分タイマー', desc: '「5分後に再評価する」とルールを決める。衝動のピークは5〜15分で通過することが多い。' },
-    { icon: '✍️', title: '記録する', desc: '今の気持ち・身体の感覚をアプリに記録することで、衝動から観察者の視点に切り替える。' }
-  ];
-
-  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center;" id="bingeUrgeOverlay" onclick="if(event.target===this)this.remove()">';
-  html += '<div style="width:100%;max-width:480px;background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-height:85vh;overflow-y:auto;">';
-
-  // ヘッダー
-  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">';
-  html += '<div style="font-family:Shippori Mincho,serif;font-size:16px;color:var(--ink);">🫶 食欲サポート</div>';
-  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove()" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--cream);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;">✕</button>';
-  html += '</div>';
-
-  // 検証メッセージ（エビデンスカード）
-  html += '<div style="background:linear-gradient(135deg,' + support.color + '22,' + support.color + '11);border:1.5px solid ' + support.color + '44;border-radius:16px;padding:16px;margin-bottom:16px;">';
-  html += '<div style="font-size:14px;font-weight:700;color:' + support.color + ';margin-bottom:8px;">' + support.validation + '</div>';
-  html += '<div style="font-size:12px;color:var(--ink-mid);line-height:1.7;">' + support.science + '</div>';
-  html += '</div>';
-
-  // 対処テクニック
-  html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:5px;">';
-  html += '<span style="display:inline-block;width:3px;height:11px;background:var(--rose);border-radius:2px;"></span>今できること';
-  html += '</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">';
-  techniques.forEach(function(t) {
-    html += '<div style="display:flex;gap:12px;padding:12px;background:var(--bg);border-radius:12px;align-items:flex-start;">';
-    html += '<span style="font-size:20px;flex-shrink:0;">' + t.icon + '</span>';
-    html += '<div><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;">' + t.title + '</div>';
-    html += '<div style="font-size:11px;color:var(--ink-light);line-height:1.5;">' + t.desc + '</div></div>';
-    html += '</div>';
-  });
-  html += '</div>';
-
-  // 記録ボタン
-  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openRecordScreen===\'function\')window.openRecordScreen();" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
-
-  // 理解する導線（記録から見えてくるかもしれません）
-  html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--cream);">';
-  html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--ink-mid);margin-bottom:10px;display:flex;align-items:center;gap:5px;">';
-  html += '<span style="display:inline-block;width:3px;height:11px;background:var(--ink-mid);border-radius:2px;"></span>記録から見えてくるかもしれません';
-  html += '</div>';
-  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
-  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openCorrelationReport===\'function\')window.openCorrelationReport();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
-  html += '<span style="font-size:18px;">🔬</span><div><div style="font-weight:600;">要因効果レポートを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">睡眠・気分・周期との関連を確認する</div></div>';
-  html += '</button>';
-  html += '<button onclick="(function(){document.getElementById(\'bingeUrgeOverlay\').remove();var nb=document.querySelector(\'.nav-item[onclick*=\\\'insights\\\']\');if(typeof window.switchTab===\'function\')window.switchTab(\'insights\',nb);})();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
-  html += '<span style="font-size:18px;">✨</span><div><div style="font-weight:600;">インサイトを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">記録データからパターンを読み解く</div></div>';
-  html += '</button>';
-  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openExperiments===\'function\')window.openExperiments();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">';
-  html += '<span style="font-size:18px;">🧪</span><div><div style="font-weight:600;">ヘルス実験を試してみる</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">気になる要因を2週間追跡する</div></div>';
-  html += '</button>';
-  html += '</div>';
-  html += '</div>';
-
-  html += '<div style="text-align:center;margin-top:12px;font-size:10px;color:var(--ink-light);">このアプリは医療アドバイスを提供するものではありません。摂食障害が疑われる場合は専門家にご相談ください。</div>';
-
-  html += '</div></div>';
-
-  var overlay = document.createElement('div');
-  overlay.innerHTML = html;
-  document.body.appendChild(overlay.firstChild);
-}
 
 // ===== FASTING TIMER =====
 let fastInterval = null;
@@ -6076,12 +5155,7 @@ function getTimeAgo(dateStr){
 }
 
 
-function updateDiseaseSettingDisplay(){
-  var display = document.getElementById('disease-setting-display');
-  if(!display) return;
- var saved = state.myDiseases || [];
-display.textContent = saved.length ? saved.join('・') : '設定する';
-}
+function updateDiseaseSettingDisplay(){if(typeof window.updateDiseaseSettingDisplay==='function')window.updateDiseaseSettingDisplay();}
 function updateSymptomSettingDisplay(){
   if (!window.__ippoStateReady) {
     if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updateSymptomSettingDisplay', updateSymptomSettingDisplay);
@@ -11516,7 +10590,6 @@ window.addEventListener('ippo:vite-ready', function() {
 if (typeof _buildPhaseBarPreview === "function") window._buildPhaseBarPreview = _buildPhaseBarPreview;
 if (typeof _generateDoctorPDF === "function") window._generateDoctorPDF = _generateDoctorPDF;
 if (typeof addCustomFactor === "function") window.addCustomFactor = addCustomFactor;
-if (typeof addMealTime === "function") window.addMealTime = addMealTime;
 if (typeof addToHome === "function") window.addToHome = addToHome;
 if (typeof adjustBowelCount === "function") window.adjustBowelCount = adjustBowelCount;
 if (typeof adminLoadPremiumUsers === "function") window.adminLoadPremiumUsers = adminLoadPremiumUsers;
@@ -11533,7 +10606,6 @@ if (typeof buildSteps === "function") window.buildSteps = buildSteps;
 if (typeof buildSymptomChips === "function") window.buildSymptomChips = buildSymptomChips;
 if (typeof buildWeekComparison === "function") window.buildWeekComparison = buildWeekComparison;
 if (typeof calcAvgPainThisMonth === "function") window.calcAvgPainThisMonth = calcAvgPainThisMonth;
-if (typeof calcCycleDay === "function") window.calcCycleDay = calcCycleDay;
 if (typeof calcFactorCorrelations === "function") window.calcFactorCorrelations = calcFactorCorrelations;
 if (typeof calcPainFreeDays === "function") window.calcPainFreeDays = calcPainFreeDays;
 if (typeof calcPainFreeDaysThisMonth === "function") window.calcPainFreeDaysThisMonth = calcPainFreeDaysThisMonth;
@@ -11544,9 +10616,7 @@ if (typeof cancelExperiment === "function") window.cancelExperiment = cancelExpe
 if (typeof changeReportMonth === "function") window.changeReportMonth = changeReportMonth;
 if (typeof checkAndShowTempAlert === "function") window.checkAndShowTempAlert = checkAndShowTempAlert;
 if (typeof checkMyLikes === "function") window.checkMyLikes = checkMyLikes;
-if (typeof checkPremiumRegistered === "function") window.checkPremiumRegistered = checkPremiumRegistered;
 if (typeof checkSuddenTempRise === "function") window.checkSuddenTempRise = checkSuddenTempRise;
-if (typeof clearAllDiseases === "function") window.clearAllDiseases = clearAllDiseases;
 if (typeof clearData === "function") window.clearData = clearData;
 if (typeof closeAIAnalysis === "function") window.closeAIAnalysis = closeAIAnalysis;
 if (typeof closeDoctorSummary === "function") window.closeDoctorSummary = closeDoctorSummary;
@@ -11558,7 +10628,6 @@ if (typeof closeSuccess === "function") window.closeSuccess = closeSuccess;
 if (typeof closeSymptomSettings === "function") window.closeSymptomSettings = closeSymptomSettings;
 if (typeof closeSyncModal === "function") window.closeSyncModal = closeSyncModal;
 if (typeof completeExperiment === "function") window.completeExperiment = completeExperiment;
-if (typeof completeOnboarding === "function") window.completeOnboarding = completeOnboarding;
 if (typeof confirmMealTime === "function") window.confirmMealTime = confirmMealTime;
 if (typeof copyAIAnalysis === "function") window.copyAIAnalysis = copyAIAnalysis;
 if (typeof copyDoctorSummary === "function") window.copyDoctorSummary = copyDoctorSummary;
@@ -11573,14 +10642,11 @@ if (typeof endFast === "function") window.endFast = endFast;
 if (typeof escapeHtml === "function") window.escapeHtml = escapeHtml;
 if (typeof exportCSV === "function") window.exportCSV = exportCSV;
 if (typeof exportJSON === "function") window.exportJSON = exportJSON;
-if (typeof finishOnboarding === "function") window.finishOnboarding = finishOnboarding;
 if (typeof formatDiseaseCheck === "function") window.formatDiseaseCheck = formatDiseaseCheck;
 if (typeof gatherDiseaseData === "function") window.gatherDiseaseData = gatherDiseaseData;
 if (typeof gatherRecordData === "function") window.gatherRecordData = gatherRecordData;
 if (typeof generateLocalAnalysis === "function") window.generateLocalAnalysis = generateLocalAnalysis;
 if (typeof getBodyCheckTitle === "function") window.getBodyCheckTitle = getBodyCheckTitle;
-if (typeof getCurrentCyclePhase === "function") window.getCurrentCyclePhase = getCurrentCyclePhase;
-if (typeof getCyclePhase === "function") window.getCyclePhase = getCyclePhase;
 if (typeof getDailyHint === "function") window.getDailyHint = getDailyHint;
 if (typeof getDiseaseMorningQuestion === "function") window.getDiseaseMorningQuestion = getDiseaseMorningQuestion;
 if (typeof getGreetingText === "function") window.getGreetingText = getGreetingText;
@@ -11598,36 +10664,18 @@ if (typeof initAdminPanel === "function") window.initAdminPanel = initAdminPanel
 if (typeof initNavIcons === "function") window.initNavIcons = initNavIcons;
 if (typeof initQuickLog === "function") window.initQuickLog = initQuickLog;
 if (typeof initSettingsIcons === "function") window.initSettingsIcons = initSettingsIcons;
-if (typeof initVisionUI === "function") window.initVisionUI = initVisionUI;
 if (typeof isAdminOrPremium === "function") window.isAdminOrPremium = isAdminOrPremium;
 if (typeof isPeriodExpected === "function") window.isPeriodExpected = isPeriodExpected;
 if (typeof likeCommunityReply === "function") window.likeCommunityReply = likeCommunityReply;
 if (typeof loadCVArchive === "function") window.loadCVArchive = loadCVArchive;
 if (typeof loadCommunityReplies === "function") window.loadCommunityReplies = loadCommunityReplies;
 if (typeof loadCommunityTopic === "function") window.loadCommunityTopic = loadCommunityTopic;
-if (typeof loadMoreTimeline === "function") window.loadMoreTimeline = loadMoreTimeline;
 if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
 if (typeof nextStep === "function") window.nextStep = nextStep;
-if (typeof obBuildPeriodCalendar === "function") window.obBuildPeriodCalendar = obBuildPeriodCalendar;
-if (typeof obComplete === "function") window.obComplete = obComplete;
-if (typeof obInit === "function") window.obInit = obInit;
-if (typeof obNext === "function") window.obNext = obNext;
-if (typeof obSaveBirth === "function") window.obSaveBirth = obSaveBirth;
-if (typeof obSaveCycle === "function") window.obSaveCycle = obSaveCycle;
-if (typeof obSaveDiseases === "function") window.obSaveDiseases = obSaveDiseases;
-if (typeof obSaveName === "function") window.obSaveName = obSaveName;
-if (typeof obSavePeriod === "function") window.obSavePeriod = obSavePeriod;
-if (typeof obSavePurpose === "function") window.obSavePurpose = obSavePurpose;
-if (typeof obSaveReminder === "function") window.obSaveReminder = obSaveReminder;
-if (typeof obSelectPeriodDay === "function") window.obSelectPeriodDay = obSelectPeriodDay;
-if (typeof obShowStep === "function") window.obShowStep = obShowStep;
-if (typeof obSkipAll === "function") window.obSkipAll = obSkipAll;
-if (typeof obToggleDisease === "function") window.obToggleDisease = obToggleDisease;
 if (typeof openAIAnalysis === "function") window.openAIAnalysis = openAIAnalysis;
 if (typeof openCorrelationReport === "function") window.openCorrelationReport = openCorrelationReport;
 if (typeof openCyclePhaseReport === "function") window.openCyclePhaseReport = openCyclePhaseReport;
 if (typeof openDayDetailByDate === "function") window.openDayDetailByDate = openDayDetailByDate;
-if (typeof openDiseaseSettings === "function") window.openDiseaseSettings = openDiseaseSettings;
 if (typeof openDoctorSummary === "function") window.openDoctorSummary = openDoctorSummary;
 if (typeof openEditRecord === "function") window.openEditRecord = openEditRecord;
 if (typeof openExperiments === "function") window.openExperiments = openExperiments;
@@ -11662,30 +10710,25 @@ if (typeof renderFood === "function") window.renderFood = renderFood;
 if (typeof renderInsightDiscoveries === "function") window.renderInsightDiscoveries = renderInsightDiscoveries;
 if (typeof renderMonthlySummaryText === "function") window.renderMonthlySummaryText = renderMonthlySummaryText;
 if (typeof renderMealSections === "function") window.renderMealSections = renderMealSections;
-if (typeof renderPainScale === "function") window.renderPainScale = renderPainScale;
 if (typeof renderPhaseMap === "function") window.renderPhaseMap = renderPhaseMap;
 if (typeof renderProHero === "function") window.renderProHero = renderProHero;
 if (typeof renderStep === "function") window.renderStep = renderStep;
 if (typeof renderSymptomDetail === "function") window.renderSymptomDetail = renderSymptomDetail;
 if (typeof renderSymptomLayers === "function") window.renderSymptomLayers = renderSymptomLayers;
-if (typeof renderTimeline === "function") window.renderTimeline = renderTimeline;
 if (typeof renderWellness === "function") window.renderWellness = renderWellness;
 if (typeof reorderRecordSections === "function") window.reorderRecordSections = reorderRecordSections;
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;
 if (typeof resumeFasting === "function") window.resumeFasting = resumeFasting;
-if (typeof saveDiseaseSettings === "function") window.saveDiseaseSettings = saveDiseaseSettings;
 if (typeof saveEditRecord === "function") window.saveEditRecord = saveEditRecord;
 if (typeof saveMealDraft === "function") window.saveMealDraft = saveMealDraft;
 if (typeof saveQuickLog === "function") window.saveQuickLog = saveQuickLog;
 if (typeof saveRecordScreen === "function") window.saveRecordScreen = saveRecordScreen;
 if (typeof saveSymptomSelection === "function") window.saveSymptomSelection = saveSymptomSelection;
 if (typeof saveSymptomSettings === "function") window.saveSymptomSettings = saveSymptomSettings;
-if (typeof saveVision === "function") window.saveVision = saveVision;
 if (typeof selectBodyCheckExtra === "function") window.selectBodyCheckExtra = selectBodyCheckExtra;
 if (typeof selectBodyCheckItem === "function") window.selectBodyCheckItem = selectBodyCheckItem;
 if (typeof selectBowel === "function") window.selectBowel = selectBowel;
 if (typeof selectBowelCount === "function") window.selectBowelCount = selectBowelCount;
-if (typeof selectDisease === "function") window.selectDisease = selectDisease;
 if (typeof selectEditCycle === "function") window.selectEditCycle = selectEditCycle;
 if (typeof selectEmotion === "function") window.selectEmotion = selectEmotion;
 if (typeof selectEnergy === "function") window.selectEnergy = selectEnergy;
@@ -11705,14 +10748,12 @@ if (typeof setGraphTab === "function") window.setGraphTab = setGraphTab;
 if (typeof setRating === "function") window.setRating = setRating;
 if (typeof shareApp === "function") window.shareApp = shareApp;
 if (typeof showAlertModal === "function") window.showAlertModal = showAlertModal;
-if (typeof showBingeUrgeSupport === "function") window.showBingeUrgeSupport = showBingeUrgeSupport;
 if (typeof showConfirmModal === "function") window.showConfirmModal = showConfirmModal;
 if (typeof showLoginForm === "function") window.showLoginForm = showLoginForm;
 if (typeof showMessage === "function") window.showMessage = showMessage;
 if (typeof showPrivacyInfo === "function") window.showPrivacyInfo = showPrivacyInfo;
 if (typeof showQuickLogDone === "function") window.showQuickLogDone = showQuickLogDone;
 if (typeof showRecoveryBanner === "function") window.showRecoveryBanner = showRecoveryBanner;
-if (typeof showRecoveryGuide === "function") window.showRecoveryGuide = showRecoveryGuide;
 if (typeof showTempAlertBanner === "function") window.showTempAlertBanner = showTempAlertBanner;
 if (typeof showTempEducation === "function") window.showTempEducation = showTempEducation;
 if (typeof startCustomExperiment === "function") window.startCustomExperiment = startCustomExperiment;
@@ -11725,7 +10766,6 @@ if (typeof switchSymptomTab === "function") window.switchSymptomTab = switchSymp
 if (typeof toggleArchiveReplies === "function") window.toggleArchiveReplies = toggleArchiveReplies;
 if (typeof toggleCGFactor === "function") window.toggleCGFactor = toggleCGFactor;
 if (typeof toggleDetailItem === "function") window.toggleDetailItem = toggleDetailItem;
-if (typeof toggleDiseaseChip === "function") window.toggleDiseaseChip = toggleDiseaseChip;
 if (typeof toggleEditChip === "function") window.toggleEditChip = toggleEditChip;
 if (typeof toggleFastingFeature === "function") window.toggleFastingFeature = toggleFastingFeature;
 if (typeof toggleFoodItem === "function") window.toggleFoodItem = toggleFoodItem;
@@ -11736,9 +10776,7 @@ if (typeof toggleRsChip === "function") window.toggleRsChip = toggleRsChip;
 if (typeof toggleSympLayer === "function") window.toggleSympLayer = toggleSympLayer;
 if (typeof toggleSymptomChip === "function") window.toggleSymptomChip = toggleSymptomChip;
 if (typeof toggleSyncMode === "function") window.toggleSyncMode = toggleSyncMode;
-if (typeof toggleVisionEdit === "function") window.toggleVisionEdit = toggleVisionEdit;
 if (typeof updateDailyHintCard === "function") window.updateDailyHintCard = updateDailyHintCard;
-if (typeof updateDiseaseSettingDisplay === "function") window.updateDiseaseSettingDisplay = updateDiseaseSettingDisplay;
 if (typeof updateFastingWidgetPhase === "function") window.updateFastingWidgetPhase = updateFastingWidgetPhase;
 if (typeof updateHomeCTA === "function") window.updateHomeCTA = updateHomeCTA;
 if (typeof updateHomePhaseBanner === "function") window.updateHomePhaseBanner = updateHomePhaseBanner;
@@ -11754,10 +10792,8 @@ if (typeof updateSettingsHero === "function") window.updateSettingsHero = update
 if (typeof updateSliderDetail === "function") window.updateSliderDetail = updateSliderDetail;
 if (typeof updateStreakBadge === "function") window.updateStreakBadge = updateStreakBadge;
 if (typeof updateSymptomSettingDisplay === "function") window.updateSymptomSettingDisplay = updateSymptomSettingDisplay;
-if (typeof updateTimelineView === "function") window.updateTimelineView = updateTimelineView;
 if (typeof updateTodayMessage === "function") window.updateTodayMessage = updateTodayMessage;
 if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
-if (typeof updateVisionDisplay === "function") window.updateVisionDisplay = updateVisionDisplay;
 // ─── グローバル変数エクスポート ───────────────────────────────
 if (typeof currentRecord !== "undefined") window.currentRecord = currentRecord;
 if (typeof currentStep   !== "undefined") window.currentStep   = currentStep;
