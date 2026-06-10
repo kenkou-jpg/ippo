@@ -427,3 +427,91 @@ window.ippoRecoveryJourney = Object.freeze({
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('recovery-journey-loaded');
 }
+
+// ─── Fasting Recovery Guide / Binge Urge Support (Phase 4-C) ───
+
+export function showRecoveryGuide() {
+  var phase = typeof window.getCurrentCyclePhase === 'function' ? window.getCurrentCyclePhase() : null;
+  var s = window.getState ? window.getState() : (window.state || {});
+  var diseases = s.myDiseases || [];
+  var FAST_RECOVERY_FOODS = window.FAST_RECOVERY_FOODS || {};
+
+  var diseaseRecoveryKey = null;
+  ['PCOS', '子宮内膜症', '卵巣嚢腫', '子宮腺筋症', '子宮筋腫'].forEach(function(dk) {
+    if (!diseaseRecoveryKey && diseases.indexOf(dk) !== -1 && FAST_RECOVERY_FOODS[dk]) diseaseRecoveryKey = dk;
+  });
+  var foodKey  = diseaseRecoveryKey || (phase || '卵胞期');
+  var foodData = FAST_RECOVERY_FOODS[foodKey] || FAST_RECOVERY_FOODS['卵胞期'];
+
+  var cardEl    = document.getElementById('fast-recovery-card');
+  var contentEl = document.getElementById('fast-recovery-content');
+  if (!cardEl || !contentEl) return;
+
+  var diseaseLabels = {
+    'PCOS': '低GI・血糖安定を意識した回復食です。', '子宮内膜症': '抗炎症・低エストロゲンを意識した回復食です。',
+    '卵巣嚢腫': '抗酸化（ROS軽減）・抗炎症・低GIを意識した回復食です。', '子宮腺筋症': '抗炎症サポートの回復食です。',
+    '子宮筋腫': 'エストロゲン代謝を助ける食物繊維豊富な回復食です。'
+  };
+  var html = '<div style="font-size:11px;color:var(--ink-light);margin-bottom:10px;">';
+  if (diseaseRecoveryKey) {
+    html += '<strong style="color:var(--rose);">' + diseaseRecoveryKey + (phase ? ' × ' + phase : '') + '</strong> — ' + (diseaseLabels[diseaseRecoveryKey] || '回復食の参考にしてください。');
+  } else if (phase) {
+    html += '今日は <strong style="color:var(--rose);">' + phase + '</strong> です。回復食の参考にしてください。';
+  } else {
+    html += '断食後は消化に優しい食品から始めましょう。';
+  }
+  html += '</div>';
+  if (foodData && foodData.foods) {
+    html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+    foodData.foods.forEach(function(f) {
+      html += '<div style="background:var(--bg);border-radius:10px;padding:10px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">' + f[0] + '</div><div style="font-size:10px;color:var(--ink-light);">' + f[1] + '</div></div>';
+    });
+    html += '</div>';
+  }
+  html += '<div style="margin-top:10px;padding:8px 10px;background:var(--rose-pale,#f9eced);border-radius:10px;font-size:10px;color:var(--ink-light);line-height:1.6;">⚠️ このアプリは医療アドバイスを提供するものではありません。体調に合わせて判断してください。</div>';
+  contentEl.innerHTML = html;
+  cardEl.style.display = 'block';
+  cardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+export function showBingeUrgeSupport() {
+  var phase = typeof window.getCurrentCyclePhase === 'function' ? window.getCurrentCyclePhase() : null;
+  var s = window.getState ? window.getState() : (window.state || {});
+  var diseases = s.myDiseases || [];
+  var BINGE_URGE_SUPPORT = window.BINGE_URGE_SUPPORT || {};
+
+  var supportKey = 'default';
+  ['子宮内膜症', 'PCOS', '子宮腺筋症', '子宮筋腫', 'PMS/PMDD', '更年期障害'].forEach(function(dk) {
+    if (supportKey === 'default' && diseases.indexOf(dk) !== -1 && BINGE_URGE_SUPPORT[dk]) supportKey = dk;
+  });
+  if (supportKey === 'default' && (phase === '黄体期後期' || phase === '黄体期')) supportKey = phase;
+  var support = BINGE_URGE_SUPPORT[supportKey] || BINGE_URGE_SUPPORT['default'] || { color: '#c4878c', validation: 'あなたの気持ちは正常です', science: '食欲の波は誰にでもあります。' };
+
+  var techniques = [
+    { icon: '🌬️', title: '深呼吸 4-7-8', desc: '4秒吸って・7秒止めて・8秒かけて吐く。これを3回繰り返す。' },
+    { icon: '☕',  title: '温かい飲み物', desc: 'ハーブティーや白湯をゆっくり飲む。胃を温め、満足感を高める。' },
+    { icon: '🫧',  title: '5分タイマー',  desc: '「5分後に再評価する」とルールを決める。衝動のピークは5〜15分で通過することが多い。' },
+    { icon: '✍️',  title: '記録する',     desc: '今の気持ち・身体の感覚をアプリに記録することで、衝動から観察者の視点に切り替える。' }
+  ];
+  var html = '<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:flex-end;justify-content:center;" id="bingeUrgeOverlay" onclick="if(event.target===this)this.remove()">';
+  html += '<div style="width:100%;max-width:480px;background:var(--white);border-radius:24px 24px 0 0;padding:24px 20px 32px;max-height:85vh;overflow-y:auto;">';
+  html += '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;"><div style="font-family:Shippori Mincho,serif;font-size:16px;color:var(--ink);">🫶 食欲サポート</div><button onclick="document.getElementById(\'bingeUrgeOverlay\').remove()" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--cream);background:var(--white);color:var(--ink-light);font-size:14px;cursor:pointer;">✕</button></div>';
+  html += '<div style="background:linear-gradient(135deg,' + support.color + '22,' + support.color + '11);border:1.5px solid ' + support.color + '44;border-radius:16px;padding:16px;margin-bottom:16px;"><div style="font-size:14px;font-weight:700;color:' + support.color + ';margin-bottom:8px;">' + support.validation + '</div><div style="font-size:12px;color:var(--ink-mid);line-height:1.7;">' + support.science + '</div></div>';
+  html += '<div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--rose);margin-bottom:10px;display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:3px;height:11px;background:var(--rose);border-radius:2px;"></span>今できること</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">';
+  techniques.forEach(function(t) { html += '<div style="display:flex;gap:12px;padding:12px;background:var(--bg);border-radius:12px;align-items:flex-start;"><span style="font-size:20px;flex-shrink:0;">' + t.icon + '</span><div><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:3px;">' + t.title + '</div><div style="font-size:11px;color:var(--ink-light);line-height:1.5;">' + t.desc + '</div></div></div>'; });
+  html += '</div>';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openRecordScreen===\'function\')window.openRecordScreen();" style="width:100%;padding:14px;background:var(--rose);color:white;border:none;border-radius:14px;font-family:Noto Sans JP,sans-serif;font-size:14px;font-weight:500;cursor:pointer;">今の状態を記録する →</button>';
+  html += '<div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--cream);"><div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:var(--ink-mid);margin-bottom:10px;display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:3px;height:11px;background:var(--ink-mid);border-radius:2px;"></span>記録から見えてくるかもしれません</div>';
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openCorrelationReport===\'function\')window.openCorrelationReport();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🔬</span><div><div style="font-weight:600;">要因効果レポートを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">睡眠・気分・周期との関連を確認する</div></div></button>';
+  html += '<button onclick="(function(){document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.switchTab===\'function\')window.switchTab(\'insights\',null);})();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">✨</span><div><div style="font-weight:600;">インサイトを見る</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">記録データからパターンを読み解く</div></div></button>';
+  html += '<button onclick="document.getElementById(\'bingeUrgeOverlay\').remove();if(typeof window.openExperiments===\'function\')window.openExperiments();" style="width:100%;padding:12px 16px;background:var(--bg);border:1.5px solid var(--cream);border-radius:12px;font-family:Noto Sans JP,sans-serif;font-size:12px;color:var(--ink);cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;"><span style="font-size:18px;">🧪</span><div><div style="font-weight:600;">ヘルス実験を試してみる</div><div style="font-size:10px;color:var(--ink-light);margin-top:2px;">気になる要因を2週間追跡する</div></div></button>';
+  html += '</div></div><div style="text-align:center;margin-top:12px;font-size:10px;color:var(--ink-light);">このアプリは医療アドバイスを提供するものではありません。摂食障害が疑われる場合は専門家にご相談ください。</div></div></div>';
+  var overlay = document.createElement('div');
+  overlay.innerHTML = html;
+  document.body.appendChild(overlay.firstChild);
+}
+
+window.showRecoveryGuide    = showRecoveryGuide;
+window.showBingeUrgeSupport = showBingeUrgeSupport;

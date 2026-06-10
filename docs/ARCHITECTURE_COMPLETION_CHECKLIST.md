@@ -246,16 +246,20 @@
 - [ ] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移行後 legacy 側削除 → Phase 4-C (getCurrentCyclePhase 依存)
 - [ ] `checkPremiumRegistered()` を `premium-service.js` へ移行後 legacy 側削除 → Phase 4-C
 
-### Phase 4-C — Module 新設・移植（約4,000行削減）
+### Phase 4-C — Module 新設・移植（約1,000行削減）
 
-- [ ] `src/modules/timeline.js` 新設
-- [ ] `src/modules/experiments.js` 新設
-- [ ] `src/modules/vision.js` 新設
-- [ ] `src/modules/meal-tracker.js` 新設
-- [ ] `src/modules/onboarding-runtime.js` 拡充 (22関数をすべて移植)
-- [ ] Pain Scale UI (`renderPainScale`) を適切なモジュールへ移植
-- [ ] Disease Settings UI 群を適切なモジュールへ移植
-- [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行
+- [x] `src/modules/timeline.js` 新設 — renderTimeline / loadMoreTimeline / updateTimelineView 移植
+- [x] `src/modules/experiments.js` 新設 — openExperiments / startExperiment / _buildExperimentCompanion 移植
+- [x] `src/modules/vision.js` 新設 — toggleVisionEdit / initVisionUI / saveVision / updateVisionDisplay 移植
+- [x] `src/modules/meal-tracker.js` 新設 — openMealTimePicker / addMealTime 移植
+- [x] `src/modules/pain-scale.js` 新設 — renderPainScale 移植
+- [x] `src/modules/disease-settings.js` 新設 — Disease Settings UI 7関数 移植
+- [x] `src/modules/onboarding-runtime.js` 拡充 — ob* 15関数 + completeOnboarding / finishOnboarding 移植
+- [x] `src/analytics/cycle-engine.js` 拡充 — calcCycleDay / getCyclePhase / getCurrentCyclePhase 移植
+- [x] `src/services/recovery-journey.js` 拡充 — showRecoveryGuide / showBingeUrgeSupport 移植
+- [x] `src/modules/premium/premium-service.js` 拡充 — checkPremiumRegistered 移植
+- [x] app-legacy.js: 12,296 → 10,801 行（-1,495行 / Phase 4-C 単体 -964行）
+- [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行 → Phase 4-D
 
 ### Phase 4-D — 最終廃止
 

@@ -136,6 +136,17 @@ window.ippoPremiumService = {
   isActive:             function () { return _syncActive; },
 };
 
+export function checkPremiumRegistered() {
+  if (localStorage.getItem('ippo_premium_registered')) {
+    var form = document.getElementById('premium-form-area');
+    var done = document.getElementById('premium-done');
+    if (form) form.style.display = 'none';
+    if (done) done.style.display = 'block';
+  }
+}
+
+window.checkPremiumRegistered = checkPremiumRegistered;
+
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('premium-service-loaded');
 }

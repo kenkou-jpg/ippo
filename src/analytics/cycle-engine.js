@@ -206,6 +206,54 @@ function _computePhaseMetrics(records) {
   };
 }
 
+// ─── Cycle Phase Utilities (moved from app-legacy.js Phase 4-C) ───
+
+export function calcCycleDay(recordDate, records) {
+  var sorted = (records || []).slice().sort(function(a, b) {
+    return new Date(b.record_date || b.date) - new Date(a.record_date || a.date);
+  });
+  var target = new Date(recordDate).getTime();
+  var lastPeriodStart = null;
+  for (var i = 0; i < sorted.length; i++) {
+    var r = sorted[i];
+    var rDate = new Date(r.record_date || r.date).getTime();
+    if (rDate > target) continue;
+    if (r.menstrualCycle && r.menstrualCycle !== 'なし') {
+      var prevDay = null;
+      for (var j = 0; j < sorted.length; j++) {
+        var diff = rDate - new Date(sorted[j].record_date || sorted[j].date).getTime();
+        if (diff === -86400000) { prevDay = sorted[j]; break; }
+      }
+      if (!prevDay || !prevDay.menstrualCycle || prevDay.menstrualCycle === 'なし') {
+        lastPeriodStart = rDate; break;
+      }
+      continue;
+    }
+  }
+  if (!lastPeriodStart) return null;
+  var dayDiff = Math.round((target - lastPeriodStart) / 86400000) + 1;
+  return dayDiff > 0 ? dayDiff : null;
+}
+
+export function getCyclePhase(cycleDay) {
+  if (!cycleDay) return null;
+  if (cycleDay <= 5)  return '月経期';
+  if (cycleDay <= 13) return '卵胞期';
+  if (cycleDay <= 16) return '排卵期';
+  if (cycleDay <= 28) return '黄体期';
+  return '黄体期後期';
+}
+
+export function getCurrentCyclePhase() {
+  var s = window.getState ? window.getState() : (window.state || {});
+  var cd = calcCycleDay(new Date().toISOString(), s.records || []);
+  return getCyclePhase(cd);
+}
+
+window.calcCycleDay       = calcCycleDay;
+window.getCyclePhase      = getCyclePhase;
+window.getCurrentCyclePhase = getCurrentCyclePhase;
+
 function _insufficientResult(sampleSize) {
   const emptyMetrics = {
     count: 0, avgPain: null, avgEnergy: null, avgSleep: null,
