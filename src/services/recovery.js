@@ -1,14 +1,30 @@
 // ============================================================
 //  ippo – src/services/recovery.js
 //  Phase E (Step 4): 起動時自動復元チェック
-//
-//  autoRecoveryCheck() を app.html から移植。
-//  idbGetAllRecords / mergeRecords / manualCloudRestore /
-//  showRecoveryBanner / saveState はまだ app.html / store 側に
-//  残るため移行期間中は window.* 経由で委譲する。
 // ============================================================
 
 import { getState, setState } from '../store/state.js';
+import { idbGetAllRecords } from '../modules/record-repository.js';
+
+function mergeRecords(localRecords, cloudRecords) {
+  var merged = {};
+  localRecords.forEach(function (r) { if (r.id) merged[r.id] = r; });
+  cloudRecords.forEach(function (r) {
+    if (!r.id) return;
+    if (!merged[r.id]) {
+      merged[r.id] = r;
+    } else {
+      var lt = new Date(merged[r.id].updatedAt || merged[r.id].date || 0).getTime();
+      var ct = new Date(r.updatedAt || r.date || 0).getTime();
+      if (ct > lt) merged[r.id] = r;
+    }
+  });
+  var result = [];
+  Object.keys(merged).forEach(function (k) {
+    if (!merged[k].deleted_at) result.push(merged[k]);
+  });
+  return result.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
+}
 
 export function autoRecoveryCheck() {
   var s = getState() || {};
@@ -18,18 +34,11 @@ export function autoRecoveryCheck() {
   if (lastCount > 0 && currentCount < lastCount && lastCount - currentCount >= 2) {
     console.warn('データ減少検知: ' + lastCount + '件→' + currentCount + '件');
 
-    var idbGetAll = typeof window.idbGetAllRecords === 'function'
-      ? window.idbGetAllRecords()
-      : Promise.resolve([]);
-
-    return idbGetAll.then(function (idbRecs) {
+    return idbGetAllRecords().then(function (idbRecs) {
       var activeRecs = idbRecs.filter(function (r) { return !r.deleted_at; });
 
       if (activeRecs.length > currentCount) {
-        var merge = typeof window.mergeRecords === 'function'
-          ? window.mergeRecords
-          : function (a, b) { return a.concat(b); };
-        var mergedRecords = merge(s.records, activeRecs);
+        var mergedRecords = mergeRecords(s.records, activeRecs);
         setState(Object.assign({}, getState(), { records: mergedRecords }));
         // window.saveState を使い、save-transaction-guard のスナップショット/検証を通過させる
         if (typeof window.saveState === 'function') window.saveState();

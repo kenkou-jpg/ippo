@@ -275,6 +275,88 @@ export function enableRecordRepositoryDebug() {
   } catch(e) {}
 }
 
+// ─── IndexedDB ─────────────────────────────────────────────
+const IDB_NAME    = 'ippo_db';
+const IDB_VERSION = 1;
+const IDB_STORE   = 'records';
+
+export function openIDB() {
+  return new Promise(function (resolve, reject) {
+    var req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = function (e) {
+      var db = e.target.result;
+      if (!db.objectStoreNames.contains(IDB_STORE)) {
+        var store = db.createObjectStore(IDB_STORE, { keyPath: 'id' });
+        store.createIndex('date',    'record_date', { unique: false });
+        store.createIndex('updated', 'updatedAt',   { unique: false });
+      }
+    };
+    req.onsuccess = function (e) { resolve(e.target.result); };
+    req.onerror   = function (e) { reject(e.target.error); };
+  });
+}
+
+export function idbPutRecord(record) {
+  return openIDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put(record);
+      tx.oncomplete = function () { resolve(); };
+      tx.onerror    = function (e) { reject(e.target.error); };
+    });
+  });
+}
+
+export function idbGetAllRecords() {
+  return openIDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      var tx  = db.transaction(IDB_STORE, 'readonly');
+      var req = tx.objectStore(IDB_STORE).getAll();
+      req.onsuccess = function () { resolve(req.result || []); };
+      req.onerror   = function (e) { reject(e.target.error); };
+    });
+  });
+}
+
+export function idbDeleteRecord(id) {
+  return openIDB().then(function (db) {
+    return new Promise(function (resolve, reject) {
+      var tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(id);
+      tx.oncomplete = function () { resolve(); };
+      tx.onerror    = function (e) { reject(e.target.error); };
+    });
+  });
+}
+
+export function generateRecordId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 8);
+}
+
+export function ensureRecordIds() {
+  var s = getState() || {};
+  var changed = false;
+  (s.records || []).forEach(function (r) {
+    if (!r.id) {
+      r.id = generateRecordId();
+      changed = true;
+    }
+    if (!r.updatedAt) {
+      r.updatedAt = r.date || new Date().toISOString();
+      changed = true;
+    }
+  });
+  return changed;
+}
+
+// window への公開 (legacy内の直接参照が残っている間のブリッジ)
+window.idbGetAllRecords = idbGetAllRecords;
+window.idbPutRecord     = idbPutRecord;
+window.idbDeleteRecord  = idbDeleteRecord;
+window.generateRecordId = generateRecordId;
+window.ensureRecordIds  = ensureRecordIds;
+
+// ─── Record Repository ─────────────────────────────────────
 window.ippoRecordRepository = Object.freeze({
   getRecordDate,
   normalizeRecordDate,
