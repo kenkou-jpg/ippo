@@ -19,6 +19,10 @@
 - テストで保証できない変更は実施しない
 - コード削減ではなく構造改善を目的とする
 - 「統合しない」という選択肢も評価する
+- 「削除・統合・移行」は必ず実コード根拠を記録する
+- 調査結果により当初計画を変更することを許可する
+- Architecture Decision Record (ADR) を残す
+- 構造改善後の劣化防止策を実装する
 
 ---
 
@@ -199,22 +203,22 @@
 
 ## ROI Evaluation
 
-- [ ] app-legacy 削除の価値証明 (削除後の保守コスト削減量を定量化)
-- [ ] Runtime 統合の価値証明 (重複責務の存在を実コードで証明)
-- [ ] Save 統合の価値証明 (経路分散によるリスクを実コードで証明)
-- [ ] Premium 統合の価値証明 (Source of Truth 分散によるバグリスクを実コードで証明)
-- [ ] Disease 標準化の価値証明 (インターフェース不一致による問題を実コードで証明)
+- [x] app-legacy 削除の価値証明 (削除後の保守コスト削減量を定量化)
+- [x] Runtime 統合の価値証明 (重複責務の存在を実コードで証明)
+- [x] Save 統合の価値証明 (経路分散によるリスクを実コードで証明)
+- [x] Premium 統合の価値証明 (Source of Truth 分散によるバグリスクを実コードで証明)
+- [x] Disease 標準化の価値証明 (インターフェース不一致による問題を実コードで証明)
 
 ## Decision Review
 
-- [ ] 「統合しない」案を評価した記録
-- [ ] 維持コストの評価
-- [ ] 統合コストの評価
-- [ ] ROI の記録 (各改修の価値 vs コスト)
+- [x] 「統合しない」案を評価した記録
+- [x] 維持コストの評価
+- [x] 統合コストの評価
+- [x] ROI の記録 (各改修の価値 vs コスト)
 
 ### 成果物
 
-- [ ] `docs/architecture-review.md` (ROI 評価・統合判断の根拠・却下した案)
+- [x] `docs/architecture-review.md` (ROI 評価・統合判断の根拠・却下した案)
 
 ---
 
@@ -352,6 +356,21 @@
 - [ ] `docs/DISEASE_ANALYZER_STANDARD.md`
 - [ ] `docs/DESIGN_SYSTEM_STANDARD.md`
 - [ ] `docs/EDGE_PLATFORM_STANDARD.md`
+- [ ] `docs/adr/`
+
+## Architecture Decision Records (ADR)
+
+> 重要な構造判断を将来監査できるようにする。
+>
+> ADR は「実際に採用された判断」のみ記録する。
+> 当初計画と異なる判断になった場合も、
+> 最終的な採用理由を記録する。
+
+- [ ] ADR-001 Save Architecture 統合判断
+- [ ] ADR-002 Runtime 統合判断
+- [ ] ADR-003 Premium Source of Truth 統一判断
+- [ ] ADR-004 Disease Analyzer 標準化判断
+- [ ] ADR-005 Guard 責務吸収・廃止判断
 
 ---
 
@@ -434,12 +453,27 @@
 - [ ] guard 根拠一覧を作成 (残存 guard の存在理由を明文化)
 - [ ] 削除根拠一覧を作成 (削除した guard・コードの根拠を記録)
 
+## Architecture Protection
+
+> 完成後のアーキテクチャ劣化を防止する。
+
+- [ ] RecordRepository 以外から保存禁止
+- [ ] Supabase 直接呼び出し禁止ルール整備
+- [ ] window.* 新規追加禁止
+- [ ] 新規 global state 作成禁止
+- [ ] Design Token 以外の色指定禁止
+- [ ] 新規 legacy ファイル作成禁止
+- [ ] ESLint / CI で違反検知
+
 ## Release Criteria
 
 - [ ] 全テスト成功
 - [ ] リリース監査完了
 - [ ] 新規開発者が1日以内に構造を理解可能
 - [ ] 長期保守可能と判断
+- [ ] ADR 作成完了
+- [ ] Architecture Protection Rule 有効化
+- [ ] CI による構造監査成功
 - [ ] Architecture Completion 達成
 
 ---
@@ -462,3 +496,44 @@
 > このファイルはすべての開発セッションで参照するマスターチェックリストです。
 > 各チェックが完了したら即座に更新し、Progress Dashboard を同期させてください。
 > 最終更新: 2026-06-10
+
+---
+
+# Pull Request Strategy
+
+> 各フェーズ完了時に PR を作成する。
+>
+> PR は監査記録であり、
+> 「何を変更したか」だけでなく
+> 「なぜ変更したか」を残す。
+
+- [x] Phase1 完了 PR
+- [x] Phase2 完了 PR
+- [x] Phase3 完了 PR
+- [ ] Architecture Review Gate PR
+- [ ] Phase4-A PR
+- [ ] Phase4-B PR
+- [ ] Phase4-C PR
+- [ ] Phase4-D PR
+- [ ] Phase5 PR
+- [ ] Release Architecture Audit PR
+
+## 特別ルール
+
+- [ ] app-legacy.js 削除は単独PRとする
+- [ ] 大規模削除は削除根拠ドキュメントを必須とする
+- [ ] PRには変更理由・削除理由・影響範囲を記録する
+- [ ] 計画変更時は変更理由をPRに記録する
+- [ ] ADR更新を伴う変更はPR内で参照する
+
+## PR Audit
+
+- [x] Phase1 PR 監査完了
+- [x] Phase2 PR 監査完了
+- [x] Phase3 PR 監査完了
+- [ ] Architecture Review Gate PR 監査完了
+- [ ] Phase4-A PR 監査完了
+- [ ] Phase4-B PR 監査完了
+- [ ] Phase4-C PR 監査完了
+- [ ] Phase4-D PR 監査完了
+- [ ] Phase5 PR 監査完了
