@@ -152,43 +152,43 @@
 
 ## Save Entry Points
 
-- [ ] 保存入口一覧作成 (UI からの保存トリガーをすべて列挙)
-- [ ] UI → Save 経路整理 (各 UI コンポーネントがどの保存関数を呼ぶか)
+- [x] 保存入口一覧作成 (UI からの保存トリガーをすべて列挙)
+- [x] UI → Save 経路整理 (各 UI コンポーネントがどの保存関数を呼ぶか)
 
 ## Save Pipeline
 
-- [ ] `record.js` 経路整理 (`saveRecord` / `saveRecordScreen` の呼び出しフロー)
-- [ ] `record-three-card.js` 経路整理 (`_saveRecord` / `_integrateWithExistingSave` フロー)
-- [ ] `record/save.js` 経路整理 (save context の生成・検証・通知フロー)
-- [ ] `record-three-card-save.js` 経路整理
-- [ ] `record-upsert.js` 経路整理
-- [ ] `record-repository.js` 経路整理 (IDB 操作の実体)
-- [ ] `store/persistence.js` 経路整理
+- [x] `record.js` 経路整理 (`saveRecord` / `saveRecordScreen` の呼び出しフロー)
+- [x] `record-three-card.js` 経路整理 (`_saveRecord` / `_integrateWithExistingSave` フロー)
+- [x] `record/save.js` 経路整理 (save context の生成・検証・通知フロー)
+- [x] `record-three-card-save.js` 経路整理
+- [x] `record-upsert.js` 経路整理
+- [x] `record-repository.js` 経路整理 (IDB 操作の実体)
+- [x] `store/persistence.js` 経路整理
 
 ## Runtime Flow
 
-- [ ] `save-transaction-guard.js` 整理 (guard が防いでいる障害を特定)
-- [ ] `state-integrity-guard.js` 整理
-- [ ] `rollback-manager.js` 整理
-- [ ] `services/recovery.js` 整理
+- [x] `save-transaction-guard.js` 整理 (guard が防いでいる障害を特定)
+- [x] `state-integrity-guard.js` 整理
+- [x] `rollback-manager.js` 整理
+- [x] `services/recovery.js` 整理
 
 ## Cloud Flow
 
-- [ ] sync 経路整理 (local → Supabase の同期フロー)
-- [ ] retry 経路整理 (失敗時の再試行ロジック)
-- [ ] conflict 経路整理 (ローカル・クラウド競合の解決ロジック)
-- [ ] failure 経路整理 (保存失敗時の挙動)
+- [x] sync 経路整理 (local → Supabase の同期フロー)
+- [x] retry 経路整理 (失敗時の再試行ロジック)
+- [x] conflict 経路整理 (ローカル・クラウド競合の解決ロジック)
+- [x] failure 経路整理 (保存失敗時の挙動)
 
 ## State Flow
 
-- [ ] state 更新経路整理 (`saveState` / `addPreSaveHook` / `addPostSaveHook`)
-- [ ] hydration 経路整理 (起動時の state 復元フロー)
-- [ ] restore 経路整理 (rollback / recovery による復元フロー)
+- [x] state 更新経路整理 (`saveState` / `addPreSaveHook` / `addPostSaveHook`)
+- [x] hydration 経路整理 (起動時の state 復元フロー)
+- [x] restore 経路整理 (rollback / recovery による復元フロー)
 
 ### 成果物
 
-- [ ] `docs/save-architecture.md` (保存パイプライン全体の文章説明)
-- [ ] `docs/save-sequence-diagram.md` (シーケンス図)
+- [x] `docs/save-architecture.md` (保存パイプライン全体の文章説明)
+- [x] `docs/save-sequence-diagram.md` (シーケンス図)
 
 ---
 
