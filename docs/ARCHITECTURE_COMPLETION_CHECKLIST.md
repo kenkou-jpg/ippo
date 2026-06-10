@@ -114,34 +114,34 @@
 
 ## Import / Export
 
-- [ ] import 依存マップ作成 (誰が誰を import しているか)
-- [ ] export 依存マップ作成 (誰が誰に export されているか)
-- [ ] 循環参照の検出
+- [x] import 依存マップ作成 (誰が誰を import しているか)
+- [x] export 依存マップ作成 (誰が誰に export されているか)
+- [x] 循環参照の検出
 
 ## Runtime
 
-- [ ] Runtime → Module 依存整理
-- [ ] Module → Service 依存整理
-- [ ] Service → Storage 依存整理
+- [x] Runtime → Module 依存整理
+- [x] Module → Service 依存整理
+- [x] Service → Storage 依存整理
 
 ## Global Dependencies
 
-- [ ] `window.*` 依存一覧作成 (全ファイルの window 参照を列挙)
-- [ ] `localStorage` 依存一覧作成
-- [ ] `IndexedDB` 依存一覧作成
-- [ ] `Supabase` 依存一覧作成 (クライアント呼び出し箇所)
-- [ ] イベント (CustomEvent / dispatchEvent) 依存一覧作成
-- [ ] グローバル変数一覧作成 (`window.saveState` / `window.isPremium` 等)
+- [x] `window.*` 依存一覧作成 (全ファイルの window 参照を列挙)
+- [x] `localStorage` 依存一覧作成
+- [x] `IndexedDB` 依存一覧作成
+- [x] `Supabase` 依存一覧作成 (クライアント呼び出し箇所)
+- [x] イベント (CustomEvent / dispatchEvent) 依存一覧作成
+- [x] グローバル変数一覧作成 (`window.saveState` / `window.isPremium` 等)
 
 ## Cleanup Candidates
 
-- [ ] 未使用コードの検出
-- [ ] 未使用モジュールの検出
-- [ ] 重複実装の検出
+- [x] 未使用コードの検出
+- [x] 未使用モジュールの検出
+- [x] 重複実装の検出
 
 ### 成果物
 
-- [ ] `docs/dependency-map.md` (import/export マップ・global 依存一覧・循環参照リスト)
+- [x] `docs/dependency-map.md` (import/export マップ・global 依存一覧・循環参照リスト)
 
 ---
 
