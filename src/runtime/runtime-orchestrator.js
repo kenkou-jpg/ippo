@@ -18,6 +18,7 @@
 
 // ─── Safety level mapping ─────────────────────────────────
 import { getState } from '../store/state.js';
+import { isPremium } from '../modules/premium/premium-service.js';
 
 var SAFETY_LEVEL = Object.freeze({
   NORMAL:   'normal',     // 通常動作
@@ -322,12 +323,9 @@ function getBridgeStatus() {
   );
   if (!editingStateReady) dangerousModules.push('editing-state (no ippoEditingState)');
 
-  // premium-service が ownership を確立しているか
-  var premiumServiceReady = !!(
-    window.ippoPremiumService &&
-    typeof window.ippoPremiumService.isPremium === 'function'
-  );
-  if (!premiumServiceReady) dangerousModules.push('premium (no ippoPremiumService)');
+  // premium-service が ownership を確立しているか（直接 import で確認）
+  var premiumServiceReady = typeof isPremium === 'function';
+  if (!premiumServiceReady) dangerousModules.push('premium (isPremium not available)');
 
   var safeToRemove = (
     authServiceReady &&

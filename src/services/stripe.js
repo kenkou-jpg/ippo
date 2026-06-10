@@ -19,6 +19,7 @@
 
 import { supabase, SUPABASE_URL } from './supabase.js';
 import { getState } from '../store/state.js';
+import { isPremium } from '../modules/premium/premium-service.js';
 
 // Price ID はサーバー側（Edge Function の環境変数）でのみ管理する。
 // クライアントには Price ID を公開しない。
@@ -97,41 +98,39 @@ export async function startStripeCheckout(forcePlan) {
 }
 
 // ─── Stripe 決済完了後リダイレクト処理 ────────────────────
-// IIFE: モジュール読み込み時（DOM パース完了後）に即実行
+// stripe-checkout Edge Function が ?checkout=success でリダイレクトする。
+// Realtime 購読で subscriptions テーブルの変化を受け取り即時反映。
+// setInterval ポーリングは廃止。
 (function handleStripeReturn() {
-  var params      = new URLSearchParams(window.location.search);
-  var stripeStatus = params.get('stripe');
-  var plan        = params.get('plan');
-  if (!stripeStatus) return;
+  var params        = new URLSearchParams(window.location.search);
+  var checkoutStatus = params.get('checkout');
+  if (!checkoutStatus) return;
 
   history.replaceState({}, '', window.location.pathname);
 
-  if (stripeStatus === 'success') {
+  if (checkoutStatus === 'success') {
     window.showToast('💳 決済が完了しました。プレミアム機能を有効化中...');
-    var attempts = 0;
-    var poll = setInterval(async function () {
-      attempts++;
-      // DB から最新のプレミアム状態を取得（Edge Function / webhook 経由で更新済みのはず）
-      if (window.ippoPremiumService && typeof window.ippoPremiumService.refreshPremiumStatus === 'function') {
-        await window.ippoPremiumService.refreshPremiumStatus();
+
+    // Realtime が subscriptions 更新を通知するまで待機 (最大30秒)
+    var fallbackTimer = setTimeout(function () {
+      if (!isPremium()) {
+        window.showToast('決済は受付済みです。有効化に少し時間がかかる場合があります。しばらく後に再起動してください。', 'warn');
       }
-      var nowPremium = window.ippoPremiumService ? window.ippoPremiumService.isPremium() : false;
-      if (nowPremium || attempts >= 12) {
-        clearInterval(poll);
-        if (nowPremium) {
-          window.showToast('🎉 ' + (plan === 'annual' ? '年額' : '月額') + 'プランへようこそ！');
-        } else {
-          // 30秒経過してもプレミアム未確認 — webhook未整備時に発生する
-          window.showToast('決済は受付済みです。有効化に少し時間がかかる場合があります。しばらく後に再起動してください。', 'warn');
-        }
+    }, 30000);
+
+    window.addEventListener('ippo:premium-updated', function onPremiumUpdated(e) {
+      if (e.detail && e.detail.isPremium) {
+        clearTimeout(fallbackTimer);
+        window.removeEventListener('ippo:premium-updated', onPremiumUpdated);
+        window.showToast('🎉 プレミアムプランへようこそ！');
       }
-    }, 2500);
+    });
   }
 })();
 
 // ─── 3ヶ月後アップセル通知 ───────────────────────────────
 export function checkUpsellNotification() {
-  if (window.isPremium) return;
+  if (isPremium()) return;
   var lastShown = localStorage.getItem('ippo_upsell_ts');
   if (lastShown && Date.now() - parseInt(lastShown) < 7 * 24 * 60 * 60 * 1000) return;
 

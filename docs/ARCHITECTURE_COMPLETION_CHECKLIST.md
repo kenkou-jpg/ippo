@@ -227,6 +227,13 @@
 > **目標**: Phase 1〜3 の分析結果に基づき、アーキテクチャを理想構造へ移行する。
 > 統合前に責務を定義する。テストで保証できない変更は実施しない。
 
+## Phase4 実施ルール
+
+- [ ] Phase4-D は app-legacy.js の移植完了後のみ着手する
+- [ ] Phase4-A〜D は順番固定としない
+- [ ] 独立実施可能な領域から優先する
+- [ ] 調査結果により実施順序変更を許可する
+
 ## Legacy Removal
 
 ### Phase 4-A — 重複済み関数の削除（約3,000行削減）
@@ -292,21 +299,21 @@
 
 ## Premium
 
-- [ ] `subscriptions` テーブル作成 (migration: `supabase/migrations/20260005_subscriptions.sql`)
-- [ ] 既存有料ユーザーの移行スクリプト作成
-- [ ] `stripe-webhook/index.ts` — `checkout.session.completed` ハンドラ改修
-  - サイレント失敗バグ修正 (`.eq('email', email)` の確認方法を修正)
-  - `subscriptions` テーブルへの INSERT/UPSERT に変更
-  - `subscription_id` の保存を追加
-- [ ] `stripe-webhook/index.ts` — `customer.subscription.deleted` ハンドラ改修
-- [ ] `stripe-webhook/index.ts` — `customer.subscription.updated` ハンドラを追加
-- [ ] `premium-service.js` を `subscriptions` テーブル参照に変更
-- [ ] `profiles.is_premium` カラムへの書き込みを削除
-- [ ] `premium-service.js` の `localStorage` キャッシュを置換
-- [ ] `window.isPremium` グローバルを廃止
-- [ ] `window.ippoPremiumService` グローバルを廃止
-- [ ] `stripe.js` の `setInterval` ポーリング (2500ms × 12回) を削除
-- [ ] Supabase Realtime で `subscriptions` テーブルの変更を購読
+- [x] `subscriptions` テーブル作成 (migration: `supabase/migrations/20260005_subscriptions.sql`)
+- [x] 既存有料ユーザーの移行スクリプト作成 (migration 内 INSERT INTO subscriptions)
+- [x] `stripe-webhook/index.ts` — `checkout.session.completed` ハンドラ改修
+  - サイレント失敗バグ修正 (metadata.userId で直接参照、email フォールバック廃止)
+  - `subscriptions` テーブルへの UPSERT に変更
+  - `subscription_id` / `customer_id` の保存を追加
+- [x] `stripe-webhook/index.ts` — `customer.subscription.deleted` ハンドラ改修
+- [x] `stripe-webhook/index.ts` — `customer.subscription.updated` ハンドラを追加
+- [x] `premium-service.js` を `subscriptions` テーブル参照に変更
+- [x] `profiles.is_premium` カラムへの書き込みを削除 (webhook 改修により)
+- [x] `premium-service.js` の `localStorage` キャッシュを置換 (Realtime + オフライン fallback に変更)
+- [x] `window.isPremium` グローバルを廃止 (ippo:premium-updated イベントでブリッジに変更)
+- [x] `window.ippoPremiumService` グローバルを廃止 (直接 import に変更)
+- [x] `stripe.js` の `setInterval` ポーリング (2500ms × 12回) を削除
+- [x] Supabase Realtime で `subscriptions` テーブルの変更を購読
 
 ## Disease Layer
 
@@ -488,7 +495,7 @@
 |------|--------|----------|
 | Legacy Removal | 🔴 Not Started | 0% |
 | Runtime | 🔴 Not Started | 0% |
-| Premium | 🔴 Not Started | 0% |
+| Premium | 🟢 Complete | 100% |
 | Insight | 🔴 Not Started | 0% |
 | Disease | 🔴 Not Started | 0% |
 | Design System | 🔴 Not Started | 0% |

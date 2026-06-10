@@ -10360,8 +10360,17 @@ var adminCheckInterval = setInterval(function(){
 
 
   // ===== PREMIUM LOCK =====
-// ★ var に変更: ES モジュール（services/stripe.js）から window.isPremium として参照するため
+// isPremium は premium-service.js (subscriptions テーブル) が管理する。
+// ippo:premium-updated イベントを受け取り、この変数を同期する。
 var isPremium = false;
+
+window.addEventListener('ippo:premium-updated', function (e) {
+  if (e.detail && typeof e.detail.isPremium === 'boolean') {
+    isPremium = e.detail.isPremium;
+    if (typeof updatePremiumBadges === 'function') updatePremiumBadges();
+    if (typeof checkUpsellNotification === 'function') checkUpsellNotification();
+  }
+});
 
 async function checkPremiumStatus() {
   try {
@@ -10377,17 +10386,11 @@ async function checkPremiumStatus() {
       supabaseToken = session.access_token;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
       _notifyAuthReady();
-      // 管理者は自動的にPROアクセス付与
+      // 管理者は自動的にPROアクセス付与（premium-service のイベントより優先）
       if (session.user.id === ADMIN_USER_ID) {
         isPremium = true;
-      } else {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('is_premium')
-          .eq('user_id', session.user.id)
-          .single();
-        isPremium = profile?.is_premium || false;
       }
+      // premium status は premium-service.js が ippo:premium-updated で通知する
       // ログイン状態をヘッダーに反映
       var briefEl = document.getElementById('syncStatusBrief');
       if (briefEl) briefEl.textContent = (session.user.id === ADMIN_USER_ID ? '👑 ' : '') + (session.user.email || 'ログイン済み');
