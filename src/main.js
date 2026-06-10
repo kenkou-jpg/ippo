@@ -243,6 +243,11 @@ window.analyzeBaseline         = analyzeBaseline;
 window.buildPredictionPayload  = buildPredictionPayload;
 window.buildAIPrompt           = buildAIPrompt;
 
+// ─── Profile Cache Service (DB → State 読込: PR-E1) ──────
+// rollback: 以下2行を削除するだけで全機能がバイパスされる
+import { loadProfileCache } from './services/profile-cache-service.js';
+window.loadProfileCache = loadProfileCache;
+
 // ─── Services ────────────────────────────────────────────
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';
 // P0-FIX-4: 記録入力中ドラフト保護 / P0-FIX-5: SW更新ガードと連携
