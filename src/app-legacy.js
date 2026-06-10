@@ -11298,6 +11298,7 @@ async function runAIAnalysis() {
       }
     }
 
+
     // 新経路: buildAIPrompt → features
     const p        = window.buildAIPrompt(state.records, state);
     const features = p.features;
