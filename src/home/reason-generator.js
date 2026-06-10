@@ -9,7 +9,15 @@ const CONFIDENCE_MAP = { high: 0.9, medium: 0.7, low: 0.5, insufficient: 0 };
 /**
  * @param {object[]} records
  * @param {object}   state
- * @returns {{ type: string, title: string, body: string, confidence: number } | null}
+ * @returns {{
+ *   type:           string,
+ *   title:          string,
+ *   body:           string,
+ *   confidence:     number,
+ *   topTrigger:     string|null,
+ *   trendDirection: string|null,
+ *   flareRate:      number|null,
+ * } | null}
  */
 export function generateReason(records, state) {
   try {
@@ -23,11 +31,15 @@ export function generateReason(records, state) {
     const confidence = CONFIDENCE_MAP[result.confidence] ?? 0;
     if (confidence === 0) return null;
 
+    const topTrigger     = result.topFactors?.[0]?.factor ?? null;
+    const trendDirection = result.trend?.direction         ?? null;
+    const flareRate      = result.flarePattern?.rate       ?? null;
+
     const title = result.disease + 'の体調について';
     const body  = _buildBody(result);
     if (!body) return null;
 
-    return { type: 'reason', title, body, confidence };
+    return { type: 'reason', title, body, confidence, topTrigger, trendDirection, flareRate };
   } catch (_e) {
     return null;
   }

@@ -334,13 +334,13 @@
 
 ## Home Insight
 
-- [ ] `prediction-generator.js` に `data.painScore` / `data.headacheRisk` / `data.fatigueScore` を追加
-- [ ] `reason-generator.js` に `data.topTrigger` / `data.trendDirection` / `data.flareRate` を追加
-- [ ] `action-generator.js` の `_extractPainScore(body)` を削除
-- [ ] `action-generator.js` の `_extractTrigger(body)` を削除
-- [ ] `prediction.body` への正規表現依存をすべて削除
-- [ ] `reason.body` への正規表現依存をすべて削除
-- [ ] `action-generator.js` が構造データのみ参照していることを確認
+- [x] `prediction-generator.js` に `data.painScore` / `data.headacheRisk` / `data.fatigueScore` を追加
+- [x] `reason-generator.js` に `data.topTrigger` / `data.trendDirection` / `data.flareRate` を追加
+- [x] `action-generator.js` の `_extractPainScore(body)` を削除
+- [x] `action-generator.js` の `_extractTrigger(body)` を削除
+- [x] `prediction.body` への正規表現依存をすべて削除
+- [x] `reason.body` への正規表現依存をすべて削除
+- [x] `action-generator.js` が構造データのみ参照していることを確認
 
 ## Design System
 
@@ -496,7 +496,7 @@
 | Legacy Removal | 🔴 Not Started | 0% |
 | Runtime | 🔴 Not Started | 0% |
 | Premium | 🟢 Complete | 100% |
-| Insight | 🔴 Not Started | 0% |
+| Insight | 🟢 Complete | 100% |
 | Disease | 🔴 Not Started | 0% |
 | Design System | 🔴 Not Started | 0% |
 | Edge Platform | 🔴 Not Started | 0% |

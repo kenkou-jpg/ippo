@@ -9,7 +9,15 @@ const DISCLAIMER = '※医療診断ではありません。';
 
 /**
  * @param {object[]} records
- * @returns {{ type: string, title: string, body: string, confidence: number } | null}
+ * @returns {{
+ *   type:         string,
+ *   title:        string,
+ *   body:         string,
+ *   confidence:   number,
+ *   painScore:    number|null,
+ *   headacheRisk: number|null,
+ *   fatigueScore: number|null,
+ * } | null}
  */
 export function generatePrediction(records) {
   try {
@@ -17,14 +25,21 @@ export function generatePrediction(records) {
     const confidence = CONFIDENCE_MAP[result.confidence] ?? 0;
     if (confidence === 0) return null;
 
+    const painScore    = result.pain?.value    ?? null;
+    const headacheRisk = result.headache?.value ?? null;
+    const fatigueScore = result.fatigue?.value  ?? null;
+
     const body = _buildBody(result);
     if (!body) return null;
 
     return {
-      type:       'prediction',
-      title:      '明日の体調予測',
-      body:       body + ' ' + DISCLAIMER,
+      type:  'prediction',
+      title: '明日の体調予測',
+      body:  body + ' ' + DISCLAIMER,
       confidence,
+      painScore,
+      headacheRisk,
+      fatigueScore,
     };
   } catch (_e) {
     return null;
