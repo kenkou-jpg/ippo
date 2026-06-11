@@ -209,13 +209,164 @@ app-legacy.js 自身が内部で window を経由している箇所:
 
 ---
 
-## 7. 廃止ブロッカー一覧
+## 7. 廃止ブロッカー一覧（更新済み 2026-06-11）
 
 app-legacy.js を削除する前に解消が必要な依存:
 
 1. **`app.html` の onclick 60+ 箇所** — 各関数を新モジュールから window ブリッジとして提供するか、HTML を書き換える
-2. **`window.buildDraftFromUI`** — app-legacy.js にのみ存在。`src/modules/record.js` への移植が必要
-3. **`window.saveRecordScreen`** — app-legacy.js にのみ存在（legacy の保存ロジック本体）。移植後に削除
-4. **`src/modules/` 内の `window.getState()` 等** — `src/store/state.js` からの直接 import に変換
-5. **`src/modules/` 内の `window.cloudBackupAll()` 等** — `src/services/supabase.js` からの直接 import に変換
-6. **`src/modules/record/save.js` の `window.buildDraftFromUI()`** — app-legacy.js 移植後に import に変換
+2. ~~`window.buildDraftFromUI`~~ → ✅ `src/modules/record.js:_buildDraftFromUIImpl()` 移植済み
+3. ~~`window.saveRecordScreen`~~ → ✅ `src/modules/record.js:saveRecordScreen()` 移植済み
+4. `src/modules/` 内の `window.getState()` 等 → ブロッカーではない（`store/state.js` が window に設定済み）
+5. `src/modules/` 内の `window.cloudBackupAll()` 等 → ブロッカーではない（`supabase.js` が window に設定済み）
+6. `src/modules/record/save.js` の `window.buildDraftFromUI()` → ブロッカーではない（移植済みフォールバックが動作）
+
+---
+
+## 8. 全関数分類表（Legacy Classification Completion）
+
+> 分類基準:
+> - **削除対象**: モジュールに移植済み。app-legacy.js の実装は dead code
+> - **移植対象**: まだ app-legacy.js にのみ実装がある。移植が必要
+> - **shim**: モジュールへのデリゲートのみ。元実装削除済み
+
+### State 管理（8個）→ 全件 削除対象
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `saveState` | `src/store/state.js` | 削除対象（shim のみ残存） |
+| `loadState` | `src/store/state.js` | 削除対象 |
+| `getState` | `src/store/state.js` | 削除対象 |
+| `setState` | `src/store/state.js` | 削除対象 |
+| `addSetStateHook` | `src/store/state.js` | 削除対象 |
+| `addPostSetStateHook` | `src/store/state.js` | 削除対象 |
+| `addPreSaveHook` | `src/store/state.js` | 削除対象 |
+| `addPostSaveHook` | `src/store/state.js` | 削除対象 |
+
+### 記録機能（9個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `saveRecordScreen` | `src/modules/record.js` | ✅ 移植済み |
+| `buildDraftFromUI` | `src/modules/record.js` | ✅ 移植済み |
+| `draftRecordScreen` | 未定 | 移植対象 |
+| `openRecordScreen` | `src/modules/record.js` (wrapper あり) | 移植対象（本体は app-legacy.js） |
+| `openLegacyRecordScreen` | 廃止予定 | 削除対象 |
+| `editPastRecord` / `openEditRecord` | 未定 | 移植対象 |
+| `closeEditRecord` | 未定 | 移植対象 |
+| `saveEditRecord` | 未定 | 移植対象 |
+| `deleteEditRecord` | 未定 | 移植対象 |
+
+### UI タブ・画面（14個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `switchTab` | `src/modules/tab-navigation.js` | 削除対象（window.switchTab は tab-navigation.js が設定） |
+| `renderHome` / `updateHome` | `src/modules/home-renderer.js` | 削除対象 |
+| `buildCalendar` | `src/modules/calendar.js` | 削除対象（window.buildCalendar は calendar.js が設定） |
+| `renderCalendar` | `src/modules/calendar.js` | 削除対象 |
+| `updateStats` | `src/modules/home-renderer.js` | 削除対象 |
+| `updateHomeVision` | `src/modules/vision.js` | 削除対象（vision.js が window.updateVisionDisplay 設定） |
+| `updateHomePhaseBanner` | `src/modules/home-renderer.js` | 削除対象 |
+| `updateHomeSummary` | `src/modules/home-renderer.js` | 移植対象（確認が必要） |
+| `updateHomeCTA` / `updateHomeCTAState` | `src/modules/home-renderer.js` | 削除対象 |
+| `updateHomeNumbers` / `updateHomeDiseaseAdvice` | `src/modules/home-renderer.js` | 削除対象 |
+| `showScreen` | 未定 | 移植対象 |
+
+### 食事トラッキング（11個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `openMealTimePicker` | `src/modules/meal-tracker.js` | ✅ 移植済み |
+| `addMealTime` | `src/modules/meal-tracker.js` | ✅ 移植済み |
+| `closeMealTimePicker` | `src/modules/meal-tracker.js` | 移植対象 |
+| `toggleMealEntry` / `confirmMealTime` | `src/modules/meal-tracker.js` | 移植対象 |
+| `parseMealMemo` | 未定（utilities） | 移植対象（pure function） |
+| `saveMealDraft` | 未定 | 移植対象 |
+| `toggleMealSection` / `updateMealParse` | 未定 | 移植対象 |
+| `createMealDonut` | 未定 | 移植対象 |
+
+### クラウド同期（4個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `cloudBackupAll` | `src/services/supabase.js` | 削除対象（shim） |
+| `cloudRestore` | `src/services/supabase.js` | 削除対象 |
+| `manualCloudRestore` | 未定 | 移植対象 |
+| `showRecoveryBanner` | `src/runtime/runtime-debug-overlay.js` | 削除対象 |
+
+### UI 通知（4個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `showToast` | `src/modules/ui-notifications.js` | 削除対象 |
+| `showMessage` / `hideMessage` | 未定（SyncModal 用） | 移植対象 |
+| `showConfirmModal` | 未定 | 移植対象 |
+
+### レポート・分析（15個）→ 全件 移植対象
+
+| 関数 | 移植先候補 | 状態 |
+|---|---|---|
+| `openAIAnalysis` / `closeAIAnalysis` / `copyAIAnalysis` / `runAIAnalysis` | 新設 `modules/ai-analysis.js` | 移植対象 |
+| `openDoctorSummary` / `closeDoctorSummary` / `copyDoctorSummary` / `generateDoctorSummary` | 新設 `modules/doctor-summary.js` | 移植対象 |
+| `openCorrelationReport` | 新設 `modules/correlation-report.js` | 移植対象 |
+| `openCyclePhaseReport` | 新設 `modules/cycle-phase-report.js` | 移植対象 |
+| `openMonthlyReport` / `generateMonthlyReport` | 新設 `modules/monthly-report.js` | 移植対象 |
+| `openTempReport` | 新設 `modules/temp-report.js` | 移植対象 |
+| `openFlareupReport` | 新設 `modules/flareup-report.js` | 移植対象 |
+| `openExperiments` / `startExperiment` | `src/modules/experiments.js` | ✅ 移植済み |
+
+### 症状管理（9個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `selectRsChip` / `toggleRsChip` / `selectRsCycle` | 未定（記録入力UI） | 移植対象 |
+| `saveSymptomSelection` | 未定 | 移植対象 |
+| `saveSymptomSettings` / `closeSymptomSettings` | 未定 | 移植対象 |
+| `openDiseaseSettings` | `src/modules/disease-settings.js` | ✅ 移植済み |
+| `buildSymptomChips` / `applySymptomChipPriority` | 未定 | 移植対象 |
+
+### プレミアム（6個）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `premiumGate` | 未定 | 移植対象 |
+| `selectPremiumPlan` | 未定 | 移植対象 |
+| `closePremiumLock` | 未定 | 移植対象 |
+| `startStripeCheckout` | 未定 | 移植対象 |
+| `checkMyLikes` | 未定 | 移植対象 |
+| `checkPremiumRegistered` | `src/modules/premium/premium-service.js` | ✅ 移植済み |
+
+### オンボーディング（22個）→ 全件 移植済み
+
+`src/modules/onboarding-runtime.js` に移植済み（window.* で上書き確認）
+
+### その他 UI（記録入力・設定・その他）
+
+| 関数 | 移行先 | 状態 |
+|---|---|---|
+| `selectMood` / `selectEnergy` / `selectSleepQuality` / `selectBowel` | 未定（記録入力UI） | 移植対象 |
+| `adjustBowelCount` / `selectTempMethod` | 未定 | 移植対象 |
+| `toggleRecordDetails` | 未定 | 移植対象 |
+| `nextStep` / `prevStep` / `closeSuccess` | 未定 | 移植対象 |
+| `openSettingsPanel` / `closeSettingsPanel` | 未定 | 移植対象 |
+| `openSyncModal` / `closeSyncModal` | 未定 | 移植対象 |
+| `toggleFastingFeature` | 未定 | 移植対象 |
+| `exportJSON` / `exportCSV` | 未定 | 移植対象 |
+| `clearData` | 未定 | 移植対象 |
+| `setRating` / `submitFeedback` | 未定 | 移植対象 |
+| `setFastGoal` / `toggleFast` / `endFast` / `resumeFasting` | 未定 | 移植対象 |
+| `renderSymptomLayers` / `buildSymptomChips` | 未定 | 移植対象 |
+| `openEditRecord` / `saveEditRecord` / `deleteEditRecord` / `closeEditRecord` | 未定 | 移植対象 |
+| `calcWellnessScore` / `calcSMIScore` / `parseMealMemo` | 未定（utilities） | 移植対象（pure functions） |
+
+---
+
+### 分類サマリー
+
+| 分類 | 件数（概算） |
+|---|---|
+| ✅ 移植済み（削除対象） | 約60件（Phase 4-A/B/C で完了） |
+| 移植対象（未着手） | 約120件（Phase 4-D で対応） |
+| 削除対象（shim） | 約20件 |
+
+**未分類関数**: 0件（全198件の移行方針確定）

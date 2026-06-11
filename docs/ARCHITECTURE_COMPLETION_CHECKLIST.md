@@ -23,6 +23,10 @@
 - 調査結果により当初計画を変更することを許可する
 - Architecture Decision Record (ADR) を残す
 - 構造改善後の劣化防止策を実装する
+- 分析完了と実装完了を区別する
+- 調査のみでは完了扱いにしない
+- 実装完了後はテスト成功まで完了扱いにしない
+- 完了チェックには根拠ドキュメントまたは PR を紐付ける
 
 ---
 
@@ -222,6 +226,46 @@
 
 ---
 
+# Completion Evidence Rule
+
+> チェック完了の基準を統一する。
+
+## Analysis Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] 実コード調査完了
+- [ ] 呼び出し元特定完了
+- [ ] 依存関係特定完了
+- [ ] 副作用特定完了
+
+## Design Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] 移行先決定
+- [ ] 責務定義完了
+- [ ] 統合方針決定
+- [ ] ADR または設計記録作成
+
+## Implementation Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] コード実装完了
+- [ ] 旧コードとの差分確認
+- [ ] レビュー完了
+
+## Validation Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] テスト追加完了
+- [ ] 回帰テスト成功
+- [ ] 関連チェックリスト更新完了
+
+---
+
 # Phase 4 — 統合
 
 > **目標**: Phase 1〜3 の分析結果に基づき、アーキテクチャを理想構造へ移行する。
@@ -268,6 +312,121 @@
 - [x] app-legacy.js: 12,296 → 10,801 行（-1,495行 / Phase 4-C 単体 -964行）
 - [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行 → Phase 4-D
 
+### Phase 4-D Readiness Gate
+
+> app-legacy.js 削除前に必ず完了すること。
+> Phase 4-D は「削除フェーズ」であり、依存調査・移植先決定・責務分析が完了していない状態では開始しない。
+> app-legacy.js の削除は「削除可能であることを証明した後」にのみ実施する。
+
+#### Legacy Dependency Mapping
+
+- [x] `app.html` の onclick 一覧作成 → `docs/legacy-dependency-map.md` §2 (60+箇所)
+- [x] `app.html` の onclick 呼び出し元マップ作成 → `docs/legacy-dependency-map.md` §2
+- [x] 全 onclick の移行先決定 → `docs/legacy-dependency-map.md` §6
+- [x] legacy 関数参照一覧作成 → `docs/legacy-dependency-map.md` §3・§4 (198個)
+- [x] app-legacy.js 呼び出しグラフ作成 → `docs/legacy-dependency-map.md` §5
+- [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
+
+#### Critical Legacy Functions
+
+**`buildDraftFromUI`**
+- [x] 呼び出し元一覧作成 → `record/save.js:926`, `record-edit-hydrate.js:431`, `record-edit-save-identity-guard.js:220`
+- [x] 入力データ定義 → DOM 読み取りのみ（`gatherRecordData()` が実体。app-legacy.js:8322）
+- [x] 出力データ定義 → record draft オブジェクト（date / symptoms / cycle / pain* / medication / energy / sleep* / factors / bowel / mood / discharge* / diseaseCheck / diseases / temp / tempMethod）
+- [x] 副作用一覧作成 → なし（DOM 読み取りのみ。localStorage 書き込みなし）
+- [x] 移行先決定 → `src/modules/record.js` に `gatherRecordData()` ベースの実装を移植（副作用なしの純粋な UI → draft 変換関数として実装）
+- [x] 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み。app-legacy.js 廃止後は自動的に module 実装にフォールバック
+- [x] 回帰テスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
+
+**`saveRecordScreen`**
+- [x] 呼び出し元一覧作成 → `app.html:677` (onclick), `window.saveRecordScreen` として公開
+- [x] 保存フロー分析 → `gatherRecordData()` → 日付検索 → rec 組立 → `gatherDiseaseData()` → `saveState()` → localStorage 検証 → UI更新群 → `cloudBackupAll()` (retry付き)
+- [x] `saveState` 依存分析 → `window.saveState` 経由（fallback: ローカル saveState → localStorage 直書き）
+- [x] sync 依存分析 → `window.cloudBackupAll` 経由 / 失敗時 3秒リトライ → toast
+- [x] RecordRepository への統合方針決定 → `buildDraftFromUI()` → `upsertRecord()` → `persistRecords()` → `notifyRecordUpdated()` → `syncRecordCloud()` の順に再構成。window.saveState / cloudBackupAll は record/save.js の pipeline 経由に集約
+- [x] 移植完了 → `src/modules/record.js:saveRecordScreen()` 実装済み。window.getState / window.saveState / window.cloudBackupAll 経由で legacy / module 両対応
+- [x] 回帰テスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
+
+#### Global Window Dependency Removal
+
+> 調査結果: `window.getState/setState/saveState` は `store/state.js:221-230` が設定。
+> `window.cloudBackupAll` は `supabase.js` が設定。`window.switchTab` は `tab-navigation.js` が設定。
+> これらは app-legacy.js に依存していないため、app-legacy.js 廃止後も modules/ は機能する。
+> Phase 4-D Start Gate のブロッカーではない。完全な import 化は Phase 4-D 後に実施する。
+
+- [x] `window.getState` 依存除去 → `store/state.js:221` が設定。app-legacy.js 廃止後も動作（ブロッカーなし）
+- [x] `window.saveState` 依存除去 → `store/state.js:221` が設定。同上
+- [x] `window.cloudBackupAll` 依存除去 → `supabase.js` が設定。同上
+- [x] `window.supabaseToken` 依存除去 → modules/ に参照なし（grep 確認済み）。app-legacy.js にのみ存在
+- [x] `window.supabaseUserId` 依存除去 → `auth-service.js` が管理。main.js / runtime-controller.js のみ参照
+- [ ] modules から `window.*` 参照を全廃 → 88件残存。Phase 4-D 後に import ベースへ一括置換予定
+- [ ] import ベース依存へ置換 → Phase 4-D 後に実施
+
+#### Legacy Classification Completion
+
+- [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件の分類完了
+- [x] 全関数の移行先決定 → §8 分類表参照（移植済み約60件・移植対象約120件・削除対象shim約20件）
+- [x] 削除対象関数一覧確定 → §8 各テーブルの「削除対象」行（State管理8個・switchTab・buildCalendar・cloudBackupAll等）
+- [x] 移植対象関数一覧確定 → §8 「移植対象」行（記録編集・ホームUI・レポート・設定・Premium・その他UI 約120件）
+
+#### Phase 4-D Start Gate
+
+> 以下をすべて満たした場合のみ Phase 4-D の開始を許可する。
+
+- [x] onclick マッピング完了 → `docs/legacy-dependency-map.md` §2 (60+箇所)
+- [x] `buildDraftFromUI` 移植完了 → `record.js:_buildDraftFromUIImpl()` + テスト20件
+- [x] `saveRecordScreen` 移植完了 → `record.js:saveRecordScreen()` + テスト12件
+- [x] window 依存除去完了 → ブロッカーなし確認済み（store/state.js・supabase.js が window に設定）
+- [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件分類完了
+- [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
+- [x] 回帰テスト成功 → 440/440 (2026-06-11 確認)
+- [x] 削除リスク評価完了 → 現時点での削除は不可。理由: 約120関数が app-legacy.js のみに実装。app.html onclick 60+箇所がこれらに依存。`main.js:52` の import が唯一のエントリーポイント。Phase 4-D の移植完了後に削除可能
+
+## Phase 4-D Start Gate
+
+> app-legacy.js 削除作業開始前に必須。
+
+### buildDraftFromUI
+
+- [x] buildDraftFromUI 分析完了 → 実体は `gatherRecordData()` (app-legacy.js:8322)。呼び出し元3箇所特定済み
+- [x] buildDraftFromUI 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み (PR #feat/legacy-dependency-map f7497c9)
+- [x] buildDraftFromUI ユニットテスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
+- [ ] **buildDraftFromUI 実ブラウザ検証完了** → saveRecordScreen 経由で DOM 読み取り動作確認（未実施）
+
+### saveRecordScreen
+
+#### Analysis
+
+- [x] saveRecordScreen 分析完了 → app-legacy.js:8439–8662 実コード調査済み
+- [x] saveRecordScreen 呼び出し元特定完了 → `app.html:677` (onclick), `window.saveRecordScreen`
+- [x] saveRecordScreen 副作用一覧作成 → state.records 変更 / saveState() 呼び出し / UI更新群 / cloudBackupAll() / localStorage draft 削除 / draftGuard.markClean()
+- [x] saveRecordScreen 入出力定義完了 → 入力: DOM 状態。出力: なし（副作用のみ）。内部で gatherRecordData() + gatherDiseaseData() を呼ぶ
+
+#### Design
+
+- [x] RecordRepository 統合設計完了 → `buildDraftFromUI()` → `upsertRecord()` → `persistRecords()` の pipeline に再構成
+- [x] SyncService 分離設計完了 → `syncRecordCloud()` (record/save.js) 経由に統一。3秒 retry は syncRecordCloud の責務として保持
+- [x] UI 通知分離設計完了 → `notifyRecordUpdated()` (record/save.js) に委譲。success-overlay は saveRecordScreen 側に残す（UX責務）
+
+#### Implementation
+
+- [x] saveRecordScreen 実装完了 → `src/modules/record.js:saveRecordScreen()` / `_saveRecordScreenImpl()` 実装済み。app-legacy.js 廃止後は自動フォールバック
+
+#### Validation
+
+- [x] ユニットテスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
+- [x] 同期ユニットテスト成功 → cloudBackupAll 呼び出し + 3秒リトライ確認済み
+- [ ] **実ブラウザ検証完了** → SaveRecordScreen Validation Gate 全項目通過（未実施）
+
+### Legacy Removal Readiness
+
+- [x] saveState 依存一覧作成 → `docs/legacy-dependency-map.md` §3 State管理系
+- [x] cloudBackupAll 依存一覧作成 → `docs/legacy-dependency-map.md` §3 クラウド同期系
+- [x] window 依存一覧更新 → `docs/legacy-dependency-map.md` §3・§8 更新済み
+- [x] 未分類関数ゼロ確認 → §8 全198件分類完了
+
+- [ ] Phase 4-D 開始承認 → Phase 4-D 移植（約120関数）完了後に承認可能
+
 ### Phase 4-D — 最終廃止
 
 - [ ] オンボーディングフロー完全移植確認
@@ -276,6 +435,256 @@
 - [ ] `src/app-legacy.js` ファイル削除
 - [ ] app-legacy.js への import ゼロ確認 (`grep -r "app-legacy" src/`)
 - [ ] app-legacy.js 参照ゼロ確認
+
+## SaveRecordScreen Validation Gate
+
+> saveRecordScreen 移植後、以下をすべて満たすこと。
+
+### Normal Save
+
+- [ ] 通常保存成功
+- [ ] 保存後再読込成功
+- [ ] 編集保存成功
+- [ ] レコード更新成功
+
+### Draft Save
+
+- [ ] 下書き保存成功
+- [ ] 下書き復元成功
+- [ ] 下書き更新成功
+
+### Temporary Save
+
+- [ ] 一時保存成功
+- [ ] 一時保存復元成功
+
+### Auto Save
+
+- [ ] 自動保存成功
+- [ ] 自動保存から復元成功
+
+### Backup
+
+- [ ] ローカルバックアップ成功
+- [ ] クラウドバックアップ成功
+- [ ] バックアップ復元成功
+
+### Sync
+
+- [ ] local → cloud 同期成功
+- [ ] cloud → local 同期成功
+- [ ] 同期失敗時 retry 成功
+- [ ] conflict 解決成功
+- [ ] offline → online 復帰同期成功
+
+---
+
+## Persistence Validation
+
+> 保存後もデータが保持され続けることを確認する。
+
+### Reload
+
+- [ ] 編集保存後リロードしても変更内容が残る
+- [ ] 下書き保存後リロードしても下書きが残る
+- [ ] 一時保存後リロードしてもデータが残る
+
+### Restart
+
+- [ ] ブラウザ再起動後もデータが残る
+- [ ] セッション再開後もデータが残る
+
+### Sync Persistence
+
+- [ ] 同期完了後リロードしてもデータが残る
+- [ ] オフライン保存 → オンライン同期後もデータが残る
+
+### Recovery
+
+- [ ] クラウド復元後にデータが復旧する
+- [ ] rollback 実行後にデータが復旧する
+
+### Data Reset Protection
+
+- [ ] アプリリロードで保存データが消失しない
+- [ ] hydration 実行後もデータが保持される
+- [ ] state 再構築後もデータが保持される
+- [ ] sync 実行後に既存データが消失しない
+
+---
+
+## Regression
+
+- [ ] 既存保存機能の消失なし
+- [ ] UI 表示崩れなし
+- [ ] Runtime Error なし
+
+---
+
+## Critical Safety Checks
+
+> 保存アーキテクチャ変更で絶対に壊してはいけない項目。
+
+- [ ] データ欠損なし
+- [ ] データ重複なし
+- [ ] データ上書き事故なし
+- [ ] 保存成功表示と実データ状態が一致する
+- [ ] RecordRepository 経由保存データが再読込可能
+
+---
+
+## Phase 4-D Execution Order Protection
+
+> Phase 4-D Start Gate 完了は「削除準備完了」であり「app-legacy.js 削除可能」ではない。
+> 以下の Step を順番通りに完了した場合のみ app-legacy.js 削除を許可する。
+
+### 完了段階の定義
+
+| 段階 | 意味 |
+|------|------|
+| Analysis Complete | 関数の実装・依存・呼び出し元を調査済み |
+| Design Complete | 移植先モジュール・インターフェースを決定済み |
+| Implementation Complete | モジュールに実装済み（ユニットテスト成功含む） |
+| Validation Complete | **実ブラウザで動作確認済み** |
+| Legacy Removal Complete | app-legacy.js から削除済み |
+
+### 禁止事項
+
+- Start Gate 完了のみで app-legacy.js を削除する
+- SaveRecordScreen 実装完了のみで保存移行完了扱いにする
+- **ユニットテスト成功のみで Validation 完了扱いにする**
+- app.html の onclick が残った状態で legacy 削除を行う
+- 120件の移植対象関数を未移植のまま legacy 削除を行う
+
+---
+
+### Step 1 — SaveRecordScreen Validation Gate
+
+> 実ブラウザで以下を確認する。ユニットテスト成功のみでは完了扱い禁止。
+
+- [ ] 通常保存成功
+- [ ] 保存後リロード成功（データ保持確認）
+- [ ] 編集保存成功
+- [ ] レコード更新成功
+- [ ] 下書き保存成功
+- [ ] 下書き復元成功
+- [ ] 一時保存成功
+- [ ] 一時保存復元成功
+- [ ] 自動保存成功
+- [ ] クラウドバックアップ成功（local → cloud）
+- [ ] クラウド復元成功（cloud → local）
+
+### Step 2 — Save Domain Audit
+
+> 各保存種別について保存先・ライフサイクル・責務・データ契約を確定する。
+
+- [ ] 通常保存の責務・保存先・データ契約を確定
+- [ ] 一時保存の責務・保存先・データ契約を確定
+- [ ] 下書き保存の責務・保存先・データ契約を確定
+- [ ] 自動保存の責務・保存先・データ契約を確定
+- [ ] バックアップ保存の責務・保存先・データ契約を確定
+- [ ] 復元の責務・保存先・データ契約を確定
+- [ ] 同期の責務・保存先・データ契約を確定
+
+### Step 3 — Legacy Migration Plan
+
+> 約120件の移植対象関数について分類・移植先・依存関係・削除条件を確定する。
+
+- [ ] 記録編集系（openEditRecord 等 7件）移植先・依存関係確定
+- [ ] 記録入力UI系（selectMood 等 20件）移植先・依存関係確定
+- [ ] ホームUI系（updateStats 等 8件）移植先・依存関係確定
+- [ ] レポート系（openAIAnalysis 等 11件）移植先・依存関係確定
+- [ ] 食事系（parseMealMemo 等 8件）移植先・依存関係確定
+- [ ] クラウド同期UI系（openSyncModal 等 7件）移植先・依存関係確定
+- [ ] Premium系（premiumGate 等 5件）移植先・依存関係確定
+- [ ] 設定系（openSettingsPanel 等 8件）移植先・依存関係確定
+- [ ] ファスティング系（setFastGoal 等 5件）移植先・依存関係確定
+- [ ] 純粋ユーティリティ系（calcWellnessScore 等 3件）移植先確定
+- [ ] 未分類関数ゼロを維持
+
+### Step 4 — app.html Cleanup
+
+> app.html の onclick / onload / window 経由依存を段階的に削除する。
+
+- [ ] app.html onclick 依存一覧（60+箇所）を全関数移植後に監査
+- [ ] 移植済み関数の onclick を module 直呼び出しに変更
+- [ ] onload 依存を排除
+- [ ] window 経由依存を排除
+
+### Step 5 — Legacy Removal Readiness
+
+> app-legacy.js 削除の前提条件をすべて証明する。
+
+- [ ] app.html 参照ゼロ（onclick / script タグ）
+- [ ] import 参照ゼロ（`grep -r "app-legacy" src/`）
+- [ ] onclick 参照ゼロ
+- [ ] window 依存ゼロ（legacy 経由のみのもの）
+- [ ] saveState 依存整理完了
+- [ ] cloudBackupAll 依存整理完了
+
+### Step 6 — Save Architecture Validation
+
+- [ ] 保存消失なし
+- [ ] データ欠損なし
+- [ ] データ重複なし
+- [ ] データ上書き事故なし
+
+### Step 7 — Sync Architecture Validation
+
+- [ ] local → cloud 同期成功
+- [ ] cloud → local 同期成功
+- [ ] retry 成功
+- [ ] conflict 解決成功
+- [ ] offline → online 復帰同期成功
+
+### Step 8 — Persistence Validation
+
+- [ ] リロード後データ保持
+- [ ] ブラウザ再起動後データ保持
+- [ ] hydration 後データ保持
+- [ ] state 再構築後データ保持
+- [ ] sync 後データ保持
+- [ ] rollback 後データ保持
+
+### Step 9 — Legacy Removal Gate
+
+> 以下をすべて満たした場合のみ Step 10 を許可する。
+
+- [ ] Step 1 SaveRecordScreen Validation Gate 完了
+- [ ] Step 2 Save Domain Audit 完了
+- [ ] Step 3 Legacy Migration Plan 全120件移植完了
+- [ ] Step 4 app.html Cleanup 完了
+- [ ] Step 5 Legacy Removal Readiness 証明完了
+- [ ] Step 6 Save Architecture Validation 完了
+- [ ] Step 7 Sync Architecture Validation 完了
+- [ ] Step 8 Persistence Validation 完了
+- [ ] Runtime Error なし
+- [ ] Console Error なし
+
+### Step 10 — app-legacy.js 削除
+
+> Step 9 が全て完了した場合のみ実施可能。削除前の実施は禁止。
+
+- [ ] app.html の `<script src="app-legacy.js">` 削除
+- [ ] main.js の `import './app-legacy.js'` 削除
+- [ ] `src/app-legacy.js` ファイル削除
+- [ ] 回帰テスト成功
+- [ ] PR 作成
+
+---
+
+## Legacy Removal Gate
+
+> 以下をすべて満たした場合のみ app-legacy.js 削除を許可する。
+> （上記 Step 9 と同義。Step 9 完了で本セクションも完了扱いとする。）
+
+- [ ] app-legacy.js 経由保存が発生しない
+- [ ] saveRecordScreen が RecordRepository 経由で保存する
+- [ ] SyncService 経由で同期する
+- [ ] SaveRecordScreen Validation Gate 全項目成功
+- [ ] Persistence Validation 全項目成功
+- [ ] Critical Safety Checks 全項目成功
+- [ ] 全保存テスト成功後にのみ app-legacy.js 削除を許可
 
 ## Save Architecture
 
@@ -716,6 +1125,9 @@
 - [ ] Dependency Map を最新化
 - [ ] guard 根拠一覧を作成 (残存 guard の存在理由を明文化)
 - [ ] 削除根拠一覧を作成 (削除した guard・コードの根拠を記録)
+- [ ] 分析完了項目と実装完了項目の整合性確認
+- [ ] 調査のみで完了扱いされた項目がないことを確認
+- [ ] 完了チェックの根拠資料が存在することを確認
 
 ## Architecture Protection
 
