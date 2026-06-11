@@ -344,11 +344,11 @@
 
 ## Design System
 
-- [ ] `design-system.css` の現行 Token 一覧を作成
-- [ ] 新規 Token を追加 (`--radius-card` / `--radius-button` / `--shadow-card` / `--z-overlay` / `--transition-pop` / `--border-inactive`)
-- [ ] `stripe.js` のハードコードカラー・インラインスタイルを CSS クラスへ移動
-- [ ] 全 CSS ファイルのハードコード値を Token 参照に置換
-- [ ] JS ファイル内のインラインスタイルブロックを CSS クラスへ移動
+- [x] `design-system.css` の現行 Token 一覧を作成
+- [x] 新規 Token を追加 (`--radius-card` / `--radius-button` / `--z-overlay` / `--transition-pop` / `--border-inactive`) — `--shadow-card` は app.css に既存のため除外
+- [x] `stripe.js` のハードコードカラー・インラインスタイルを CSS クラスへ移動 (`.plan-card--selected` / `.plan-card--inactive` / `.upsell-banner`)
+- [x] 全 CSS ファイルの `border-radius: 20px` を `var(--radius-card)` に置換 (app.css 含む全6ファイル)
+- [x] JS ファイル内のインラインスタイルブロックを CSS クラスへ移動 (stripe.js)
 
 ## Edge Function 品質向上
 
@@ -439,6 +439,93 @@
 - [ ] Runtime 系テスト成功
 - [ ] Premium 系テスト成功 (Stripe CLI でのエンドツーエンド)
 - [ ] Disease 系テスト成功 (全11 Analyzer のユニットテスト)
+
+---
+
+# UI Safety Gate
+
+> UI・UX・画面表示に影響する可能性がある変更は、
+> 実装前後で表示差分を確認する。
+
+## 対象変更
+
+以下に該当する変更は UI Safety Gate を通過すること。
+
+- [ ] HTML 変更
+- [ ] CSS 変更
+- [ ] Design Token 変更
+- [ ] Design System 変更
+- [ ] DOM 構造変更
+- [ ] render 系関数変更
+- [ ] Module UI 移植
+- [ ] app-legacy.js の UI 機能移植
+- [ ] Home 画面変更
+- [ ] Timeline 画面変更
+- [ ] Record 画面変更
+- [ ] Settings 画面変更
+- [ ] Premium 画面変更
+- [ ] Onboarding 変更
+
+## Before / After Capture
+
+- [ ] 変更前スクリーンショット取得
+- [ ] 変更後スクリーンショット取得
+- [ ] 差分確認完了
+
+## Visual Regression Check
+
+### Home
+
+- [ ] Home 表示一致
+- [ ] Insight 表示一致
+- [ ] CTA 表示一致
+
+### Record
+
+- [ ] 記録画面表示一致
+- [ ] 保存ボタン表示一致
+- [ ] 入力フォーム表示一致
+
+### Timeline
+
+- [ ] 一覧表示一致
+- [ ] カード表示一致
+
+### Settings
+
+- [ ] 設定画面表示一致
+
+### Premium
+
+- [ ] Premium 画面表示一致
+- [ ] 購入導線表示一致
+
+### Onboarding
+
+- [ ] ステップ表示一致
+- [ ] 完了導線一致
+
+## Responsive Check
+
+- [ ] iPhone サイズ確認
+- [ ] Android サイズ確認
+- [ ] Tablet サイズ確認
+
+## Accessibility Check
+
+- [ ] コントラスト維持
+- [ ] フォーカス移動維持
+- [ ] ボタン押下可能
+
+## Approval Gate
+
+以下をすべて満たした場合のみ完了。
+
+- [ ] 意図しない UI 変更なし
+- [ ] 意図しないデザイン変更なし
+- [ ] 意図しない導線変更なし
+- [ ] スクリーンショット保存済み
+- [ ] UI 監査完了
 
 ---
 
@@ -553,7 +640,7 @@
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
 | Disease | 🟢 Complete | 100% |
-| Design System | 🔴 Not Started | 0% |
+| Design System | 🟢 Complete | 100% |
 | Edge Platform | 🔴 Not Started | 0% |
 | **Overall** | 🔴 Not Started | **0%** |
 
