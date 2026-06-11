@@ -22,6 +22,7 @@ import {
   getRecordSaveNotifyCandidates,
 } from './record/save.js';
 import { switchTab } from './tab-navigation.js';
+import { upsertRecord } from './record-upsert.js';
 
 
 let lastRecordSaveContext = null;
@@ -423,6 +424,165 @@ function _buildDraftFromUIImpl() {
   return draft;
 }
 
+// ─── saveRecordScreen モジュール実装 ─────────────────────────
+// app-legacy.js が廃止された後のフォールバック実装。
+// app-legacy.js が存在する間は wrapSaveRecordScreen() 経由で legacy 側が優先される。
+// 廃止後は window.saveRecordScreen がこの実装を指す。
+
+export function saveRecordScreen() {
+  traceRecord('saveRecordScreen:module:start', getRecordTraceSnapshot());
+  try {
+    _saveRecordScreenImpl();
+  } catch (e) {
+    traceRecord('saveRecordScreen:module:error', { message: e && e.message });
+    const showAlert = typeof window.showAlertModal === 'function' ? window.showAlertModal : window.alert;
+    if (typeof showAlert === 'function') {
+      showAlert('記録の保存中にエラーが発生しました。<br>もう一度お試しください。<br><br>エラー: ' + (e && e.message));
+    }
+  }
+}
+
+function _saveRecordScreenImpl() {
+  // 1. UI から draft を取得
+  const draft = buildDraftFromUI();
+  if (!draft || !draft.record_date) {
+    traceRecord('saveRecordScreen:module:no-draft');
+    return;
+  }
+
+  // 2. 既存 records に upsert（window.getState を使い legacy / module 両対応）
+  const getStateFn = typeof window.getState === 'function' ? window.getState : function() { return null; };
+  const state = getStateFn();
+  if (!state) {
+    traceRecord('saveRecordScreen:module:no-state');
+    return;
+  }
+
+  const prevRecords = Array.isArray(state.records) ? state.records : [];
+  const nextRecords = upsertRecord(prevRecords, draft);
+  state.records = nextRecords;
+
+  // 新規レコードかどうか（streak / totalDays 更新用）
+  const isNew = !prevRecords.some(function(r) {
+    const d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
+    return d === draft.record_date;
+  });
+
+  if (isNew) {
+    state.totalDays = (state.totalDays || 0) + 1;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yStr = yesterday.toDateString();
+    const hadYesterday = prevRecords.some(function(r) {
+      return r.date && new Date(r.date).toDateString() === yStr;
+    });
+    state.streak = state.streak || 0;
+    state.streak = (hadYesterday || state.streak === 0) ? state.streak + 1 : 1;
+  }
+
+  // 3. window.saveState で永続化（legacy / module 両対応）
+  const saveStateFn = typeof window.saveState === 'function' ? window.saveState : null;
+  if (!saveStateFn) {
+    traceRecord('saveRecordScreen:module:persist-failed:no-saveState');
+    const showAlert = typeof window.showAlertModal === 'function' ? window.showAlertModal : window.alert;
+    if (typeof showAlert === 'function') {
+      showAlert('記録の保存に失敗しました。もう一度お試しください。');
+    }
+    return;
+  }
+  try {
+    saveStateFn();
+  } catch (storageErr) {
+    traceRecord('saveRecordScreen:module:persist-failed:error', { message: storageErr && storageErr.message });
+    const showAlert = typeof window.showAlertModal === 'function' ? window.showAlertModal : window.alert;
+    if (typeof showAlert === 'function') {
+      showAlert('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
+    }
+    return;
+  }
+
+  // 4. draft クリーンアップ
+  try { localStorage.removeItem('ippo_record_draft'); } catch(e) {}
+  try { localStorage.removeItem('ippo_draft'); } catch(e) {}
+  try { localStorage.removeItem('ippo_meal_draft'); } catch(e) {}
+  if (window.ippoRecordDraftGuard && typeof window.ippoRecordDraftGuard.markClean === 'function') {
+    window.ippoRecordDraftGuard.markClean();
+  }
+
+  // 5. 症状履歴更新
+  if (draft.symptoms && draft.symptoms.length && typeof window.saveSymptomSelection === 'function') {
+    window.saveSymptomSelection(draft.symptoms);
+  }
+
+  // 6. UI 通知（notifyRecordUpdated 経由）
+  notifyRecordUpdated();
+
+  // 7. success-overlay 表示（UX 責務）
+  _showSaveSuccessOverlay(state);
+
+  // 8. editingDate クリア
+  if (state.editingDate) {
+    state.editingDate = null;
+    saveStateFn();
+  }
+
+  // 9. クラウド同期（window.cloudBackupAll 直接呼び出し / 失敗時 3秒リトライ）
+  const cloudBackupFn = typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : null;
+  if (cloudBackupFn) {
+    cloudBackupFn().catch(function(e) {
+      traceRecord('saveRecordScreen:module:sync-retry', { message: e && e.message });
+      setTimeout(function() {
+        cloudBackupFn().catch(function() {
+          if (typeof window.showToast === 'function') {
+            window.showToast('クラウド同期に失敗しました。Wi-Fiを確認してください。', 'warn');
+          }
+        });
+      }, 3000);
+    });
+  }
+
+  traceRecord('saveRecordScreen:module:done', getRecordTraceSnapshot());
+}
+
+function _showSaveSuccessOverlay(state) {
+  const so = document.getElementById('success-overlay');
+  if (!so) return;
+
+  const emojiEl = document.getElementById('success-emoji');
+  const titleEl = document.getElementById('success-title');
+  const msgEl   = document.getElementById('success-message');
+  if (emojiEl) emojiEl.textContent = '🌿';
+  if (titleEl) titleEl.textContent = '記録を保存しました';
+
+  if (msgEl) {
+    const streak = state.streak || 0;
+    let html = '<div style="background:#FBEAF0;border-radius:14px;padding:14px 16px;margin:12px 0 4px;text-align:left;">';
+    html += '<div style="font-weight:500;color:#72243E;margin-bottom:4px;">今日で' + streak + '日連続記録中</div>';
+    html += '</div>';
+    msgEl.innerHTML = html;
+  }
+
+  so.classList.add('active');
+
+  if (window.__ippoSuccessOverlayTimer) {
+    clearTimeout(window.__ippoSuccessOverlayTimer);
+    window.__ippoSuccessOverlayTimer = null;
+  }
+  window.__ippoSuccessOverlayTimer = setTimeout(function() {
+    const overlay = document.getElementById('success-overlay');
+    if (overlay && overlay.classList.contains('active')) {
+      overlay.style.transition = 'opacity 0.5s ease';
+      overlay.style.opacity = '0';
+      setTimeout(function() {
+        overlay.classList.remove('active');
+        overlay.style.opacity = '';
+        overlay.style.transition = '';
+        window.__ippoSuccessOverlayTimer = null;
+      }, 500);
+    }
+  }, 2000);
+}
+
 export function enableRecordTrace() {
   window.__IPPO_DEBUG_RECORD__ = true;
   try { localStorage.setItem('ippo_debug_record', '1'); } catch(e) {}
@@ -480,4 +640,10 @@ if (typeof window.renderRecordHeader !== 'function') {
 }
 if (typeof window.buildDraftFromUI !== 'function') {
   window.buildDraftFromUI = buildDraftFromUI;
+}
+// saveRecordScreen: app-legacy.js が廃止された後のフォールバック。
+// wrapSaveRecordScreen() はすでに legacy 側を trace ラップしているため、
+// legacy が存在する間はそちらが優先される。
+if (typeof window.saveRecordScreen !== 'function') {
+  window.saveRecordScreen = saveRecordScreen;
 }

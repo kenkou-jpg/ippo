@@ -344,8 +344,8 @@
 - [x] `saveState` 依存分析 → `window.saveState` 経由（fallback: ローカル saveState → localStorage 直書き）
 - [x] sync 依存分析 → `window.cloudBackupAll` 経由 / 失敗時 3秒リトライ → toast
 - [x] RecordRepository への統合方針決定 → `buildDraftFromUI()` → `upsertRecord()` → `persistRecords()` → `notifyRecordUpdated()` → `syncRecordCloud()` の順に再構成。window.saveState / cloudBackupAll は record/save.js の pipeline 経由に集約
-- [ ] 移植完了
-- [ ] 回帰テスト成功
+- [x] 移植完了 → `src/modules/record.js:saveRecordScreen()` 実装済み。window.getState / window.saveState / window.cloudBackupAll 経由で legacy / module 両対応
+- [x] 回帰テスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
 
 #### Global Window Dependency Removal
 
@@ -404,12 +404,12 @@
 
 #### Implementation
 
-- [ ] saveRecordScreen 実装完了
+- [x] saveRecordScreen 実装完了 → `src/modules/record.js:saveRecordScreen()` / `_saveRecordScreenImpl()` 実装済み。app-legacy.js 廃止後は自動フォールバック
 
 #### Validation
 
-- [ ] 保存テスト成功
-- [ ] 同期テスト成功
+- [x] 保存テスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
+- [x] 同期テスト成功 → cloudBackupAll 呼び出し + 3秒リトライ確認済み
 
 ### Legacy Removal Readiness
 
