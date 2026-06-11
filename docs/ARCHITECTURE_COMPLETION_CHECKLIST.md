@@ -72,7 +72,7 @@
 ## Legacy Inventory
 
 - [x] app-legacy.js 機能一覧作成 (全関数・グローバル変数)
-- [ ] app-legacy.js 依存一覧作成 (どこから呼ばれているか)
+- [x] app-legacy.js 依存一覧作成 → `docs/legacy-dependency-map.md` (app.html onclick 60+箇所・src/ window参照 50+箇所・window公開関数 198個)
 - [x] app-legacy.js 移行対象一覧作成 (Runtime / Service / Module 別)
 
 ### 既知の分類（改修計画書より・要確認）
