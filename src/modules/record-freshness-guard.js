@@ -14,8 +14,9 @@
 import {
   getRecordDate,
   getRecords,
+  persistRecords,
 } from './record-repository.js';
-import { getState, setState, saveState } from '../store/state.js';
+import { getState, setState } from '../store/state.js';
 
 const FRESHNESS_KEY = '__IPPO_RECORD_FRESHNESS_GUARD';
 const MAX_EVENTS = 160;
@@ -180,7 +181,7 @@ function setActiveRecords(records) {
 
 function persistFreshnessRepair(detail) {
   try {
-    saveState();
+    persistRecords();
     traceFreshness('rollback-repair-persisted', detail);
   } catch (error) {
     traceFreshness('rollback-repair-persist-failed', {
