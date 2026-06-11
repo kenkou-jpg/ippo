@@ -127,10 +127,8 @@ export function manualCloudRestore() {
         // 保存（save-transaction-guard + takeSnapshot('pre-save') 経由）
         saveState();
 
-        // R-4: IDB 同期（Diagnostics との件数整合）
-        persistRecords().catch(function (e) {
-          console.warn('[manualCloudRestore] persistRecords 失敗:', e);
-        });
+        // R-4: localStorage 更新（saveState 経由。persistRecords は boolean を返す。IDB は書き込まない）
+        persistRecords();
 
         // ippo_last_record_count 更新（autoRecoveryCheck の二重起動防止）
         localStorage.setItem('ippo_last_record_count', String(mergedCount));

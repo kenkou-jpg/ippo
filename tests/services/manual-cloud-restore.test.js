@@ -25,7 +25,7 @@ vi.mock('../../src/store/state.js', () => {
 
 vi.mock('../../src/modules/record-repository.js', () => ({
   idbGetAllRecords: vi.fn(() => Promise.resolve([])),
-  persistRecords:   vi.fn(() => Promise.resolve()),
+  persistRecords:   vi.fn(() => true),
 }));
 
 vi.mock('../../src/runtime/rollback-manager.js', () => ({
