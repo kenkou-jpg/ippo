@@ -23,6 +23,10 @@
 - 調査結果により当初計画を変更することを許可する
 - Architecture Decision Record (ADR) を残す
 - 構造改善後の劣化防止策を実装する
+- 分析完了と実装完了を区別する
+- 調査のみでは完了扱いにしない
+- 実装完了後はテスト成功まで完了扱いにしない
+- 完了チェックには根拠ドキュメントまたは PR を紐付ける
 
 ---
 
@@ -222,6 +226,46 @@
 
 ---
 
+# Completion Evidence Rule
+
+> チェック完了の基準を統一する。
+
+## Analysis Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] 実コード調査完了
+- [ ] 呼び出し元特定完了
+- [ ] 依存関係特定完了
+- [ ] 副作用特定完了
+
+## Design Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] 移行先決定
+- [ ] 責務定義完了
+- [ ] 統合方針決定
+- [ ] ADR または設計記録作成
+
+## Implementation Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] コード実装完了
+- [ ] 旧コードとの差分確認
+- [ ] レビュー完了
+
+## Validation Complete
+
+以下を満たした場合のみ完了。
+
+- [ ] テスト追加完了
+- [ ] 回帰テスト成功
+- [ ] 関連チェックリスト更新完了
+
+---
+
 # Phase 4 — 統合
 
 > **目標**: Phase 1〜3 の分析結果に基づき、アーキテクチャを理想構造へ移行する。
@@ -292,7 +336,7 @@
 - [x] 副作用一覧作成 → なし（DOM 読み取りのみ。localStorage 書き込みなし）
 - [x] 移行先決定 → `src/modules/record.js` に `gatherRecordData()` ベースの実装を移植（副作用なしの純粋な UI → draft 変換関数として実装）
 - [x] 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み。app-legacy.js 廃止後は自動的に module 実装にフォールバック
-- [ ] 回帰テスト成功
+- [x] 回帰テスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
 
 **`saveRecordScreen`**
 - [x] 呼び出し元一覧作成 → `app.html:677` (onclick), `window.saveRecordScreen` として公開
@@ -333,6 +377,49 @@
 - [ ] 回帰テスト成功
 - [ ] 削除リスク評価完了
 
+## Phase 4-D Start Gate
+
+> app-legacy.js 削除作業開始前に必須。
+
+### buildDraftFromUI
+
+- [x] buildDraftFromUI 分析完了 → 実体は `gatherRecordData()` (app-legacy.js:8322)。呼び出し元3箇所特定済み
+- [x] buildDraftFromUI 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み (PR #feat/legacy-dependency-map f7497c9)
+- [x] buildDraftFromUI テスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
+
+### saveRecordScreen
+
+#### Analysis
+
+- [x] saveRecordScreen 分析完了 → app-legacy.js:8439–8662 実コード調査済み
+- [x] saveRecordScreen 呼び出し元特定完了 → `app.html:677` (onclick), `window.saveRecordScreen`
+- [x] saveRecordScreen 副作用一覧作成 → state.records 変更 / saveState() 呼び出し / UI更新群 / cloudBackupAll() / localStorage draft 削除 / draftGuard.markClean()
+- [x] saveRecordScreen 入出力定義完了 → 入力: DOM 状態。出力: なし（副作用のみ）。内部で gatherRecordData() + gatherDiseaseData() を呼ぶ
+
+#### Design
+
+- [x] RecordRepository 統合設計完了 → `buildDraftFromUI()` → `upsertRecord()` → `persistRecords()` の pipeline に再構成
+- [x] SyncService 分離設計完了 → `syncRecordCloud()` (record/save.js) 経由に統一。3秒 retry は syncRecordCloud の責務として保持
+- [x] UI 通知分離設計完了 → `notifyRecordUpdated()` (record/save.js) に委譲。success-overlay は saveRecordScreen 側に残す（UX責務）
+
+#### Implementation
+
+- [ ] saveRecordScreen 実装完了
+
+#### Validation
+
+- [ ] 保存テスト成功
+- [ ] 同期テスト成功
+
+### Legacy Removal Readiness
+
+- [ ] saveState 依存一覧作成
+- [ ] cloudBackupAll 依存一覧作成
+- [ ] window 依存一覧更新
+- [ ] 未分類関数ゼロ確認
+
+- [ ] Phase 4-D 開始承認
+
 ### Phase 4-D — 最終廃止
 
 - [ ] オンボーディングフロー完全移植確認
@@ -341,6 +428,115 @@
 - [ ] `src/app-legacy.js` ファイル削除
 - [ ] app-legacy.js への import ゼロ確認 (`grep -r "app-legacy" src/`)
 - [ ] app-legacy.js 参照ゼロ確認
+
+## SaveRecordScreen Validation Gate
+
+> saveRecordScreen 移植後、以下をすべて満たすこと。
+
+### Normal Save
+
+- [ ] 通常保存成功
+- [ ] 保存後再読込成功
+- [ ] 編集保存成功
+- [ ] レコード更新成功
+
+### Draft Save
+
+- [ ] 下書き保存成功
+- [ ] 下書き復元成功
+- [ ] 下書き更新成功
+
+### Temporary Save
+
+- [ ] 一時保存成功
+- [ ] 一時保存復元成功
+
+### Auto Save
+
+- [ ] 自動保存成功
+- [ ] 自動保存から復元成功
+
+### Backup
+
+- [ ] ローカルバックアップ成功
+- [ ] クラウドバックアップ成功
+- [ ] バックアップ復元成功
+
+### Sync
+
+- [ ] local → cloud 同期成功
+- [ ] cloud → local 同期成功
+- [ ] 同期失敗時 retry 成功
+- [ ] conflict 解決成功
+- [ ] offline → online 復帰同期成功
+
+---
+
+## Persistence Validation
+
+> 保存後もデータが保持され続けることを確認する。
+
+### Reload
+
+- [ ] 編集保存後リロードしても変更内容が残る
+- [ ] 下書き保存後リロードしても下書きが残る
+- [ ] 一時保存後リロードしてもデータが残る
+
+### Restart
+
+- [ ] ブラウザ再起動後もデータが残る
+- [ ] セッション再開後もデータが残る
+
+### Sync Persistence
+
+- [ ] 同期完了後リロードしてもデータが残る
+- [ ] オフライン保存 → オンライン同期後もデータが残る
+
+### Recovery
+
+- [ ] クラウド復元後にデータが復旧する
+- [ ] rollback 実行後にデータが復旧する
+
+### Data Reset Protection
+
+- [ ] アプリリロードで保存データが消失しない
+- [ ] hydration 実行後もデータが保持される
+- [ ] state 再構築後もデータが保持される
+- [ ] sync 実行後に既存データが消失しない
+
+---
+
+## Regression
+
+- [ ] 既存保存機能の消失なし
+- [ ] UI 表示崩れなし
+- [ ] Runtime Error なし
+
+---
+
+## Critical Safety Checks
+
+> 保存アーキテクチャ変更で絶対に壊してはいけない項目。
+
+- [ ] データ欠損なし
+- [ ] データ重複なし
+- [ ] データ上書き事故なし
+- [ ] 保存成功表示と実データ状態が一致する
+- [ ] RecordRepository 経由保存データが再読込可能
+
+---
+
+## Legacy Removal Gate
+
+> 以下をすべて満たした場合のみ app-legacy.js 削除を許可する。
+
+- [ ] app-legacy.js 経由保存が発生しない
+- [ ] saveRecordScreen が RecordRepository 経由で保存する
+- [ ] SyncService 経由で同期する
+- [ ] SaveRecordScreen Validation Gate 全項目成功
+- [ ] Persistence Validation 全項目成功
+- [ ] Critical Safety Checks 全項目成功
+- [ ] 全保存テスト成功後にのみ app-legacy.js 削除を許可
 
 ## Save Architecture
 
@@ -781,6 +977,9 @@
 - [ ] Dependency Map を最新化
 - [ ] guard 根拠一覧を作成 (残存 guard の存在理由を明文化)
 - [ ] 削除根拠一覧を作成 (削除した guard・コードの根拠を記録)
+- [ ] 分析完了項目と実装完了項目の整合性確認
+- [ ] 調査のみで完了扱いされた項目がないことを確認
+- [ ] 完了チェックの根拠資料が存在することを確認
 
 ## Architecture Protection
 
