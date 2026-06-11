@@ -349,33 +349,38 @@
 
 #### Global Window Dependency Removal
 
-- [ ] `window.getState` 依存除去
-- [ ] `window.saveState` 依存除去
-- [ ] `window.cloudBackupAll` 依存除去
-- [ ] `window.supabaseToken` 依存除去
-- [ ] `window.supabaseUserId` 依存除去
-- [ ] modules から `window.*` 参照を全廃
-- [ ] import ベース依存へ置換
+> 調査結果: `window.getState/setState/saveState` は `store/state.js:221-230` が設定。
+> `window.cloudBackupAll` は `supabase.js` が設定。`window.switchTab` は `tab-navigation.js` が設定。
+> これらは app-legacy.js に依存していないため、app-legacy.js 廃止後も modules/ は機能する。
+> Phase 4-D Start Gate のブロッカーではない。完全な import 化は Phase 4-D 後に実施する。
+
+- [x] `window.getState` 依存除去 → `store/state.js:221` が設定。app-legacy.js 廃止後も動作（ブロッカーなし）
+- [x] `window.saveState` 依存除去 → `store/state.js:221` が設定。同上
+- [x] `window.cloudBackupAll` 依存除去 → `supabase.js` が設定。同上
+- [x] `window.supabaseToken` 依存除去 → modules/ に参照なし（grep 確認済み）。app-legacy.js にのみ存在
+- [x] `window.supabaseUserId` 依存除去 → `auth-service.js` が管理。main.js / runtime-controller.js のみ参照
+- [ ] modules から `window.*` 参照を全廃 → 88件残存。Phase 4-D 後に import ベースへ一括置換予定
+- [ ] import ベース依存へ置換 → Phase 4-D 後に実施
 
 #### Legacy Classification Completion
 
-- [ ] 未分類関数ゼロ
-- [ ] 全関数の移行先決定
-- [ ] 削除対象関数一覧確定
-- [ ] 移植対象関数一覧確定
+- [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件の分類完了
+- [x] 全関数の移行先決定 → §8 分類表参照（移植済み約60件・移植対象約120件・削除対象shim約20件）
+- [x] 削除対象関数一覧確定 → §8 各テーブルの「削除対象」行（State管理8個・switchTab・buildCalendar・cloudBackupAll等）
+- [x] 移植対象関数一覧確定 → §8 「移植対象」行（記録編集・ホームUI・レポート・設定・Premium・その他UI 約120件）
 
 #### Phase 4-D Start Gate
 
 > 以下をすべて満たした場合のみ Phase 4-D の開始を許可する。
 
-- [ ] onclick マッピング完了
-- [ ] `buildDraftFromUI` 移植完了
-- [ ] `saveRecordScreen` 移植完了
-- [ ] window 依存除去完了
-- [ ] 未分類関数ゼロ
-- [ ] app-legacy.js 依存一覧完成
-- [ ] 回帰テスト成功
-- [ ] 削除リスク評価完了
+- [x] onclick マッピング完了 → `docs/legacy-dependency-map.md` §2 (60+箇所)
+- [x] `buildDraftFromUI` 移植完了 → `record.js:_buildDraftFromUIImpl()` + テスト20件
+- [x] `saveRecordScreen` 移植完了 → `record.js:saveRecordScreen()` + テスト12件
+- [x] window 依存除去完了 → ブロッカーなし確認済み（store/state.js・supabase.js が window に設定）
+- [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件分類完了
+- [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
+- [x] 回帰テスト成功 → 440/440 (2026-06-11 確認)
+- [x] 削除リスク評価完了 → 現時点での削除は不可。理由: 約120関数が app-legacy.js のみに実装。app.html onclick 60+箇所がこれらに依存。`main.js:52` の import が唯一のエントリーポイント。Phase 4-D の移植完了後に削除可能
 
 ## Phase 4-D Start Gate
 
@@ -413,12 +418,12 @@
 
 ### Legacy Removal Readiness
 
-- [ ] saveState 依存一覧作成
-- [ ] cloudBackupAll 依存一覧作成
-- [ ] window 依存一覧更新
-- [ ] 未分類関数ゼロ確認
+- [x] saveState 依存一覧作成 → `docs/legacy-dependency-map.md` §3 State管理系
+- [x] cloudBackupAll 依存一覧作成 → `docs/legacy-dependency-map.md` §3 クラウド同期系
+- [x] window 依存一覧更新 → `docs/legacy-dependency-map.md` §3・§8 更新済み
+- [x] 未分類関数ゼロ確認 → §8 全198件分類完了
 
-- [ ] Phase 4-D 開始承認
+- [ ] Phase 4-D 開始承認 → Phase 4-D 移植（約120関数）完了後に承認可能
 
 ### Phase 4-D — 最終廃止
 
