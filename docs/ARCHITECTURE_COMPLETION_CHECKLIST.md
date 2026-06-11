@@ -390,7 +390,8 @@
 
 - [x] buildDraftFromUI 分析完了 → 実体は `gatherRecordData()` (app-legacy.js:8322)。呼び出し元3箇所特定済み
 - [x] buildDraftFromUI 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み (PR #feat/legacy-dependency-map f7497c9)
-- [x] buildDraftFromUI テスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
+- [x] buildDraftFromUI ユニットテスト成功 → `tests/modules/build-draft-from-ui.test.js` 20/20 成功
+- [ ] **buildDraftFromUI 実ブラウザ検証完了** → saveRecordScreen 経由で DOM 読み取り動作確認（未実施）
 
 ### saveRecordScreen
 
@@ -413,8 +414,9 @@
 
 #### Validation
 
-- [x] 保存テスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
-- [x] 同期テスト成功 → cloudBackupAll 呼び出し + 3秒リトライ確認済み
+- [x] ユニットテスト成功 → `tests/modules/save-record-screen.test.js` 12/12 成功
+- [x] 同期ユニットテスト成功 → cloudBackupAll 呼び出し + 3秒リトライ確認済み
+- [ ] **実ブラウザ検証完了** → SaveRecordScreen Validation Gate 全項目通過（未実施）
 
 ### Legacy Removal Readiness
 
@@ -531,9 +533,150 @@
 
 ---
 
+## Phase 4-D Execution Order Protection
+
+> Phase 4-D Start Gate 完了は「削除準備完了」であり「app-legacy.js 削除可能」ではない。
+> 以下の Step を順番通りに完了した場合のみ app-legacy.js 削除を許可する。
+
+### 完了段階の定義
+
+| 段階 | 意味 |
+|------|------|
+| Analysis Complete | 関数の実装・依存・呼び出し元を調査済み |
+| Design Complete | 移植先モジュール・インターフェースを決定済み |
+| Implementation Complete | モジュールに実装済み（ユニットテスト成功含む） |
+| Validation Complete | **実ブラウザで動作確認済み** |
+| Legacy Removal Complete | app-legacy.js から削除済み |
+
+### 禁止事項
+
+- Start Gate 完了のみで app-legacy.js を削除する
+- SaveRecordScreen 実装完了のみで保存移行完了扱いにする
+- **ユニットテスト成功のみで Validation 完了扱いにする**
+- app.html の onclick が残った状態で legacy 削除を行う
+- 120件の移植対象関数を未移植のまま legacy 削除を行う
+
+---
+
+### Step 1 — SaveRecordScreen Validation Gate
+
+> 実ブラウザで以下を確認する。ユニットテスト成功のみでは完了扱い禁止。
+
+- [ ] 通常保存成功
+- [ ] 保存後リロード成功（データ保持確認）
+- [ ] 編集保存成功
+- [ ] レコード更新成功
+- [ ] 下書き保存成功
+- [ ] 下書き復元成功
+- [ ] 一時保存成功
+- [ ] 一時保存復元成功
+- [ ] 自動保存成功
+- [ ] クラウドバックアップ成功（local → cloud）
+- [ ] クラウド復元成功（cloud → local）
+
+### Step 2 — Save Domain Audit
+
+> 各保存種別について保存先・ライフサイクル・責務・データ契約を確定する。
+
+- [ ] 通常保存の責務・保存先・データ契約を確定
+- [ ] 一時保存の責務・保存先・データ契約を確定
+- [ ] 下書き保存の責務・保存先・データ契約を確定
+- [ ] 自動保存の責務・保存先・データ契約を確定
+- [ ] バックアップ保存の責務・保存先・データ契約を確定
+- [ ] 復元の責務・保存先・データ契約を確定
+- [ ] 同期の責務・保存先・データ契約を確定
+
+### Step 3 — Legacy Migration Plan
+
+> 約120件の移植対象関数について分類・移植先・依存関係・削除条件を確定する。
+
+- [ ] 記録編集系（openEditRecord 等 7件）移植先・依存関係確定
+- [ ] 記録入力UI系（selectMood 等 20件）移植先・依存関係確定
+- [ ] ホームUI系（updateStats 等 8件）移植先・依存関係確定
+- [ ] レポート系（openAIAnalysis 等 11件）移植先・依存関係確定
+- [ ] 食事系（parseMealMemo 等 8件）移植先・依存関係確定
+- [ ] クラウド同期UI系（openSyncModal 等 7件）移植先・依存関係確定
+- [ ] Premium系（premiumGate 等 5件）移植先・依存関係確定
+- [ ] 設定系（openSettingsPanel 等 8件）移植先・依存関係確定
+- [ ] ファスティング系（setFastGoal 等 5件）移植先・依存関係確定
+- [ ] 純粋ユーティリティ系（calcWellnessScore 等 3件）移植先確定
+- [ ] 未分類関数ゼロを維持
+
+### Step 4 — app.html Cleanup
+
+> app.html の onclick / onload / window 経由依存を段階的に削除する。
+
+- [ ] app.html onclick 依存一覧（60+箇所）を全関数移植後に監査
+- [ ] 移植済み関数の onclick を module 直呼び出しに変更
+- [ ] onload 依存を排除
+- [ ] window 経由依存を排除
+
+### Step 5 — Legacy Removal Readiness
+
+> app-legacy.js 削除の前提条件をすべて証明する。
+
+- [ ] app.html 参照ゼロ（onclick / script タグ）
+- [ ] import 参照ゼロ（`grep -r "app-legacy" src/`）
+- [ ] onclick 参照ゼロ
+- [ ] window 依存ゼロ（legacy 経由のみのもの）
+- [ ] saveState 依存整理完了
+- [ ] cloudBackupAll 依存整理完了
+
+### Step 6 — Save Architecture Validation
+
+- [ ] 保存消失なし
+- [ ] データ欠損なし
+- [ ] データ重複なし
+- [ ] データ上書き事故なし
+
+### Step 7 — Sync Architecture Validation
+
+- [ ] local → cloud 同期成功
+- [ ] cloud → local 同期成功
+- [ ] retry 成功
+- [ ] conflict 解決成功
+- [ ] offline → online 復帰同期成功
+
+### Step 8 — Persistence Validation
+
+- [ ] リロード後データ保持
+- [ ] ブラウザ再起動後データ保持
+- [ ] hydration 後データ保持
+- [ ] state 再構築後データ保持
+- [ ] sync 後データ保持
+- [ ] rollback 後データ保持
+
+### Step 9 — Legacy Removal Gate
+
+> 以下をすべて満たした場合のみ Step 10 を許可する。
+
+- [ ] Step 1 SaveRecordScreen Validation Gate 完了
+- [ ] Step 2 Save Domain Audit 完了
+- [ ] Step 3 Legacy Migration Plan 全120件移植完了
+- [ ] Step 4 app.html Cleanup 完了
+- [ ] Step 5 Legacy Removal Readiness 証明完了
+- [ ] Step 6 Save Architecture Validation 完了
+- [ ] Step 7 Sync Architecture Validation 完了
+- [ ] Step 8 Persistence Validation 完了
+- [ ] Runtime Error なし
+- [ ] Console Error なし
+
+### Step 10 — app-legacy.js 削除
+
+> Step 9 が全て完了した場合のみ実施可能。削除前の実施は禁止。
+
+- [ ] app.html の `<script src="app-legacy.js">` 削除
+- [ ] main.js の `import './app-legacy.js'` 削除
+- [ ] `src/app-legacy.js` ファイル削除
+- [ ] 回帰テスト成功
+- [ ] PR 作成
+
+---
+
 ## Legacy Removal Gate
 
 > 以下をすべて満たした場合のみ app-legacy.js 削除を許可する。
+> （上記 Step 9 と同義。Step 9 完了で本セクションも完了扱いとする。）
 
 - [ ] app-legacy.js 経由保存が発生しない
 - [ ] saveRecordScreen が RecordRepository 経由で保存する
