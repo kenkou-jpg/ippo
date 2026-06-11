@@ -479,7 +479,7 @@
 - [x] ADR-002 Runtime 統合判断 → `docs/adr/ADR-002-runtime-architecture.md`
 - [ ] ADR-003 Premium Source of Truth 統一判断
 - [ ] ADR-004 Disease Analyzer 標準化判断
-- [ ] ADR-005 Guard 責務吸収・廃止判断
+- [x] ADR-005 Guard 責務吸収・廃止判断 → `docs/adr/ADR-005-guard-decommission.md`
 - [x] ADR-006 Save Domain Boundary 判断 → `docs/adr/ADR-006-save-domain-boundary.md`
 - [x] ADR-007 Sync Architecture 判断 → `docs/adr/ADR-007-sync-architecture.md`
 
@@ -492,19 +492,19 @@
 
 ## Guard Analysis
 
-- [x] `save-transaction-guard.js` 分析 → post-save localStorage 整合検証・スナップショット取得。save pipeline を迂回した書き込みには適用されない
-- [x] `record-freshness-guard.js` 分析 → stale overwrite 検出（件数減少・hash 変化・日付後退）。自動修復は lastKnownFreshRecords から復元
-- [x] `record-draft-guard.js` 分析 → visibilitychange/pagehide/beforeunload でフォーム入力中データを localStorage に退避。復元プロンプト付き
-- [x] `record-edit-save-identity-guard.js` 分析 → buildDraftFromUI をラップして既存レコードの値を空値上書きから保護。保存後の重複日付レコードを統合
-- [x] `state-integrity-guard.js` 分析 → setState 時に records が 3 件以上かつ 50% 未満に減少した場合に rollbackToBest() を発動。cloud sync もブロック
-- [ ] `hydration-guard.js` 分析
-- [ ] `startup-validator.js` 分析
+- [x] `save-transaction-guard.js` 分析 → post-save localStorage 整合検証・スナップショット取得。吸収先: RecordRepository
+- [x] `record-freshness-guard.js` 分析 → stale overwrite 検出（件数減少・hash 変化・日付後退）。吸収先: SyncService + hydration-guard
+- [x] `record-draft-guard.js` 分析 → UX 保護層（入力途中データ退避）。**削除しない**
+- [x] `record-edit-save-identity-guard.js` 分析 → buildDraftFromUI ラップ・重複日付統合。吸収先: record-upsert + RecordRepository
+- [x] `state-integrity-guard.js` 分析 → setState 時 records 大幅減少でブロック・rollbackToBest。吸収先: RecordRepository
+- [x] `hydration-guard.js` 分析 → cloud/IDB restore の stale 上書きをブロック。吸収先: SyncService
+- [x] `startup-validator.js` 分析 → startup フェーズ重複検知・警告。吸収先: runtime-orchestrator
 
 ## Evidence Collection
 
-- [x] 各 guard の存在理由を実コードで特定（save-transaction / freshness / draft / edit-identity / state-integrity の 5 guard 完了）
-- [x] 各 guard が防いでいる障害を特定（同上）
-- [x] 障害の再発条件を特定（同上）
+- [x] 各 guard の存在理由を実コードで特定（全 7 guard 完了）
+- [x] 各 guard が防いでいる障害を特定（全 7 guard 完了）
+- [x] 障害の再発条件を特定（全 7 guard 完了）
 
 ## Responsibility Absorption
 
@@ -524,7 +524,7 @@
 
 ### 成果物
 
-- [ ] `docs/guard-decommission-plan.md` (各 guard の分析結果・吸収先・削除根拠)
+- [x] `docs/guard-decommission-plan.md` (各 guard の分析結果・吸収先・削除根拠)
 
 ---
 
@@ -755,7 +755,7 @@
 | Edge Platform | 🟢 Complete | 100% |
 | Save Domain Audit | 🟢 Complete | 100% (ADR-006 作成済み) |
 | Sync Domain Audit | 🟢 Complete | 100% (ADR-007 作成済み) |
-| Guard Analysis (5/7) | 🟡 In Progress | 71% (hydration-guard / startup-validator 未分析) |
+| Guard Analysis (7/7) | 🟢 Complete | 100% (ADR-005・guard-decommission-plan 作成済み) |
 | **Overall** | 🔴 Not Started | **0%** |
 
 ---
