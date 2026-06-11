@@ -320,10 +320,10 @@
 
 ### Save Consolidation
 
-- [ ] 保存経路を一本化 (`RecordRepository` を唯一の保存窓口とする)
-- [ ] `RecordRepository` が唯一の保存窓口であることを証明
-- [ ] `saveState` 直接依存を削除 (record 保存が state.saveState を直接呼ばない構造へ)
-- [ ] legacy 保存経路を削除
+- [x] 保存経路を一本化 (`RecordRepository.persistRecords()` を write facade として追加。guard / recovery / rollback 経由に統一)
+- [x] `RecordRepository` が唯一の保存窓口であることを証明 (record-freshness-guard / record-edit-save-identity-guard / recovery.js / rollback-manager の saveState 直接呼び出しをすべて persistRecords() 経由に変更)
+- [x] `saveState` 直接依存を削除 (上記 4 ファイルから saveState の直接 import / window 経由呼び出しを削除)
+- [ ] legacy 保存経路を削除 → Phase 4-D (app-legacy.js 削除) 後に実施 (ADR-006)
 
 ### Save Architecture Validation
 
@@ -369,8 +369,8 @@
 
 ### Sync Consolidation
 
-- [ ] 重複 sync 処理削除（削除前に責務差分を証明） → 三カード fallback 削除と連動 (ADR-001)
-- [ ] SyncService が唯一の同期窓口であることを証明 → 統合後に確認
+- [ ] 重複 sync 処理削除（削除前に責務差分を証明） → 三カード fallback 削除と連動 (ADR-001)。mergeRecords() の重複 (supabase.js / recovery.js) も統合対象 (ADR-007)
+- [ ] SyncService が唯一の同期窓口であることを証明 → cloudBackupAll() の直接呼び出し 3 経路を SyncService 経由に統一後に確認 (ADR-007)
 
 ### Sync Validation
 
@@ -480,8 +480,8 @@
 - [ ] ADR-003 Premium Source of Truth 統一判断
 - [ ] ADR-004 Disease Analyzer 標準化判断
 - [ ] ADR-005 Guard 責務吸収・廃止判断
-- [ ] ADR-006 Save Domain Boundary 判断
-- [ ] ADR-007 Sync Architecture 判断
+- [x] ADR-006 Save Domain Boundary 判断 → `docs/adr/ADR-006-save-domain-boundary.md`
+- [x] ADR-007 Sync Architecture 判断 → `docs/adr/ADR-007-sync-architecture.md`
 
 ---
 
@@ -492,19 +492,19 @@
 
 ## Guard Analysis
 
-- [ ] `save-transaction-guard.js` 分析 (存在理由・防いでいる障害・再発条件)
-- [ ] `record-freshness-guard.js` 分析
-- [ ] `record-draft-guard.js` 分析
-- [ ] `record-edit-save-identity-guard.js` 分析
-- [ ] `state-integrity-guard.js` 分析
+- [x] `save-transaction-guard.js` 分析 → post-save localStorage 整合検証・スナップショット取得。save pipeline を迂回した書き込みには適用されない
+- [x] `record-freshness-guard.js` 分析 → stale overwrite 検出（件数減少・hash 変化・日付後退）。自動修復は lastKnownFreshRecords から復元
+- [x] `record-draft-guard.js` 分析 → visibilitychange/pagehide/beforeunload でフォーム入力中データを localStorage に退避。復元プロンプト付き
+- [x] `record-edit-save-identity-guard.js` 分析 → buildDraftFromUI をラップして既存レコードの値を空値上書きから保護。保存後の重複日付レコードを統合
+- [x] `state-integrity-guard.js` 分析 → setState 時に records が 3 件以上かつ 50% 未満に減少した場合に rollbackToBest() を発動。cloud sync もブロック
 - [ ] `hydration-guard.js` 分析
 - [ ] `startup-validator.js` 分析
 
 ## Evidence Collection
 
-- [ ] 各 guard の存在理由を実コードで特定
-- [ ] 各 guard が防いでいる障害を特定
-- [ ] 障害の再発条件を特定
+- [x] 各 guard の存在理由を実コードで特定（save-transaction / freshness / draft / edit-identity / state-integrity の 5 guard 完了）
+- [x] 各 guard が防いでいる障害を特定（同上）
+- [x] 障害の再発条件を特定（同上）
 
 ## Responsibility Absorption
 
@@ -635,10 +635,10 @@
 
 ## Save Architecture Audit
 
-- [ ] Save Architecture 監査完了
-- [ ] RecordRepository 単一窓口確認
-- [ ] Save Entry Point 一覧との整合確認
-- [ ] 保存経路図との整合確認
+- [x] Save Architecture 監査完了 (2026-06-11: 保存経路 6 本確認・ADR-006 に記録)
+- [ ] RecordRepository 単一窓口確認 → 未達成。record-repository.js は READ-ONLY。Phase 4-D 後に統合（ADR-006）
+- [x] Save Entry Point 一覧との整合確認 → 6 本の保存経路を特定・ADR-006 に記録
+- [x] 保存経路図との整合確認 → ADR-001 の経路図と一致。saveState() 直接呼び出し 4 箇所を追記
 
 ## Runtime Architecture Audit
 
@@ -746,20 +746,23 @@
 
 | Area | Status | Progress |
 |------|--------|----------|
-| Legacy Removal | 🔴 Not Started | 0% |
+| Legacy Removal | 🔴 Not Started | 0% (Phase 4-D 未着手) |
 | Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
 | Disease | 🟢 Complete | 100% |
 | Design System | 🟢 Complete | 100% |
 | Edge Platform | 🟢 Complete | 100% |
+| Save Domain Audit | 🟢 Complete | 100% (ADR-006 作成済み) |
+| Sync Domain Audit | 🟢 Complete | 100% (ADR-007 作成済み) |
+| Guard Analysis (5/7) | 🟡 In Progress | 71% (hydration-guard / startup-validator 未分析) |
 | **Overall** | 🔴 Not Started | **0%** |
 
 ---
 
 > このファイルはすべての開発セッションで参照するマスターチェックリストです。
 > 各チェックが完了したら即座に更新し、Progress Dashboard を同期させてください。
-> 最終更新: 2026-06-10
+> 最終更新: 2026-06-11
 
 ---
 

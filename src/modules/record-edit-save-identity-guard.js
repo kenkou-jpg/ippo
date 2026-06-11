@@ -14,8 +14,9 @@ import {
   normalizeRecordDate,
   findRecordByDate,
   getRecords,
+  persistRecords,
 } from './record-repository.js';
-import { getState, saveState } from '../store/state.js';
+import { getState } from '../store/state.js';
 import { cloudBackupAll } from '../services/supabase.js';
 
 function debug(label, detail) {
@@ -284,7 +285,7 @@ function repairDuplicateDatesAfterSave() {
   });
 
   try {
-    saveState();
+    persistRecords(list);
     markSavePhase('duplicate-date-repair-persisted', { repaired });
   } catch(e) {
     markSavePhase('duplicate-date-repair-persist-failed', { message: e && e.message });

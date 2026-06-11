@@ -11,7 +11,7 @@
 //  - legacy key (kk_records / records) は Step 4-1 で移行済みのため削除
 // ============================================================
 
-import { STATE_KEY, getState } from '../store/state.js';
+import { STATE_KEY, getState, saveState } from '../store/state.js';
 
 // 後方互換: 外部から参照している箇所向けに state キーのみ公開
 export const RECORD_STORAGE_KEYS = Object.freeze({
@@ -275,6 +275,20 @@ export function enableRecordRepositoryDebug() {
   } catch(e) {}
 }
 
+// ─── Write Facade ──────────────────────────────────────────
+// RecordRepository を経由する唯一の保存窓口。
+// records を渡した場合は state.records を更新してから保存する。
+// 渡さない場合は現在の state をそのまま保存する（guard の修復後保存用）。
+export function persistRecords(records) {
+  const s = getState();
+  if (!s) return false;
+  if (Array.isArray(records)) {
+    s.records = records.filter(Boolean);
+  }
+  saveState();
+  return true;
+}
+
 // ─── IndexedDB ─────────────────────────────────────────────
 const IDB_NAME    = 'ippo_db';
 const IDB_VERSION = 1;
@@ -367,6 +381,7 @@ window.ippoRecordRepository = Object.freeze({
   getRecordsSnapshot,
   getRecordStorageDiagnostics,
   logRecordStorageDiagnostics,
+  persistRecords,
 });
 
 window.ippoRecordStorageSnapshot = getRecordsSnapshot;

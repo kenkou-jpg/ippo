@@ -4,7 +4,7 @@
 // ============================================================
 
 import { getState, setState } from '../store/state.js';
-import { idbGetAllRecords } from '../modules/record-repository.js';
+import { idbGetAllRecords, persistRecords } from '../modules/record-repository.js';
 
 function mergeRecords(localRecords, cloudRecords) {
   var merged = {};
@@ -40,8 +40,7 @@ export function autoRecoveryCheck() {
       if (activeRecs.length > currentCount) {
         var mergedRecords = mergeRecords(s.records, activeRecs);
         setState(Object.assign({}, getState(), { records: mergedRecords }));
-        // window.saveState を使い、save-transaction-guard のスナップショット/検証を通過させる
-        if (typeof window.saveState === 'function') window.saveState();
+        persistRecords();
         var mergedCount = mergedRecords.length;
         if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, mergedCount);
         console.log('IndexedDBから自動復元: ' + mergedCount + '件');
