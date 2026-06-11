@@ -287,15 +287,15 @@
 
 ## Runtime
 
-- [ ] runtime 責務の再定義 (各ファイルの責務を明文化)
-- [ ] `runtime-brain.js` 整理
-- [ ] `runtime-controller.js` 整理
-- [ ] `runtime-orchestrator.js` 整理 (薄いアダプタ化 or 削除)
-- [ ] startup 処理の統合
-- [ ] hydration 処理の統合
-- [ ] `startup-render-gate.js` を削除 (hydration-guard へ統合後)
-- [ ] `runtime-debug-overlay.js` を本番バンドルから除外
-- [ ] `production-diagnostics.js` (1,401行) を責務別に分割
+- [x] runtime 責務の再定義 (各ファイルの責務を明文化) → ADR-002 参照
+- [x] `runtime-brain.js` 整理 → 監査完了・変更不要 (observer 責務明確)
+- [x] `runtime-controller.js` 整理 → 監査完了・変更不要 (executor 責務明確)
+- [x] `runtime-orchestrator.js` 整理 → thin aggregator として維持 (ADR-002)
+- [x] startup 処理の統合 → ADR-002: 統合却下 (render gate / phase tracker は別責務)
+- [x] hydration 処理の統合 → ADR-002: 統合却下 (data guard / render timing は別責務)
+- [x] `startup-render-gate.js` を削除 → ADR-002: 削除却下 (hydration-guard とは異なる責務)
+- [x] `runtime-debug-overlay.js` を本番バンドルから除外 → 完了済み (import.meta.env.DEV)
+- [ ] `production-diagnostics.js` (1,401行) を責務別に分割 → テストなし・延期 (ADR-002)
 
 ## Premium
 
@@ -378,7 +378,7 @@
 > 最終的な採用理由を記録する。
 
 - [ ] ADR-001 Save Architecture 統合判断
-- [ ] ADR-002 Runtime 統合判断
+- [x] ADR-002 Runtime 統合判断 → `docs/adr/ADR-002-runtime-architecture.md`
 - [ ] ADR-003 Premium Source of Truth 統一判断
 - [ ] ADR-004 Disease Analyzer 標準化判断
 - [ ] ADR-005 Guard 責務吸収・廃止判断
@@ -636,7 +636,7 @@
 | Area | Status | Progress |
 |------|--------|----------|
 | Legacy Removal | 🔴 Not Started | 0% |
-| Runtime | 🔴 Not Started | 0% |
+| Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
 | Disease | 🟢 Complete | 100% |
