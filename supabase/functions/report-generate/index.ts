@@ -1,6 +1,8 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders, handleCors } from '../_shared/cors.ts';
-import { verifyJWT } from '../_shared/auth.ts';
+import { createClient }            from 'https://esm.sh/@supabase/supabase-js@2';
+import { handleCors }              from '../_shared/cors.ts';
+import { verifyJWT }               from '../_shared/auth.ts';
+import { jsonError, jsonResponse }  from '../_shared/response.ts';
+import { log }                     from '../_shared/logger.ts';
 
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
@@ -14,7 +16,7 @@ Deno.serve(async (req: Request) => {
   }
 
   const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
+    Deno.env.get('SUPABASE_URL')              ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
   );
 
@@ -25,26 +27,21 @@ Deno.serve(async (req: Request) => {
     .single();
 
   if (profileError || !profile) {
-    return new Response(JSON.stringify({ error: 'Profile not found' }), {
-      status: 404,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log('warn', 'report_profile_not_found', { userId });
+    return jsonError('Profile not found', 404, 'PROFILE_NOT_FOUND');
   }
 
   const premiumExpired = profile.premium_expires_at && new Date(profile.premium_expires_at) < new Date();
   if (!profile.is_premium || premiumExpired) {
-    return new Response(JSON.stringify({ error: 'Premium subscription required' }), {
-      status: 403,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log('warn', 'report_premium_required', { userId });
+    return jsonError('Premium subscription required', 403, 'PREMIUM_REQUIRED');
   }
 
   const now = new Date();
   const threeMonthsAgo = new Date(now);
   threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-
   const fromDate = threeMonthsAgo.toISOString().split('T')[0];
-  const toDate = now.toISOString().split('T')[0];
+  const toDate   = now.toISOString().split('T')[0];
 
   const { data: records, error: recordsError } = await supabase
     .from('user_records')
@@ -55,13 +52,12 @@ Deno.serve(async (req: Request) => {
     .order('record_date', { ascending: true });
 
   if (recordsError) {
-    return new Response(JSON.stringify({ error: 'Failed to fetch records' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log('error', 'report_records_fetch_failed', { userId, error: recordsError.message });
+    return jsonError('Failed to fetch records', 500, 'RECORDS_FETCH_FAILED');
   }
 
   const r = records ?? [];
+  log('info', 'report_generate', { userId, recordCount: r.length, fromDate, toDate });
 
   const avgWellness = r.length
     ? r.reduce((sum: number, rec: { wellness_score?: number }) => sum + (rec.wellness_score ?? 0), 0) / r.length
@@ -69,30 +65,26 @@ Deno.serve(async (req: Request) => {
   const avgEnergy = r.length
     ? r.reduce((sum: number, rec: { energy_score?: number }) => sum + (rec.energy_score ?? 0), 0) / r.length
     : 0;
-  const avgFasting = r.filter((rec: { fasting_hours?: number }) => rec.fasting_hours != null).length
-    ? r.reduce((sum: number, rec: { fasting_hours?: number }) => sum + (rec.fasting_hours ?? 0), 0) /
-      r.filter((rec: { fasting_hours?: number }) => rec.fasting_hours != null).length
+  const fastingRecs = r.filter((rec: { fasting_hours?: number }) => rec.fasting_hours != null);
+  const avgFasting  = fastingRecs.length
+    ? fastingRecs.reduce((sum: number, rec: { fasting_hours?: number }) => sum + (rec.fasting_hours ?? 0), 0) / fastingRecs.length
     : 0;
 
-  const symptoms = r.flatMap((rec: { symptoms?: string[] }) => rec.symptoms ?? []);
+  const symptoms: string[] = r.flatMap((rec: { symptoms?: string[] }) => rec.symptoms ?? []);
   const symptomFrequency: Record<string, number> = {};
-  for (const s of symptoms) {
-    symptomFrequency[s] = (symptomFrequency[s] ?? 0) + 1;
-  }
+  for (const s of symptoms) symptomFrequency[s] = (symptomFrequency[s] ?? 0) + 1;
 
-  const medications = r.flatMap((rec: { food_ingredients?: string[] }) => rec.food_ingredients ?? []);
+  const medications: string[] = r.flatMap((rec: { food_ingredients?: string[] }) => rec.food_ingredients ?? []);
   const medicationFrequency: Record<string, number> = {};
-  for (const m of medications) {
-    medicationFrequency[m] = (medicationFrequency[m] ?? 0) + 1;
-  }
+  for (const m of medications) medicationFrequency[m] = (medicationFrequency[m] ?? 0) + 1;
 
   const report = {
-    period: { from: fromDate, to: toDate },
+    period:  { from: fromDate, to: toDate },
     summary: {
       totalDays:        r.length,
       avgWellnessScore: Math.round(avgWellness * 10) / 10,
-      avgEnergyScore:   Math.round(avgEnergy * 10) / 10,
-      avgFastingHours:  Math.round(avgFasting * 10) / 10,
+      avgEnergyScore:   Math.round(avgEnergy   * 10) / 10,
+      avgFastingHours:  Math.round(avgFasting  * 10) / 10,
       topSymptoms:      Object.entries(symptomFrequency)
                           .sort((a, b) => b[1] - a[1])
                           .slice(0, 10)
@@ -111,8 +103,5 @@ Deno.serve(async (req: Request) => {
                    .map(([name, count]) => ({ name, count })),
   };
 
-  return new Response(JSON.stringify(report), {
-    status: 200,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-  });
+  return jsonResponse(report);
 });

@@ -1,10 +1,10 @@
 import { corsHeaders, handleCors } from '../_shared/cors.ts';
-import { verifyJWT } from '../_shared/auth.ts';
+import { verifyJWT }               from '../_shared/auth.ts';
+import { checkRateLimit }          from '../_shared/rate-limit.ts';
+import { jsonError, jsonResponse }  from '../_shared/response.ts';
+import { log }                     from '../_shared/logger.ts';
 
-// In-memory rate limit store: userId -> [timestamp, ...]
-const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = 3;
+const RATE_LIMIT = { maxRequests: 3, windowMs: 60_000 };
 
 // ─── Phase3 helpers ───────────────────────────────────────────
 
@@ -15,30 +15,16 @@ function _defaultDiseaseSystemPrompt(disease?: string): string {
 }
 
 function _buildFeaturesUserContent(features: Record<string, unknown>): string {
-  // features は ClaudeFeatures 型（生レコードなし）
   const lines: string[] = ['# 健康記録の分析サマリー', ''];
   for (const [key, val] of Object.entries(features)) {
     if (val === null || val === undefined) continue;
-    if (typeof val === 'object') {
-      lines.push(`${key}: ${JSON.stringify(val)}`);
-    } else {
-      lines.push(`${key}: ${val}`);
-    }
+    lines.push(typeof val === 'object' ? `${key}: ${JSON.stringify(val)}` : `${key}: ${val}`);
   }
   lines.push('', '上記の分析結果をもとに、注目すべきパターンと日常生活で試せることを200字以内で教えてください。');
   return lines.join('\n');
 }
 
 // ─────────────────────────────────────────────────────────────
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const timestamps = (rateLimitMap.get(userId) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW_MS);
-  if (timestamps.length >= RATE_LIMIT_MAX) return false;
-  timestamps.push(now);
-  rateLimitMap.set(userId, timestamps);
-  return true;
-}
 
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
@@ -51,11 +37,9 @@ Deno.serve(async (req: Request) => {
     return res as Response;
   }
 
-  if (!checkRateLimit(userId)) {
-    return new Response(JSON.stringify({ error: 'Rate limit exceeded. Max 3 requests per minute.' }), {
-      status: 429,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+  if (!await checkRateLimit(userId, 'ai-analyze', RATE_LIMIT)) {
+    log('warn', 'rate_limit_exceeded', { userId, endpoint: 'ai-analyze' });
+    return jsonError('Rate limit exceeded. Max 3 requests per minute.', 429, 'RATE_LIMIT_EXCEEDED');
   }
 
   // PR-C4: features 経路のみ。records / analysisType 分岐削除済み。
@@ -68,59 +52,43 @@ Deno.serve(async (req: Request) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(JSON.stringify({ error: 'Invalid JSON body' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonError('Invalid JSON body', 400, 'INVALID_JSON');
   }
 
   const { features, disease, systemPrompt: customSystemPrompt, userPrompt } = body;
 
   if (!features || typeof features !== 'object') {
-    return new Response(JSON.stringify({ error: 'features is required' }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return jsonError('features is required', 400, 'MISSING_FEATURES');
   }
 
   const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!anthropicKey) {
-    return new Response(JSON.stringify({ error: 'AI service not configured' }), {
-      status: 503,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    log('error', 'missing_env', { key: 'ANTHROPIC_API_KEY' });
+    return jsonError('AI service not configured', 503, 'SERVICE_UNAVAILABLE');
   }
 
-  // features 経路: feature-engine 出力をそのまま受け取る
-  // systemPrompt はクライアント側 prompt-builder.js が構築して渡す
   const finalSystem      = customSystemPrompt || _defaultDiseaseSystemPrompt(disease);
   const finalUserContent = userPrompt || _buildFeaturesUserContent(features);
-  const maxTokens        = 800;
+
+  log('info', 'ai_analyze_request', { userId, hasDisease: !!disease, hasCustomPrompt: !!customSystemPrompt });
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
-      'x-api-key': anthropicKey,
+      'x-api-key':         anthropicKey,
       'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
+      'content-type':      'application/json',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTokens,
-      system: finalSystem,
-      messages: [
-        { role: 'user', content: finalUserContent },
-      ],
+      model:      'claude-sonnet-4-20250514',
+      max_tokens: 800,
+      system:     finalSystem,
+      messages:   [{ role: 'user', content: finalUserContent }],
     }),
   });
 
   const data = await response.json();
+  log('info', 'ai_analyze_done', { userId, status: response.status });
 
-  return new Response(
-    JSON.stringify({ ...data, _path: 'features' }),
-    {
-      status: response.status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    }
-  );
+  return jsonResponse({ ...data, _path: 'features' }, response.status);
 });

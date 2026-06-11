@@ -450,10 +450,10 @@
 
 ## Edge Function 品質向上
 
-- [ ] Rate Limit の永続化 (Supabase Table または KV)
-- [ ] `_shared/auth.ts` の利用を全 Edge Function で統一
-- [ ] エラーレスポンス形式を `{ error: string, code?: string }` に統一
-- [ ] 構造化ログを全 Edge Function に追加
+- [x] Rate Limit の永続化 → `_shared/rate-limit.ts` (Deno KV) — ai-analyze / ai-predict の in-memory Map を置換
+- [x] `_shared/auth.ts` の利用を全 Edge Function で統一 → JWT が必要な4関数で使用済み (cluster-batch=service role / stripe-webhook=Stripe署名 は対象外)
+- [x] エラーレスポンス形式を `{ error: string, code?: string }` に統一 → `_shared/response.ts` の `jsonError()` を全関数で使用
+- [x] 構造化ログを全 Edge Function に追加 → `_shared/logger.ts` の `log(level, event, data)` を全関数で使用
 
 ### 成果物
 
@@ -752,7 +752,7 @@
 | Insight | 🟢 Complete | 100% |
 | Disease | 🟢 Complete | 100% |
 | Design System | 🟢 Complete | 100% |
-| Edge Platform | 🔴 Not Started | 0% |
+| Edge Platform | 🟢 Complete | 100% |
 | **Overall** | 🔴 Not Started | **0%** |
 
 ---

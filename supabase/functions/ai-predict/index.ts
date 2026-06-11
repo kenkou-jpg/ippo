@@ -1,19 +1,10 @@
 import { corsHeaders, handleCors } from '../_shared/cors.ts';
-import { verifyJWT } from '../_shared/auth.ts';
+import { verifyJWT }               from '../_shared/auth.ts';
+import { checkRateLimit }          from '../_shared/rate-limit.ts';
+import { jsonError, jsonResponse }  from '../_shared/response.ts';
+import { log }                     from '../_shared/logger.ts';
 
-// ai-analyze と同一パターンのレートリミット (3req/60sec)
-const rateLimitMap      = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60_000;
-const RATE_LIMIT_MAX    = 3;
-
-function checkRateLimit(userId: string): boolean {
-  const now        = Date.now();
-  const timestamps = (rateLimitMap.get(userId) ?? []).filter(t => now - t < RATE_LIMIT_WINDOW);
-  if (timestamps.length >= RATE_LIMIT_MAX) return false;
-  timestamps.push(now);
-  rateLimitMap.set(userId, timestamps);
-  return true;
-}
+const RATE_LIMIT = { maxRequests: 3, windowMs: 60_000 };
 
 Deno.serve(async (req: Request) => {
   const corsResponse = handleCors(req);
@@ -26,11 +17,9 @@ Deno.serve(async (req: Request) => {
     return res as Response;
   }
 
-  if (!checkRateLimit(userId)) {
-    return new Response(
-      JSON.stringify({ error: 'Rate limit exceeded. Max 3 requests per minute.' }),
-      { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+  if (!await checkRateLimit(userId, 'ai-predict', RATE_LIMIT)) {
+    log('warn', 'rate_limit_exceeded', { userId, endpoint: 'ai-predict' });
+    return jsonError('Rate limit exceeded. Max 3 requests per minute.', 429, 'RATE_LIMIT_EXCEEDED');
   }
 
   // 入力: prediction-engine.js の出力をそのまま受け取る
@@ -42,31 +31,25 @@ Deno.serve(async (req: Request) => {
   try {
     body = await req.json();
   } catch {
-    return new Response(
-      JSON.stringify({ error: 'Invalid JSON body' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return jsonError('Invalid JSON body', 400, 'INVALID_JSON');
   }
 
   const { predictions, disease } = body;
   if (!predictions || typeof predictions !== 'object') {
-    return new Response(
-      JSON.stringify({ error: 'predictions is required and must be an object' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    return jsonError('predictions is required and must be an object', 400, 'MISSING_PREDICTIONS');
   }
 
   const anthropicKey = Deno.env.get('ANTHROPIC_API_KEY');
   if (!anthropicKey) {
-    return new Response(
-      JSON.stringify({ error: 'AI service not configured' }),
-      { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    );
+    log('error', 'missing_env', { key: 'ANTHROPIC_API_KEY' });
+    return jsonError('AI service not configured', 503, 'SERVICE_UNAVAILABLE');
   }
 
   const systemPrompt = disease
     ? `あなたは${disease}専門のヘルスアドバイザーです。予測データをもとに、明日の体調について簡潔に伝えてください。医療診断は行わないでください。`
     : `あなたは婦人科疾患専門のヘルスアドバイザーです。予測データをもとに、明日の体調について簡潔に伝えてください。医療診断は行わないでください。`;
+
+  log('info', 'ai_predict_request', { userId, hasDisease: !!disease });
 
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -84,10 +67,9 @@ Deno.serve(async (req: Request) => {
   });
 
   const data = await response.json();
-  return new Response(
-    JSON.stringify(data),
-    { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-  );
+  log('info', 'ai_predict_done', { userId, status: response.status });
+
+  return jsonResponse(data, response.status);
 });
 
 // ─── プロンプト生成 ────────────────────────────────────────────
