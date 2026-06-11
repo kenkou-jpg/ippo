@@ -14,6 +14,7 @@
 // Version pinned to match package.json ^2.105.3 — update both together
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
+import { safeMergeState } from '../utils/safe-merge-state.js';
 
 // import.meta.env.VITE_SUPABASE_ANON_KEY はビルド時に Vite が静的注入する。
 export const SUPABASE_URL =
@@ -306,30 +307,10 @@ export function cloudRestore() {
         var mergedRecords = mergeRecords(s.records || [], cloudState.records || []);
         var mergedCount   = mergedRecords.length;
 
-        // P0-FIX-7: cloudRestore 安全マージ強化。
-        // クラウド状態でローカルを丸ごと置換しない。
-        // records は常に local + cloud のマージ。
-        // myDiseases は有効値（非空配列）を優先。
-        // currentScreen はユーザーデータではないため常に無視。
-        function _safeMergeState(local, cloud) {
-          var merged = Object.assign({}, local);
-          Object.keys(cloud).forEach(function(key) {
-            // currentScreen は永続化しない（P0-FIX-2）
-            if (key === 'currentScreen') return;
-            var cv = cloud[key];
-            if (cv === undefined || cv === null) return;
-            // myDiseases: 空配列はローカル値を消さない
-            if (key === 'myDiseases') {
-              if (!Array.isArray(cv) || cv.length === 0) return;
-              // クラウドに有効値がある場合のみ上書き
-            }
-            merged[key] = cv;
-          });
-          return merged;
-        }
-
+        // P0-FIX-7 / PR-2B: cloudRestore 安全マージ。
+        // myDiseases / trackedConditions 保護は safeMergeState（utils）に統一。
         if (cloudDate > localDate) {
-          var mergedState = _safeMergeState(s, cloudState);
+          var mergedState = safeMergeState(s, cloudState);
           mergedState.records   = mergedRecords;
           mergedState.lastSaved = cloudDate.toISOString();
           delete mergedState.currentScreen; // 念押し除外
@@ -357,6 +338,18 @@ export function cloudRestore() {
           ) {
             s.experiments = cloudState.experiments.slice();
             console.log('experiments をクラウドから補完:', s.experiments);
+          }
+          // trackedConditions: ローカルが空の場合のみクラウドから補完（PR-2B）
+          if (
+            (!s.trackedConditions || typeof s.trackedConditions !== 'object' ||
+              Object.keys(s.trackedConditions).length === 0) &&
+            cloudState.trackedConditions &&
+            typeof cloudState.trackedConditions === 'object' &&
+            !Array.isArray(cloudState.trackedConditions) &&
+            Object.keys(cloudState.trackedConditions).length > 0
+          ) {
+            s.trackedConditions = Object.assign({}, cloudState.trackedConditions);
+            console.log('trackedConditions をクラウドから補完:', s.trackedConditions);
           }
           saveState();
           console.log('クラウドの追加レコードをマージ: +' + (mergedCount - localRecs) + '件 → 合計' + mergedCount + '件');
