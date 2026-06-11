@@ -17,11 +17,12 @@ export class FibroidAnalyzer extends BaseAnalyzer {
 
   analyzeDiseaseSpecific(records) {
     return {
-      heavyFlowTrend:    this._calcHeavyFlowTrend(records),
-      flareProfile:      this._calcFlareProfile(records),
-      symptomTrend:      this._calcSymptomTrend(records),
+      heavyFlowTrend:       this._calcHeavyFlowTrend(records),
+      flareProfile:         this._calcFlareProfile(records),
+      symptomTrend:         this._calcSymptomTrend(records),
       menstrualCorrelation: this._calcMenstrualCorrelation(records),
-      anemiaRisk:        this._calcAnemiaRisk(records),
+      anemiaRisk:           this._calcAnemiaRisk(records),
+      bulkSymptomRate:      this._calcBulkSymptomRate(records),
     };
   }
 
@@ -103,6 +104,21 @@ export class FibroidAnalyzer extends BaseAnalyzer {
       withoutFactorRate: withoutRate,
       relativeRisk:      withoutRate > 0
         ? Math.round((withRate / withoutRate) * 100) / 100 : null,
+    };
+  }
+
+  // 圧迫感・腹部膨満・頻尿の合計率（筋腫による圧迫症状の重症度）
+  _calcBulkSymptomRate(records) {
+    if (!records.length) return { rate: 0, note: null };
+    const bulkSymptoms = ['腹部膨満', '圧迫感', '頻尿'];
+    const bulkDays = records.filter(r =>
+      (r.symptoms || []).some(s => bulkSymptoms.includes(s))
+    );
+    const rate = Math.round((bulkDays.length / records.length) * 100) / 100;
+    return {
+      rate,
+      note: rate >= 0.3
+        ? '圧迫症状（腹部膨満・圧迫感・頻尿）が頻繁に記録されています。' : null,
     };
   }
 

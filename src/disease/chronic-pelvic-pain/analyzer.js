@@ -17,12 +17,13 @@ export class ChronicPelvicPainAnalyzer extends BaseAnalyzer {
 
   analyzeDiseaseSpecific(records) {
     return {
-      painPersistence:   this._calcPainPersistence(records),
-      avgPainLevel:      this._calcAvgPain(records),
-      radiationPattern:  this._detectRadiation(records),
-      flareProfile:      this._calcFlareProfile(records),
+      painPersistence:    this._calcPainPersistence(records),
+      avgPainLevel:       this._calcAvgPain(records),
+      radiationPattern:   this._detectRadiation(records),
+      flareProfile:       this._calcFlareProfile(records),
       factorCorrelations: this._calcFactorCorrelations(records),
-      painTrend:         this._calcPainTrend(records),
+      painTrend:          this._calcPainTrend(records),
+      chronicityIndex:    this._calcChronicityIndex(records),
     };
   }
 
@@ -103,6 +104,21 @@ export class ChronicPelvicPainAnalyzer extends BaseAnalyzer {
     return {
       byFactor:            Object.keys(results).length ? results : null,
       stressPainCorrelation: stressPainCorr,
+    };
+  }
+
+  // 慢性化指標: 3ヶ月以上の継続記録 + 痛みが週3日以上の割合
+  _calcChronicityIndex(records) {
+    if (!records.length) return { chronic: false, note: null };
+    const r90      = sliceDays(records, 90);
+    const painDays = r90.filter(r => r.painLevel >= 3);
+    const rate     = r90.length > 0 ? Math.round((painDays.length / r90.length) * 100) / 100 : 0;
+    const chronic  = r90.length >= 60 && rate >= 0.4;
+    return {
+      rate,
+      chronic,
+      note: chronic
+        ? '90日以上にわたり週3日以上の痛みが記録されています。慢性骨盤痛の慢性化パターンに当てはまります。' : null,
     };
   }
 

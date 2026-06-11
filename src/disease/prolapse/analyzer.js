@@ -21,6 +21,7 @@ export class ProlapsAnalyzer extends BaseAnalyzer {
       activityImpact:    this._calcActivityImpact(records),
       symptomTrend:      this._calcSymptomTrend(records),
       severityPattern:   this._calcSeverityPattern(records),
+      pelvicFloorImpact: this._calcPelvicFloorImpact(records),
     };
   }
 
@@ -89,6 +90,23 @@ export class ProlapsAnalyzer extends BaseAnalyzer {
       recentRate: Math.round(recentRate * 100) / 100,
       priorRate:  Math.round(priorRate  * 100) / 100,
       direction:  delta > 0.05 ? 'worsening' : delta < -0.05 ? 'improving' : 'stable',
+    };
+  }
+
+  // 骨盤底筋への総合的な活動負荷（立位・座位・運動の複合因子日）
+  _calcPelvicFloorImpact(records) {
+    if (!records.length) return { highImpactRate: 0 };
+    const loadFactors = ['長時間立位', '長時間座位', '運動した'];
+    const highImpactDays = records.filter(r =>
+      loadFactors.filter(f => (r.factors || []).includes(f)).length >= 2
+    );
+    const withSymptoms = highImpactDays.filter(r =>
+      (r.symptoms || []).some(s => ['圧迫感', '骨盤内重だるさ', '尿漏れ'].includes(s))
+    );
+    return {
+      highImpactRate: Math.round((highImpactDays.length / records.length) * 100) / 100,
+      symptomRateOnHighImpact: highImpactDays.length > 0
+        ? Math.round((withSymptoms.length / highImpactDays.length) * 100) / 100 : 0,
     };
   }
 

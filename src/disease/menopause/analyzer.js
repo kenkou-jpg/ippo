@@ -20,12 +20,13 @@ export class MenopauseAnalyzer extends BaseAnalyzer {
 
   analyzeDiseaseSpecific(records) {
     return {
-      hotFlashFrequency: this._calcHotFlashFrequency(records),
-      sleepImpact:       this._calcSleepImpact(records),
-      smiScore:          this._calcSMIProxy(records),
-      hotFlashTrend:     this._calcHotFlashTrend(records),
-      factorCorrelations: this._calcFactorCorrelations(records),
-      moodPattern:       this._calcMoodPattern(records),
+      hotFlashFrequency:    this._calcHotFlashFrequency(records),
+      sleepImpact:          this._calcSleepImpact(records),
+      smiScore:             this._calcSMIProxy(records),
+      hotFlashTrend:        this._calcHotFlashTrend(records),
+      factorCorrelations:   this._calcFactorCorrelations(records),
+      moodPattern:          this._calcMoodPattern(records),
+      genitourinarySymptoms: this._calcGenitourinarySymptoms(records),
     };
   }
 
@@ -107,6 +108,18 @@ export class MenopauseAnalyzer extends BaseAnalyzer {
       };
     }
     return Object.keys(results).length ? results : null;
+  }
+
+  // 泌尿生殖器症状（頻尿・尿漏れ・外陰部灼熱感）の出現率
+  _calcGenitourinarySymptoms(records) {
+    if (!records.length) return { rate: 0 };
+    const guSymptoms = ['頻尿', '尿漏れ', '外陰部灼熱感'];
+    const guDays = records.filter(r =>
+      (r.symptoms || []).some(s => guSymptoms.includes(s))
+    );
+    return {
+      rate: Math.round((guDays.length / records.length) * 100) / 100,
+    };
   }
 
   // 気分症状（イライラ・気分の落ち込み）の集積パターン
