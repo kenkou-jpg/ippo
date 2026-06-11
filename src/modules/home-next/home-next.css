@@ -1,25 +1,25 @@
-/* ============================================================
-   ippo – home-next.css v3
-   参考画像 完全対応版 — 静かな高級感 / wellness感
+﻿/* ============================================================
+   ippo 窶・home-next.css v3
+   蜿り・判蜒・螳悟・蟇ｾ蠢懃沿 窶・髱吶°縺ｪ鬮倡ｴ壽─ / wellness諢・
    ============================================================ */
 
-/* ── CSS変数 ──────────────────────────────────────────────── */
+/* 笏笏 CSS螟画焚 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 :root {
-  /* ── Global design tokens (design-system.css と同期) ── */
+  /* 笏笏 Global design tokens (design-system.css 縺ｨ蜷梧悄) 笏笏 */
   --bg-soft:      var(--ippo-bg-base, #FFFFD1);
   --card-bg:      var(--ippo-card-bg, rgba(255,252,248,.98));
   --border-soft:  rgba(221,216,208,.32);
   --shadow-soft:  var(--ippo-card-shadow, 0 8px 24px rgba(94,84,66,.035));
   --radius-card:  var(--ippo-card-radius, 20px);
 
-  /* アクセントカラー */
+  /* 繧｢繧ｯ繧ｻ繝ｳ繝医き繝ｩ繝ｼ */
   --accent-sage:   #9DB095;
   --accent-terra:  #C4946A;
   --accent-purple: #A78BFA;
   --accent-green:  #6FBF73;
   --accent-orange: #F59E0B;
 
-  /* スペーシングスケール */
+  /* 繧ｹ繝壹・繧ｷ繝ｳ繧ｰ繧ｹ繧ｱ繝ｼ繝ｫ */
   --space-4:  4px;
   --space-8:  8px;
   --space-12: 12px;
@@ -29,7 +29,7 @@
   --space-32: 32px;
   --space-40: 40px;
 
-/* ── Home-next スコープトークン ── */
+/* 笏笏 Home-next 繧ｹ繧ｳ繝ｼ繝励ヨ繝ｼ繧ｯ繝ｳ 笏笏 */
 
 --hn-bg:             #FAFCF8;
 
@@ -43,27 +43,27 @@
 
 --hn-card-radius-lg: 24px;
 
-  /* テキスト: 温かいグレー系 */
+  /* 繝・く繧ｹ繝・ 貂ｩ縺九＞繧ｰ繝ｬ繝ｼ邉ｻ */
   --hn-ink:       #2A2320;
   --hn-ink-mid:   #5A5048;
   --hn-ink-sec:   #7A6E66;
   --hn-ink-muted: #AFA298;
 
-  /* アクセント: セージグリーン */
+  /* 繧｢繧ｯ繧ｻ繝ｳ繝・ 繧ｻ繝ｼ繧ｸ繧ｰ繝ｪ繝ｼ繝ｳ */
   --hn-sage:      #B8D8B8;
   --hn-sage-mid:  #CFE7CF;
   --hn-sage-pale: #EFF7EF;
    
-  /* 痛みドット: テラコッタウォーム */
+  /* 逞帙∩繝峨ャ繝・ 繝・Λ繧ｳ繝・ち繧ｦ繧ｩ繝ｼ繝 */
   --hn-terra:      #C4946A;
   --hn-terra-pale: #F5EDE3;
 
-  /* ベージュ系 */
+  /* 繝吶・繧ｸ繝･邉ｻ */
   --hn-beige:      #E8DDD4;
   --hn-beige-pale: #F2EDE6;
   --hn-cream:      #FDFAF6;
 
-  /* ボタニカルグリーン */
+  /* 繝懊ち繝九き繝ｫ繧ｰ繝ｪ繝ｼ繝ｳ */
   --hn-leaf:      #C8D8BE;
   --hn-leaf-dark: #B8C9AC;
 
@@ -71,7 +71,7 @@
   --hn-font-ja: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', sans-serif;
 }
 
-/* ── スクリーン基盤 ──────────────────────────────────────── */
+/* 笏笏 繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ蝓ｺ逶､ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 #screen-home-next {
   background:
     radial-gradient(
@@ -130,7 +130,7 @@
    SCREEN SCROLL LAYOUT
    ========================================================= */
 
-/* ホーム・設定: scroll container が horizontal padding を担当 */
+/* 繝帙・繝繝ｻ險ｭ螳・ scroll container 縺・horizontal padding 繧呈球蠖・*/
 .hn-scroll,
 .set-scroll {
   padding:
@@ -139,8 +139,8 @@
     calc(80px + env(safe-area-inset-bottom, 0px));
 }
 
-/* カレンダー: 内部コンポーネントが horizontal spacing を管理するため
-   vertical のみ統一 */
+/* 繧ｫ繝ｬ繝ｳ繝繝ｼ: 蜀・Κ繧ｳ繝ｳ繝昴・繝阪Φ繝医′ horizontal spacing 繧堤ｮ｡逅・☆繧九◆繧・
+   vertical 縺ｮ縺ｿ邨ｱ荳 */
 .cn-scroll {
   padding-top:    var(--screen-top-space);
   padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
@@ -169,8 +169,8 @@
 
 
 /* =========================================================
-   SETTINGS — SUNNY IVORY
-   Header と背景を完全一致
+   SETTINGS 窶・SUNNY IVORY
+   Header 縺ｨ閭梧勹繧貞ｮ悟・荳閾ｴ
    ========================================================= */
 
 /* ===== SETTINGS BACKGROUND ===== */
@@ -189,15 +189,15 @@
   border-bottom: 1px solid transparent;
 }
 
-/* ── 共通ヘッダーバー（HOME / Insights 両画面で使用） ───── */
-/* cal / set は独自コンテンツが sticky ヘッダーとして動作 */
+/* 笏笏 蜈ｱ騾壹・繝・ム繝ｼ繝舌・・・OME / Insights 荳｡逕ｻ髱｢縺ｧ菴ｿ逕ｨ・・笏笏笏笏笏 */
+/* cal / set 縺ｯ迢ｬ閾ｪ繧ｳ繝ｳ繝・Φ繝・′ sticky 繝倥ャ繝繝ｼ縺ｨ縺励※蜍穂ｽ・*/
 #cal-header,
 #set-header {
   position: relative;
 }
 
-/* hn-header / ins-header は .hn-header (position:relative) を子に持つ。
-   コンテナはニュートラルに保ち、見た目は .hn-header 側で制御する。 */
+/* hn-header / ins-header 縺ｯ .hn-header (position:relative) 繧貞ｭ舌↓謖√▽縲・
+   繧ｳ繝ｳ繝・リ縺ｯ繝九Η繝ｼ繝医Λ繝ｫ縺ｫ菫昴■縲∬ｦ九◆逶ｮ縺ｯ .hn-header 蛛ｴ縺ｧ蛻ｶ蠕｡縺吶ｋ縲・*/
 #hn-header,
 #ins-header {
   position: static;
@@ -206,8 +206,8 @@
   background: transparent;
 }
 
-/* ── Insights: ページタイトル行 ─────────────────────────── */
-/* HOME の .hn-greeting と同じ vertical rhythm を持つ */
+/* 笏笏 Insights: 繝壹・繧ｸ繧ｿ繧､繝医Ν陦・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
+/* HOME 縺ｮ .hn-greeting 縺ｨ蜷後§ vertical rhythm 繧呈戟縺､ */
 .ins-page-header {
   display: flex;
   align-items: center;
@@ -309,7 +309,7 @@
   display: block;
 }
 
-/* 未読バッジ */
+/* 譛ｪ隱ｭ繝舌ャ繧ｸ */
 .hn-bell-badge {
   position: absolute;
   top: 6px;
@@ -339,7 +339,7 @@
   letter-spacing: -0.01em;
 }
 
-/* ── パーソナライズセクション ────────────────────────────── */
+/* 笏笏 繝代・繧ｽ繝翫Λ繧､繧ｺ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-personalize {
   background: var(--hn-card-bg);
   border: var(--hn-card-border);
@@ -349,7 +349,7 @@
   margin-bottom: var(--screen-card-gap);
 }
 
-/* 疾患タグ行 */
+/* 逍ｾ謔｣繧ｿ繧ｰ陦・*/
 .hn-ptags-row {
   display: flex;
   flex-wrap: wrap;
@@ -357,13 +357,13 @@
   margin-bottom: 8px;
 }
 
-/* 疾患タグ */
+/* 逍ｾ謔｣繧ｿ繧ｰ */
 .hn-ptag {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 3px 10px 3px 8px;
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   background: var(--ptag-bg, #EEF3EB);
   font-family: var(--hn-font-ja);
   font-size: 11px;
@@ -380,7 +380,7 @@
   flex-shrink: 0;
 }
 
-/* 重視項目テキスト */
+/* 驥崎ｦ夜・岼繝・く繧ｹ繝・*/
 .hn-ppriority {
   font-family: var(--hn-font-ja);
   font-size: 11.5px;
@@ -390,7 +390,7 @@
   font-weight: 300;
 }
 
-/* 設定リンク */
+/* 險ｭ螳壹Μ繝ｳ繧ｯ */
 .hn-psettings {
   font-family: var(--hn-font-ja);
   font-size: 11.5px;
@@ -407,7 +407,7 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-/* ── アニメーション ──────────────────────────────────────── */
+/* 笏笏 繧｢繝九Γ繝ｼ繧ｷ繝ｧ繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 @keyframes hn-fade-up {
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -424,7 +424,7 @@
 .hn-anim-4  { animation: hn-fade-up  0.38s 0.24s cubic-bezier(0.23, 1, 0.32, 1) both; }
 .hn-anim-5  { animation: hn-fade-up  0.38s 0.30s cubic-bezier(0.23, 1, 0.32, 1) both; }
 
-/* ── グリーティングセクション ────────────────────────────── */
+/* 笏笏 繧ｰ繝ｪ繝ｼ繝・ぅ繝ｳ繧ｰ繧ｻ繧ｯ繧ｷ繝ｧ繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-greeting {
   margin-bottom: var(--screen-intro-gap);
 }
@@ -456,7 +456,7 @@
   font-weight: 300;
 }
 
-/* ── ヒーローカード ──────────────────────────────────────── */
+/* 笏笏 繝偵・繝ｭ繝ｼ繧ｫ繝ｼ繝・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-hero {
 
   background:
@@ -513,12 +513,12 @@
   z-index: 1;
 }
 
-/* 画像背景に切り替えたため非表示 */
+/* 逕ｻ蜒剰レ譎ｯ縺ｫ蛻・ｊ譖ｿ縺医◆縺溘ａ髱櫁｡ｨ遉ｺ */
 .hn-hero-botanical {
   display: none;
 }
 
-/* "今日のあなた" ラベル */
+/* "莉頑律縺ｮ縺ゅ↑縺・ 繝ｩ繝吶Ν */
 .hn-hero-tag {
   font-family: var(--hn-font-ja);
   font-size: 11px;
@@ -528,7 +528,7 @@
   display: block;
 }
 
-/* コンテンツエリア: 右画像領域を確保し左55%に収める */
+/* 繧ｳ繝ｳ繝・Φ繝・お繝ｪ繧｢: 蜿ｳ逕ｻ蜒城伜沺繧堤｢ｺ菫昴＠蟾ｦ55%縺ｫ蜿弱ａ繧・*/
 .hn-hero-body {
   max-width: 55%;
 }
@@ -590,7 +590,7 @@
   margin-left: 4px;
 }
 
-/* ── モバイル: 縦積みレイアウト (≤480px) ────────────────── */
+/* 笏笏 繝｢繝舌う繝ｫ: 邵ｦ遨阪∩繝ｬ繧､繧｢繧ｦ繝・(竕､480px) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 
 @media (max-width: 480px) {
 .hn-hero {background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(248,252,248,.84) 100%);
@@ -609,7 +609,7 @@
   }
 
 }
-/* ── 状態セクション ──────────────────────────────────────── */
+/* 笏笏 迥ｶ諷九そ繧ｯ繧ｷ繝ｧ繝ｳ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-section-row {
   display: flex;
   align-items: center;
@@ -632,7 +632,7 @@
   font-weight: 300;
 }
 
-/* ── 状態カード (横4列) ──────────────────────────────────── */
+/* 笏笏 迥ｶ諷九き繝ｼ繝・(讓ｪ4蛻・ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-sc-row {
   display: flex;
   gap: 8px;
@@ -652,7 +652,7 @@
   gap: 3px;
 }
 
-/* SVG アイコン */
+/* SVG 繧｢繧､繧ｳ繝ｳ */
 .hn-sc-icon {
   width: 16px;
   height: 16px;
@@ -690,7 +690,7 @@
   text-overflow: ellipsis;
 }
 
-/* 数値表示 (時間・体温など) */
+/* 謨ｰ蛟､陦ｨ遉ｺ (譎る俣繝ｻ菴捺ｸｩ縺ｪ縺ｩ) */
 .hn-sc-value-num {
   font-family: var(--hn-font);
   font-size: 13.5px;
@@ -714,7 +714,7 @@
   font-weight: 300;
 }
 
-/* ── 棒グラフ (睡眠) ─────────────────────────────────────── */
+/* 笏笏 譽偵げ繝ｩ繝・(逹｡逵) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-sc-bars {
   display: flex;
   align-items: flex-end;
@@ -734,7 +734,7 @@
   background: var(--hn-sage-mid);
 }
 
-/* ── ドットスケール (痛み) ───────────────────────────────── */
+/* 笏笏 繝峨ャ繝医せ繧ｱ繝ｼ繝ｫ (逞帙∩) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-sc-dots {
   display: flex;
   gap: 3px;
@@ -755,7 +755,7 @@
 .hn-sc-dot.pain-3 { background: var(--hn-terra); }
 .hn-sc-dot.pain-4 { background: #B07050; }
 
-/* ── 気分 SVGフェイス行 ──────────────────────────────────── */
+/* 笏笏 豌怜・ SVG繝輔ぉ繧､繧ｹ陦・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-mood-row {
   display: flex;
   gap: 1px;
@@ -783,7 +783,7 @@
   color: var(--hn-sage);
 }
 
-/* ── スパークライン (体温/エネルギー) ────────────────────── */
+/* 笏笏 繧ｹ繝代・繧ｯ繝ｩ繧､繝ｳ (菴捺ｸｩ/繧ｨ繝阪Ν繧ｮ繝ｼ) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-sparkline {
   width: 100%;
   height: 18px;
@@ -791,7 +791,7 @@
   overflow: visible;
 }
 
-/* ── 週間ストリップ ──────────────────────────────────────── */
+/* 笏笏 騾ｱ髢薙せ繝医Μ繝・・ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-week-card {
   background: var(--hn-card-bg);
   border: var(--hn-card-border);
@@ -840,7 +840,7 @@
 .hn-week-dot.is-today    { background: var(--hn-sage); border-color: var(--hn-sage); color: #fff; }
 .hn-week-dot.future      { border-color: var(--hn-beige-pale); opacity: 0.45; }
 
-/* ── optional カード ─────────────────────────────────────── */
+/* 笏笏 optional 繧ｫ繝ｼ繝・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-optional-card {
   background: var(--hn-card-bg);
   border: var(--hn-card-border);
@@ -869,7 +869,7 @@
   color: var(--hn-sage);
   background: var(--hn-sage-pale);
   padding: 2px 8px;
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   font-family: var(--hn-font-ja);
 }
 
@@ -911,7 +911,7 @@
   gap: 3px;
 }
 
-/* ドーナツチャート */
+/* 繝峨・繝翫ヤ繝√Ε繝ｼ繝・*/
 .hn-donut-wrap {
   width: 72px;
   height: 72px;
@@ -923,7 +923,7 @@
   transform-origin: center;
 }
 
-/* ── インサイトカード ─────────────────────────────────────── */
+/* 笏笏 繧､繝ｳ繧ｵ繧､繝医き繝ｼ繝・笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-insight-card {
   background: var(--hn-card-bg);
   border: var(--hn-card-border);
@@ -935,7 +935,7 @@
   overflow: hidden;
 }
 
-/* 右下ボタニカルデコ */
+/* 蜿ｳ荳九・繧ｿ繝九き繝ｫ繝・さ */
 .hn-insight-deco {
   position: absolute;
   bottom: 0;
@@ -1015,7 +1015,7 @@
   color: #8b7fd6;
 }
 
-/* ── クイック記録 ─────────────────────────────────────────── */
+/* 笏笏 繧ｯ繧､繝・け險倬鹸 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-quick-card {
   background: var(--hn-card-bg);
   border: var(--hn-card-border);
@@ -1082,7 +1082,7 @@
   font-weight: 300;
 }
 
-/* トレンドインサイト行 */
+/* 繝医Ξ繝ｳ繝峨う繝ｳ繧ｵ繧､繝郁｡・*/
 .hn-quick-trend {
   background: var(--hn-beige-pale);
   border-radius: 12px;
@@ -1109,15 +1109,15 @@
   height: 24px;
 }
 
-/* ── ユーティリティ ──────────────────────────────────────── */
+/* 笏笏 繝ｦ繝ｼ繝・ぅ繝ｪ繝・ぅ 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 .hn-mb        { margin-bottom: var(--screen-card-gap); }
 .hn-section   { margin-bottom: var(--screen-section-gap); }
 
-/* スクロールバー非表示 */
+/* 繧ｹ繧ｯ繝ｭ繝ｼ繝ｫ繝舌・髱櫁｡ｨ遉ｺ */
 .hn-scroll::-webkit-scrollbar { display: none; }
 .hn-scroll { scrollbar-width: none; }
 
-/* ── PHASE 7: Recovery Journey / Life Integration ────────── */
+/* 笏笏 PHASE 7: Recovery Journey / Life Integration 笏笏笏笏笏笏笏笏笏笏 */
 
 #hn-recovery {
   padding: 0 4px;
@@ -1254,10 +1254,10 @@
   letter-spacing: 0.015em;
 }
 
-/* ── PHASE 7: Adaptive Calmness Layer ────────────────────── */
-/* data-mode 属性で currentMode を受け取り UI の静けさを変える */
+/* 笏笏 PHASE 7: Adaptive Calmness Layer 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
+/* data-mode 螻樊ｧ縺ｧ currentMode 繧貞女縺大叙繧・UI 縺ｮ髱吶￠縺輔ｒ螟峨∴繧・*/
 
-/* anxious: 情報密度を下げ、余白を広げ、強い表現を抑制 */
+/* anxious: 諠・ｱ蟇・ｺｦ繧剃ｸ九￡縲∽ｽ咏區繧貞ｺ・￡縲∝ｼｷ縺・｡ｨ迴ｾ繧呈椛蛻ｶ */
 #screen-home-next[data-mode="anxious"] .hn-insight-card {
   opacity: 0.75;
 }
@@ -1276,14 +1276,14 @@
   animation-duration: 0.1s;
 }
 
-/* tired / recovery: recovery cards を visual 的に前面に */
+/* tired / recovery: recovery cards 繧・visual 逧・↓蜑埼擇縺ｫ */
 #screen-home-next[data-mode="tired"] .hn-recovery-card,
 #screen-home-next[data-mode="recovery"] .hn-recovery-card {
   border-left-width: 3px;
   border-left-color: var(--hn-sage);
 }
 
-/* ── anim-5 (experiment card) ────────────────────────────── */
+/* 笏笏 anim-5 (experiment card) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 @keyframes hn-fadein {
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -1293,7 +1293,7 @@
   animation-delay: 0.25s;
 }
 
-/* ── PHASE 6: Reflection Cards ──────────────────────────── */
+/* 笏笏 PHASE 6: Reflection Cards 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 
 #hn-reflections {
   padding: 0 4px;
@@ -1306,7 +1306,7 @@
   padding: 0 var(--space-4);
 }
 
-/* 観察・傾向 reflection */
+/* 隕ｳ蟇溘・蛯ｾ蜷・reflection */
 .hn-reflection-card {
   padding: var(--space-16) var(--space-20);
   border-left: 2px solid rgba(157, 176, 149, 0.30);
@@ -1331,7 +1331,7 @@
   letter-spacing: 0.01em;
 }
 
-/* gentle suggestion カード */
+/* gentle suggestion 繧ｫ繝ｼ繝・*/
 .hn-suggestion-card {
   padding: var(--space-16) var(--space-20);
   background: rgba(157, 176, 149, 0.07);
@@ -1350,10 +1350,10 @@
   letter-spacing: 0.015em;
 }
 
-/* ── PR-5: displayStyle visual variation ─────────────────── */
-/* data-display 属性で表示スタイルを受け取り、density と tone を変える */
+/* 笏笏 PR-5: displayStyle visual variation 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
+/* data-display 螻樊ｧ縺ｧ陦ｨ遉ｺ繧ｹ繧ｿ繧､繝ｫ繧貞女縺大叙繧翫‥ensity 縺ｨ tone 繧貞､峨∴繧・*/
 
-/* gentle: 情報密度を下げ、余白を広げ、カードの主張を弱める */
+/* gentle: 諠・ｱ蟇・ｺｦ繧剃ｸ九￡縲∽ｽ咏區繧貞ｺ・￡縲√き繝ｼ繝峨・荳ｻ蠑ｵ繧貞ｼｱ繧√ｋ */
 #screen-home-next[data-display="gentle"] .hn-section {
   gap: var(--space-20);
 }
@@ -1373,7 +1373,7 @@
   opacity: 0.52;
 }
 
-/* deep: 情報量を増やし、カードの境界を明確にする */
+/* deep: 諠・ｱ驥上ｒ蠅励ｄ縺励√き繝ｼ繝峨・蠅・阜繧呈・遒ｺ縺ｫ縺吶ｋ */
 #screen-home-next[data-display="deep"] .hn-section {
   gap: var(--space-8);
 }
