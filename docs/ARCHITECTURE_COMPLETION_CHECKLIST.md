@@ -379,7 +379,7 @@
 - [x] window 依存除去完了 → ブロッカーなし確認済み（store/state.js・supabase.js が window に設定）
 - [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件分類完了
 - [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
-- [x] 回帰テスト成功 → 440/440 (2026-06-11 確認)
+- [x] 回帰テスト成功 → 469/469 (2026-06-11 確認)
 - [x] 削除リスク評価完了 → 現時点での削除は不可。理由: 約120関数が app-legacy.js のみに実装。app.html onclick 60+箇所がこれらに依存。`main.js:52` の import が唯一のエントリーポイント。Phase 4-D の移植完了後に削除可能
 
 ## Phase 4-D Start Gate
@@ -685,7 +685,9 @@
   - [x] myDiseases / trackedConditions 保護（recovery.js 内 _safeMergeState → PR-2A）
   - [x] autoRecoveryCheck の window 参照依存除去
   - [x] persistRecords().catch() TypeError 修正（PR-2A.1）
-  - [x] Code Audit PASS / 459/459 tests PASS
+  - [x] cloudRestore trackedConditions / myDiseases 保護（safeMergeState 統一 → PR-2B `0918c81`）
+  - [x] PR-2B Post-Implementation Audit A 判定（2026-06-11）
+  - [x] Code Audit PASS / 469/469 tests PASS
   - [x] プレビュー環境検証 PASS（snapshot 発火・Guard エラーなし）
   - [ ] 実機 Supabase Cloud Restore 検証（BLOCKED: .env.local 未設定）
   - [ ] Cloud Count Validation
@@ -792,7 +794,7 @@
 ### Sync Consolidation
 
 - [ ] 重複 sync 処理削除（削除前に責務差分を証明） → 三カード fallback 削除と連動 (ADR-001)。mergeRecords() の重複 (supabase.js / recovery.js) も統合対象 (ADR-007)
-  - [x] safeMergeState 統一済み → `src/utils/safe-merge-state.js`（PR-2B `0918c81`）
+  - [x] safeMergeState 統一済み → `src/utils/safe-merge-state.js`（PR-2B `0918c81`・監査 A 判定）
   - [ ] mergeRecords() 重複残存（supabase.js / recovery.js に独立実装）→ Phase 4-D 後に統合
 - [ ] SyncService が唯一の同期窓口であることを証明 → cloudBackupAll() の直接呼び出し 3 経路を SyncService 経由に統一後に確認 (ADR-007)
 
