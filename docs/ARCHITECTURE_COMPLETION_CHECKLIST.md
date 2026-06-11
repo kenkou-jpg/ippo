@@ -650,7 +650,7 @@
 
 > 以下をすべて満たした場合のみ Step 10 を許可する。
 
-- [ ] **manualCloudRestore 移植完了 + Recovery Validation PASS**（P0 ブロッカー）
+- [ ] **manualCloudRestore 移植完了 + Recovery Validation PASS**（P0 ブロッカー）<!-- Code Audit PASS (PR-2A 9c9bb5d). 実機 Supabase Validation は Follow-up。-->
 - [ ] Step 1 SaveRecordScreen Validation Gate 完了
 - [ ] Step 2 Save Domain Audit 完了
 - [ ] Step 3 Legacy Migration Plan 全120件移植完了
@@ -680,7 +680,17 @@
 > （上記 Step 9 と同義。Step 9 完了で本セクションも完了扱いとする。）
 
 - [ ] **manualCloudRestore 移植完了** → `src/services/recovery.js` に export 済み・Recovery Validation PASS（P0 ブロッカー）
-- [ ] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行削除済み
+  - [x] recovery.js 移植（PR-2A `9c9bb5d`）
+  - [x] takeSnapshot('pre-restore') 実装
+  - [x] myDiseases / trackedConditions 保護（_safeMergeState）
+  - [x] autoRecoveryCheck の window 参照依存除去
+  - [x] persistRecords().catch() TypeError 修正（PR-2A.1）
+  - [x] Code Audit PASS / 459/459 tests PASS
+  - [x] プレビュー環境検証 PASS（snapshot 発火・Guard エラーなし）
+  - [ ] 実機 Supabase Cloud Restore 検証（BLOCKED: .env.local 未設定）
+  - [ ] Cloud Count Validation
+  - [ ] Rollback after Cloud Restore
+- [x] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行コメントアウト済み（`app-legacy.js:10677`）
 - [ ] app-legacy.js 経由保存が発生しない
 - [ ] saveRecordScreen が RecordRepository 経由で保存する
 - [ ] SyncService 経由で同期する
