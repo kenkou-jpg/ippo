@@ -10673,7 +10673,8 @@ if (typeof likeCommunityReply === "function") window.likeCommunityReply = likeCo
 if (typeof loadCVArchive === "function") window.loadCVArchive = loadCVArchive;
 if (typeof loadCommunityReplies === "function") window.loadCommunityReplies = loadCommunityReplies;
 if (typeof loadCommunityTopic === "function") window.loadCommunityTopic = loadCommunityTopic;
-if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
+// PR-2A: manualCloudRestore は src/services/recovery.js に移植済み。window 公開は recovery.js が担う。
+// if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
 if (typeof nextStep === "function") window.nextStep = nextStep;
 if (typeof openAIAnalysis === "function") window.openAIAnalysis = openAIAnalysis;
 if (typeof openCorrelationReport === "function") window.openCorrelationReport = openCorrelationReport;

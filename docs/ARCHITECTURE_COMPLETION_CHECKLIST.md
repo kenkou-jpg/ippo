@@ -650,6 +650,7 @@
 
 > 以下をすべて満たした場合のみ Step 10 を許可する。
 
+- [ ] **manualCloudRestore 移植完了 + Recovery Validation PASS**（P0 ブロッカー）
 - [ ] Step 1 SaveRecordScreen Validation Gate 完了
 - [ ] Step 2 Save Domain Audit 完了
 - [ ] Step 3 Legacy Migration Plan 全120件移植完了
@@ -678,6 +679,8 @@
 > 以下をすべて満たした場合のみ app-legacy.js 削除を許可する。
 > （上記 Step 9 と同義。Step 9 完了で本セクションも完了扱いとする。）
 
+- [ ] **manualCloudRestore 移植完了** → `src/services/recovery.js` に export 済み・Recovery Validation PASS（P0 ブロッカー）
+- [ ] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行削除済み
 - [ ] app-legacy.js 経由保存が発生しない
 - [ ] saveRecordScreen が RecordRepository 経由で保存する
 - [ ] SyncService 経由で同期する
