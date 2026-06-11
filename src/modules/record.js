@@ -304,14 +304,123 @@ export function renderRecordHeader() {
 }
 
 export function buildDraftFromUI() {
-  traceRecord('buildDraftFromUI:wrapper:start', getRecordTraceSnapshot());
-  const result = callExistingFunction('buildDraftFromUI', arguments);
-  traceRecord('buildDraftFromUI:wrapper:end', {
-    snapshot: getRecordTraceSnapshot(),
-    returnedType: typeof result,
-    hasResult: result !== undefined && result !== null,
+  traceRecord('buildDraftFromUI:start', getRecordTraceSnapshot());
+
+  // まず既存実装（app-legacy.js 等）にデリゲートを試みる
+  const delegated = callExistingFunction('buildDraftFromUI', arguments);
+  if (delegated !== undefined && delegated !== null) {
+    traceRecord('buildDraftFromUI:delegated', { returnedType: typeof delegated });
+    return delegated;
+  }
+
+  // app-legacy.js が廃止済みの場合はモジュール実装で UI から直接 draft を組み立てる
+  try {
+    const draft = _buildDraftFromUIImpl();
+    traceRecord('buildDraftFromUI:impl:done', {
+      hasDate: !!draft.record_date,
+      symptomsCount: Array.isArray(draft.symptoms) ? draft.symptoms.length : 0,
+    });
+    return draft;
+  } catch (e) {
+    traceRecord('buildDraftFromUI:impl:error', { message: e && e.message });
+    return null;
+  }
+}
+
+function _buildDraftFromUIImpl() {
+  const qs  = (sel) => document.querySelector(sel);
+  const qsa = (sel) => Array.prototype.slice.call(document.querySelectorAll(sel));
+  const val = (id) => { const el = document.getElementById(id); return el ? el.value : ''; };
+  const chips = (sel) => qsa(sel + ' .chip.selected').map(function(c) { return c.textContent; });
+  const chipVal = (sel) => { const el = qs(sel + ' .chip.selected'); return el ? parseInt(el.getAttribute('data-val')) || 0 : 0; };
+  const chipText = (sel) => { const el = qs(sel + ' .chip.selected'); return el ? el.textContent : ''; };
+
+  const mealFreeText = val('rs-meal-free').trim();
+  const parseMealMemo = typeof window.parseMealMemo === 'function' ? window.parseMealMemo : function() { return null; };
+  const parsed = parseMealMemo(mealFreeText);
+
+  const sleepBed = val('rs-sleep-bed');
+  const sleepWake = val('rs-sleep-wake');
+  let sleepHours = 0;
+  if (sleepBed && sleepWake) {
+    const b = sleepBed.split(':'), w = sleepWake.split(':');
+    let bMin = parseInt(b[0]) * 60 + parseInt(b[1]);
+    let wMin = parseInt(w[0]) * 60 + parseInt(w[1]);
+    if (wMin <= bMin) wMin += 1440;
+    sleepHours = Math.round((wMin - bMin) / 60 * 10) / 10;
+  }
+
+  const bodyChoices = {};
+  qsa('#rs-body-choices .chips').forEach(function(group) {
+    const cat = group.getAttribute('data-category');
+    const selected = qsa.call(null, '#rs-body-choices .chips').length > 0
+      ? Array.prototype.slice.call(group.querySelectorAll('.chip.selected')).map(function(c) { return c.getAttribute('data-val'); })
+      : [];
+    if (cat && selected.length) bodyChoices[cat] = selected;
   });
-  return result;
+
+  const bowelCountDisplay = document.getElementById('bowel-count-display');
+  const bowelCount = bowelCountDisplay ? parseInt(bowelCountDisplay.textContent) || 0 : 0;
+
+  const diseaseCheck = typeof window.gatherDiseaseData === 'function'
+    ? window.gatherDiseaseData()
+    : (function() {
+        const data = {};
+        qsa('[data-disease-q]').forEach(function(g) {
+          const sel = g.querySelector('.chip.selected');
+          if (sel) data[g.getAttribute('data-disease-q')] = sel.textContent;
+        });
+        return data;
+      })();
+
+  const state = typeof window.getState === 'function' ? window.getState() : null;
+  const targetDate = (state && state.editingDate) ? new Date(state.editingDate) : new Date();
+
+  const draft = {
+    date: targetDate.toISOString(),
+    record_date: targetDate.toISOString().slice(0, 10),
+    mealFree: mealFreeText,
+    meals: { free: mealFreeText },
+    firstMealTime: parsed ? parsed.firstTime : '',
+    lastMealTime: parsed ? parsed.lastTime : '',
+    mealCount: parsed ? parsed.mealCount : 0,
+    fasting: parsed ? parsed.fastingHours : 0,
+    temperature: parseFloat(val('rs-temp')) || null,
+    tempMethod: window._tempMethod || 'sublingual',
+    symptoms: chips('#rs-symptoms'),
+    menstrualCycle: chipText('#rs-cycle'),
+    painLocation: chips('#rs-pain-location'),
+    painType: chips('#rs-pain-type'),
+    painLevel: parseInt(val('rs-pain-level')) || 0,
+    medication: chips('#rs-medication'),
+    bloodClot: chips('#rs-blood-clot'),
+    bloodColor: chips('#rs-blood-color'),
+    energy: chipVal('#rs-energy'),
+    sleepBed: sleepBed,
+    sleepWake: sleepWake,
+    sleepQuality: chipVal('#rs-sleep-quality'),
+    sleepHours: sleepHours,
+    factors: chips('#rs-factors'),
+    bowel: chipText('#rs-bowel'),
+    bowelCount: bowelCount,
+    mood: chipVal('#rs-mood'),
+    dischargeAmount: chipText('#rs-discharge-amount'),
+    dischargeType: chips('#rs-discharge-type'),
+    note: val('rs-note'),
+    bodyChoices: bodyChoices,
+    diseaseCheck: diseaseCheck,
+    diseases: state ? (state.myDiseases || []) : [],
+  };
+
+  if (typeof window.calcWellnessScore === 'function') {
+    draft.wellnessScore = window.calcWellnessScore(draft);
+  }
+  if (typeof window.calcSMIScore === 'function') {
+    const smi = window.calcSMIScore(draft.diseaseCheck || {});
+    if (smi !== null) draft.smiScore = smi;
+  }
+
+  return draft;
 }
 
 export function enableRecordTrace() {

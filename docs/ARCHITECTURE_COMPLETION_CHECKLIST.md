@@ -268,6 +268,71 @@
 - [x] app-legacy.js: 12,296 → 10,801 行（-1,495行 / Phase 4-C 単体 -964行）
 - [ ] グローバル変数 (`state` / `currentRecord` / `supabaseToken` / `supabaseUserId`) の参照を state-store / auth-service へ移行 → Phase 4-D
 
+### Phase 4-D Readiness Gate
+
+> app-legacy.js 削除前に必ず完了すること。
+> Phase 4-D は「削除フェーズ」であり、依存調査・移植先決定・責務分析が完了していない状態では開始しない。
+> app-legacy.js の削除は「削除可能であることを証明した後」にのみ実施する。
+
+#### Legacy Dependency Mapping
+
+- [x] `app.html` の onclick 一覧作成 → `docs/legacy-dependency-map.md` §2 (60+箇所)
+- [x] `app.html` の onclick 呼び出し元マップ作成 → `docs/legacy-dependency-map.md` §2
+- [x] 全 onclick の移行先決定 → `docs/legacy-dependency-map.md` §6
+- [x] legacy 関数参照一覧作成 → `docs/legacy-dependency-map.md` §3・§4 (198個)
+- [x] app-legacy.js 呼び出しグラフ作成 → `docs/legacy-dependency-map.md` §5
+- [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
+
+#### Critical Legacy Functions
+
+**`buildDraftFromUI`**
+- [x] 呼び出し元一覧作成 → `record/save.js:926`, `record-edit-hydrate.js:431`, `record-edit-save-identity-guard.js:220`
+- [x] 入力データ定義 → DOM 読み取りのみ（`gatherRecordData()` が実体。app-legacy.js:8322）
+- [x] 出力データ定義 → record draft オブジェクト（date / symptoms / cycle / pain* / medication / energy / sleep* / factors / bowel / mood / discharge* / diseaseCheck / diseases / temp / tempMethod）
+- [x] 副作用一覧作成 → なし（DOM 読み取りのみ。localStorage 書き込みなし）
+- [x] 移行先決定 → `src/modules/record.js` に `gatherRecordData()` ベースの実装を移植（副作用なしの純粋な UI → draft 変換関数として実装）
+- [x] 移植完了 → `src/modules/record.js:_buildDraftFromUIImpl()` 実装済み。app-legacy.js 廃止後は自動的に module 実装にフォールバック
+- [ ] 回帰テスト成功
+
+**`saveRecordScreen`**
+- [x] 呼び出し元一覧作成 → `app.html:677` (onclick), `window.saveRecordScreen` として公開
+- [x] 保存フロー分析 → `gatherRecordData()` → 日付検索 → rec 組立 → `gatherDiseaseData()` → `saveState()` → localStorage 検証 → UI更新群 → `cloudBackupAll()` (retry付き)
+- [x] `saveState` 依存分析 → `window.saveState` 経由（fallback: ローカル saveState → localStorage 直書き）
+- [x] sync 依存分析 → `window.cloudBackupAll` 経由 / 失敗時 3秒リトライ → toast
+- [x] RecordRepository への統合方針決定 → `buildDraftFromUI()` → `upsertRecord()` → `persistRecords()` → `notifyRecordUpdated()` → `syncRecordCloud()` の順に再構成。window.saveState / cloudBackupAll は record/save.js の pipeline 経由に集約
+- [ ] 移植完了
+- [ ] 回帰テスト成功
+
+#### Global Window Dependency Removal
+
+- [ ] `window.getState` 依存除去
+- [ ] `window.saveState` 依存除去
+- [ ] `window.cloudBackupAll` 依存除去
+- [ ] `window.supabaseToken` 依存除去
+- [ ] `window.supabaseUserId` 依存除去
+- [ ] modules から `window.*` 参照を全廃
+- [ ] import ベース依存へ置換
+
+#### Legacy Classification Completion
+
+- [ ] 未分類関数ゼロ
+- [ ] 全関数の移行先決定
+- [ ] 削除対象関数一覧確定
+- [ ] 移植対象関数一覧確定
+
+#### Phase 4-D Start Gate
+
+> 以下をすべて満たした場合のみ Phase 4-D の開始を許可する。
+
+- [ ] onclick マッピング完了
+- [ ] `buildDraftFromUI` 移植完了
+- [ ] `saveRecordScreen` 移植完了
+- [ ] window 依存除去完了
+- [ ] 未分類関数ゼロ
+- [ ] app-legacy.js 依存一覧完成
+- [ ] 回帰テスト成功
+- [ ] 削除リスク評価完了
+
 ### Phase 4-D — 最終廃止
 
 - [ ] オンボーディングフロー完全移植確認
