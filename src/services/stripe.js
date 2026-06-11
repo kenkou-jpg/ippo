@@ -41,17 +41,13 @@ export function selectPremiumPlan(planType) {
   if (!mc || !ac) return;
 
   if (planType === 'annual') {
-    ac.style.borderColor = 'var(--rose)';
-    ac.style.background  = 'linear-gradient(135deg,#fff8f8,#fdf3f3)';
-    mc.style.borderColor = '#e8ddd8';
-    mc.style.background  = 'transparent';
+    ac.classList.add('plan-card--selected');    ac.classList.remove('plan-card--inactive');
+    mc.classList.add('plan-card--inactive');   mc.classList.remove('plan-card--selected');
     if (mb) mb.textContent = '年額プランで始める（¥4,800/年）';
     if (sb) sb.textContent = '月額プランで始める（¥580/月）';
   } else {
-    mc.style.borderColor = 'var(--rose)';
-    mc.style.background  = 'linear-gradient(135deg,#fff8f8,#fdf3f3)';
-    ac.style.borderColor = '#e8ddd8';
-    ac.style.background  = 'transparent';
+    mc.classList.add('plan-card--selected');    mc.classList.remove('plan-card--inactive');
+    ac.classList.add('plan-card--inactive');   ac.classList.remove('plan-card--selected');
     if (mb) mb.textContent = '月額プランで始める（¥580/月）';
     if (sb) sb.textContent = '年額プランで始める（¥4,800/年）';
   }
@@ -145,23 +141,16 @@ export function checkUpsellNotification() {
 
   var banner = document.createElement('div');
   banner.id = 'upsell-banner';
-  banner.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);'
-    + 'width:calc(100% - 32px);max-width:420px;background:var(--cream);'
-    + 'border:1.5px solid var(--rose-light);border-radius:16px;padding:14px 16px;'
-    + 'z-index:400;box-shadow:0 4px 20px rgba(184,112,122,0.2);'
-    + 'animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);';
+  banner.className = 'upsell-banner';
   banner.innerHTML =
     '<div style="display:flex;align-items:center;gap:12px;">'
     + '<div style="flex:1;">'
     + '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:2px;">ippoを3ヶ月以上続けています ✨</div>'
     + '<div style="font-size:11px;color:var(--ink-mid);">年額プランで月400円（31%オフ）— より深い分析が使えます</div>'
     + '</div>'
-    + '<button onclick="closePremiumLock();document.getElementById(\'upsell-banner\').remove();'
-    + 'document.getElementById(\'premiumLockOverlay\').classList.add(\'active\');" '
-    + 'style="background:var(--rose);color:white;border:none;border-radius:20px;'
-    + 'padding:7px 14px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">詳細を見る</button>'
-    + '<button onclick="document.getElementById(\'upsell-banner\').remove();" '
-    + 'style="background:none;border:none;color:var(--ink-light);font-size:18px;cursor:pointer;line-height:1;">✕</button>'
+    + '<button class="upsell-banner__cta" onclick="closePremiumLock();document.getElementById(\'upsell-banner\').remove();'
+    + 'document.getElementById(\'premiumLockOverlay\').classList.add(\'active\');">詳細を見る</button>'
+    + '<button class="upsell-banner__close" onclick="document.getElementById(\'upsell-banner\').remove();">✕</button>'
     + '</div>';
   document.body.appendChild(banner);
   setTimeout(function () {

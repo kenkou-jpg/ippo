@@ -1,13 +1,13 @@
-/* ============================================================
- *  ippo – calendar-next.css
- *  パターンA: やさしく見渡せるカレンダー  v2 (wellness) 2026
- *  "月と体のリズムを、静かに見渡す wellness calendar"
+﻿/* ============================================================
+ *  ippo 窶・calendar-next.css
+ *  繝代ち繝ｼ繝ｳA: 繧・＆縺励￥隕区ｸ｡縺帙ｋ繧ｫ繝ｬ繝ｳ繝繝ｼ  v2 (wellness) 2026
+ *  "譛医→菴薙・繝ｪ繧ｺ繝繧偵・撕縺九↓隕区ｸ｡縺・wellness calendar"
  * ============================================================ */
 
-/* ── スクリーン ── */
+/* 笏笏 繧ｹ繧ｯ繝ｪ繝ｼ繝ｳ 笏笏 */
 .cn-screen {
   background: var(--ippo-bg-base);
-  /* 感情温度 overlay は極薄で空気感だけ */
+  /* 諢滓ュ貂ｩ蠎ｦ overlay 縺ｯ讌ｵ阮・〒遨ｺ豌玲─縺縺・*/
   background-image: linear-gradient(
     180deg,
     var(--ippo-overlay-calendar),
@@ -18,10 +18,10 @@
 .cn-scroll {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* padding は home-next.css の .cn-scroll 統一ルールで管理 */
+  /* padding 縺ｯ home-next.css 縺ｮ .cn-scroll 邨ｱ荳繝ｫ繝ｼ繝ｫ縺ｧ邂｡逅・*/
 }
 
-/* ── ページタイトル ── */
+/* 笏笏 繝壹・繧ｸ繧ｿ繧､繝医Ν 笏笏 */
 .cn-page-header {
   padding: 0 24px var(--screen-intro-gap);
   display: flex;
@@ -48,7 +48,7 @@
 .cn-today-btn {
   background: white;
   border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   padding: 7px 16px;
   font-size: 12px;
   font-family: var(--font-body);
@@ -70,7 +70,7 @@
   flex-shrink: 0;
 }
 
-/* ── カード共通 ── */
+/* 笏笏 繧ｫ繝ｼ繝牙・騾・笏笏 */
 .cn-card {
   margin: 8px 16px;
   background: var(--ippo-card-bg, #FFFFFF);
@@ -79,9 +79,9 @@
   border: var(--ippo-card-border, 1px solid rgba(0,0,0,0.04));
   box-shadow: var(--ippo-card-shadow, 0 2px 8px rgba(0,0,0,0.015));
 }
-/* first-card top margin 補正は .cn-page-header の screen-intro-gap で吸収 */
+/* first-card top margin 陬懈ｭ｣縺ｯ .cn-page-header 縺ｮ screen-intro-gap 縺ｧ蜷ｸ蜿・*/
 
-/* ── 月ナビ ── */
+/* 笏笏 譛医リ繝・笏笏 */
 .cn-month-nav {
   display: flex;
   align-items: center;
@@ -118,7 +118,7 @@
   letter-spacing: 0.01em;
 }
 .cn-month-label::after {
-  content: '▾';
+  content: '笆ｾ';
   font-size: 9px;
   color: rgba(42,35,32,0.35);
 }
@@ -129,7 +129,7 @@
   letter-spacing: 0.04em;
 }
 
-/* ── 曜日ヘッダー ── */
+/* 笏笏 譖懈律繝倥ャ繝繝ｼ 笏笏 */
 .cn-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -146,7 +146,7 @@
 .cn-wd.cn-wd--sun { color: rgba(200,80,100,0.6); }
 .cn-wd.cn-wd--sat { color: rgba(100,110,200,0.6); }
 
-/* ── カレンダーグリッド ── */
+/* 笏笏 繧ｫ繝ｬ繝ｳ繝繝ｼ繧ｰ繝ｪ繝・ラ 笏笏 */
 .cn-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -154,7 +154,7 @@
   column-gap: 0;
 }
 
-/* ── 日付セル ── */
+/* 笏笏 譌･莉倥そ繝ｫ 笏笏 */
 .cn-cell {
   display: flex;
   flex-direction: column;
@@ -176,7 +176,7 @@
 .cn-cell--sun .cn-cell-day { color: rgba(200,80,100,0.8); }
 .cn-cell--sat .cn-cell-day { color: rgba(100,110,200,0.75); }
 
-/* 今日 — セル全体に背景色 */
+/* 莉頑律 窶・繧ｻ繝ｫ蜈ｨ菴薙↓閭梧勹濶ｲ */
 .cn-cell--today {
   background: rgba(228,167,174,0.18);
   border-radius: 8px;
@@ -186,9 +186,9 @@
   font-weight: 700;
 }
 
-/* 周期フェーズ — ドットのみで表現、背景は白統一 */
+/* 蜻ｨ譛溘ヵ繧ｧ繝ｼ繧ｺ 窶・繝峨ャ繝医・縺ｿ縺ｧ陦ｨ迴ｾ縲∬レ譎ｯ縺ｯ逋ｽ邨ｱ荳 */
 
-/* フェーズドット（極小・セル下部） */
+/* 繝輔ぉ繝ｼ繧ｺ繝峨ャ繝茨ｼ域･ｵ蟆上・繧ｻ繝ｫ荳矩Κ・・*/
 .cn-cell::after {
   content: '';
   display: none;
@@ -208,7 +208,7 @@
 .cn-cell--high-temp::after   { display: block; background: #F5C8AE; }
 .cn-cell--low-temp::after    { display: block; background: #B8B8F8; }
 
-/* 記録あり */
+/* 險倬鹸縺ゅｊ */
 .cn-record-dot {
   width: 3px;
   height: 3px;
@@ -218,7 +218,7 @@
 }
 .cn-cell-day { position: relative; }
 
-/* ── セル内要素 ── */
+/* 笏笏 繧ｻ繝ｫ蜀・ｦ∫ｴ 笏笏 */
 .cn-cell-day {
   font-size: 15px;
   font-weight: 500;
@@ -228,8 +228,8 @@
   min-width: 26px;
 }
 
-/* ── 月相 SVG天体 ── */
-/* 全フェーズで同一viewBox(0 0 24 24)・同一サイズ。CSS補正禁止 */
+/* 笏笏 譛育嶌 SVG螟ｩ菴・笏笏 */
+/* 蜈ｨ繝輔ぉ繝ｼ繧ｺ縺ｧ蜷御ｸviewBox(0 0 24 24)繝ｻ蜷御ｸ繧ｵ繧､繧ｺ縲・SS陬懈ｭ｣遖∵ｭ｢ */
 .cn-moon {
   display: flex;
   align-items: center;
@@ -239,14 +239,14 @@
   flex-shrink: 0;
   line-height: 0;
   position: relative;
-  z-index: 1; /* 今日の背景円の上 */
+  z-index: 1; /* 莉頑律縺ｮ閭梧勹蜀・・荳・*/
 }
 .cn-moon svg {
   width: 26px;
   height: 26px;
 
   display: block;
-  overflow: visible; /* クレーターがclipされないよう */
+  overflow: visible; /* 繧ｯ繝ｬ繝ｼ繧ｿ繝ｼ縺慶lip縺輔ｌ縺ｪ縺・ｈ縺・*/
 }
 .cn-moon--sm {
   width: 20px;
@@ -258,7 +258,7 @@
 }
 
 
-/* ── 凡例 ── */
+/* 笏笏 蜃｡萓・笏笏 */
 .cn-legend {
   display: flex;
   flex-wrap: wrap;
@@ -289,7 +289,7 @@
 .cn-dot.low-temp     { background: #B8B8F8; }
 .cn-dot.high-temp    { background: #F5C8AE; }
 
-/* ── section header ── */
+/* 笏笏 section header 笏笏 */
 .cn-section-header {
   display: flex;
   align-items: center;
@@ -337,7 +337,7 @@
 }
 .cn-report-btn:active { background: rgba(200,116,123,0.12); }
 
-/* ── 今日のからだメモ ── */
+/* 笏笏 莉頑律縺ｮ縺九ｉ縺繝｡繝｢ 笏笏 */
 .cn-memo-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -389,7 +389,7 @@
   flex: 1;
 }
 
-/* ── 今月のふりかえり ── */
+/* 笏笏 莉頑怦縺ｮ縺ｵ繧翫°縺医ｊ 笏笏 */
 .cn-summary-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
