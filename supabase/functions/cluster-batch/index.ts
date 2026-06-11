@@ -25,7 +25,9 @@
 //       )$$
 //   );
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient }            from 'https://esm.sh/@supabase/supabase-js@2';
+import { jsonError, jsonResponse } from '../_shared/response.ts';
+import { log }                    from '../_shared/logger.ts';
 
 const K        = 5;
 const MAX_ITER = 50;
@@ -50,7 +52,8 @@ Deno.serve(async (_req: Request) => {
   const serviceKey  = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
   if (!serviceKey) {
-    return _json({ error: 'Service role key not configured' }, 503);
+    log('error', 'missing_env', { key: 'SUPABASE_SERVICE_ROLE_KEY' });
+    return jsonError('Service role key not configured', 503, 'SERVICE_UNAVAILABLE');
   }
 
   const supabase = createClient(supabaseUrl, serviceKey, {
@@ -64,16 +67,15 @@ Deno.serve(async (_req: Request) => {
     .not('prediction_cache', 'is', null);
 
   if (error) {
-    return _json({ error: error.message }, 500);
+    log('error', 'cluster_profiles_fetch_failed', { error: error.message });
+    return jsonError(error.message, 500, 'DB_ERROR');
   }
 
   const rows = (profiles ?? []) as ProfileRow[];
 
   if (rows.length < K) {
-    return _json({
-      message:   `Skipped: insufficient profiles (${rows.length} < ${K})`,
-      clustered: 0,
-    }, 200);
+    log('info', 'cluster_skipped', { reason: 'insufficient_profiles', count: rows.length, required: K });
+    return jsonResponse({ message: `Skipped: insufficient profiles (${rows.length} < ${K})`, clustered: 0 });
   }
 
   // 匿名特徴量ベクトル抽出
@@ -99,14 +101,16 @@ Deno.serve(async (_req: Request) => {
     .upsert(updates, { onConflict: 'id' });
 
   if (upsertError) {
-    return _json({ error: upsertError.message }, 500);
+    log('error', 'cluster_upsert_failed', { error: upsertError.message });
+    return jsonError(upsertError.message, 500, 'DB_ERROR');
   }
 
-  return _json({
+  log('info', 'cluster_batch_done', { clustered: rows.length, clusterSizes: clusterMeta.map(m => m.size) });
+  return jsonResponse({
     message:      'Cluster batch completed',
     clustered:    rows.length,
     clusterSizes: clusterMeta.map(m => m.size),
-  }, 200);
+  });
 });
 
 // ─── 特徴量抽出 ────────────────────────────────────────────────
@@ -199,11 +203,3 @@ function _computeMeta(
   });
 }
 
-// ─── ユーティリティ ────────────────────────────────────────────
-
-function _json(body: unknown, status: number): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'Content-Type': 'application/json' },
-  });
-}
