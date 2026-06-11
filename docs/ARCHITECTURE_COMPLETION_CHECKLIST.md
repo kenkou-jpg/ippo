@@ -279,11 +279,109 @@
 
 ## Save Architecture
 
+### Save Domain Audit
+
+- [x] 保存種別一覧作成 → ADR-001 参照
+- [x] 通常保存責務定義 → ADR-001: record.js → record/save.js → saveState + idbPutRecord + cloudBackupAll
+- [x] 一時保存責務定義 → ADR-001: 三カード fallback (rtcSaveDelegate 未注入時のみ発動)
+- [x] 下書き保存責務定義 → ADR-001: record-draft-guard.js → localStorage['ippo_record_draft']
+- [x] 自動保存責務定義 → ADR-001: pagehide/visibilitychange 駆動、タイマー不使用
+- [x] バックアップ保存責務定義 → ADR-001: rollback-manager.js → メモリ内スナップショット
+- [x] 復元保存責務定義 → ADR-001: rollbackTo() / hydration-guard / cloud restore
+
+- [x] 各保存種別の保存先を記録 → ADR-001
+- [x] 各保存種別のデータ契約を記録 → ADR-001
+- [x] 各保存種別のライフサイクルを記録 → ADR-001
+
+- [ ] RecordRepository 統合後も全保存種別が維持されることを証明 → 統合後に確認
+
+### Save Boundary Definition
+
+- [x] Record データ保存の定義を記録 → ADR-001: state.records 配列、localStorage/IDB/Supabase
+- [x] UI 状態保存の定義を記録 → ADR-001: ippo_state に混在、saveState 経由（例外）
+- [x] 設定値保存の定義を記録 → ADR-001: ippo_state に混在、saveState 経由（例外）
+
+- [ ] Record データ保存は RecordRepository のみ許可 → 統合後に適用
+- [x] UI 状態保存は例外ルールとして定義 → ADR-001 に記録
+- [x] 設定値保存は例外ルールとして定義 → ADR-001 に記録
+
+- [x] 保存責務境界を文書化 → ADR-001 保存責務境界テーブル参照
+
+## Save Consolidation Gate
+
+> 保存経路統合の前提条件。
+> 以下をすべて満たすまで統合作業を開始しない。
+
+- [x] 全保存種別の責務定義完了 → ADR-001
+- [x] 全保存種別の保存先特定完了 → ADR-001
+- [x] 全保存種別のライフサイクル記録完了 → ADR-001
+- [x] 保存機能消失リスク評価完了 → ADR-001: 高リスク・段階的移行を採用
+- [x] 統合 ROI 記録完了 → ADR-001: 段階的移行判断
+
+### Save Consolidation
+
 - [ ] 保存経路を一本化 (`RecordRepository` を唯一の保存窓口とする)
 - [ ] `RecordRepository` が唯一の保存窓口であることを証明
 - [ ] `saveState` 直接依存を削除 (record 保存が state.saveState を直接呼ばない構造へ)
 - [ ] legacy 保存経路を削除
-- [ ] 重複 sync 処理を削除
+
+### Save Architecture Validation
+
+- [ ] 保存機能の消失がないことを確認
+- [ ] 下書き保存が維持されることを確認
+- [ ] 一時保存が維持されることを確認
+- [ ] 自動保存が維持されることを確認
+- [ ] バックアップ保存が維持されることを確認
+- [ ] 復元機能が維持されることを確認
+- [ ] 保存失敗時にデータ欠損しないことを確認
+- [ ] 保存途中クラッシュ時に復元可能であることを確認
+- [ ] 重複保存でデータ破壊が発生しないことを確認
+
+## Save Protection Rules
+
+> RecordRepository 統合後も保存機能を削減してはならない。
+
+- [ ] 通常保存が維持されることを確認
+- [ ] 一時保存が維持されることを確認
+- [ ] 下書き保存が維持されることを確認
+- [ ] 自動保存が維持されることを確認
+- [ ] バックアップ保存が維持されることを確認
+- [ ] 復元保存が維持されることを確認
+- [ ] オフライン保存が維持されることを確認
+- [ ] クラウド同期が維持されることを確認
+
+## Sync Architecture
+
+> 保存と同期は別責務として監査する。
+
+### Sync Domain Audit
+
+- [x] 同期入口一覧作成 → ADR-001 参照:
+  - `record/save.js` → `syncRecordCloud()` → `cloudBackupAll()` (通常保存後)
+  - `record-three-card.js` fallback → `window.cloudBackupAll()` (delegate 未注入時のみ)
+- [x] SyncService 責務定義 → `supabase.js`: `cloudBackupAll()` / `syncRecordImmediately()` / `retrySyncPending()`
+
+- [x] local → cloud 同期経路整理 → `cloudBackupAll()` = 全state を Supabase upsert; `syncRecordImmediately()` = 個別 record upsert
+- [x] cloud → local 同期経路整理 → `hydration-guard.js` 経由の stale ブロック付きリストア
+- [x] retry 戦略整理 → `record.syncPending` フラグ + `retrySyncPending()` で起動時再試行
+- [x] conflict 解決戦略整理 → last-write-wins。cloudBackupAll の空レコード上書きガードあり。hydration-guard が stale 復元をブロック
+- [x] offline → online 復帰戦略整理 → `syncPending` フラグ → 次回起動時 `retrySyncPending()`
+
+### Sync Consolidation
+
+- [ ] 重複 sync 処理削除（削除前に責務差分を証明） → 三カード fallback 削除と連動 (ADR-001)
+- [ ] SyncService が唯一の同期窓口であることを証明 → 統合後に確認
+
+### Sync Validation
+
+- [ ] オフライン保存後に同期できることを確認
+- [ ] 同期失敗時に再試行できることを確認
+- [ ] conflict 解決が正常動作することを確認
+- [ ] cloud 復元が正常動作することを確認
+- [ ] データ欠損が発生しないことを確認
+- [ ] 同一レコード多重同期で重複作成されないことを確認
+- [ ] クラウド障害時にローカルデータが失われないことを確認
+- [ ] ネットワーク切断中も保存できることを確認
 
 ## Runtime
 
@@ -377,11 +475,13 @@
 > 当初計画と異なる判断になった場合も、
 > 最終的な採用理由を記録する。
 
-- [ ] ADR-001 Save Architecture 統合判断
+- [x] ADR-001 Save Architecture 統合判断 → `docs/adr/ADR-001-save-architecture.md`
 - [x] ADR-002 Runtime 統合判断 → `docs/adr/ADR-002-runtime-architecture.md`
 - [ ] ADR-003 Premium Source of Truth 統一判断
 - [ ] ADR-004 Disease Analyzer 標準化判断
 - [ ] ADR-005 Guard 責務吸収・廃止判断
+- [ ] ADR-006 Save Domain Boundary 判断
+- [ ] ADR-007 Sync Architecture 判断
 
 ---
 
@@ -597,6 +697,17 @@
 - [ ] Home Insight 構造化完了 (正規表現依存ゼロ・全 Generator が構造データを返す)
 - [ ] guard 責務吸収完了
 - [ ] 不要 guard 削除完了
+- [ ] 全保存種別維持確認
+- [ ] RecordRepository 境界定義完了
+- [ ] SyncService 境界定義完了
+- [ ] Record 保存経路一本化完了
+- [ ] Sync 経路一本化完了
+- [ ] UI 状態保存ルール文書化完了
+- [ ] 設定値保存ルール文書化完了
+- [ ] local → cloud 同期正常
+- [ ] cloud → local 同期正常
+- [ ] conflict 解決正常
+- [ ] offline 復帰正常
 
 ## Documentation
 
