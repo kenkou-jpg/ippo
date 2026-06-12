@@ -427,6 +427,44 @@
 
 - [ ] Phase 4-D 開始承認 → Phase 4-D 移植（約120関数）完了後に承認可能
 
+---
+
+## Phase 4-D Migration Log
+
+> 移植進捗を Batch 単位で記録する。
+> 各 Batch は「PR マージ済み」を完了条件とする。
+
+### Batch-1 — record-input.js 新設・currentRecord モジュール化
+
+> PR: feat/phase4d-batch1-record-input [#362](https://github.com/kenkou-jpg/ippo/pull/362)
+> テスト: 549/549 PASS (新規 80件 / 既存 469件 全回帰)
+> ステータス: **PR レビュー中**
+
+- [x] Start Gate Audit 完了 → `docs/phase4d-start-gate-audit.md` (判定 B・2026-06-12)
+- [x] Legacy Inventory 完了 → `docs/phase4d-legacy-migration-audit.md` (残存120関数・11 Batch 計画)
+- [x] B1-1: `src/modules/record-input.js` 新設 — `getCurrentRecord` / `setCurrentRecord` / `resetCurrentRecord` (6 tests)
+- [x] B1-2: Priority Group A 移植 — `getBodyCheckTitle` / `getDiseaseMorningQuestion` / `getDailyHint` (30 tests)
+- [x] B1-3: Render 系移植 — `renderBodyCheck` / `renderSymptomDetail` / `renderEmotion` / `renderFasting` + 入力ハンドラ9件 (20 tests)
+- [x] B1-4: `buildSteps` / `initSteps` / `getSteps` / `getCurrentStep` 移植 (15 tests)
+- [x] B1-5: `renderStep` / `nextStep` / `prevStep` 移植 (9 tests)
+- [ ] PR #362 マージ完了
+
+#### Batch-1 残存 Legacy Dependency (マージ後も継続)
+
+| 依存 | 理由 | 解消 Batch |
+|------|------|-----------|
+| `window.getState` | state.fastingEnabled / myDiseases | store/state.js 設定済み。Batch-X で import 化 |
+| `window.ICONS` | renderBodyCheck SVG | constants/icons.js 設定済み。Batch-X で import 化 |
+| `window.renderPainScale` | 痛みスケール描画 | pain-scale.js 設定済み。Batch-X で import 化 |
+| `window.DISEASE_CONFIG` | renderSymptomDetail | constants/disease.js 設定済み。Batch-X で import 化 |
+| `window.SYMPTOM_DETAIL_CONFIG` | appendSymptomDetail | app-legacy.js 設定済み。Batch-X で import 化 |
+| `window.saveRecord` | nextStep 末尾の保存呼び出し | Batch-2 で saveRecord 移植後に解消 |
+
+### Batch-2 — openRecordScreen / saveRecord / saveEditRecord (予定)
+
+- [ ] B2: `record.js` 拡充 — `openRecordScreen` / `editPastRecord` / `saveRecord` / `saveEditRecord`
+- [ ] PR 作成・マージ
+
 ### Phase 4-D — 最終廃止
 
 - [ ] オンボーディングフロー完全移植確認
@@ -1176,7 +1214,8 @@
 | Area | Status | Progress |
 |------|--------|----------|
 | Phase 4-C Protection Layer | 🟢 A (Code Complete) | 100% (PR-2A + PR-2B 完了・469/469 tests・2026-06-11) |
-| Legacy Removal | 🔴 Not Started | 0% (Phase 4-D 未着手) |
+| Phase 4-D Batch-1 | 🟡 PR Review | Batch-1/11 完了 (record-input.js・549/549・PR #362 レビュー中) |
+| Legacy Removal | 🟡 In Progress | 9% (Batch-1/11 PR 作成済み) |
 | Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
@@ -1192,7 +1231,7 @@
 
 > このファイルはすべての開発セッションで参照するマスターチェックリストです。
 > 各チェックが完了したら即座に更新し、Progress Dashboard を同期させてください。
-> 最終更新: 2026-06-11
+> 最終更新: 2026-06-12
 
 ---
 
