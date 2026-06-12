@@ -297,7 +297,7 @@
 - [x] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 - [x] `checkPremiumRegistered()` を `premium-service.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 
-### Phase 4-C — Module 新設・移植（約1,000行削減）
+### Phase 4-C — Module 新設・移植（約1,000行削減）<!-- 判定: A (Code Complete) 2026-06-11 — Protection Layer (PR-2A + PR-2B) 含む -->
 
 - [x] `src/modules/timeline.js` 新設 — renderTimeline / loadMoreTimeline / updateTimelineView 移植
 - [x] `src/modules/experiments.js` 新設 — openExperiments / startExperiment / _buildExperimentCompanion 移植
@@ -379,7 +379,7 @@
 - [x] window 依存除去完了 → ブロッカーなし確認済み（store/state.js・supabase.js が window に設定）
 - [x] 未分類関数ゼロ → `docs/legacy-dependency-map.md` §8 全198件分類完了
 - [x] app-legacy.js 依存一覧完成 → `docs/legacy-dependency-map.md` 完成
-- [x] 回帰テスト成功 → 440/440 (2026-06-11 確認)
+- [x] 回帰テスト成功 → 469/469 (2026-06-11 確認)
 - [x] 削除リスク評価完了 → 現時点での削除は不可。理由: 約120関数が app-legacy.js のみに実装。app.html onclick 60+箇所がこれらに依存。`main.js:52` の import が唯一のエントリーポイント。Phase 4-D の移植完了後に削除可能
 
 ## Phase 4-D Start Gate
@@ -650,7 +650,7 @@
 
 > 以下をすべて満たした場合のみ Step 10 を許可する。
 
-- [ ] **manualCloudRestore 移植完了 + Recovery Validation PASS**（P0 ブロッカー）
+- [ ] **manualCloudRestore 移植完了 + Recovery Validation PASS**（P0 ブロッカー）<!-- Code Audit PASS (PR-2A 9c9bb5d). 実機 Supabase Validation は Follow-up。-->
 - [ ] Step 1 SaveRecordScreen Validation Gate 完了
 - [ ] Step 2 Save Domain Audit 完了
 - [ ] Step 3 Legacy Migration Plan 全120件移植完了
@@ -680,7 +680,19 @@
 > （上記 Step 9 と同義。Step 9 完了で本セクションも完了扱いとする。）
 
 - [ ] **manualCloudRestore 移植完了** → `src/services/recovery.js` に export 済み・Recovery Validation PASS（P0 ブロッカー）
-- [ ] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行削除済み
+  - [x] recovery.js 移植（PR-2A `9c9bb5d`）
+  - [x] takeSnapshot('pre-restore') 実装
+  - [x] myDiseases / trackedConditions 保護（recovery.js 内 _safeMergeState → PR-2A）
+  - [x] autoRecoveryCheck の window 参照依存除去
+  - [x] persistRecords().catch() TypeError 修正（PR-2A.1）
+  - [x] cloudRestore trackedConditions / myDiseases 保護（safeMergeState 統一 → PR-2B `0918c81`）
+  - [x] PR-2B Post-Implementation Audit A 判定（2026-06-11）
+  - [x] Code Audit PASS / 469/469 tests PASS
+  - [x] プレビュー環境検証 PASS（snapshot 発火・Guard エラーなし）
+  - [ ] 実機 Supabase Cloud Restore 検証（BLOCKED: .env.local 未設定 → **次の Start Gate**）
+  - [ ] Cloud Count Validation（実機検証後）
+  - [ ] Rollback after Cloud Restore（実機検証後）
+- [x] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行コメントアウト済み（`app-legacy.js:10677`）
 - [ ] app-legacy.js 経由保存が発生しない
 - [ ] saveRecordScreen が RecordRepository 経由で保存する
 - [ ] SyncService 経由で同期する
@@ -782,6 +794,8 @@
 ### Sync Consolidation
 
 - [ ] 重複 sync 処理削除（削除前に責務差分を証明） → 三カード fallback 削除と連動 (ADR-001)。mergeRecords() の重複 (supabase.js / recovery.js) も統合対象 (ADR-007)
+  - [x] safeMergeState 統一済み → `src/utils/safe-merge-state.js`（PR-2B `0918c81`・監査 A 判定）
+  - [ ] mergeRecords() 重複残存（supabase.js / recovery.js に独立実装）→ Phase 4-D 後に統合
 - [ ] SyncService が唯一の同期窓口であることを証明 → cloudBackupAll() の直接呼び出し 3 経路を SyncService 経由に統一後に確認 (ADR-007)
 
 ### Sync Validation
@@ -1161,6 +1175,7 @@
 
 | Area | Status | Progress |
 |------|--------|----------|
+| Phase 4-C Protection Layer | 🟢 A (Code Complete) | 100% (PR-2A + PR-2B 完了・469/469 tests・2026-06-11) |
 | Legacy Removal | 🔴 Not Started | 0% (Phase 4-D 未着手) |
 | Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |

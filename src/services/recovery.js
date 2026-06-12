@@ -9,6 +9,7 @@ import { idbGetAllRecords, persistRecords } from '../modules/record-repository.j
 import { takeSnapshot } from '../runtime/rollback-manager.js';
 import { showSyncIndicator, hideSyncIndicator, showToast } from '../modules/ui-notifications.js';
 import { supabase } from './supabase.js';
+import { safeMergeState } from '../utils/safe-merge-state.js';
 
 // ─── mergeRecords ─────────────────────────────────────────────
 // R-2: ID なしレコードはスキップ（recovery.js 既存方式を採用）。
@@ -32,33 +33,6 @@ function mergeRecords(localRecords, cloudRecords) {
     if (!merged[k].deleted_at) result.push(merged[k]);
   });
   return result.sort(function (a, b) { return new Date(a.date) - new Date(b.date); });
-}
-
-// ─── _safeMergeState ──────────────────────────────────────────
-// R-3: myDiseases / trackedConditions を保護しながらクラウド状態をマージ。
-// 空配列・空オブジェクト・null はローカル値を維持する。
-function _safeMergeState(local, cloud) {
-  var merged = Object.assign({}, local);
-  Object.keys(cloud).forEach(function (key) {
-    // currentScreen は UI 状態であり永続化しない（P0-FIX-2 準拠）
-    if (key === 'currentScreen') return;
-    var cv = cloud[key];
-    if (cv === undefined || cv === null) return;
-
-    // myDiseases: 空配列はローカル値を消さない
-    if (key === 'myDiseases') {
-      if (!Array.isArray(cv) || cv.length === 0) return;
-    }
-
-    // trackedConditions: 空配列・空オブジェクトはローカル値を消さない（R-3）
-    if (key === 'trackedConditions') {
-      if (Array.isArray(cv) && cv.length === 0) return;
-      if (typeof cv === 'object' && !Array.isArray(cv) && Object.keys(cv).length === 0) return;
-    }
-
-    merged[key] = cv;
-  });
-  return merged;
 }
 
 // ─── manualCloudRestore ───────────────────────────────────────
@@ -114,7 +88,7 @@ export function manualCloudRestore() {
         var mergedCount = mergedRecords.length;
 
         // 設定系マージ（R-3: myDiseases / trackedConditions 保護）
-        var mergedState = _safeMergeState(getState(), cloudState);
+        var mergedState = safeMergeState(getState(), cloudState);
         mergedState.records = mergedRecords;
         var rawDate = result.data.updated_at;
         mergedState.lastSaved = rawDate
@@ -127,10 +101,8 @@ export function manualCloudRestore() {
         // 保存（save-transaction-guard + takeSnapshot('pre-save') 経由）
         saveState();
 
-        // R-4: IDB 同期（Diagnostics との件数整合）
-        persistRecords().catch(function (e) {
-          console.warn('[manualCloudRestore] persistRecords 失敗:', e);
-        });
+        // R-4: localStorage 更新（saveState 経由。persistRecords は boolean を返す。IDB は書き込まない）
+        persistRecords();
 
         // ippo_last_record_count 更新（autoRecoveryCheck の二重起動防止）
         localStorage.setItem('ippo_last_record_count', String(mergedCount));
