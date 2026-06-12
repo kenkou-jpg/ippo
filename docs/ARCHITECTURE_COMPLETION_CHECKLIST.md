@@ -297,7 +297,7 @@
 - [x] `showRecoveryGuide()` / `showBingeUrgeSupport()` を `services/recovery-journey.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 - [x] `checkPremiumRegistered()` を `premium-service.js` へ移植後 legacy 側削除（Phase 4-C 完了）
 
-### Phase 4-C — Module 新設・移植（約1,000行削減）
+### Phase 4-C — Module 新設・移植（約1,000行削減）<!-- 判定: A (Code Complete) 2026-06-11 — Protection Layer (PR-2A + PR-2B) 含む -->
 
 - [x] `src/modules/timeline.js` 新設 — renderTimeline / loadMoreTimeline / updateTimelineView 移植
 - [x] `src/modules/experiments.js` 新設 — openExperiments / startExperiment / _buildExperimentCompanion 移植
@@ -689,9 +689,9 @@
   - [x] PR-2B Post-Implementation Audit A 判定（2026-06-11）
   - [x] Code Audit PASS / 469/469 tests PASS
   - [x] プレビュー環境検証 PASS（snapshot 発火・Guard エラーなし）
-  - [ ] 実機 Supabase Cloud Restore 検証（BLOCKED: .env.local 未設定）
-  - [ ] Cloud Count Validation
-  - [ ] Rollback after Cloud Restore
+  - [ ] 実機 Supabase Cloud Restore 検証（BLOCKED: .env.local 未設定 → **次の Start Gate**）
+  - [ ] Cloud Count Validation（実機検証後）
+  - [ ] Rollback after Cloud Restore（実機検証後）
 - [x] **window.manualCloudRestore 参照が recovery.js 版を指していること** → app-legacy.js 側の window 公開行コメントアウト済み（`app-legacy.js:10677`）
 - [ ] app-legacy.js 経由保存が発生しない
 - [ ] saveRecordScreen が RecordRepository 経由で保存する
@@ -1175,6 +1175,7 @@
 
 | Area | Status | Progress |
 |------|--------|----------|
+| Phase 4-C Protection Layer | 🟢 A (Code Complete) | 100% (PR-2A + PR-2B 完了・469/469 tests・2026-06-11) |
 | Legacy Removal | 🔴 Not Started | 0% (Phase 4-D 未着手) |
 | Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |
