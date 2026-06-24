@@ -9,6 +9,7 @@ export interface SimilarityEdge {
   caseIdA: CaseID;   // always < caseIdB (lexicographic)
   caseIdB: CaseID;
   score: number;     // 0.0 - 1.0
+  reasons: string[];
   computedAt: Timestamp;
 }
 
