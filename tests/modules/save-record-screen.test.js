@@ -158,6 +158,19 @@ describe('saveRecordScreen — モジュール実装', () => {
     expect(mockState.totalDays).toBe(11);
   });
 
+  it('保存後 state.records は配列のまま（非配列にならない）', () => {
+    saveRecordScreen();
+    expect(Array.isArray(mockState.records)).toBe(true);
+  });
+
+  it('保存後 state.records に今日のレコードが含まれる', () => {
+    const today = new Date().toISOString().slice(0, 10);
+    saveRecordScreen();
+    expect(Array.isArray(mockState.records)).toBe(true);
+    const saved = mockState.records.find(r => r.record_date === today);
+    expect(saved).toBeDefined();
+  });
+
   it('既存日付レコードの場合 totalDays は変わらない', () => {
     const today = new Date().toISOString().slice(0, 10);
     mockState.records = [{ record_date: today, painLevel: 3 }];
