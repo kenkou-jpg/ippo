@@ -223,12 +223,13 @@ describe('CompositionRoot PR-012 — adapter resolution', () => {
     expect(auth).toBeInstanceOf(IAuthService);
   });
 
-  it('RecordRepository remains null stub (not yet migrated)', async () => {
+  it('RecordRepository resolves to RecordRepositoryImpl (PR-013 migrated)', async () => {
     const { CompositionRoot } = await import('../../src/application/composition-root.js');
+    const { RecordRepositoryImpl } = await import('../../src/repositories/record/record-repository.js');
     const c = new DependencyContainer();
     const r = new RouteRegistry();
     new CompositionRoot(c, r, loadBootstrapConfig()).assemble();
-    expect(c.resolve(TOKENS.RecordRepository)).toBeNull();
+    expect(c.resolve(TOKENS.RecordRepository)).toBeInstanceOf(RecordRepositoryImpl);
   });
 });
 

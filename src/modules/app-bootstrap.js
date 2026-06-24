@@ -13,6 +13,9 @@ import { migrateToIDB }     from '../services/storage-migration.js';
 import { supabase, initialCloudSync, cloudRestore } from '../services/supabase.js';
 import { autoRecoveryCheck } from '../services/recovery.js';
 import { checkPremiumRegistered } from './premium/premium-service.js';
+// PR-013: route state reads through StorageService adapter instead of raw localStorage
+import { LocalStorageAdapter } from '../adapters/storage/local-storage-adapter.js';
+const _bootstrapStorage = new LocalStorageAdapter();
 
 // totalDays / streak の整合性を records から再計算して修復する
 function repairStats(state) {
@@ -80,11 +83,19 @@ export function bootstrap() {
   migrateStorageKeys();
 
   // ── 1. State hydration ────────────────────────────────────
-  const saved = localStorage.getItem(STATE_KEY);
+  // PR-013: read via StorageService adapter (decouples from raw localStorage)
+  const savedState = _bootstrapStorage.get(STATE_KEY);
 
-  if (saved) {
+  if (savedState && typeof savedState === 'object') {
     try {
-      setState({ ...INITIAL_STATE, ...JSON.parse(saved) });
+      setState({ ...INITIAL_STATE, ...savedState });
+    } catch (e) {
+      setState({ ...INITIAL_STATE });
+    }
+  } else if (typeof savedState === 'string') {
+    // Legacy: StorageService may return a raw string if JSON.parse fails inside adapter
+    try {
+      setState({ ...INITIAL_STATE, ...JSON.parse(savedState) });
     } catch (e) {
       setState({ ...INITIAL_STATE });
     }
@@ -195,7 +206,8 @@ export function bootstrap() {
 
         if (acs) acs.markCloudRestored();
 
-        var cloudData = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+        // PR-013: read via StorageService adapter
+        var cloudData = _bootstrapStorage.get(STATE_KEY) ?? {};
         // hydration guard: local の新しい records をクラウドデータで上書きしない
         var guard = window.ippoHydrationGuard;
         if (guard && typeof guard.checkHydration === 'function') {

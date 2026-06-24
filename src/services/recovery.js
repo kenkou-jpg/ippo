@@ -6,6 +6,9 @@
 
 import { getState, setState, saveState } from '../store/state.js';
 import { idbGetAllRecords, persistRecords } from '../modules/record-repository.js';
+// PR-013: route ippo_last_record_count through StorageService adapter
+import { LocalStorageAdapter } from '../adapters/storage/local-storage-adapter.js';
+const _recoveryStorage = new LocalStorageAdapter();
 import { takeSnapshot } from '../runtime/rollback-manager.js';
 import { showSyncIndicator, hideSyncIndicator, showToast } from '../modules/ui-notifications.js';
 import { supabase } from './supabase.js';
@@ -105,7 +108,7 @@ export function manualCloudRestore() {
         persistRecords();
 
         // ippo_last_record_count 更新（autoRecoveryCheck の二重起動防止）
-        localStorage.setItem('ippo_last_record_count', String(mergedCount));
+        _recoveryStorage.set('ippo_last_record_count', mergedCount);
 
         // UI 再描画
         if (typeof window.updateStats === 'function') window.updateStats();
@@ -131,7 +134,7 @@ export function manualCloudRestore() {
 // ─── autoRecoveryCheck ────────────────────────────────────────
 export function autoRecoveryCheck() {
   var s = getState() || {};
-  var lastCount    = parseInt(localStorage.getItem('ippo_last_record_count') || '0');
+  var lastCount    = Number(_recoveryStorage.get('ippo_last_record_count') ?? 0);
   var currentCount = (s.records || []).length;
 
   if (lastCount > 0 && currentCount < lastCount && lastCount - currentCount >= 2) {
@@ -147,7 +150,7 @@ export function autoRecoveryCheck() {
         var mergedCount = mergedRecords.length;
         if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, mergedCount);
         console.log('IndexedDBから自動復元: ' + mergedCount + '件');
-        localStorage.setItem('ippo_last_record_count', String(mergedCount));
+        _recoveryStorage.set('ippo_last_record_count', mergedCount);
         return true;
       }
 
@@ -163,7 +166,7 @@ export function autoRecoveryCheck() {
       return cloudRestore.then(function () {
         var afterState = getState() || {};
         if (typeof window.showRecoveryBanner === 'function') window.showRecoveryBanner(true, (afterState.records || []).length);
-        localStorage.setItem('ippo_last_record_count', String((afterState.records || []).length));
+        _recoveryStorage.set('ippo_last_record_count', (afterState.records || []).length);
         return true;
       });
     }).catch(function (e) {
@@ -173,7 +176,7 @@ export function autoRecoveryCheck() {
     });
   }
 
-  localStorage.setItem('ippo_last_record_count', String(currentCount));
+  _recoveryStorage.set('ippo_last_record_count', currentCount);
   return Promise.resolve(false);
 }
 
