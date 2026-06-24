@@ -183,7 +183,8 @@ import './modules/settings-display-runtime.js';
 import { startPremiumSync } from './modules/premium/premium-service.js';
 
 // ─── Phase E (Step 1/5): startup bootstrap ───────────────
-import { bootstrap } from './modules/app-bootstrap.js';
+// PR-011: routed through Bootstrap → CompositionRoot → LegacyBridge → modules/app-bootstrap
+import { boot } from './bootstrap/app-bootstrap.js';
 
 // ─── Phase E (Step 3): home renderer ─────────────────────
 import './modules/home-renderer.js';
@@ -367,7 +368,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
 }
 
 // ─── Startup ownership signal ────────────────────────────
-bootstrap();
+boot();
 
 // P0-FIX-4: 起動時にドラフト復元プロンプトを確認
 // bootstrap 後に実行（state hydration 完了後）

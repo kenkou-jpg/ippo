@@ -1,0 +1,40 @@
+// Feature Registry — registers feature descriptors, no implementations
+// PR-012+ will swap each feature from { status:'legacy' } to a real adapter.
+const KNOWN_FEATURES = new Set([
+  'Record',
+  'Experiment',
+  'Case',
+  'Consent',
+  'Analytics',
+  'Similarity',
+  'Auth',
+  'B2BExport',
+]);
+
+export class RouteRegistry {
+  #features = new Map();
+
+  register(name, descriptor) {
+    if (!KNOWN_FEATURES.has(name)) {
+      console.error(`[RouteRegistry] Unknown feature: "${name}". Known: ${[...KNOWN_FEATURES].join(', ')}`);
+      return;
+    }
+    if (this.#features.has(name)) {
+      console.error(`[RouteRegistry] Feature already registered: "${name}"`);
+      return;
+    }
+    this.#features.set(name, Object.freeze({ name, ...descriptor }));
+  }
+
+  getAll() {
+    return new Map(this.#features);
+  }
+
+  isRegistered(name) {
+    return this.#features.has(name);
+  }
+
+  get knownFeatures() {
+    return [...KNOWN_FEATURES];
+  }
+}
