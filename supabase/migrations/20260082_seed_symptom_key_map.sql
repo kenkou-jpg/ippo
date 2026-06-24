@@ -10,6 +10,11 @@ CREATE TABLE IF NOT EXISTS public._migration_symptom_key_map (
   en_key  text NOT NULL REFERENCES public.symptoms(key)
 );
 
+-- dizziness を symptoms に追加（FK制約のため bulk INSERT より前に実行）
+INSERT INTO public.symptoms (key, display_name_ja, display_name_en, layer, is_sensitive)
+VALUES ('dizziness', 'めまい', 'Dizziness', 3, false)
+ON CONFLICT (key) DO NOTHING;
+
 INSERT INTO public._migration_symptom_key_map (ja_key, en_key) VALUES
   ('下腹部痛',         'lower_abdominal_pain'),
   ('腰痛',             'lower_back_pain'),
@@ -70,15 +75,7 @@ INSERT INTO public._migration_symptom_key_map (ja_key, en_key) VALUES
   ('無月経',           'abnormal_bleeding')
 ON CONFLICT (ja_key) DO NOTHING;
 
--- dizziness は symptoms に追加（めまい対応）
-INSERT INTO public.symptoms (key, display_name_ja, display_name_en, layer, is_sensitive)
-VALUES ('dizziness', 'めまい', 'Dizziness', 3, false)
-ON CONFLICT (key) DO NOTHING;
-
--- _migration_symptom_key_map に dizziness を追加
-UPDATE public._migration_symptom_key_map SET en_key = 'dizziness' WHERE ja_key = 'めまい';
-INSERT INTO public._migration_symptom_key_map (ja_key, en_key)
-VALUES ('めまい', 'dizziness') ON CONFLICT DO NOTHING;
+-- (dizziness は上部で既にINSERT済み)
 
 -- ── Backfill: records.symptom_keys を英語キーに変換 ──────────────
 -- このブロックは records テーブルに symptom_keys カラムが存在する前提
