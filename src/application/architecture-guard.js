@@ -5,6 +5,7 @@
 // PR-011.5: contract must be a leaf node (no domain/repo/ui imports)
 // PR-012:   feature must not reach localStorage/Supabase/legacy directly
 // PR-013:   UI/screens must not import repositories directly; Repository → StorageService only
+// PR-014:   feature/screen must not reach RecordV2Store or DiffLog directly
 const FORBIDDEN = [
   // PR-011
   { from: /\/features\/[^/]+\//, to: /\/features\/[^/]+\//, label: 'feature→feature'      },
@@ -23,6 +24,12 @@ const FORBIDDEN = [
   { from: /\/features\//,        to: /\/repositories\//,    label: 'feature→repository'   },
   // PR-013 — repositories must only depend on StorageService (not UI, not other repos)
   { from: /\/repositories\//,    to: /\/repositories\//,    label: 'repository→repository'},
+  // PR-014 — features/screens must not reach RecordV2Store or DiffLog directly
+  //           (they are internal to DualWriteRecordRepository; access via RecordCommandService)
+  { from: /\/features\//,        to: /record-v2-store/,     label: 'feature→RecordV2Store'  },
+  { from: /\/screens\//,         to: /record-v2-store/,     label: 'screen→RecordV2Store'   },
+  { from: /\/features\//,        to: /diff-log-repository/, label: 'feature→DiffLog'        },
+  { from: /\/screens\//,         to: /diff-log-repository/, label: 'screen→DiffLog'         },
 ];
 
 export function runArchitectureGuard() {

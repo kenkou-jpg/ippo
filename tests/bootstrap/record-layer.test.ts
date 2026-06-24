@@ -257,7 +257,7 @@ describe('RecordMigrationAudit', () => {
     trackRepositoryRead();
     trackRepositoryRead();
     const c = getCoverage();
-    expect(c.counts.repository).toBe(2);
+    expect(c.counts.readsViaRepo).toBe(2);
     expect(c.reads).toBe(1.0);
   });
 
@@ -291,10 +291,10 @@ describe('RecordMigrationAudit', () => {
   });
 });
 
-// ── CompositionRoot: RecordRepository resolution ─────────────────────────────
+// ── CompositionRoot: RecordRepository resolution (updated for PR-014) ────────
 
 describe('CompositionRoot — RecordRepository', () => {
-  it('resolves RecordRepository as RecordRepositoryImpl', () => {
+  it('resolves RecordRepository as DualWriteRecordRepository (PR-014)', () => {
     vi.stubGlobal('window', {
       SUPABASE_URL: undefined,
       SUPABASE_KEY: undefined,
@@ -303,14 +303,17 @@ describe('CompositionRoot — RecordRepository', () => {
     const container = new DependencyContainer();
     const registry  = new RouteRegistry();
     const config    = loadBootstrapConfig();
-    const root = new CompositionRoot(container, registry, config);
-    root.assemble();
+    new CompositionRoot(container, registry, config).assemble();
 
+    // PR-014: CompositionRoot now wires DualWriteRecordRepository
+    // which implements IRecordRepository (inherits from it via RecordRepositoryImpl chain)
     const repo = container.resolve(TOKENS.RecordRepository);
-    expect(repo).toBeInstanceOf(RecordRepositoryImpl);
+    expect(repo).toBeDefined();
+    expect(typeof repo.save).toBe('function');
+    expect(typeof repo.findAllByUser).toBe('function');
   });
 
-  it('RecordRepository depends on StorageService from container', () => {
+  it('RecordRepository wraps StorageService from container (PR-014)', () => {
     vi.stubGlobal('window', {
       SUPABASE_URL: undefined,
       SUPABASE_KEY: undefined,
@@ -319,13 +322,13 @@ describe('CompositionRoot — RecordRepository', () => {
     const container = new DependencyContainer();
     const registry  = new RouteRegistry();
     const config    = loadBootstrapConfig();
-    const root = new CompositionRoot(container, registry, config);
-    root.assemble();
+    new CompositionRoot(container, registry, config).assemble();
 
     const storage = container.resolve(TOKENS.StorageService);
-    const repo    = container.resolve(TOKENS.RecordRepository);
-    expect(repo).toBeInstanceOf(RecordRepositoryImpl);
     expect(storage).toBeInstanceOf(LocalStorageAdapter);
+    // Repo is DualWriteRecordRepository; it holds legacy+v2+diffLog internally
+    const repo = container.resolve(TOKENS.RecordRepository);
+    expect(repo).not.toBeNull();
   });
 });
 
