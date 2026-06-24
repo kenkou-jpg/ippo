@@ -1,9 +1,14 @@
 // ============================================================
 //  src/domains/record/RecordRepository.js
 //  Record ドメイン — Repository Pattern
-//  CONSTITUTION: domains/ は infrastructure/ に依存しない
 //  SCHEMA_V1 C-1: record_date は DATE型・タイムゾーンなし
 //  SCHEMA_V1 C-9: UNIQUE(user_id, record_date) — 1日1レコード
+//
+//  ⚠️  ARCHITECTURE VIOLATION (tracked: PR-001.1)
+//  This file imports supabase directly — a domain must NOT depend on infra.
+//  Migration target: implement infrastructure/record/IRecordRepository
+//  and move supabase calls to infrastructure/record/supabase.record.repository.ts
+//  Status: LEGACY — do not add new supabase imports here. Fix in PR-002.
 // ============================================================
 
 import { supabase } from '../../services/supabase.js';

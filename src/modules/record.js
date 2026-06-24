@@ -23,6 +23,7 @@ import {
 } from './record/save.js';
 import { switchTab } from './tab-navigation.js';
 import { upsertRecord } from './record-upsert.js';
+import { applyRecordToStreakState } from '../../domains/record/record.service.js';
 
 
 let lastRecordSaveContext = null;
@@ -459,26 +460,20 @@ function _saveRecordScreenImpl() {
   }
 
   const prevRecords = Array.isArray(state.records) ? state.records : [];
-  const nextRecords = upsertRecord(prevRecords, draft);
+  const nextRecords = upsertRecord(prevRecords, draft).records;
   state.records = nextRecords;
 
-  // 新規レコードかどうか（streak / totalDays 更新用）
-  const isNew = !prevRecords.some(function(r) {
-    const d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
-    return d === draft.record_date;
+  // Streak / totalDays — delegated to domain service (pure, no side effects)
+  const legacyRecords = prevRecords.map(function(r) {
+    return { recordDate: r.record_date || '', date: r.date || '' };
   });
-
-  if (isNew) {
-    state.totalDays = (state.totalDays || 0) + 1;
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yStr = yesterday.toDateString();
-    const hadYesterday = prevRecords.some(function(r) {
-      return r.date && new Date(r.date).toDateString() === yStr;
-    });
-    state.streak = state.streak || 0;
-    state.streak = (hadYesterday || state.streak === 0) ? state.streak + 1 : 1;
-  }
+  const nextStreakState = applyRecordToStreakState(
+    legacyRecords,
+    { streak: state.streak || 0, totalDays: state.totalDays || 0 },
+    draft.record_date,
+  );
+  state.streak = nextStreakState.streak;
+  state.totalDays = nextStreakState.totalDays;
 
   // 3. window.saveState で永続化（legacy / module 両対応）
   const saveStateFn = typeof window.saveState === 'function' ? window.saveState : null;
