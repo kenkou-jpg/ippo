@@ -3,6 +3,11 @@ import type { ID, Timestamp } from "../../shared/types/base";
 // Frozen: RD-003 — PAUSED is permanently excluded
 export type ExperimentStatus = "DRAFT" | "ACTIVE" | "COMPLETED" | "ABANDONED";
 
+export type ExperimentOriginType =
+  | "user_initiated"
+  | "suggestion_accepted"
+  | "suggestion_modified";
+
 // Frozen: RD-003 — PAUSED/RESUMED permanently excluded
 export type ExperimentEventType =
   | "CREATED"
@@ -16,6 +21,8 @@ export interface ExperimentEntity {
   userId: ID;
   title: string;
   hypothesis: string;
+  originType: ExperimentOriginType;
+  triggerContext: string | null;
   startDate: string;       // YYYY-MM-DD
   plannedEndDate: string;  // YYYY-MM-DD
   actualEndDate: string | null;
