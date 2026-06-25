@@ -41,6 +41,9 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | Phase 7 PR-020 | src/domains/auth/ + src/application/api-gateway.js — Auth Domain & API Gateway（UserSession / AuthContext / PermissionPolicy / RoleResolver / PermissionService / SimilarityAccessGuard / ApiGateway） | 完了 |
 | Phase 7 PR-021 | src/repositories/record/record-v2-* + src/application/record-migration-service.js + src/domains/case/case-generated-event.js + src/application/tier-progress-service.js + src/application/profile-formation-service.js + src/application/disease-tag-validator.js + src/application/wave1-metrics-service.js — Record V2 ReadSwitch + UX Foundation | 完了 |
 | Phase 7 PR-022 | src/domains/engagement/ + src/domains/consent/consent-motivation-service.js + src/repositories/b2b/ + src/contracts/IB2BExportRepository.js + src/application/engagement-metrics.js — Engagement & Consent Layer | 完了 |
+| Phase 7 PR-023 | src/domains/communication/ — Wave1 Communication Decision Layer（NotificationScheduleService / NotificationTemplateService / CommunicationAuditLog / CommunicationMetrics / CommunicationRepository） | 完了 |
+| Phase 7 PR-024 | src/domains/delivery/ + src/domains/analytics/ — Wave1 Delivery & Admin Analytics Layer（DeliveryQueue / DeliveryAuditLog / DeliveryScheduler / DeliveryRepository / KpiSnapshot / KpiRepository / Wave1DashboardService / TD-4修正） | 完了 |
+| Phase 7 PR-025 | src/contracts/INotificationProvider.js + src/adapters/notification/ + src/domains/delivery/delivery-processor.js + src/domains/delivery/delivery-metrics.js — Delivery Infrastructure Completion（MockNotificationProvider / NotificationProviderAdapter / DeliveryProcessor / DeliveryMetrics） | 完了 |
 
 ---
 
@@ -90,22 +93,26 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 - 既存DBテーブル: profiles / records / user_data / user_records / subscriptions（5つのみ）
 - **ドメイン層（TypeScript）: 全7ドメイン実装済み**
   - domains/record / experiment / case / consent / similarity / analytics / b2b
-- **Strangler-Fig移行層（JavaScript）: PR-011〜PR-022 完了**
+- **Strangler-Fig移行層（JavaScript）: PR-011〜PR-025 完了**
   - Bootstrap層: DI Container / CompositionRoot / RouteRegistry / ArchitectureGuard
-  - Contract層: 9インターフェース（IStorageService / IRecordRepository / IExperimentRepository / IConsentRepository / ICaseRepository / IAnalyticsService / ISimilarityService / IAuthService / IB2BExportRepository）
+  - Contract層: 10インターフェース（IStorageService / IRecordRepository / IExperimentRepository / IConsentRepository / ICaseRepository / IAnalyticsService / ISimilarityService / IAuthService / IB2BExportRepository / INotificationProvider）
   - Infrastructure層: LocalStorageAdapter / LegacyAuthAdapter / LegacyAccessAudit
   - Record層: RecordRepositoryImpl / RecordMapper / DualWriteRecordRepository / RecordV2Repository / RecordReadSwitch / RecordReadSwitchRepository / RecordMigrationService
   - Dual Write層: RecordV2Store（shadow） / RecordDiffEngine / DiffLogRepository / MigrationDashboard
   - Experiment層: ExperimentRepositoryImpl / ExperimentMapper / ExperimentQueryService / ExperimentCommandService / ExperimentMigrationAudit / ExperimentStateMachine / ExperimentLifecycleService / TransitionAudit
-  - Case層: CaseCandidateBuilder / CaseEligibility / CaseRepositoryImpl / CaseGenerationService（eventPublisher対応）/ TierEvaluator（getTierThresholds追加）/ OutcomeResolver / CaseIdGenerator / CaseAuditLog / CandidateAudit / CaseGeneratedEvent（append-only）
+  - Case層: CaseCandidateBuilder / CaseEligibility / CaseRepositoryImpl / CaseGenerationService（eventPublisher対応）/ TierEvaluator / OutcomeResolver / CaseIdGenerator / CaseAuditLog / CandidateAudit / CaseGeneratedEvent（append-only）
   - Consent層: ConsentRepositoryImpl / ConsentMapper / ConsentEnforcementService / ConsentAuditLog / ConsentMotivationService
   - Similarity層: FeatureExtractor / SimilarityCandidate / SimilarityCandidateBuilder / VectorBuilder（8次元cosine）/ SimilarityCalculator / EdgeGenerator（threshold=0.5）/ ConsentFilter（consent≥2）/ SimilarityEngine / SimilarityAuditLog / SimilarityRepositoryImpl / SimilarityAccessGuard
   - Auth層: UserSession / AuthContext / PermissionPolicy / RoleResolver / PermissionService / AuthError
   - UX Foundation層: TierProgressService / ProfileFormationService / DiseaseTagValidator / Wave1MetricsService
   - Engagement層: ExperimentNudgeService / CommitmentService / OutcomeReminderService / EngagementMetrics
   - B2BExport層: IB2BExportRepository / B2BExportRepositoryImpl / ExportMapper
-  - API Gateway: ApiGateway（12メソッド、全UI→Repository直アクセス禁止）
-  - **テスト: 629件以上 パス（bootstrap/ 11ファイル）**
+  - Communication層: NotificationScheduleService / NotificationTemplateService / CommunicationAuditLog / CommunicationMetrics / CommunicationRepository
+  - Delivery層: DeliveryQueue / DeliveryAuditLog / DeliveryScheduler / DeliveryRepository / DeliveryProcessor / DeliveryMetrics
+  - Notification Adapter層: INotificationProvider / MockNotificationProvider / NotificationProviderAdapter
+  - Analytics（Admin）層: KpiSnapshot / KpiRepository / Wave1DashboardService
+  - API Gateway: ApiGateway（22メソッド、全UI→Repository直アクセス禁止）
+  - **テスト: 734件 全パス（bootstrap/ 16ファイル）**
 
 ---
 
@@ -123,7 +130,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | SimilarityService | ISimilarityService | SimilarityEngine | PR-019 ✓ | active |
 | PermissionService | — | PermissionService | PR-020 ✓ | active |
 | SimilarityAccessGuard | — | SimilarityAccessGuard | PR-020 ✓ | active |
-| ApiGateway | — | ApiGateway | PR-020 ✓ | active |
+| ApiGateway | — | ApiGateway | PR-020〜025 ✓ | active |
 | RecordV2Repository | IRecordRepository | RecordV2Repository | PR-021 ✓ | read-switch-ready |
 | RecordMigrationService | — | RecordMigrationService | PR-021 ✓ | read-switch-ready |
 | TierProgressService | — | TierProgressService | PR-021 ✓ | active |
@@ -134,16 +141,32 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | OutcomeReminderService | — | OutcomeReminderService | PR-022 ✓ | active |
 | ConsentMotivationService | — | ConsentMotivationService | PR-022 ✓ | active |
 | B2BExportRepository | IB2BExportRepository | B2BExportRepositoryImpl | PR-022 ✓ | bridged |
+| CommunicationRepository | — | CommunicationRepository | PR-023 ✓ | active |
+| CommunicationAuditLog | — | CommunicationAuditLog | PR-023 ✓ | active |
+| CommunicationMetrics | — | CommunicationMetrics | PR-023 ✓ | active |
+| NotificationScheduleService | — | NotificationScheduleService | PR-023 ✓ | active |
+| NotificationTemplateService | — | NotificationTemplateService | PR-023 ✓ | active |
+| DeliveryRepository | — | DeliveryRepository | PR-024 ✓ | active |
+| DeliveryQueue | — | DeliveryQueue | PR-024 ✓ | active |
+| DeliveryAuditLog | — | DeliveryAuditLog | PR-024 ✓ | active |
+| DeliveryScheduler | — | DeliveryScheduler | PR-024 ✓ | active |
+| KpiRepository | — | KpiRepository | PR-024 ✓ | active |
+| KpiSnapshot | — | KpiSnapshot | PR-024 ✓ | active |
+| Wave1DashboardService | — | Wave1DashboardService | PR-024 ✓ | active |
+| NotificationProvider | INotificationProvider | MockNotificationProvider | PR-025 ✓ | mock(Wave1) |
+| NotificationProviderAdapter | — | NotificationProviderAdapter | PR-025 ✓ | active |
+| DeliveryProcessor | — | DeliveryProcessor | PR-025 ✓ | active |
+| DeliveryMetrics | — | DeliveryMetrics | PR-025 ✓ | active |
 | AnalyticsService | IAnalyticsService | null stub | 未実装 | legacy |
 
 ---
 
-## RouteRegistry — KNOWN_FEATURES（PR-022時点）
+## RouteRegistry — KNOWN_FEATURES（PR-025時点）
 
 ```
 Record / Experiment / Case / Consent / Analytics / Similarity
-Auth / API / RecordV2 / Engagement / B2BExport
-計11件
+Auth / API / RecordV2 / Engagement / B2BExport / Communication / Delivery
+計13件
 ```
 
 ---
@@ -157,17 +180,21 @@ Auth / API / RecordV2 / Engagement / B2BExport
 - Service Locator パターン: **禁止**
 - Singleton 乱用: **禁止**
 - feature / screen → RecordV2Store / DiffLog 直接参照: **禁止**
-- feature / screen → EngagementDomain 直接参照: **禁止**（PR-022追加）
-- feature / screen → StorageService 直接参照: **禁止**（PR-022追加）
+- feature / screen → EngagementDomain 直接参照: **禁止**
+- feature / screen → StorageService 直接参照: **禁止**
+- feature / screen → DeliveryQueue / DeliveryProcessor 直接参照: **禁止**（PR-024追加）
 - similarity_edges DELETE: **禁止**（immutable audit trail）
 - consent_events DELETE: **禁止**（法的監査ログ）
+- 全AuditLog（CommunicationAuditLog / DeliveryAuditLog / KpiSnapshot）: **Append Only（DELETE/UPDATE禁止）**
 - UI → ApiGateway → Application → Repository: **この経路のみ許可**
 - window.supabase 直接参照: **禁止**
 - Repository直アクセス（UI層から）: **禁止**
+- Push Provider直実装（FCM/OneSignal/APNs/Firebase SDK）: **Wave1期間中禁止**
+- Similarity結果のUI公開: **Wave1期間中禁止**
 
 ---
 
-## API Gateway メソッド一覧（PR-022時点）
+## API Gateway メソッド一覧（PR-025時点）
 
 | メソッド | 権限 | PR |
 |---|---|---|
@@ -184,6 +211,51 @@ Auth / API / RecordV2 / Engagement / B2BExport
 | createCommitment({experimentId, targetDays}) | experiment:write | PR-022 |
 | getOutcomeReminders(experiments) | experiment:read | PR-022 |
 | getConsentMotivation(currentLevel) | record:read | PR-022 |
+| getDueNotifications(userContext) | record:read | PR-023 |
+| getNotificationPreview(notificationType) | record:read | PR-023 |
+| getCommunicationMetrics() | record:read | PR-023 |
+| scheduleNotifications(userContext) | record:read | PR-024 |
+| getWave1Dashboard({users}) | admin:dashboard | PR-024 |
+| getCommunicationDashboard() | admin:dashboard | PR-024 |
+| getKpiSnapshots() | admin:dashboard | PR-024 |
+| processPendingNotifications() | admin:dashboard | PR-025 |
+| getDeliveryMetrics() | admin:dashboard | PR-025 |
+
+---
+
+## Communication / Delivery 仕様（PR-023〜025確定）
+
+### NOTIFICATION_TYPES（7種）
+
+| type | 発火条件 |
+|---|---|
+| DAY1_RECORD | !day1Recorded && consecutiveDays === 0 |
+| DAY3_EXPERIMENT_NUDGE | consecutiveDays >= 3 && !hasActiveExperiment |
+| DAY7_SUMMARY | consecutiveDays >= 7 |
+| DAY15_PROFILE_FORMING | profileFormationStage === 'FORMING' |
+| PROFILE_READY | caseGeneratedEvents.length > 0 |
+| OUTCOME_REMINDER | terminal experiment + overdueDays >= 1 |
+| CONSENT_MOTIVATION | consentLevel < 2 |
+
+### DELIVERY_STATUS 状態遷移
+
+```
+PENDING → SCHEDULED → DELIVERED
+                    → FAILED
+PENDING → FAILED（no_template時）
+```
+
+### TD-4修正（Metrics二重計上）
+
+- `getDueNotifications()` は pure（side effect なし）
+- `scheduleNotifications()` → DeliveryScheduler → 新規のみ metrics.record()
+- DeliverySchedulerが当日の CommunicationAuditLog を確認してdedup
+
+### NotificationProvider 差し替え方針
+
+- Wave1: MockNotificationProvider（常にsuccess:true）
+- Wave2以降: CompositionRoot の `TOKENS.NotificationProvider` バインドを差し替えるだけ
+- Domain / DeliveryProcessor はProvider非依存
 
 ---
 
@@ -241,22 +313,11 @@ Auth / API / RecordV2 / Engagement / B2BExport
 - フロントエンド: Vanilla JS + Vite（React/Vue/Svelteなし）
 - バックエンド: Supabase（PostgreSQL + Edge Functions）
 - 決済: Stripe（¥580/月、¥4,800/年）
-- テスト: Vitest
+- テスト: Vitest（734件 全パス）
 - 言語: JavaScript（TypeScript移行中）
 
 ---
 
 ## 次のPR
 
-### PR-023 — Wave1 Communication Layer
-
-スコープ:
-- Push Notification Scheduler（Day1 / Day3 / Day7 / Day15）
-- Contribution Messaging（貢献感訴求）
-- Similarity Placeholder（Wave2予告UI）
-- Admin KPI Dashboard（Wave1MetricsService + EngagementMetrics 表示）
-
-制約:
-- PR-022完了済みのサービスを使うこと（ExperimentNudgeService / CommitmentService / OutcomeReminderService / ConsentMotivationService）
-- Wave1期間中はSimilarity結果を表示しない
-- app-legacy.js変更禁止 / DB変更禁止 は継続
+<!-- 未定 -->
