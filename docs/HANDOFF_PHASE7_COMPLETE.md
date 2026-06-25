@@ -38,6 +38,9 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | Phase 6 PR-017 | src/domains/case/ + src/repositories/case/ — Case Generation Engine V1（CaseRepository / CaseGenerationService / TierEvaluator / OutcomeResolver / CaseIdGenerator / CaseAuditLog） | 完了 |
 | Phase 6 PR-018 | src/repositories/consent/ + src/domains/consent/ + src/domains/similarity/ — Consent Enforcement & Similarity Foundation（ConsentRepository / ConsentEnforcementService / ConsentAuditLog / FeatureExtractor / SimilarityCandidate / SimilarityCandidateBuilder） | 完了 |
 | Phase 6 PR-019 | src/repositories/similarity/ + src/domains/similarity/ — Similarity Engine V1（SimilarityRepository / VectorBuilder / SimilarityCalculator / EdgeGenerator / ConsentFilter / SimilarityEngine / SimilarityAuditLog） | 完了 |
+| Phase 7 PR-020 | src/domains/auth/ + src/application/api-gateway.js — Auth Domain & API Gateway（UserSession / AuthContext / PermissionPolicy / RoleResolver / PermissionService / SimilarityAccessGuard / ApiGateway） | 完了 |
+| Phase 7 PR-021 | src/repositories/record/record-v2-* + src/application/record-migration-service.js + src/domains/case/case-generated-event.js + src/application/tier-progress-service.js + src/application/profile-formation-service.js + src/application/disease-tag-validator.js + src/application/wave1-metrics-service.js — Record V2 ReadSwitch + UX Foundation | 完了 |
+| Phase 7 PR-022 | src/domains/engagement/ + src/domains/consent/consent-motivation-service.js + src/repositories/b2b/ + src/contracts/IB2BExportRepository.js + src/application/engagement-metrics.js — Engagement & Consent Layer | 完了 |
 
 ---
 
@@ -87,40 +90,65 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 - 既存DBテーブル: profiles / records / user_data / user_records / subscriptions（5つのみ）
 - **ドメイン層（TypeScript）: 全7ドメイン実装済み**
   - domains/record / experiment / case / consent / similarity / analytics / b2b
-  - テスト: 541件 全パス（domains/ 221件 + e2e/ 110件 + bootstrap/ 210件）
-  - リリースゲート: APPROVED（SSOT violations: 0, integrity ok: true）
-- **未実施: DBマイグレーション（本番テーブル未作成）**
-- **Strangler-Fig移行層（JavaScript）: PR-011〜PR-019 完了**
+- **Strangler-Fig移行層（JavaScript）: PR-011〜PR-022 完了**
   - Bootstrap層: DI Container / CompositionRoot / RouteRegistry / ArchitectureGuard
-  - Contract層: 8インターフェース定義（all throw 'Not Implemented'）
+  - Contract層: 9インターフェース（IStorageService / IRecordRepository / IExperimentRepository / IConsentRepository / ICaseRepository / IAnalyticsService / ISimilarityService / IAuthService / IB2BExportRepository）
   - Infrastructure層: LocalStorageAdapter / LegacyAuthAdapter / LegacyAccessAudit
-  - Record層: RecordRepositoryImpl / RecordMapper / DualWriteRecordRepository
+  - Record層: RecordRepositoryImpl / RecordMapper / DualWriteRecordRepository / RecordV2Repository / RecordReadSwitch / RecordReadSwitchRepository / RecordMigrationService
   - Dual Write層: RecordV2Store（shadow） / RecordDiffEngine / DiffLogRepository / MigrationDashboard
   - Experiment層: ExperimentRepositoryImpl / ExperimentMapper / ExperimentQueryService / ExperimentCommandService / ExperimentMigrationAudit / ExperimentStateMachine / ExperimentLifecycleService / TransitionAudit
-  - Case層: CaseCandidateBuilder / CaseEligibility / CaseRepositoryImpl / CaseGenerationService / TierEvaluator / OutcomeResolver / CaseIdGenerator / CaseAuditLog / CandidateAudit
-  - Consent層: ConsentRepositoryImpl / ConsentMapper / ConsentEnforcementService / ConsentAuditLog
-  - Similarity層: FeatureExtractor / SimilarityCandidate / SimilarityCandidateBuilder / VectorBuilder（8次元cosine）/ SimilarityCalculator / EdgeGenerator（threshold=0.5）/ ConsentFilter（consent≥2）/ SimilarityEngine / SimilarityAuditLog / SimilarityRepositoryImpl（storage: ippo_similarity_edges）
-  - **テスト: 497件 全パス（bootstrap/ 10ファイル）**
+  - Case層: CaseCandidateBuilder / CaseEligibility / CaseRepositoryImpl / CaseGenerationService（eventPublisher対応）/ TierEvaluator（getTierThresholds追加）/ OutcomeResolver / CaseIdGenerator / CaseAuditLog / CandidateAudit / CaseGeneratedEvent（append-only）
+  - Consent層: ConsentRepositoryImpl / ConsentMapper / ConsentEnforcementService / ConsentAuditLog / ConsentMotivationService
+  - Similarity層: FeatureExtractor / SimilarityCandidate / SimilarityCandidateBuilder / VectorBuilder（8次元cosine）/ SimilarityCalculator / EdgeGenerator（threshold=0.5）/ ConsentFilter（consent≥2）/ SimilarityEngine / SimilarityAuditLog / SimilarityRepositoryImpl / SimilarityAccessGuard
+  - Auth層: UserSession / AuthContext / PermissionPolicy / RoleResolver / PermissionService / AuthError
+  - UX Foundation層: TierProgressService / ProfileFormationService / DiseaseTagValidator / Wave1MetricsService
+  - Engagement層: ExperimentNudgeService / CommitmentService / OutcomeReminderService / EngagementMetrics
+  - B2BExport層: IB2BExportRepository / B2BExportRepositoryImpl / ExportMapper
+  - API Gateway: ApiGateway（12メソッド、全UI→Repository直アクセス禁止）
+  - **テスト: 629件以上 パス（bootstrap/ 11ファイル）**
 
 ---
 
-## Phase 6 移行状況（Strangler-Fig）
+## Phase 6〜7 移行状況（Strangler-Fig）
 
 | Token | Contract | 実装 | PR | status |
 |---|---|---|---|---|
 | StorageService | IStorageService | LocalStorageAdapter | PR-012 ✓ | adapter |
 | AuthService | IAuthService | LegacyAuthAdapter | PR-012 ✓ | adapter |
-| RecordRepository | IRecordRepository | DualWriteRecordRepository | PR-014 ✓ | dual-write |
+| RecordRepository | IRecordRepository | RecordReadSwitchRepository | PR-014+021 ✓ | read-switch-ready |
 | ExperimentRepository | IExperimentRepository | ExperimentRepositoryImpl | PR-015 ✓ | state-machine |
 | ExperimentLifecycleService | — | ExperimentLifecycleService | PR-016 ✓ | state-machine |
 | CaseRepository | ICaseRepository | CaseRepositoryImpl | PR-017 ✓ | generating |
 | ConsentRepository | IConsentRepository | ConsentRepositoryImpl | PR-018 ✓ | enforced |
 | SimilarityService | ISimilarityService | SimilarityEngine | PR-019 ✓ | active |
-| AnalyticsService | IAnalyticsService | null stub | PR-020 | legacy |
+| PermissionService | — | PermissionService | PR-020 ✓ | active |
+| SimilarityAccessGuard | — | SimilarityAccessGuard | PR-020 ✓ | active |
+| ApiGateway | — | ApiGateway | PR-020 ✓ | active |
+| RecordV2Repository | IRecordRepository | RecordV2Repository | PR-021 ✓ | read-switch-ready |
+| RecordMigrationService | — | RecordMigrationService | PR-021 ✓ | read-switch-ready |
+| TierProgressService | — | TierProgressService | PR-021 ✓ | active |
+| ProfileFormationService | — | ProfileFormationService | PR-021 ✓ | active |
+| Wave1MetricsService | — | Wave1MetricsService | PR-021 ✓ | active |
+| ExperimentNudgeService | — | ExperimentNudgeService | PR-022 ✓ | active |
+| CommitmentService | — | CommitmentService | PR-022 ✓ | active |
+| OutcomeReminderService | — | OutcomeReminderService | PR-022 ✓ | active |
+| ConsentMotivationService | — | ConsentMotivationService | PR-022 ✓ | active |
+| B2BExportRepository | IB2BExportRepository | B2BExportRepositoryImpl | PR-022 ✓ | bridged |
+| AnalyticsService | IAnalyticsService | null stub | 未実装 | legacy |
 
 ---
 
-## Phase 6 最重要制約（全PRで共通）
+## RouteRegistry — KNOWN_FEATURES（PR-022時点）
+
+```
+Record / Experiment / Case / Consent / Analytics / Similarity
+Auth / API / RecordV2 / Engagement / B2BExport
+計11件
+```
+
+---
+
+## Phase 6〜7 最重要制約（全PRで共通）
 
 - app-legacy.js への新規ロジック追加: **禁止**
 - DB Migration / Schema変更: **禁止**
@@ -129,8 +157,33 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 - Service Locator パターン: **禁止**
 - Singleton 乱用: **禁止**
 - feature / screen → RecordV2Store / DiffLog 直接参照: **禁止**
+- feature / screen → EngagementDomain 直接参照: **禁止**（PR-022追加）
+- feature / screen → StorageService 直接参照: **禁止**（PR-022追加）
 - similarity_edges DELETE: **禁止**（immutable audit trail）
 - consent_events DELETE: **禁止**（法的監査ログ）
+- UI → ApiGateway → Application → Repository: **この経路のみ許可**
+- window.supabase 直接参照: **禁止**
+- Repository直アクセス（UI層から）: **禁止**
+
+---
+
+## API Gateway メソッド一覧（PR-022時点）
+
+| メソッド | 権限 | PR |
+|---|---|---|
+| getRecords(userId) | record:read | PR-020 |
+| saveRecord(data) | record:write | PR-020 |
+| getExperiments(userId) | experiment:read | PR-020 |
+| createExperiment(data) | experiment:write | PR-020 |
+| generateCase(recordId) | case:read:own | PR-020 |
+| getSimilarCases(caseId, opts) | similarity:read:own + OwnershipGate + ConsentGate | PR-020 |
+| getTierProgress(candidate) | case:read:own | PR-021 |
+| getProfileFormation(candidate) | record:read | PR-021 |
+| getCaseEvents() | case:read:own | PR-021 |
+| getExperimentNudge(records, activeExperiments) | experiment:read | PR-022 |
+| createCommitment({experimentId, targetDays}) | experiment:write | PR-022 |
+| getOutcomeReminders(experiments) | experiment:read | PR-022 |
+| getConsentMotivation(currentLevel) | record:read | PR-022 |
 
 ---
 
@@ -152,6 +205,34 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 - Consent要件: consentLevel ≥ 2（ConsentFilterがVectorBuilder前にゲート）
 - ストレージキー: `ippo_similarity_edges`
 - SimilarityEngine が唯一の入口（UI→EdgeGenerator / VectorBuilder / SimilarityCalculator 直接参照は禁止）
+- **Wave1: Similarity非公開**（Tier3 Case数 < 50 の間はUI表示しない）
+
+---
+
+## Record V2 ReadSwitch 仕様（PR-021確定）
+
+- デフォルト状態: LEGACY（RecordReadSwitch.isV2Active() = false）
+- 切り替え条件: matchRate≥99.9% AND criticalDiffCount=0
+- 切り替え方法: RecordMigrationService.attemptSwitch()
+- 書き込み: 常にDualWrite（Legacy + V2 両方）
+- ロールバック: RecordMigrationService.rollback()
+
+---
+
+## ProfileFormationService 仕様（PR-021確定）
+
+- NEVER "Case"という単語を返す（UX要件）
+- stage: STARTED / FORMING / NEAR_READY / READY
+- READY判定 = completionPercent≥100
+
+---
+
+## UX/UI Council #1 決定事項（Wave1リスク対応）
+
+- **R-01（Day0〜Day7 中間報酬なし）**: ExperimentNudgeService（Day3）で対応
+- **R-02（Case生成通知なし）**: CaseGeneratedEvent（append-only）で対応
+- **R-03（DiseaseTag保証なし）**: DiseaseTagValidator（WARNING, non-blocking）で対応
+- **Wave1 Similarity**: 非公開。ConsentMotivationでも言及しない。
 
 ---
 
@@ -165,4 +246,17 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 
 ---
 
-次のPR プロンプト↓
+## 次のPR
+
+### PR-023 — Wave1 Communication Layer
+
+スコープ:
+- Push Notification Scheduler（Day1 / Day3 / Day7 / Day15）
+- Contribution Messaging（貢献感訴求）
+- Similarity Placeholder（Wave2予告UI）
+- Admin KPI Dashboard（Wave1MetricsService + EngagementMetrics 表示）
+
+制約:
+- PR-022完了済みのサービスを使うこと（ExperimentNudgeService / CommitmentService / OutcomeReminderService / ConsentMotivationService）
+- Wave1期間中はSimilarity結果を表示しない
+- app-legacy.js変更禁止 / DB変更禁止 は継続
