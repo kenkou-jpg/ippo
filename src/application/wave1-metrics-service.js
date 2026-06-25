@@ -1,6 +1,8 @@
 // Wave1MetricsService — KPI measurement infrastructure for Wave1 (30 users).
 // Computes metrics only. Does NOT display or push anywhere.
 // PR-021: UX Foundation — Wave1 KPI基盤
+// PR-022: Engagement KPI extension
+import { getEngagementMetrics } from './engagement-metrics.js';
 //
 // KPIs tracked:
 //   Day1Retention, Day7Retention, RecordCompletionRate,
@@ -89,6 +91,15 @@ export class Wave1MetricsService {
       caseGenerationRate,
       consentLevel2Rate,
     };
+  }
+
+  /**
+   * Returns engagement event counters (PR-022 additions).
+   * These are global counters, not per-user rates.
+   * @returns {object}
+   */
+  getEngagementSummary() {
+    return getEngagementMetrics();
   }
 
   /**

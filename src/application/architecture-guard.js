@@ -67,6 +67,11 @@ const FORBIDDEN = [
   { from: /\/screens\//,         to: /legacy-auth-adapter/,      label: 'screen→LegacyAuthAdapter'            },
   { from: /\/features\//,        to: /\/adapters\//,             label: 'feature→AdapterDirect'               },
   { from: /\/screens\//,         to: /\/adapters\//,             label: 'screen→AdapterDirect'                },
+  // PR-022 — UI must not reach Engagement domain, StorageService, or localStorage directly.
+  { from: /\/features\//,        to: /\/engagement\//,           label: 'feature→EngagementDomain'            },
+  { from: /\/screens\//,         to: /\/engagement\//,           label: 'screen→EngagementDomain'             },
+  { from: /\/features\//,        to: /\/adapters\/storage\//,    label: 'feature→StorageService'              },
+  { from: /\/screens\//,         to: /\/adapters\/storage\//,    label: 'screen→StorageService'               },
 ];
 
 export function runArchitectureGuard() {

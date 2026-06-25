@@ -95,7 +95,7 @@ describe('RouteRegistry', () => {
     expect(known).toContain('Similarity');
     expect(known).toContain('Auth');
     expect(known).toContain('B2BExport');
-    expect(known).toHaveLength(10); // PR-021: added 'RecordV2'
+    expect(known).toHaveLength(11); // PR-022: added 'Engagement'
   });
 });
 

@@ -22,6 +22,11 @@ export class ApiGateway {
   #tierProgressService;
   #profileFormationService;
   #caseGeneratedEvent;
+  // PR-022 additions
+  #experimentNudgeService;
+  #commitmentService;
+  #outcomeReminderService;
+  #consentMotivationService;
 
   constructor({
     permissionService,
@@ -34,10 +39,15 @@ export class ApiGateway {
     caseGenerationService,
     similarityEngine,
     // PR-021
-    diseaseTagValidator   = null,
-    tierProgressService   = null,
+    diseaseTagValidator     = null,
+    tierProgressService     = null,
     profileFormationService = null,
-    caseGeneratedEvent    = null,
+    caseGeneratedEvent      = null,
+    // PR-022
+    experimentNudgeService   = null,
+    commitmentService        = null,
+    outcomeReminderService   = null,
+    consentMotivationService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -52,6 +62,10 @@ export class ApiGateway {
     this.#tierProgressService        = tierProgressService;
     this.#profileFormationService    = profileFormationService;
     this.#caseGeneratedEvent         = caseGeneratedEvent;
+    this.#experimentNudgeService     = experimentNudgeService;
+    this.#commitmentService          = commitmentService;
+    this.#outcomeReminderService     = outcomeReminderService;
+    this.#consentMotivationService   = consentMotivationService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -121,6 +135,53 @@ export class ApiGateway {
     const ctx = await this.#permissionService.require('case:read:own');
     if (!this.#caseGeneratedEvent) return [];
     return this.#caseGeneratedEvent.getForUser(ctx.userId);
+  }
+
+  // ── Engagement & Consent (PR-022) ───────────────────────────────────────────
+
+  /**
+   * Get experiment nudge recommendation based on current records and active experiments.
+   * @param {object[]} records
+   * @param {object[]} activeExperiments
+   * @returns {Promise<{recommended:boolean, experimentType?:string, reason?:string}>}
+   */
+  async getExperimentNudge(records, activeExperiments) {
+    await this.#permissionService.require('experiment:read');
+    if (!this.#experimentNudgeService) throw new Error('[ApiGateway] ExperimentNudgeService not wired');
+    return this.#experimentNudgeService.getNudge(records, activeExperiments);
+  }
+
+  /**
+   * Create a commitment for an experiment. Idempotent — returns null if already committed.
+   * @param {{experimentId:string, targetDays?:number}} params
+   * @returns {Promise<object|null>}
+   */
+  async createCommitment({ experimentId, targetDays } = {}) {
+    await this.#permissionService.require('experiment:write');
+    if (!this.#commitmentService) throw new Error('[ApiGateway] CommitmentService not wired');
+    return this.#commitmentService.commit({ experimentId, targetDays });
+  }
+
+  /**
+   * Get overdue outcome reminders for a list of experiments.
+   * @param {object[]} experiments
+   * @returns {Promise<object[]>}
+   */
+  async getOutcomeReminders(experiments) {
+    await this.#permissionService.require('experiment:read');
+    if (!this.#outcomeReminderService) throw new Error('[ApiGateway] OutcomeReminderService not wired');
+    return this.#outcomeReminderService.getOverdueReminders(experiments);
+  }
+
+  /**
+   * Get consent upgrade motivation text for the current consent level.
+   * @param {number} currentLevel
+   * @returns {Promise<{currentLevel:number, nextLevel:number, motivation:string, benefit:string, canUpgrade:boolean}>}
+   */
+  async getConsentMotivation(currentLevel) {
+    await this.#permissionService.require('record:read');
+    if (!this.#consentMotivationService) throw new Error('[ApiGateway] ConsentMotivationService not wired');
+    return this.#consentMotivationService.getMotivation(currentLevel);
   }
 
   /**

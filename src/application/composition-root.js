@@ -49,6 +49,12 @@ import { ExperimentQueryService }       from './experiment-query-service.js';
 import { ExperimentCommandService }     from './experiment-command-service.js';
 // PR-021
 import { RecordV2Repository }           from '../repositories/record/record-v2-repository.js';
+// PR-022
+import { ExperimentNudgeService }       from '../domains/engagement/experiment-nudge-service.js';
+import { CommitmentService }            from '../domains/engagement/commitment-service.js';
+import { OutcomeReminderService }       from '../domains/engagement/outcome-reminder-service.js';
+import { ConsentMotivationService }     from '../domains/consent/consent-motivation-service.js';
+import { B2BExportRepositoryImpl }      from '../repositories/b2b/b2b-export-repository.js';
 import { RecordReadSwitch }             from '../repositories/record/record-read-switch.js';
 import { RecordReadSwitchRepository }   from '../repositories/record/record-read-switch-repository.js';
 import { RecordMigrationService }       from './record-migration-service.js';
@@ -101,6 +107,12 @@ export const TOKENS = Object.freeze({
   ProfileFormationService:    'ProfileFormationService',
   DiseaseTagValidator:        'DiseaseTagValidator',
   Wave1MetricsService:        'Wave1MetricsService',
+  // PR-022
+  ExperimentNudgeService:     'ExperimentNudgeService',
+  CommitmentService:          'CommitmentService',
+  OutcomeReminderService:     'OutcomeReminderService',
+  ConsentMotivationService:   'ConsentMotivationService',
+  B2BExportRepository:        'B2BExportRepository',
 });
 
 export class CompositionRoot {
@@ -257,6 +269,17 @@ export class CompositionRoot {
       return new CaseGenerationService(repo, event);
     });
 
+    // ── Engagement Layer (PR-022) ─────────────────────────────────────────
+    c.singleton(TOKENS.ExperimentNudgeService,   () => new ExperimentNudgeService());
+    c.singleton(TOKENS.OutcomeReminderService,    () => new OutcomeReminderService());
+    c.singleton(TOKENS.ConsentMotivationService,  () => new ConsentMotivationService());
+    c.singleton(TOKENS.CommitmentService, (container) =>
+      new CommitmentService(container.resolve(TOKENS.StorageService)));
+
+    // ── B2BExport Migration (PR-022) ──────────────────────────────────────
+    c.singleton(TOKENS.B2BExportRepository, (container) =>
+      new B2BExportRepositoryImpl(container.resolve(TOKENS.StorageService)));
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -273,6 +296,11 @@ export class CompositionRoot {
       tierProgressService:       container.resolve(TOKENS.TierProgressService),
       profileFormationService:   container.resolve(TOKENS.ProfileFormationService),
       caseGeneratedEvent:        container.resolve(TOKENS.CaseGeneratedEvent),
+      // PR-022
+      experimentNudgeService:   container.resolve(TOKENS.ExperimentNudgeService),
+      commitmentService:        container.resolve(TOKENS.CommitmentService),
+      outcomeReminderService:   container.resolve(TOKENS.OutcomeReminderService),
+      consentMotivationService: container.resolve(TOKENS.ConsentMotivationService),
     }));
 
     this._registerFeatures();
@@ -288,7 +316,8 @@ export class CompositionRoot {
     r.register('Similarity', { status: 'active',       migratesIn: 'PR-019' }); // PR-019 ✓
     r.register('Auth',       { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
     r.register('API',        { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
-    r.register('RecordV2',   { status: 'read-switch-ready', migratesIn: 'PR-021' }); // PR-021 ✓
-    r.register('B2BExport',  { status: 'legacy',     migratesIn: 'PR-022' });
+    r.register('RecordV2',    { status: 'read-switch-ready', migratesIn: 'PR-021' }); // PR-021 ✓
+    r.register('Engagement',  { status: 'active',           migratesIn: 'PR-022' }); // PR-022 ✓
+    r.register('B2BExport',   { status: 'bridged',          migratesIn: 'PR-022' }); // PR-022 ✓
   }
 }

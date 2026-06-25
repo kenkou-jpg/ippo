@@ -8,3 +8,4 @@ export { ICaseRepository }       from './ICaseRepository.js';
 export { IAnalyticsService }     from './IAnalyticsService.js';
 export { ISimilarityService }    from './ISimilarityService.js';
 export { IAuthService }          from './IAuthService.js';
+export { IB2BExportRepository }  from './IB2BExportRepository.js'; // PR-022
