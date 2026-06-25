@@ -38,6 +38,10 @@ export class ApiGateway {
   // PR-025 additions
   #deliveryProcessor;
   #deliveryMetrics;
+  // PR-026 additions
+  #kpiSnapshotAutomationService;
+  #deliveryOperationsService;
+  #deliveryHealthMetrics;
 
   constructor({
     permissionService,
@@ -70,6 +74,10 @@ export class ApiGateway {
     // PR-025
     deliveryProcessor = null,
     deliveryMetrics   = null,
+    // PR-026
+    kpiSnapshotAutomationService = null,
+    deliveryOperationsService    = null,
+    deliveryHealthMetrics        = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -96,6 +104,9 @@ export class ApiGateway {
     this.#kpiSnapshot                   = kpiSnapshot;
     this.#deliveryProcessor             = deliveryProcessor;
     this.#deliveryMetrics               = deliveryMetrics;
+    this.#kpiSnapshotAutomationService  = kpiSnapshotAutomationService;
+    this.#deliveryOperationsService     = deliveryOperationsService;
+    this.#deliveryHealthMetrics         = deliveryHealthMetrics;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -327,6 +338,39 @@ export class ApiGateway {
     await this.#permissionService.require('admin:dashboard');
     if (!this.#deliveryMetrics) throw new Error('[ApiGateway] DeliveryMetrics not wired');
     return this.#deliveryMetrics.getSnapshot();
+  }
+
+  // ── Operations Admin API (PR-026) — admin:dashboard permission required ──────
+
+  /**
+   * Return live delivery queue health (pending/scheduled/delivered/failed counts + rate).
+   * Admin only. Read-only — no mutations.
+   * @returns {Promise<{pending:number, scheduled:number, delivered:number, failed:number, deliveryRate:number}>}
+   */
+  async getDeliveryHealth() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#deliveryOperationsService) throw new Error('[ApiGateway] DeliveryOperationsService not wired');
+    return this.#deliveryOperationsService.getDeliveryHealth();
+  }
+
+  /**
+   * Return the most recently captured KPI snapshot. Admin only.
+   * @returns {Promise<import('../domains/analytics/kpi-snapshot.js').KpiSnapshotEntry|null>}
+   */
+  async getLatestKpiSnapshot() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#kpiSnapshotAutomationService) throw new Error('[ApiGateway] KpiSnapshotAutomationService not wired');
+    return this.#kpiSnapshotAutomationService.getLatestSnapshot();
+  }
+
+  /**
+   * Return all KPI snapshots in insertion order. Admin only.
+   * @returns {Promise<import('../domains/analytics/kpi-snapshot.js').KpiSnapshotEntry[]>}
+   */
+  async getKpiHistory() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#kpiSnapshotAutomationService) throw new Error('[ApiGateway] KpiSnapshotAutomationService not wired');
+    return this.#kpiSnapshotAutomationService.getSnapshotHistory();
   }
 
   /**

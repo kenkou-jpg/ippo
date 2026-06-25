@@ -68,10 +68,18 @@ const FORBIDDEN = [
   { from: /\/features\//,        to: /\/adapters\//,             label: 'feature→AdapterDirect'               },
   { from: /\/screens\//,         to: /\/adapters\//,             label: 'screen→AdapterDirect'                },
   // PR-022 — UI must not reach Engagement domain, StorageService, or localStorage directly.
-  { from: /\/features\//,        to: /\/engagement\//,           label: 'feature→EngagementDomain'            },
-  { from: /\/screens\//,         to: /\/engagement\//,           label: 'screen→EngagementDomain'             },
-  { from: /\/features\//,        to: /\/adapters\/storage\//,    label: 'feature→StorageService'              },
-  { from: /\/screens\//,         to: /\/adapters\/storage\//,    label: 'screen→StorageService'               },
+  { from: /\/features\//,        to: /\/engagement\//,                    label: 'feature→EngagementDomain'                   },
+  { from: /\/screens\//,         to: /\/engagement\//,                    label: 'screen→EngagementDomain'                    },
+  { from: /\/features\//,        to: /\/adapters\/storage\//,             label: 'feature→StorageService'                     },
+  { from: /\/screens\//,         to: /\/adapters\/storage\//,             label: 'screen→StorageService'                      },
+  // PR-026 — UI must not reach Operations domain services directly;
+  //           access via ApiGateway → getDeliveryHealth / getLatestKpiSnapshot / getKpiHistory
+  { from: /\/screens\//,         to: /delivery-operations-service/,       label: 'screen→DeliveryOperationsService'           },
+  { from: /\/features\//,        to: /delivery-operations-service/,       label: 'feature→DeliveryOperationsService'          },
+  { from: /\/screens\//,         to: /kpi-snapshot-automation-service/,   label: 'screen→KpiSnapshotAutomationService'        },
+  { from: /\/features\//,        to: /kpi-snapshot-automation-service/,   label: 'feature→KpiSnapshotAutomationService'       },
+  { from: /\/screens\//,         to: /delivery-health-metrics/,           label: 'screen→DeliveryHealthMetrics'               },
+  { from: /\/features\//,        to: /delivery-health-metrics/,           label: 'feature→DeliveryHealthMetrics'              },
 ];
 
 export function runArchitectureGuard() {
