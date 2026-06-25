@@ -10,8 +10,10 @@ const KNOWN_FEATURES = new Set([
   'Auth',
   'API',        // PR-020: API Gateway
   'RecordV2',   // PR-021: Record V2 Read Switch
-  'Engagement', // PR-022: Engagement Layer
+  'Engagement',    // PR-022: Engagement Layer
   'B2BExport',
+  'Communication', // PR-023: Communication Layer
+  'Delivery',      // PR-024: Delivery Layer
 ]);
 
 export class RouteRegistry {

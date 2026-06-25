@@ -51,6 +51,25 @@ import { ExperimentCommandService }     from './experiment-command-service.js';
 import { RecordV2Repository }           from '../repositories/record/record-v2-repository.js';
 // PR-022
 import { ExperimentNudgeService }       from '../domains/engagement/experiment-nudge-service.js';
+// PR-023
+import { NotificationScheduleService }  from '../domains/communication/notification-schedule-service.js';
+import { NotificationTemplateService }  from '../domains/communication/notification-template-service.js';
+import { CommunicationRepository }      from '../domains/communication/communication-repository.js';
+import { CommunicationAuditLog }        from '../domains/communication/communication-audit-log.js';
+import { CommunicationMetrics }         from '../domains/communication/communication-metrics.js';
+// PR-024
+import { DeliveryRepository }           from '../domains/delivery/delivery-repository.js';
+import { DeliveryQueue }                from '../domains/delivery/delivery-queue.js';
+import { DeliveryAuditLog }             from '../domains/delivery/delivery-audit-log.js';
+import { DeliveryScheduler }            from '../domains/delivery/delivery-scheduler.js';
+import { KpiRepository }                from '../domains/analytics/kpi-repository.js';
+import { KpiSnapshot }                  from '../domains/analytics/kpi-snapshot.js';
+import { Wave1DashboardService }        from '../domains/analytics/wave1-dashboard-service.js';
+// PR-025
+import { MockNotificationProvider }     from '../adapters/notification/mock-notification-provider.js';
+import { NotificationProviderAdapter }  from '../adapters/notification/notification-provider-adapter.js';
+import { DeliveryProcessor }            from '../domains/delivery/delivery-processor.js';
+import { DeliveryMetrics }              from '../domains/delivery/delivery-metrics.js';
 import { CommitmentService }            from '../domains/engagement/commitment-service.js';
 import { OutcomeReminderService }       from '../domains/engagement/outcome-reminder-service.js';
 import { ConsentMotivationService }     from '../domains/consent/consent-motivation-service.js';
@@ -113,6 +132,25 @@ export const TOKENS = Object.freeze({
   OutcomeReminderService:     'OutcomeReminderService',
   ConsentMotivationService:   'ConsentMotivationService',
   B2BExportRepository:        'B2BExportRepository',
+  // PR-023
+  CommunicationRepository:        'CommunicationRepository',
+  CommunicationAuditLog:          'CommunicationAuditLog',
+  CommunicationMetrics:           'CommunicationMetrics',
+  NotificationScheduleService:    'NotificationScheduleService',
+  NotificationTemplateService:    'NotificationTemplateService',
+  // PR-024
+  DeliveryRepository:             'DeliveryRepository',
+  DeliveryQueue:                  'DeliveryQueue',
+  DeliveryAuditLog:               'DeliveryAuditLog',
+  DeliveryScheduler:              'DeliveryScheduler',
+  KpiRepository:                  'KpiRepository',
+  KpiSnapshot:                    'KpiSnapshot',
+  Wave1DashboardService:          'Wave1DashboardService',
+  // PR-025
+  NotificationProvider:           'NotificationProvider',
+  NotificationProviderAdapter:    'NotificationProviderAdapter',
+  DeliveryProcessor:              'DeliveryProcessor',
+  DeliveryMetrics:                'DeliveryMetrics',
 });
 
 export class CompositionRoot {
@@ -280,6 +318,73 @@ export class CompositionRoot {
     c.singleton(TOKENS.B2BExportRepository, (container) =>
       new B2BExportRepositoryImpl(container.resolve(TOKENS.StorageService)));
 
+    // ── Communication Layer (PR-023) ──────────────────────────────────────
+    c.singleton(TOKENS.CommunicationRepository, (container) =>
+      new CommunicationRepository(container.resolve(TOKENS.StorageService)));
+
+    c.singleton(TOKENS.CommunicationAuditLog, (container) =>
+      new CommunicationAuditLog(container.resolve(TOKENS.CommunicationRepository)));
+
+    c.singleton(TOKENS.CommunicationMetrics, (container) =>
+      new CommunicationMetrics(container.resolve(TOKENS.CommunicationRepository)));
+
+    c.singleton(TOKENS.NotificationScheduleService, () => new NotificationScheduleService());
+    c.singleton(TOKENS.NotificationTemplateService, () => new NotificationTemplateService());
+
+    // ── Delivery Layer (PR-024) ───────────────────────────────────────────
+    c.singleton(TOKENS.DeliveryRepository, (container) =>
+      new DeliveryRepository(container.resolve(TOKENS.StorageService)));
+
+    c.singleton(TOKENS.DeliveryQueue, (container) =>
+      new DeliveryQueue(container.resolve(TOKENS.DeliveryRepository)));
+
+    c.singleton(TOKENS.DeliveryAuditLog, (container) =>
+      new DeliveryAuditLog(container.resolve(TOKENS.DeliveryRepository)));
+
+    c.singleton(TOKENS.DeliveryScheduler, (container) =>
+      new DeliveryScheduler({
+        notificationScheduleService: container.resolve(TOKENS.NotificationScheduleService),
+        deliveryQueue:               container.resolve(TOKENS.DeliveryQueue),
+        deliveryAuditLog:            container.resolve(TOKENS.DeliveryAuditLog),
+        communicationAuditLog:       container.resolve(TOKENS.CommunicationAuditLog),
+        communicationMetrics:        container.resolve(TOKENS.CommunicationMetrics),
+      }));
+
+    // ── Admin Analytics (PR-024) ──────────────────────────────────────────
+    c.singleton(TOKENS.KpiRepository, (container) =>
+      new KpiRepository(container.resolve(TOKENS.StorageService)));
+
+    c.singleton(TOKENS.KpiSnapshot, (container) =>
+      new KpiSnapshot(container.resolve(TOKENS.KpiRepository)));
+
+    c.singleton(TOKENS.Wave1DashboardService, (container) =>
+      new Wave1DashboardService({
+        wave1MetricsService:  container.resolve(TOKENS.Wave1MetricsService),
+        communicationMetrics: container.resolve(TOKENS.CommunicationMetrics),
+        deliveryQueue:        container.resolve(TOKENS.DeliveryQueue),
+      }));
+
+    // ── Delivery Infrastructure (PR-025) ──────────────────────────────────
+    c.singleton(TOKENS.NotificationProvider, () => new MockNotificationProvider());
+
+    c.singleton(TOKENS.NotificationProviderAdapter, (container) =>
+      new NotificationProviderAdapter(container.resolve(TOKENS.NotificationProvider)));
+
+    c.singleton(TOKENS.DeliveryMetrics, (container) =>
+      new DeliveryMetrics(
+        container.resolve(TOKENS.StorageService),
+        container.resolve(TOKENS.DeliveryQueue),
+      ));
+
+    c.singleton(TOKENS.DeliveryProcessor, (container) =>
+      new DeliveryProcessor({
+        deliveryQueue:               container.resolve(TOKENS.DeliveryQueue),
+        deliveryAuditLog:            container.resolve(TOKENS.DeliveryAuditLog),
+        notificationProviderAdapter: container.resolve(TOKENS.NotificationProviderAdapter),
+        notificationTemplateService: container.resolve(TOKENS.NotificationTemplateService),
+        deliveryMetrics:             container.resolve(TOKENS.DeliveryMetrics),
+      }));
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -301,6 +406,17 @@ export class CompositionRoot {
       commitmentService:        container.resolve(TOKENS.CommitmentService),
       outcomeReminderService:   container.resolve(TOKENS.OutcomeReminderService),
       consentMotivationService: container.resolve(TOKENS.ConsentMotivationService),
+      // PR-023
+      notificationScheduleService: container.resolve(TOKENS.NotificationScheduleService),
+      notificationTemplateService: container.resolve(TOKENS.NotificationTemplateService),
+      communicationMetrics:        container.resolve(TOKENS.CommunicationMetrics),
+      // PR-024
+      deliveryScheduler:    container.resolve(TOKENS.DeliveryScheduler),
+      wave1DashboardService: container.resolve(TOKENS.Wave1DashboardService),
+      kpiSnapshot:          container.resolve(TOKENS.KpiSnapshot),
+      // PR-025
+      deliveryProcessor: container.resolve(TOKENS.DeliveryProcessor),
+      deliveryMetrics:   container.resolve(TOKENS.DeliveryMetrics),
     }));
 
     this._registerFeatures();
@@ -312,12 +428,14 @@ export class CompositionRoot {
     r.register('Experiment', { status: 'state-machine', migratesIn: 'PR-016' }); // PR-016 ✓
     r.register('Case',       { status: 'generating',    migratesIn: 'PR-017' }); // PR-017 ✓
     r.register('Consent',    { status: 'enforced',      migratesIn: 'PR-018' }); // PR-018 ✓
-    r.register('Analytics',  { status: 'legacy',     migratesIn: 'PR-018' });
+    r.register('Analytics',  { status: 'active',      migratesIn: 'PR-024' }); // PR-024: Wave1DashboardService
     r.register('Similarity', { status: 'active',       migratesIn: 'PR-019' }); // PR-019 ✓
     r.register('Auth',       { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
     r.register('API',        { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
     r.register('RecordV2',    { status: 'read-switch-ready', migratesIn: 'PR-021' }); // PR-021 ✓
-    r.register('Engagement',  { status: 'active',           migratesIn: 'PR-022' }); // PR-022 ✓
-    r.register('B2BExport',   { status: 'bridged',          migratesIn: 'PR-022' }); // PR-022 ✓
+    r.register('Engagement',    { status: 'active',  migratesIn: 'PR-022' }); // PR-022 ✓
+    r.register('B2BExport',    { status: 'bridged', migratesIn: 'PR-022' }); // PR-022 ✓
+    r.register('Communication', { status: 'active', migratesIn: 'PR-023' }); // PR-023 ✓
+    r.register('Delivery',      { status: 'active', migratesIn: 'PR-024' }); // PR-024 ✓
   }
 }

@@ -27,6 +27,17 @@ export class ApiGateway {
   #commitmentService;
   #outcomeReminderService;
   #consentMotivationService;
+  // PR-023 additions
+  #notificationScheduleService;
+  #notificationTemplateService;
+  #communicationMetrics;
+  // PR-024 additions
+  #deliveryScheduler;
+  #wave1DashboardService;
+  #kpiSnapshot;
+  // PR-025 additions
+  #deliveryProcessor;
+  #deliveryMetrics;
 
   constructor({
     permissionService,
@@ -48,6 +59,17 @@ export class ApiGateway {
     commitmentService        = null,
     outcomeReminderService   = null,
     consentMotivationService = null,
+    // PR-023
+    notificationScheduleService = null,
+    notificationTemplateService = null,
+    communicationMetrics        = null,
+    // PR-024
+    deliveryScheduler    = null,
+    wave1DashboardService = null,
+    kpiSnapshot          = null,
+    // PR-025
+    deliveryProcessor = null,
+    deliveryMetrics   = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -62,10 +84,18 @@ export class ApiGateway {
     this.#tierProgressService        = tierProgressService;
     this.#profileFormationService    = profileFormationService;
     this.#caseGeneratedEvent         = caseGeneratedEvent;
-    this.#experimentNudgeService     = experimentNudgeService;
-    this.#commitmentService          = commitmentService;
-    this.#outcomeReminderService     = outcomeReminderService;
-    this.#consentMotivationService   = consentMotivationService;
+    this.#experimentNudgeService        = experimentNudgeService;
+    this.#commitmentService             = commitmentService;
+    this.#outcomeReminderService        = outcomeReminderService;
+    this.#consentMotivationService      = consentMotivationService;
+    this.#notificationScheduleService   = notificationScheduleService;
+    this.#notificationTemplateService   = notificationTemplateService;
+    this.#communicationMetrics          = communicationMetrics;
+    this.#deliveryScheduler             = deliveryScheduler;
+    this.#wave1DashboardService         = wave1DashboardService;
+    this.#kpiSnapshot                   = kpiSnapshot;
+    this.#deliveryProcessor             = deliveryProcessor;
+    this.#deliveryMetrics               = deliveryMetrics;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -182,6 +212,121 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#consentMotivationService) throw new Error('[ApiGateway] ConsentMotivationService not wired');
     return this.#consentMotivationService.getMotivation(currentLevel);
+  }
+
+  // ── Communication (PR-023) ───────────────────────────────────────────────
+
+  /**
+   * Return all due notification candidates for the current user.
+   * Auth required. No push delivery — scheduling only.
+   *
+   * @param {import('../domains/communication/notification-schedule-service.js').UserContext} userContext
+   * @returns {Promise<import('../domains/communication/notification-schedule-service.js').NotificationCandidate[]>}
+   */
+  /**
+   * Query which notifications are due for the given user context.
+   * Pure read — no metrics side effects (TD-4 fix). Use scheduleNotifications to act.
+   *
+   * @param {import('../domains/communication/notification-schedule-service.js').UserContext} userContext
+   * @returns {Promise<import('../domains/communication/notification-schedule-service.js').NotificationCandidate[]>}
+   */
+  async getDueNotifications(userContext) {
+    await this.#permissionService.require('record:read');
+    if (!this.#notificationScheduleService) throw new Error('[ApiGateway] NotificationScheduleService not wired');
+    return this.#notificationScheduleService.getDueNotifications(userContext);
+  }
+
+  /**
+   * Schedule due notifications for the current user.
+   * Idempotent: same notification type on the same day is enqueued once only.
+   * Records Communication Metrics for new notifications only (TD-4 fix).
+   *
+   * @param {import('../domains/communication/notification-schedule-service.js').UserContext} userContext
+   * @returns {Promise<{ scheduled: object[], skipped: string[] }>}
+   */
+  async scheduleNotifications(userContext) {
+    const ctx = await this.#permissionService.require('record:read');
+    if (!this.#deliveryScheduler) throw new Error('[ApiGateway] DeliveryScheduler not wired');
+    return this.#deliveryScheduler.scheduleDueNotifications(ctx.userId, userContext);
+  }
+
+  /**
+   * Preview the rendered template for a given notification type.
+   * Auth required.
+   *
+   * @param {string} notificationType
+   * @returns {Promise<{title:string, body:string, cta:string}|null>}
+   */
+  async getNotificationPreview(notificationType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#notificationTemplateService) throw new Error('[ApiGateway] NotificationTemplateService not wired');
+    return this.#notificationTemplateService.getTemplate(notificationType);
+  }
+
+  /**
+   * Return the current Communication KPI snapshot. Auth required.
+   * @returns {Promise<object>}
+   */
+  async getCommunicationMetrics() {
+    await this.#permissionService.require('record:read');
+    if (!this.#communicationMetrics) throw new Error('[ApiGateway] CommunicationMetrics not wired');
+    return this.#communicationMetrics.getSnapshot();
+  }
+
+  // ── Admin Analytics (PR-024) — admin:dashboard permission required ──────────
+
+  /**
+   * Return the full Wave1 KPI dashboard summary. Admin only.
+   * @param {{ users: object[] }} params
+   * @returns {Promise<object>}
+   */
+  async getWave1Dashboard({ users = [] } = {}) {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#wave1DashboardService) throw new Error('[ApiGateway] Wave1DashboardService not wired');
+    return this.#wave1DashboardService.getDashboard({ users });
+  }
+
+  /**
+   * Return the Communication Layer KPI snapshot with delivery queue stats. Admin only.
+   * @returns {Promise<object>}
+   */
+  async getCommunicationDashboard() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#communicationMetrics) throw new Error('[ApiGateway] CommunicationMetrics not wired');
+    const commMetrics = this.#communicationMetrics.getSnapshot();
+    const latestKpi   = this.#kpiSnapshot?.findLatest() ?? null;
+    return { communicationMetrics: commMetrics, latestKpiSnapshot: latestKpi };
+  }
+
+  /**
+   * Return all KPI snapshots (time-series). Admin only.
+   * @returns {Promise<object[]>}
+   */
+  async getKpiSnapshots() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#kpiSnapshot) throw new Error('[ApiGateway] KpiSnapshot not wired');
+    return this.#kpiSnapshot.findAll();
+  }
+
+  /**
+   * Process all PENDING queue entries through the delivery lifecycle. Admin only.
+   * Drives PENDING → SCHEDULED → DELIVERED|FAILED for every queued notification.
+   * @returns {Promise<{processed:number, delivered:number, failed:number, results:object[]}>}
+   */
+  async processPendingNotifications() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#deliveryProcessor) throw new Error('[ApiGateway] DeliveryProcessor not wired');
+    return this.#deliveryProcessor.processPending();
+  }
+
+  /**
+   * Return the Delivery Layer KPI snapshot. Admin only.
+   * @returns {Promise<{delivered:number, failed:number, pending:number, deliveryRate:number, failureRate:number}>}
+   */
+  async getDeliveryMetrics() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#deliveryMetrics) throw new Error('[ApiGateway] DeliveryMetrics not wired');
+    return this.#deliveryMetrics.getSnapshot();
   }
 
   /**
