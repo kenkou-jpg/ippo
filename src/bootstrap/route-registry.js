@@ -14,7 +14,8 @@ const KNOWN_FEATURES = new Set([
   'B2BExport',
   'Communication', // PR-023: Communication Layer
   'Delivery',      // PR-024: Delivery Layer
-  'Operations',    // PR-026: Operations & KPI Automation
+  'Operations',           // PR-026: Operations & KPI Automation
+  'OperationsAutomation', // PR-027: Operations Automation & Analytics Completion
 ]);
 
 export class RouteRegistry {

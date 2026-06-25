@@ -98,7 +98,8 @@ describe('RouteRegistry', () => {
     expect(known).toContain('Communication');
     expect(known).toContain('Delivery');
     expect(known).toContain('Operations');
-    expect(known).toHaveLength(14); // PR-026: added 'Operations'
+    expect(known).toContain('OperationsAutomation');
+    expect(known).toHaveLength(15); // PR-027: added 'OperationsAutomation'
   });
 });
 

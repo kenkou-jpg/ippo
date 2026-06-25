@@ -42,6 +42,10 @@ export class ApiGateway {
   #kpiSnapshotAutomationService;
   #deliveryOperationsService;
   #deliveryHealthMetrics;
+  // PR-027 additions
+  #kpiSchedulerService;
+  #deliveryRetryService;
+  #analyticsService;
 
   constructor({
     permissionService,
@@ -78,6 +82,10 @@ export class ApiGateway {
     kpiSnapshotAutomationService = null,
     deliveryOperationsService    = null,
     deliveryHealthMetrics        = null,
+    // PR-027
+    kpiSchedulerService   = null,
+    deliveryRetryService  = null,
+    analyticsService      = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -107,6 +115,9 @@ export class ApiGateway {
     this.#kpiSnapshotAutomationService  = kpiSnapshotAutomationService;
     this.#deliveryOperationsService     = deliveryOperationsService;
     this.#deliveryHealthMetrics         = deliveryHealthMetrics;
+    this.#kpiSchedulerService           = kpiSchedulerService;
+    this.#deliveryRetryService          = deliveryRetryService;
+    this.#analyticsService              = analyticsService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -371,6 +382,41 @@ export class ApiGateway {
     await this.#permissionService.require('admin:dashboard');
     if (!this.#kpiSnapshotAutomationService) throw new Error('[ApiGateway] KpiSnapshotAutomationService not wired');
     return this.#kpiSnapshotAutomationService.getSnapshotHistory();
+  }
+
+  // ── Operations Automation Admin API (PR-027) ─────────────────────────────
+
+  /**
+   * Return whether a new KPI snapshot is due and when the last one was captured.
+   * Admin only.
+   * @returns {Promise<{ due: boolean, lastCapturedAt: string|null }>}
+   */
+  async getSnapshotScheduleStatus() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#kpiSchedulerService) throw new Error('[ApiGateway] KpiSchedulerService not wired');
+    return this.#kpiSchedulerService.getScheduleStatus();
+  }
+
+  /**
+   * Retry all FAILED delivery queue entries by resetting them to PENDING.
+   * Admin only.
+   * @returns {Promise<{ retried: number, entries: object[] }>}
+   */
+  async retryFailedDeliveries() {
+    await this.#permissionService.require('admin:dashboard');
+    if (!this.#deliveryRetryService) throw new Error('[ApiGateway] DeliveryRetryService not wired');
+    return this.#deliveryRetryService.retryFailed();
+  }
+
+  /**
+   * Return the current Analytics migration status. Admin only.
+   * Returns { status: 'legacy' } until AnalyticsService is fully migrated.
+   * @returns {Promise<{ status: string }>}
+   */
+  async getAnalyticsStatus() {
+    await this.#permissionService.require('admin:dashboard');
+    const summary = this.#analyticsService?.getSummary() ?? null;
+    return { status: summary !== null ? 'active' : 'legacy' };
   }
 
   /**

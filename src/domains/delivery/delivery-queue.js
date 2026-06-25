@@ -100,4 +100,30 @@ export class DeliveryQueue {
   findAll() {
     return this.#repository.loadQueue();
   }
+
+  // ── Retry (PR-027) ───────────────────────────────────────────────────────
+
+  /**
+   * Reset a FAILED entry back to PENDING for retry.
+   * Only DeliveryRetryService should call this — not UI code.
+   * Throws if the entry is not in FAILED status.
+   * @param {string} queueId
+   * @returns {object} updated entry
+   */
+  resetToPending(queueId) {
+    const queue = this.#repository.loadQueue();
+    const idx   = queue.findIndex(e => e.id === queueId);
+    if (idx === -1) throw new Error(`[DeliveryQueue] Entry not found: "${queueId}"`);
+
+    const current = queue[idx];
+    if (current.status !== DELIVERY_STATUS.FAILED) {
+      throw new Error(
+        `[DeliveryQueue] resetToPending only allowed from FAILED, got "${current.status}" for "${queueId}"`
+      );
+    }
+
+    queue[idx] = { ...current, status: DELIVERY_STATUS.PENDING, updatedAt: new Date().toISOString() };
+    this.#repository.saveQueue(queue);
+    return queue[idx];
+  }
 }

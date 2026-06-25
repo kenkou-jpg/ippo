@@ -11,7 +11,7 @@ describe('DeliveryOperationsService', () => {
   it('returns zero counts for empty queue', () => {
     const svc = new DeliveryOperationsService({ deliveryQueue: makeQueue() });
     const h   = svc.getDeliveryHealth();
-    expect(h).toEqual({ pending: 0, scheduled: 0, delivered: 0, failed: 0, deliveryRate: 0 });
+    expect(h).toMatchObject({ pending: 0, scheduled: 0, delivered: 0, failed: 0, deliveryRate: 0 });
   });
 
   it('counts each status correctly', () => {

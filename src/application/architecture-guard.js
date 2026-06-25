@@ -72,6 +72,14 @@ const FORBIDDEN = [
   { from: /\/screens\//,         to: /\/engagement\//,                    label: 'screen→EngagementDomain'                    },
   { from: /\/features\//,        to: /\/adapters\/storage\//,             label: 'feature→StorageService'                     },
   { from: /\/screens\//,         to: /\/adapters\/storage\//,             label: 'screen→StorageService'                      },
+  // PR-027 — UI must not reach Automation domain services directly;
+  //           access via ApiGateway → retryFailedDeliveries / getSnapshotScheduleStatus / getAnalyticsStatus
+  { from: /\/screens\//,   to: /delivery-retry-service/,    label: 'screen→DeliveryRetryService'   },
+  { from: /\/features\//,  to: /delivery-retry-service/,    label: 'feature→DeliveryRetryService'  },
+  { from: /\/screens\//,   to: /kpi-scheduler-service/,     label: 'screen→KpiSchedulerService'    },
+  { from: /\/features\//,  to: /kpi-scheduler-service/,     label: 'feature→KpiSchedulerService'   },
+  { from: /\/screens\//,   to: /analytics-service/,         label: 'screen→AnalyticsService'       },
+  { from: /\/features\//,  to: /analytics-service/,         label: 'feature→AnalyticsService'      },
   // PR-026 — UI must not reach Operations domain services directly;
   //           access via ApiGateway → getDeliveryHealth / getLatestKpiSnapshot / getKpiHistory
   { from: /\/screens\//,         to: /delivery-operations-service/,       label: 'screen→DeliveryOperationsService'           },
