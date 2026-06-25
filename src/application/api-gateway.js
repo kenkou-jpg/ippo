@@ -17,6 +17,11 @@ export class ApiGateway {
   #experimentCommandService;
   #caseGenerationService;
   #similarityEngine;
+  // PR-021 additions
+  #diseaseTagValidator;
+  #tierProgressService;
+  #profileFormationService;
+  #caseGeneratedEvent;
 
   constructor({
     permissionService,
@@ -28,6 +33,11 @@ export class ApiGateway {
     experimentCommandService,
     caseGenerationService,
     similarityEngine,
+    // PR-021
+    diseaseTagValidator   = null,
+    tierProgressService   = null,
+    profileFormationService = null,
+    caseGeneratedEvent    = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -38,6 +48,10 @@ export class ApiGateway {
     this.#experimentCommandService   = experimentCommandService;
     this.#caseGenerationService      = caseGenerationService;
     this.#similarityEngine           = similarityEngine;
+    this.#diseaseTagValidator        = diseaseTagValidator;
+    this.#tierProgressService        = tierProgressService;
+    this.#profileFormationService    = profileFormationService;
+    this.#caseGeneratedEvent         = caseGeneratedEvent;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -49,6 +63,8 @@ export class ApiGateway {
 
   async saveRecord(data) {
     await this.#permissionService.require('record:write');
+    // DiseaseTagValidator: WARNING only, non-blocking (Wave1 coverage measurement)
+    this.#diseaseTagValidator?.validate(data);
     return this.#recordCommandService.save(data);
   }
 
@@ -72,6 +88,40 @@ export class ApiGateway {
   }
 
   // ── Similarity ────────────────────────────────────────────────────────────────
+
+  // ── Tier Progress & Profile Formation (PR-021) ───────────────────────────────
+
+  /**
+   * Compute Tier3 progress for the given CaseCandidate. Auth required.
+   * @param {object} candidate  CaseCandidate or equivalent shape
+   * @returns {Promise<object>}
+   */
+  async getTierProgress(candidate) {
+    await this.#permissionService.require('case:read:own');
+    if (!this.#tierProgressService) throw new Error('[ApiGateway] TierProgressService not wired');
+    return this.#tierProgressService.getProgress(candidate);
+  }
+
+  /**
+   * Get profile formation status (UX-facing, no "Case" terminology). Auth required.
+   * @param {object} candidate  CaseCandidate or equivalent shape
+   * @returns {Promise<{stage: string, completionPercent: number, daysRemaining: number}>}
+   */
+  async getProfileFormation(candidate) {
+    await this.#permissionService.require('record:read');
+    if (!this.#profileFormationService) throw new Error('[ApiGateway] ProfileFormationService not wired');
+    return this.#profileFormationService.getFormationStatus(candidate);
+  }
+
+  /**
+   * Get Case generation events for the current user. Auth required.
+   * @returns {Promise<Array<{caseId:string, userId:string, generatedAt:string}>>}
+   */
+  async getCaseEvents() {
+    const ctx = await this.#permissionService.require('case:read:own');
+    if (!this.#caseGeneratedEvent) return [];
+    return this.#caseGeneratedEvent.getForUser(ctx.userId);
+  }
 
   /**
    * Retrieve similar cases for caseId.

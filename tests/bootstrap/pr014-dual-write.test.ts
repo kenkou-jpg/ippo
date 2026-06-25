@@ -439,11 +439,12 @@ describe('CompositionRoot — PR-014 DualWrite', () => {
     });
   });
 
-  it('resolves RecordRepository as DualWriteRecordRepository', () => {
+  it('resolves RecordRepository as RecordReadSwitchRepository (PR-021)', async () => {
+    const { RecordReadSwitchRepository } = await import('../../src/repositories/record/record-read-switch-repository.js');
     const c = new DependencyContainer();
     const r = new RouteRegistry();
     new CompositionRoot(c, r, loadBootstrapConfig()).assemble();
-    expect(c.resolve(TOKENS.RecordRepository)).toBeInstanceOf(DualWriteRecordRepository);
+    expect(c.resolve(TOKENS.RecordRepository)).toBeInstanceOf(RecordReadSwitchRepository);
   });
 
   it('Record feature status = dual-write', () => {

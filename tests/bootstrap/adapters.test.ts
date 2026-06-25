@@ -223,13 +223,13 @@ describe('CompositionRoot PR-012 — adapter resolution', () => {
     expect(auth).toBeInstanceOf(IAuthService);
   });
 
-  it('RecordRepository resolves to DualWriteRecordRepository (PR-014 migrated)', async () => {
+  it('RecordRepository resolves to RecordReadSwitchRepository (PR-021 migrated)', async () => {
     const { CompositionRoot } = await import('../../src/application/composition-root.js');
-    const { DualWriteRecordRepository } = await import('../../src/repositories/record/dual-write-record-repository.js');
+    const { RecordReadSwitchRepository } = await import('../../src/repositories/record/record-read-switch-repository.js');
     const c = new DependencyContainer();
     const r = new RouteRegistry();
     new CompositionRoot(c, r, loadBootstrapConfig()).assemble();
-    expect(c.resolve(TOKENS.RecordRepository)).toBeInstanceOf(DualWriteRecordRepository);
+    expect(c.resolve(TOKENS.RecordRepository)).toBeInstanceOf(RecordReadSwitchRepository);
   });
 });
 

@@ -86,3 +86,15 @@ export function evaluateTier({ daysRecorded, coverageRate, diseaseKeyCount, hasO
 export function isPublishableTier(tier) {
   return tier === 'TIER2' || tier === 'TIER3';
 }
+
+/**
+ * Returns the frozen tier threshold constants.
+ * Use this in TierProgressService to avoid duplicating FD-002 values.
+ * @returns {{ TIER3: object, TIER2: object }}
+ */
+export function getTierThresholds() {
+  return {
+    TIER3: { minDurationDays: TIER3.minDurationDays, minCoverage: TIER3.minCoverage },
+    TIER2: { minDurationDays: TIER2.minDurationDays, minCoverage: TIER2.minCoverage, requiresOutcome: TIER2.requiresOutcome },
+  };
+}

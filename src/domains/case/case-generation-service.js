@@ -23,12 +23,15 @@ const _consentSvc = new ConsentEnforcementService();
 
 export class CaseGenerationService {
   #repository;
+  #eventPublisher;
 
   /**
    * @param {import('../../contracts/ICaseRepository.js').ICaseRepository} repository
+   * @param {import('./case-generated-event.js').CaseGeneratedEvent|null} [eventPublisher]
    */
-  constructor(repository) {
-    this.#repository = repository;
+  constructor(repository, eventPublisher = null) {
+    this.#repository    = repository;
+    this.#eventPublisher = eventPublisher;
   }
 
   /**
@@ -123,6 +126,19 @@ export class CaseGenerationService {
       qualityScore: qualityScore.total,
       consentLevel: candidate.consentLevel ?? 0,
     });
+
+    // ── 8. Case Generated Event (PR-021) — UI notification hook ────────────
+    if (this.#eventPublisher) {
+      try {
+        this.#eventPublisher.record({
+          caseId:      saved.id,
+          userId:      saved.userId ?? null,
+          generatedAt: saved.createdAt,
+        });
+      } catch (_) {
+        // event recording is non-fatal
+      }
+    }
 
     return saved;
   }

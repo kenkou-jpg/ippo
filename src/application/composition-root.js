@@ -47,6 +47,16 @@ import { RecordQueryService }           from './record-query-service.js';
 import { RecordCommandService }         from './record-command-service.js';
 import { ExperimentQueryService }       from './experiment-query-service.js';
 import { ExperimentCommandService }     from './experiment-command-service.js';
+// PR-021
+import { RecordV2Repository }           from '../repositories/record/record-v2-repository.js';
+import { RecordReadSwitch }             from '../repositories/record/record-read-switch.js';
+import { RecordReadSwitchRepository }   from '../repositories/record/record-read-switch-repository.js';
+import { RecordMigrationService }       from './record-migration-service.js';
+import { CaseGeneratedEvent }           from '../domains/case/case-generated-event.js';
+import { TierProgressService }          from './tier-progress-service.js';
+import { ProfileFormationService }      from './profile-formation-service.js';
+import { DiseaseTagValidator }          from './disease-tag-validator.js';
+import { Wave1MetricsService }          from './wave1-metrics-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -82,6 +92,15 @@ export const TOKENS = Object.freeze({
   ExperimentQueryService:     'ExperimentQueryService',
   ExperimentCommandService:   'ExperimentCommandService',
   ApiGateway:                 'ApiGateway',
+  // PR-021
+  RecordV2Repository:         'RecordV2Repository',
+  RecordReadSwitch:           'RecordReadSwitch',
+  RecordMigrationService:     'RecordMigrationService',
+  CaseGeneratedEvent:         'CaseGeneratedEvent',
+  TierProgressService:        'TierProgressService',
+  ProfileFormationService:    'ProfileFormationService',
+  DiseaseTagValidator:        'DiseaseTagValidator',
+  Wave1MetricsService:        'Wave1MetricsService',
 });
 
 export class CompositionRoot {
@@ -104,24 +123,41 @@ export class CompositionRoot {
     c.singleton(TOKENS.StorageService, () => new LocalStorageAdapter());
     c.singleton(TOKENS.AuthService,    () => new LegacyAuthAdapter());
 
-    // ── Record (PR-014) — DualWrite replaces bare RecordRepositoryImpl ─────
+    // ── Record (PR-014 + PR-021) ───────────────────────────────────────────
     //
-    //   DualWriteRecordRepository
-    //     ├─ RecordRepositoryImpl   (legacy source-of-truth, reads always from here)
-    //     ├─ RecordV2Store          (shadow, same StorageService, key=ippo_state_v2)
-    //     └─ DiffLogRepository      (append-only diff log, key=ippo_diff_log)
+    //   RecordReadSwitchRepository (PR-021)
+    //     ├─ DualWriteRecordRepository (writes always; reads when switch=off)
+    //     │    ├─ RecordRepositoryImpl   (legacy source-of-truth)
+    //     │    ├─ RecordV2Store          (shadow, key=ippo_state_v2)
+    //     │    └─ DiffLogRepository      (append-only diff log, key=ippo_diff_log)
+    //     └─ RecordV2Repository (reads when switch=on, promoted after matchRate≥99.9%)
     //
+    c.singleton(TOKENS.RecordReadSwitch, () => new RecordReadSwitch());
+
     c.singleton(TOKENS.RecordRepository, (container) => {
-      const storage   = container.resolve(TOKENS.StorageService);
-      const legacy    = new RecordRepositoryImpl(storage);
-      const v2        = new RecordV2Store(storage);
-      const diffLog   = new DiffLogRepository(storage);
+      const storage    = container.resolve(TOKENS.StorageService);
+      const legacy     = new RecordRepositoryImpl(storage);
+      const v2Store    = new RecordV2Store(storage);
+      const diffLog    = new DiffLogRepository(storage);
 
       // Expose DiffLogRepository on window for MigrationDashboard DevTools access
       if (typeof window !== 'undefined') window.__ippoDiffLog = diffLog;
 
-      return new DualWriteRecordRepository(legacy, v2, diffLog);
+      const dualWrite  = new DualWriteRecordRepository(legacy, v2Store, diffLog);
+      const v2Repo     = new RecordV2Repository(v2Store);
+      const readSwitch = container.resolve(TOKENS.RecordReadSwitch);
+
+      return new RecordReadSwitchRepository(dualWrite, v2Repo, readSwitch);
     });
+
+    c.singleton(TOKENS.RecordV2Repository, (container) => {
+      const storage = container.resolve(TOKENS.StorageService);
+      const v2Store = new RecordV2Store(storage);
+      return new RecordV2Repository(v2Store);
+    });
+
+    c.singleton(TOKENS.RecordMigrationService, (container) =>
+      new RecordMigrationService(container.resolve(TOKENS.RecordReadSwitch)));
 
     // ── Experiment (PR-015) ────────────────────────────────────────────────
     c.singleton(TOKENS.ExperimentRepository, (container) => {
@@ -144,10 +180,7 @@ export class CompositionRoot {
       const storage = container.resolve(TOKENS.StorageService);
       return new CaseRepositoryImpl(storage);
     });
-    c.singleton(TOKENS.CaseGenerationService, (container) => {
-      const repo = container.resolve(TOKENS.CaseRepository);
-      return new CaseGenerationService(repo);
-    });
+    // CaseGenerationService wired in PR-021 block (with CaseGeneratedEvent)
     c.singleton(TOKENS.OutcomeResolver, () => ({ resolveOutcome }));
     c.singleton(TOKENS.TierEvaluator,   () => ({ evaluateTier }));
 
@@ -206,6 +239,24 @@ export class CompositionRoot {
       return new ExperimentCommandService(repo);
     });
 
+    // ── PR-021: UX Foundation Services ───────────────────────────────────
+    c.singleton(TOKENS.CaseGeneratedEvent, (container) =>
+      new CaseGeneratedEvent(container.resolve(TOKENS.StorageService)));
+
+    c.singleton(TOKENS.TierProgressService,     () => new TierProgressService());
+    c.singleton(TOKENS.ProfileFormationService, (container) =>
+      new ProfileFormationService(container.resolve(TOKENS.TierProgressService)));
+    c.singleton(TOKENS.DiseaseTagValidator,     () => new DiseaseTagValidator());
+    c.singleton(TOKENS.Wave1MetricsService,     () => new Wave1MetricsService());
+
+    // ── CaseGenerationService — rewire with CaseGeneratedEvent (PR-021) ──
+    // Override the PR-017 registration to inject the event publisher.
+    c.singleton(TOKENS.CaseGenerationService, (container) => {
+      const repo  = container.resolve(TOKENS.CaseRepository);
+      const event = container.resolve(TOKENS.CaseGeneratedEvent);
+      return new CaseGenerationService(repo, event);
+    });
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -217,6 +268,11 @@ export class CompositionRoot {
       experimentCommandService:  container.resolve(TOKENS.ExperimentCommandService),
       caseGenerationService:     container.resolve(TOKENS.CaseGenerationService),
       similarityEngine:          container.resolve(TOKENS.SimilarityEngine),
+      // PR-021
+      diseaseTagValidator:       container.resolve(TOKENS.DiseaseTagValidator),
+      tierProgressService:       container.resolve(TOKENS.TierProgressService),
+      profileFormationService:   container.resolve(TOKENS.ProfileFormationService),
+      caseGeneratedEvent:        container.resolve(TOKENS.CaseGeneratedEvent),
     }));
 
     this._registerFeatures();
@@ -232,6 +288,7 @@ export class CompositionRoot {
     r.register('Similarity', { status: 'active',       migratesIn: 'PR-019' }); // PR-019 ✓
     r.register('Auth',       { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
     r.register('API',        { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
-    r.register('B2BExport',  { status: 'legacy',     migratesIn: 'PR-021' });
+    r.register('RecordV2',   { status: 'read-switch-ready', migratesIn: 'PR-021' }); // PR-021 ✓
+    r.register('B2BExport',  { status: 'legacy',     migratesIn: 'PR-022' });
   }
 }

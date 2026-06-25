@@ -9,6 +9,7 @@ const KNOWN_FEATURES = new Set([
   'Similarity',
   'Auth',
   'API',        // PR-020: API Gateway
+  'RecordV2',   // PR-021: Record V2 Read Switch
   'B2BExport',
 ]);
 
