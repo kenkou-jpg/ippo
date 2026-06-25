@@ -1,0 +1,78 @@
+// VectorBuilder — converts a SimilarityCandidate into a numeric feature vector for cosine similarity.
+// Input:  SimilarityCandidate (from SimilarityCandidateBuilder)
+// Output: FeatureVector — normalized float array + metadata
+
+/**
+ * Dimension indices — stable order required for cosine similarity correctness.
+ * @enum {number}
+ */
+export const DIM = Object.freeze({
+  QUALITY_SCORE:     0, // qualityScore / 100
+  DURATION_DAYS:     1, // durationDays / 365, clamped [0,1]
+  HAS_OUTCOME:       2, // 1 or 0
+  EXPERIMENT_COUNT:  3, // experimentCount / 10, clamped [0,1]
+  RECORD_COUNT:      4, // recordCount / 365, clamped [0,1]
+  CONSENT_LEVEL:     5, // consentLevel / 3
+  SYMPTOM_COUNT:     6, // symptoms.length / 20, clamped [0,1]
+  FOOD_COUNT:        7, // foods.length / 20, clamped [0,1]
+});
+
+export const VECTOR_DIM = Object.keys(DIM).length; // 8
+
+/**
+ * @typedef {{
+ *   caseId:      string,
+ *   diseaseKey:  string,
+ *   values:      number[],   length = VECTOR_DIM, all in [0,1]
+ *   magnitude:   number,
+ *   builtAt:     string,
+ * }} ComputedFeatureVector
+ */
+
+function _clamp(v, min = 0, max = 1) { return Math.min(Math.max(v, min), max); }
+
+function _magnitude(values) {
+  return Math.sqrt(values.reduce((s, v) => s + v * v, 0));
+}
+
+export class VectorBuilder {
+  /**
+   * Build a ComputedFeatureVector from a SimilarityCandidate.
+   * @param {import('./similarity-candidate.js').SimilarityCandidate} candidate
+   * @returns {ComputedFeatureVector}
+   */
+  build(candidate) {
+    if (!candidate) throw new TypeError('[VectorBuilder] candidate must not be null');
+
+    const fv = candidate.featureVectorStub ?? {};
+
+    const values = new Array(VECTOR_DIM).fill(0);
+    values[DIM.QUALITY_SCORE]    = _clamp((fv.qualityScore    ?? 0) / 100);
+    values[DIM.DURATION_DAYS]    = _clamp((fv.durationDays    ?? 0) / 365);
+    values[DIM.HAS_OUTCOME]      = (fv.hasOutcome ?? false) ? 1 : 0;
+    values[DIM.EXPERIMENT_COUNT] = _clamp((fv.experimentCount ?? 0) / 10);
+    values[DIM.RECORD_COUNT]     = _clamp((fv.recordCount     ?? 0) / 365);
+    values[DIM.CONSENT_LEVEL]    = _clamp((fv.consentLevel    ?? 0) / 3);
+    values[DIM.SYMPTOM_COUNT]    = _clamp((Array.isArray(fv.symptoms) ? fv.symptoms.length : 0) / 20);
+    values[DIM.FOOD_COUNT]       = _clamp((Array.isArray(fv.foods)    ? fv.foods.length    : 0) / 20);
+
+    return Object.freeze({
+      caseId:    candidate.caseId    ?? '',
+      diseaseKey: candidate.diseaseKey ?? 'UNKNOWN',
+      values,
+      magnitude: _magnitude(values),
+      builtAt:   new Date().toISOString(),
+    });
+  }
+
+  /**
+   * Build vectors for multiple candidates, skipping ineligible ones.
+   * @param {object[]} candidates
+   * @returns {ComputedFeatureVector[]}
+   */
+  buildAll(candidates) {
+    return candidates
+      .filter(c => c?.eligibleForSimilarity)
+      .map(c => this.build(c));
+  }
+}

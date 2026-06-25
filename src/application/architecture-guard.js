@@ -30,6 +30,37 @@ const FORBIDDEN = [
   { from: /\/screens\//,         to: /record-v2-store/,     label: 'screen→RecordV2Store'   },
   { from: /\/features\//,        to: /diff-log-repository/, label: 'feature→DiffLog'        },
   { from: /\/screens\//,         to: /diff-log-repository/, label: 'screen→DiffLog'         },
+  // PR-015 — UI must not reach ExperimentRepository directly;
+  //           use ExperimentQueryService / ExperimentCommandService
+  { from: /\/features\//,        to: /experiment-repository/, label: 'feature→ExperimentRepository' },
+  { from: /\/screens\//,         to: /experiment-repository/, label: 'screen→ExperimentRepository'  },
+  // PR-016 — UI must not reach ExperimentLifecycleService internals (StateMachine / TransitionAudit) directly;
+  //           status changes MUST flow through ExperimentLifecycleService
+  { from: /\/features\//,        to: /experiment-state-machine/, label: 'feature→ExperimentStateMachine' },
+  { from: /\/screens\//,         to: /experiment-state-machine/, label: 'screen→ExperimentStateMachine'  },
+  { from: /\/features\//,        to: /transition-audit/,         label: 'feature→TransitionAudit'        },
+  { from: /\/screens\//,         to: /transition-audit/,         label: 'screen→TransitionAudit'         },
+  // PR-017 — UI must not reach CaseRepository or TierEvaluator directly;
+  //           Case creation MUST flow through CaseGenerationService
+  { from: /\/features\//,        to: /case-repository/,          label: 'feature→CaseRepository'  },
+  { from: /\/screens\//,         to: /case-repository/,          label: 'screen→CaseRepository'   },
+  { from: /\/features\//,        to: /tier-evaluator/,           label: 'feature→TierEvaluator'   },
+  { from: /\/screens\//,         to: /tier-evaluator/,           label: 'screen→TierEvaluator'    },
+  // PR-018 — UI must not reach ConsentRepository or SimilarityFeatureExtractor directly
+  { from: /\/features\//,        to: /consent-repository/,       label: 'feature→ConsentRepository'           },
+  { from: /\/screens\//,         to: /consent-repository/,       label: 'screen→ConsentRepository'            },
+  { from: /\/features\//,        to: /feature-extractor/,        label: 'feature→SimilarityFeatureExtractor'  },
+  { from: /\/screens\//,         to: /feature-extractor/,        label: 'screen→SimilarityFeatureExtractor'   },
+  // PR-019 — UI must not reach SimilarityRepository, EdgeGenerator, VectorBuilder,
+  //           or SimilarityCalculator directly; use SimilarityEngine (the only entry point).
+  { from: /\/features\//,        to: /similarity-repository/,    label: 'feature→SimilarityRepository'        },
+  { from: /\/screens\//,         to: /similarity-repository/,    label: 'screen→SimilarityRepository'         },
+  { from: /\/features\//,        to: /edge-generator/,           label: 'feature→EdgeGenerator'               },
+  { from: /\/screens\//,         to: /edge-generator/,           label: 'screen→EdgeGenerator'                },
+  { from: /\/features\//,        to: /vector-builder/,           label: 'feature→VectorBuilder'               },
+  { from: /\/screens\//,         to: /vector-builder/,           label: 'screen→VectorBuilder'                },
+  { from: /\/features\//,        to: /similarity-calculator/,    label: 'feature→SimilarityCalculator'        },
+  { from: /\/screens\//,         to: /similarity-calculator/,    label: 'screen→SimilarityCalculator'         },
 ];
 
 export function runArchitectureGuard() {
