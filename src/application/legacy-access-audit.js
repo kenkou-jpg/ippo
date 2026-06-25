@@ -109,3 +109,38 @@ export function getViolationCount() {
 export function getViolations() {
   return [...KNOWN_VIOLATIONS];
 }
+
+// ── PR-020 Audit API ──────────────────────────────────────────────────────────
+
+/**
+ * Count of known window.supabase direct references still in place.
+ * Target: 0 before PR-021.
+ * @returns {number}
+ */
+export function getSupabaseDirectCount() {
+  return KNOWN_VIOLATIONS.filter(v => v.key === 'window.supabase').length;
+}
+
+/**
+ * Count of known localStorage direct references (Repository bypass).
+ * Exempt: src/services/supabase.js (Supabase SDK internal).
+ * Target: 0 before PR-021.
+ * @returns {number}
+ */
+export function getRepositoryBypassCount() {
+  return KNOWN_VIOLATIONS.filter(
+    v => v.key === 'localStorage' && !v.note.includes('exempt'),
+  ).length;
+}
+
+/**
+ * Full PR-020 audit summary.
+ * @returns {{ supabaseDirect: number, repositoryBypass: number, total: number }}
+ */
+export function getPR020AuditSummary() {
+  return {
+    supabaseDirect:   getSupabaseDirectCount(),
+    repositoryBypass: getRepositoryBypassCount(),
+    total:            KNOWN_VIOLATIONS.length,
+  };
+}

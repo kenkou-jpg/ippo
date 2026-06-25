@@ -8,6 +8,7 @@ const KNOWN_FEATURES = new Set([
   'Analytics',
   'Similarity',
   'Auth',
+  'API',        // PR-020: API Gateway
   'B2BExport',
 ]);
 

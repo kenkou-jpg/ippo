@@ -61,6 +61,12 @@ const FORBIDDEN = [
   { from: /\/screens\//,         to: /vector-builder/,           label: 'screen→VectorBuilder'                },
   { from: /\/features\//,        to: /similarity-calculator/,    label: 'feature→SimilarityCalculator'        },
   { from: /\/screens\//,         to: /similarity-calculator/,    label: 'screen→SimilarityCalculator'         },
+  // PR-020 — UI must not reach AuthAdapter, Repositories, or window.supabase directly;
+  //           all access MUST flow through ApiGateway.
+  { from: /\/features\//,        to: /legacy-auth-adapter/,      label: 'feature→LegacyAuthAdapter'           },
+  { from: /\/screens\//,         to: /legacy-auth-adapter/,      label: 'screen→LegacyAuthAdapter'            },
+  { from: /\/features\//,        to: /\/adapters\//,             label: 'feature→AdapterDirect'               },
+  { from: /\/screens\//,         to: /\/adapters\//,             label: 'screen→AdapterDirect'                },
 ];
 
 export function runArchitectureGuard() {

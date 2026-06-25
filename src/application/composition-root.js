@@ -40,6 +40,13 @@ import { SimilarityEngine }             from '../domains/similarity/similarity-e
 import { VectorBuilder }                from '../domains/similarity/vector-builder.js';
 import { SimilarityCalculator }         from '../domains/similarity/similarity-calculator.js';
 import { EdgeGenerator }                from '../domains/similarity/edge-generator.js';
+import { PermissionService }            from '../domains/auth/permission-service.js';
+import { SimilarityAccessGuard }        from '../domains/auth/similarity-access-guard.js';
+import { ApiGateway }                   from './api-gateway.js';
+import { RecordQueryService }           from './record-query-service.js';
+import { RecordCommandService }         from './record-command-service.js';
+import { ExperimentQueryService }       from './experiment-query-service.js';
+import { ExperimentCommandService }     from './experiment-command-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -67,6 +74,14 @@ export const TOKENS = Object.freeze({
   EdgeGenerator:                  'EdgeGenerator',
   AnalyticsService:           'AnalyticsService',
   SimilarityService:          'SimilarityService',
+  // PR-020
+  PermissionService:          'PermissionService',
+  SimilarityAccessGuard:      'SimilarityAccessGuard',
+  RecordQueryService:         'RecordQueryService',
+  RecordCommandService:       'RecordCommandService',
+  ExperimentQueryService:     'ExperimentQueryService',
+  ExperimentCommandService:   'ExperimentCommandService',
+  ApiGateway:                 'ApiGateway',
 });
 
 export class CompositionRoot {
@@ -166,6 +181,44 @@ export class CompositionRoot {
     // ── Null stubs — replaced in listed PRs ───────────────────────────────
     c.singleton(TOKENS.AnalyticsService,     () => null); // PR-018
 
+    // ── Auth Domain (PR-020) ──────────────────────────────────────────────
+    c.singleton(TOKENS.PermissionService, (container) => {
+      const auth = container.resolve(TOKENS.AuthService);
+      return new PermissionService(auth);
+    });
+    c.singleton(TOKENS.SimilarityAccessGuard, () => new SimilarityAccessGuard());
+
+    // ── Application Services (PR-020) — wired for ApiGateway ─────────────
+    c.singleton(TOKENS.RecordQueryService, (container) => {
+      const repo = container.resolve(TOKENS.RecordRepository);
+      return new RecordQueryService(repo);
+    });
+    c.singleton(TOKENS.RecordCommandService, (container) => {
+      const repo = container.resolve(TOKENS.RecordRepository);
+      return new RecordCommandService(repo);
+    });
+    c.singleton(TOKENS.ExperimentQueryService, (container) => {
+      const repo = container.resolve(TOKENS.ExperimentRepository);
+      return new ExperimentQueryService(repo);
+    });
+    c.singleton(TOKENS.ExperimentCommandService, (container) => {
+      const repo = container.resolve(TOKENS.ExperimentRepository);
+      return new ExperimentCommandService(repo);
+    });
+
+    // ── API Gateway (PR-020) — single public entry point for UI ──────────
+    c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
+      permissionService:         container.resolve(TOKENS.PermissionService),
+      similarityAccessGuard:     container.resolve(TOKENS.SimilarityAccessGuard),
+      consentEnforcementService: container.resolve(TOKENS.ConsentEnforcementService),
+      recordQueryService:        container.resolve(TOKENS.RecordQueryService),
+      recordCommandService:      container.resolve(TOKENS.RecordCommandService),
+      experimentQueryService:    container.resolve(TOKENS.ExperimentQueryService),
+      experimentCommandService:  container.resolve(TOKENS.ExperimentCommandService),
+      caseGenerationService:     container.resolve(TOKENS.CaseGenerationService),
+      similarityEngine:          container.resolve(TOKENS.SimilarityEngine),
+    }));
+
     this._registerFeatures();
   }
 
@@ -177,7 +230,8 @@ export class CompositionRoot {
     r.register('Consent',    { status: 'enforced',      migratesIn: 'PR-018' }); // PR-018 ✓
     r.register('Analytics',  { status: 'legacy',     migratesIn: 'PR-018' });
     r.register('Similarity', { status: 'active',       migratesIn: 'PR-019' }); // PR-019 ✓
-    r.register('Auth',       { status: 'adapter',    migratesIn: 'PR-012' });
-    r.register('B2BExport',  { status: 'legacy',     migratesIn: 'PR-020' });
+    r.register('Auth',       { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
+    r.register('API',        { status: 'active',     migratesIn: 'PR-020' }); // PR-020 ✓
+    r.register('B2BExport',  { status: 'legacy',     migratesIn: 'PR-021' });
   }
 }
