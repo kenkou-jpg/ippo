@@ -72,6 +72,12 @@ const FORBIDDEN = [
   { from: /\/screens\//,         to: /\/engagement\//,                    label: 'screen→EngagementDomain'                    },
   { from: /\/features\//,        to: /\/adapters\/storage\//,             label: 'feature→StorageService'                     },
   { from: /\/screens\//,         to: /\/adapters\/storage\//,             label: 'screen→StorageService'                      },
+  // PR-028 — UI must not reach Symptom internals directly;
+  //           access via ApiGateway → validateSymptom / getSymptomTypes / getPainTypes
+  { from: /\/screens\//,   to: /symptom-repository/,   label: 'screen→SymptomRepository'  },
+  { from: /\/features\//,  to: /symptom-repository/,   label: 'feature→SymptomRepository' },
+  { from: /\/screens\//,   to: /symptom-validator/,    label: 'screen→SymptomValidator'   },
+  { from: /\/features\//,  to: /symptom-validator/,    label: 'feature→SymptomValidator'  },
   // PR-027 — UI must not reach Automation domain services directly;
   //           access via ApiGateway → retryFailedDeliveries / getSnapshotScheduleStatus / getAnalyticsStatus
   { from: /\/screens\//,   to: /delivery-retry-service/,    label: 'screen→DeliveryRetryService'   },

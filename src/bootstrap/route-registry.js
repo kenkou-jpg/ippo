@@ -16,6 +16,7 @@ const KNOWN_FEATURES = new Set([
   'Delivery',      // PR-024: Delivery Layer
   'Operations',           // PR-026: Operations & KPI Automation
   'OperationsAutomation', // PR-027: Operations Automation & Analytics Completion
+  'Symptom',              // PR-028: Symptom Intelligence Foundation
 ]);
 
 export class RouteRegistry {

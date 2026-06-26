@@ -82,6 +82,10 @@ import { TierProgressService }          from './tier-progress-service.js';
 import { ProfileFormationService }      from './profile-formation-service.js';
 import { DiseaseTagValidator }          from './disease-tag-validator.js';
 import { Wave1MetricsService }          from './wave1-metrics-service.js';
+// PR-028
+import { SymptomService }               from '../domains/symptom/symptom-service.js';
+import { SymptomValidator }             from '../domains/symptom/symptom-validator.js';
+import { SymptomRepository }            from '../domains/symptom/symptom-repository.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -151,6 +155,10 @@ export const TOKENS = Object.freeze({
   NotificationProviderAdapter:    'NotificationProviderAdapter',
   DeliveryProcessor:              'DeliveryProcessor',
   DeliveryMetrics:                'DeliveryMetrics',
+  // PR-028
+  SymptomRepository:              'SymptomRepository',
+  SymptomValidator:               'SymptomValidator',
+  SymptomService:                 'SymptomService',
 });
 
 export class CompositionRoot {
@@ -385,6 +393,15 @@ export class CompositionRoot {
         deliveryMetrics:             container.resolve(TOKENS.DeliveryMetrics),
       }));
 
+    // ── Symptom Domain (PR-028) ───────────────────────────────────────────
+    c.singleton(TOKENS.SymptomRepository, (container) =>
+      new SymptomRepository(container.resolve(TOKENS.StorageService)));
+
+    c.singleton(TOKENS.SymptomValidator, () => new SymptomValidator());
+
+    c.singleton(TOKENS.SymptomService, (container) =>
+      new SymptomService({ validator: container.resolve(TOKENS.SymptomValidator) }));
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -417,6 +434,8 @@ export class CompositionRoot {
       // PR-025
       deliveryProcessor: container.resolve(TOKENS.DeliveryProcessor),
       deliveryMetrics:   container.resolve(TOKENS.DeliveryMetrics),
+      // PR-028
+      symptomService:    container.resolve(TOKENS.SymptomService),
     }));
 
     this._registerFeatures();
@@ -437,5 +456,6 @@ export class CompositionRoot {
     r.register('B2BExport',    { status: 'bridged', migratesIn: 'PR-022' }); // PR-022 ✓
     r.register('Communication', { status: 'active', migratesIn: 'PR-023' }); // PR-023 ✓
     r.register('Delivery',      { status: 'active', migratesIn: 'PR-024' }); // PR-024 ✓
+    r.register('Symptom',       { status: 'active', migratesIn: 'PR-028' }); // PR-028 ✓
   }
 }

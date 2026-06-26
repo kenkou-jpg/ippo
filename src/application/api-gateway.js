@@ -46,6 +46,8 @@ export class ApiGateway {
   #kpiSchedulerService;
   #deliveryRetryService;
   #analyticsService;
+  // PR-028 additions
+  #symptomService;
 
   constructor({
     permissionService,
@@ -86,6 +88,8 @@ export class ApiGateway {
     kpiSchedulerService   = null,
     deliveryRetryService  = null,
     analyticsService      = null,
+    // PR-028
+    symptomService        = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -118,6 +122,7 @@ export class ApiGateway {
     this.#kpiSchedulerService           = kpiSchedulerService;
     this.#deliveryRetryService          = deliveryRetryService;
     this.#analyticsService              = analyticsService;
+    this.#symptomService                = symptomService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -382,6 +387,40 @@ export class ApiGateway {
     await this.#permissionService.require('admin:dashboard');
     if (!this.#kpiSnapshotAutomationService) throw new Error('[ApiGateway] KpiSnapshotAutomationService not wired');
     return this.#kpiSnapshotAutomationService.getSnapshotHistory();
+  }
+
+  // ── Symptom Intelligence API (PR-028) ────────────────────────────────────
+
+  /**
+   * Validate a symptom input against all SSOT registries. Auth required.
+   * Returns { valid, errors }. Does NOT persist.
+   * @param {object} data
+   * @returns {Promise<{ valid: boolean, errors: string[] }>}
+   */
+  async validateSymptom(data) {
+    await this.#permissionService.require('record:write');
+    if (!this.#symptomService) throw new Error('[ApiGateway] SymptomService not wired');
+    return this.#symptomService.validateSymptom(data);
+  }
+
+  /**
+   * Return the Symptom Category registry. Auth required.
+   * @returns {Promise<{ values: string[], registry: object }>}
+   */
+  async getSymptomTypes() {
+    await this.#permissionService.require('record:read');
+    if (!this.#symptomService) throw new Error('[ApiGateway] SymptomService not wired');
+    return this.#symptomService.getSymptomTypes();
+  }
+
+  /**
+   * Return the Pain Type registry. Auth required.
+   * @returns {Promise<{ values: string[], registry: object }>}
+   */
+  async getPainTypes() {
+    await this.#permissionService.require('record:read');
+    if (!this.#symptomService) throw new Error('[ApiGateway] SymptomService not wired');
+    return this.#symptomService.getPainTypes();
   }
 
   // ── Operations Automation Admin API (PR-027) ─────────────────────────────
