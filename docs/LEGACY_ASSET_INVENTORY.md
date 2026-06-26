@@ -1,9 +1,82 @@
-# LEGACY ASSET INVENTORY COUNCIL
-## IPPO — 旧資産棚卸・Network Asset判定
+# IPPO ASSET STRATEGY AUTHORITY DOCUMENT
+## 資産戦略基準文書 — Legacy Asset Inventory & Classification
 
-**会議日:** 2026-06-25
-**ステータス:** COUNCIL APPROVED
-**次会議:** NETWORK ASSET COUNCIL / DATA ASSET COUNCIL
+---
+
+> **文書権威レベル: LEVEL-1 GOVERNING DOCUMENT**
+>
+> 本文書はIPPOにおける資産戦略の最上位基準文書である。
+> 以下のすべての設計判断・PR・Council決議はこの文書のBinding Decisionsに準拠しなければならない。
+> 矛盾が生じた場合、本文書が優先する。
+
+---
+
+**文書番号:** IPPO-GOV-001
+**バージョン:** 1.1
+**初版日:** 2026-06-25（LEGACY ASSET INVENTORY COUNCIL承認）
+**格上げ日:** 2026-06-26（基準文書に昇格）
+**権威:** Founder承認 / LEGACY ASSET INVENTORY COUNCIL
+**改訂プロセス:** Section 0-C 参照
+**次回Review:** NETWORK ASSET COUNCIL / DATA ASSET COUNCIL
+
+---
+
+## 0. Governance — 本文書の権威と改訂規則
+
+### 0-A. 適用範囲
+
+本文書はIPPOに関わるすべての以下に適用される:
+
+- 新機能の設計・実装（PR単位）
+- Domain設計・SSOT定義
+- Council開催・議決
+- 将来の Wave計画
+
+### 0-B. Binding Decisions（拘束的決定）
+
+以下は本文書によって確定した設計上の拘束事項であり、変更にはLevel-1改訂プロセスが必要:
+
+| 決定番号 | 内容 | 根拠Section |
+|---|---|---|
+| **BD-001** | `similarity_edges` に対するDELETE禁止 | Section 4 / Network Asset原則 |
+| **BD-002** | `consent_events` に対するDELETE禁止 | Section 6 / Consent価値原則 |
+| **BD-003** | Lunar CalendarをUIとして実装しない | Section 5 Asset E |
+| **BD-004** | Disease TagをWave1でEntityに昇格させない | Section 7 |
+| **BD-005** | FoodをFoodログとして実装しない（Exposure Signalとして設計） | Section 3 |
+| **BD-006** | Symptom Intelligence はWave1で即時拡張対象とする | Section 5 Asset A |
+| **BD-007** | Drop判定はゼロ。すべての旧資産はHOLDまたはREFACTOR | Section 3 |
+| **BD-008** | 疾患情報は4層（Record/Profile/Case/Network）に分離して扱う | Section 10 Q3 |
+
+### 0-C. 改訂プロセス
+
+**Level-1改訂（Binding Decisionsの変更）:**
+- Founder承認が必要
+- Council開催が必要
+- 変更理由・影響範囲・代替策の文書化が必要
+- バージョンを `1.x → 2.0` に上げる
+
+**Level-2改訂（Wave計画・優先度の更新）:**
+- 担当エンジニアが提案
+- Section単位で差分を記載
+- バージョンを `1.x → 1.(x+1)` に上げる
+
+**Level-3改訂（誤字・表現の修正）:**
+- PR内でインライン修正可
+- バージョン変更なし
+
+### 0-D. PRコンプライアンス要件
+
+以下の資産を実装・変更するPRは、本文書の対応Sectionを参照し、Binding Decisionsと矛盾しないことを確認すること:
+
+| PR対象 | 参照Section |
+|---|---|
+| Symptom系 | Section 3, 5 (Asset A), BD-006 |
+| Pain Tracking | Section 3, 5 (Asset B) |
+| Disease Tag/Entity | Section 5 (Asset D), BD-004, BD-008 |
+| Lunar Calendar | Section 5 (Asset E), BD-003 |
+| Food/Nutrition | Section 3, BD-005 |
+| Network/Similarity | BD-001 |
+| Consent | BD-002 |
 
 ---
 
@@ -599,6 +672,24 @@ IPPOの5年後の価値は、
 
 ---
 
-**文書終了**
+## 11. Document Authority Record
+
+| 項目 | 内容 |
+|---|---|
+| 文書番号 | IPPO-GOV-001 |
+| 現バージョン | 1.1 |
+| 権威レベル | LEVEL-1 GOVERNING DOCUMENT |
+| 初版承認 | LEGACY ASSET INVENTORY COUNCIL — 2026-06-25 |
+| 1.1格上げ | 基準文書昇格 — 2026-06-26 |
+| Binding Decisions | 8件 (BD-001〜BD-008) |
+| 次回Review対象 | NETWORK ASSET COUNCIL / DATA ASSET COUNCIL |
+| 改訂権限 | Level-1: Founder承認必須 / Level-2: 担当提案+記録 |
+
+---
+
+**本文書はIPPO資産戦略の最上位基準文書 (LEVEL-1 GOVERNING DOCUMENT) である。**
+**すべての後続設計・実装・Councilはこの文書に準拠しなければならない。**
+
 **承認: LEGACY ASSET INVENTORY COUNCIL 2026-06-25**
+**格上げ承認: 2026-06-26**
 **次回: NETWORK ASSET COUNCIL**
