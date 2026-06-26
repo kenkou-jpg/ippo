@@ -1,8 +1,13 @@
 // EdgeGenerator — generates similarity_edges from pairwise scores.
 // An edge is created only when score >= threshold AND both cases share the same diseaseKey.
+// BD-011 (IPPO-GOV-001 v1.2 / NETWORK ASSET COUNCIL): all edges carry vectorVersion field.
+// BD-010: vectorVersion must be bumped when FeatureVector dimensions expand (Wave2).
 
 /** Default similarity threshold — edges below this are discarded. */
 export const DEFAULT_THRESHOLD = 0.5;
+
+/** FeatureVector version stamped on every generated edge. BD-011. */
+import { VECTOR_VERSION } from './vector-builder.js';
 
 let _edgeCounter = 0; // monotonic counter for deterministic edge IDs within a session
 
@@ -15,13 +20,14 @@ function _edgeId(sourceCaseId, targetCaseId) {
 
 /**
  * @typedef {{
- *   edgeId:        string,
- *   sourceCaseId:  string,
- *   targetCaseId:  string,
- *   score:         number,
- *   diseaseKey:    string,
- *   threshold:     number,
- *   createdAt:     string,
+ *   edgeId:         string,
+ *   sourceCaseId:   string,
+ *   targetCaseId:   string,
+ *   score:          number,
+ *   diseaseKey:     string,
+ *   threshold:      number,
+ *   vectorVersion:  string,
+ *   createdAt:      string,
  * }} SimilarityEdge
  */
 
@@ -55,13 +61,14 @@ export class EdgeGenerator {
 
     const now = new Date().toISOString();
     return Object.freeze({
-      edgeId:       _edgeId(vecA.caseId, vecB.caseId),
-      sourceCaseId: vecA.caseId,
-      targetCaseId: vecB.caseId,
-      score:        result.score,
-      diseaseKey:   vecA.diseaseKey,
-      threshold:    this.#threshold,
-      createdAt:    now,
+      edgeId:        _edgeId(vecA.caseId, vecB.caseId),
+      sourceCaseId:  vecA.caseId,
+      targetCaseId:  vecB.caseId,
+      score:         result.score,
+      diseaseKey:    vecA.diseaseKey,
+      threshold:     this.#threshold,
+      vectorVersion: VECTOR_VERSION,
+      createdAt:     now,
     });
   }
 

@@ -50,6 +50,19 @@ export class ApiGateway {
   #symptomService;
   // PR-029 additions
   #diseaseService;
+  // PR-030 additions
+  #networkSignalService;
+  // PR-031
+  #signalAggregationService;
+  #signalTrendService;
+  #signalTimelineService;
+  #signalSummaryService;
+  // PR-032
+  #longitudinalSignalService;
+  #movingAverageService;
+  #baselineService;
+  #trendWindowBuilder;
+  #longitudinalSummaryService;
 
   constructor({
     permissionService,
@@ -94,6 +107,19 @@ export class ApiGateway {
     symptomService        = null,
     // PR-029
     diseaseService        = null,
+    // PR-030
+    networkSignalService  = null,
+    // PR-031
+    signalAggregationService = null,
+    signalTrendService       = null,
+    signalTimelineService    = null,
+    signalSummaryService     = null,
+    // PR-032
+    longitudinalSignalService  = null,
+    movingAverageService       = null,
+    baselineService            = null,
+    trendWindowBuilder         = null,
+    longitudinalSummaryService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -128,6 +154,18 @@ export class ApiGateway {
     this.#analyticsService              = analyticsService;
     this.#symptomService                = symptomService;
     this.#diseaseService                = diseaseService;
+    this.#networkSignalService          = networkSignalService;
+    // PR-031
+    this.#signalAggregationService      = signalAggregationService;
+    this.#signalTrendService            = signalTrendService;
+    this.#signalTimelineService         = signalTimelineService;
+    this.#signalSummaryService          = signalSummaryService;
+    // PR-032
+    this.#longitudinalSignalService     = longitudinalSignalService;
+    this.#movingAverageService          = movingAverageService;
+    this.#baselineService               = baselineService;
+    this.#trendWindowBuilder            = trendWindowBuilder;
+    this.#longitudinalSummaryService    = longitudinalSummaryService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -141,7 +179,11 @@ export class ApiGateway {
     await this.#permissionService.require('record:write');
     // DiseaseTagValidator: WARNING only, non-blocking (Wave1 coverage measurement)
     this.#diseaseTagValidator?.validate(data);
-    return this.#recordCommandService.save(data);
+    const record = await this.#recordCommandService.save(data);
+    // PR-030: generate NetworkSignals from record data (Signal generation point only)
+    // No Similarity, DiseaseCluster, Longitudinal, or FeatureVector triggered here.
+    this.#networkSignalService?.generateFromRecord(record ?? data);
+    return record;
   }
 
   // ── Experiments ───────────────────────────────────────────────────────────────
@@ -536,5 +578,150 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
     return this.#diseaseService.findResolved();
+  }
+
+  // ── Network Signal API (PR-030) ───────────────────────────────────────────
+  // NETWORK ASSET COUNCIL (IPPO-COUNCIL-002) NAC-01 / NAC-02.
+  // BD-013: NetworkSignal SSOT is src/domains/network/network-signal-types.js.
+  // Wave1: Signal collection only — no DiseaseCluster, Similarity, Longitudinal, AI, Recommendation.
+
+  /**
+   * Validate a NetworkSignal input against all SSOT registries. Auth required.
+   * Returns { valid, errors }. Does NOT persist.
+   * @param {object} data
+   * @returns {Promise<{ valid: boolean, errors: string[] }>}
+   */
+  async validateNetworkSignal(data) {
+    await this.#permissionService.require('record:write');
+    if (!this.#networkSignalService) throw new Error('[ApiGateway] NetworkSignalService not wired');
+    return this.#networkSignalService.validateSignal(data);
+  }
+
+  /**
+   * Create and store a new NetworkSignal. Auth required (record:read).
+   * Wave1: in-memory only — not persisted across sessions.
+   * @param {object} data
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal>}
+   */
+  async createNetworkSignal(data) {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalService) throw new Error('[ApiGateway] NetworkSignalService not wired');
+    return this.#networkSignalService.createSignal(data);
+  }
+
+  /**
+   * Return all stored NetworkSignals. Auth required (record:read).
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal[]>}
+   */
+  async getNetworkSignals() {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalService) throw new Error('[ApiGateway] NetworkSignalService not wired');
+    return this.#networkSignalService.listSignals();
+  }
+
+  /**
+   * Return NetworkSignals associated with a specific record. Auth required (record:read).
+   * @param {string} recordId
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal[]>}
+   */
+  async getSignalsByRecord(recordId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalService) throw new Error('[ApiGateway] NetworkSignalService not wired');
+    return this.#networkSignalService.listByRecord(recordId);
+  }
+
+  /**
+   * Return NetworkSignals of a specific type. Auth required (record:read).
+   * @param {string} signalType
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal[]>}
+   */
+  async getSignalsByType(signalType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalService) throw new Error('[ApiGateway] NetworkSignalService not wired');
+    return this.#networkSignalService.listByType(signalType);
+  }
+
+  // ── Signal Intelligence (PR-031) ─────────────────────────────────────────────
+
+  /** Aggregate all signals. Auth required (record:read). */
+  async getSignalAggregation() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalAggregationService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] SignalAggregationService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#signalAggregationService.aggregate(signals);
+  }
+
+  /** Return trend for a specific signalType. Auth required (record:read). */
+  async getSignalTrend(signalType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalTrendService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] SignalTrendService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#signalTrendService.trend(signals, signalType);
+  }
+
+  /** Return chronological timeline of signals. Auth required (record:read). */
+  async getSignalTimeline() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalTimelineService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] SignalTimelineService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#signalTimelineService.buildTimeline(signals);
+  }
+
+  /** Return Wave1 summary of all signals. Auth required (record:read). */
+  async getSignalSummary() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalSummaryService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] SignalSummaryService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#signalSummaryService.summarize(signals);
+  }
+
+  // ── Longitudinal (PR-032) ─────────────────────────────────────────────────
+
+  /** Return longitudinal summary (baseline + movingAverage + trend + window). Auth: record:read. */
+  async getLongitudinalSummary(options = {}) {
+    await this.#permissionService.require('record:read');
+    if (!this.#longitudinalSummaryService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] LongitudinalSummaryService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#longitudinalSummaryService.summarize(signals, options);
+  }
+
+  /** Return baseline statistics for a signalType. Auth: record:read. */
+  async getBaseline(signalType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#baselineService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] BaselineService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#baselineService.compute(signals, signalType);
+  }
+
+  /** Return moving average for a signalType and window. Auth: record:read. */
+  async getMovingAverage(signalType, days, referenceDate) {
+    await this.#permissionService.require('record:read');
+    if (!this.#movingAverageService || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] MovingAverageService not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#movingAverageService.compute(signals, signalType, days, referenceDate);
+  }
+
+  /** Return a trend window (Last7 or Last30). Auth: record:read. */
+  async getTrendWindow(days, referenceDate) {
+    await this.#permissionService.require('record:read');
+    if (!this.#trendWindowBuilder || !this.#networkSignalService) {
+      throw new Error('[ApiGateway] TrendWindowBuilder not wired');
+    }
+    const signals = this.#networkSignalService.listSignals();
+    return this.#trendWindowBuilder.build(signals, days, referenceDate);
   }
 }

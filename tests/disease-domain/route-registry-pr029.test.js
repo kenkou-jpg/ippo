@@ -13,8 +13,8 @@ describe('RouteRegistry PR-029 — Disease feature', () => {
     expect(new RouteRegistry().knownFeatures).toContain('Disease');
   });
 
-  it('total knownFeatures count is 17', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(17);
+  it('total knownFeatures count is 20 (updated PR-032: +Longitudinal)', () => {
+    expect(new RouteRegistry().knownFeatures).toHaveLength(20);
   });
 
   it('registered Disease descriptor is frozen with correct metadata', () => {

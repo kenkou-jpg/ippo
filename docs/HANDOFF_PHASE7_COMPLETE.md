@@ -407,6 +407,35 @@ FAILED  → PENDING（DeliveryRetryService.retryFailed() のみ許可 / PR-027�
 
 ---
 
-## 次のPR
+## NETWORK ASSET COUNCIL 完了（2026-06-26）
 
-<!-- 未定 -->
+- 文書: `docs/NETWORK_ASSET_COUNCIL.md` (IPPO-COUNCIL-002)
+- IPPO-GOV-001 を v1.1 → v1.2 に改訂（BD-009〜BD-014 追加、計14件）
+- 次回: DATA ASSET COUNCIL
+
+### IPPO-GOV-001 v1.2 追加 Binding Decisions
+
+| 番号 | 内容 |
+|---|---|
+| BD-009 | Disease Cluster ID は Wave2 Disease Entity 昇格まで `diseaseKey` と同一 |
+| BD-010 | FeatureVector は `VECTOR_VERSION` 定数を持ち、次元拡張時は必ずバージョンを上げる |
+| BD-011 | EdgeGenerator が生成する全エッジは `vectorVersion` フィールドを持つ |
+| BD-012 | Longitudinal Signal の計算は Wave2 スコープ。Wave1 では Edge に付与しない |
+| BD-013 | NetworkSignal の SSOT は `src/domains/network/network-signal-types.js` に置く |
+| BD-014 | MenstrualPhase の自動判定は Disease Entity 昇格後（Wave2）に実装する |
+
+---
+
+## 次のPR — PR-030: Record Input Signal 収集基盤
+
+**ブランチ:** `feat/phase4d-batch1-record-input`
+**スコープ:** NETWORK ASSET COUNCIL Section 8 参照
+
+| 実装内容 | ファイル |
+|---|---|
+| NetworkSignal型定義 SSOT（Wave2足場） | `src/domains/network/network-signal-types.js` |
+| VECTOR_VERSION 定数追加 | `src/domains/similarity/vector-builder.js` |
+| vectorVersion フィールド付与 | `src/domains/similarity/edge-generator.js` |
+| Record Input バリデーション | `src/domains/record/record-input-validator.js` |
+| ApiGateway saveRecord() Signal対応 | `src/application/api-gateway.js` |
+| テスト | 上記すべての単体テスト |

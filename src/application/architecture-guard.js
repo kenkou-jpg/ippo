@@ -92,6 +92,34 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /kpi-scheduler-service/,     label: 'feature→KpiSchedulerService'   },
   { from: /\/screens\//,   to: /analytics-service/,         label: 'screen→AnalyticsService'       },
   { from: /\/features\//,  to: /analytics-service/,         label: 'feature→AnalyticsService'      },
+  // PR-030 — UI must not reach NetworkSignal internals directly;
+  //           access via ApiGateway → createNetworkSignal / getNetworkSignals / getSignalsByRecord / getSignalsByType
+  { from: /\/screens\//,   to: /network-signal-repository/, label: 'screen→NetworkSignalRepository'  },
+  { from: /\/features\//,  to: /network-signal-repository/, label: 'feature→NetworkSignalRepository' },
+  { from: /\/screens\//,   to: /network-signal-service/,    label: 'screen→NetworkSignalService'     },
+  { from: /\/features\//,  to: /network-signal-service/,    label: 'feature→NetworkSignalService'    },
+  // PR-032 — UI must not reach Longitudinal services directly;
+  //           access via ApiGateway → getLongitudinalSummary / getBaseline / getMovingAverage / getTrendWindow
+  { from: /\/screens\//,   to: /longitudinal-signal-service/,   label: 'screen→LongitudinalSignalService'    },
+  { from: /\/features\//,  to: /longitudinal-signal-service/,   label: 'feature→LongitudinalSignalService'   },
+  { from: /\/screens\//,   to: /moving-average-service/,        label: 'screen→MovingAverageService'         },
+  { from: /\/features\//,  to: /moving-average-service/,        label: 'feature→MovingAverageService'        },
+  { from: /\/screens\//,   to: /baseline-service/,              label: 'screen→BaselineService'              },
+  { from: /\/features\//,  to: /baseline-service/,              label: 'feature→BaselineService'             },
+  { from: /\/screens\//,   to: /trend-window-builder/,          label: 'screen→TrendWindowBuilder'           },
+  { from: /\/features\//,  to: /trend-window-builder/,          label: 'feature→TrendWindowBuilder'          },
+  { from: /\/screens\//,   to: /longitudinal-summary-service/,  label: 'screen→LongitudinalSummaryService'   },
+  { from: /\/features\//,  to: /longitudinal-summary-service/,  label: 'feature→LongitudinalSummaryService'  },
+  // PR-031 — UI must not reach Signal Intelligence services directly;
+  //           access via ApiGateway → getSignalAggregation / getSignalTrend / getSignalTimeline / getSignalSummary
+  { from: /\/screens\//,   to: /signal-aggregation-service/, label: 'screen→SignalAggregationService'  },
+  { from: /\/features\//,  to: /signal-aggregation-service/, label: 'feature→SignalAggregationService' },
+  { from: /\/screens\//,   to: /signal-trend-service/,       label: 'screen→SignalTrendService'        },
+  { from: /\/features\//,  to: /signal-trend-service/,       label: 'feature→SignalTrendService'       },
+  { from: /\/screens\//,   to: /signal-timeline-service/,    label: 'screen→SignalTimelineService'     },
+  { from: /\/features\//,  to: /signal-timeline-service/,    label: 'feature→SignalTimelineService'    },
+  { from: /\/screens\//,   to: /signal-summary-service/,     label: 'screen→SignalSummaryService'      },
+  { from: /\/features\//,  to: /signal-summary-service/,     label: 'feature→SignalSummaryService'     },
   // PR-026 — UI must not reach Operations domain services directly;
   //           access via ApiGateway → getDeliveryHealth / getLatestKpiSnapshot / getKpiHistory
   { from: /\/screens\//,         to: /delivery-operations-service/,       label: 'screen→DeliveryOperationsService'           },

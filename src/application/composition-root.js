@@ -90,6 +90,21 @@ import { SymptomRepository }            from '../domains/symptom/symptom-reposit
 import { DiseaseService }               from '../domains/disease/disease-service.js';
 import { DiseaseValidator }             from '../domains/disease/disease-validator.js';
 import { DiseaseRepository }            from '../domains/disease/disease-repository.js';
+// PR-030
+import { NetworkSignalService }         from '../domains/network/network-signal-service.js';
+import { NetworkSignalValidator }       from '../domains/network/network-signal-validator.js';
+import { NetworkSignalRepository }      from '../domains/network/network-signal-repository.js';
+// PR-031
+import { SignalAggregationService }     from '../domains/network/signal-aggregation-service.js';
+import { SignalTrendService }           from '../domains/network/signal-trend-service.js';
+import { SignalTimelineService }        from '../domains/network/signal-timeline-service.js';
+import { SignalSummaryService }         from '../domains/network/signal-summary-service.js';
+// PR-032
+import { LongitudinalSignalService }   from '../domains/network/longitudinal-signal-service.js';
+import { MovingAverageService }        from '../domains/network/moving-average-service.js';
+import { BaselineService }             from '../domains/network/baseline-service.js';
+import { TrendWindowBuilder }          from '../domains/network/trend-window-builder.js';
+import { LongitudinalSummaryService }  from '../domains/network/longitudinal-summary-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -167,6 +182,21 @@ export const TOKENS = Object.freeze({
   DiseaseRepository:              'DiseaseRepository',
   DiseaseValidator:               'DiseaseValidator',
   DiseaseService:                 'DiseaseService',
+  // PR-030
+  NetworkSignalRepository:        'NetworkSignalRepository',
+  NetworkSignalValidator:         'NetworkSignalValidator',
+  NetworkSignalService:           'NetworkSignalService',
+  // PR-031
+  SignalAggregationService:       'SignalAggregationService',
+  SignalTrendService:             'SignalTrendService',
+  SignalTimelineService:          'SignalTimelineService',
+  SignalSummaryService:           'SignalSummaryService',
+  // PR-032
+  LongitudinalSignalService:      'LongitudinalSignalService',
+  MovingAverageService:           'MovingAverageService',
+  BaselineService:                'BaselineService',
+  TrendWindowBuilder:             'TrendWindowBuilder',
+  LongitudinalSummaryService:     'LongitudinalSummaryService',
 });
 
 export class CompositionRoot {
@@ -422,6 +452,44 @@ export class CompositionRoot {
         repository: container.resolve(TOKENS.DiseaseRepository),
       }));
 
+    // ── Network Signal Domain (PR-030) ────────────────────────────────────
+    // NETWORK ASSET COUNCIL (IPPO-COUNCIL-002) NAC-01 / NAC-02.
+    // Storage禁止 / DB禁止: NetworkSignalRepository is in-memory only.
+    // BD-012: Longitudinal Signal is Wave2 scope — not wired here.
+    // BD-009: DiseaseCluster is Wave2 scope — not wired here.
+    c.singleton(TOKENS.NetworkSignalRepository, () => new NetworkSignalRepository());
+
+    c.singleton(TOKENS.NetworkSignalValidator, () => new NetworkSignalValidator());
+
+    c.singleton(TOKENS.NetworkSignalService, (container) =>
+      new NetworkSignalService({
+        validator:  container.resolve(TOKENS.NetworkSignalValidator),
+        repository: container.resolve(TOKENS.NetworkSignalRepository),
+      }));
+
+    // ── Signal Intelligence Domain (PR-031) ───────────────────────────────
+    // Wave1: stateless services — all computation is over NetworkSignal[] in-memory.
+    // No DB, no Supabase, no Similarity, no DiseaseCluster, no AI.
+    c.singleton(TOKENS.SignalAggregationService, () => new SignalAggregationService());
+    c.singleton(TOKENS.SignalTrendService,       () => new SignalTrendService());
+    c.singleton(TOKENS.SignalTimelineService,    () => new SignalTimelineService());
+    c.singleton(TOKENS.SignalSummaryService,     () => new SignalSummaryService());
+
+    // ── Longitudinal Domain (PR-032) ──────────────────────────────────────
+    // NAC-04 Wave1: Moving Average / Baseline / TrendWindow / LongitudinalSummary
+    // No DB, no Supabase, no Similarity, no DiseaseCluster, no AI, no Prediction.
+    c.singleton(TOKENS.LongitudinalSignalService,  () => new LongitudinalSignalService());
+    c.singleton(TOKENS.MovingAverageService,       () => new MovingAverageService());
+    c.singleton(TOKENS.BaselineService,            () => new BaselineService());
+    c.singleton(TOKENS.TrendWindowBuilder,         () => new TrendWindowBuilder());
+    c.singleton(TOKENS.LongitudinalSummaryService, (container) =>
+      new LongitudinalSummaryService({
+        baselineService:      container.resolve(TOKENS.BaselineService),
+        movingAverageService: container.resolve(TOKENS.MovingAverageService),
+        trendService:         container.resolve(TOKENS.SignalTrendService),
+        windowBuilder:        container.resolve(TOKENS.TrendWindowBuilder),
+      }));
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -457,7 +525,20 @@ export class CompositionRoot {
       // PR-028
       symptomService:    container.resolve(TOKENS.SymptomService),
       // PR-029
-      diseaseService:    container.resolve(TOKENS.DiseaseService),
+      diseaseService:       container.resolve(TOKENS.DiseaseService),
+      // PR-030
+      networkSignalService: container.resolve(TOKENS.NetworkSignalService),
+      // PR-031
+      signalAggregationService: container.resolve(TOKENS.SignalAggregationService),
+      signalTrendService:       container.resolve(TOKENS.SignalTrendService),
+      signalTimelineService:    container.resolve(TOKENS.SignalTimelineService),
+      signalSummaryService:     container.resolve(TOKENS.SignalSummaryService),
+      // PR-032
+      longitudinalSignalService:  container.resolve(TOKENS.LongitudinalSignalService),
+      movingAverageService:       container.resolve(TOKENS.MovingAverageService),
+      baselineService:            container.resolve(TOKENS.BaselineService),
+      trendWindowBuilder:         container.resolve(TOKENS.TrendWindowBuilder),
+      longitudinalSummaryService: container.resolve(TOKENS.LongitudinalSummaryService),
     }));
 
     this._registerFeatures();
@@ -480,5 +561,8 @@ export class CompositionRoot {
     r.register('Delivery',      { status: 'active', migratesIn: 'PR-024' }); // PR-024 ✓
     r.register('Symptom',       { status: 'active', migratesIn: 'PR-028' }); // PR-028 ✓
     r.register('Disease',       { status: 'active', migratesIn: 'PR-029' }); // PR-029 ✓
+    r.register('NetworkSignal',      { status: 'active', migratesIn: 'PR-030' }); // PR-030 ✓
+    r.register('SignalIntelligence', { status: 'active', migratesIn: 'PR-031' }); // PR-031 ✓
+    r.register('Longitudinal',       { status: 'active', migratesIn: 'PR-032' }); // PR-032 ✓
   }
 }

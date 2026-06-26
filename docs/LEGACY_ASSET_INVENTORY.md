@@ -12,12 +12,13 @@
 ---
 
 **文書番号:** IPPO-GOV-001
-**バージョン:** 1.1
+**バージョン:** 1.2
 **初版日:** 2026-06-25（LEGACY ASSET INVENTORY COUNCIL承認）
 **格上げ日:** 2026-06-26（基準文書に昇格）
+**v1.2改訂日:** 2026-06-26（NETWORK ASSET COUNCIL / BD-009〜BD-014追加）
 **権威:** Founder承認 / LEGACY ASSET INVENTORY COUNCIL
 **改訂プロセス:** Section 0-C 参照
-**次回Review:** NETWORK ASSET COUNCIL / DATA ASSET COUNCIL
+**次回Review:** DATA ASSET COUNCIL
 
 ---
 
@@ -46,6 +47,12 @@
 | **BD-006** | Symptom Intelligence はWave1で即時拡張対象とする | Section 5 Asset A |
 | **BD-007** | Drop判定はゼロ。すべての旧資産はHOLDまたはREFACTOR | Section 3 |
 | **BD-008** | 疾患情報は4層（Record/Profile/Case/Network）に分離して扱う | Section 10 Q3 |
+| **BD-009** | Disease Cluster ID は Wave2 Disease Entity 昇格まで `diseaseKey` と同一とする | NETWORK ASSET COUNCIL Section 5-C |
+| **BD-010** | FeatureVector は `VECTOR_VERSION` 定数を持ち、次元拡張時は必ずバージョンを上げる | NETWORK ASSET COUNCIL Section 4-A |
+| **BD-011** | EdgeGenerator が生成する全エッジは `vectorVersion` フィールドを持つ | NETWORK ASSET COUNCIL Section 4-B |
+| **BD-012** | Longitudinal Signal の計算は Wave2 スコープ。Wave1 では Edge に付与しない | NETWORK ASSET COUNCIL Section 6-C |
+| **BD-013** | Signal Schema（NetworkSignal）の SSOT は `src/domains/network/network-signal-types.js` に置く | NETWORK ASSET COUNCIL Section 3-A |
+| **BD-014** | MenstrualPhase の自動判定は Disease Entity 昇格後（Wave2）に実装する | NETWORK ASSET COUNCIL Section 3-C |
 
 ### 0-C. 改訂プロセス
 
@@ -677,12 +684,13 @@ IPPOの5年後の価値は、
 | 項目 | 内容 |
 |---|---|
 | 文書番号 | IPPO-GOV-001 |
-| 現バージョン | 1.1 |
+| 現バージョン | 1.2 |
 | 権威レベル | LEVEL-1 GOVERNING DOCUMENT |
 | 初版承認 | LEGACY ASSET INVENTORY COUNCIL — 2026-06-25 |
 | 1.1格上げ | 基準文書昇格 — 2026-06-26 |
-| Binding Decisions | 8件 (BD-001〜BD-008) |
-| 次回Review対象 | NETWORK ASSET COUNCIL / DATA ASSET COUNCIL |
+| 1.2改訂 | NETWORK ASSET COUNCIL — 2026-06-26（BD-009〜BD-014追加） |
+| Binding Decisions | 14件 (BD-001〜BD-014) |
+| 次回Review対象 | DATA ASSET COUNCIL |
 | 改訂権限 | Level-1: Founder承認必須 / Level-2: 担当提案+記録 |
 
 ---
@@ -692,4 +700,5 @@ IPPOの5年後の価値は、
 
 **承認: LEGACY ASSET INVENTORY COUNCIL 2026-06-25**
 **格上げ承認: 2026-06-26**
-**次回: NETWORK ASSET COUNCIL**
+**v1.2改訂: NETWORK ASSET COUNCIL 2026-06-26（BD-009〜BD-014追加）**
+**次回: DATA ASSET COUNCIL**

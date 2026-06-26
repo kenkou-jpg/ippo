@@ -18,6 +18,9 @@ const KNOWN_FEATURES = new Set([
   'OperationsAutomation', // PR-027: Operations Automation & Analytics Completion
   'Symptom',              // PR-028: Symptom Intelligence Foundation
   'Disease',              // PR-029: Disease Entity Foundation
+  'NetworkSignal',        // PR-030: Network Signal Foundation
+  'SignalIntelligence',   // PR-031: Signal Intelligence Foundation
+  'Longitudinal',         // PR-032: Longitudinal Signal Foundation
 ]);
 
 export class RouteRegistry {
