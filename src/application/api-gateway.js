@@ -63,6 +63,19 @@ export class ApiGateway {
   #baselineService;
   #trendWindowBuilder;
   #longitudinalSummaryService;
+  // PR-033
+  #persistentNetworkSignalService;
+  #signalReconstructionService;
+  // PR-034
+  #diseaseClusterService;
+  #diseaseSignalMapper;
+  #clusterSimilarityAdapter;
+  // PR-035
+  #signalSnapshotService;
+  #longitudinalSnapshotService;
+  #diseaseSnapshotService;
+  // PR-036
+  #signalSimilarityService;
 
   constructor({
     permissionService,
@@ -120,6 +133,19 @@ export class ApiGateway {
     baselineService            = null,
     trendWindowBuilder         = null,
     longitudinalSummaryService = null,
+    // PR-033
+    persistentNetworkSignalService = null,
+    signalReconstructionService    = null,
+    // PR-034
+    diseaseClusterService    = null,
+    diseaseSignalMapper      = null,
+    clusterSimilarityAdapter = null,
+    // PR-035
+    signalSnapshotService       = null,
+    longitudinalSnapshotService = null,
+    diseaseSnapshotService      = null,
+    // PR-036
+    signalSimilarityService     = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -166,6 +192,19 @@ export class ApiGateway {
     this.#baselineService               = baselineService;
     this.#trendWindowBuilder            = trendWindowBuilder;
     this.#longitudinalSummaryService    = longitudinalSummaryService;
+    // PR-033
+    this.#persistentNetworkSignalService = persistentNetworkSignalService;
+    this.#signalReconstructionService    = signalReconstructionService;
+    // PR-034
+    this.#diseaseClusterService    = diseaseClusterService;
+    this.#diseaseSignalMapper      = diseaseSignalMapper;
+    this.#clusterSimilarityAdapter = clusterSimilarityAdapter;
+    // PR-035
+    this.#signalSnapshotService        = signalSnapshotService;
+    this.#longitudinalSnapshotService = longitudinalSnapshotService;
+    this.#diseaseSnapshotService       = diseaseSnapshotService;
+    // PR-036
+    this.#signalSimilarityService      = signalSimilarityService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -723,5 +762,264 @@ export class ApiGateway {
     }
     const signals = this.#networkSignalService.listSignals();
     return this.#trendWindowBuilder.build(signals, days, referenceDate);
+  }
+
+  // ── Disease Cluster API (PR-034) ─────────────────────────────────────────────
+  // BD-009: Wave1 — cluster keys identical to diseaseKey.
+  // BD-022: No Supabase — in-memory only.
+  // Wave2 roadmap: DiseaseCluster → Signal Statistics → Similarity → Research Dataset → AI
+
+  /**
+   * Create a new DiseaseCluster. Auth required (record:read).
+   * @param {object} data
+   * @returns {Promise<object>}
+   */
+  async createDiseaseCluster(data) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterService) throw new Error('[ApiGateway] DiseaseClusterService not wired');
+    return this.#diseaseClusterService.createCluster(data);
+  }
+
+  /**
+   * Return all disease clusters. Auth required (record:read).
+   * @returns {Promise<object[]>}
+   */
+  async getDiseaseClusters() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterService) throw new Error('[ApiGateway] DiseaseClusterService not wired');
+    return this.#diseaseClusterService.getClusters();
+  }
+
+  /**
+   * Return cluster statistics (count-based, Wave1). Auth required (record:read).
+   * @returns {Promise<object>}
+   */
+  async getClusterStatistics() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterService) throw new Error('[ApiGateway] DiseaseClusterService not wired');
+    return this.#diseaseClusterService.getClusterStatistics();
+  }
+
+  /**
+   * Find a cluster by clusterKey. Auth required (record:read).
+   * @param {string} clusterKey
+   * @returns {Promise<object|null>}
+   */
+  async findDiseaseCluster(clusterKey) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterService) throw new Error('[ApiGateway] DiseaseClusterService not wired');
+    return this.#diseaseClusterService.findCluster(clusterKey);
+  }
+
+  /**
+   * Return the static Signal → DiseaseCategory mapping. Auth required (record:read).
+   * @returns {Promise<object>}
+   */
+  async getDiseaseSignalMapping() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseSignalMapper) throw new Error('[ApiGateway] DiseaseSignalMapper not wired');
+    return this.#diseaseSignalMapper.getFullMapping();
+  }
+
+  // ── Snapshot API (PR-035) ────────────────────────────────────────────────────
+  // BD-018: ALL snapshots carry generatedAt + vectorVersion.
+  // BD-022: Wave1 in-memory only — no Supabase.
+  // Append Only — DELETE forbidden on permanent assets.
+
+  /**
+   * Create a signal snapshot from current signals. Auth required (record:read).
+   * @param {object[]} signals
+   * @param {string}   [schedule] - DAILY | WEEKLY | MANUAL
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createSignalSnapshot(signals, schedule) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalSnapshotService) throw new Error('[ApiGateway] SignalSnapshotService not wired');
+    return this.#signalSnapshotService.createSnapshot(signals, schedule);
+  }
+
+  /**
+   * Return all signal snapshots. Auth required (record:read).
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getSignalSnapshots() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalSnapshotService) throw new Error('[ApiGateway] SignalSnapshotService not wired');
+    return this.#signalSnapshotService.getSnapshots();
+  }
+
+  /**
+   * Create a longitudinal snapshot. Auth required (record:read).
+   * @param {object[]} signals
+   * @param {object}   [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createLongitudinalSnapshot(signals, options) {
+    await this.#permissionService.require('record:read');
+    if (!this.#longitudinalSnapshotService) throw new Error('[ApiGateway] LongitudinalSnapshotService not wired');
+    return this.#longitudinalSnapshotService.createLongitudinalSnapshot(signals, options);
+  }
+
+  /**
+   * Return all longitudinal snapshots. Auth required (record:read).
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getLongitudinalSnapshots() {
+    await this.#permissionService.require('record:read');
+    if (!this.#longitudinalSnapshotService) throw new Error('[ApiGateway] LongitudinalSnapshotService not wired');
+    return this.#longitudinalSnapshotService.getLongitudinalSnapshots();
+  }
+
+  /**
+   * Create a disease snapshot. Auth required (record:read).
+   * @param {object} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createDiseaseSnapshot(options) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseSnapshotService) throw new Error('[ApiGateway] DiseaseSnapshotService not wired');
+    return this.#diseaseSnapshotService.createDiseaseSnapshot(options);
+  }
+
+  /**
+   * Return all disease snapshots. Auth required (record:read).
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getDiseaseSnapshots() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseSnapshotService) throw new Error('[ApiGateway] DiseaseSnapshotService not wired');
+    return this.#diseaseSnapshotService.getDiseaseSnapshots();
+  }
+
+  // ── Similarity Intelligence API (PR-036) ─────────────────────────────────────
+  // BD-009: DiseaseCluster integration (Wave2 full annotation).
+  // BD-010/BD-011: vectorVersion on every FeatureVector.
+  // BD-018: generatedAt on every vector / summary.
+  // BD-022: Wave1 in-memory only.
+
+  /**
+   * Build and persist a 12-dim FeatureVector for the current user. Auth: record:read.
+   * @param {{ signals?: object[], diseases?: object[], longitudinalSummary?: object, snapshot?: object }} params
+   * @returns {Promise<Readonly<object>>}
+   */
+  async buildFeatureVector(params = {}) {
+    const ctx = await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.buildVector({ userId: ctx.userId, ...params });
+  }
+
+  /**
+   * Return all persisted FeatureVectors for the current user. Auth: record:read.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getFeatureVectors() {
+    const ctx = await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.getVectorsForUser(ctx.userId);
+  }
+
+  /**
+   * Calculate cosine similarity between two FeatureVectors. Auth: record:read.
+   * @param {Readonly<object>} vecA
+   * @param {Readonly<object>} vecB
+   * @returns {Promise<Readonly<object>>}
+   */
+  async calculateSimilarity(vecA, vecB) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.calculate(vecA, vecB);
+  }
+
+  /**
+   * Compare two users' latest FeatureVectors. Auth: record:read.
+   * @param {string} userId1
+   * @param {string} userId2
+   * @returns {Promise<Readonly<object>|null>}
+   */
+  async compareUsers(userId1, userId2) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.compareUsers(userId1, userId2);
+  }
+
+  /**
+   * Find top-N most similar users for the current user. Auth: record:read.
+   * @param {number} [topN=5]
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async findTopMatches(topN = 5) {
+    const ctx = await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.findTopMatches(ctx.userId, topN);
+  }
+
+  /**
+   * Return similarity summary for the current user. Auth: record:read.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getSimilaritySummary() {
+    const ctx = await this.#permissionService.require('record:read');
+    if (!this.#signalSimilarityService) throw new Error('[ApiGateway] SignalSimilarityService not wired');
+    return this.#signalSimilarityService.getSimilaritySummary(ctx.userId);
+  }
+
+  // ── Persistent Signal API (PR-033) ──────────────────────────────────────────
+  // BD-022: Storage abstraction only — Supabase is Wave2.
+  // BD-016: Callers must not bypass PersistentNetworkSignalService.
+  // BD-015: Signals are re-constructible from Records via SignalReconstructionService.
+
+  /**
+   * Persist multiple NetworkSignals to the storage layer. Auth required (record:read).
+   * @param {import('../domains/network/network-signal-entity.js').NetworkSignal[]} signals
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal[]>}
+   */
+  async saveNetworkSignals(signals) {
+    await this.#permissionService.require('record:read');
+    if (!this.#persistentNetworkSignalService) throw new Error('[ApiGateway] PersistentNetworkSignalService not wired');
+    return this.#persistentNetworkSignalService.saveMany(signals);
+  }
+
+  /**
+   * Return all persisted NetworkSignals from the storage layer. Auth required (record:read).
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal[]>}
+   */
+  async getPersistentSignals() {
+    await this.#permissionService.require('record:read');
+    if (!this.#persistentNetworkSignalService) throw new Error('[ApiGateway] PersistentNetworkSignalService not wired');
+    return this.#persistentNetworkSignalService.findAll();
+  }
+
+  /**
+   * Return current persistence status (BD-022 compliance info). Auth required (record:read).
+   * @returns {Promise<object>}
+   */
+  async getPersistenceStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#persistentNetworkSignalService) throw new Error('[ApiGateway] PersistentNetworkSignalService not wired');
+    return this.#persistentNetworkSignalService.getPersistenceStatus();
+  }
+
+  /**
+   * Verify integrity of signals against BD-015 (reconstruct from Record). Auth required (record:read).
+   * Wave1 Stub — always returns verified:true.
+   * @param {object[]} [signals]
+   * @returns {Promise<object>}
+   */
+  async verifySignalIntegrity(signals = []) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalReconstructionService) throw new Error('[ApiGateway] SignalReconstructionService not wired');
+    return this.#signalReconstructionService.verifyIntegrity(signals);
+  }
+
+  /**
+   * Rebuild signals from Layer 1 Records (BD-015). Auth required (record:read).
+   * Wave1 Stub — returns empty result with compliance note.
+   * @param {object[]} [records]
+   * @returns {Promise<object>}
+   */
+  async rebuildSignals(records = []) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalReconstructionService) throw new Error('[ApiGateway] SignalReconstructionService not wired');
+    return this.#signalReconstructionService.rebuildSignals(records);
   }
 }

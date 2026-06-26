@@ -120,6 +120,49 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /signal-timeline-service/,    label: 'feature→SignalTimelineService'    },
   { from: /\/screens\//,   to: /signal-summary-service/,     label: 'screen→SignalSummaryService'      },
   { from: /\/features\//,  to: /signal-summary-service/,     label: 'feature→SignalSummaryService'     },
+  // PR-034 — UI must not reach DiseaseCluster internals directly;
+  //           access via ApiGateway → createDiseaseCluster / getDiseaseClusters / getClusterStatistics /
+  //           findDiseaseCluster / getDiseaseSignalMapping
+  { from: /\/screens\//,   to: /disease-cluster-repository/,   label: 'screen→DiseaseClusterRepository'   },
+  { from: /\/features\//,  to: /disease-cluster-repository/,   label: 'feature→DiseaseClusterRepository'  },
+  { from: /\/screens\//,   to: /disease-cluster-service/,      label: 'screen→DiseaseClusterService'      },
+  { from: /\/features\//,  to: /disease-cluster-service/,      label: 'feature→DiseaseClusterService'     },
+  { from: /\/screens\//,   to: /disease-signal-mapper/,        label: 'screen→DiseaseSignalMapper'        },
+  { from: /\/features\//,  to: /disease-signal-mapper/,        label: 'feature→DiseaseSignalMapper'       },
+  { from: /\/screens\//,   to: /cluster-similarity-adapter/,   label: 'screen→ClusterSimilarityAdapter'   },
+  { from: /\/features\//,  to: /cluster-similarity-adapter/,   label: 'feature→ClusterSimilarityAdapter'  },
+  // PR-036 — UI must not reach Signal Similarity / FeatureVector internals directly;
+  //           access via ApiGateway → buildFeatureVector / getFeatureVectors /
+  //           calculateSimilarity / compareUsers / findTopMatches / getSimilaritySummary
+  { from: /\/screens\//,   to: /feature-vector-repository/,   label: 'screen→FeatureVectorRepository'   },
+  { from: /\/features\//,  to: /feature-vector-repository/,   label: 'feature→FeatureVectorRepository'  },
+  { from: /\/screens\//,   to: /feature-vector-service/,      label: 'screen→FeatureVectorService'      },
+  { from: /\/features\//,  to: /feature-vector-service/,      label: 'feature→FeatureVectorService'     },
+  { from: /\/screens\//,   to: /fv-similarity-engine/,        label: 'screen→FvSimilarityEngine'        },
+  { from: /\/features\//,  to: /fv-similarity-engine/,        label: 'feature→FvSimilarityEngine'       },
+  { from: /\/screens\//,   to: /signal-similarity-service/,   label: 'screen→SignalSimilarityService'   },
+  { from: /\/features\//,  to: /signal-similarity-service/,   label: 'feature→SignalSimilarityService'  },
+  // PR-035 — UI must not reach Snapshot internals directly;
+  //           access via ApiGateway → createSignalSnapshot / getSignalSnapshots /
+  //           createLongitudinalSnapshot / getLongitudinalSnapshots / createDiseaseSnapshot / getDiseaseSnapshots
+  { from: /\/screens\//,   to: /signal-snapshot-repository/,       label: 'screen→SignalSnapshotRepository'       },
+  { from: /\/features\//,  to: /signal-snapshot-repository/,       label: 'feature→SignalSnapshotRepository'      },
+  { from: /\/screens\//,   to: /signal-snapshot-service/,          label: 'screen→SignalSnapshotService'          },
+  { from: /\/features\//,  to: /signal-snapshot-service/,          label: 'feature→SignalSnapshotService'         },
+  { from: /\/screens\//,   to: /longitudinal-snapshot-service/,    label: 'screen→LongitudinalSnapshotService'    },
+  { from: /\/features\//,  to: /longitudinal-snapshot-service/,    label: 'feature→LongitudinalSnapshotService'   },
+  { from: /\/screens\//,   to: /disease-snapshot-service/,         label: 'screen→DiseaseSnapshotService'         },
+  { from: /\/features\//,  to: /disease-snapshot-service/,         label: 'feature→DiseaseSnapshotService'        },
+  // PR-033 — UI must not reach PersistentNetworkSignalService, NetworkSignalStorageRepository,
+  //           or SignalReconstructionService directly;
+  //           access via ApiGateway → saveNetworkSignals / getPersistentSignals / getPersistenceStatus /
+  //           verifySignalIntegrity / rebuildSignals
+  { from: /\/screens\//,   to: /persistent-network-signal-service/, label: 'screen→PersistentNetworkSignalService'   },
+  { from: /\/features\//,  to: /persistent-network-signal-service/, label: 'feature→PersistentNetworkSignalService'  },
+  { from: /\/screens\//,   to: /network-signal-storage-repository/, label: 'screen→NetworkSignalStorageRepository'   },
+  { from: /\/features\//,  to: /network-signal-storage-repository/, label: 'feature→NetworkSignalStorageRepository'  },
+  { from: /\/screens\//,   to: /signal-reconstruction-service/,     label: 'screen→SignalReconstructionService'      },
+  { from: /\/features\//,  to: /signal-reconstruction-service/,     label: 'feature→SignalReconstructionService'     },
   // PR-026 — UI must not reach Operations domain services directly;
   //           access via ApiGateway → getDeliveryHealth / getLatestKpiSnapshot / getKpiHistory
   { from: /\/screens\//,         to: /delivery-operations-service/,       label: 'screen→DeliveryOperationsService'           },

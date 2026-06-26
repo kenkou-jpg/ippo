@@ -104,7 +104,11 @@ describe('RouteRegistry', () => {
     expect(known).toContain('NetworkSignal');
     expect(known).toContain('SignalIntelligence');
     expect(known).toContain('Longitudinal');
-    expect(known).toHaveLength(20); // PR-032: added 'Longitudinal'
+    expect(known).toContain('PersistentSignal');
+    expect(known).toContain('DiseaseCluster');
+    expect(known).toContain('SignalSnapshot');
+    expect(known).toContain('SimilarityIntelligence');
+    expect(known).toHaveLength(24); // PR-036: added 'SimilarityIntelligence'
   });
 });
 

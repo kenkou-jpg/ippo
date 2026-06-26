@@ -21,6 +21,10 @@ const KNOWN_FEATURES = new Set([
   'NetworkSignal',        // PR-030: Network Signal Foundation
   'SignalIntelligence',   // PR-031: Signal Intelligence Foundation
   'Longitudinal',         // PR-032: Longitudinal Signal Foundation
+  'PersistentSignal',     // PR-033: NetworkSignal Persistence Foundation
+  'DiseaseCluster',       // PR-034: Disease Cluster Foundation
+  'SignalSnapshot',           // PR-035: Snapshot Foundation
+  'SimilarityIntelligence',  // PR-036: Similarity Intelligence Foundation
 ]);
 
 export class RouteRegistry {

@@ -105,6 +105,25 @@ import { MovingAverageService }        from '../domains/network/moving-average-s
 import { BaselineService }             from '../domains/network/baseline-service.js';
 import { TrendWindowBuilder }          from '../domains/network/trend-window-builder.js';
 import { LongitudinalSummaryService }  from '../domains/network/longitudinal-summary-service.js';
+// PR-034
+import { DiseaseClusterRepository }   from '../domains/disease/disease-cluster-repository.js';
+import { DiseaseClusterService }      from '../domains/disease/disease-cluster-service.js';
+import { DiseaseSignalMapper }        from '../domains/disease/disease-signal-mapper.js';
+import { ClusterSimilarityAdapter }   from '../domains/disease/cluster-similarity-adapter.js';
+// PR-036
+import { FeatureVectorRepository }        from '../domains/similarity/feature-vector-repository.js';
+import { FeatureVectorService }           from '../domains/similarity/feature-vector-service.js';
+import { SignalSimilarityService }        from '../domains/similarity/signal-similarity-service.js';
+// PR-035
+import { SignalSnapshotRepository }       from '../domains/network/signal-snapshot-repository.js';
+import { SignalSnapshotService }          from '../domains/network/signal-snapshot-service.js';
+import { LongitudinalSnapshotService }    from '../domains/network/longitudinal-snapshot-service.js';
+import { DiseaseSnapshotService }         from '../domains/disease/disease-snapshot-service.js';
+// PR-033
+import { NetworkSignalStorageRepository } from '../domains/network/network-signal-storage-repository.js';
+import { PersistentNetworkSignalService } from '../domains/network/persistent-network-signal-service.js';
+import { SignalReconstructionService }    from '../domains/network/signal-reconstruction-service.js';
+import { ASSET_PERSISTENCE_POLICY }      from '../domains/network/network-snapshot-policy.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -197,6 +216,25 @@ export const TOKENS = Object.freeze({
   BaselineService:                'BaselineService',
   TrendWindowBuilder:             'TrendWindowBuilder',
   LongitudinalSummaryService:     'LongitudinalSummaryService',
+  // PR-034
+  DiseaseClusterRepository:   'DiseaseClusterRepository',
+  DiseaseClusterService:      'DiseaseClusterService',
+  DiseaseSignalMapper:        'DiseaseSignalMapper',
+  ClusterSimilarityAdapter:   'ClusterSimilarityAdapter',
+  // PR-033
+  NetworkSignalStorageRepository: 'NetworkSignalStorageRepository',
+  PersistentNetworkSignalService: 'PersistentNetworkSignalService',
+  SignalReconstructionService:    'SignalReconstructionService',
+  SnapshotPolicy:                 'SnapshotPolicy',
+  // PR-036
+  FeatureVectorRepository:        'FeatureVectorRepository',
+  FeatureVectorService:           'FeatureVectorService',
+  SignalSimilarityService:        'SignalSimilarityService',
+  // PR-035
+  SignalSnapshotRepository:       'SignalSnapshotRepository',
+  SignalSnapshotService:          'SignalSnapshotService',
+  LongitudinalSnapshotService:    'LongitudinalSnapshotService',
+  DiseaseSnapshotService:         'DiseaseSnapshotService',
 });
 
 export class CompositionRoot {
@@ -452,6 +490,18 @@ export class CompositionRoot {
         repository: container.resolve(TOKENS.DiseaseRepository),
       }));
 
+    // ── Disease Cluster Domain (PR-034) ───────────────────────────────────
+    // BD-009: Wave1 cluster keys identical to diseaseKey.
+    // BD-022: No Supabase / DB — in-memory only.
+    c.singleton(TOKENS.DiseaseClusterRepository, () => new DiseaseClusterRepository());
+    c.singleton(TOKENS.DiseaseSignalMapper,      () => new DiseaseSignalMapper());
+    c.singleton(TOKENS.ClusterSimilarityAdapter, () => new ClusterSimilarityAdapter());
+    c.singleton(TOKENS.DiseaseClusterService, (container) =>
+      new DiseaseClusterService({
+        repository: container.resolve(TOKENS.DiseaseClusterRepository),
+        mapper:     container.resolve(TOKENS.DiseaseSignalMapper),
+      }));
+
     // ── Network Signal Domain (PR-030) ────────────────────────────────────
     // NETWORK ASSET COUNCIL (IPPO-COUNCIL-002) NAC-01 / NAC-02.
     // Storage禁止 / DB禁止: NetworkSignalRepository is in-memory only.
@@ -474,6 +524,57 @@ export class CompositionRoot {
     c.singleton(TOKENS.SignalTrendService,       () => new SignalTrendService());
     c.singleton(TOKENS.SignalTimelineService,    () => new SignalTimelineService());
     c.singleton(TOKENS.SignalSummaryService,     () => new SignalSummaryService());
+
+    // ── Persistent Signal Domain (PR-033) ────────────────────────────────────
+    // BD-022: Storage abstraction only. Supabase is Wave2 scope.
+    // BD-016: StorageRepository is the SSOT for persisted signals.
+    c.singleton(TOKENS.SnapshotPolicy, () => Object.freeze({ ...ASSET_PERSISTENCE_POLICY }));
+
+    c.singleton(TOKENS.NetworkSignalStorageRepository, (container) =>
+      new NetworkSignalStorageRepository({ storage: container.resolve(TOKENS.StorageService) }));
+
+    c.singleton(TOKENS.PersistentNetworkSignalService, (container) =>
+      new PersistentNetworkSignalService({
+        signalRepository:  container.resolve(TOKENS.NetworkSignalRepository),
+        storageRepository: container.resolve(TOKENS.NetworkSignalStorageRepository),
+      }));
+
+    c.singleton(TOKENS.SignalReconstructionService, () => new SignalReconstructionService());
+
+    // ── Similarity Intelligence Domain (PR-036) ──────────────────────────
+    // BD-009: DiseaseCluster integration (Wave1 partial; Wave2 full cluster-aware vectors).
+    // BD-010/BD-011: vectorVersion on every FeatureVector.
+    // BD-018: generatedAt on every FeatureVector.
+    // BD-022: Wave1 in-memory only — no Supabase.
+    c.singleton(TOKENS.FeatureVectorRepository, () => new FeatureVectorRepository());
+    c.singleton(TOKENS.FeatureVectorService, (container) =>
+      new FeatureVectorService({
+        repository: container.resolve(TOKENS.FeatureVectorRepository),
+      }));
+    c.singleton(TOKENS.SignalSimilarityService, (container) =>
+      new SignalSimilarityService({
+        featureVectorService:  container.resolve(TOKENS.FeatureVectorService),
+        diseaseClusterService: container.resolve(TOKENS.DiseaseClusterService),
+      }));
+
+    // ── Snapshot Domain (PR-035) ─────────────────────────────────────────
+    // BD-018: ALL snapshots must carry generatedAt + vectorVersion.
+    // BD-022: Wave1 in-memory only — no Supabase.
+    c.singleton(TOKENS.SignalSnapshotRepository,    () => new SignalSnapshotRepository());
+    c.singleton(TOKENS.SignalSnapshotService, (container) =>
+      new SignalSnapshotService({
+        repository:          container.resolve(TOKENS.SignalSnapshotRepository),
+        signalSummaryService: container.resolve(TOKENS.SignalSummaryService),
+      }));
+    c.singleton(TOKENS.LongitudinalSnapshotService, (container) =>
+      new LongitudinalSnapshotService({
+        longitudinalSummaryService: container.resolve(TOKENS.LongitudinalSummaryService),
+      }));
+    c.singleton(TOKENS.DiseaseSnapshotService, (container) =>
+      new DiseaseSnapshotService({
+        diseaseService:        container.resolve(TOKENS.DiseaseService),
+        diseaseClusterService: container.resolve(TOKENS.DiseaseClusterService),
+      }));
 
     // ── Longitudinal Domain (PR-032) ──────────────────────────────────────
     // NAC-04 Wave1: Moving Average / Baseline / TrendWindow / LongitudinalSummary
@@ -539,6 +640,19 @@ export class CompositionRoot {
       baselineService:            container.resolve(TOKENS.BaselineService),
       trendWindowBuilder:         container.resolve(TOKENS.TrendWindowBuilder),
       longitudinalSummaryService: container.resolve(TOKENS.LongitudinalSummaryService),
+      // PR-033
+      persistentNetworkSignalService: container.resolve(TOKENS.PersistentNetworkSignalService),
+      signalReconstructionService:    container.resolve(TOKENS.SignalReconstructionService),
+      // PR-034
+      diseaseClusterService:    container.resolve(TOKENS.DiseaseClusterService),
+      diseaseSignalMapper:      container.resolve(TOKENS.DiseaseSignalMapper),
+      clusterSimilarityAdapter: container.resolve(TOKENS.ClusterSimilarityAdapter),
+      // PR-036
+      signalSimilarityService: container.resolve(TOKENS.SignalSimilarityService),
+      // PR-035
+      signalSnapshotService:       container.resolve(TOKENS.SignalSnapshotService),
+      longitudinalSnapshotService: container.resolve(TOKENS.LongitudinalSnapshotService),
+      diseaseSnapshotService:      container.resolve(TOKENS.DiseaseSnapshotService),
     }));
 
     this._registerFeatures();
@@ -564,5 +678,9 @@ export class CompositionRoot {
     r.register('NetworkSignal',      { status: 'active', migratesIn: 'PR-030' }); // PR-030 ✓
     r.register('SignalIntelligence', { status: 'active', migratesIn: 'PR-031' }); // PR-031 ✓
     r.register('Longitudinal',       { status: 'active', migratesIn: 'PR-032' }); // PR-032 ✓
+    r.register('PersistentSignal',   { status: 'active', migratesIn: 'PR-033' }); // PR-033 ✓
+    r.register('DiseaseCluster',     { status: 'active', migratesIn: 'PR-034' }); // PR-034 ✓
+    r.register('SignalSnapshot',          { status: 'active', migratesIn: 'PR-035' }); // PR-035 ✓
+    r.register('SimilarityIntelligence', { status: 'active', migratesIn: 'PR-036' }); // PR-036 ✓
   }
 }

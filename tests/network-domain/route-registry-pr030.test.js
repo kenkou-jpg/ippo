@@ -14,7 +14,7 @@ describe('RouteRegistry PR-030 — NetworkSignal feature', () => {
   });
 
   it('total knownFeatures count is 18', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(20);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(24);
   });
 
   it('registered NetworkSignal descriptor is frozen with correct metadata', () => {
