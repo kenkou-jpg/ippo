@@ -475,8 +475,4 @@ MovingAverage計算結果 / TrendWindow / FeatureVector中間値 / SignalTimelin
 
 ## 次のPR
 
-PR-033: NetworkSignal Persistence Foundation
-- NetworkSignalをSupabaseに永久保存（BD-022）
-- `network_signals` テーブル設計
-- NetworkSignalRepository: in-memory → Supabase切り替え
-- DATA ASSET COUNCIL Section 14 参照
+（未定）
