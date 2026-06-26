@@ -48,6 +48,8 @@ export class ApiGateway {
   #analyticsService;
   // PR-028 additions
   #symptomService;
+  // PR-029 additions
+  #diseaseService;
 
   constructor({
     permissionService,
@@ -90,6 +92,8 @@ export class ApiGateway {
     analyticsService      = null,
     // PR-028
     symptomService        = null,
+    // PR-029
+    diseaseService        = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -123,6 +127,7 @@ export class ApiGateway {
     this.#deliveryRetryService          = deliveryRetryService;
     this.#analyticsService              = analyticsService;
     this.#symptomService                = symptomService;
+    this.#diseaseService                = diseaseService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -484,5 +489,52 @@ export class ApiGateway {
 
     const results = await this.#similarityEngine.findSimilar(caseId);
     return this.#similarityAccessGuard.filterEdges(results, ctx.userId, ctx.isAdmin);
+  }
+
+  // ── Disease Intelligence API (PR-029) ────────────────────────────────────
+  // IPPO-GOV-001: BD-004 (Wave1 foundation only), BD-007 (no DROP), BD-008 (4-layer)
+  // Wave1: no Diagnosis Engine, no Recommendation, no Network Search, no AI.
+
+  /**
+   * Create a new disease entry. Auth required (record:read).
+   * Validates against SSOT registries and checks for duplicates.
+   * Wave1: in-memory only — not persisted across sessions.
+   * @param {object} data
+   * @returns {Promise<import('../domains/disease/disease-entity.js').DiseaseEntry>}
+   */
+  async createDisease(data) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
+    return this.#diseaseService.create(data);
+  }
+
+  /**
+   * Return all disease entries. Auth required (record:read).
+   * @returns {Promise<import('../domains/disease/disease-entity.js').DiseaseEntry[]>}
+   */
+  async getDiseases() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
+    return this.#diseaseService.list();
+  }
+
+  /**
+   * Return active disease entries (active === true). Auth required (record:read).
+   * @returns {Promise<import('../domains/disease/disease-entity.js').DiseaseEntry[]>}
+   */
+  async getActiveDiseases() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
+    return this.#diseaseService.findActive();
+  }
+
+  /**
+   * Return resolved disease entries (active === false). Auth required (record:read).
+   * @returns {Promise<import('../domains/disease/disease-entity.js').DiseaseEntry[]>}
+   */
+  async getResolvedDiseases() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
+    return this.#diseaseService.findResolved();
   }
 }

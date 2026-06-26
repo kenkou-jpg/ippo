@@ -86,6 +86,10 @@ import { Wave1MetricsService }          from './wave1-metrics-service.js';
 import { SymptomService }               from '../domains/symptom/symptom-service.js';
 import { SymptomValidator }             from '../domains/symptom/symptom-validator.js';
 import { SymptomRepository }            from '../domains/symptom/symptom-repository.js';
+// PR-029
+import { DiseaseService }               from '../domains/disease/disease-service.js';
+import { DiseaseValidator }             from '../domains/disease/disease-validator.js';
+import { DiseaseRepository }            from '../domains/disease/disease-repository.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -159,6 +163,10 @@ export const TOKENS = Object.freeze({
   SymptomRepository:              'SymptomRepository',
   SymptomValidator:               'SymptomValidator',
   SymptomService:                 'SymptomService',
+  // PR-029
+  DiseaseRepository:              'DiseaseRepository',
+  DiseaseValidator:               'DiseaseValidator',
+  DiseaseService:                 'DiseaseService',
 });
 
 export class CompositionRoot {
@@ -402,6 +410,18 @@ export class CompositionRoot {
     c.singleton(TOKENS.SymptomService, (container) =>
       new SymptomService({ validator: container.resolve(TOKENS.SymptomValidator) }));
 
+    // ── Disease Domain (PR-029) ───────────────────────────────────────────
+    // Storage禁止: DiseaseRepository is in-memory only (BD-004 — Wave2 elevation target)
+    c.singleton(TOKENS.DiseaseRepository, () => new DiseaseRepository());
+
+    c.singleton(TOKENS.DiseaseValidator, () => new DiseaseValidator());
+
+    c.singleton(TOKENS.DiseaseService, (container) =>
+      new DiseaseService({
+        validator:  container.resolve(TOKENS.DiseaseValidator),
+        repository: container.resolve(TOKENS.DiseaseRepository),
+      }));
+
     // ── API Gateway (PR-020) — single public entry point for UI ──────────
     c.singleton(TOKENS.ApiGateway, (container) => new ApiGateway({
       permissionService:         container.resolve(TOKENS.PermissionService),
@@ -436,6 +456,8 @@ export class CompositionRoot {
       deliveryMetrics:   container.resolve(TOKENS.DeliveryMetrics),
       // PR-028
       symptomService:    container.resolve(TOKENS.SymptomService),
+      // PR-029
+      diseaseService:    container.resolve(TOKENS.DiseaseService),
     }));
 
     this._registerFeatures();
@@ -457,5 +479,6 @@ export class CompositionRoot {
     r.register('Communication', { status: 'active', migratesIn: 'PR-023' }); // PR-023 ✓
     r.register('Delivery',      { status: 'active', migratesIn: 'PR-024' }); // PR-024 ✓
     r.register('Symptom',       { status: 'active', migratesIn: 'PR-028' }); // PR-028 ✓
+    r.register('Disease',       { status: 'active', migratesIn: 'PR-029' }); // PR-029 ✓
   }
 }

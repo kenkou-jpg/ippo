@@ -13,8 +13,8 @@ describe('RouteRegistry PR-028 — Symptom feature', () => {
     expect(new RouteRegistry().knownFeatures).toContain('Symptom');
   });
 
-  it('total knownFeatures count is 16', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(16);
+  it('total knownFeatures count is 17', () => {
+    expect(new RouteRegistry().knownFeatures).toHaveLength(17);
   });
 
   it('registered Symptom descriptor is frozen with correct metadata', () => {

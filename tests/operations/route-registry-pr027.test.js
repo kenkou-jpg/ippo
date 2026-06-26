@@ -15,9 +15,9 @@ describe('RouteRegistry PR-027 — OperationsAutomation feature', () => {
     expect(reg.knownFeatures).toContain('OperationsAutomation');
   });
 
-  it('total knownFeatures count is 16', () => {
+  it('total knownFeatures count is 17', () => {
     const reg = new RouteRegistry();
-    expect(reg.knownFeatures).toHaveLength(16);
+    expect(reg.knownFeatures).toHaveLength(17);
   });
 
   it('registered descriptor is frozen with correct metadata', () => {

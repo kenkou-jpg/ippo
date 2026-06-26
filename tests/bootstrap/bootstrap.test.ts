@@ -100,7 +100,8 @@ describe('RouteRegistry', () => {
     expect(known).toContain('Operations');
     expect(known).toContain('OperationsAutomation');
     expect(known).toContain('Symptom');
-    expect(known).toHaveLength(16); // PR-028: added 'Symptom'
+    expect(known).toContain('Disease');
+    expect(known).toHaveLength(17); // PR-029: added 'Disease'
   });
 });
 
