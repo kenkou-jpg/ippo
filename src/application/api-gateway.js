@@ -88,6 +88,8 @@ export class ApiGateway {
   #researchDatasetService;
   #datasetExportService;
   #anonymizationService;
+  // PR-041
+  #networkSignalPersistenceServiceV2;
 
   constructor({
     permissionService,
@@ -170,6 +172,8 @@ export class ApiGateway {
     researchDatasetService = null,
     datasetExportService   = null,
     anonymizationService   = null,
+    // PR-041
+    networkSignalPersistenceServiceV2 = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -241,6 +245,8 @@ export class ApiGateway {
     this.#researchDatasetService = researchDatasetService;
     this.#datasetExportService   = datasetExportService;
     this.#anonymizationService   = anonymizationService;
+    // PR-041
+    this.#networkSignalPersistenceServiceV2 = networkSignalPersistenceServiceV2;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1132,6 +1138,40 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#signalReconstructionService) throw new Error('[ApiGateway] SignalReconstructionService not wired');
     return this.#signalReconstructionService.rebuildSignals(records);
+  }
+
+  // ── Wave2 NetworkSignal Repository V2 API (PR-041) ─────────────────────────────
+  // BD-022: Repository Interface complete — Supabase swap in PR-042.
+  // BD-015: SIGNAL_CREATED events published via EventPublisher on every append.
+  // AP-02: Append-Only guaranteed by INetworkSignalRepository contract.
+
+  /**
+   * Return the Wave2 persistence status for NetworkSignal.
+   * Reports repository type, capabilities, signal count, and BD-022 compliance state.
+   * Auth required (record:read).
+   * @returns {Promise<object>}
+   */
+  async getSignalPersistenceStatusV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalPersistenceServiceV2) {
+      throw new Error('[ApiGateway] NetworkSignalPersistenceServiceV2 not wired');
+    }
+    return this.#networkSignalPersistenceServiceV2.getStatus();
+  }
+
+  /**
+   * Append a pre-built NetworkSignal to the Wave2 repository and publish SIGNAL_CREATED event.
+   * Used internally by createNetworkSignal; also exposed for orchestration workflows.
+   * Auth required (record:read).
+   * @param {import('../domains/network/network-signal-entity.js').NetworkSignal} signal
+   * @returns {Promise<import('../domains/network/network-signal-entity.js').NetworkSignal>}
+   */
+  async persistSignalV2(signal) {
+    await this.#permissionService.require('record:read');
+    if (!this.#networkSignalPersistenceServiceV2) {
+      throw new Error('[ApiGateway] NetworkSignalPersistenceServiceV2 not wired');
+    }
+    return this.#networkSignalPersistenceServiceV2.append(signal);
   }
 
   // ── Emotion API (PR-038) ─────────────────────────────────────────────────────

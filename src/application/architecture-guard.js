@@ -214,6 +214,20 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /dataset-export-service/,       label: 'feature→DatasetExportService'      },
   { from: /\/screens\//,   to: /anonymization-service/,        label: 'screen→AnonymizationService'       },
   { from: /\/features\//,  to: /anonymization-service/,        label: 'feature→AnonymizationService'      },
+  // PR-041 — UI must not reach Wave2 Repository Interface / Adapter / Factory / Provider directly;
+  //           all NetworkSignal access via ApiGateway only.
+  { from: /\/screens\//,   to: /network-signal-repository-interface/,  label: 'screen→INetworkSignalRepository'         },
+  { from: /\/features\//,  to: /network-signal-repository-interface/,  label: 'feature→INetworkSignalRepository'        },
+  { from: /\/screens\//,   to: /network-signal-memory-repository/,     label: 'screen→NetworkSignalMemoryRepository'    },
+  { from: /\/features\//,  to: /network-signal-memory-repository/,     label: 'feature→NetworkSignalMemoryRepository'   },
+  { from: /\/screens\//,   to: /network-signal-persistence-service/,   label: 'screen→NetworkSignalPersistenceService'  },
+  { from: /\/features\//,  to: /network-signal-persistence-service/,   label: 'feature→NetworkSignalPersistenceService' },
+  { from: /\/screens\//,   to: /repository-factory/,                   label: 'screen→NetworkSignalRepositoryFactory'   },
+  { from: /\/features\//,  to: /repository-factory/,                   label: 'feature→NetworkSignalRepositoryFactory'  },
+  { from: /\/screens\//,   to: /repository-provider/,                  label: 'screen→RepositoryProvider'               },
+  { from: /\/features\//,  to: /repository-provider/,                  label: 'feature→RepositoryProvider'              },
+  { from: /\/screens\//,   to: /persistence-config/,                   label: 'screen→PersistenceConfig'                },
+  { from: /\/features\//,  to: /persistence-config/,                   label: 'feature→PersistenceConfig'               },
 ];
 
 export function runArchitectureGuard() {

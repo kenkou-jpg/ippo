@@ -144,6 +144,12 @@ import { ResearchDatasetBuilder }    from '../domains/research/research-dataset-
 import { ResearchDatasetService }    from '../domains/research/research-dataset-service.js';
 import { AnonymizationService }      from '../domains/research/anonymization-service.js';
 import { DatasetExportService }      from '../domains/research/dataset-export-service.js';
+// PR-041 — Wave2 NetworkSignal Repository V2
+import { PERSISTENCE_CONFIG }               from '../infrastructure/persistence-config.js';
+import { RepositoryProvider }               from '../infrastructure/repository-provider.js';
+import { NetworkSignalPersistenceService }  from '../domains/network/network-signal-persistence-service.js';
+import { NetworkSignalMemoryRepository }    from '../domains/network/network-signal-memory-repository.js';
+import { NetworkSignalRepositoryFactory }   from '../domains/network/repository-factory.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -259,6 +265,12 @@ export const TOKENS = Object.freeze({
   ResearchDatasetService:    'ResearchDatasetService',
   AnonymizationService:      'AnonymizationService',
   DatasetExportService:      'DatasetExportService',
+  // PR-041 — Wave2 NetworkSignal Repository V2
+  PersistenceConfig:                   'PersistenceConfig',
+  RepositoryProvider:                  'RepositoryProvider',
+  NetworkSignalMemoryRepository:       'NetworkSignalMemoryRepository',
+  NetworkSignalRepositoryFactory:      'NetworkSignalRepositoryFactory',
+  NetworkSignalPersistenceServiceV2:   'NetworkSignalPersistenceServiceV2',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -581,6 +593,27 @@ export class CompositionRoot {
 
     c.singleton(TOKENS.SignalReconstructionService, () => new SignalReconstructionService());
 
+    // ── Wave2 NetworkSignal Repository V2 (PR-041) ────────────────────────
+    // BD-022: Establishes the Repository Interface that Supabase will implement in PR-042.
+    // BD-015: PersistenceService publishes SIGNAL_CREATED events for Replay.
+    // AP-02: Append-Only enforced — no delete on NetworkSignalMemoryRepository.
+    // Migration: initialize() loads Wave1 localStorage signals into the V2 repo.
+    c.singleton(TOKENS.PersistenceConfig, () => PERSISTENCE_CONFIG);
+    c.singleton(TOKENS.NetworkSignalRepositoryFactory, () => NetworkSignalRepositoryFactory);
+    c.singleton(TOKENS.NetworkSignalMemoryRepository,  () => NetworkSignalRepositoryFactory.create(
+      PERSISTENCE_CONFIG.networkSignal
+    ));
+    // RepositoryProvider is wired after EventPublisher is available (lazy singleton).
+    c.singleton(TOKENS.RepositoryProvider, (container) =>
+      new RepositoryProvider({
+        config:          container.resolve(TOKENS.PersistenceConfig),
+        migrationSource: container.resolve(TOKENS.NetworkSignalStorageRepository),
+        eventPublisher:  container.resolve(TOKENS.EventPublisher),
+      }));
+    c.singleton(TOKENS.NetworkSignalPersistenceServiceV2, (container) =>
+      container.resolve(TOKENS.RepositoryProvider)
+               .createAndInitializeNetworkSignalPersistenceService());
+
     // ── Event Sourcing Domain (PR-037) ───────────────────────────────────
     // BD-015: All events replayable. BD-018: occurredAt required.
     // BD-019: Audit trail. BD-021: no deletion. BD-022: Wave1 in-memory.
@@ -765,6 +798,8 @@ export class CompositionRoot {
       signalSnapshotService:       container.resolve(TOKENS.SignalSnapshotService),
       longitudinalSnapshotService: container.resolve(TOKENS.LongitudinalSnapshotService),
       diseaseSnapshotService:      container.resolve(TOKENS.DiseaseSnapshotService),
+      // PR-041
+      networkSignalPersistenceServiceV2: container.resolve(TOKENS.NetworkSignalPersistenceServiceV2),
     }));
 
     this._registerFeatures();
@@ -798,5 +833,6 @@ export class CompositionRoot {
     r.register('Emotion',                { status: 'active', migratesIn: 'PR-038' }); // PR-038 ✓
     r.register('MenstrualIntelligence', { status: 'active', migratesIn: 'PR-039' }); // PR-039 ✓
     r.register('ResearchDataset',       { status: 'active', migratesIn: 'PR-040' }); // PR-040 ✓
+    r.register('NetworkSignalV2',       { status: 'active', migratesIn: 'PR-041' }); // PR-041 ✓
   }
 }

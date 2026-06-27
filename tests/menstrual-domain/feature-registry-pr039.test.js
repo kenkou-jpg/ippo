@@ -7,7 +7,7 @@ function makeRegistry() { return new RouteRegistry(); }
 
 describe('RouteRegistry — PR-039 MenstrualIntelligence', () => {
   it('knownFeatures has 27 entries', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(28);
+    expect(makeRegistry().knownFeatures).toHaveLength(29);
   });
   it('knownFeatures contains MenstrualIntelligence', () => {
     expect(makeRegistry().knownFeatures).toContain('MenstrualIntelligence');
@@ -19,7 +19,7 @@ describe('RouteRegistry — PR-039 MenstrualIntelligence', () => {
     expect(makeRegistry().knownFeatures).toContain('MenstrualIntelligence');
   });
   it('total knownFeatures is 27', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(28);
+    expect(makeRegistry().knownFeatures).toHaveLength(29);
   });
   it('isRegistered returns true after register', () => {
     const r = makeRegistry();
