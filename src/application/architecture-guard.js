@@ -191,6 +191,29 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /emotion-service/,       label: 'feature→EmotionService'      },
   { from: /\/screens\//,   to: /emotion-signal-mapper/, label: 'screen→EmotionSignalMapper'  },
   { from: /\/features\//,  to: /emotion-signal-mapper/, label: 'feature→EmotionSignalMapper' },
+  // PR-039 — UI must not reach Menstrual domain internals directly;
+  //           access via ApiGateway → createMenstrualRecord / getMenstrualRecords /
+  //           getCurrentCycle / getCycleStatistics / estimateNextCycle / validateMenstrual
+  { from: /\/screens\//,   to: /menstrual-repository/,    label: 'screen→MenstrualRepository'    },
+  { from: /\/features\//,  to: /menstrual-repository/,    label: 'feature→MenstrualRepository'   },
+  { from: /\/screens\//,   to: /menstrual-service/,       label: 'screen→MenstrualService'       },
+  { from: /\/features\//,  to: /menstrual-service/,       label: 'feature→MenstrualService'      },
+  { from: /\/screens\//,   to: /cycle-analysis-service/,  label: 'screen→CycleAnalysisService'   },
+  { from: /\/features\//,  to: /cycle-analysis-service/,  label: 'feature→CycleAnalysisService'  },
+  { from: /\/screens\//,   to: /phase-calculator/,        label: 'screen→PhaseCalculator'        },
+  { from: /\/features\//,  to: /phase-calculator/,        label: 'feature→PhaseCalculator'       },
+  // PR-040 — UI must not reach Research domain internals directly;
+  //           access via ApiGateway → createResearchDataset / getResearchDatasets /
+  //           verifyResearchDataset / exportResearchDataset / getResearchStatistics /
+  //           getAnonymizationReport
+  { from: /\/screens\//,   to: /research-dataset-repository/,  label: 'screen→ResearchDatasetRepository'  },
+  { from: /\/features\//,  to: /research-dataset-repository/,  label: 'feature→ResearchDatasetRepository' },
+  { from: /\/screens\//,   to: /research-dataset-builder/,     label: 'screen→ResearchDatasetBuilder'     },
+  { from: /\/features\//,  to: /research-dataset-builder/,     label: 'feature→ResearchDatasetBuilder'    },
+  { from: /\/screens\//,   to: /dataset-export-service/,       label: 'screen→DatasetExportService'       },
+  { from: /\/features\//,  to: /dataset-export-service/,       label: 'feature→DatasetExportService'      },
+  { from: /\/screens\//,   to: /anonymization-service/,        label: 'screen→AnonymizationService'       },
+  { from: /\/features\//,  to: /anonymization-service/,        label: 'feature→AnonymizationService'      },
 ];
 
 export function runArchitectureGuard() {

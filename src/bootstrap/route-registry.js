@@ -27,6 +27,8 @@ const KNOWN_FEATURES = new Set([
   'SimilarityIntelligence',  // PR-036: Similarity Intelligence Foundation
   'EventSourcing',           // PR-037: Event Sourcing Foundation
   'Emotion',                 // PR-038: Emotion Signal Foundation
+  'MenstrualIntelligence',   // PR-039: Menstrual Intelligence Foundation
+  'ResearchDataset',         // PR-040: Research Dataset Foundation
 ]);
 
 export class RouteRegistry {

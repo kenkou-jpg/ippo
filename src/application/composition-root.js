@@ -126,6 +126,9 @@ import { SignalSnapshotRepository }       from '../domains/network/signal-snapsh
 import { SignalSnapshotService }          from '../domains/network/signal-snapshot-service.js';
 import { LongitudinalSnapshotService }    from '../domains/network/longitudinal-snapshot-service.js';
 import { DiseaseSnapshotService }         from '../domains/disease/disease-snapshot-service.js';
+// PR-039
+import { MenstrualRepository }  from '../domains/menstrual/menstrual-repository.js';
+import { MenstrualService }     from '../domains/menstrual/menstrual-service.js';
 // PR-038
 import { EmotionRepository }   from '../domains/emotion/emotion-repository.js';
 import { EmotionService }      from '../domains/emotion/emotion-service.js';
@@ -135,6 +138,12 @@ import { NetworkSignalStorageRepository } from '../domains/network/network-signa
 import { PersistentNetworkSignalService } from '../domains/network/persistent-network-signal-service.js';
 import { SignalReconstructionService }    from '../domains/network/signal-reconstruction-service.js';
 import { ASSET_PERSISTENCE_POLICY }      from '../domains/network/network-snapshot-policy.js';
+// PR-040
+import { ResearchDatasetRepository } from '../domains/research/research-dataset-repository.js';
+import { ResearchDatasetBuilder }    from '../domains/research/research-dataset-builder.js';
+import { ResearchDatasetService }    from '../domains/research/research-dataset-service.js';
+import { AnonymizationService }      from '../domains/research/anonymization-service.js';
+import { DatasetExportService }      from '../domains/research/dataset-export-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -237,10 +246,19 @@ export const TOKENS = Object.freeze({
   PersistentNetworkSignalService: 'PersistentNetworkSignalService',
   SignalReconstructionService:    'SignalReconstructionService',
   SnapshotPolicy:                 'SnapshotPolicy',
+  // PR-039
+  MenstrualRepository:     'MenstrualRepository',
+  MenstrualService:        'MenstrualService',
   // PR-038
   EmotionRepository:       'EmotionRepository',
   EmotionService:          'EmotionService',
   EmotionSignalMapper:     'EmotionSignalMapper',
+  // PR-040
+  ResearchDatasetRepository: 'ResearchDatasetRepository',
+  ResearchDatasetBuilder:    'ResearchDatasetBuilder',
+  ResearchDatasetService:    'ResearchDatasetService',
+  AnonymizationService:      'AnonymizationService',
+  DatasetExportService:      'DatasetExportService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -579,6 +597,38 @@ export class CompositionRoot {
       new AuditTimelineService({ store: container.resolve(TOKENS.EventStore) }));
     c.singleton(TOKENS.ResearchEventAdapter, () => new ResearchEventAdapter());
 
+    // ── Research Dataset Domain (PR-040) ─────────────────────────────────
+    // BD-015: RESEARCH_DATASET_CREATED events replayable.
+    // BD-021: Append-Only. BD-022: Wave1 in-memory only.
+    c.singleton(TOKENS.ResearchDatasetRepository, () => new ResearchDatasetRepository());
+    c.singleton(TOKENS.AnonymizationService,      () => new AnonymizationService());
+    c.singleton(TOKENS.DatasetExportService,      () => new DatasetExportService());
+    c.singleton(TOKENS.ResearchDatasetBuilder, (container) =>
+      new ResearchDatasetBuilder({
+        signalService:  container.resolve(TOKENS.NetworkSignalService),
+        diseaseService: container.resolve(TOKENS.DiseaseService),
+        eventStore:     container.resolve(TOKENS.EventStore),
+        snapshotService: container.resolve(TOKENS.SignalSnapshotService),
+        featureVectorService: container.resolve(TOKENS.FeatureVectorService),
+      }));
+    c.singleton(TOKENS.ResearchDatasetService, (container) =>
+      new ResearchDatasetService({
+        repository:     container.resolve(TOKENS.ResearchDatasetRepository),
+        builder:        container.resolve(TOKENS.ResearchDatasetBuilder),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
+    // ── Menstrual Intelligence Domain (PR-039) ───────────────────────────
+    // BD-003/BD-005: Menstrual is a core health + Research Asset.
+    // NAC-01/NAC-04: MENSTRUAL signal + Longitudinal cycle integration.
+    // BD-022: Wave1 in-memory only — no Supabase.
+    c.singleton(TOKENS.MenstrualRepository, () => new MenstrualRepository());
+    c.singleton(TOKENS.MenstrualService, (container) =>
+      new MenstrualService({
+        repository:     container.resolve(TOKENS.MenstrualRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Emotion Domain (PR-038) ──────────────────────────────────────────
     // BD-005: Emotion is a Research Asset (NAC-01 → SIGNAL_TYPES.EMOTION).
     // BD-015: EmotionCreated events are replayable.
@@ -701,8 +751,14 @@ export class CompositionRoot {
       eventPublisher:       container.resolve(TOKENS.EventPublisher),
       eventReplayService:   container.resolve(TOKENS.EventReplayService),
       auditTimelineService: container.resolve(TOKENS.AuditTimelineService),
+      // PR-039
+      menstrualService:     container.resolve(TOKENS.MenstrualService),
       // PR-038
       emotionService:       container.resolve(TOKENS.EmotionService),
+      // PR-040
+      researchDatasetService: container.resolve(TOKENS.ResearchDatasetService),
+      datasetExportService:   container.resolve(TOKENS.DatasetExportService),
+      anonymizationService:   container.resolve(TOKENS.AnonymizationService),
       // PR-036
       signalSimilarityService: container.resolve(TOKENS.SignalSimilarityService),
       // PR-035
@@ -740,5 +796,7 @@ export class CompositionRoot {
     r.register('SimilarityIntelligence', { status: 'active', migratesIn: 'PR-036' }); // PR-036 ✓
     r.register('EventSourcing',          { status: 'active', migratesIn: 'PR-037' }); // PR-037 ✓
     r.register('Emotion',                { status: 'active', migratesIn: 'PR-038' }); // PR-038 ✓
+    r.register('MenstrualIntelligence', { status: 'active', migratesIn: 'PR-039' }); // PR-039 ✓
+    r.register('ResearchDataset',       { status: 'active', migratesIn: 'PR-040' }); // PR-040 ✓
   }
 }

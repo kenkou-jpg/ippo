@@ -30,6 +30,10 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   EXPERIMENT_CREATED:             'EXPERIMENT_CREATED',
   // Emotion domain (PR-038)
   EMOTION_CREATED:                'EMOTION_CREATED',
+  // Menstrual domain (PR-039)
+  MENSTRUAL_RECORDED:             'MENSTRUAL_RECORDED',
+  // Research domain (PR-040)
+  RESEARCH_DATASET_CREATED:       'RESEARCH_DATASET_CREATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -46,6 +50,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   SIMILARITY: 'SIMILARITY',
   CONSENT:    'CONSENT',
   EXPERIMENT: 'EXPERIMENT',
+  RESEARCH:   'RESEARCH',
 });
 
 /** Current event schema version. Bump on structural changes. */

@@ -28,6 +28,8 @@ const TIMELINE_CATEGORIES = Object.freeze({
     DOMAIN_EVENT_TYPES.RECORD_UPDATED,
   ]),
   emotion:    Object.freeze([DOMAIN_EVENT_TYPES.EMOTION_CREATED]),
+  menstrual:  Object.freeze([DOMAIN_EVENT_TYPES.MENSTRUAL_RECORDED]),
+  research:   Object.freeze([DOMAIN_EVENT_TYPES.RESEARCH_DATASET_CREATED]),
   consent:    Object.freeze([DOMAIN_EVENT_TYPES.CONSENT_UPDATED]),
   experiment: Object.freeze([DOMAIN_EVENT_TYPES.EXPERIMENT_CREATED]),
 });

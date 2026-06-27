@@ -82,6 +82,12 @@ export class ApiGateway {
   #auditTimelineService;
   // PR-038
   #emotionService;
+  // PR-039
+  #menstrualService;
+  // PR-040
+  #researchDatasetService;
+  #datasetExportService;
+  #anonymizationService;
 
   constructor({
     permissionService,
@@ -158,6 +164,12 @@ export class ApiGateway {
     auditTimelineService = null,
     // PR-038
     emotionService       = null,
+    // PR-039
+    menstrualService     = null,
+    // PR-040
+    researchDatasetService = null,
+    datasetExportService   = null,
+    anonymizationService   = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -223,6 +235,12 @@ export class ApiGateway {
     this.#auditTimelineService = auditTimelineService;
     // PR-038
     this.#emotionService       = emotionService;
+    // PR-039
+    this.#menstrualService     = menstrualService;
+    // PR-040
+    this.#researchDatasetService = researchDatasetService;
+    this.#datasetExportService   = datasetExportService;
+    this.#anonymizationService   = anonymizationService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1173,5 +1191,162 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
     return this.#emotionService.toNetworkSignals();
+  }
+
+  // ── Menstrual Intelligence API (PR-039) ──────────────────────────────────────
+  // BD-003/BD-005: Menstrual is a core health + Research Asset.
+  // NAC-01: MENSTRUAL signal type; NAC-04: Longitudinal cycle integration.
+  // BD-015: MENSTRUAL_RECORDED events are replayable.
+  // BD-022: Wave1 in-memory only.
+
+  /**
+   * Validate Menstrual input without persisting. Auth: record:read.
+   * @param {object} data
+   * @returns {Promise<{ valid: boolean, errors: string[] }>}
+   */
+  async validateMenstrual(data) {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    const { validateMenstrual: validate } = await import('../domains/menstrual/menstrual-validator.js');
+    return validate(data);
+  }
+
+  /**
+   * Create and persist a MenstrualRecord. Auth: record:read.
+   * @param {object} params
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createMenstrualRecord(params) {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    return this.#menstrualService.create(params);
+  }
+
+  /**
+   * Return all stored MenstrualRecords. Auth: record:read.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getMenstrualRecords() {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    return this.#menstrualService.list();
+  }
+
+  /**
+   * Return cycle-start records (cycleDay===1). Auth: record:read.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getCurrentCycle() {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    return this.#menstrualService.findCurrentCycle();
+  }
+
+  /**
+   * Return aggregate cycle statistics (BD-018: includes generatedAt). Auth: record:read.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getCycleStatistics() {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    return this.#menstrualService.getCycleStatistics();
+  }
+
+  /**
+   * Estimate the next cycle start date (Wave1 fixed logic). Auth: record:read.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async estimateNextCycle() {
+    await this.#permissionService.require('record:read');
+    if (!this.#menstrualService) throw new Error('[ApiGateway] MenstrualService not wired');
+    return this.#menstrualService.estimateNextCycle();
+  }
+
+  // ── Research Dataset API (PR-040) ────────────────────────────────────────────
+  // BD-015: RESEARCH_DATASET_CREATED events are replayable.
+  // BD-018: generatedAt on all output.
+  // BD-021: Append-Only — DELETE forbidden.
+  // BD-022: Wave1 in-memory only.
+
+  /**
+   * Build and persist a new ResearchDataset. Auth: admin:research.
+   * @param {{ anonymizationLevel?: string, datasetVersion?: string }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createResearchDataset(options = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    return this.#researchDatasetService.createDataset(options);
+  }
+
+  /**
+   * Return all persisted ResearchDatasets. Auth: admin:research.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getResearchDatasets() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    return this.#researchDatasetService.getDatasets();
+  }
+
+  /**
+   * Verify completeness of a dataset by id. Auth: admin:research.
+   * @param {string} datasetId
+   * @returns {Promise<{ verified: boolean, issues: string[] }>}
+   */
+  async verifyResearchDataset(datasetId) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    return this.#researchDatasetService.verifyDataset(datasetId);
+  }
+
+  /**
+   * Export a dataset by id in the given format. Auth: admin:research.
+   * @param {string} datasetId
+   * @param {string} [format='JSON']
+   * @returns {Promise<{ format: string, data: string|null, metadata: object }>}
+   */
+  async exportResearchDataset(datasetId, format = 'JSON') {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    if (!this.#datasetExportService)   throw new Error('[ApiGateway] DatasetExportService not wired');
+    const dataset = this.#researchDatasetService.findLatest();
+    if (!dataset) throw new Error('[ApiGateway] No datasets available to export');
+    const target = this.#researchDatasetService.getDatasets().find(d => d.id === datasetId)
+      ?? dataset;
+    if (format === 'CSV')     return this.#datasetExportService.exportCSV(target);
+    if (format === 'PARQUET') return this.#datasetExportService.exportPARQUET(target);
+    return this.#datasetExportService.exportJSON(target);
+  }
+
+  /**
+   * Return aggregate statistics across all datasets. Auth: admin:research.
+   * BD-018: includes generatedAt.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getResearchStatistics() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    return this.#researchDatasetService.getStatistics();
+  }
+
+  /**
+   * Return anonymization report for the latest dataset. Auth: admin:research.
+   * BD-018: includes generatedAt.
+   * @param {{ level?: string }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getAnonymizationReport(options = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#anonymizationService) throw new Error('[ApiGateway] AnonymizationService not wired');
+    if (!this.#researchDatasetService) throw new Error('[ApiGateway] ResearchDatasetService not wired');
+    const dataset = this.#researchDatasetService.findLatest();
+    const signals = dataset?.signals ?? [];
+    return this.#anonymizationService.getAnonymizationReport({
+      original:   signals,
+      anonymized: signals,
+      suppressed: 0,
+      level:      options.level ?? (dataset?.anonymizationLevel ?? 'NONE'),
+    });
   }
 }
