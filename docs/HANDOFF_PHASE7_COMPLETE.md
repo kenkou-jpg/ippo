@@ -75,7 +75,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 
 ---
 
-## Current Architecture Snapshot（PR-039時点）
+## Current Architecture Snapshot（PR-042時点）
 
 ### Domains（実装済み）
 
@@ -89,43 +89,49 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | Auth | PermissionService / SimilarityAccessGuard | Wave1完了 |
 | Symptom | symptom-types(SSOT) / symptom-entity / symptom-validator / symptom-service | Wave1完了 |
 | Disease | disease-types(SSOT) / disease-entity / disease-validator / disease-service | Wave1完了 |
-| Network Signal | network-signal-types(SSOT) / signal-entity / validator / repository(in-mem) / service | Wave1完了 |
+| Network Signal | network-signal-types(SSOT) / signal-entity / validator / service | Wave1完了 |
 | Signal Intelligence | signal-aggregation / signal-trend / signal-timeline / signal-summary | Wave1完了 |
 | Longitudinal | trend-window-builder / moving-average / baseline / longitudinal-signal / longitudinal-summary | Wave1完了 |
 | Communication | NotificationSchedule / Template / Metrics | Wave1完了 |
 | Delivery | DeliveryQueue / Scheduler / Processor / Retry / HealthMetrics | Wave1完了 |
 | Analytics | KpiSnapshot / Wave1Dashboard / SnapshotAutomation / KpiScheduler | Wave1完了 |
 | B2B Export | 匿名化 / アクセス制御 / 監査ログ | Wave1完了 |
-| **Event Sourcing** | EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService | **PR-037完了** |
-| **Emotion** | emotion-types(SSOT) / emotion-entity / emotion-validator / emotion-repository / emotion-service / emotion-signal-mapper | **PR-038完了** |
-| **Menstrual** | menstrual-types(SSOT) / menstrual-entity / menstrual-validator / menstrual-repository / menstrual-service / phase-calculator / cycle-analysis-service | **PR-039完了** |
+| Event Sourcing | EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService | PR-037完了 |
+| Emotion | emotion-types(SSOT) / emotion-entity / emotion-validator / emotion-repository / emotion-service / emotion-signal-mapper | PR-038完了 |
+| Menstrual | menstrual-types(SSOT) / menstrual-entity / menstrual-validator / menstrual-repository / menstrual-service / phase-calculator / cycle-analysis-service | PR-039完了 |
+| Research Dataset | research-dataset-repository / research-dataset-builder / research-dataset-service / anonymization-service / dataset-export-service | PR-040完了 |
+| **NetworkSignal V2 (Repository Interface)** | INetworkSignalRepository / NetworkSignalMemoryRepository / NetworkSignalPersistenceService / RepositoryFactory / RepositoryProvider / PersistenceConfig | **PR-041完了** |
+| **NetworkSignal V2 (Supabase永続化)** | NetworkSignalSupabaseRepository / SupabaseEventPersistenceRepository / PersistenceConfig(supabase) | **PR-042完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  27
-ApiGateway methods:        71
-Domain Event Types:        14（MENSTRUAL_RECORDED追加済み）
-Tests (全パス):            3,272件 / 191ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   58+ (PR-011〜PR-039)
+Features (RouteRegistry):  29（NetworkSignalV2含む）
+ApiGateway methods:        73（getSignalPersistenceStatusV2 / persistSignalV2含む）
+Domain Event Types:        14
+DI TOKENS:                 292+（PR-041〜042追加分含む）
+Tests (全パス):            3,584件 / 223ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   72+（PR-041: 14件 / PR-042: 8件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
 
-### Layer Stack（Strangler-Fig）
+### Layer Stack（Strangler-Fig — Wave2 Phase A-2完了）
 
 ```
-UI / Legacy (app-legacy.js 10,804行)
-         ↓  ApiGateway (71 methods)
+UI / Legacy (app-legacy.js)
+         ↓  ApiGateway (73 methods)
 Application Layer (CompositionRoot / DI Container)
          ↓
-Domain Services (18 domains)
+Domain Services (21 domains)
          ↓
-Event Sourcing Layer (EventStore / EventBus / EventPublisher / BD-015)
+NetworkSignalPersistenceService (Decorator / Event Publishing)
          ↓
-Repository Layer (Supabase / LocalStorage / in-memory)
+NetworkSignalSupabaseRepository (Write-Through Cache + Supabase INSERT)
          ↓
-Infrastructure (Adapters / Contracts)
+Event Sourcing Layer (EventStore / SupabaseEventPersistenceRepository / BD-015)
+         ↓
+Supabase (network_signals / ippo_events)
 ```
 
 ---
@@ -169,11 +175,15 @@ Phase 7 (Intelligence Foundation) — Wave1完了
   ✓ PR-037       Event Sourcing Foundation（EventStore / EventBus / EventPublisher / BD-015・BD-017）
   ✓ PR-038       Emotion Signal Foundation（emotion-types / entity / validator / repository / service / mapper）
   ✓ PR-039       Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis）
+  ✓ PR-040       Research Dataset Foundation（BD-021 / research-dataset-repository / builder / service / anonymization / export）
 
-  PR-040         Research Dataset Foundation（BD-021）← 未着手
-
-Wave2 (PR-041〜075) — 設計完了・実装未開始
+Wave2 (PR-041〜075) — Phase A実装中
   Phase A (PR-041〜045): Supabase Migration Foundation
+    ✓ PR-041  NetworkSignal Repository V2 — Interface / Adapter / Factory / PersistenceService / Migration / DI
+    ✓ PR-042  Supabase Persistence Foundation — NetworkSignalSupabaseRepository / SupabaseEventPersistenceRepository / backend切替
+    ○ PR-043  Emotion Signal Generation
+    ○ PR-044  MenstrualPhase Auto-Resolution
+    ○ PR-045  Disease Entity V2 Upgrade
   Phase B (PR-046〜050): Disease Entity V2 + Cluster Statistics
   Phase C (PR-051〜056): Knowledge Graph Foundation
   Phase D (PR-057〜062): AI Platform + Signal Insight
@@ -183,7 +193,7 @@ Wave2 (PR-041〜075) — 設計完了・実装未開始
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: （未定）
+Next PR: 空白（未定）
 ```
 
 ---
@@ -211,6 +221,9 @@ Next PR: （未定）
 | NETWORK ASSET COUNCIL | docs/NETWORK_ASSET_COUNCIL.md (IPPO-COUNCIL-002) — BD-009〜BD-014 | 完了 |
 | DATA ASSET COUNCIL | docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003) — BD-015〜BD-025 | 完了 |
 | Phase 7 PR-020〜039 | Intelligence Foundation全完了（Auth / UX / Engagement / Comm / Delivery / Operations / Symptom / Disease / NetworkSignal / SignalIntelligence / Longitudinal / EventSourcing / Emotion / Menstrual）| 完了 |
+| PR-040 | Research Dataset Foundation（research-dataset-repository / builder / service / anonymization / export）| 完了 |
+| **PR-041** | **NetworkSignal Repository V2 — INetworkSignalRepository / MemoryAdapter / PersistenceService(Decorator) / Factory / Provider / Migration / DI / ApiGateway** | **完了** |
+| **PR-042** | **Supabase Persistence Foundation — NetworkSignalSupabaseRepository(Write-Through Cache) / SupabaseEventPersistenceRepository(ippo_events) / PersistenceConfig(backend:supabase) / ArchGuard+8ルール** | **完了** |
 | NETWORK EVOLUTION COUNCIL | docs/NETWORK_EVOLUTION_COUNCIL.md (IPPO-COUNCIL-004) — 7フェーズ進化モデル / BD-026〜BD-033 | 完了 |
 | WAVE2 MASTER DESIGN | docs/WAVE2_MASTER_DESIGN.md (IPPO-COUNCIL-005) — Wave2全体設計 / BD-034〜BD-043 | 完了 |
 | WAVE2 ROADMAP | docs/WAVE2_ROADMAP.md (IPPO-COUNCIL-006) — PR-041〜075 / 35PR | 完了 |
