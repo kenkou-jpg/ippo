@@ -44,10 +44,10 @@ describe('buildDomainEvent with MENSTRUAL_RECORDED', () => {
 
 describe('DOMAIN_EVENT_TYPES count (PR-039)', () => {
   it('has exactly 15 event types', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(15);
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(16);
   });
   it('DOMAIN_EVENT_TYPE_SET has 15 entries', async () => {
     const { DOMAIN_EVENT_TYPE_SET } = await import('../../src/domains/events/domain-event-types.js');
-    expect(DOMAIN_EVENT_TYPE_SET.size).toBe(15);
+    expect(DOMAIN_EVENT_TYPE_SET.size).toBe(16);
   });
 });

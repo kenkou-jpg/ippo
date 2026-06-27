@@ -90,6 +90,8 @@ export class ApiGateway {
   #anonymizationService;
   // PR-041
   #networkSignalPersistenceServiceV2;
+  // PR-043
+  #emotionSignalGenerator;
 
   constructor({
     permissionService,
@@ -174,6 +176,8 @@ export class ApiGateway {
     anonymizationService   = null,
     // PR-041
     networkSignalPersistenceServiceV2 = null,
+    // PR-043
+    emotionSignalGenerator = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -247,6 +251,8 @@ export class ApiGateway {
     this.#anonymizationService   = anonymizationService;
     // PR-041
     this.#networkSignalPersistenceServiceV2 = networkSignalPersistenceServiceV2;
+    // PR-043
+    this.#emotionSignalGenerator = emotionSignalGenerator;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1172,6 +1178,69 @@ export class ApiGateway {
       throw new Error('[ApiGateway] NetworkSignalPersistenceServiceV2 not wired');
     }
     return this.#networkSignalPersistenceServiceV2.append(signal);
+  }
+
+  // ── Emotion Signal Generation API (PR-043) ──────────────────────────────────
+  // BD-024: Emotion Signal auto-generation from Record (Wave2 active).
+  // BD-031: Rule-based only — no AI, no LLM, no diagnosis.
+  // BD-022: Signals appended via NetworkSignalPersistenceService (Supabase-backed).
+
+  /**
+   * Generate Emotion Signals from a Record using the deterministic Rule Engine.
+   * Applies Mood / Fatigue / Stress / Motivation rules.
+   * Each matching rule produces one EMOTION-type NetworkSignal persisted via V2 service.
+   * Auth required (record:write).
+   *
+   * @param {object} record  The record to process.
+   * @param {{ menstrualPhase?: string }} options
+   * @returns {Promise<Readonly<object>[]>}  Generated signals (may be empty).
+   */
+  async generateEmotionSignals(record, options = {}) {
+    await this.#permissionService.require('record:write');
+    if (!this.#emotionSignalGenerator) {
+      throw new Error('[ApiGateway] EmotionSignalGenerator not wired');
+    }
+    return this.#emotionSignalGenerator.generate(record, options);
+  }
+
+  /**
+   * Initialize a user session after successful authentication.
+   * Triggers warmCache() asynchronously — the UI is never blocked.
+   * Auth required (record:read).
+   *
+   * @returns {Promise<{ sessionId: string, warmedAsync: boolean }>}
+   */
+  async initializeSession() {
+    await this.#permissionService.require('record:read');
+    const sessionId = `session_${Date.now()}`;
+    // Fire-and-forget: UI must not wait on cache warming (BD-022 / Supabase latency).
+    this.#warmCache().catch(() => {
+      // Best-effort: warmCache failure must not surface to UI.
+    });
+    return { sessionId, warmedAsync: true };
+  }
+
+  /**
+   * Warm internal caches after authentication.
+   * Called asynchronously from initializeSession() — never blocks UI.
+   * Ensures NetworkSignalPersistenceServiceV2 is initialized so the first
+   * generateEmotionSignals() call has no cold-start overhead.
+   *
+   * @returns {Promise<{ warmed: string[] }>}
+   */
+  async #warmCache() {
+    const warmed = [];
+    if (this.#networkSignalPersistenceServiceV2) {
+      // Trigger initialization if not already done (idempotent).
+      if (typeof this.#networkSignalPersistenceServiceV2.initialize === 'function') {
+        this.#networkSignalPersistenceServiceV2.initialize();
+      }
+      warmed.push('NetworkSignalPersistenceServiceV2');
+    }
+    if (this.#emotionSignalGenerator) {
+      warmed.push('EmotionSignalGenerator');
+    }
+    return { warmed };
   }
 
   // ── Emotion API (PR-038) ─────────────────────────────────────────────────────

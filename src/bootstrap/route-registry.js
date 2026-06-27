@@ -30,6 +30,7 @@ const KNOWN_FEATURES = new Set([
   'MenstrualIntelligence',   // PR-039: Menstrual Intelligence Foundation
   'ResearchDataset',         // PR-040: Research Dataset Foundation
   'NetworkSignalV2',         // PR-041: NetworkSignal Repository V2 (Wave2 Phase A-1)
+  'EmotionSignal',           // PR-043: Emotion Signal Generation Foundation (Wave2 Phase A-3)
 ]);
 
 export class RouteRegistry {

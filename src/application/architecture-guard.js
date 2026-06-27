@@ -228,6 +228,13 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /repository-provider/,                  label: 'feature→RepositoryProvider'              },
   { from: /\/screens\//,   to: /persistence-config/,                   label: 'screen→PersistenceConfig'                },
   { from: /\/features\//,  to: /persistence-config/,                   label: 'feature→PersistenceConfig'               },
+  // PR-043 — UI must not reach EmotionSignalGenerator or EmotionRules directly;
+  //           access via ApiGateway → generateEmotionSignals / initializeSession.
+  //           Generator → Repository is the only allowed direction (not UI → Generator).
+  { from: /\/screens\//,   to: /emotion-signal-generator/,             label: 'screen→EmotionSignalGenerator'           },
+  { from: /\/features\//,  to: /emotion-signal-generator/,             label: 'feature→EmotionSignalGenerator'          },
+  { from: /\/screens\//,   to: /emotion-rules/,                        label: 'screen→EmotionRules'                     },
+  { from: /\/features\//,  to: /emotion-rules/,                        label: 'feature→EmotionRules'                    },
 ];
 
 export function runArchitectureGuard() {

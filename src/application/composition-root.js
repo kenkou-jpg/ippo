@@ -152,6 +152,8 @@ import { NetworkSignalMemoryRepository }    from '../domains/network/network-sig
 import { NetworkSignalRepositoryFactory }   from '../domains/network/repository-factory.js';
 // PR-042 — Wave2 Supabase Persistence Foundation
 import { SupabaseEventPersistenceRepository } from '../infrastructure/supabase-event-persistence-repository.js';
+// PR-043 — Emotion Signal Generation Foundation
+import { EmotionSignalGenerator } from '../domains/network/emotion-signal-generator.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -276,6 +278,8 @@ export const TOKENS = Object.freeze({
   // PR-042 — Wave2 Supabase Persistence Foundation
   SupabaseClient:                      'SupabaseClient',
   SupabaseEventPersistenceRepository:  'SupabaseEventPersistenceRepository',
+  // PR-043 — Emotion Signal Generation Foundation
+  EmotionSignalGenerator:              'EmotionSignalGenerator',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -630,6 +634,16 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Emotion Signal Generator (PR-043) — Wave2 Phase A-3 ──────────────
+    // BD-024: Emotion Signal auto-generation is now active (Wave2).
+    // BD-031: Rule-based only — no AI, no LLM, no diagnosis.
+    // Uses the V2 persistence service so signals are Supabase-backed (BD-022).
+    c.singleton(TOKENS.EmotionSignalGenerator, (container) =>
+      new EmotionSignalGenerator({
+        persistenceService: container.resolve(TOKENS.NetworkSignalPersistenceServiceV2),
+        eventPublisher:     container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Event Sourcing Domain (PR-037) ───────────────────────────────────
     // BD-015: All events replayable. BD-018: occurredAt required.
     // BD-019: Audit trail. BD-021: no deletion. BD-022: Wave1 in-memory.
@@ -816,6 +830,8 @@ export class CompositionRoot {
       diseaseSnapshotService:      container.resolve(TOKENS.DiseaseSnapshotService),
       // PR-041
       networkSignalPersistenceServiceV2: container.resolve(TOKENS.NetworkSignalPersistenceServiceV2),
+      // PR-043
+      emotionSignalGenerator: container.resolve(TOKENS.EmotionSignalGenerator),
     }));
 
     this._registerFeatures();
@@ -850,5 +866,6 @@ export class CompositionRoot {
     r.register('MenstrualIntelligence', { status: 'active', migratesIn: 'PR-039' }); // PR-039 ✓
     r.register('ResearchDataset',       { status: 'active', migratesIn: 'PR-040' }); // PR-040 ✓
     r.register('NetworkSignalV2',       { status: 'active', migratesIn: 'PR-041' }); // PR-041 ✓
+    r.register('EmotionSignal',         { status: 'active', migratesIn: 'PR-043' }); // PR-043 ✓
   }
 }
