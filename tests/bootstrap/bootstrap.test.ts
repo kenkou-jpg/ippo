@@ -109,7 +109,8 @@ describe('RouteRegistry', () => {
     expect(known).toContain('SignalSnapshot');
     expect(known).toContain('SimilarityIntelligence');
     expect(known).toContain('EventSourcing');
-    expect(known).toHaveLength(25); // PR-037: added 'EventSourcing'
+    expect(known).toContain('Emotion');
+    expect(known).toHaveLength(26); // PR-038: added 'Emotion'
   });
 });
 

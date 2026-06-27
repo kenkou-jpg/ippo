@@ -80,6 +80,8 @@ export class ApiGateway {
   #eventPublisher;
   #eventReplayService;
   #auditTimelineService;
+  // PR-038
+  #emotionService;
 
   constructor({
     permissionService,
@@ -154,6 +156,8 @@ export class ApiGateway {
     eventPublisher       = null,
     eventReplayService   = null,
     auditTimelineService = null,
+    // PR-038
+    emotionService       = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -217,6 +221,8 @@ export class ApiGateway {
     this.#eventPublisher       = eventPublisher;
     this.#eventReplayService   = eventReplayService;
     this.#auditTimelineService = auditTimelineService;
+    // PR-038
+    this.#emotionService       = emotionService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1108,5 +1114,64 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#signalReconstructionService) throw new Error('[ApiGateway] SignalReconstructionService not wired');
     return this.#signalReconstructionService.rebuildSignals(records);
+  }
+
+  // ── Emotion API (PR-038) ─────────────────────────────────────────────────────
+  // BD-005: Emotion is a Research Asset managed under LEGACY_ASSET_INVENTORY.
+  // NAC-01: Emotion maps to SIGNAL_TYPES.EMOTION in NetworkSignal schema.
+  // BD-015: EmotionCreated events are replayable via EventStore.
+  // BD-022: Wave1 in-memory only.
+
+  /**
+   * Validate an Emotion input without persisting. Auth required (record:read).
+   * @param {object} data
+   * @returns {Promise<{ valid: boolean, errors: string[] }>}
+   */
+  async validateEmotion(data) {
+    await this.#permissionService.require('record:read');
+    if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
+    const { validateEmotion: validate } = await import('../domains/emotion/emotion-validator.js');
+    return validate(data);
+  }
+
+  /**
+   * Create and persist a new Emotion. Auth required (record:read).
+   * @param {object} params
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createEmotion(params) {
+    await this.#permissionService.require('record:read');
+    if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
+    return this.#emotionService.create(params);
+  }
+
+  /**
+   * Return all stored Emotions. Auth required (record:read).
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getEmotions() {
+    await this.#permissionService.require('record:read');
+    if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
+    return this.#emotionService.list();
+  }
+
+  /**
+   * Return aggregate Emotion statistics (BD-018: includes generatedAt). Auth: record:read.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getEmotionStatistics() {
+    await this.#permissionService.require('record:read');
+    if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
+    return this.#emotionService.getEmotionStatistics();
+  }
+
+  /**
+   * Convert all stored Emotions to NetworkSignals (SIGNAL_TYPES.EMOTION). Auth: record:read.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async convertEmotionSignals() {
+    await this.#permissionService.require('record:read');
+    if (!this.#emotionService) throw new Error('[ApiGateway] EmotionService not wired');
+    return this.#emotionService.toNetworkSignals();
   }
 }

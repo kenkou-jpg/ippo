@@ -26,6 +26,7 @@ const KNOWN_FEATURES = new Set([
   'SignalSnapshot',           // PR-035: Snapshot Foundation
   'SimilarityIntelligence',  // PR-036: Similarity Intelligence Foundation
   'EventSourcing',           // PR-037: Event Sourcing Foundation
+  'Emotion',                 // PR-038: Emotion Signal Foundation
 ]);
 
 export class RouteRegistry {

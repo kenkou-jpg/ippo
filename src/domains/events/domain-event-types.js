@@ -28,6 +28,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   CONSENT_UPDATED:                'CONSENT_UPDATED',
   // Experiment domain
   EXPERIMENT_CREATED:             'EXPERIMENT_CREATED',
+  // Emotion domain (PR-038)
+  EMOTION_CREATED:                'EMOTION_CREATED',
 });
 
 /** Set of all valid event type strings for fast validation. */

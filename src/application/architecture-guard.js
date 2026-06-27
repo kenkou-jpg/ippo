@@ -182,6 +182,15 @@ const FORBIDDEN = [
   { from: /\/features\//,        to: /kpi-snapshot-automation-service/,   label: 'feature→KpiSnapshotAutomationService'       },
   { from: /\/screens\//,         to: /delivery-health-metrics/,           label: 'screen→DeliveryHealthMetrics'               },
   { from: /\/features\//,        to: /delivery-health-metrics/,           label: 'feature→DeliveryHealthMetrics'              },
+  // PR-038 — UI must not reach Emotion domain internals directly;
+  //           access via ApiGateway → createEmotion / getEmotions / getEmotionStatistics /
+  //           convertEmotionSignals / validateEmotion
+  { from: /\/screens\//,   to: /emotion-repository/,    label: 'screen→EmotionRepository'    },
+  { from: /\/features\//,  to: /emotion-repository/,    label: 'feature→EmotionRepository'   },
+  { from: /\/screens\//,   to: /emotion-service/,       label: 'screen→EmotionService'       },
+  { from: /\/features\//,  to: /emotion-service/,       label: 'feature→EmotionService'      },
+  { from: /\/screens\//,   to: /emotion-signal-mapper/, label: 'screen→EmotionSignalMapper'  },
+  { from: /\/features\//,  to: /emotion-signal-mapper/, label: 'feature→EmotionSignalMapper' },
 ];
 
 export function runArchitectureGuard() {

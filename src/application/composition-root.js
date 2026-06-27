@@ -126,6 +126,10 @@ import { SignalSnapshotRepository }       from '../domains/network/signal-snapsh
 import { SignalSnapshotService }          from '../domains/network/signal-snapshot-service.js';
 import { LongitudinalSnapshotService }    from '../domains/network/longitudinal-snapshot-service.js';
 import { DiseaseSnapshotService }         from '../domains/disease/disease-snapshot-service.js';
+// PR-038
+import { EmotionRepository }   from '../domains/emotion/emotion-repository.js';
+import { EmotionService }      from '../domains/emotion/emotion-service.js';
+import { EmotionSignalMapper } from '../domains/emotion/emotion-signal-mapper.js';
 // PR-033
 import { NetworkSignalStorageRepository } from '../domains/network/network-signal-storage-repository.js';
 import { PersistentNetworkSignalService } from '../domains/network/persistent-network-signal-service.js';
@@ -233,6 +237,10 @@ export const TOKENS = Object.freeze({
   PersistentNetworkSignalService: 'PersistentNetworkSignalService',
   SignalReconstructionService:    'SignalReconstructionService',
   SnapshotPolicy:                 'SnapshotPolicy',
+  // PR-038
+  EmotionRepository:       'EmotionRepository',
+  EmotionService:          'EmotionService',
+  EmotionSignalMapper:     'EmotionSignalMapper',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -571,6 +579,18 @@ export class CompositionRoot {
       new AuditTimelineService({ store: container.resolve(TOKENS.EventStore) }));
     c.singleton(TOKENS.ResearchEventAdapter, () => new ResearchEventAdapter());
 
+    // ── Emotion Domain (PR-038) ──────────────────────────────────────────
+    // BD-005: Emotion is a Research Asset (NAC-01 → SIGNAL_TYPES.EMOTION).
+    // BD-015: EmotionCreated events are replayable.
+    // BD-022: Wave1 in-memory only — no Supabase.
+    c.singleton(TOKENS.EmotionRepository,   () => new EmotionRepository());
+    c.singleton(TOKENS.EmotionSignalMapper, () => new EmotionSignalMapper());
+    c.singleton(TOKENS.EmotionService, (container) =>
+      new EmotionService({
+        repository:     container.resolve(TOKENS.EmotionRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Similarity Intelligence Domain (PR-036) ──────────────────────────
     // BD-009: DiseaseCluster integration (Wave1 partial; Wave2 full cluster-aware vectors).
     // BD-010/BD-011: vectorVersion on every FeatureVector.
@@ -681,6 +701,8 @@ export class CompositionRoot {
       eventPublisher:       container.resolve(TOKENS.EventPublisher),
       eventReplayService:   container.resolve(TOKENS.EventReplayService),
       auditTimelineService: container.resolve(TOKENS.AuditTimelineService),
+      // PR-038
+      emotionService:       container.resolve(TOKENS.EmotionService),
       // PR-036
       signalSimilarityService: container.resolve(TOKENS.SignalSimilarityService),
       // PR-035
@@ -717,5 +739,6 @@ export class CompositionRoot {
     r.register('SignalSnapshot',          { status: 'active', migratesIn: 'PR-035' }); // PR-035 ✓
     r.register('SimilarityIntelligence', { status: 'active', migratesIn: 'PR-036' }); // PR-036 ✓
     r.register('EventSourcing',          { status: 'active', migratesIn: 'PR-037' }); // PR-037 ✓
+    r.register('Emotion',                { status: 'active', migratesIn: 'PR-038' }); // PR-038 ✓
   }
 }
