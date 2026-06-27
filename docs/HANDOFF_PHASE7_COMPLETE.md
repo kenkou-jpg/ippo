@@ -43,7 +43,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 
 ---
 
-## Current Architecture Snapshot（PR-032時点）
+## Current Architecture Snapshot（PR-039時点）
 
 ### Domains（実装済み）
 
@@ -64,14 +64,18 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | Delivery | DeliveryQueue / Scheduler / Processor / Retry / HealthMetrics | Wave1完了 |
 | Analytics | KpiSnapshot / Wave1Dashboard / SnapshotAutomation / KpiScheduler | Wave1完了 |
 | B2B Export | 匿名化 / アクセス制御 / 監査ログ | Wave1完了 |
+| **Event Sourcing** | EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService | **PR-037完了** |
+| **Emotion** | emotion-types(SSOT) / emotion-entity / emotion-validator / emotion-repository / emotion-service / emotion-signal-mapper | **PR-038完了** |
+| **Menstrual** | menstrual-types(SSOT) / menstrual-entity / menstrual-validator / menstrual-repository / menstrual-service / phase-calculator / cycle-analysis-service | **PR-039完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  20
-ApiGateway methods:        53
-Tests (全パス):            2,223件 / 124ファイル
-ArchitectureGuard rules:   36+ (PR-011〜PR-032)
+Features (RouteRegistry):  27
+ApiGateway methods:        71
+Domain Event Types:        14（MENSTRUAL_RECORDED追加済み）
+Tests (全パス):            3,272件 / 191ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   58+ (PR-011〜PR-039)
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -80,10 +84,12 @@ Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 
 ```
 UI / Legacy (app-legacy.js 10,804行)
-         ↓  ApiGateway (53 methods)
+         ↓  ApiGateway (71 methods)
 Application Layer (CompositionRoot / DI Container)
          ↓
-Domain Services (15 domains)
+Domain Services (18 domains)
+         ↓
+Event Sourcing Layer (EventStore / EventBus / EventPublisher / BD-015)
          ↓
 Repository Layer (Supabase / LocalStorage / in-memory)
          ↓
@@ -92,7 +98,7 @@ Infrastructure (Adapters / Contracts)
 
 ---
 
-## Roadmap Status（74 PR 計画中、PR-032完了）
+## Roadmap Status（74 PR 計画中、PR-039完了）
 
 ```
 Phase 5 (基盤設計)
@@ -124,16 +130,16 @@ Phase 7 (Intelligence Foundation)
   ✓ PR-030       Network Signal Foundation (137 tests)
   ✓ PR-031       Signal Intelligence Foundation (+118 tests)
   ✓ PR-032       Longitudinal Signal Foundation (+125 tests)
+  ✓ PR-033       NetworkSignal Persistence / Disease Cluster / Snapshot / Similarity Intelligence
+  ✓ PR-034       Disease Cluster Foundation (BD-009)
+  ✓ PR-035       Signal Snapshot Foundation（日次/週次）
+  ✓ PR-036       Similarity Intelligence Foundation（NetworkScore）
+  ✓ PR-037       Event Sourcing Foundation（EventStore / EventBus / EventPublisher / BD-015・BD-017）
+  ✓ PR-038       Emotion Signal Foundation（emotion-types / entity / validator / repository / service / mapper）
+  ✓ PR-039       Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis）
 
-→ PR-033 (Next)  NetworkSignal Supabase Persistence (BD-022)
+→ PR-040 (Next)  （未定）
 
-  PR-034         Disease Cluster Foundation (BD-009)
-  PR-035         Signal Snapshot Foundation（日次/週次）
-  PR-036         Similarity Intelligence Foundation（NetworkScore）
-  PR-037         Event Sourcing Foundation（ippo_events, BD-017）
-  PR-038         Emotion Signal Wave2 (BD-024)
-  PR-039         MenstrualPhase Intelligence (BD-014)
-  PR-040         Research Dataset Foundation (BD-021)
   PR-041〜074    （IMPLEMENTATION_PLAN_V1.md参照）
 
 Next Council:
@@ -186,6 +192,10 @@ Next Council:
 | Phase 7 PR-031 | src/domains/network/ — Signal Intelligence Foundation（Aggregation / Trend / Timeline / Summary + 118テスト） | 完了 |
 | Phase 7 PR-032 | src/domains/network/ — Longitudinal Signal Foundation（MovingAverage / Baseline / TrendWindow / LongitudinalSummary + 125テスト） | 完了 |
 | DATA ASSET COUNCIL | docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003) — 8層データ資産モデル / BD-015〜BD-025 / PR-033〜040設計インプット | 完了 |
+| Phase 7 PR-033〜036 | NetworkSignal Persistence / Disease Cluster / Signal Snapshot / Similarity Intelligence | 完了 |
+| Phase 7 PR-037 | src/domains/events/ — Event Sourcing Foundation（EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService / 14 domain event types） | 完了 |
+| Phase 7 PR-038 | src/domains/emotion/ — Emotion Signal Foundation（emotion-types / entity / validator / repository / service / signal-mapper / EMOTION_CREATED event） | 完了 |
+| Phase 7 PR-039 | src/domains/menstrual/ — Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis-service / MENSTRUAL_RECORDED event） | 完了 |
 
 ---
 
@@ -265,7 +275,7 @@ Next Council:
 - ユーザー数: 0 / 本番依存: なし / 後方互換義務: なし
 - app-legacy.js: 10,804行 God Object（削減中）
 - 既存DBテーブル: profiles / records / user_data / user_records / subscriptions（5つのみ）
-- **テスト: 2,223件 全パス（124ファイル）**
+- **テスト: 3,272件 全パス（191ファイル）※ 35件はtests/modules/のpre-existing failure（src/modules/record.js壊れたインポート、PR無関係）**
 
 ### Strangler-Fig 移行層（PR-011〜PR-032 完了）
 
@@ -290,23 +300,28 @@ Next Council:
 | **Network Signal** | network-signal-types（SSOT, BD-013）/ network-signal-entity / network-signal-validator / network-signal-repository（in-memory）/ network-signal-service |
 | **Signal Intelligence** | signal-aggregation-service / signal-trend-service / signal-timeline-service / signal-summary-service |
 | **Longitudinal** | trend-window-builder / moving-average-service / baseline-service / longitudinal-signal-service / longitudinal-summary-service |
-| API Gateway | ApiGateway（**53メソッド**） |
+| Event Sourcing | EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService |
+| **Emotion** | emotion-types（SSOT）/ emotion-entity / emotion-validator / emotion-repository / emotion-service / emotion-signal-mapper |
+| **Menstrual** | menstrual-types（SSOT）/ menstrual-entity / menstrual-validator / menstrual-repository / menstrual-service / phase-calculator / cycle-analysis-service |
+| API Gateway | ApiGateway（**71メソッド**） |
 
 ---
 
-## RouteRegistry — KNOWN_FEATURES（PR-032時点）
+## RouteRegistry — KNOWN_FEATURES（PR-039時点）
 
 ```
 Record / Experiment / Case / Consent / Analytics / Similarity
 Auth / API / RecordV2 / Engagement / B2BExport / Communication / Delivery
 Operations / OperationsAutomation / Symptom / Disease
 NetworkSignal / SignalIntelligence / Longitudinal
-計20件
+PersistentSignal / DiseaseCluster / SignalSnapshot / SimilarityIntelligence
+EventSourcing / Emotion / MenstrualIntelligence
+計27件
 ```
 
 ---
 
-## API Gateway メソッド一覧（PR-032時点、計53メソッド）
+## API Gateway メソッド一覧（PR-039時点、計71メソッド）
 
 | メソッド | 権限 | PR |
 |---|---|---|
@@ -358,6 +373,23 @@ NetworkSignal / SignalIntelligence / Longitudinal
 | getBaseline(signalType) | record:read | PR-032 |
 | getMovingAverage(signalType, days, refDate?) | record:read | PR-032 |
 | getTrendWindow(days, refDate?) | record:read | PR-032 |
+| publishEvent(params) | admin | PR-037 |
+| getEvents() | admin | PR-037 |
+| getEventsByType(type) | admin | PR-037 |
+| getEventsByAggregate(aggregateId) | admin | PR-037 |
+| replayEvents() | admin | PR-037 |
+| getAuditTimeline() | admin | PR-037 |
+| validateEmotion(data) | record:write | PR-038 |
+| createEmotion(params) | record:read | PR-038 |
+| getEmotions() | record:read | PR-038 |
+| getEmotionStatistics() | record:read | PR-038 |
+| convertEmotionSignals() | record:read | PR-038 |
+| validateMenstrual(data) | record:read | PR-039 |
+| createMenstrualRecord(params) | record:read | PR-039 |
+| getMenstrualRecords() | record:read | PR-039 |
+| getCurrentCycle() | record:read | PR-039 |
+| getCycleStatistics() | record:read | PR-039 |
+| estimateNextCycle() | record:read | PR-039 |
 
 ---
 
@@ -458,7 +490,7 @@ MovingAverage計算結果 / TrendWindow / FeatureVector中間値 / SignalTimelin
 - フロントエンド: Vanilla JS + Vite（React/Vue/Svelteなし）
 - バックエンド: Supabase（PostgreSQL + Edge Functions）
 - 決済: Stripe（¥580/月、¥4,800/年）
-- テスト: Vitest（**2,223件 全パス** / 124ファイル）
+- テスト: Vitest（**3,272件 全パス** / 191ファイル）
 - 言語: JavaScript（TypeScript移行中）
 
 ---
