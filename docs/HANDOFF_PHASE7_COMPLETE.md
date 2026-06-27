@@ -18,17 +18,26 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 
 | 文書 | ファイル | 主な管轄 |
 |---|---|---|
-| FOUNDER_COUNCIL_DESIGN_PHILOSOPHY | （未作成 — 将来化） | 創業者意図・設計哲学・不変原則 |
 | LEGACY ASSET INVENTORY | docs/LEGACY_ASSET_INVENTORY.md | 資産戦略・BD-001〜BD-014 |
-| NETWORK ASSET COUNCIL | docs/NETWORK_ASSET_COUNCIL.md | Signal Schema・Edge属性・Longitudinal |
+| NETWORK ASSET COUNCIL | docs/NETWORK_ASSET_COUNCIL.md | Signal Schema・Edge属性・Longitudinal / BD-009〜BD-014 |
 | DATA ASSET COUNCIL | docs/DATA_ASSET_COUNCIL.md | データ資産8層・BD-015〜BD-025 |
+| NETWORK EVOLUTION COUNCIL | docs/NETWORK_EVOLUTION_COUNCIL.md | 7フェーズ進化モデル・BD-026〜BD-033 |
+| WAVE2 MASTER DESIGN | docs/WAVE2_MASTER_DESIGN.md | Wave2全体設計・BD-034〜BD-043 |
+| WAVE2 ARCHITECTURE | docs/WAVE2_ARCHITECTURE.md | Wave2技術憲法 |
+| WAVE2 ROADMAP | docs/WAVE2_ROADMAP.md | PR-041〜075 / 35PR |
+| WAVE2 IMPLEMENTATION GOVERNANCE | docs/WAVE2_IMPLEMENTATION_GOVERNANCE.md | 品質ゲート・GP-01〜GP-08 |
+| BUSINESS STRATEGY | docs/BUSINESS_STRATEGY.md | 事業モデル・価格・BBS-001〜006 |
+| GROWTH STRATEGY | docs/GROWTH_STRATEGY.md | 成長戦略・KPI・BGS-001〜005 |
+| REGULATORY & MEDICAL COUNCIL | docs/REGULATORY_MEDICAL_COUNCIL.md | 規制・医療・倫理・BD-044〜052 |
+| GO-TO-MARKET COUNCIL | docs/GTM_COUNCIL.md | 市場投入戦略・BD-053〜060 |
+| FOUNDER STRATEGIC REVIEW | docs/FOUNDER_STRATEGIC_REVIEW_WAVE2.md | Wave2 Go/No-Go 監査（CONDITIONAL GO） |
 
 ### LEVEL-2 — Architecture Authority（変更にはアーキテクチャレビューが必要）
 
 | 文書 | ファイル | 主な管轄 |
 |---|---|---|
 | Architecture V3 | docs/ARCHITECTURE_V3.md | Strangler-Fig戦略・レイヤー定義 |
-| Implementation Plan | docs/IMPLEMENTATION_PLAN_V1.md | PRロードマップ・74PR計画 |
+| Implementation Plan | docs/IMPLEMENTATION_PLAN_V1.md | PRロードマップ・74PR計画（Wave1）|
 | Domain Model | docs/DOMAIN_MODEL_V1.md | エンティティ・集約境界 |
 | Schema V1 | docs/SCHEMA_V1.md | DBスキーマ確定 |
 | Repository Constitution | docs/REPOSITORY_CONSTITUTION_V1.md | コーディング規約・DI設計 |
@@ -40,6 +49,29 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | PR Spec（各会話内） | 個別PRの実装詳細・制約 |
 | Test Files | 仕様の機械的証明 |
 | このHANDOFF文書 | 引き継ぎ・現在地確認 |
+
+---
+
+## 戦略設計フェーズ 完了ステータス
+
+| Council | 文書番号 | 最終判定 | BD |
+|---|---|---|---|
+| Business Strategy Council | IPPO-BUSINESS-001 | CONDITIONAL GO | BBS-001〜006 |
+| Growth Strategy Council | IPPO-GROWTH-001 | GO | BGS-001〜005 |
+| Regulatory & Medical Council | IPPO-REGULATORY-001 | CONDITIONAL GO（5条件）| BD-044〜052 |
+| Go-To-Market Council | IPPO-GTM-001 | GO | BD-053〜060 |
+
+**本文書をもって IPPO 戦略設計フェーズ完了。**
+
+### 戦略上の条件（Regulatory CONDITIONAL GO 5条件）
+
+| # | 条件 | 期限 |
+|---|---|---|
+| C-1 | プライバシーポリシー弁護士レビュー + 要配慮個人情報対応 | Wave2 Phase A 前 |
+| C-2 | 医師アドバイザー1名招聘 | Wave2 Phase D 前 |
+| C-3 | SaMD非該当の書面見解取得（BD-051）| Wave2 Phase D 前 |
+| C-4 | Research Consent追加（BD-049）| Wave2 Phase B 前 |
+| C-5 | Research Dataset提供契約書雛形作成 | Wave2 Phase F 前 |
 
 ---
 
@@ -98,7 +130,7 @@ Infrastructure (Adapters / Contracts)
 
 ---
 
-## Roadmap Status（74 PR 計画中、PR-039完了）
+## Roadmap Status
 
 ```
 Phase 5 (基盤設計)
@@ -116,7 +148,7 @@ Phase 6 (Strangler-Fig移行)
   ✓ PR-018       Consent Enforcement & Similarity Foundation
   ✓ PR-019       Similarity Engine V1
 
-Phase 7 (Intelligence Foundation)
+Phase 7 (Intelligence Foundation) — Wave1完了
   ✓ PR-020       Auth Domain & API Gateway
   ✓ PR-021       Record V2 ReadSwitch + UX Foundation
   ✓ PR-022       Engagement & Consent Layer
@@ -138,12 +170,20 @@ Phase 7 (Intelligence Foundation)
   ✓ PR-038       Emotion Signal Foundation（emotion-types / entity / validator / repository / service / mapper）
   ✓ PR-039       Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis）
 
-→ PR-040 (Next)  （未定）
+  PR-040         Research Dataset Foundation（BD-021）← 未着手
 
-  PR-041〜074    （IMPLEMENTATION_PLAN_V1.md参照）
+Wave2 (PR-041〜075) — 設計完了・実装未開始
+  Phase A (PR-041〜045): Supabase Migration Foundation
+  Phase B (PR-046〜050): Disease Entity V2 + Cluster Statistics
+  Phase C (PR-051〜056): Knowledge Graph Foundation
+  Phase D (PR-057〜062): AI Platform + Signal Insight
+  Phase E (PR-063〜066): Research Platform V2
+  Phase F (PR-067〜071): Similarity UI + Network Visualization
+  Phase G (PR-072〜075): Integration + Quality Gate
 
-Next Council:
-  NETWORK EVOLUTION COUNCIL（BD-022実装後、Wave2移行前）
+  詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
+
+Next PR: （未定）
 ```
 
 ---
@@ -162,56 +202,48 @@ Next Council:
 | Phase 5 | docs/IMPLEMENTATION_PLAN_V1.md | 完了 |
 | Phase 5 実装 PR-001〜002 | domains/ スケルトン + ドメインモデル確定 | 完了 |
 | Phase 5 実装 PR-003〜006 | Record / Experiment / Case / Consent domain実装 | 完了 |
-| Phase 5 実装 PR-007 | domains/similarity/ — Similarity Engine（スコアリング・グラフ・バッチ） | 完了 |
-| Phase 5 実装 PR-008 | domains/analytics/ — Analytics Layer（event収集・KPI・Cohort・Funnel） | 完了 |
-| Phase 5 実装 PR-009 | domains/b2b/ — B2B Export Layer（匿名化・アクセス制御・監査ログ） | 完了 |
-| Phase 5 実装 PR-010 | tests/e2e/ + infrastructure/validation/ + release/gate.ts — E2E/リリースゲート | 完了 |
-| Phase 6 PR-011 | src/bootstrap/ + src/application/ + src/legacy/ — App Bootstrap Bridge（DI Container / CompositionRoot / Application / LegacyBridge / RouteRegistry / ArchitectureGuard） | 完了 |
-| Phase 6 PR-011.5 | src/contracts/ — Contract Layer Foundation（IStorageService / IRecordRepository / IExperimentRepository / IConsentRepository / ICaseRepository / IAnalyticsService / ISimilarityService / IAuthService） | 完了 |
-| Phase 6 PR-012 | src/adapters/ + src/application/legacy-access-audit.js — Infrastructure Adapter Layer（LocalStorageAdapter / LegacyAuthAdapter / AdapterRegistry / LegacyAccessAudit） | 完了 |
-| Phase 6 PR-013 | src/repositories/record/ + src/application/record-*-service.js — Record Migration Hook（RecordRepositoryImpl / RecordMapper / RecordQueryService / RecordCommandService / RecordMigrationAudit / Flow Hooks） | 完了 |
-| Phase 6 PR-014 | src/repositories/record/dual-write-* + src/repositories/record/diff-* + src/application/migration-dashboard.js — Dual Write & Diff Audit System | 完了 |
-| Phase 6 PR-015 | src/repositories/experiment/ + src/application/experiment-*-service.js + experiment-migration-audit.js — Experiment Core Migration | 完了 |
-| Phase 6 PR-016 | src/domains/experiment/ + src/domains/case/ — Experiment State Machine & Case Foundation | 完了 |
-| Phase 6 PR-017 | src/domains/case/ + src/repositories/case/ — Case Generation Engine V1 | 完了 |
-| Phase 6 PR-018 | src/repositories/consent/ + src/domains/consent/ + src/domains/similarity/ — Consent Enforcement & Similarity Foundation | 完了 |
-| Phase 6 PR-019 | src/repositories/similarity/ + src/domains/similarity/ — Similarity Engine V1 | 完了 |
-| Phase 7 PR-020 | src/domains/auth/ + src/application/api-gateway.js — Auth Domain & API Gateway | 完了 |
-| Phase 7 PR-021 | Record V2 ReadSwitch + UX Foundation | 完了 |
-| Phase 7 PR-022 | Engagement & Consent Layer | 完了 |
-| Phase 7 PR-023 | Communication Decision Layer | 完了 |
-| Phase 7 PR-024 | Delivery & Admin Analytics Layer | 完了 |
-| Phase 7 PR-025 | Delivery Infrastructure Completion | 完了 |
-| Phase 7 PR-026 | Operations & KPI Automation | 完了 |
-| Phase 7 PR-027 | Operations Automation & Analytics Completion | 完了 |
-| LEGACY ASSET INVENTORY COUNCIL | docs/LEGACY_ASSET_INVENTORY.md — IPPO-GOV-001 (LEVEL-1 GOVERNING DOCUMENT)、BD-001〜BD-008 | 完了 |
-| Phase 7 PR-028 | src/domains/symptom/ — Symptom Intelligence Foundation | 完了 |
-| Phase 7 PR-029 | src/domains/disease/ — Disease Entity Foundation | 完了 |
-| NETWORK ASSET COUNCIL | docs/NETWORK_ASSET_COUNCIL.md (IPPO-COUNCIL-002) — IPPO-GOV-001 v1.2、BD-009〜BD-014 | 完了 |
-| Phase 7 PR-030 | src/domains/network/ — Network Signal Foundation（NetworkSignal 6種 + ApiGateway 5メソッド + 137テスト） | 完了 |
-| Phase 7 PR-031 | src/domains/network/ — Signal Intelligence Foundation（Aggregation / Trend / Timeline / Summary + 118テスト） | 完了 |
-| Phase 7 PR-032 | src/domains/network/ — Longitudinal Signal Foundation（MovingAverage / Baseline / TrendWindow / LongitudinalSummary + 125テスト） | 完了 |
-| DATA ASSET COUNCIL | docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003) — 8層データ資産モデル / BD-015〜BD-025 / PR-033〜040設計インプット | 完了 |
-| Phase 7 PR-033〜036 | NetworkSignal Persistence / Disease Cluster / Signal Snapshot / Similarity Intelligence | 完了 |
-| Phase 7 PR-037 | src/domains/events/ — Event Sourcing Foundation（EventStore / EventBus / EventPublisher / EventReplayService / AuditTimelineService / 14 domain event types） | 完了 |
-| Phase 7 PR-038 | src/domains/emotion/ — Emotion Signal Foundation（emotion-types / entity / validator / repository / service / signal-mapper / EMOTION_CREATED event） | 完了 |
-| Phase 7 PR-039 | src/domains/menstrual/ — Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis-service / MENSTRUAL_RECORDED event） | 完了 |
+| Phase 5 実装 PR-007 | domains/similarity/ — Similarity Engine | 完了 |
+| Phase 5 実装 PR-008 | domains/analytics/ — Analytics Layer | 完了 |
+| Phase 5 実装 PR-009 | domains/b2b/ — B2B Export Layer | 完了 |
+| Phase 5 実装 PR-010 | tests/e2e/ + infrastructure/validation/ — E2E/リリースゲート | 完了 |
+| Phase 6 PR-011〜019 | Strangler-Fig移行完了（Bootstrap / Contract / Adapter / Record / Experiment / Case / Consent / Similarity） | 完了 |
+| LEGACY ASSET INVENTORY COUNCIL | docs/LEGACY_ASSET_INVENTORY.md — BD-001〜BD-014 | 完了 |
+| NETWORK ASSET COUNCIL | docs/NETWORK_ASSET_COUNCIL.md (IPPO-COUNCIL-002) — BD-009〜BD-014 | 完了 |
+| DATA ASSET COUNCIL | docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003) — BD-015〜BD-025 | 完了 |
+| Phase 7 PR-020〜039 | Intelligence Foundation全完了（Auth / UX / Engagement / Comm / Delivery / Operations / Symptom / Disease / NetworkSignal / SignalIntelligence / Longitudinal / EventSourcing / Emotion / Menstrual）| 完了 |
+| NETWORK EVOLUTION COUNCIL | docs/NETWORK_EVOLUTION_COUNCIL.md (IPPO-COUNCIL-004) — 7フェーズ進化モデル / BD-026〜BD-033 | 完了 |
+| WAVE2 MASTER DESIGN | docs/WAVE2_MASTER_DESIGN.md (IPPO-COUNCIL-005) — Wave2全体設計 / BD-034〜BD-043 | 完了 |
+| WAVE2 ROADMAP | docs/WAVE2_ROADMAP.md (IPPO-COUNCIL-006) — PR-041〜075 / 35PR | 完了 |
+| WAVE2 ARCHITECTURE | docs/WAVE2_ARCHITECTURE.md (IPPO-COUNCIL-007) — Wave2技術憲法 | 完了 |
+| WAVE2 IMPLEMENTATION GOVERNANCE | docs/WAVE2_IMPLEMENTATION_GOVERNANCE.md (IPPO-COUNCIL-008) — GP-01〜GP-08 | 完了 |
+| FOUNDER STRATEGIC REVIEW | docs/FOUNDER_STRATEGIC_REVIEW_WAVE2.md (IPPO-STRATEGIC-REVIEW-001) — CONDITIONAL GO / CR-01〜03 / MO-01〜03 | 完了 |
+| **BUSINESS STRATEGY COUNCIL** | docs/BUSINESS_STRATEGY.md (IPPO-BUSINESS-001) — 二段ロケットモデル / BBS-001〜006 | **完了** |
+| **GROWTH STRATEGY COUNCIL** | docs/GROWTH_STRATEGY.md (IPPO-GROWTH-001) — 成長戦略 / BGS-001〜005 | **完了** |
+| **REGULATORY & MEDICAL COUNCIL** | docs/REGULATORY_MEDICAL_COUNCIL.md (IPPO-REGULATORY-001) — 規制憲法 / BD-044〜052 | **完了** |
+| **GO-TO-MARKET COUNCIL** | docs/GTM_COUNCIL.md (IPPO-GTM-001) — 市場投入戦略 / BD-053〜060 | **完了** |
 
 ---
 
-## 上位憲法（必ず読むこと）
+## 上位憲法（必ず読む順序）
 
-以下の順序で読む。矛盾がある場合は上にあるものが正。
+矛盾がある場合は上にあるものが正。
 
-1. **docs/LEGACY_ASSET_INVENTORY.md (IPPO-GOV-001 v1.2)** ← **資産戦略最上位基準文書（LEVEL-1 GOVERNING DOCUMENT）。BD-001〜BD-014（14件）**
-2. **docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003)** ← **データ資産設計基準（BD-015〜BD-025、11件）。PR-033〜040設計インプット**
-3. **docs/NETWORK_ASSET_COUNCIL.md (IPPO-COUNCIL-002)** ← Signal Schema / Edge属性 / Disease Cluster / Longitudinal設計
-4. docs/CONSTITUTION_RECONCILIATION_V1.md
-5. docs/IMPLEMENTATION_PLAN_V1.md
-6. docs/REPOSITORY_CONSTITUTION_V1.md
-7. docs/SCHEMA_V1.md
-8. docs/ARCHITECTURE_V3.md
-9. docs/DOMAIN_MODEL_V1.md
+1. **docs/LEGACY_ASSET_INVENTORY.md (IPPO-GOV-001 v1.2)** — BD-001〜BD-014
+2. **docs/NETWORK_ASSET_COUNCIL.md (IPPO-COUNCIL-002)** — BD-009〜BD-014
+3. **docs/DATA_ASSET_COUNCIL.md (IPPO-COUNCIL-003)** — BD-015〜BD-025
+4. **docs/NETWORK_EVOLUTION_COUNCIL.md (IPPO-COUNCIL-004)** — BD-026〜BD-033
+5. **docs/WAVE2_MASTER_DESIGN.md (IPPO-COUNCIL-005)** — BD-034〜BD-043
+6. **docs/WAVE2_ARCHITECTURE.md (IPPO-COUNCIL-007)**
+7. **docs/WAVE2_ROADMAP.md (IPPO-COUNCIL-006)** — PR-041〜075
+8. **docs/WAVE2_IMPLEMENTATION_GOVERNANCE.md (IPPO-COUNCIL-008)** — GP-01〜GP-08
+9. **docs/BUSINESS_STRATEGY.md (IPPO-BUSINESS-001)** — BBS-001〜006
+10. **docs/GROWTH_STRATEGY.md (IPPO-GROWTH-001)** — BGS-001〜005
+11. **docs/REGULATORY_MEDICAL_COUNCIL.md (IPPO-REGULATORY-001)** — BD-044〜052
+12. **docs/GTM_COUNCIL.md (IPPO-GTM-001)** — BD-053〜060
+13. docs/FOUNDER_STRATEGIC_REVIEW_WAVE2.md (IPPO-STRATEGIC-REVIEW-001)
+14. docs/CONSTITUTION_RECONCILIATION_V1.md
+15. docs/IMPLEMENTATION_PLAN_V1.md
+16. docs/REPOSITORY_CONSTITUTION_V1.md
 
 ---
 
@@ -236,12 +268,14 @@ Next Council:
 
 ---
 
-## Binding Decisions 全一覧（IPPO-GOV-001 v1.2 + DATA ASSET COUNCIL）
+## Binding Decisions 全一覧
+
+### BD-001〜BD-025（Wave1 / Data Asset）
 
 | 番号 | 内容 | 出典 |
 |---|---|---|
 | BD-001 | similarity_edges DELETE禁止 | IPPO-GOV-001 |
-| BD-002 | consent_events DELETE禁止 | IPPO-GOV-001 |
+| BD-002 | consent_events DELETE禁止（Consent Immutability）| IPPO-GOV-001 |
 | BD-003 | Lunar CalendarをUIとして実装しない | IPPO-GOV-001 |
 | BD-004 | Disease TagをWave1でEntityに昇格させない（Wave2） | IPPO-GOV-001 |
 | BD-005 | FoodはFoodログでなくExposure Signalとして設計 | IPPO-GOV-001 |
@@ -257,7 +291,7 @@ Next Council:
 | BD-015 | Layer 1（Record）保全でLayer 2〜7を決定論的に再構築できること | DATA ASSET COUNCIL |
 | BD-016 | 各データ資産はSSOT以外に永続化してはならない | DATA ASSET COUNCIL |
 | BD-017 | Wave2 ippo_eventsテーブルはImmutable（UPDATE/DELETE禁止） | DATA ASSET COUNCIL |
-| BD-018 | Snapshotは必ず generatedAt と（該当する場合）vectorVersion を含めること | DATA ASSET COUNCIL |
+| BD-018 | Snapshotは必ず generatedAt と vectorVersion を含めること | DATA ASSET COUNCIL |
 | BD-019 | データ削除要求: 匿名化優先 → SoftDelete → 90日後HardDelete | DATA ASSET COUNCIL |
 | BD-020 | Layer 1保全でLayer 2〜7の再構築可能性を損なう変更はCouncil承認が必要 | DATA ASSET COUNCIL |
 | BD-021 | Research Datasetの作成・公開はFounder承認 + k-anonymity(k≥5) | DATA ASSET COUNCIL |
@@ -265,6 +299,55 @@ Next Council:
 | BD-023 | SimilarityEdge再計算時は新edgeIdを発行（既存IDの上書き禁止） | DATA ASSET COUNCIL |
 | BD-024 | Emotion SignalはWave2 Signal層で実装（Wave1では生成しない） | DATA ASSET COUNCIL |
 | BD-025 | PR-033〜PR-040はDATA ASSET COUNCIL Section 14に従って実装すること | DATA ASSET COUNCIL |
+
+### BD-026〜BD-043（Wave2 設計）
+
+| 番号 | 内容 | 出典 |
+|---|---|---|
+| BD-026 | Phase 3（k≥50 / 5疾患以上）達成前にSimilarity UIを公開しない | NETWORK EVOLUTION COUNCIL |
+| BD-027 | 各フェーズ移行はFounder確認を必須とする | NETWORK EVOLUTION COUNCIL |
+| BD-028 | Disease Cluster統計はk≥5（最終目標k≥50）を下回るデータを公開しない | NETWORK EVOLUTION COUNCIL |
+| BD-029 | Similarity UIはCaseノード同士の接続表示のみ。個人特定可能なUIを禁止 | NETWORK EVOLUTION COUNCIL |
+| BD-030 | Research Dataset利用者が個人特定を試みることはZERO TOLERANCE（契約条件） | NETWORK EVOLUTION COUNCIL |
+| BD-031 | AIはいかなる状況でも診断・治療指示・緊急度判定を行ってはならない | NETWORK EVOLUTION COUNCIL |
+| BD-032 | Knowledge GraphのエッジはAppend-Only（削除・上書き禁止） | NETWORK EVOLUTION COUNCIL |
+| BD-033 | Founder Moat = 縦断の長さ × Consent純潔性 × Disease Intelligence深度 | NETWORK EVOLUTION COUNCIL |
+| BD-034 | Wave2のすべての永続化層はSupabaseとする | WAVE2 MASTER DESIGN |
+| BD-035 | FeatureVector V2は12次元（VECTOR_VERSION='2'）| WAVE2 MASTER DESIGN |
+| BD-036 | Disease Cluster統計はk≥50を目標とし、k≥5未満は公開しない | WAVE2 MASTER DESIGN |
+| BD-037 | Knowledge GraphノードはAppend-Only（削除禁止）| WAVE2 MASTER DESIGN |
+| BD-038 | Wave2 AIはルールベース + 統計テンプレートのみ（LLM禁止）| WAVE2 MASTER DESIGN |
+| BD-039 | AISafetyValidatorはすべてのAI出力の必須ゲートキーパー | WAVE2 MASTER DESIGN |
+| BD-040 | Research Dataset V2はk-anonymity k≥5を構造的に保証すること | WAVE2 MASTER DESIGN |
+| BD-041 | Wave2 PR-041〜075の実装順序は依存関係を厳守すること | WAVE2 MASTER DESIGN |
+| BD-042 | Wave2完了条件: Phase 3達成（k≥50 / 5疾患）+ Research Platform稼働 | WAVE2 MASTER DESIGN |
+| BD-043 | Wave3以降の設計はWave2完了後にCouncilを開催して決定する | WAVE2 MASTER DESIGN |
+
+### BD-044〜BD-060（規制・GTM）
+
+| 番号 | 内容 | 出典 |
+|---|---|---|
+| BD-044 | すべてのAI出力には免責文言を付与。免責なしのAI出力公開を絶対禁止 | REGULATORY COUNCIL |
+| BD-045 | Signal Insight/Pattern Discovery出力テンプレートは医師アドバイザー書面承認後のみ公開可 | REGULATORY COUNCIL |
+| BD-046 | Research Dataset外部提供前に提供先IRB承認証明書の受領を必須とする | REGULATORY COUNCIL |
+| BD-047 | プライバシーポリシーは年1回以上弁護士レビューを受けること | REGULATORY COUNCIL |
+| BD-048 | AI禁止ワードリストは医師アドバイザーが半年ごとにレビューし Founder が承認 | REGULATORY COUNCIL |
+| BD-049 | Research ConsentなしのユーザーのRecordをResearch Datasetに含めることを絶対禁止 | REGULATORY COUNCIL |
+| BD-050 | 「医療行為の代替」を示唆する表現をいかなる媒体でも使用禁止 | REGULATORY COUNCIL |
+| BD-051 | Wave2 Phase D（PR-057: Signal Insight Service）着手前にSaMD非該当の書面見解取得を必須とする | REGULATORY COUNCIL |
+| BD-052 | 海外展開は対象国の医療データ規制専門家による書面確認後のみ開始可 | REGULATORY COUNCIL |
+| BD-053 | 最優先ICPは子宮内膜症/PCOS。記録継続率・Research Consent率を最優先指標とする | GTM COUNCIL |
+| BD-054 | DAU / ページビュー / ダウンロード数 / CAC をKPIとして採用してはならない | GTM COUNCIL |
+| BD-055 | 「医師の代わりになる」「診断できる」等の医療代替を示唆する表現を永久禁止 | GTM COUNCIL |
+| BD-056 | Research License価格（L1: ¥350K〜700K / L2: ¥3M〜10M / L3: ¥1M〜5M）を下回る提供禁止 | GTM COUNCIL |
+| BD-057 | Clinic APIのパイロット先は医師アドバイザー紹介 or 既存ユーザー流入のみ | GTM COUNCIL |
+| BD-058 | 海外展開順序は台湾→韓国→オーストラリア→EU→米国を厳守 | GTM COUNCIL |
+| BD-059 | Founder週間GTM稼働時間は3時間以内（通常期）| GTM COUNCIL |
+| BD-060 | IPPO Dataset使用論文にはAcknowledgment記載を提供条件とする | GTM COUNCIL |
+
+### BBS-001〜006（Business Strategy）/ BGS-001〜005（Growth Strategy）
+
+詳細は各文書参照（IPPO-BUSINESS-001 / IPPO-GROWTH-001）。
 
 変更にはLevel-1改訂プロセス（Founder承認 + Council開催）が必要。
 
@@ -277,7 +360,7 @@ Next Council:
 - 既存DBテーブル: profiles / records / user_data / user_records / subscriptions（5つのみ）
 - **テスト: 3,272件 全パス（191ファイル）※ 35件はtests/modules/のpre-existing failure（src/modules/record.js壊れたインポート、PR無関係）**
 
-### Strangler-Fig 移行層（PR-011〜PR-032 完了）
+### Strangler-Fig 移行層（PR-011〜PR-039 完了）
 
 | 層 | 主要クラス |
 |---|---|
@@ -399,7 +482,7 @@ EventSourcing / Emotion / MenstrualIntelligence
 SYMPTOM / PAIN / MENSTRUAL / EMOTION（Wave2）/ SLEEP / EXPOSURE
 
 ### VECTOR_VERSION
-`'1'`（Wave2拡張時に `'2'` へ bump。全EdgeにフィールドあたりBD-010/BD-011）
+`'1'`（Wave2拡張時に `'2'` へ bump。全Edgeにフィールドあり BD-010/BD-011）
 
 ### 正規化ルール
 | type | rawValue | normalizedValue |
@@ -420,55 +503,72 @@ symptoms[] → SYMPTOM / painLevel → PAIN / sleepBed+Wake → SLEEP / foods[] 
 | MENSTRUAL / EXPOSURE / EMOTION | — | — | Increasing / Stable / Decreasing |
 | データ不足（<2件） | — | — | Unknown |
 
-### Moving Average Windows
-- Last7: [referenceDate-6, referenceDate]
-- Last30: [referenceDate-29, referenceDate]
-- 欠損日許容。予測なし。
-
-### Baseline（computeWave1 常に5キー返却）
-PAIN / SLEEP / SYMPTOM / EXPOSURE / MENSTRUAL → mean / stddev / min / max / sampleCount
-
 ---
 
 ## DATA ASSET COUNCIL 確定事項（IPPO-COUNCIL-003）
 
 ### 8層データ資産モデル
 ```
-Layer 0: Raw Input（保存しない）
-Layer 1: Record（永久保存 / SSOT / 再生成不可）
-Layer 2: NetworkSignal（Wave2でSupabase永久保存 / BD-022）
-Layer 3: Disease Entity（永久保存）
-Layer 4: Profile（Snapshot保存 / 再生成可能）
-Layer 5: Case（永久保存 / caseId不変）
-Layer 6: Intelligence Layer（再計算 + Snapshot）
-Layer 7: Network Layer（Wave2でEdge永久保存）
-Layer 8: Research Asset（匿名化 + バージョン管理）
+Layer 0:  Raw Input（保存しない）
+Layer 1:  Record（永久保存 / SSOT / 再生成不可）
+Layer 2:  NetworkSignal（Wave2でSupabase永久保存 / BD-022）
+Layer 3:  Disease Entity（永久保存）
+Layer 4:  Profile（Snapshot保存 / 再生成可能）
+Layer 5:  Case（永久保存 / caseId不変）
+Layer 6:  Intelligence Layer（再計算 + Snapshot）
+Layer 7:  Network Layer（Wave2でEdge永久保存）
+Layer 8:  Research Asset（匿名化 + バージョン管理）
+Layer 9:  Knowledge Graph（Wave2 / Append-Only）
+Layer 10: Feature Store / Embedding（Wave3）
+Layer 11: Disease Intelligence Model（Wave4）
+Layer 12: Disease Ontology（Wave5+）
 ```
 
 ### 永久保存対象（DELETE禁止）
-Record / Disease Entity / Case / Consent Event / Experiment / SimilarityEdge / Research Dataset
+Record / Disease Entity / Case / Consent Event / Experiment / SimilarityEdge / Research Dataset / Knowledge Graph Node・Edge
 
 ### 再計算可能（保存しない）
 MovingAverage計算結果 / TrendWindow / FeatureVector中間値 / SignalTimeline / UIセッション状態
 
-### PR-033〜040 設計インプット（DATA ASSET COUNCIL Section 14）
-| PR | 目的 |
-|---|---|
-| PR-033 | NetworkSignal Supabase永久保存（BD-022） |
-| PR-034 | Disease Cluster Foundation（BD-009 Wave2開始） |
-| PR-035 | Signal Snapshot Foundation（日次/週次） |
-| PR-036 | Similarity Intelligence Foundation（NetworkScore） |
-| PR-037 | Event Sourcing Foundation（ippo_events、BD-017） |
-| PR-038 | Emotion Signal Wave2実装（BD-024） |
-| PR-039 | MenstrualPhase Intelligence（BD-014） |
-| PR-040 | Research Dataset Foundation（BD-021） |
+---
+
+## Wave2 アーキテクチャ概要（IPPO-COUNCIL-007）
+
+### 3つの設計哲学
+```
+哲学 1: Record is the only origin（Recordのみが真実の源泉）
+哲学 2: Append-Only is trust structure（追記のみが信頼の構造）
+哲学 3: AI assists, diagnosis forbidden（AIは補助のみ、診断禁止）
+```
+
+### Wave2 主要追加コンポーネント
+```
+Supabase永続化層:
+  NetworkSignalRepository（Supabase）
+  DiseaseClusterRepository（Supabase）
+  KnowledgeGraphRepository（Supabase / Append-Only）
+
+AI Platform（ルールベース / LLMなし）:
+  SignalInsightService（パターン提示のみ）
+  PatternDiscoveryService
+  AISafetyValidator（必須ゲートキーパー / BD-039）
+
+Research Platform V2:
+  ResearchDatasetV2（k-anonymity k≥5 / BD-040）
+  DatasetVersionManager
+  IRBComplianceChecker
+
+FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
+  FeatureVectorBuilderV2
+  SimilarityEngineV2
+```
 
 ---
 
 ## Phase 6〜7 最重要制約（全PRで共通）
 
 - app-legacy.js への新規ロジック追加: **禁止**
-- DB Migration / Schema変更: **禁止**（PR-033まで）
+- DB Migration / Schema変更: **禁止**（PR-033まで / Wave2は別設計）
 - feature→feature 依存: **禁止**
 - localStorage 直叩き（Adapter外）: **禁止**
 - UI → ApiGateway → Application → Repository: **この経路のみ許可**
@@ -477,11 +577,13 @@ MovingAverage計算結果 / TrendWindow / FeatureVector中間値 / SignalTimelin
 - NetworkSignal系サービスへのUI直アクセス: **禁止**（ArchGuard PR-030〜032）
 - Signal Intelligence系サービスへのUI直アクセス: **禁止**（ArchGuard PR-031）
 - Longitudinal系サービスへのUI直アクセス: **禁止**（ArchGuard PR-032）
-- Similarity結果のUI公開: **Wave1期間中禁止**
-- Disease診断AI / Recommendation / Network Search / 推論: **Wave1禁止**（BD-004）
+- Similarity結果のUI公開: **Phase 3達成前禁止**（BD-026）
+- Disease診断AI / Recommendation / 診断示唆: **永久禁止**（BD-031）
 - Lunar CalendarのUI実装: **禁止**（BD-003）
 - Emotion Signalの生成: **Wave2まで禁止**（BD-024）
-- Research Dataset公開: **Founder承認なし禁止**（BD-021）
+- Research Dataset公開: **Founder承認 + IRB証明なし禁止**（BD-021 / BD-046）
+- AI出力の免責文言なし公開: **絶対禁止**（BD-044）
+- SaMD確認なしのSignal Insight公開: **禁止**（BD-051）
 
 ---
 
@@ -489,19 +591,19 @@ MovingAverage計算結果 / TrendWindow / FeatureVector中間値 / SignalTimelin
 
 - フロントエンド: Vanilla JS + Vite（React/Vue/Svelteなし）
 - バックエンド: Supabase（PostgreSQL + Edge Functions）
-- 決済: Stripe（¥580/月、¥4,800/年）
+- 決済: Stripe（¥980/月、¥7,800/年 / ¥1,980/月、¥15,800/年）← BUSINESS_STRATEGY更新値
 - テスト: Vitest（**3,272件 全パス** / 191ファイル）
 - 言語: JavaScript（TypeScript移行中）
 
 ---
 
-## SimilarityEngine仕様（PR-019確定）
+## SimilarityEngine仕様（PR-019確定 / Wave2でV2に拡張予定）
 
-- FeatureVector次元数: 8（VECTOR_VERSION='1'）
+- FeatureVector次元数: 8（VECTOR_VERSION='1'）→ Wave2で12（VECTOR_VERSION='2'）
 - 類似度計算: Cosine Similarity [0.0, 1.0]
 - Edge生成条件: score ≥ 0.5 かつ同一diseaseKey
 - Consent要件: consentLevel ≥ 2
-- **Wave1: Similarity非公開**（Tier3 Case数 < 50）
+- **Phase 3達成前: Similarity UI非公開**（BD-026）
 
 ---
 
