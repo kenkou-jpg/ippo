@@ -13,7 +13,7 @@ describe('RouteRegistry — PR-038 Emotion', () => {
     expect(makeRegistry().knownFeatures).toContain('Emotion');
   });
   it('total knownFeatures is 26', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(26);
+    expect(makeRegistry().knownFeatures).toHaveLength(27);
   });
   it('isRegistered returns true after register', () => {
     const r = makeRegistry();

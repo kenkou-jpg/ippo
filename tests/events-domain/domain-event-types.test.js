@@ -9,8 +9,8 @@ import {
 describe('DOMAIN_EVENT_TYPES', () => {
   it('is frozen', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPES)).toBe(true));
 
-  it('has exactly 13 event types', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(13);
+  it('has exactly 14 event types', () => {
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(14);
   });
 
   it('contains all required event types', () => {
@@ -20,7 +20,7 @@ describe('DOMAIN_EVENT_TYPES', () => {
       'DISEASE_CREATED', 'DISEASE_UPDATED', 'DISEASE_SNAPSHOT_CREATED',
       'FEATURE_VECTOR_CREATED', 'SIMILARITY_CALCULATED',
       'CONSENT_UPDATED', 'EXPERIMENT_CREATED',
-      'EMOTION_CREATED',
+      'EMOTION_CREATED', 'MENSTRUAL_RECORDED',
     ];
     for (const t of required) {
       expect(DOMAIN_EVENT_TYPES).toHaveProperty(t);
@@ -36,7 +36,7 @@ describe('DOMAIN_EVENT_TYPES', () => {
 
 describe('DOMAIN_EVENT_TYPE_SET', () => {
   it('is a frozen Set', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPE_SET)).toBe(true));
-  it('has 13 entries', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(13));
+  it('has 14 entries', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(14));
   it('contains SIGNAL_CREATED', () => expect(DOMAIN_EVENT_TYPE_SET.has('SIGNAL_CREATED')).toBe(true));
   it('does not contain unknown type', () => expect(DOMAIN_EVENT_TYPE_SET.has('UNKNOWN_EVENT')).toBe(false));
 });
