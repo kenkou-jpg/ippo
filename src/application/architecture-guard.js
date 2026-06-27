@@ -131,6 +131,17 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /disease-signal-mapper/,        label: 'feature→DiseaseSignalMapper'       },
   { from: /\/screens\//,   to: /cluster-similarity-adapter/,   label: 'screen→ClusterSimilarityAdapter'   },
   { from: /\/features\//,  to: /cluster-similarity-adapter/,   label: 'feature→ClusterSimilarityAdapter'  },
+  // PR-037 — UI must not reach Event Sourcing internals directly;
+  //           access via ApiGateway → publishEvent / getEvents / getEventsByType /
+  //           getEventsByAggregate / replayEvents / getAuditTimeline
+  { from: /\/screens\//,   to: /event-store/,             label: 'screen→EventStore'             },
+  { from: /\/features\//,  to: /event-store/,             label: 'feature→EventStore'            },
+  { from: /\/screens\//,   to: /event-bus/,               label: 'screen→EventBus'               },
+  { from: /\/features\//,  to: /event-bus/,               label: 'feature→EventBus'              },
+  { from: /\/screens\//,   to: /event-replay-service/,    label: 'screen→EventReplayService'     },
+  { from: /\/features\//,  to: /event-replay-service/,    label: 'feature→EventReplayService'    },
+  { from: /\/screens\//,   to: /audit-timeline-service/,  label: 'screen→AuditTimelineService'   },
+  { from: /\/features\//,  to: /audit-timeline-service/,  label: 'feature→AuditTimelineService'  },
   // PR-036 — UI must not reach Signal Similarity / FeatureVector internals directly;
   //           access via ApiGateway → buildFeatureVector / getFeatureVectors /
   //           calculateSimilarity / compareUsers / findTopMatches / getSimilaritySummary

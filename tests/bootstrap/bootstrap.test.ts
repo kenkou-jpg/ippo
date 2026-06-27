@@ -108,7 +108,8 @@ describe('RouteRegistry', () => {
     expect(known).toContain('DiseaseCluster');
     expect(known).toContain('SignalSnapshot');
     expect(known).toContain('SimilarityIntelligence');
-    expect(known).toHaveLength(24); // PR-036: added 'SimilarityIntelligence'
+    expect(known).toContain('EventSourcing');
+    expect(known).toHaveLength(25); // PR-037: added 'EventSourcing'
   });
 });
 

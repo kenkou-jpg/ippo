@@ -25,6 +25,7 @@ const KNOWN_FEATURES = new Set([
   'DiseaseCluster',       // PR-034: Disease Cluster Foundation
   'SignalSnapshot',           // PR-035: Snapshot Foundation
   'SimilarityIntelligence',  // PR-036: Similarity Intelligence Foundation
+  'EventSourcing',           // PR-037: Event Sourcing Foundation
 ]);
 
 export class RouteRegistry {

@@ -76,6 +76,10 @@ export class ApiGateway {
   #diseaseSnapshotService;
   // PR-036
   #signalSimilarityService;
+  // PR-037
+  #eventPublisher;
+  #eventReplayService;
+  #auditTimelineService;
 
   constructor({
     permissionService,
@@ -146,6 +150,10 @@ export class ApiGateway {
     diseaseSnapshotService      = null,
     // PR-036
     signalSimilarityService     = null,
+    // PR-037
+    eventPublisher       = null,
+    eventReplayService   = null,
+    auditTimelineService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -205,6 +213,10 @@ export class ApiGateway {
     this.#diseaseSnapshotService       = diseaseSnapshotService;
     // PR-036
     this.#signalSimilarityService      = signalSimilarityService;
+    // PR-037
+    this.#eventPublisher       = eventPublisher;
+    this.#eventReplayService   = eventReplayService;
+    this.#auditTimelineService = auditTimelineService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -889,6 +901,81 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#diseaseSnapshotService) throw new Error('[ApiGateway] DiseaseSnapshotService not wired');
     return this.#diseaseSnapshotService.getDiseaseSnapshots();
+  }
+
+  // ── Event Sourcing API (PR-037) ───────────────────────────────────────────────
+  // BD-015: Replay guarantees Record → Signal → Layer deterministic reconstruction.
+  // BD-018: occurredAt on every event. BD-019: audit trail. BD-021: no deletion.
+  // Note: publishEvent / getEvents / getEventsByType / getEventsByAggregate → record:read
+  //       replayEvents / getAuditTimeline → admin:dashboard (admin-only)
+
+  /**
+   * Publish a DomainEvent. Auth required (record:read).
+   * @param {Readonly<object>} event  — pre-built DomainEvent entity
+   * @returns {Promise<Readonly<object>>}
+   */
+  async publishEvent(event) {
+    await this.#permissionService.require('record:read');
+    if (!this.#eventPublisher) throw new Error('[ApiGateway] EventPublisher not wired');
+    this.#eventPublisher.publish(event);
+    return event;
+  }
+
+  /**
+   * Return all stored DomainEvents. Auth required (record:read).
+   * @param {{ from?: string, to?: string }} [options]
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getEvents(options = {}) {
+    await this.#permissionService.require('record:read');
+    if (!this.#eventPublisher) throw new Error('[ApiGateway] EventPublisher not wired');
+    return this.#eventPublisher.store.getEvents(options);
+  }
+
+  /**
+   * Return events filtered by type. Auth required (record:read).
+   * @param {string} eventType
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getEventsByType(eventType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#eventPublisher) throw new Error('[ApiGateway] EventPublisher not wired');
+    return this.#eventPublisher.store.getByType(eventType);
+  }
+
+  /**
+   * Return events for an aggregate. Auth required (record:read).
+   * @param {string} aggregateId
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getEventsByAggregate(aggregateId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#eventPublisher) throw new Error('[ApiGateway] EventPublisher not wired');
+    return this.#eventPublisher.store.getByAggregate(aggregateId);
+  }
+
+  /**
+   * Replay events and rebuild state. Auth required (admin:dashboard).
+   * @param {{ from?: string, to?: string }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async replayEvents(options = {}) {
+    const ctx = await this.#permissionService.require('admin:dashboard');
+    if (!ctx.isAdmin) throw new Error('[ApiGateway] replayEvents requires admin');
+    if (!this.#eventReplayService) throw new Error('[ApiGateway] EventReplayService not wired');
+    return this.#eventReplayService.replay(options);
+  }
+
+  /**
+   * Return audit timeline across all event categories. Auth required (admin:dashboard).
+   * @param {{ from?: string, to?: string, limit?: number }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getAuditTimeline(options = {}) {
+    const ctx = await this.#permissionService.require('admin:dashboard');
+    if (!ctx.isAdmin) throw new Error('[ApiGateway] getAuditTimeline requires admin');
+    if (!this.#auditTimelineService) throw new Error('[ApiGateway] AuditTimelineService not wired');
+    return this.#auditTimelineService.getAuditTimeline(options);
   }
 
   // ── Similarity Intelligence API (PR-036) ─────────────────────────────────────

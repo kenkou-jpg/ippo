@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-036 SimilarityIntelligence', () => {
   it('SimilarityIntelligence appears in knownFeatures (total: 24)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('SimilarityIntelligence');
-    expect(r.knownFeatures).toHaveLength(24);
+    expect(r.knownFeatures).toHaveLength(25);
   });
 
   it('descriptor is frozen', () => {

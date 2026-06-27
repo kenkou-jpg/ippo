@@ -110,6 +110,13 @@ import { DiseaseClusterRepository }   from '../domains/disease/disease-cluster-r
 import { DiseaseClusterService }      from '../domains/disease/disease-cluster-service.js';
 import { DiseaseSignalMapper }        from '../domains/disease/disease-signal-mapper.js';
 import { ClusterSimilarityAdapter }   from '../domains/disease/cluster-similarity-adapter.js';
+// PR-037
+import { EventStore }              from '../domains/events/event-store.js';
+import { EventBus }                from '../domains/events/event-bus.js';
+import { EventPublisher }          from '../domains/events/event-publisher.js';
+import { EventReplayService }      from '../domains/events/event-replay-service.js';
+import { AuditTimelineService }    from '../domains/events/audit-timeline-service.js';
+import { ResearchEventAdapter }    from '../domains/events/research-event-adapter.js';
 // PR-036
 import { FeatureVectorRepository }        from '../domains/similarity/feature-vector-repository.js';
 import { FeatureVectorService }           from '../domains/similarity/feature-vector-service.js';
@@ -226,6 +233,13 @@ export const TOKENS = Object.freeze({
   PersistentNetworkSignalService: 'PersistentNetworkSignalService',
   SignalReconstructionService:    'SignalReconstructionService',
   SnapshotPolicy:                 'SnapshotPolicy',
+  // PR-037
+  EventStore:              'EventStore',
+  EventBus:                'EventBus',
+  EventPublisher:          'EventPublisher',
+  EventReplayService:      'EventReplayService',
+  AuditTimelineService:    'AuditTimelineService',
+  ResearchEventAdapter:    'ResearchEventAdapter',
   // PR-036
   FeatureVectorRepository:        'FeatureVectorRepository',
   FeatureVectorService:           'FeatureVectorService',
@@ -541,6 +555,22 @@ export class CompositionRoot {
 
     c.singleton(TOKENS.SignalReconstructionService, () => new SignalReconstructionService());
 
+    // ── Event Sourcing Domain (PR-037) ───────────────────────────────────
+    // BD-015: All events replayable. BD-018: occurredAt required.
+    // BD-019: Audit trail. BD-021: no deletion. BD-022: Wave1 in-memory.
+    c.singleton(TOKENS.EventStore,   () => new EventStore());
+    c.singleton(TOKENS.EventBus,     () => new EventBus());
+    c.singleton(TOKENS.EventPublisher, (container) =>
+      new EventPublisher({
+        store: container.resolve(TOKENS.EventStore),
+        bus:   container.resolve(TOKENS.EventBus),
+      }));
+    c.singleton(TOKENS.EventReplayService, (container) =>
+      new EventReplayService({ store: container.resolve(TOKENS.EventStore) }));
+    c.singleton(TOKENS.AuditTimelineService, (container) =>
+      new AuditTimelineService({ store: container.resolve(TOKENS.EventStore) }));
+    c.singleton(TOKENS.ResearchEventAdapter, () => new ResearchEventAdapter());
+
     // ── Similarity Intelligence Domain (PR-036) ──────────────────────────
     // BD-009: DiseaseCluster integration (Wave1 partial; Wave2 full cluster-aware vectors).
     // BD-010/BD-011: vectorVersion on every FeatureVector.
@@ -647,6 +677,10 @@ export class CompositionRoot {
       diseaseClusterService:    container.resolve(TOKENS.DiseaseClusterService),
       diseaseSignalMapper:      container.resolve(TOKENS.DiseaseSignalMapper),
       clusterSimilarityAdapter: container.resolve(TOKENS.ClusterSimilarityAdapter),
+      // PR-037
+      eventPublisher:       container.resolve(TOKENS.EventPublisher),
+      eventReplayService:   container.resolve(TOKENS.EventReplayService),
+      auditTimelineService: container.resolve(TOKENS.AuditTimelineService),
       // PR-036
       signalSimilarityService: container.resolve(TOKENS.SignalSimilarityService),
       // PR-035
@@ -682,5 +716,6 @@ export class CompositionRoot {
     r.register('DiseaseCluster',     { status: 'active', migratesIn: 'PR-034' }); // PR-034 ✓
     r.register('SignalSnapshot',          { status: 'active', migratesIn: 'PR-035' }); // PR-035 ✓
     r.register('SimilarityIntelligence', { status: 'active', migratesIn: 'PR-036' }); // PR-036 ✓
+    r.register('EventSourcing',          { status: 'active', migratesIn: 'PR-037' }); // PR-037 ✓
   }
 }
