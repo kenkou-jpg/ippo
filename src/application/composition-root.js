@@ -150,6 +150,8 @@ import { RepositoryProvider }               from '../infrastructure/repository-p
 import { NetworkSignalPersistenceService }  from '../domains/network/network-signal-persistence-service.js';
 import { NetworkSignalMemoryRepository }    from '../domains/network/network-signal-memory-repository.js';
 import { NetworkSignalRepositoryFactory }   from '../domains/network/repository-factory.js';
+// PR-042 — Wave2 Supabase Persistence Foundation
+import { SupabaseEventPersistenceRepository } from '../infrastructure/supabase-event-persistence-repository.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -271,6 +273,9 @@ export const TOKENS = Object.freeze({
   NetworkSignalMemoryRepository:       'NetworkSignalMemoryRepository',
   NetworkSignalRepositoryFactory:      'NetworkSignalRepositoryFactory',
   NetworkSignalPersistenceServiceV2:   'NetworkSignalPersistenceServiceV2',
+  // PR-042 — Wave2 Supabase Persistence Foundation
+  SupabaseClient:                      'SupabaseClient',
+  SupabaseEventPersistenceRepository:  'SupabaseEventPersistenceRepository',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -593,26 +598,37 @@ export class CompositionRoot {
 
     c.singleton(TOKENS.SignalReconstructionService, () => new SignalReconstructionService());
 
-    // ── Wave2 NetworkSignal Repository V2 (PR-041) ────────────────────────
-    // BD-022: Establishes the Repository Interface that Supabase will implement in PR-042.
+    // ── Wave2 NetworkSignal Repository V2 (PR-041) + Supabase (PR-042) ──────
+    // BD-022: NetworkSignalSupabaseRepository is the active backend (PR-042).
     // BD-015: PersistenceService publishes SIGNAL_CREATED events for Replay.
-    // AP-02: Append-Only enforced — no delete on NetworkSignalMemoryRepository.
+    // AP-02: Append-Only enforced — no delete/update methods exist.
     // Migration: initialize() loads Wave1 localStorage signals into the V2 repo.
+    // PR-042: SupabaseClient token wired via window.supabase (set by supabase.js at boot).
+    //         No direct import of supabase.js here to keep this module test-friendly.
     c.singleton(TOKENS.PersistenceConfig, () => PERSISTENCE_CONFIG);
     c.singleton(TOKENS.NetworkSignalRepositoryFactory, () => NetworkSignalRepositoryFactory);
-    c.singleton(TOKENS.NetworkSignalMemoryRepository,  () => NetworkSignalRepositoryFactory.create(
-      PERSISTENCE_CONFIG.networkSignal
-    ));
-    // RepositoryProvider is wired after EventPublisher is available (lazy singleton).
+    // Always memory — used by Wave1 code paths that bypass the V2 service.
+    c.singleton(TOKENS.NetworkSignalMemoryRepository, () =>
+      NetworkSignalRepositoryFactory.create({ backend: 'memory' }));
+    // SupabaseClient: use the window global set by supabase.js (avoids CDN import here).
+    c.singleton(TOKENS.SupabaseClient, () =>
+      (typeof window !== 'undefined' && window.supabase) ? window.supabase : null);
+    // RepositoryProvider: wired after EventPublisher is available (lazy singleton).
     c.singleton(TOKENS.RepositoryProvider, (container) =>
       new RepositoryProvider({
         config:          container.resolve(TOKENS.PersistenceConfig),
         migrationSource: container.resolve(TOKENS.NetworkSignalStorageRepository),
         eventPublisher:  container.resolve(TOKENS.EventPublisher),
+        supabaseClient:  container.resolve(TOKENS.SupabaseClient),
       }));
     c.singleton(TOKENS.NetworkSignalPersistenceServiceV2, (container) =>
       container.resolve(TOKENS.RepositoryProvider)
                .createAndInitializeNetworkSignalPersistenceService());
+    // SupabaseEventPersistenceRepository: ippo_events Append-Only Event Store (PR-042).
+    c.singleton(TOKENS.SupabaseEventPersistenceRepository, (container) =>
+      new SupabaseEventPersistenceRepository({
+        supabaseClient: container.resolve(TOKENS.SupabaseClient),
+      }));
 
     // ── Event Sourcing Domain (PR-037) ───────────────────────────────────
     // BD-015: All events replayable. BD-018: occurredAt required.

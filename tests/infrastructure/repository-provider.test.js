@@ -38,8 +38,15 @@ describe('RepositoryProvider.createNetworkSignalPersistenceService', () => {
     expect(s1).not.toBe(s2);
   });
 
-  it('returned service has repositoryType "memory" (Phase A-1 default)', () => {
+  it('returned service has repositoryType "supabase" (Phase A-2 active backend)', () => {
     const svc = makeProvider().createNetworkSignalPersistenceService();
+    expect(svc.repositoryType).toBe('supabase');
+  });
+
+  it('returned service has repositoryType "memory" when config overrides to memory', () => {
+    const memoryConfig = { networkSignal: { backend: 'memory' } };
+    const provider = new RepositoryProvider({ config: memoryConfig });
+    const svc = provider.createNetworkSignalPersistenceService();
     expect(svc.repositoryType).toBe('memory');
   });
 });

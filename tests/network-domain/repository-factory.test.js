@@ -1,10 +1,11 @@
 // tests/network-domain/repository-factory.test.js
 // NetworkSignalRepositoryFactory (PR-041)
 import { describe, it, expect } from 'vitest';
-import { NetworkSignalRepositoryFactory } from '../../src/domains/network/repository-factory.js';
-import { NetworkSignalMemoryRepository }  from '../../src/domains/network/network-signal-memory-repository.js';
-import { INetworkSignalRepository }       from '../../src/domains/network/network-signal-repository-interface.js';
-import { PERSISTENCE_BACKEND }            from '../../src/infrastructure/persistence-config.js';
+import { NetworkSignalRepositoryFactory }   from '../../src/domains/network/repository-factory.js';
+import { NetworkSignalMemoryRepository }    from '../../src/domains/network/network-signal-memory-repository.js';
+import { NetworkSignalSupabaseRepository }  from '../../src/domains/network/network-signal-supabase-repository.js';
+import { INetworkSignalRepository }         from '../../src/domains/network/network-signal-repository-interface.js';
+import { PERSISTENCE_BACKEND }              from '../../src/infrastructure/persistence-config.js';
 
 describe('NetworkSignalRepositoryFactory.create', () => {
   it('creates NetworkSignalMemoryRepository for backend "memory"', () => {
@@ -27,10 +28,13 @@ describe('NetworkSignalRepositoryFactory.create', () => {
     expect(repo.repositoryType).toBe('memory');
   });
 
-  it('throws for backend "supabase" with clear PR-042 message', () => {
-    expect(() =>
-      NetworkSignalRepositoryFactory.create({ backend: PERSISTENCE_BACKEND.SUPABASE })
-    ).toThrow('PR-042');
+  it('creates NetworkSignalSupabaseRepository for backend "supabase" (PR-042)', () => {
+    const repo = NetworkSignalRepositoryFactory.create({
+      backend: PERSISTENCE_BACKEND.SUPABASE,
+      supabaseClient: null,
+    });
+    expect(repo).toBeInstanceOf(NetworkSignalSupabaseRepository);
+    expect(repo.repositoryType).toBe('supabase');
   });
 
   it('throws for unknown backend', () => {

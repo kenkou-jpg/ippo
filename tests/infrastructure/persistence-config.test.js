@@ -26,8 +26,8 @@ describe('PERSISTENCE_CONFIG', () => {
     expect(PERSISTENCE_CONFIG.networkSignal).toBeDefined();
   });
 
-  it('networkSignal.backend defaults to MEMORY for Wave2 Phase A-1', () => {
-    expect(PERSISTENCE_CONFIG.networkSignal.backend).toBe(PERSISTENCE_BACKEND.MEMORY);
+  it('networkSignal.backend is SUPABASE for Wave2 Phase A-2 (PR-042)', () => {
+    expect(PERSISTENCE_CONFIG.networkSignal.backend).toBe(PERSISTENCE_BACKEND.SUPABASE);
   });
 
   it('networkSignal.migrateFromStorage is true', () => {

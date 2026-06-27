@@ -3,6 +3,7 @@
 // BD-034: Coordinates factory + persistence service + optional migration source.
 // AP-05: Dependency direction — infrastructure → domain only.
 // PR-041: NetworkSignal Persistence Migration (Wave2 Phase A-1)
+// PR-042: supabaseClient added — passed through to Factory for Supabase backend.
 
 import { NetworkSignalRepositoryFactory }  from '../domains/network/repository-factory.js';
 import { NetworkSignalPersistenceService } from '../domains/network/network-signal-persistence-service.js';
@@ -11,21 +12,24 @@ export class RepositoryProvider {
   #config;
   #migrationSource;
   #eventPublisher;
+  #supabaseClient;
 
   /**
    * @param {{
    *   config:           import('./persistence-config.js').typeof PERSISTENCE_CONFIG,
    *   migrationSource?: { findAll(): object[] } | null,
    *   eventPublisher?:  import('../domains/events/event-publisher.js').EventPublisher | null,
+   *   supabaseClient?:  object | null,
    * }} deps
    */
-  constructor({ config, migrationSource = null, eventPublisher = null }) {
+  constructor({ config, migrationSource = null, eventPublisher = null, supabaseClient = null }) {
     if (!config?.networkSignal) {
       throw new Error('[RepositoryProvider] config.networkSignal is required');
     }
     this.#config          = config;
     this.#migrationSource = migrationSource ?? null;
     this.#eventPublisher  = eventPublisher  ?? null;
+    this.#supabaseClient  = supabaseClient  ?? null;
   }
 
   /**
@@ -35,9 +39,10 @@ export class RepositoryProvider {
    * @returns {import('../domains/network/network-signal-persistence-service.js').NetworkSignalPersistenceService}
    */
   createNetworkSignalPersistenceService() {
-    const repository = NetworkSignalRepositoryFactory.create(
-      this.#config.networkSignal
-    );
+    const repository = NetworkSignalRepositoryFactory.create({
+      ...this.#config.networkSignal,
+      supabaseClient: this.#supabaseClient,
+    });
     return new NetworkSignalPersistenceService({
       repository,
       eventPublisher: this.#eventPublisher,
