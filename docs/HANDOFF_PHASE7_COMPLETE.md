@@ -106,12 +106,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  29（NetworkSignalV2含む）
+Features (RouteRegistry):  31（MenstrualPhaseResolution含む）
 ApiGateway methods:        73（getSignalPersistenceStatusV2 / persistSignalV2含む）
-Domain Event Types:        14
-DI TOKENS:                 292+（PR-041〜042追加分含む）
-Tests (全パス):            3,584件 / 223ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   72+（PR-041: 14件 / PR-042: 8件追加）
+Domain Event Types:        17（MENSTRUAL_PHASE_RESOLVED含む / PR-044）
+DI TOKENS:                 293+（PR-044: MenstrualPhaseResolverService追加）
+Tests (全パス):            3,752件 / 234ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   74+（PR-044: 2件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -181,9 +181,9 @@ Wave2 (PR-041〜075) — Phase A実装中
   Phase A (PR-041〜045): Supabase Migration Foundation
     ✓ PR-041  NetworkSignal Repository V2 — Interface / Adapter / Factory / PersistenceService / Migration / DI
     ✓ PR-042  Supabase Persistence Foundation — NetworkSignalSupabaseRepository / SupabaseEventPersistenceRepository / backend切替
-    ○ PR-043  Emotion Signal Generation
-    ○ PR-044  MenstrualPhase Auto-Resolution
-    ○ PR-045  Disease Entity V2 Upgrade
+    ✓ PR-043  Emotion Signal Generation
+    ✓ PR-044  MenstrualPhase Auto-Resolution — MenstrualPhaseResolverService / MENSTRUAL_PHASE_RESOLVED / saveRecord統合
+    ✓ PR-045  Disease Entity V2 Upgrade — DiseaseEntityUpgradeService / CONFIRMED_BY / diseaseKey / DISEASE_ENTITY_UPGRADED
   Phase B (PR-046〜050): Disease Entity V2 + Cluster Statistics
   Phase C (PR-051〜056): Knowledge Graph Foundation
   Phase D (PR-057〜062): AI Platform + Signal Insight
@@ -193,7 +193,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: 空白（未定）
+Next PR: PR-046（Disease Cluster Statistics）— Phase A完了 → Phase B開始
 ```
 
 ---
