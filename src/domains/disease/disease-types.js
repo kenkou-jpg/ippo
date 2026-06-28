@@ -44,7 +44,19 @@ export const DISEASE_CONFIDENCE = Object.freeze({
   UNKNOWN:             'UNKNOWN',
 });
 
+/**
+ * Who confirmed the diagnosis — PR-045: DiseaseEntity V2 Upgrade.
+ * SELF: user self-reported. PHYSICIAN: formally confirmed by a physician.
+ * @readonly
+ */
+export const CONFIRMED_BY = Object.freeze({
+  SELF:      'SELF',
+  PHYSICIAN: 'PHYSICIAN',
+  UNKNOWN:   'UNKNOWN',
+});
+
 /** Convenience sets for O(1) membership checks. */
 export const DISEASE_CATEGORY_VALUES   = Object.freeze(new Set(Object.values(DISEASE_CATEGORIES)));
 export const DISEASE_SEVERITY_VALUES   = Object.freeze(new Set(Object.values(DISEASE_SEVERITY)));
 export const DISEASE_CONFIDENCE_VALUES = Object.freeze(new Set(Object.values(DISEASE_CONFIDENCE)));
+export const CONFIRMED_BY_VALUES       = Object.freeze(new Set(Object.values(CONFIRMED_BY)));

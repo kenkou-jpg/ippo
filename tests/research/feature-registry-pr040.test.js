@@ -12,7 +12,7 @@ describe('RouteRegistry — PR-040 ResearchDataset', () => {
 
   it('KNOWN_FEATURES has 28 entries', () => {
     const r = new RouteRegistry();
-    expect(r.knownFeatures).toHaveLength(30);
+    expect(r.knownFeatures).toHaveLength(32);
   });
 
   it('KNOWN_FEATURES includes ResearchDataset', () => {

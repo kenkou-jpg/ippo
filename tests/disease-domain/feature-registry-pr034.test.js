@@ -17,10 +17,10 @@ describe('RouteRegistry — PR-034 DiseaseCluster', () => {
     expect(r.isRegistered('DiseaseCluster')).toBe(true);
   });
 
-  it('DiseaseCluster appears in knownFeatures (total: 22)', () => {
+  it('DiseaseCluster appears in knownFeatures (total: 32 at PR-045)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('DiseaseCluster');
-    expect(r.knownFeatures).toHaveLength(30);
+    expect(r.knownFeatures).toHaveLength(32);
   });
 
   it('descriptor is frozen', () => {

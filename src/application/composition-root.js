@@ -156,6 +156,8 @@ import { SupabaseEventPersistenceRepository } from '../infrastructure/supabase-e
 import { EmotionSignalGenerator } from '../domains/network/emotion-signal-generator.js';
 // PR-044 — MenstrualPhase Auto-Resolution
 import { MenstrualPhaseResolverService } from '../domains/menstrual/menstrual-phase-resolver.js';
+// PR-045 — Disease Entity V2 Upgrade
+import { DiseaseEntityUpgradeService } from '../domains/disease/disease-entity-upgrade-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -284,6 +286,8 @@ export const TOKENS = Object.freeze({
   EmotionSignalGenerator:              'EmotionSignalGenerator',
   // PR-044 — MenstrualPhase Auto-Resolution
   MenstrualPhaseResolverService:       'MenstrualPhaseResolverService',
+  // PR-045 — Disease Entity V2 Upgrade
+  DiseaseEntityUpgradeService:         'DiseaseEntityUpgradeService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -638,6 +642,14 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Disease Entity Upgrade Service (PR-045) — Wave2 Phase A-5 ───────
+    // BD-004: Disease Entity Wave2昇格. BD-032: Append-Only.
+    // BD-035: diseaseKey backward compat for Case / SimilarityEdge.
+    c.singleton(TOKENS.DiseaseEntityUpgradeService, (container) =>
+      new DiseaseEntityUpgradeService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── MenstrualPhase Resolver (PR-044) — Wave2 Phase A-4 ──────────────
     // BD-014: MenstrualPhase auto-resolution is Wave2 scope (now active).
     // Pure deterministic service — no repository dependency, no AI/LLM (BD-031/BD-038).
@@ -844,6 +856,8 @@ export class CompositionRoot {
       emotionSignalGenerator: container.resolve(TOKENS.EmotionSignalGenerator),
       // PR-044
       menstrualPhaseResolver: container.resolve(TOKENS.MenstrualPhaseResolverService),
+      // PR-045
+      diseaseEntityUpgradeService: container.resolve(TOKENS.DiseaseEntityUpgradeService),
     }));
 
     this._registerFeatures();
@@ -880,5 +894,6 @@ export class CompositionRoot {
     r.register('NetworkSignalV2',       { status: 'active', migratesIn: 'PR-041' }); // PR-041 ✓
     r.register('EmotionSignal',         { status: 'active', migratesIn: 'PR-043' }); // PR-043 ✓
     r.register('MenstrualPhaseResolution', { status: 'active', migratesIn: 'PR-044' }); // PR-044 ✓
+    r.register('DiseaseEntityV2',          { status: 'active', migratesIn: 'PR-045' }); // PR-045 ✓
   }
 }

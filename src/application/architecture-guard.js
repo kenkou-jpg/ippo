@@ -235,6 +235,10 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /emotion-signal-generator/,             label: 'feature→EmotionSignalGenerator'          },
   { from: /\/screens\//,   to: /emotion-rules/,                        label: 'screen→EmotionRules'                     },
   { from: /\/features\//,  to: /emotion-rules/,                        label: 'feature→EmotionRules'                    },
+  // PR-045 — UI must not reach DiseaseEntityUpgradeService directly;
+  //           access via ApiGateway → upgradeDiseaseEntity().
+  { from: /\/screens\//,   to: /disease-entity-upgrade-service/, label: 'screen→DiseaseEntityUpgradeService' },
+  { from: /\/features\//,  to: /disease-entity-upgrade-service/, label: 'feature→DiseaseEntityUpgradeService' },
   // PR-044 — UI must not reach MenstrualPhaseResolverService directly;
   //           access via ApiGateway → saveRecord (auto-resolved at write time).
   { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },

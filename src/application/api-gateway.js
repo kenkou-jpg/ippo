@@ -94,6 +94,8 @@ export class ApiGateway {
   #emotionSignalGenerator;
   // PR-044
   #menstrualPhaseResolver;
+  // PR-045
+  #diseaseEntityUpgradeService;
 
   constructor({
     permissionService,
@@ -182,6 +184,8 @@ export class ApiGateway {
     emotionSignalGenerator = null,
     // PR-044
     menstrualPhaseResolver = null,
+    // PR-045
+    diseaseEntityUpgradeService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -259,6 +263,8 @@ export class ApiGateway {
     this.#emotionSignalGenerator = emotionSignalGenerator;
     // PR-044
     this.#menstrualPhaseResolver = menstrualPhaseResolver;
+    // PR-045
+    this.#diseaseEntityUpgradeService = diseaseEntityUpgradeService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -706,6 +712,30 @@ export class ApiGateway {
     await this.#permissionService.require('record:read');
     if (!this.#diseaseService) throw new Error('[ApiGateway] DiseaseService not wired');
     return this.#diseaseService.findResolved();
+  }
+
+  // ── Disease Entity V2 Upgrade (PR-045) ───────────────────────────────────
+  // BD-004: Disease Entity昇格 (Wave2). BD-035: diseaseKey backward compat.
+  // BD-032: Append-Only — upgrade returns a NEW entity; existing entries unchanged.
+
+  /**
+   * Upgrade a DiseaseEntry to full V2 structure (icdCode / confirmedBy / relatedSymptoms).
+   * Returns the upgraded entity. Does NOT persist — caller must re-register if needed.
+   * Publishes DISEASE_ENTITY_UPGRADED DomainEvent.
+   *
+   * @param {object} entry          Existing DiseaseEntry
+   * @param {{
+   *   icdCode?:         string|null,
+   *   confirmedBy?:     string,
+   *   relatedSymptoms?: string[],
+   * }} upgradeParams
+   * @returns {Promise<Readonly<object>>}
+   */
+  async upgradeDiseaseEntity(entry, upgradeParams = {}) {
+    await this.#permissionService.require('record:write');
+    if (!this.#diseaseEntityUpgradeService)
+      throw new Error('[ApiGateway] DiseaseEntityUpgradeService not wired');
+    return this.#diseaseEntityUpgradeService.upgrade(entry, upgradeParams);
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

@@ -38,6 +38,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   EMOTION_SIGNAL_GENERATED:       'EMOTION_SIGNAL_GENERATED',
   // Wave2 MenstrualPhase Auto-Resolution (PR-044 / BD-014)
   MENSTRUAL_PHASE_RESOLVED:       'MENSTRUAL_PHASE_RESOLVED',
+  // Wave2 Disease Entity V2 Upgrade (PR-045 / BD-004)
+  DISEASE_ENTITY_UPGRADED:        'DISEASE_ENTITY_UPGRADED',
 });
 
 /** Set of all valid event type strings for fast validation. */
