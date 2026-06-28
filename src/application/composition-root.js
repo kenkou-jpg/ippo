@@ -154,6 +154,8 @@ import { NetworkSignalRepositoryFactory }   from '../domains/network/repository-
 import { SupabaseEventPersistenceRepository } from '../infrastructure/supabase-event-persistence-repository.js';
 // PR-043 — Emotion Signal Generation Foundation
 import { EmotionSignalGenerator } from '../domains/network/emotion-signal-generator.js';
+// PR-044 — MenstrualPhase Auto-Resolution
+import { MenstrualPhaseResolverService } from '../domains/menstrual/menstrual-phase-resolver.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -280,6 +282,8 @@ export const TOKENS = Object.freeze({
   SupabaseEventPersistenceRepository:  'SupabaseEventPersistenceRepository',
   // PR-043 — Emotion Signal Generation Foundation
   EmotionSignalGenerator:              'EmotionSignalGenerator',
+  // PR-044 — MenstrualPhase Auto-Resolution
+  MenstrualPhaseResolverService:       'MenstrualPhaseResolverService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -634,6 +638,12 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── MenstrualPhase Resolver (PR-044) — Wave2 Phase A-4 ──────────────
+    // BD-014: MenstrualPhase auto-resolution is Wave2 scope (now active).
+    // Pure deterministic service — no repository dependency, no AI/LLM (BD-031/BD-038).
+    c.singleton(TOKENS.MenstrualPhaseResolverService,
+      () => new MenstrualPhaseResolverService());
+
     // ── Emotion Signal Generator (PR-043) — Wave2 Phase A-3 ──────────────
     // BD-024: Emotion Signal auto-generation is now active (Wave2).
     // BD-031: Rule-based only — no AI, no LLM, no diagnosis.
@@ -832,6 +842,8 @@ export class CompositionRoot {
       networkSignalPersistenceServiceV2: container.resolve(TOKENS.NetworkSignalPersistenceServiceV2),
       // PR-043
       emotionSignalGenerator: container.resolve(TOKENS.EmotionSignalGenerator),
+      // PR-044
+      menstrualPhaseResolver: container.resolve(TOKENS.MenstrualPhaseResolverService),
     }));
 
     this._registerFeatures();
@@ -867,5 +879,6 @@ export class CompositionRoot {
     r.register('ResearchDataset',       { status: 'active', migratesIn: 'PR-040' }); // PR-040 ✓
     r.register('NetworkSignalV2',       { status: 'active', migratesIn: 'PR-041' }); // PR-041 ✓
     r.register('EmotionSignal',         { status: 'active', migratesIn: 'PR-043' }); // PR-043 ✓
+    r.register('MenstrualPhaseResolution', { status: 'active', migratesIn: 'PR-044' }); // PR-044 ✓
   }
 }

@@ -235,6 +235,10 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /emotion-signal-generator/,             label: 'feature→EmotionSignalGenerator'          },
   { from: /\/screens\//,   to: /emotion-rules/,                        label: 'screen→EmotionRules'                     },
   { from: /\/features\//,  to: /emotion-rules/,                        label: 'feature→EmotionRules'                    },
+  // PR-044 — UI must not reach MenstrualPhaseResolverService directly;
+  //           access via ApiGateway → saveRecord (auto-resolved at write time).
+  { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },
+  { from: /\/features\//,  to: /menstrual-phase-resolver/,             label: 'feature→MenstrualPhaseResolver'          },
 ];
 
 export function runArchitectureGuard() {

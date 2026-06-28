@@ -92,6 +92,8 @@ export class ApiGateway {
   #networkSignalPersistenceServiceV2;
   // PR-043
   #emotionSignalGenerator;
+  // PR-044
+  #menstrualPhaseResolver;
 
   constructor({
     permissionService,
@@ -178,6 +180,8 @@ export class ApiGateway {
     networkSignalPersistenceServiceV2 = null,
     // PR-043
     emotionSignalGenerator = null,
+    // PR-044
+    menstrualPhaseResolver = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -253,6 +257,8 @@ export class ApiGateway {
     this.#networkSignalPersistenceServiceV2 = networkSignalPersistenceServiceV2;
     // PR-043
     this.#emotionSignalGenerator = emotionSignalGenerator;
+    // PR-044
+    this.#menstrualPhaseResolver = menstrualPhaseResolver;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -267,9 +273,44 @@ export class ApiGateway {
     // DiseaseTagValidator: WARNING only, non-blocking (Wave1 coverage measurement)
     this.#diseaseTagValidator?.validate(data);
     const record = await this.#recordCommandService.save(data);
+
+    // PR-044: resolve MenstrualPhase before Signal generation (BD-014).
+    // Pure deterministic rule — no AI/LLM/randomness (BD-031 / BD-038).
+    const savedRecord = record ?? data;
+    const resolvedPhase = this.#menstrualPhaseResolver
+      ? this.#menstrualPhaseResolver.resolveFromRecord(savedRecord)
+      : null;
+
     // PR-030: generate NetworkSignals from record data (Signal generation point only)
     // No Similarity, DiseaseCluster, Longitudinal, or FeatureVector triggered here.
-    this.#networkSignalService?.generateFromRecord(record ?? data);
+    this.#networkSignalService?.generateFromRecord(
+      savedRecord,
+      resolvedPhase ? { menstrualPhase: resolvedPhase } : {},
+    );
+
+    // PR-044: publish MENSTRUAL_PHASE_RESOLVED if phase was resolved and record has menstrualFlow.
+    if (resolvedPhase && savedRecord.menstrualFlow != null && this.#eventPublisher) {
+      try {
+        const { buildDomainEvent }      = await import('../domains/events/domain-event-entity.js');
+        const { DOMAIN_EVENT_TYPES, AGGREGATE_TYPES } = await import('../domains/events/domain-event-types.js');
+        const event = buildDomainEvent({
+          eventType:     DOMAIN_EVENT_TYPES.MENSTRUAL_PHASE_RESOLVED,
+          aggregateType: AGGREGATE_TYPES.SIGNAL,
+          aggregateId:   savedRecord.id ?? savedRecord.recordId ?? 'unknown',
+          payload:       Object.freeze({
+            recordId:    savedRecord.id ?? savedRecord.recordId ?? null,
+            cycleDay:    savedRecord.cycleDay ?? null,
+            cycleLength: savedRecord.cycleLength ?? null,
+            phase:       resolvedPhase,
+            resolvedAt:  new Date().toISOString(),
+          }),
+        });
+        this.#eventPublisher.publish(event);
+      } catch {
+        // Event publishing is best-effort; record save already succeeded.
+      }
+    }
+
     return record;
   }
 

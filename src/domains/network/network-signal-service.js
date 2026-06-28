@@ -126,7 +126,7 @@ export class NetworkSignalService {
    * @param {object} record  the saved record object (domain shape)
    * @returns {import('./network-signal-entity.js').NetworkSignal[]}  created signals
    */
-  generateFromRecord(record) {
+  generateFromRecord(record, { menstrualPhase } = {}) {
     if (!record || typeof record !== 'object') return [];
 
     const recordId  = record.id ?? record.recordId ?? null;
@@ -213,7 +213,7 @@ export class NetworkSignalService {
         metadata:        { flowLevel: rawValue, cycleDay: record.cycleDay ?? null, hasClots: record.hasClots ?? false },
         recordId,
         timestamp,
-        menstrualPhase:  MENSTRUAL_PHASES.UNKNOWN,
+        menstrualPhase:  menstrualPhase ?? MENSTRUAL_PHASES.UNKNOWN,
       })));
     }
 
