@@ -105,16 +105,17 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | **Disease Cluster Statistics** | disease-cluster-statistics-service / disease-cluster-snapshot-entity / DiseaseClusterStatisticsService(DI) | **PR-046完了** |
 | **FeatureVector V2 (12次元)** | feature-vector-v2-types / feature-vector-v2-entity / feature-vector-v2-repository(BD-042) / feature-vector-v2-builder / feature-vector-v2-service | **PR-047完了** |
 | **Longitudinal Edge Enricher** | longitudinal-edge-enricher / LongitudinalEdgeEnricher / computeCaseTrend / TREND_BONUS=0.05 / displayScore=rawScore+trendBonus | **PR-048完了** |
+| **Environmental Signal Collector** | environmental-signal-types(SSOT) / EnvironmentalSignalCollector / computeLunarAge / computeLunarPhase / EnvironmentalSignalSnapshotService / ENVIRONMENTAL_SIGNAL_RECORDED | **PR-049完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  35（DiseaseClusterStatistics / FeatureVectorV2 / LongitudinalEdgeEnricher含む）
-ApiGateway methods:        82（computeClusterProfile / buildFeatureVectorV2 / enrichSimilarityEdge等追加）
-Domain Event Types:        21（DISEASE_CLUSTER_COMPUTED / FEATURE_VECTOR_V2_CREATED / LONGITUDINAL_EDGE_ENRICHED含む）
-DI TOKENS:                 296+（PR-046〜048: 3サービス追加）
-Tests (全パス):            3,907件 / 238ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   80+（PR-046〜048: 各2件追加）
+Features (RouteRegistry):  36（DiseaseClusterStatistics / FeatureVectorV2 / LongitudinalEdgeEnricher / EnvironmentalSignal含む）
+ApiGateway methods:        87（collectEnvironmentalSignals / createEnvironmentalSignalSnapshot 等5メソッド追加）
+Domain Event Types:        22（DISEASE_CLUSTER_COMPUTED / FEATURE_VECTOR_V2_CREATED / LONGITUDINAL_EDGE_ENRICHED / ENVIRONMENTAL_SIGNAL_RECORDED含む）
+DI TOKENS:                 298+（PR-049: 2サービス追加）
+Tests (全パス):            3,961件 / 240ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   84+（PR-049: 4件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -191,6 +192,7 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-046  Disease Cluster Statistics — DiseaseClusterStatisticsService / computeClusterProfile / createClusterSnapshot / BD-028
     ✓ PR-047  FeatureVector V2 — 12次元 / VECTOR_VERSION='2' / FeatureVectorV2Builder / BD-042 V1/V2 混在ガード
     ✓ PR-048  Longitudinal Edge Enricher — LongitudinalEdgeEnricher / computeCaseTrend / displayScore=rawScore+trendBonus / BD-012
+    ✓ PR-049  Environmental Signal Collector — EnvironmentalSignalCollector / computeLunarPhase / EnvironmentalSignalSnapshotService / BD-043
   Phase C (PR-051〜056): Knowledge Graph Foundation
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
