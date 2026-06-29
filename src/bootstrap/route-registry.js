@@ -34,6 +34,7 @@ const KNOWN_FEATURES = new Set([
   'MenstrualPhaseResolution', // PR-044: MenstrualPhase Auto-Resolution (Wave2 Phase A-4)
   'DiseaseEntityV2',          // PR-045: Disease Entity V2 Upgrade (Wave2 Phase A-5)
   'DiseaseClusterStatistics', // PR-046: Disease Cluster Statistics (Wave2 Phase B-1)
+  'FeatureVectorV2',          // PR-047: FeatureVector V2 (Wave2 Phase B-2)
 ]);
 
 export class RouteRegistry {

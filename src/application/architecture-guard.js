@@ -243,6 +243,15 @@ const FORBIDDEN = [
   //           access via ApiGateway → saveRecord (auto-resolved at write time).
   { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },
   { from: /\/features\//,  to: /menstrual-phase-resolver/,             label: 'feature→MenstrualPhaseResolver'          },
+  // PR-047 — UI must not reach FeatureVector V2 internals directly;
+  //           access via ApiGateway → buildFeatureVectorV2 / getFeatureVectorsV2 / getLatestFeatureVectorV2.
+  //           BD-042: SimilarityEngine must never mix V1 and V2 vectors — guard at both layers.
+  { from: /\/screens\//,   to: /feature-vector-v2-builder/,    label: 'screen→FeatureVectorV2Builder'    },
+  { from: /\/features\//,  to: /feature-vector-v2-builder/,    label: 'feature→FeatureVectorV2Builder'   },
+  { from: /\/screens\//,   to: /feature-vector-v2-repository/, label: 'screen→FeatureVectorV2Repository' },
+  { from: /\/features\//,  to: /feature-vector-v2-repository/, label: 'feature→FeatureVectorV2Repository'},
+  { from: /\/screens\//,   to: /feature-vector-v2-service/,    label: 'screen→FeatureVectorV2Service'    },
+  { from: /\/features\//,  to: /feature-vector-v2-service/,    label: 'feature→FeatureVectorV2Service'   },
   // PR-046 — UI must not reach DiseaseClusterStatisticsService or DiseaseClusterSnapshot internals directly;
   //           access via ApiGateway → computeClusterProfile / createClusterSnapshot / getCaseRankInCluster.
   { from: /\/screens\//,   to: /disease-cluster-statistics-service/,   label: 'screen→DiseaseClusterStatisticsService'  },

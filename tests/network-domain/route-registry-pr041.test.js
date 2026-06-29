@@ -24,6 +24,6 @@ describe('RouteRegistry PR-041 — NetworkSignalV2 feature', () => {
   });
 
   it('total knownFeatures count is 29 after PR-041', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(33);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(34);
   });
 });

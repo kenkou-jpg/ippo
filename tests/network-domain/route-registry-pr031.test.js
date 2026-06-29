@@ -14,7 +14,7 @@ describe('RouteRegistry PR-031 — SignalIntelligence feature', () => {
   });
 
   it('total knownFeatures count is 20 (updated PR-032: +Longitudinal)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(33);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(34);
   });
 
   it('registered SignalIntelligence descriptor is frozen with correct metadata', () => {

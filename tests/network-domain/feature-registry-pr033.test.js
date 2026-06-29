@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-033 PersistentSignal', () => {
   it('PersistentSignal appears in knownFeatures (total count: 21)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('PersistentSignal');
-    expect(r.knownFeatures).toHaveLength(33);
+    expect(r.knownFeatures).toHaveLength(34);
   });
 
   it('registered descriptor is frozen', () => {

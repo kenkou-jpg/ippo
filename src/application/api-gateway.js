@@ -98,6 +98,8 @@ export class ApiGateway {
   #diseaseEntityUpgradeService;
   // PR-046
   #diseaseClusterStatisticsService;
+  // PR-047
+  #featureVectorV2Service;
 
   constructor({
     permissionService,
@@ -190,6 +192,8 @@ export class ApiGateway {
     diseaseEntityUpgradeService = null,
     // PR-046
     diseaseClusterStatisticsService = null,
+    // PR-047
+    featureVectorV2Service = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -271,6 +275,8 @@ export class ApiGateway {
     this.#diseaseEntityUpgradeService = diseaseEntityUpgradeService;
     // PR-046
     this.#diseaseClusterStatisticsService = diseaseClusterStatisticsService;
+    // PR-047
+    this.#featureVectorV2Service = featureVectorV2Service;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -792,6 +798,55 @@ export class ApiGateway {
     return this.#diseaseClusterStatisticsService.getCaseRankInCluster(
       caseId, clusterId, caseSignals, allClusterSignals,
     );
+  }
+
+  // ── FeatureVector V2 API (PR-047) ────────────────────────────────────────
+  // BD-010: vectorVersion='2'. BD-035: 12-dimensional.
+  // BD-042: V1 and V2 edges must NOT be mixed — V2Service rejects V1 vectors at repository level.
+
+  /**
+   * Build and persist a V2 FeatureVector (12-dim) from candidate + signals + longitudinal.
+   * BD-042: output vectorVersion='2' only — never mixed with V1.
+   *
+   * @param {{
+   *   userId:               string,
+   *   caseId?:              string,
+   *   diseaseKey?:          string,
+   *   candidate?:           object,   SimilarityCandidate
+   *   signals?:             object[], NetworkSignal[]
+   *   longitudinalSummary?: object,
+   *   metadata?:            object,
+   * }} params
+   */
+  async buildFeatureVectorV2(params) {
+    await this.#permissionService.require('record:write');
+    if (!this.#featureVectorV2Service)
+      throw new Error('[ApiGateway] FeatureVectorV2Service not wired');
+    return this.#featureVectorV2Service.buildAndSave(params);
+  }
+
+  /** Return all V2 FeatureVectors. */
+  async getFeatureVectorsV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#featureVectorV2Service)
+      throw new Error('[ApiGateway] FeatureVectorV2Service not wired');
+    return this.#featureVectorV2Service.getAll();
+  }
+
+  /** Return latest V2 FeatureVector for userId, or null. */
+  async getLatestFeatureVectorV2(userId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#featureVectorV2Service)
+      throw new Error('[ApiGateway] FeatureVectorV2Service not wired');
+    return this.#featureVectorV2Service.getLatestForUser(userId);
+  }
+
+  /** Return V2 statistics (dimension count, version, compliance flags). */
+  async getFeatureVectorV2Statistics() {
+    await this.#permissionService.require('record:read');
+    if (!this.#featureVectorV2Service)
+      throw new Error('[ApiGateway] FeatureVectorV2Service not wired');
+    return this.#featureVectorV2Service.getStatistics();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

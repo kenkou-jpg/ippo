@@ -42,6 +42,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   DISEASE_ENTITY_UPGRADED:        'DISEASE_ENTITY_UPGRADED',
   // Wave2 Disease Cluster Statistics (PR-046 / BD-009)
   DISEASE_CLUSTER_COMPUTED:       'DISEASE_CLUSTER_COMPUTED',
+  // Wave2 FeatureVector V2 (PR-047 / BD-010 / BD-035)
+  FEATURE_VECTOR_V2_CREATED:      'FEATURE_VECTOR_V2_CREATED',
 });
 
 /** Set of all valid event type strings for fast validation. */

@@ -160,6 +160,9 @@ import { MenstrualPhaseResolverService } from '../domains/menstrual/menstrual-ph
 import { DiseaseEntityUpgradeService } from '../domains/disease/disease-entity-upgrade-service.js';
 // PR-046 — Disease Cluster Statistics
 import { DiseaseClusterStatisticsService } from '../domains/disease/disease-cluster-statistics-service.js';
+// PR-047 — FeatureVector V2
+import { FeatureVectorV2Repository } from '../domains/similarity/feature-vector-v2-repository.js';
+import { FeatureVectorV2Service }    from '../domains/similarity/feature-vector-v2-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -292,6 +295,9 @@ export const TOKENS = Object.freeze({
   DiseaseEntityUpgradeService:         'DiseaseEntityUpgradeService',
   // PR-046 — Disease Cluster Statistics
   DiseaseClusterStatisticsService:     'DiseaseClusterStatisticsService',
+  // PR-047 — FeatureVector V2
+  FeatureVectorV2Repository:           'FeatureVectorV2Repository',
+  FeatureVectorV2Service:              'FeatureVectorV2Service',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -646,6 +652,17 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── FeatureVector V2 Service (PR-047) — Wave2 Phase B-2 ─────────────
+    // BD-010: VECTOR_VERSION='2'. BD-035: 12 dimensions.
+    // BD-042: V2Repository rejects V1 vectors — no cross-version mixing.
+    // BD-022: Wave1 in-memory only; Wave2 Supabase: feature_vectors_v2 table.
+    c.singleton(TOKENS.FeatureVectorV2Repository, () => new FeatureVectorV2Repository());
+    c.singleton(TOKENS.FeatureVectorV2Service, (container) =>
+      new FeatureVectorV2Service({
+        repository:     container.resolve(TOKENS.FeatureVectorV2Repository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Disease Cluster Statistics Service (PR-046) — Wave2 Phase B-1 ──
     // BD-009: clusterId === diseaseKey. BD-028: caller enforces k>=5 before publishing.
     // BD-018: all snapshots have generatedAt. BD-032: Append-Only snapshots.
@@ -873,6 +890,8 @@ export class CompositionRoot {
       diseaseEntityUpgradeService: container.resolve(TOKENS.DiseaseEntityUpgradeService),
       // PR-046
       diseaseClusterStatisticsService: container.resolve(TOKENS.DiseaseClusterStatisticsService),
+      // PR-047
+      featureVectorV2Service: container.resolve(TOKENS.FeatureVectorV2Service),
     }));
 
     this._registerFeatures();
@@ -911,5 +930,6 @@ export class CompositionRoot {
     r.register('MenstrualPhaseResolution', { status: 'active', migratesIn: 'PR-044' }); // PR-044 ✓
     r.register('DiseaseEntityV2',          { status: 'active', migratesIn: 'PR-045' }); // PR-045 ✓
     r.register('DiseaseClusterStatistics', { status: 'active', migratesIn: 'PR-046' }); // PR-046 ✓
+    r.register('FeatureVectorV2',          { status: 'active', migratesIn: 'PR-047' }); // PR-047 ✓
   }
 }

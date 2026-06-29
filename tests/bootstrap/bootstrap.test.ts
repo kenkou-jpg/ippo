@@ -111,7 +111,7 @@ describe('RouteRegistry', () => {
     expect(known).toContain('EventSourcing');
     expect(known).toContain('Emotion');
     expect(known).toContain('MenstrualIntelligence');
-    expect(known).toHaveLength(33); // PR-045: added 'MenstrualPhaseResolution', 'DiseaseEntityV2'
+    expect(known).toHaveLength(34); // PR-045: added 'MenstrualPhaseResolution', 'DiseaseEntityV2'
   });
 });
 

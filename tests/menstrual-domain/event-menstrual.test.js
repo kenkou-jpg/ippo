@@ -43,11 +43,11 @@ describe('buildDomainEvent with MENSTRUAL_RECORDED', () => {
 });
 
 describe('DOMAIN_EVENT_TYPES count (PR-039/PR-044)', () => {
-  it('has exactly 19 event types (PR-046 adds DISEASE_CLUSTER_COMPUTED)', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(19);
+  it('has exactly 20 event types (PR-047 adds FEATURE_VECTOR_V2_CREATED)', () => {
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(20);
   });
-  it('DOMAIN_EVENT_TYPE_SET has 19 entries', async () => {
+  it('DOMAIN_EVENT_TYPE_SET has 20 entries', async () => {
     const { DOMAIN_EVENT_TYPE_SET } = await import('../../src/domains/events/domain-event-types.js');
-    expect(DOMAIN_EVENT_TYPE_SET.size).toBe(19);
+    expect(DOMAIN_EVENT_TYPE_SET.size).toBe(20);
   });
 });
