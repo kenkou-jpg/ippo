@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-035 SignalSnapshot', () => {
   it('SignalSnapshot appears in knownFeatures (total: 23)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('SignalSnapshot');
-    expect(r.knownFeatures).toHaveLength(34);
+    expect(r.knownFeatures).toHaveLength(35);
   });
 
   it('descriptor is frozen', () => {

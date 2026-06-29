@@ -9,8 +9,8 @@ import {
 describe('DOMAIN_EVENT_TYPES', () => {
   it('is frozen', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPES)).toBe(true));
 
-  it('has exactly 20 event types (PR-047 adds FEATURE_VECTOR_V2_CREATED)', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(20);
+  it('has exactly 21 event types (PR-048 adds LONGITUDINAL_EDGE_ENRICHED)', () => {
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(21);
   });
 
   it('contains all required event types', () => {
@@ -36,7 +36,7 @@ describe('DOMAIN_EVENT_TYPES', () => {
 
 describe('DOMAIN_EVENT_TYPE_SET', () => {
   it('is a frozen Set', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPE_SET)).toBe(true));
-  it('has 20 entries (PR-047 adds FEATURE_VECTOR_V2_CREATED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(20));
+  it('has 21 entries (PR-048 adds LONGITUDINAL_EDGE_ENRICHED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(21));
   it('contains SIGNAL_CREATED', () => expect(DOMAIN_EVENT_TYPE_SET.has('SIGNAL_CREATED')).toBe(true));
   it('does not contain unknown type', () => expect(DOMAIN_EVENT_TYPE_SET.has('UNKNOWN_EVENT')).toBe(false));
 });

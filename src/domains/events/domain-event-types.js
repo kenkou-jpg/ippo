@@ -44,6 +44,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   DISEASE_CLUSTER_COMPUTED:       'DISEASE_CLUSTER_COMPUTED',
   // Wave2 FeatureVector V2 (PR-047 / BD-010 / BD-035)
   FEATURE_VECTOR_V2_CREATED:      'FEATURE_VECTOR_V2_CREATED',
+  // Wave2 Longitudinal Edge Enricher (PR-048 / BD-012)
+  LONGITUDINAL_EDGE_ENRICHED:     'LONGITUDINAL_EDGE_ENRICHED',
 });
 
 /** Set of all valid event type strings for fast validation. */

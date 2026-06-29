@@ -163,6 +163,8 @@ import { DiseaseClusterStatisticsService } from '../domains/disease/disease-clus
 // PR-047 — FeatureVector V2
 import { FeatureVectorV2Repository } from '../domains/similarity/feature-vector-v2-repository.js';
 import { FeatureVectorV2Service }    from '../domains/similarity/feature-vector-v2-service.js';
+// PR-048 — Longitudinal Edge Enricher
+import { LongitudinalEdgeEnricher }  from '../domains/similarity/longitudinal-edge-enricher.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -298,6 +300,8 @@ export const TOKENS = Object.freeze({
   // PR-047 — FeatureVector V2
   FeatureVectorV2Repository:           'FeatureVectorV2Repository',
   FeatureVectorV2Service:              'FeatureVectorV2Service',
+  // PR-048 — Longitudinal Edge Enricher
+  LongitudinalEdgeEnricher:            'LongitudinalEdgeEnricher',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -652,6 +656,15 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Longitudinal Edge Enricher (PR-048) — Wave2 Phase B-3 ───────────
+    // BD-012: Longitudinal Signal の Edge 付与は Wave2 スコープ — now active.
+    // BD-032: enrich() returns NEW frozen edge — original never mutated.
+    // trendBonus(0.05) は displayScore のみ。rawScore は EdgeGenerator が管理。
+    c.singleton(TOKENS.LongitudinalEdgeEnricher, (container) =>
+      new LongitudinalEdgeEnricher({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── FeatureVector V2 Service (PR-047) — Wave2 Phase B-2 ─────────────
     // BD-010: VECTOR_VERSION='2'. BD-035: 12 dimensions.
     // BD-042: V2Repository rejects V1 vectors — no cross-version mixing.
@@ -892,6 +905,8 @@ export class CompositionRoot {
       diseaseClusterStatisticsService: container.resolve(TOKENS.DiseaseClusterStatisticsService),
       // PR-047
       featureVectorV2Service: container.resolve(TOKENS.FeatureVectorV2Service),
+      // PR-048
+      longitudinalEdgeEnricher: container.resolve(TOKENS.LongitudinalEdgeEnricher),
     }));
 
     this._registerFeatures();
@@ -931,5 +946,6 @@ export class CompositionRoot {
     r.register('DiseaseEntityV2',          { status: 'active', migratesIn: 'PR-045' }); // PR-045 ✓
     r.register('DiseaseClusterStatistics', { status: 'active', migratesIn: 'PR-046' }); // PR-046 ✓
     r.register('FeatureVectorV2',          { status: 'active', migratesIn: 'PR-047' }); // PR-047 ✓
+    r.register('LongitudinalEdgeEnricher', { status: 'active', migratesIn: 'PR-048' }); // PR-048 ✓
   }
 }

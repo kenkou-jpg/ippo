@@ -243,6 +243,11 @@ const FORBIDDEN = [
   //           access via ApiGateway → saveRecord (auto-resolved at write time).
   { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },
   { from: /\/features\//,  to: /menstrual-phase-resolver/,             label: 'feature→MenstrualPhaseResolver'          },
+  // PR-048 — UI must not reach LongitudinalEdgeEnricher directly;
+  //           access via ApiGateway → enrichSimilarityEdge / enrichSimilarityEdges.
+  //           rawScore threshold enforcement stays in EdgeGenerator — enricher only adds displayScore.
+  { from: /\/screens\//,   to: /longitudinal-edge-enricher/, label: 'screen→LongitudinalEdgeEnricher'  },
+  { from: /\/features\//,  to: /longitudinal-edge-enricher/, label: 'feature→LongitudinalEdgeEnricher' },
   // PR-047 — UI must not reach FeatureVector V2 internals directly;
   //           access via ApiGateway → buildFeatureVectorV2 / getFeatureVectorsV2 / getLatestFeatureVectorV2.
   //           BD-042: SimilarityEngine must never mix V1 and V2 vectors — guard at both layers.

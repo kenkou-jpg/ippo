@@ -100,6 +100,8 @@ export class ApiGateway {
   #diseaseClusterStatisticsService;
   // PR-047
   #featureVectorV2Service;
+  // PR-048
+  #longitudinalEdgeEnricher;
 
   constructor({
     permissionService,
@@ -194,6 +196,8 @@ export class ApiGateway {
     diseaseClusterStatisticsService = null,
     // PR-047
     featureVectorV2Service = null,
+    // PR-048
+    longitudinalEdgeEnricher = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -277,6 +281,8 @@ export class ApiGateway {
     this.#diseaseClusterStatisticsService = diseaseClusterStatisticsService;
     // PR-047
     this.#featureVectorV2Service = featureVectorV2Service;
+    // PR-048
+    this.#longitudinalEdgeEnricher = longitudinalEdgeEnricher;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -847,6 +853,40 @@ export class ApiGateway {
     if (!this.#featureVectorV2Service)
       throw new Error('[ApiGateway] FeatureVectorV2Service not wired');
     return this.#featureVectorV2Service.getStatistics();
+  }
+
+  // ── Longitudinal Edge Enricher API (PR-048) ──────────────────────────────
+  // BD-012: Longitudinal Context 付与は Wave2 スコープ — now active.
+  // BD-032: enrich() は NEW frozen edge を返す — 元の edge は変更しない.
+  // rawScore = threshold 判定用（EdgeGenerator が設定）/ displayScore のみ trendBonus を加算.
+
+  /**
+   * Enrich a single SimilarityEdge with longitudinalContext.
+   * rawScore threshold は変更しない。displayScore = rawScore + trendBonus (BD-012).
+   *
+   * @param {{
+   *   edge:           object,   SimilarityEdge
+   *   sourceSignals?: object[], NetworkSignal[] for source case
+   *   targetSignals?: object[], NetworkSignal[] for target case
+   *   refDate?:       Date,
+   * }} params
+   */
+  async enrichSimilarityEdge(params) {
+    await this.#permissionService.require('record:read');
+    if (!this.#longitudinalEdgeEnricher)
+      throw new Error('[ApiGateway] LongitudinalEdgeEnricher not wired');
+    return this.#longitudinalEdgeEnricher.enrich(params);
+  }
+
+  /**
+   * Enrich multiple SimilarityEdges with longitudinalContext.
+   * @param {Array<{ edge: object, sourceSignals?: object[], targetSignals?: object[], refDate?: Date }>} entries
+   */
+  async enrichSimilarityEdges(entries = []) {
+    await this.#permissionService.require('record:read');
+    if (!this.#longitudinalEdgeEnricher)
+      throw new Error('[ApiGateway] LongitudinalEdgeEnricher not wired');
+    return this.#longitudinalEdgeEnricher.enrichAll(entries);
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────
