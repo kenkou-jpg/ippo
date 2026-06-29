@@ -243,6 +243,12 @@ const FORBIDDEN = [
   //           access via ApiGateway → saveRecord (auto-resolved at write time).
   { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },
   { from: /\/features\//,  to: /menstrual-phase-resolver/,             label: 'feature→MenstrualPhaseResolver'          },
+  // PR-049 — UI must not reach EnvironmentalSignalCollector directly (BD-003 / BD-043).
+  //           lunarPhase data is background-only; access via ApiGateway admin methods.
+  { from: /\/screens\//,   to: /environmental-signal-collector/,        label: 'screen→EnvironmentalSignalCollector'       },
+  { from: /\/features\//,  to: /environmental-signal-collector/,        label: 'feature→EnvironmentalSignalCollector'      },
+  { from: /\/screens\//,   to: /environmental-signal-snapshot-service/, label: 'screen→EnvironmentalSignalSnapshotService' },
+  { from: /\/features\//,  to: /environmental-signal-snapshot-service/, label: 'feature→EnvironmentalSignalSnapshotService'},
   // PR-048 — UI must not reach LongitudinalEdgeEnricher directly;
   //           access via ApiGateway → enrichSimilarityEdge / enrichSimilarityEdges.
   //           rawScore threshold enforcement stays in EdgeGenerator — enricher only adds displayScore.

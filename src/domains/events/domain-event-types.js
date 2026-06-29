@@ -46,6 +46,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   FEATURE_VECTOR_V2_CREATED:      'FEATURE_VECTOR_V2_CREATED',
   // Wave2 Longitudinal Edge Enricher (PR-048 / BD-012)
   LONGITUDINAL_EDGE_ENRICHED:     'LONGITUDINAL_EDGE_ENRICHED',
+  // Wave2 Environmental Signal Collector (PR-049 / BD-043)
+  ENVIRONMENTAL_SIGNAL_RECORDED:  'ENVIRONMENTAL_SIGNAL_RECORDED',
 });
 
 /** Set of all valid event type strings for fast validation. */

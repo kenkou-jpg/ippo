@@ -165,6 +165,9 @@ import { FeatureVectorV2Repository } from '../domains/similarity/feature-vector-
 import { FeatureVectorV2Service }    from '../domains/similarity/feature-vector-v2-service.js';
 // PR-048 — Longitudinal Edge Enricher
 import { LongitudinalEdgeEnricher }  from '../domains/similarity/longitudinal-edge-enricher.js';
+// PR-049 — Environmental Signal Collector
+import { EnvironmentalSignalCollector }        from '../domains/record/environmental-signal-collector.js';
+import { EnvironmentalSignalSnapshotService }  from '../domains/record/environmental-signal-snapshot-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -302,6 +305,9 @@ export const TOKENS = Object.freeze({
   FeatureVectorV2Service:              'FeatureVectorV2Service',
   // PR-048 — Longitudinal Edge Enricher
   LongitudinalEdgeEnricher:            'LongitudinalEdgeEnricher',
+  // PR-049 — Environmental Signal Collector
+  EnvironmentalSignalCollector:         'EnvironmentalSignalCollector',
+  EnvironmentalSignalSnapshotService:   'EnvironmentalSignalSnapshotService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -656,6 +662,17 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Environmental Signal Collector (PR-049) — Wave2 Phase B-4 ───────
+    // BD-003: Lunar Calendar UI FORBIDDEN — background data only.
+    // BD-043: Environmental Signal UI display FORBIDDEN — Wave3+ scope.
+    // BD-032: collect() returns NEW frozen record — original never mutated.
+    c.singleton(TOKENS.EnvironmentalSignalCollector, (container) =>
+      new EnvironmentalSignalCollector({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+    c.singleton(TOKENS.EnvironmentalSignalSnapshotService, () =>
+      new EnvironmentalSignalSnapshotService());
+
     // ── Longitudinal Edge Enricher (PR-048) — Wave2 Phase B-3 ───────────
     // BD-012: Longitudinal Signal の Edge 付与は Wave2 スコープ — now active.
     // BD-032: enrich() returns NEW frozen edge — original never mutated.
@@ -907,6 +924,9 @@ export class CompositionRoot {
       featureVectorV2Service: container.resolve(TOKENS.FeatureVectorV2Service),
       // PR-048
       longitudinalEdgeEnricher: container.resolve(TOKENS.LongitudinalEdgeEnricher),
+      // PR-049
+      environmentalSignalCollector:        container.resolve(TOKENS.EnvironmentalSignalCollector),
+      environmentalSignalSnapshotService:  container.resolve(TOKENS.EnvironmentalSignalSnapshotService),
     }));
 
     this._registerFeatures();
@@ -947,5 +967,6 @@ export class CompositionRoot {
     r.register('DiseaseClusterStatistics', { status: 'active', migratesIn: 'PR-046' }); // PR-046 ✓
     r.register('FeatureVectorV2',          { status: 'active', migratesIn: 'PR-047' }); // PR-047 ✓
     r.register('LongitudinalEdgeEnricher', { status: 'active', migratesIn: 'PR-048' }); // PR-048 ✓
+    r.register('EnvironmentalSignal',      { status: 'active', migratesIn: 'PR-049' }); // PR-049 ✓
   }
 }

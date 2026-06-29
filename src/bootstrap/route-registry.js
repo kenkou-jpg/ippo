@@ -36,6 +36,7 @@ const KNOWN_FEATURES = new Set([
   'DiseaseClusterStatistics', // PR-046: Disease Cluster Statistics (Wave2 Phase B-1)
   'FeatureVectorV2',          // PR-047: FeatureVector V2 (Wave2 Phase B-2)
   'LongitudinalEdgeEnricher', // PR-048: Longitudinal Edge Enricher (Wave2 Phase B-3)
+  'EnvironmentalSignal',      // PR-049: Environmental Signal Collector (Wave2 Phase B-4)
 ]);
 
 export class RouteRegistry {

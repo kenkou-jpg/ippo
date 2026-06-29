@@ -102,6 +102,9 @@ export class ApiGateway {
   #featureVectorV2Service;
   // PR-048
   #longitudinalEdgeEnricher;
+  // PR-049
+  #environmentalSignalCollector;
+  #environmentalSignalSnapshotService;
 
   constructor({
     permissionService,
@@ -198,6 +201,9 @@ export class ApiGateway {
     featureVectorV2Service = null,
     // PR-048
     longitudinalEdgeEnricher = null,
+    // PR-049
+    environmentalSignalCollector       = null,
+    environmentalSignalSnapshotService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -283,6 +289,9 @@ export class ApiGateway {
     this.#featureVectorV2Service = featureVectorV2Service;
     // PR-048
     this.#longitudinalEdgeEnricher = longitudinalEdgeEnricher;
+    // PR-049
+    this.#environmentalSignalCollector       = environmentalSignalCollector;
+    this.#environmentalSignalSnapshotService = environmentalSignalSnapshotService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1679,5 +1688,72 @@ export class ApiGateway {
       suppressed: 0,
       level:      options.level ?? (dataset?.anonymizationLevel ?? 'NONE'),
     });
+  }
+
+  // ── Environmental Signal (PR-049) ─────────────────────────────────────────
+  // BD-003: Lunar Calendar UI FORBIDDEN — background data only.
+  // BD-043: Environmental Signal UI display FORBIDDEN — Wave3+ scope.
+  // Methods here are admin-only; UI screens/features MUST NOT call them.
+
+  /**
+   * Attach environmental signals (lunarPhase) to a Record in the background.
+   * BD-003 / BD-043: result MUST NOT be rendered in any UI.
+   * @param {object} record
+   * @returns {Promise<Readonly<object>>}  Enriched record
+   */
+  async collectEnvironmentalSignals(record) {
+    await this.#permissionService.require('admin');
+    if (!this.#environmentalSignalCollector)
+      throw new Error('[ApiGateway] EnvironmentalSignalCollector not wired');
+    return this.#environmentalSignalCollector.collect(record);
+  }
+
+  /**
+   * Attach environmental signals to multiple Records in bulk.
+   * BD-003 / BD-043: results MUST NOT be rendered in any UI.
+   * @param {object[]} records
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async collectEnvironmentalSignalsBulk(records = []) {
+    await this.#permissionService.require('admin');
+    if (!this.#environmentalSignalCollector)
+      throw new Error('[ApiGateway] EnvironmentalSignalCollector not wired');
+    return this.#environmentalSignalCollector.collectAll(records);
+  }
+
+  /**
+   * Create a daily Environmental Signal snapshot.
+   * BD-018: snapshot includes generatedAt.
+   * @param {object[]} records  Enriched records with environmentalSignals
+   * @param {{ date?: string }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createEnvironmentalSignalSnapshot(records = [], options = {}) {
+    await this.#permissionService.require('admin');
+    if (!this.#environmentalSignalSnapshotService)
+      throw new Error('[ApiGateway] EnvironmentalSignalSnapshotService not wired');
+    return this.#environmentalSignalSnapshotService.createSnapshot(records, options);
+  }
+
+  /**
+   * Return all Environmental Signal snapshots.
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getEnvironmentalSignalSnapshots() {
+    await this.#permissionService.require('admin');
+    if (!this.#environmentalSignalSnapshotService)
+      throw new Error('[ApiGateway] EnvironmentalSignalSnapshotService not wired');
+    return this.#environmentalSignalSnapshotService.getSnapshots();
+  }
+
+  /**
+   * Return the latest Environmental Signal snapshot.
+   * @returns {Promise<Readonly<object>|null>}
+   */
+  async getLatestEnvironmentalSignalSnapshot() {
+    await this.#permissionService.require('admin');
+    if (!this.#environmentalSignalSnapshotService)
+      throw new Error('[ApiGateway] EnvironmentalSignalSnapshotService not wired');
+    return this.#environmentalSignalSnapshotService.getLatestSnapshot();
   }
 }
