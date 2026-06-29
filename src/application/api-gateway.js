@@ -96,6 +96,8 @@ export class ApiGateway {
   #menstrualPhaseResolver;
   // PR-045
   #diseaseEntityUpgradeService;
+  // PR-046
+  #diseaseClusterStatisticsService;
 
   constructor({
     permissionService,
@@ -186,6 +188,8 @@ export class ApiGateway {
     menstrualPhaseResolver = null,
     // PR-045
     diseaseEntityUpgradeService = null,
+    // PR-046
+    diseaseClusterStatisticsService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -265,6 +269,8 @@ export class ApiGateway {
     this.#menstrualPhaseResolver = menstrualPhaseResolver;
     // PR-045
     this.#diseaseEntityUpgradeService = diseaseEntityUpgradeService;
+    // PR-046
+    this.#diseaseClusterStatisticsService = diseaseClusterStatisticsService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -736,6 +742,56 @@ export class ApiGateway {
     if (!this.#diseaseEntityUpgradeService)
       throw new Error('[ApiGateway] DiseaseEntityUpgradeService not wired');
     return this.#diseaseEntityUpgradeService.upgrade(entry, upgradeParams);
+  }
+
+  // ── Disease Cluster Statistics API (PR-046) ──────────────────────────────
+  // BD-009: clusterId === diseaseKey. BD-028: caseCount < 5 → not publishable.
+  // BD-018: snapshots carry generatedAt. BD-032: Append-Only snapshots.
+
+  /**
+   * Compute statistical profile for a disease cluster from NetworkSignals.
+   * BD-028: caller must not surface results to users when caseCount < 5.
+   *
+   * @param {string}   clusterId  Disease cluster key (= diseaseKey, BD-009)
+   * @param {object[]} signals    NetworkSignal array pre-filtered for this cluster
+   */
+  async computeClusterProfile(clusterId, signals = []) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterStatisticsService)
+      throw new Error('[ApiGateway] DiseaseClusterStatisticsService not wired');
+    return this.#diseaseClusterStatisticsService.computeClusterProfile(clusterId, signals);
+  }
+
+  /**
+   * Create a DiseaseClusterSnapshot (BD-018 — includes generatedAt).
+   * BD-028: do not publish snapshot if profile.caseCount < 5.
+   *
+   * @param {string}   clusterId
+   * @param {object[]} signals
+   * @param {{ schedule?: 'weekly' | 'daily' }} options
+   */
+  async createClusterSnapshot(clusterId, signals = [], options = {}) {
+    await this.#permissionService.require('record:write');
+    if (!this.#diseaseClusterStatisticsService)
+      throw new Error('[ApiGateway] DiseaseClusterStatisticsService not wired');
+    return this.#diseaseClusterStatisticsService.createClusterSnapshot(clusterId, signals, options);
+  }
+
+  /**
+   * Rank a specific case within its cluster.
+   *
+   * @param {string}   caseId
+   * @param {string}   clusterId
+   * @param {object[]} caseSignals         NetworkSignals for this case only
+   * @param {object[]} allClusterSignals   All signals in the cluster
+   */
+  async getCaseRankInCluster(caseId, clusterId, caseSignals = [], allClusterSignals = []) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseClusterStatisticsService)
+      throw new Error('[ApiGateway] DiseaseClusterStatisticsService not wired');
+    return this.#diseaseClusterStatisticsService.getCaseRankInCluster(
+      caseId, clusterId, caseSignals, allClusterSignals,
+    );
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

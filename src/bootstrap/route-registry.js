@@ -33,6 +33,7 @@ const KNOWN_FEATURES = new Set([
   'EmotionSignal',           // PR-043: Emotion Signal Generation Foundation (Wave2 Phase A-3)
   'MenstrualPhaseResolution', // PR-044: MenstrualPhase Auto-Resolution (Wave2 Phase A-4)
   'DiseaseEntityV2',          // PR-045: Disease Entity V2 Upgrade (Wave2 Phase A-5)
+  'DiseaseClusterStatistics', // PR-046: Disease Cluster Statistics (Wave2 Phase B-1)
 ]);
 
 export class RouteRegistry {

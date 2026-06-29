@@ -40,6 +40,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   MENSTRUAL_PHASE_RESOLVED:       'MENSTRUAL_PHASE_RESOLVED',
   // Wave2 Disease Entity V2 Upgrade (PR-045 / BD-004)
   DISEASE_ENTITY_UPGRADED:        'DISEASE_ENTITY_UPGRADED',
+  // Wave2 Disease Cluster Statistics (PR-046 / BD-009)
+  DISEASE_CLUSTER_COMPUTED:       'DISEASE_CLUSTER_COMPUTED',
 });
 
 /** Set of all valid event type strings for fast validation. */

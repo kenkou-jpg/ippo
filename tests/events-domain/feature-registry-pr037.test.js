@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-037 EventSourcing', () => {
   it('EventSourcing appears in knownFeatures (total: 25)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('EventSourcing');
-    expect(r.knownFeatures).toHaveLength(32);
+    expect(r.knownFeatures).toHaveLength(33);
   });
 
   it('descriptor is frozen', () => {

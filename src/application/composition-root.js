@@ -158,6 +158,8 @@ import { EmotionSignalGenerator } from '../domains/network/emotion-signal-genera
 import { MenstrualPhaseResolverService } from '../domains/menstrual/menstrual-phase-resolver.js';
 // PR-045 — Disease Entity V2 Upgrade
 import { DiseaseEntityUpgradeService } from '../domains/disease/disease-entity-upgrade-service.js';
+// PR-046 — Disease Cluster Statistics
+import { DiseaseClusterStatisticsService } from '../domains/disease/disease-cluster-statistics-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -288,6 +290,8 @@ export const TOKENS = Object.freeze({
   MenstrualPhaseResolverService:       'MenstrualPhaseResolverService',
   // PR-045 — Disease Entity V2 Upgrade
   DiseaseEntityUpgradeService:         'DiseaseEntityUpgradeService',
+  // PR-046 — Disease Cluster Statistics
+  DiseaseClusterStatisticsService:     'DiseaseClusterStatisticsService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -642,6 +646,15 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Disease Cluster Statistics Service (PR-046) — Wave2 Phase B-1 ──
+    // BD-009: clusterId === diseaseKey. BD-028: caller enforces k>=5 before publishing.
+    // BD-018: all snapshots have generatedAt. BD-032: Append-Only snapshots.
+    // Pure stateless service — no AI, no LLM (BD-031/BD-038).
+    c.singleton(TOKENS.DiseaseClusterStatisticsService, (container) =>
+      new DiseaseClusterStatisticsService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Disease Entity Upgrade Service (PR-045) — Wave2 Phase A-5 ───────
     // BD-004: Disease Entity Wave2昇格. BD-032: Append-Only.
     // BD-035: diseaseKey backward compat for Case / SimilarityEdge.
@@ -858,6 +871,8 @@ export class CompositionRoot {
       menstrualPhaseResolver: container.resolve(TOKENS.MenstrualPhaseResolverService),
       // PR-045
       diseaseEntityUpgradeService: container.resolve(TOKENS.DiseaseEntityUpgradeService),
+      // PR-046
+      diseaseClusterStatisticsService: container.resolve(TOKENS.DiseaseClusterStatisticsService),
     }));
 
     this._registerFeatures();
@@ -895,5 +910,6 @@ export class CompositionRoot {
     r.register('EmotionSignal',         { status: 'active', migratesIn: 'PR-043' }); // PR-043 ✓
     r.register('MenstrualPhaseResolution', { status: 'active', migratesIn: 'PR-044' }); // PR-044 ✓
     r.register('DiseaseEntityV2',          { status: 'active', migratesIn: 'PR-045' }); // PR-045 ✓
+    r.register('DiseaseClusterStatistics', { status: 'active', migratesIn: 'PR-046' }); // PR-046 ✓
   }
 }

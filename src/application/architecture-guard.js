@@ -243,6 +243,12 @@ const FORBIDDEN = [
   //           access via ApiGateway → saveRecord (auto-resolved at write time).
   { from: /\/screens\//,   to: /menstrual-phase-resolver/,             label: 'screen→MenstrualPhaseResolver'           },
   { from: /\/features\//,  to: /menstrual-phase-resolver/,             label: 'feature→MenstrualPhaseResolver'          },
+  // PR-046 — UI must not reach DiseaseClusterStatisticsService or DiseaseClusterSnapshot internals directly;
+  //           access via ApiGateway → computeClusterProfile / createClusterSnapshot / getCaseRankInCluster.
+  { from: /\/screens\//,   to: /disease-cluster-statistics-service/,   label: 'screen→DiseaseClusterStatisticsService'  },
+  { from: /\/features\//,  to: /disease-cluster-statistics-service/,   label: 'feature→DiseaseClusterStatisticsService' },
+  { from: /\/screens\//,   to: /disease-cluster-snapshot-entity/,      label: 'screen→DiseaseClusterSnapshotEntity'     },
+  { from: /\/features\//,  to: /disease-cluster-snapshot-entity/,      label: 'feature→DiseaseClusterSnapshotEntity'    },
 ];
 
 export function runArchitectureGuard() {
