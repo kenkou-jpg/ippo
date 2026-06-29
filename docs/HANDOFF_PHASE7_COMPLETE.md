@@ -75,7 +75,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 
 ---
 
-## Current Architecture Snapshot（PR-042時点）
+## Current Architecture Snapshot（PR-048時点）
 
 ### Domains（実装済み）
 
@@ -102,16 +102,19 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | Research Dataset | research-dataset-repository / research-dataset-builder / research-dataset-service / anonymization-service / dataset-export-service | PR-040完了 |
 | **NetworkSignal V2 (Repository Interface)** | INetworkSignalRepository / NetworkSignalMemoryRepository / NetworkSignalPersistenceService / RepositoryFactory / RepositoryProvider / PersistenceConfig | **PR-041完了** |
 | **NetworkSignal V2 (Supabase永続化)** | NetworkSignalSupabaseRepository / SupabaseEventPersistenceRepository / PersistenceConfig(supabase) | **PR-042完了** |
+| **Disease Cluster Statistics** | disease-cluster-statistics-service / disease-cluster-snapshot-entity / DiseaseClusterStatisticsService(DI) | **PR-046完了** |
+| **FeatureVector V2 (12次元)** | feature-vector-v2-types / feature-vector-v2-entity / feature-vector-v2-repository(BD-042) / feature-vector-v2-builder / feature-vector-v2-service | **PR-047完了** |
+| **Longitudinal Edge Enricher** | longitudinal-edge-enricher / LongitudinalEdgeEnricher / computeCaseTrend / TREND_BONUS=0.05 / displayScore=rawScore+trendBonus | **PR-048完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  31（MenstrualPhaseResolution含む）
-ApiGateway methods:        73（getSignalPersistenceStatusV2 / persistSignalV2含む）
-Domain Event Types:        17（MENSTRUAL_PHASE_RESOLVED含む / PR-044）
-DI TOKENS:                 293+（PR-044: MenstrualPhaseResolverService追加）
-Tests (全パス):            3,752件 / 234ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   74+（PR-044: 2件追加）
+Features (RouteRegistry):  35（DiseaseClusterStatistics / FeatureVectorV2 / LongitudinalEdgeEnricher含む）
+ApiGateway methods:        82（computeClusterProfile / buildFeatureVectorV2 / enrichSimilarityEdge等追加）
+Domain Event Types:        21（DISEASE_CLUSTER_COMPUTED / FEATURE_VECTOR_V2_CREATED / LONGITUDINAL_EDGE_ENRICHED含む）
+DI TOKENS:                 296+（PR-046〜048: 3サービス追加）
+Tests (全パス):            3,907件 / 238ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   80+（PR-046〜048: 各2件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -120,7 +123,7 @@ Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 
 ```
 UI / Legacy (app-legacy.js)
-         ↓  ApiGateway (73 methods)
+         ↓  ApiGateway (82 methods)
 Application Layer (CompositionRoot / DI Container)
          ↓
 Domain Services (21 domains)
@@ -185,6 +188,9 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-044  MenstrualPhase Auto-Resolution — MenstrualPhaseResolverService / MENSTRUAL_PHASE_RESOLVED / saveRecord統合
     ✓ PR-045  Disease Entity V2 Upgrade — DiseaseEntityUpgradeService / CONFIRMED_BY / diseaseKey / DISEASE_ENTITY_UPGRADED
   Phase B (PR-046〜050): Disease Entity V2 + Cluster Statistics
+    ✓ PR-046  Disease Cluster Statistics — DiseaseClusterStatisticsService / computeClusterProfile / createClusterSnapshot / BD-028
+    ✓ PR-047  FeatureVector V2 — 12次元 / VECTOR_VERSION='2' / FeatureVectorV2Builder / BD-042 V1/V2 混在ガード
+    ✓ PR-048  Longitudinal Edge Enricher — LongitudinalEdgeEnricher / computeCaseTrend / displayScore=rawScore+trendBonus / BD-012
   Phase C (PR-051〜056): Knowledge Graph Foundation
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
@@ -193,7 +199,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-046（Disease Cluster Statistics）— Phase A完了 → Phase B開始
+Next PR: 
 ```
 
 ---
