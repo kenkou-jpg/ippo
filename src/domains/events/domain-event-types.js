@@ -65,6 +65,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   SIGNAL_INSIGHT_GENERATED:         'SIGNAL_INSIGHT_GENERATED',
   // Wave2 Pattern Discovery Service (PR-058 / BD-031 / BD-038)
   PATTERN_DISCOVERED:               'PATTERN_DISCOVERED',
+  // Wave2 Case Recommendation Foundation (PR-059 / BD-029 / BD-030)
+  CASE_RECOMMENDATION_GENERATED:    'CASE_RECOMMENDATION_GENERATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -89,7 +91,8 @@ export const AGGREGATE_TYPES = Object.freeze({
   DATASET_VERSION: 'DATASET_VERSION',
   EVIDENCE:        'EVIDENCE',
   SIGNAL_INSIGHT:      'SIGNAL_INSIGHT',
-  PATTERN_DISCOVERY:   'PATTERN_DISCOVERY',
+  PATTERN_DISCOVERY:        'PATTERN_DISCOVERY',
+  CASE_RECOMMENDATION:      'CASE_RECOMMENDATION',
 });
 
 /** Current event schema version. Bump on structural changes. */

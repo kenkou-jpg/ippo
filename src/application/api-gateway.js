@@ -123,6 +123,8 @@ export class ApiGateway {
   #signalInsightService;
   // PR-058
   #patternDiscoveryService;
+  // PR-059
+  #caseRecommendationService;
 
   constructor({
     permissionService,
@@ -240,6 +242,8 @@ export class ApiGateway {
     signalInsightService = null,
     // PR-058
     patternDiscoveryService = null,
+    // PR-059
+    caseRecommendationService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -346,6 +350,8 @@ export class ApiGateway {
     this.#signalInsightService = signalInsightService;
     // PR-058
     this.#patternDiscoveryService = patternDiscoveryService;
+    // PR-059
+    this.#caseRecommendationService = caseRecommendationService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2273,5 +2279,31 @@ export class ApiGateway {
     if (!this.#patternDiscoveryService)
       throw new Error('[ApiGateway] PatternDiscoveryService not wired');
     return this.#patternDiscoveryService.getStatus();
+  }
+
+  // ── Case Recommendation (PR-059 / BD-026 / BD-029 / BD-030) ─────────────
+
+  /**
+   * Get anonymized case recommendations for a user (admin:research only until Phase 3).
+   * BD-030: k < 5 groups throw KAnonymityError — never silenced.
+   * BD-026: mode='public' throws Phase3NotCompleteError until Founder verifies Phase 3.
+   *
+   * @param {{ userId: string, userVector: number[], candidateCases: object[],
+   *            diseaseKey?: string, mode?: string }} input
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getCaseRecommendations(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#caseRecommendationService)
+      throw new Error('[ApiGateway] CaseRecommendationService not wired');
+    return this.#caseRecommendationService.recommend(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getCaseRecommendationStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#caseRecommendationService)
+      throw new Error('[ApiGateway] CaseRecommendationService not wired');
+    return this.#caseRecommendationService.getStatus();
   }
 }

@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  45（+ PatternDiscovery追加）
-ApiGateway methods:        126+（discoverPatterns / getPatternDiscoveryStatus追加）
-Domain Event Types:        32（PATTERN_DISCOVERED追加）
-DI TOKENS:                 311+（PR-058: PatternDiscoveryService追加）
-Tests (全パス):            4,420件 / 248ファイル（39件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   114+（PR-058: テスト内ArchGuardルール6件追加）
+Features (RouteRegistry):  46（+ CaseRecommendation追加）
+ApiGateway methods:        128+（getCaseRecommendations / getCaseRecommendationStatus追加）
+Domain Event Types:        33（CASE_RECOMMENDATION_GENERATED追加）
+DI TOKENS:                 312+（PR-059: CaseRecommendationService追加）
+Tests (全パス):            4,487件 / 249ファイル（39件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   114+（PR-059: テスト内ArchGuardルール8件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -208,13 +208,14 @@ Wave2 (PR-041〜075) — Phase A実装中
   Phase D (PR-057〜062): AI Platform + Signal Insight
     ✓ PR-057  Signal Insight Service — SignalInsightService.generateInsights() / ForbiddenWordValidator(BD-038) / PAIN/SLEEP/SYMPTOM/LONGITUDINAL_DELTA/PHASE_COMPARISON 5種インサイト / isMedicalAdvice:false機械付与 / LOW信頼度抑制 / SIGNAL_INSIGHT_GENERATED / ArchGuard+6ルール / 64件テスト
     ✓ PR-058  Pattern Discovery Service — PatternDiscoveryService.discoverPatterns() / PHASE_CORRELATION/SIGNAL_CO_OCCURRENCE/EXPERIMENT_RESPONSE/LONGITUDINAL_TREND 4種パターン / Pearson相関係数計算 / LOW信頼度返却（抑制なし）/ 因果断定ワード自動ブロック(BD-038) / PATTERN_DISCOVERED / ArchGuard+6ルール / 64件テスト
+    ✓ PR-059  Case Recommendation Foundation — CaseRecommendationService.recommend() / FV V2コサイン類似度 / k-anonymity k≥5 ZERO TOLERANCE(BD-030 KAnonymityError) / BD-026 Phase3未完でpublic拒否(Phase3NotCompleteError) / 個人識別フィールド機械的除去 / admin:research限定 / CASE_RECOMMENDATION_GENERATED / ArchGuard+8ルール / 67件テスト
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-059 Case Recommendation Foundation（FV V2ベース類似Case探索 / k-anonymity k≥5 / BD-029 / BD-030 / admin:research権限先行）
+Next PR: PR-060 Similar Case Search（admin:research / SearchQuery / k-anonymity / BD-030 ZERO TOLERANCE / 個人特定不可設計）
 ```
 
 ---

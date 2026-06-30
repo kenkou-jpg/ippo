@@ -190,6 +190,8 @@ import { EvidenceLayerService }     from '../domains/evidence/evidence-layer-ser
 import { SignalInsightService }     from '../domains/signal-insight/signal-insight-service.js';
 // PR-058
 import { PatternDiscoveryService }  from '../domains/pattern-discovery/pattern-discovery-service.js';
+// PR-059
+import { CaseRecommendationService } from '../domains/case-recommendation/case-recommendation-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -352,6 +354,8 @@ export const TOKENS = Object.freeze({
   SignalInsightService:                'SignalInsightService',
   // PR-058 — Pattern Discovery Service
   PatternDiscoveryService:             'PatternDiscoveryService',
+  // PR-059 — Case Recommendation Foundation
+  CaseRecommendationService:           'CaseRecommendationService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -747,6 +751,15 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Case Recommendation Foundation (PR-059) — Wave2 Phase D-3 ─────────────
+    // BD-026: user-facing access blocked until Phase 3 Founder verification.
+    // BD-029: admin:research permission required.
+    // BD-030: k-anonymity k≥5 ZERO TOLERANCE — KAnonymityError on violation.
+    c.singleton(TOKENS.CaseRecommendationService, (container) =>
+      new CaseRecommendationService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1093,6 +1106,8 @@ export class CompositionRoot {
       signalInsightService: container.resolve(TOKENS.SignalInsightService),
       // PR-058
       patternDiscoveryService: container.resolve(TOKENS.PatternDiscoveryService),
+      // PR-059
+      caseRecommendationService: container.resolve(TOKENS.CaseRecommendationService),
     }));
 
     this._registerFeatures();
@@ -1143,5 +1158,6 @@ export class CompositionRoot {
     r.register('EvidenceLayer',            { status: 'active', migratesIn: 'PR-056' }); // PR-056 ✓ Phase C完了
     r.register('SignalInsight',            { status: 'active', migratesIn: 'PR-057' }); // PR-057 ✓ Phase D開始
     r.register('PatternDiscovery',         { status: 'active', migratesIn: 'PR-058' }); // PR-058 ✓
+    r.register('CaseRecommendation',       { status: 'active', migratesIn: 'PR-059' }); // PR-059 ✓ admin:research only
   }
 }
