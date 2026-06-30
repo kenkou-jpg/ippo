@@ -55,6 +55,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   KNOWLEDGE_GRAPH_SNAPSHOT_CREATED: 'KNOWLEDGE_GRAPH_SNAPSHOT_CREATED',
   // Wave2 Feature Store V1 (PR-053 / BD-037)
   FEATURE_STORE_UPDATED:            'FEATURE_STORE_UPDATED',
+  // Wave2 Cohort Builder (PR-054 / BD-039)
+  COHORT_DEFINED:                   'COHORT_DEFINED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -75,6 +77,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   EMOTION:    'EMOTION',
   KNOWLEDGE:     'KNOWLEDGE',
   FEATURE_STORE: 'FEATURE_STORE',
+  COHORT:        'COHORT',
 });
 
 /** Current event schema version. Bump on structural changes. */

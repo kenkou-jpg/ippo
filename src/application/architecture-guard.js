@@ -299,6 +299,18 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /feature-matrix-entity/,            label: 'feature→FeatureMatrixEntity'           },
   { from: /\/screens\//,   to: /feature-store-types/,              label: 'screen→FeatureStoreTypes'              },
   { from: /\/features\//,  to: /feature-store-types/,              label: 'feature→FeatureStoreTypes'             },
+  // PR-054 — UI must not reach Cohort domain internals directly;
+  //           access via ApiGateway → defineCohort / confirmCohortKAnonymity /
+  //           checkCohortPublicationEligibility / getCohorts / getVerifiedCohorts.
+  //           BD-039: k-anonymity gate must not be bypassed by direct service access.
+  { from: /\/screens\//,   to: /cohort-repository/,               label: 'screen→CohortRepository'               },
+  { from: /\/features\//,  to: /cohort-repository/,               label: 'feature→CohortRepository'              },
+  { from: /\/screens\//,   to: /cohort-builder-service/,          label: 'screen→CohortBuilderService'           },
+  { from: /\/features\//,  to: /cohort-builder-service/,          label: 'feature→CohortBuilderService'          },
+  { from: /\/screens\//,   to: /cohort-definition-entity/,        label: 'screen→CohortDefinitionEntity'         },
+  { from: /\/features\//,  to: /cohort-definition-entity/,        label: 'feature→CohortDefinitionEntity'        },
+  { from: /\/screens\//,   to: /cohort-types/,                    label: 'screen→CohortTypes'                    },
+  { from: /\/features\//,  to: /cohort-types/,                    label: 'feature→CohortTypes'                   },
 ];
 
 export function runArchitectureGuard() {

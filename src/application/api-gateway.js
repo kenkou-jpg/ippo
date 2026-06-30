@@ -113,6 +113,8 @@ export class ApiGateway {
   #knowledgeGraphBuilder;
   // PR-053
   #featureStoreService;
+  // PR-054
+  #cohortBuilderService;
 
   constructor({
     permissionService,
@@ -220,6 +222,8 @@ export class ApiGateway {
     knowledgeGraphBuilder = null,
     // PR-053
     featureStoreService = null,
+    // PR-054
+    cohortBuilderService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -316,6 +320,8 @@ export class ApiGateway {
     this.#knowledgeGraphBuilder = knowledgeGraphBuilder;
     // PR-053
     this.#featureStoreService = featureStoreService;
+    // PR-054
+    this.#cohortBuilderService = cohortBuilderService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2039,5 +2045,83 @@ export class ApiGateway {
     if (!this.#featureStoreService)
       throw new Error('[ApiGateway] FeatureStoreService not wired');
     return this.#featureStoreService.getStatus();
+  }
+
+  // ── Cohort Builder (PR-054) ───────────────────────────────────────────────
+
+  /**
+   * Define a new research cohort.
+   * kAnonymityVerified starts as false — call confirmCohortKAnonymity() after case counting.
+   * @requires admin:research
+   */
+  async defineCohort(params = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.defineCohort(params);
+  }
+
+  /**
+   * Confirm k-anonymity for a cohort.
+   * BD-039: throws if actualCount < K_ANONYMITY_MIN (5).
+   * @requires admin:research
+   */
+  async confirmCohortKAnonymity(cohortId, actualCount) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.confirmKAnonymity(cohortId, actualCount);
+  }
+
+  /**
+   * Check whether a cohort is eligible for Dataset generation.
+   * BD-039: throws if cohort is not k-anonymity verified or count < 5.
+   * @requires admin:research
+   */
+  async checkCohortPublicationEligibility(cohortId) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.checkPublicationEligibility(cohortId);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getCohort(cohortId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.getCohort(cohortId);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getCohorts() {
+    await this.#permissionService.require('record:read');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.getCohorts();
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getVerifiedCohorts() {
+    await this.#permissionService.require('record:read');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.getVerifiedCohorts();
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getCohortBuilderStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#cohortBuilderService)
+      throw new Error('[ApiGateway] CohortBuilderService not wired');
+    return this.#cohortBuilderService.getStatus();
   }
 }

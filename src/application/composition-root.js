@@ -178,6 +178,9 @@ import { KnowledgeGraphBuilder } from '../domains/knowledge/knowledge-graph-buil
 // PR-053
 import { FeatureStoreRepository } from '../domains/feature-store/feature-store-repository.js';
 import { FeatureStoreService }    from '../domains/feature-store/feature-store-service.js';
+// PR-054
+import { CohortRepository }       from '../domains/cohort/cohort-repository.js';
+import { CohortBuilderService }   from '../domains/cohort/cohort-builder-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -328,6 +331,9 @@ export const TOKENS = Object.freeze({
   // PR-053 — Feature Store V1
   FeatureStoreRepository:              'FeatureStoreRepository',
   FeatureStoreService:                 'FeatureStoreService',
+  // PR-054 — Cohort Builder
+  CohortRepository:                    'CohortRepository',
+  CohortBuilderService:                'CohortBuilderService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -693,6 +699,18 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Cohort Builder (PR-054) — Wave2 Phase C-4 ───────────────────────
+    // BD-039: k-anonymity k >= K_ANONYMITY_MIN (5) — cohorts with fewer cases are forbidden from publication.
+    // BD-018: CohortDefinition carries createdAt ISO string.
+    // BD-032: confirmKAnonymity() returns a new frozen object — no in-place mutation.
+    // BD-031: Pure deterministic service — no AI / LLM.
+    c.singleton(TOKENS.CohortRepository,     () => new CohortRepository());
+    c.singleton(TOKENS.CohortBuilderService, (container) =>
+      new CohortBuilderService({
+        repository:     container.resolve(TOKENS.CohortRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Feature Store V1 (PR-053) — Wave2 Phase C-3 ─────────────────────
     // BD-037: compute() enforces Supabase-only signal source; in-memory signals rejected.
     // BD-018: FeatureMatrix has computedAt ISO string (via buildFeatureMatrix).
@@ -1005,6 +1023,8 @@ export class CompositionRoot {
       knowledgeGraphBuilder: container.resolve(TOKENS.KnowledgeGraphBuilder),
       // PR-053
       featureStoreService: container.resolve(TOKENS.FeatureStoreService),
+      // PR-054
+      cohortBuilderService: container.resolve(TOKENS.CohortBuilderService),
     }));
 
     this._registerFeatures();
@@ -1050,5 +1070,6 @@ export class CompositionRoot {
     r.register('KnowledgeGraph',           { status: 'active', migratesIn: 'PR-051' }); // PR-051 ✓
     r.register('KnowledgeGraphBuilder',    { status: 'active', migratesIn: 'PR-052' }); // PR-052 ✓
     r.register('FeatureStore',             { status: 'active', migratesIn: 'PR-053' }); // PR-053 ✓
+    r.register('CohortBuilder',            { status: 'active', migratesIn: 'PR-054' }); // PR-054 ✓
   }
 }
