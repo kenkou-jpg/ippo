@@ -9,8 +9,8 @@ import {
 describe('DOMAIN_EVENT_TYPES', () => {
   it('is frozen', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPES)).toBe(true));
 
-  it('has exactly 27 event types (PR-054 adds COHORT_DEFINED)', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(27);
+  it('has exactly 28 event types (PR-055 adds DATASET_VERSION_PUBLISHED)', () => {
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(28);
   });
 
   it('contains all required event types', () => {
@@ -36,7 +36,7 @@ describe('DOMAIN_EVENT_TYPES', () => {
 
 describe('DOMAIN_EVENT_TYPE_SET', () => {
   it('is a frozen Set', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPE_SET)).toBe(true));
-  it('has 27 entries (PR-054 adds COHORT_DEFINED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(27));
+  it('has 28 entries (PR-055 adds DATASET_VERSION_PUBLISHED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(28));
   it('contains SIGNAL_CREATED', () => expect(DOMAIN_EVENT_TYPE_SET.has('SIGNAL_CREATED')).toBe(true));
   it('does not contain unknown type', () => expect(DOMAIN_EVENT_TYPE_SET.has('UNKNOWN_EVENT')).toBe(false));
 });

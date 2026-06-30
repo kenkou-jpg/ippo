@@ -311,6 +311,17 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /cohort-definition-entity/,        label: 'feature→CohortDefinitionEntity'        },
   { from: /\/screens\//,   to: /cohort-types/,                    label: 'screen→CohortTypes'                    },
   { from: /\/features\//,  to: /cohort-types/,                    label: 'feature→CohortTypes'                   },
+  // PR-055 — UI must not reach Dataset Version internals directly;
+  //           access via ApiGateway → publishDatasetVersion / getDatasetVersion / getDatasetVersions.
+  //           BD-021: Append-Only — mutation bypass via direct repo access is forbidden.
+  { from: /\/screens\//,   to: /dataset-version-repository/,      label: 'screen→DatasetVersionRepository'       },
+  { from: /\/features\//,  to: /dataset-version-repository/,      label: 'feature→DatasetVersionRepository'      },
+  { from: /\/screens\//,   to: /dataset-version-service/,         label: 'screen→DatasetVersionService'          },
+  { from: /\/features\//,  to: /dataset-version-service/,         label: 'feature→DatasetVersionService'         },
+  { from: /\/screens\//,   to: /dataset-version-entity/,          label: 'screen→DatasetVersionEntity'           },
+  { from: /\/features\//,  to: /dataset-version-entity/,          label: 'feature→DatasetVersionEntity'          },
+  { from: /\/screens\//,   to: /dataset-version-types/,           label: 'screen→DatasetVersionTypes'            },
+  { from: /\/features\//,  to: /dataset-version-types/,           label: 'feature→DatasetVersionTypes'           },
 ];
 
 export function runArchitectureGuard() {

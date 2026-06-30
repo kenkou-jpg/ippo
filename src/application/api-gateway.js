@@ -115,6 +115,8 @@ export class ApiGateway {
   #featureStoreService;
   // PR-054
   #cohortBuilderService;
+  // PR-055
+  #datasetVersionService;
 
   constructor({
     permissionService,
@@ -224,6 +226,8 @@ export class ApiGateway {
     featureStoreService = null,
     // PR-054
     cohortBuilderService = null,
+    // PR-055
+    datasetVersionService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -322,6 +326,8 @@ export class ApiGateway {
     this.#featureStoreService = featureStoreService;
     // PR-054
     this.#cohortBuilderService = cohortBuilderService;
+    // PR-055
+    this.#datasetVersionService = datasetVersionService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2123,5 +2129,58 @@ export class ApiGateway {
     if (!this.#cohortBuilderService)
       throw new Error('[ApiGateway] CohortBuilderService not wired');
     return this.#cohortBuilderService.getStatus();
+  }
+
+  // ── Dataset Version Management (PR-055) ──────────────────────────────────
+
+  /**
+   * Publish a new DatasetVersion (Append-Only — BD-021).
+   * @requires admin:research
+   */
+  async publishDatasetVersion(params = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#datasetVersionService)
+      throw new Error('[ApiGateway] DatasetVersionService not wired');
+    return this.#datasetVersionService.publish(params);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getDatasetVersion(versionId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#datasetVersionService)
+      throw new Error('[ApiGateway] DatasetVersionService not wired');
+    return this.#datasetVersionService.getVersion(versionId);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getDatasetVersions(datasetId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#datasetVersionService)
+      throw new Error('[ApiGateway] DatasetVersionService not wired');
+    return this.#datasetVersionService.getVersions(datasetId);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getDatasetVersionsByType(type) {
+    await this.#permissionService.require('record:read');
+    if (!this.#datasetVersionService)
+      throw new Error('[ApiGateway] DatasetVersionService not wired');
+    return this.#datasetVersionService.getVersionsByType(type);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getDatasetVersionStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#datasetVersionService)
+      throw new Error('[ApiGateway] DatasetVersionService not wired');
+    return this.#datasetVersionService.getStatus();
   }
 }

@@ -181,6 +181,9 @@ import { FeatureStoreService }    from '../domains/feature-store/feature-store-s
 // PR-054
 import { CohortRepository }       from '../domains/cohort/cohort-repository.js';
 import { CohortBuilderService }   from '../domains/cohort/cohort-builder-service.js';
+// PR-055
+import { DatasetVersionRepository } from '../domains/dataset-version/dataset-version-repository.js';
+import { DatasetVersionService }    from '../domains/dataset-version/dataset-version-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -334,6 +337,9 @@ export const TOKENS = Object.freeze({
   // PR-054 — Cohort Builder
   CohortRepository:                    'CohortRepository',
   CohortBuilderService:                'CohortBuilderService',
+  // PR-055 — Dataset Version Management
+  DatasetVersionRepository:            'DatasetVersionRepository',
+  DatasetVersionService:               'DatasetVersionService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -699,6 +705,18 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
+    // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
+    // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
+    // 命名: IPPO-DATASET-{TYPE}-v{MAJOR}.{MINOR}-{YYYYMMDD}
+    // doi_candidate: UUID v4-like 文字列（将来の DOI 申請用）。
+    c.singleton(TOKENS.DatasetVersionRepository, () => new DatasetVersionRepository());
+    c.singleton(TOKENS.DatasetVersionService, (container) =>
+      new DatasetVersionService({
+        repository:     container.resolve(TOKENS.DatasetVersionRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Cohort Builder (PR-054) — Wave2 Phase C-4 ───────────────────────
     // BD-039: k-anonymity k >= K_ANONYMITY_MIN (5) — cohorts with fewer cases are forbidden from publication.
     // BD-018: CohortDefinition carries createdAt ISO string.
@@ -1025,6 +1043,8 @@ export class CompositionRoot {
       featureStoreService: container.resolve(TOKENS.FeatureStoreService),
       // PR-054
       cohortBuilderService: container.resolve(TOKENS.CohortBuilderService),
+      // PR-055
+      datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
     }));
 
     this._registerFeatures();
@@ -1071,5 +1091,6 @@ export class CompositionRoot {
     r.register('KnowledgeGraphBuilder',    { status: 'active', migratesIn: 'PR-052' }); // PR-052 ✓
     r.register('FeatureStore',             { status: 'active', migratesIn: 'PR-053' }); // PR-053 ✓
     r.register('CohortBuilder',            { status: 'active', migratesIn: 'PR-054' }); // PR-054 ✓
+    r.register('DatasetVersion',           { status: 'active', migratesIn: 'PR-055' }); // PR-055 ✓
   }
 }
