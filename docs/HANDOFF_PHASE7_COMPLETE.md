@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  42（KnowledgeGraph / KnowledgeGraphBuilder / FeatureStore / CohortBuilder / DatasetVersion追加）
-ApiGateway methods:        120+（publishDatasetVersion / getDatasetVersion / getDatasetVersions / getDatasetVersionsByType / getDatasetVersionStatus追加）
-Domain Event Types:        28（DATASET_VERSION_PUBLISHED追加）
-DI TOKENS:                 308+（PR-055: DatasetVersionRepository / DatasetVersionService追加）
-Tests (全パス):            4,183件 / 245ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   108+（PR-055: 8件追加）
+Features (RouteRegistry):  43（+ EvidenceLayer追加 / Phase C完了）
+ApiGateway methods:        122+（compileEvidence / getEvidenceLayerStatus追加）
+Domain Event Types:        29（EVIDENCE_SUMMARY_CREATED追加）
+DI TOKENS:                 309+（PR-056: EvidenceLayerService追加）
+Tests (全パス):            4,239件 / 246ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   114+（PR-056: 6件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -203,6 +203,8 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-053  Feature Store V1 — FeatureStoreService.compute() / Feature 6種(avg_pain_30d/avg_sleep_30d/avg_symptom_30d/menstrual_regularity/longitudinal_delta_pain/phase_pain_distribution) / BD-037 Supabase-only入力強制 / FeatureMatrix(BD-018 computedAt) / FEATURE_STORE_UPDATED / ArchGuard+8ルール / 54件テスト
     ✓ PR-054  Cohort Builder — CohortBuilderService / CohortDefinition / BD-039 k-anonymity k≥5強制 / confirmKAnonymity()(BD-032 新frozen返却) / checkPublicationEligibility() / COHORT_DEFINED / ArchGuard+8ルール / 57件テスト
     ✓ PR-055  Dataset Version Management — DatasetVersionService.publish() / 命名IPPO-DATASET-{TYPE}-v{MAJOR}.{MINOR}-{YYYYMMDD} / doiCandidate UUID / BD-021 Append-Only(delete/update throw) / DATASET_VERSION_PUBLISHED / ArchGuard+8ルール / 52件テスト
+    ✓ PR-056  Evidence Layer — EvidenceLayerService.compile() / DatasetVersion+ClusterStats+PatternEvidence+EventLog+KgSnapshot統合 / citationMetadata(Wave3基盤) / evidenceScore(0-5) / EVIDENCE_SUMMARY_CREATED / phaseCComplete:true / ArchGuard+6ルール / 56件テスト
+  ★ Phase C (PR-051〜056) 完了 — Phase D (AI Platform) 入口条件成立
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
@@ -210,7 +212,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-056 Evidence Layer（Dataset + ClusterStats + Pattern Evidence 統合 / Phase C 完了）
+Next PR: PR-057 Signal Insight Service（ルールベース自然言語サマリー / BD-031 / BD-038 禁止ワード検出）
 ```
 
 ---

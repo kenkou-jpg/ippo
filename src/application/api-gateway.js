@@ -117,6 +117,8 @@ export class ApiGateway {
   #cohortBuilderService;
   // PR-055
   #datasetVersionService;
+  // PR-056
+  #evidenceLayerService;
 
   constructor({
     permissionService,
@@ -228,6 +230,8 @@ export class ApiGateway {
     cohortBuilderService = null,
     // PR-055
     datasetVersionService = null,
+    // PR-056
+    evidenceLayerService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -328,6 +332,8 @@ export class ApiGateway {
     this.#cohortBuilderService = cohortBuilderService;
     // PR-055
     this.#datasetVersionService = datasetVersionService;
+    // PR-056
+    this.#evidenceLayerService = evidenceLayerService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2182,5 +2188,29 @@ export class ApiGateway {
     if (!this.#datasetVersionService)
       throw new Error('[ApiGateway] DatasetVersionService not wired');
     return this.#datasetVersionService.getStatus();
+  }
+
+  // ── Evidence Layer (PR-056) — Phase C capstone ───────────────────────────
+
+  /**
+   * Compile an EvidenceSummary from available evidence sources.
+   * Integrates DatasetVersions / ClusterStats / PatternEvidence / EventLogs / KgSnapshot.
+   * @requires admin:research
+   */
+  async compileEvidence(input = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#evidenceLayerService)
+      throw new Error('[ApiGateway] EvidenceLayerService not wired');
+    return this.#evidenceLayerService.compile(input);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getEvidenceLayerStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#evidenceLayerService)
+      throw new Error('[ApiGateway] EvidenceLayerService not wired');
+    return this.#evidenceLayerService.getStatus();
   }
 }

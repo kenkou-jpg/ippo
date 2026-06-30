@@ -322,6 +322,15 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /dataset-version-entity/,          label: 'feature→DatasetVersionEntity'          },
   { from: /\/screens\//,   to: /dataset-version-types/,           label: 'screen→DatasetVersionTypes'            },
   { from: /\/features\//,  to: /dataset-version-types/,           label: 'feature→DatasetVersionTypes'           },
+  // PR-056 — UI must not reach Evidence Layer internals directly;
+  //           access via ApiGateway → compileEvidence / getEvidenceLayerStatus.
+  //           Evidence compilation requires admin:research — bypass via direct import is forbidden.
+  { from: /\/screens\//,   to: /evidence-layer-service/,          label: 'screen→EvidenceLayerService'           },
+  { from: /\/features\//,  to: /evidence-layer-service/,          label: 'feature→EvidenceLayerService'          },
+  { from: /\/screens\//,   to: /evidence-summary-entity/,         label: 'screen→EvidenceSummaryEntity'          },
+  { from: /\/features\//,  to: /evidence-summary-entity/,         label: 'feature→EvidenceSummaryEntity'         },
+  { from: /\/screens\//,   to: /evidence-types/,                  label: 'screen→EvidenceTypes'                  },
+  { from: /\/features\//,  to: /evidence-types/,                  label: 'feature→EvidenceTypes'                 },
 ];
 
 export function runArchitectureGuard() {

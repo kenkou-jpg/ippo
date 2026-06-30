@@ -184,6 +184,8 @@ import { CohortBuilderService }   from '../domains/cohort/cohort-builder-service
 // PR-055
 import { DatasetVersionRepository } from '../domains/dataset-version/dataset-version-repository.js';
 import { DatasetVersionService }    from '../domains/dataset-version/dataset-version-service.js';
+// PR-056
+import { EvidenceLayerService }     from '../domains/evidence/evidence-layer-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -340,6 +342,8 @@ export const TOKENS = Object.freeze({
   // PR-055 — Dataset Version Management
   DatasetVersionRepository:            'DatasetVersionRepository',
   DatasetVersionService:               'DatasetVersionService',
+  // PR-056 — Evidence Layer
+  EvidenceLayerService:                'EvidenceLayerService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -705,6 +709,17 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Evidence Layer (PR-056) — Wave2 Phase C-6 (Phase C capstone) ─────
+    // Integrates DatasetVersion + ClusterStats + PatternEvidence + EventLogs → EvidenceSummary.
+    // BD-018: EvidenceSummary carries generatedAt ISO string.
+    // BD-031: Pure deterministic aggregation — no AI/LLM.
+    // phaseCComplete: true — Phase D (AI Platform) entry condition met.
+    // citationMetadata: Wave3 academic citation foundation (doiCandidates / platformVersion).
+    c.singleton(TOKENS.EvidenceLayerService, (container) =>
+      new EvidenceLayerService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1045,6 +1060,8 @@ export class CompositionRoot {
       cohortBuilderService: container.resolve(TOKENS.CohortBuilderService),
       // PR-055
       datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
+      // PR-056
+      evidenceLayerService: container.resolve(TOKENS.EvidenceLayerService),
     }));
 
     this._registerFeatures();
@@ -1092,5 +1109,6 @@ export class CompositionRoot {
     r.register('FeatureStore',             { status: 'active', migratesIn: 'PR-053' }); // PR-053 ✓
     r.register('CohortBuilder',            { status: 'active', migratesIn: 'PR-054' }); // PR-054 ✓
     r.register('DatasetVersion',           { status: 'active', migratesIn: 'PR-055' }); // PR-055 ✓
+    r.register('EvidenceLayer',            { status: 'active', migratesIn: 'PR-056' }); // PR-056 ✓ Phase C完了
   }
 }

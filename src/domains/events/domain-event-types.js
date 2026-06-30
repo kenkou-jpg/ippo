@@ -59,6 +59,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   COHORT_DEFINED:                   'COHORT_DEFINED',
   // Wave2 Dataset Version Management (PR-055 / BD-021)
   DATASET_VERSION_PUBLISHED:        'DATASET_VERSION_PUBLISHED',
+  // Wave2 Evidence Layer (PR-056 / Phase C capstone)
+  EVIDENCE_SUMMARY_CREATED:         'EVIDENCE_SUMMARY_CREATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -81,6 +83,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   FEATURE_STORE: 'FEATURE_STORE',
   COHORT:          'COHORT',
   DATASET_VERSION: 'DATASET_VERSION',
+  EVIDENCE:        'EVIDENCE',
 });
 
 /** Current event schema version. Bump on structural changes. */
