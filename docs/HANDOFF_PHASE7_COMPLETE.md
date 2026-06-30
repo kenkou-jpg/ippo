@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  44（+ SignalInsight追加 / Phase D開始）
-ApiGateway methods:        124+（generateSignalInsights / getSignalInsightStatus追加）
-Domain Event Types:        31（SIGNAL_INSIGHT_GENERATED追加）
-DI TOKENS:                 310+（PR-057: SignalInsightService追加）
-Tests (全パス):            4,303件 / 247ファイル（39件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   114+（PR-057: テスト内ArchGuardルール6件追加）
+Features (RouteRegistry):  45（+ PatternDiscovery追加）
+ApiGateway methods:        126+（discoverPatterns / getPatternDiscoveryStatus追加）
+Domain Event Types:        32（PATTERN_DISCOVERED追加）
+DI TOKENS:                 311+（PR-058: PatternDiscoveryService追加）
+Tests (全パス):            4,420件 / 248ファイル（39件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   114+（PR-058: テスト内ArchGuardルール6件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -207,13 +207,14 @@ Wave2 (PR-041〜075) — Phase A実装中
   ★ Phase C (PR-051〜056) 完了 — Phase D (AI Platform) 入口条件成立
   Phase D (PR-057〜062): AI Platform + Signal Insight
     ✓ PR-057  Signal Insight Service — SignalInsightService.generateInsights() / ForbiddenWordValidator(BD-038) / PAIN/SLEEP/SYMPTOM/LONGITUDINAL_DELTA/PHASE_COMPARISON 5種インサイト / isMedicalAdvice:false機械付与 / LOW信頼度抑制 / SIGNAL_INSIGHT_GENERATED / ArchGuard+6ルール / 64件テスト
+    ✓ PR-058  Pattern Discovery Service — PatternDiscoveryService.discoverPatterns() / PHASE_CORRELATION/SIGNAL_CO_OCCURRENCE/EXPERIMENT_RESPONSE/LONGITUDINAL_TREND 4種パターン / Pearson相関係数計算 / LOW信頼度返却（抑制なし）/ 因果断定ワード自動ブロック(BD-038) / PATTERN_DISCOVERED / ArchGuard+6ルール / 64件テスト
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-058 Pattern Discovery Service（Phase×Signal相関 / Signal共起 / Experiment前後比較 / BD-031 / BD-038）
+Next PR: PR-059 Case Recommendation Foundation（FV V2ベース類似Case探索 / k-anonymity k≥5 / BD-029 / BD-030 / admin:research権限先行）
 ```
 
 ---

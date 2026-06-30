@@ -188,6 +188,8 @@ import { DatasetVersionService }    from '../domains/dataset-version/dataset-ver
 import { EvidenceLayerService }     from '../domains/evidence/evidence-layer-service.js';
 // PR-057
 import { SignalInsightService }     from '../domains/signal-insight/signal-insight-service.js';
+// PR-058
+import { PatternDiscoveryService }  from '../domains/pattern-discovery/pattern-discovery-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -348,6 +350,8 @@ export const TOKENS = Object.freeze({
   EvidenceLayerService:                'EvidenceLayerService',
   // PR-057 — Signal Insight Service
   SignalInsightService:                'SignalInsightService',
+  // PR-058 — Pattern Discovery Service
+  PatternDiscoveryService:             'PatternDiscoveryService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -734,6 +738,15 @@ export class CompositionRoot {
         eventPublisher:      container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Pattern Discovery Service (PR-058) — Wave2 Phase D-2 ─────────────────
+    // BD-031: rule-based Pearson correlation — no LLM.
+    // BD-038: isMedicalAdvice:false machine-stamped; causal words auto-blocked.
+    //         LOW confidence patterns are returned (flagged), not suppressed.
+    c.singleton(TOKENS.PatternDiscoveryService, (container) =>
+      new PatternDiscoveryService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1078,6 +1091,8 @@ export class CompositionRoot {
       evidenceLayerService: container.resolve(TOKENS.EvidenceLayerService),
       // PR-057
       signalInsightService: container.resolve(TOKENS.SignalInsightService),
+      // PR-058
+      patternDiscoveryService: container.resolve(TOKENS.PatternDiscoveryService),
     }));
 
     this._registerFeatures();
@@ -1127,5 +1142,6 @@ export class CompositionRoot {
     r.register('DatasetVersion',           { status: 'active', migratesIn: 'PR-055' }); // PR-055 ✓
     r.register('EvidenceLayer',            { status: 'active', migratesIn: 'PR-056' }); // PR-056 ✓ Phase C完了
     r.register('SignalInsight',            { status: 'active', migratesIn: 'PR-057' }); // PR-057 ✓ Phase D開始
+    r.register('PatternDiscovery',         { status: 'active', migratesIn: 'PR-058' }); // PR-058 ✓
   }
 }

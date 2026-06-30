@@ -63,6 +63,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   EVIDENCE_SUMMARY_CREATED:         'EVIDENCE_SUMMARY_CREATED',
   // Wave2 Signal Insight Service (PR-057 / BD-031 / BD-038)
   SIGNAL_INSIGHT_GENERATED:         'SIGNAL_INSIGHT_GENERATED',
+  // Wave2 Pattern Discovery Service (PR-058 / BD-031 / BD-038)
+  PATTERN_DISCOVERED:               'PATTERN_DISCOVERED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -86,7 +88,8 @@ export const AGGREGATE_TYPES = Object.freeze({
   COHORT:          'COHORT',
   DATASET_VERSION: 'DATASET_VERSION',
   EVIDENCE:        'EVIDENCE',
-  SIGNAL_INSIGHT:  'SIGNAL_INSIGHT',
+  SIGNAL_INSIGHT:      'SIGNAL_INSIGHT',
+  PATTERN_DISCOVERY:   'PATTERN_DISCOVERY',
 });
 
 /** Current event schema version. Bump on structural changes. */

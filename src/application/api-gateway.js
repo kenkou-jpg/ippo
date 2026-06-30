@@ -121,6 +121,8 @@ export class ApiGateway {
   #evidenceLayerService;
   // PR-057
   #signalInsightService;
+  // PR-058
+  #patternDiscoveryService;
 
   constructor({
     permissionService,
@@ -236,6 +238,8 @@ export class ApiGateway {
     evidenceLayerService = null,
     // PR-057
     signalInsightService = null,
+    // PR-058
+    patternDiscoveryService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -340,6 +344,8 @@ export class ApiGateway {
     this.#evidenceLayerService = evidenceLayerService;
     // PR-057
     this.#signalInsightService = signalInsightService;
+    // PR-058
+    this.#patternDiscoveryService = patternDiscoveryService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2243,5 +2249,29 @@ export class ApiGateway {
     if (!this.#signalInsightService)
       throw new Error('[ApiGateway] SignalInsightService not wired');
     return this.#signalInsightService.getStatus();
+  }
+
+  // ── Pattern Discovery (PR-058 / BD-031 / BD-038) ─────────────────────────
+
+  /**
+   * Discover statistical patterns from a user's persisted signals.
+   * Returns all 4 pattern types; LOW-confidence patterns included but flagged.
+   *
+   * @param {{ userId: string, signals: object[], experiments?: object[] }} input
+   * @returns {Promise<ReadonlyArray<Readonly<object>>>}
+   */
+  async discoverPatterns(input) {
+    await this.#permissionService.require('record:read');
+    if (!this.#patternDiscoveryService)
+      throw new Error('[ApiGateway] PatternDiscoveryService not wired');
+    return this.#patternDiscoveryService.discoverPatterns(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getPatternDiscoveryStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#patternDiscoveryService)
+      throw new Error('[ApiGateway] PatternDiscoveryService not wired');
+    return this.#patternDiscoveryService.getStatus();
   }
 }
