@@ -37,6 +37,7 @@ const KNOWN_FEATURES = new Set([
   'FeatureVectorV2',          // PR-047: FeatureVector V2 (Wave2 Phase B-2)
   'LongitudinalEdgeEnricher', // PR-048: Longitudinal Edge Enricher (Wave2 Phase B-3)
   'EnvironmentalSignal',      // PR-049: Environmental Signal Collector (Wave2 Phase B-4)
+  'SignalIntelligenceV2',     // PR-050: Signal Intelligence V2 (Wave2 Phase B-5)
 ]);
 
 export class RouteRegistry {

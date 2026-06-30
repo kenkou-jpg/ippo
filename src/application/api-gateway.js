@@ -105,6 +105,8 @@ export class ApiGateway {
   // PR-049
   #environmentalSignalCollector;
   #environmentalSignalSnapshotService;
+  // PR-050
+  #signalIntelligenceV2Service;
 
   constructor({
     permissionService,
@@ -204,6 +206,8 @@ export class ApiGateway {
     // PR-049
     environmentalSignalCollector       = null,
     environmentalSignalSnapshotService = null,
+    // PR-050
+    signalIntelligenceV2Service = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -292,6 +296,8 @@ export class ApiGateway {
     // PR-049
     this.#environmentalSignalCollector       = environmentalSignalCollector;
     this.#environmentalSignalSnapshotService = environmentalSignalSnapshotService;
+    // PR-050
+    this.#signalIntelligenceV2Service = signalIntelligenceV2Service;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1755,5 +1761,106 @@ export class ApiGateway {
     if (!this.#environmentalSignalSnapshotService)
       throw new Error('[ApiGateway] EnvironmentalSignalSnapshotService not wired');
     return this.#environmentalSignalSnapshotService.getLatestSnapshot();
+  }
+
+  // ── Signal Intelligence V2 (PR-050) ──────────────────────────────────────
+  // BD-024: EMOTION Signal now included in all aggregations (Wave2 active).
+  // BD-022: signal source = NetworkSignalPersistenceServiceV2.
+  // BD-038: Rule-based only — no AI, no LLM.
+
+  /**
+   * Aggregate all persisted signals by type and day.
+   * BD-024: EMOTION signals included.
+   * @returns {Promise<object>}  AggregationResult: { byType, byDay, total }
+   */
+  async getSignalAggregationV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.aggregate();
+  }
+
+  /**
+   * Phase-based signal aggregation — new in V2.
+   * Returns average normalizedValue per menstrual phase per signal type.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getSignalAggregationByPhase() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.aggregateByPhase();
+  }
+
+  /**
+   * Trend for a specific signal type from persisted signals.
+   * BD-024: EMOTION is a valid type.
+   * @param {string} signalType
+   * @returns {Promise<object>}  TrendResult
+   */
+  async getSignalTrendV2(signalType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.trend(signalType);
+  }
+
+  /**
+   * Trends for all signal types in persisted signals.
+   * @returns {Promise<Record<string, object>>}
+   */
+  async getAllSignalTrendsV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.trendAll();
+  }
+
+  /**
+   * Chronological timeline from all persisted signals.
+   * @returns {Promise<object>}  TimelineResult
+   */
+  async getSignalTimelineV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.buildTimeline();
+  }
+
+  /**
+   * Full summary from all persisted signals.
+   * BD-024: emotionCount populated.
+   * BD-018: includes generatedAt.
+   * @returns {Promise<object>}  SignalSummary
+   */
+  async getSignalSummaryV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.summarize();
+  }
+
+  /**
+   * Create a daily snapshot from all persisted signals.
+   * BD-018: snapshot includes generatedAt + vectorVersion.
+   * @param {{ schedule?: string }} [options]
+   * @returns {Promise<Readonly<object>>}
+   */
+  async createSignalSnapshotV2(options = {}) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.createDailySnapshot(options.schedule);
+  }
+
+  /**
+   * Return V2 health status (BD-024 compliance, signal type counts, source info).
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getSignalIntelligenceV2Status() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalIntelligenceV2Service)
+      throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
+    return this.#signalIntelligenceV2Service.getV2Status();
   }
 }

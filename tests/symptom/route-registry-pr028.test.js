@@ -14,7 +14,7 @@ describe('RouteRegistry PR-028 — Symptom feature', () => {
   });
 
   it('total knownFeatures count is 20 (updated PR-032: +Longitudinal)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(36);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(37);
   });
 
   it('registered Symptom descriptor is frozen with correct metadata', () => {

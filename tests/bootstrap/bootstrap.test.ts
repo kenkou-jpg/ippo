@@ -111,7 +111,7 @@ describe('RouteRegistry', () => {
     expect(known).toContain('EventSourcing');
     expect(known).toContain('Emotion');
     expect(known).toContain('MenstrualIntelligence');
-    expect(known).toHaveLength(36); // PR-049: added 'EnvironmentalSignal'
+    expect(known).toHaveLength(37); // PR-049: added 'EnvironmentalSignal'
   });
 });
 

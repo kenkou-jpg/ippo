@@ -168,6 +168,8 @@ import { LongitudinalEdgeEnricher }  from '../domains/similarity/longitudinal-ed
 // PR-049 — Environmental Signal Collector
 import { EnvironmentalSignalCollector }        from '../domains/record/environmental-signal-collector.js';
 import { EnvironmentalSignalSnapshotService }  from '../domains/record/environmental-signal-snapshot-service.js';
+// PR-050 — Signal Intelligence V2
+import { SignalIntelligenceV2Service }         from '../domains/network/signal-intelligence-v2-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -308,6 +310,8 @@ export const TOKENS = Object.freeze({
   // PR-049 — Environmental Signal Collector
   EnvironmentalSignalCollector:         'EnvironmentalSignalCollector',
   EnvironmentalSignalSnapshotService:   'EnvironmentalSignalSnapshotService',
+  // PR-050 — Signal Intelligence V2
+  SignalIntelligenceV2Service:          'SignalIntelligenceV2Service',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -662,6 +666,21 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Signal Intelligence V2 (PR-050) — Wave2 Phase B-5 ───────────────
+    // BD-024: Emotion Signal now included in all aggregations (Wave2 active).
+    // BD-022: signal source = NetworkSignalPersistenceServiceV2 (persistent store).
+    // BD-038: Rule-based computation — no AI, no LLM.
+    // Delegates to Wave1 stateless services; adds aggregateByPhase() + createDailySnapshot().
+    c.singleton(TOKENS.SignalIntelligenceV2Service, (container) =>
+      new SignalIntelligenceV2Service({
+        persistenceService: container.resolve(TOKENS.NetworkSignalPersistenceServiceV2),
+        aggregationService: container.resolve(TOKENS.SignalAggregationService),
+        trendService:       container.resolve(TOKENS.SignalTrendService),
+        timelineService:    container.resolve(TOKENS.SignalTimelineService),
+        summaryService:     container.resolve(TOKENS.SignalSummaryService),
+        snapshotService:    container.resolve(TOKENS.SignalSnapshotService),
+      }));
+
     // ── Environmental Signal Collector (PR-049) — Wave2 Phase B-4 ───────
     // BD-003: Lunar Calendar UI FORBIDDEN — background data only.
     // BD-043: Environmental Signal UI display FORBIDDEN — Wave3+ scope.
@@ -927,6 +946,8 @@ export class CompositionRoot {
       // PR-049
       environmentalSignalCollector:        container.resolve(TOKENS.EnvironmentalSignalCollector),
       environmentalSignalSnapshotService:  container.resolve(TOKENS.EnvironmentalSignalSnapshotService),
+      // PR-050
+      signalIntelligenceV2Service: container.resolve(TOKENS.SignalIntelligenceV2Service),
     }));
 
     this._registerFeatures();
@@ -968,5 +989,6 @@ export class CompositionRoot {
     r.register('FeatureVectorV2',          { status: 'active', migratesIn: 'PR-047' }); // PR-047 ✓
     r.register('LongitudinalEdgeEnricher', { status: 'active', migratesIn: 'PR-048' }); // PR-048 ✓
     r.register('EnvironmentalSignal',      { status: 'active', migratesIn: 'PR-049' }); // PR-049 ✓
+    r.register('SignalIntelligenceV2',     { status: 'active', migratesIn: 'PR-050' }); // PR-050 ✓
   }
 }
