@@ -269,6 +269,18 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /disease-cluster-statistics-service/,   label: 'feature→DiseaseClusterStatisticsService' },
   { from: /\/screens\//,   to: /disease-cluster-snapshot-entity/,      label: 'screen→DiseaseClusterSnapshotEntity'     },
   { from: /\/features\//,  to: /disease-cluster-snapshot-entity/,      label: 'feature→DiseaseClusterSnapshotEntity'    },
+  // PR-051 — UI must not reach Knowledge Graph internals directly;
+  //           access via ApiGateway → addKgNode / getKgNodes / addKgEdge / getKgEdges /
+  //           updateKgEdgeConfidence / getKgStatus.
+  //           BD-036: DELETE is permanently forbidden — guard enforces no direct repo access.
+  { from: /\/screens\//,   to: /knowledge-graph-repository/,   label: 'screen→KnowledgeGraphRepository'   },
+  { from: /\/features\//,  to: /knowledge-graph-repository/,   label: 'feature→KnowledgeGraphRepository'  },
+  { from: /\/screens\//,   to: /knowledge-graph-service/,      label: 'screen→KnowledgeGraphService'      },
+  { from: /\/features\//,  to: /knowledge-graph-service/,      label: 'feature→KnowledgeGraphService'     },
+  { from: /\/screens\//,   to: /knowledge-graph-node-entity/,  label: 'screen→KnowledgeGraphNodeEntity'   },
+  { from: /\/features\//,  to: /knowledge-graph-node-entity/,  label: 'feature→KnowledgeGraphNodeEntity'  },
+  { from: /\/screens\//,   to: /knowledge-graph-edge-entity/,  label: 'screen→KnowledgeGraphEdgeEntity'   },
+  { from: /\/features\//,  to: /knowledge-graph-edge-entity/,  label: 'feature→KnowledgeGraphEdgeEntity'  },
 ];
 
 export function runArchitectureGuard() {

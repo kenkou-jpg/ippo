@@ -107,14 +107,15 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | **Longitudinal Edge Enricher** | longitudinal-edge-enricher / LongitudinalEdgeEnricher / computeCaseTrend / TREND_BONUS=0.05 / displayScore=rawScore+trendBonus | **PR-048完了** |
 | **Environmental Signal Collector** | environmental-signal-types(SSOT) / EnvironmentalSignalCollector / computeLunarAge / computeLunarPhase / EnvironmentalSignalSnapshotService / ENVIRONMENTAL_SIGNAL_RECORDED | **PR-049完了** |
 | **Signal Intelligence V2** | signal-intelligence-v2-service / SignalIntelligenceV2Service / aggregateByPhase / BD-024 Emotion含む全6種別 / createDailySnapshot | **PR-050完了** |
+| **Knowledge Graph Foundation** | knowledge-graph-types(SSOT) / knowledge-graph-node-entity / knowledge-graph-edge-entity / knowledge-graph-repository(Append-Only) / knowledge-graph-service / KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED | **PR-051完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  37（DiseaseClusterStatistics / FeatureVectorV2 / LongitudinalEdgeEnricher / EnvironmentalSignal / SignalIntelligenceV2含む）
-ApiGateway methods:        95+（getSignalAggregationV2 / aggregateByPhase / getSignalTrendV2 / getAllSignalTrendsV2 / buildTimeline / summarize / createDailySnapshot / getV2Status 等8メソッド追加）
-Domain Event Types:        22（DISEASE_CLUSTER_COMPUTED / FEATURE_VECTOR_V2_CREATED / LONGITUDINAL_EDGE_ENRICHED / ENVIRONMENTAL_SIGNAL_RECORDED含む）
-DI TOKENS:                 299+（PR-049: 2サービス追加 / PR-050: 1サービス追加）
+Features (RouteRegistry):  38（KnowledgeGraph追加）
+ApiGateway methods:        103+（addKgNode / getKgNode / getKgNodes / addKgEdge / getKgEdge / getKgEdges / updateKgEdgeConfidence / getKgStatus 等8メソッド追加）
+Domain Event Types:        24（KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED追加）
+DI TOKENS:                 301+（PR-051: KnowledgeGraphRepository / KnowledgeGraphService 追加）
 Tests (全パス):            3,999件 / 242ファイル（35件はtests/modules/既知のpre-existing failure）
 ArchitectureGuard rules:   84+（PR-049: 4件追加）
 Architecture Health:       A（違反ゼロ）
@@ -196,6 +197,7 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-049  Environmental Signal Collector — EnvironmentalSignalCollector / computeLunarPhase / EnvironmentalSignalSnapshotService / BD-043
     ✓ PR-050  Signal Intelligence V2 — SignalIntelligenceV2Service / aggregateByPhase / BD-024 Emotion含む全6種別 / createDailySnapshot / BD-022
   Phase C (PR-051〜056): Knowledge Graph Foundation
+    ✓ PR-051  Knowledge Graph Foundation — KgNodeEntity / KgEdgeEntity / KnowledgeGraphRepository(Append-Only BD-036) / KnowledgeGraphService / KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED / ArchGuard+8ルール
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
@@ -203,7 +205,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-051 Knowledge Graph Foundation（Phase C 開始）
+Next PR: PR-052 Knowledge Graph Builder（Disease × Symptom × Outcome 骨格構築）
 ```
 
 ---

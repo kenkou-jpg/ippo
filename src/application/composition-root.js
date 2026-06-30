@@ -170,6 +170,9 @@ import { EnvironmentalSignalCollector }        from '../domains/record/environme
 import { EnvironmentalSignalSnapshotService }  from '../domains/record/environmental-signal-snapshot-service.js';
 // PR-050 — Signal Intelligence V2
 import { SignalIntelligenceV2Service }         from '../domains/network/signal-intelligence-v2-service.js';
+// PR-051 — Knowledge Graph Foundation
+import { KnowledgeGraphRepository } from '../domains/knowledge/knowledge-graph-repository.js';
+import { KnowledgeGraphService }    from '../domains/knowledge/knowledge-graph-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -312,6 +315,9 @@ export const TOKENS = Object.freeze({
   EnvironmentalSignalSnapshotService:   'EnvironmentalSignalSnapshotService',
   // PR-050 — Signal Intelligence V2
   SignalIntelligenceV2Service:          'SignalIntelligenceV2Service',
+  // PR-051 — Knowledge Graph Foundation
+  KnowledgeGraphRepository:            'KnowledgeGraphRepository',
+  KnowledgeGraphService:               'KnowledgeGraphService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -666,6 +672,17 @@ export class CompositionRoot {
         supabaseClient: container.resolve(TOKENS.SupabaseClient),
       }));
 
+    // ── Knowledge Graph Foundation (PR-051) — Wave2 Phase C-1 ───────────
+    // BD-036: Append-Only — DELETE is permanently forbidden on kg_nodes / kg_edges.
+    // BD-028: edges with evidenceCount < 5 carry lowConfidence = true.
+    // BD-031: No AI/LLM — pure structural storage; Builder in PR-052 populates content.
+    c.singleton(TOKENS.KnowledgeGraphRepository, () => new KnowledgeGraphRepository());
+    c.singleton(TOKENS.KnowledgeGraphService, (container) =>
+      new KnowledgeGraphService({
+        repository:     container.resolve(TOKENS.KnowledgeGraphRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Signal Intelligence V2 (PR-050) — Wave2 Phase B-5 ───────────────
     // BD-024: Emotion Signal now included in all aggregations (Wave2 active).
     // BD-022: signal source = NetworkSignalPersistenceServiceV2 (persistent store).
@@ -948,6 +965,8 @@ export class CompositionRoot {
       environmentalSignalSnapshotService:  container.resolve(TOKENS.EnvironmentalSignalSnapshotService),
       // PR-050
       signalIntelligenceV2Service: container.resolve(TOKENS.SignalIntelligenceV2Service),
+      // PR-051
+      knowledgeGraphService: container.resolve(TOKENS.KnowledgeGraphService),
     }));
 
     this._registerFeatures();
@@ -990,5 +1009,6 @@ export class CompositionRoot {
     r.register('LongitudinalEdgeEnricher', { status: 'active', migratesIn: 'PR-048' }); // PR-048 ✓
     r.register('EnvironmentalSignal',      { status: 'active', migratesIn: 'PR-049' }); // PR-049 ✓
     r.register('SignalIntelligenceV2',     { status: 'active', migratesIn: 'PR-050' }); // PR-050 ✓
+    r.register('KnowledgeGraph',           { status: 'active', migratesIn: 'PR-051' }); // PR-051 ✓
   }
 }

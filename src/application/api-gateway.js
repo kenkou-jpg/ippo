@@ -107,6 +107,8 @@ export class ApiGateway {
   #environmentalSignalSnapshotService;
   // PR-050
   #signalIntelligenceV2Service;
+  // PR-051
+  #knowledgeGraphService;
 
   constructor({
     permissionService,
@@ -208,6 +210,8 @@ export class ApiGateway {
     environmentalSignalSnapshotService = null,
     // PR-050
     signalIntelligenceV2Service = null,
+    // PR-051
+    knowledgeGraphService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -298,6 +302,8 @@ export class ApiGateway {
     this.#environmentalSignalSnapshotService = environmentalSignalSnapshotService;
     // PR-050
     this.#signalIntelligenceV2Service = signalIntelligenceV2Service;
+    // PR-051
+    this.#knowledgeGraphService = knowledgeGraphService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1862,5 +1868,106 @@ export class ApiGateway {
     if (!this.#signalIntelligenceV2Service)
       throw new Error('[ApiGateway] SignalIntelligenceV2Service not wired');
     return this.#signalIntelligenceV2Service.getV2Status();
+  }
+
+  // ── Knowledge Graph Foundation (PR-051) ───────────────────────────────────
+
+  /**
+   * Add a node to the Knowledge Graph.
+   * BD-036: Append-Only; nodes are never deleted.
+   * @param {{ type: string, attributes: object, nodeId?: string }} params
+   * @returns {Promise<Readonly<object>>}
+   */
+  async addKgNode(params) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.addNode(params);
+  }
+
+  /**
+   * Get a KG node by id.
+   * @param {string} nodeId
+   * @returns {Promise<Readonly<object> | undefined>}
+   */
+  async getKgNode(nodeId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.getNode(nodeId);
+  }
+
+  /**
+   * Get all KG nodes, optionally filtered by type.
+   * @param {string} [type]
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getKgNodes(type) {
+    await this.#permissionService.require('record:read');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.getNodes(type);
+  }
+
+  /**
+   * Add an edge to the Knowledge Graph.
+   * @param {{ fromNodeId, toNodeId, relationType, evidenceCount, confidence, edgeId? }} params
+   * @returns {Promise<Readonly<object>>}
+   */
+  async addKgEdge(params) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.addEdge(params);
+  }
+
+  /**
+   * Get a KG edge by id.
+   * @param {string} edgeId
+   * @returns {Promise<Readonly<object> | undefined>}
+   */
+  async getKgEdge(edgeId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.getEdge(edgeId);
+  }
+
+  /**
+   * Get all KG edges, optionally filtered by relationType.
+   * @param {string} [relationType]
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async getKgEdges(relationType) {
+    await this.#permissionService.require('record:read');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.getEdges(relationType);
+  }
+
+  /**
+   * Update confidence on an existing edge (Append-Only — original is preserved).
+   * BD-036: creates a new edge entry rather than mutating the original.
+   * @param {string} edgeId
+   * @param {number} evidenceCount
+   * @param {number} confidence
+   * @returns {Promise<Readonly<object>>}
+   */
+  async updateKgEdgeConfidence(edgeId, evidenceCount, confidence) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.updateEdgeConfidence(edgeId, evidenceCount, confidence);
+  }
+
+  /**
+   * Return KG health status and stats.
+   * @returns {Promise<Readonly<object>>}
+   */
+  async getKgStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#knowledgeGraphService)
+      throw new Error('[ApiGateway] KnowledgeGraphService not wired');
+    return this.#knowledgeGraphService.getStatus();
   }
 }

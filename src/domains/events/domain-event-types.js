@@ -48,6 +48,9 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   LONGITUDINAL_EDGE_ENRICHED:     'LONGITUDINAL_EDGE_ENRICHED',
   // Wave2 Environmental Signal Collector (PR-049 / BD-043)
   ENVIRONMENTAL_SIGNAL_RECORDED:  'ENVIRONMENTAL_SIGNAL_RECORDED',
+  // Wave2 Knowledge Graph Foundation (PR-051 / BD-036)
+  KNOWLEDGE_GRAPH_NODE_ADDED:     'KNOWLEDGE_GRAPH_NODE_ADDED',
+  KNOWLEDGE_GRAPH_EDGE_ADDED:     'KNOWLEDGE_GRAPH_EDGE_ADDED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -66,6 +69,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   EXPERIMENT: 'EXPERIMENT',
   RESEARCH:   'RESEARCH',
   EMOTION:    'EMOTION',
+  KNOWLEDGE:  'KNOWLEDGE',
 });
 
 /** Current event schema version. Bump on structural changes. */
