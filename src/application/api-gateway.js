@@ -119,6 +119,8 @@ export class ApiGateway {
   #datasetVersionService;
   // PR-056
   #evidenceLayerService;
+  // PR-057
+  #signalInsightService;
 
   constructor({
     permissionService,
@@ -232,6 +234,8 @@ export class ApiGateway {
     datasetVersionService = null,
     // PR-056
     evidenceLayerService = null,
+    // PR-057
+    signalInsightService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -334,6 +338,8 @@ export class ApiGateway {
     this.#datasetVersionService = datasetVersionService;
     // PR-056
     this.#evidenceLayerService = evidenceLayerService;
+    // PR-057
+    this.#signalInsightService = signalInsightService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2212,5 +2218,30 @@ export class ApiGateway {
     if (!this.#evidenceLayerService)
       throw new Error('[ApiGateway] EvidenceLayerService not wired');
     return this.#evidenceLayerService.getStatus();
+  }
+
+  // ── Signal Insight (PR-057 / BD-031 / BD-038) ────────────────────────────
+
+  /**
+   * Generate Signal Insight summaries for a user.
+   * BD-038: LOW-confidence insights suppressed; forbidden words auto-blocked.
+   *
+   * @param {{ userId: string, signals: object[] }} input
+   * @param {{ source?: string }} [options]
+   * @returns {Promise<ReadonlyArray<Readonly<object>>>}
+   */
+  async generateSignalInsights(input, options = {}) {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalInsightService)
+      throw new Error('[ApiGateway] SignalInsightService not wired');
+    return this.#signalInsightService.generateInsights(input, options);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getSignalInsightStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#signalInsightService)
+      throw new Error('[ApiGateway] SignalInsightService not wired');
+    return this.#signalInsightService.getStatus();
   }
 }

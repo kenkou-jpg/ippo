@@ -61,6 +61,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   DATASET_VERSION_PUBLISHED:        'DATASET_VERSION_PUBLISHED',
   // Wave2 Evidence Layer (PR-056 / Phase C capstone)
   EVIDENCE_SUMMARY_CREATED:         'EVIDENCE_SUMMARY_CREATED',
+  // Wave2 Signal Insight Service (PR-057 / BD-031 / BD-038)
+  SIGNAL_INSIGHT_GENERATED:         'SIGNAL_INSIGHT_GENERATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -84,6 +86,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   COHORT:          'COHORT',
   DATASET_VERSION: 'DATASET_VERSION',
   EVIDENCE:        'EVIDENCE',
+  SIGNAL_INSIGHT:  'SIGNAL_INSIGHT',
 });
 
 /** Current event schema version. Bump on structural changes. */

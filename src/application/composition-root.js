@@ -186,6 +186,8 @@ import { DatasetVersionRepository } from '../domains/dataset-version/dataset-ver
 import { DatasetVersionService }    from '../domains/dataset-version/dataset-version-service.js';
 // PR-056
 import { EvidenceLayerService }     from '../domains/evidence/evidence-layer-service.js';
+// PR-057
+import { SignalInsightService }     from '../domains/signal-insight/signal-insight-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -344,6 +346,8 @@ export const TOKENS = Object.freeze({
   DatasetVersionService:               'DatasetVersionService',
   // PR-056 — Evidence Layer
   EvidenceLayerService:                'EvidenceLayerService',
+  // PR-057 — Signal Insight Service
+  SignalInsightService:                'SignalInsightService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -720,6 +724,16 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Signal Insight Service (PR-057) — Wave2 Phase D-1 ────────────────────
+    // BD-031: rule-based template generation only — no LLM.
+    // BD-038: isMedicalAdvice:false machine-stamped; forbidden words auto-blocked.
+    //         LOW confidence insights suppressed before returning.
+    c.singleton(TOKENS.SignalInsightService, (container) =>
+      new SignalInsightService({
+        featureStoreService: container.resolve(TOKENS.FeatureStoreService),
+        eventPublisher:      container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1062,6 +1076,8 @@ export class CompositionRoot {
       datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
       // PR-056
       evidenceLayerService: container.resolve(TOKENS.EvidenceLayerService),
+      // PR-057
+      signalInsightService: container.resolve(TOKENS.SignalInsightService),
     }));
 
     this._registerFeatures();
@@ -1110,5 +1126,6 @@ export class CompositionRoot {
     r.register('CohortBuilder',            { status: 'active', migratesIn: 'PR-054' }); // PR-054 ✓
     r.register('DatasetVersion',           { status: 'active', migratesIn: 'PR-055' }); // PR-055 ✓
     r.register('EvidenceLayer',            { status: 'active', migratesIn: 'PR-056' }); // PR-056 ✓ Phase C完了
+    r.register('SignalInsight',            { status: 'active', migratesIn: 'PR-057' }); // PR-057 ✓ Phase D開始
   }
 }
