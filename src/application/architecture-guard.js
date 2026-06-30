@@ -288,6 +288,17 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /knowledge-graph-builder/,         label: 'feature→KnowledgeGraphBuilder'        },
   { from: /\/screens\//,   to: /knowledge-graph-snapshot-entity/,  label: 'screen→KnowledgeGraphSnapshotEntity'  },
   { from: /\/features\//,  to: /knowledge-graph-snapshot-entity/,  label: 'feature→KnowledgeGraphSnapshotEntity' },
+  // PR-053 — UI must not reach Feature Store internals directly;
+  //           access via ApiGateway → computeFeatureMatrix / getFeatureMatrix / getFeatureStoreStatus.
+  //           BD-037: in-memory Signal 禁止 — guard enforces no direct service/repository access.
+  { from: /\/screens\//,   to: /feature-store-repository/,         label: 'screen→FeatureStoreRepository'         },
+  { from: /\/features\//,  to: /feature-store-repository/,         label: 'feature→FeatureStoreRepository'        },
+  { from: /\/screens\//,   to: /feature-store-service/,            label: 'screen→FeatureStoreService'            },
+  { from: /\/features\//,  to: /feature-store-service/,            label: 'feature→FeatureStoreService'           },
+  { from: /\/screens\//,   to: /feature-matrix-entity/,            label: 'screen→FeatureMatrixEntity'            },
+  { from: /\/features\//,  to: /feature-matrix-entity/,            label: 'feature→FeatureMatrixEntity'           },
+  { from: /\/screens\//,   to: /feature-store-types/,              label: 'screen→FeatureStoreTypes'              },
+  { from: /\/features\//,  to: /feature-store-types/,              label: 'feature→FeatureStoreTypes'             },
 ];
 
 export function runArchitectureGuard() {

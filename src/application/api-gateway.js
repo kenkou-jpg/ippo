@@ -111,6 +111,8 @@ export class ApiGateway {
   #knowledgeGraphService;
   // PR-052
   #knowledgeGraphBuilder;
+  // PR-053
+  #featureStoreService;
 
   constructor({
     permissionService,
@@ -216,6 +218,8 @@ export class ApiGateway {
     knowledgeGraphService = null,
     // PR-052
     knowledgeGraphBuilder = null,
+    // PR-053
+    featureStoreService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -310,6 +314,8 @@ export class ApiGateway {
     this.#knowledgeGraphService = knowledgeGraphService;
     // PR-052
     this.#knowledgeGraphBuilder = knowledgeGraphBuilder;
+    // PR-053
+    this.#featureStoreService = featureStoreService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1998,5 +2004,40 @@ export class ApiGateway {
     if (!this.#knowledgeGraphBuilder)
       throw new Error('[ApiGateway] KnowledgeGraphBuilder not wired');
     return this.#knowledgeGraphBuilder.build(input, options);
+  }
+
+  // ── Feature Store V1 (PR-053) ────────────────────────────────────────────
+
+  /**
+   * Compute and store a FeatureMatrix for a user from their persisted signals.
+   * BD-037: signals must be from Supabase persistence — pass options.source='supabase'.
+   * @requires admin:research
+   */
+  async computeFeatureMatrix(input = {}, options = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#featureStoreService)
+      throw new Error('[ApiGateway] FeatureStoreService not wired');
+    return this.#featureStoreService.compute(input, options);
+  }
+
+  /**
+   * Retrieve the latest FeatureMatrix for a user.
+   * @requires record:read
+   */
+  async getFeatureMatrix(userId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#featureStoreService)
+      throw new Error('[ApiGateway] FeatureStoreService not wired');
+    return this.#featureStoreService.getMatrix(userId);
+  }
+
+  /**
+   * @requires record:read
+   */
+  async getFeatureStoreStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#featureStoreService)
+      throw new Error('[ApiGateway] FeatureStoreService not wired');
+    return this.#featureStoreService.getStatus();
   }
 }

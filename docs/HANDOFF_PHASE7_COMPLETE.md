@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  39（KnowledgeGraph / KnowledgeGraphBuilder追加）
-ApiGateway methods:        104+（buildKnowledgeGraph追加）
-Domain Event Types:        25（KNOWLEDGE_GRAPH_SNAPSHOT_CREATED追加）
-DI TOKENS:                 302+（PR-052: KnowledgeGraphBuilder追加）
-Tests (全パス):            3,999件 / 242ファイル（35件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   84+（PR-049: 4件追加）
+Features (RouteRegistry):  40（KnowledgeGraph / KnowledgeGraphBuilder / FeatureStore追加）
+ApiGateway methods:        107+（buildKnowledgeGraph / computeFeatureMatrix / getFeatureMatrix / getFeatureStoreStatus追加）
+Domain Event Types:        26（FEATURE_STORE_UPDATED追加）
+DI TOKENS:                 304+（PR-053: FeatureStoreRepository / FeatureStoreService追加）
+Tests (全パス):            4,074件 / 243ファイル（35件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   92+（PR-053: 8件追加）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -200,6 +200,7 @@ Wave2 (PR-041〜075) — Phase A実装中
   Phase C (PR-051〜056): Knowledge Graph Foundation
     ✓ PR-051  Knowledge Graph Foundation — KgNodeEntity / KgEdgeEntity / KnowledgeGraphRepository(Append-Only BD-036) / KnowledgeGraphService / KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED / ArchGuard+8ルール
     ✓ PR-052  Knowledge Graph Builder — KnowledgeGraphBuilder.build() / Disease×Symptom×Outcome×Phase×SignalPattern / 全6エッジ種別(HAS_SYMPTOM/OBSERVED_IN/WORSE_IN_PHASE/LEADS_TO_OUTCOME/COMORBID_WITH/SIGNAL_INDICATES) / KgSnapshot(BD-018) / KNOWLEDGE_GRAPH_SNAPSHOT_CREATED / ArchGuard+4ルール
+    ✓ PR-053  Feature Store V1 — FeatureStoreService.compute() / Feature 6種(avg_pain_30d/avg_sleep_30d/avg_symptom_30d/menstrual_regularity/longitudinal_delta_pain/phase_pain_distribution) / BD-037 Supabase-only入力強制 / FeatureMatrix(BD-018 computedAt) / FEATURE_STORE_UPDATED / ArchGuard+8ルール / 54件テスト
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
@@ -207,7 +208,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-053 Feature Store V1（Signal特徴量の高速参照基盤）
+Next PR: PR-054 Cohort Builder（研究コホート定義・k-anonymity k≥5検証 / BD-039）
 ```
 
 ---

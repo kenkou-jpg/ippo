@@ -175,6 +175,9 @@ import { KnowledgeGraphRepository } from '../domains/knowledge/knowledge-graph-r
 import { KnowledgeGraphService }    from '../domains/knowledge/knowledge-graph-service.js';
 // PR-052 — Knowledge Graph Builder
 import { KnowledgeGraphBuilder } from '../domains/knowledge/knowledge-graph-builder.js';
+// PR-053
+import { FeatureStoreRepository } from '../domains/feature-store/feature-store-repository.js';
+import { FeatureStoreService }    from '../domains/feature-store/feature-store-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -322,6 +325,9 @@ export const TOKENS = Object.freeze({
   KnowledgeGraphService:               'KnowledgeGraphService',
   // PR-052 — Knowledge Graph Builder
   KnowledgeGraphBuilder:               'KnowledgeGraphBuilder',
+  // PR-053 — Feature Store V1
+  FeatureStoreRepository:              'FeatureStoreRepository',
+  FeatureStoreService:                 'FeatureStoreService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -687,6 +693,19 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Feature Store V1 (PR-053) — Wave2 Phase C-3 ─────────────────────
+    // BD-037: compute() enforces Supabase-only signal source; in-memory signals rejected.
+    // BD-018: FeatureMatrix has computedAt ISO string (via buildFeatureMatrix).
+    // BD-031: Pure deterministic computation — no AI/LLM.
+    // 6 features: avg_pain_30d / avg_sleep_30d / avg_symptom_30d /
+    //             menstrual_regularity / longitudinal_delta_pain / phase_pain_distribution
+    c.singleton(TOKENS.FeatureStoreRepository, () => new FeatureStoreRepository());
+    c.singleton(TOKENS.FeatureStoreService, (container) =>
+      new FeatureStoreService({
+        repository:     container.resolve(TOKENS.FeatureStoreRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Knowledge Graph Builder (PR-052) — Wave2 Phase C-2 ───────────────
     // BD-028: Disease × Symptom × Outcome KG 骨格を Research Dataset から構築。
     // BD-031: 純粋ルールベース — AI/LLM 禁止。
@@ -984,6 +1003,8 @@ export class CompositionRoot {
       knowledgeGraphService: container.resolve(TOKENS.KnowledgeGraphService),
       // PR-052
       knowledgeGraphBuilder: container.resolve(TOKENS.KnowledgeGraphBuilder),
+      // PR-053
+      featureStoreService: container.resolve(TOKENS.FeatureStoreService),
     }));
 
     this._registerFeatures();
@@ -1028,5 +1049,6 @@ export class CompositionRoot {
     r.register('SignalIntelligenceV2',     { status: 'active', migratesIn: 'PR-050' }); // PR-050 ✓
     r.register('KnowledgeGraph',           { status: 'active', migratesIn: 'PR-051' }); // PR-051 ✓
     r.register('KnowledgeGraphBuilder',    { status: 'active', migratesIn: 'PR-052' }); // PR-052 ✓
+    r.register('FeatureStore',             { status: 'active', migratesIn: 'PR-053' }); // PR-053 ✓
   }
 }

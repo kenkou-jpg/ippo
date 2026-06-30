@@ -53,6 +53,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   KNOWLEDGE_GRAPH_EDGE_ADDED:     'KNOWLEDGE_GRAPH_EDGE_ADDED',
   // Wave2 Knowledge Graph Builder (PR-052 / BD-028 / BD-018)
   KNOWLEDGE_GRAPH_SNAPSHOT_CREATED: 'KNOWLEDGE_GRAPH_SNAPSHOT_CREATED',
+  // Wave2 Feature Store V1 (PR-053 / BD-037)
+  FEATURE_STORE_UPDATED:            'FEATURE_STORE_UPDATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -71,7 +73,8 @@ export const AGGREGATE_TYPES = Object.freeze({
   EXPERIMENT: 'EXPERIMENT',
   RESEARCH:   'RESEARCH',
   EMOTION:    'EMOTION',
-  KNOWLEDGE:  'KNOWLEDGE',
+  KNOWLEDGE:     'KNOWLEDGE',
+  FEATURE_STORE: 'FEATURE_STORE',
 });
 
 /** Current event schema version. Bump on structural changes. */
