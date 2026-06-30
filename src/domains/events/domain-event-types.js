@@ -51,6 +51,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   // Wave2 Knowledge Graph Foundation (PR-051 / BD-036)
   KNOWLEDGE_GRAPH_NODE_ADDED:     'KNOWLEDGE_GRAPH_NODE_ADDED',
   KNOWLEDGE_GRAPH_EDGE_ADDED:     'KNOWLEDGE_GRAPH_EDGE_ADDED',
+  // Wave2 Knowledge Graph Builder (PR-052 / BD-028 / BD-018)
+  KNOWLEDGE_GRAPH_SNAPSHOT_CREATED: 'KNOWLEDGE_GRAPH_SNAPSHOT_CREATED',
 });
 
 /** Set of all valid event type strings for fast validation. */

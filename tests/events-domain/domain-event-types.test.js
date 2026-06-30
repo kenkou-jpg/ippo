@@ -9,8 +9,8 @@ import {
 describe('DOMAIN_EVENT_TYPES', () => {
   it('is frozen', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPES)).toBe(true));
 
-  it('has exactly 24 event types (PR-051 adds KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED)', () => {
-    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(24);
+  it('has exactly 25 event types (PR-052 adds KNOWLEDGE_GRAPH_SNAPSHOT_CREATED)', () => {
+    expect(Object.keys(DOMAIN_EVENT_TYPES)).toHaveLength(25);
   });
 
   it('contains all required event types', () => {
@@ -36,7 +36,7 @@ describe('DOMAIN_EVENT_TYPES', () => {
 
 describe('DOMAIN_EVENT_TYPE_SET', () => {
   it('is a frozen Set', () => expect(Object.isFrozen(DOMAIN_EVENT_TYPE_SET)).toBe(true));
-  it('has 24 entries (PR-051 adds KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(24));
+  it('has 25 entries (PR-052 adds KNOWLEDGE_GRAPH_SNAPSHOT_CREATED)', () => expect(DOMAIN_EVENT_TYPE_SET.size).toBe(25));
   it('contains SIGNAL_CREATED', () => expect(DOMAIN_EVENT_TYPE_SET.has('SIGNAL_CREATED')).toBe(true));
   it('does not contain unknown type', () => expect(DOMAIN_EVENT_TYPE_SET.has('UNKNOWN_EVENT')).toBe(false));
 });

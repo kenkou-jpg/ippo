@@ -108,14 +108,15 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | **Environmental Signal Collector** | environmental-signal-types(SSOT) / EnvironmentalSignalCollector / computeLunarAge / computeLunarPhase / EnvironmentalSignalSnapshotService / ENVIRONMENTAL_SIGNAL_RECORDED | **PR-049完了** |
 | **Signal Intelligence V2** | signal-intelligence-v2-service / SignalIntelligenceV2Service / aggregateByPhase / BD-024 Emotion含む全6種別 / createDailySnapshot | **PR-050完了** |
 | **Knowledge Graph Foundation** | knowledge-graph-types(SSOT) / knowledge-graph-node-entity / knowledge-graph-edge-entity / knowledge-graph-repository(Append-Only) / knowledge-graph-service / KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED | **PR-051完了** |
+| **Knowledge Graph Builder** | knowledge-graph-builder / KnowledgeGraphBuilder.build() / Disease×Symptom×Outcome×Phase×SignalPattern / 全6エッジ種別 / knowledge-graph-snapshot-entity / KgVersion / KNOWLEDGE_GRAPH_SNAPSHOT_CREATED | **PR-052完了** |
 
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  38（KnowledgeGraph追加）
-ApiGateway methods:        103+（addKgNode / getKgNode / getKgNodes / addKgEdge / getKgEdge / getKgEdges / updateKgEdgeConfidence / getKgStatus 等8メソッド追加）
-Domain Event Types:        24（KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED追加）
-DI TOKENS:                 301+（PR-051: KnowledgeGraphRepository / KnowledgeGraphService 追加）
+Features (RouteRegistry):  39（KnowledgeGraph / KnowledgeGraphBuilder追加）
+ApiGateway methods:        104+（buildKnowledgeGraph追加）
+Domain Event Types:        25（KNOWLEDGE_GRAPH_SNAPSHOT_CREATED追加）
+DI TOKENS:                 302+（PR-052: KnowledgeGraphBuilder追加）
 Tests (全パス):            3,999件 / 242ファイル（35件はtests/modules/既知のpre-existing failure）
 ArchitectureGuard rules:   84+（PR-049: 4件追加）
 Architecture Health:       A（違反ゼロ）
@@ -198,6 +199,7 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-050  Signal Intelligence V2 — SignalIntelligenceV2Service / aggregateByPhase / BD-024 Emotion含む全6種別 / createDailySnapshot / BD-022
   Phase C (PR-051〜056): Knowledge Graph Foundation
     ✓ PR-051  Knowledge Graph Foundation — KgNodeEntity / KgEdgeEntity / KnowledgeGraphRepository(Append-Only BD-036) / KnowledgeGraphService / KNOWLEDGE_GRAPH_NODE_ADDED / KNOWLEDGE_GRAPH_EDGE_ADDED / ArchGuard+8ルール
+    ✓ PR-052  Knowledge Graph Builder — KnowledgeGraphBuilder.build() / Disease×Symptom×Outcome×Phase×SignalPattern / 全6エッジ種別(HAS_SYMPTOM/OBSERVED_IN/WORSE_IN_PHASE/LEADS_TO_OUTCOME/COMORBID_WITH/SIGNAL_INDICATES) / KgSnapshot(BD-018) / KNOWLEDGE_GRAPH_SNAPSHOT_CREATED / ArchGuard+4ルール
   Phase D (PR-057〜062): AI Platform + Signal Insight
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
@@ -205,7 +207,7 @@ Wave2 (PR-041〜075) — Phase A実装中
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-052 Knowledge Graph Builder（Disease × Symptom × Outcome 骨格構築）
+Next PR: PR-053 Feature Store V1（Signal特徴量の高速参照基盤）
 ```
 
 ---

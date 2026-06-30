@@ -109,6 +109,8 @@ export class ApiGateway {
   #signalIntelligenceV2Service;
   // PR-051
   #knowledgeGraphService;
+  // PR-052
+  #knowledgeGraphBuilder;
 
   constructor({
     permissionService,
@@ -212,6 +214,8 @@ export class ApiGateway {
     signalIntelligenceV2Service = null,
     // PR-051
     knowledgeGraphService = null,
+    // PR-052
+    knowledgeGraphBuilder = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -304,6 +308,8 @@ export class ApiGateway {
     this.#signalIntelligenceV2Service = signalIntelligenceV2Service;
     // PR-051
     this.#knowledgeGraphService = knowledgeGraphService;
+    // PR-052
+    this.#knowledgeGraphBuilder = knowledgeGraphBuilder;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1969,5 +1975,28 @@ export class ApiGateway {
     if (!this.#knowledgeGraphService)
       throw new Error('[ApiGateway] KnowledgeGraphService not wired');
     return this.#knowledgeGraphService.getStatus();
+  }
+
+  // ── Knowledge Graph Builder (PR-052) ─────────────────────────────────────
+
+  /**
+   * Build the KG skeleton from diseases / clusterSnapshots / signals / cases.
+   * Idempotent — duplicate nodes are not inserted.
+   * BD-036: all inserts are Append-Only via KnowledgeGraphService.
+   *
+   * @param {{
+   *   diseases?:         object[],
+   *   clusterSnapshots?: object[],
+   *   signals?:          object[],
+   *   cases?:            object[],
+   * }} input
+   * @param {{ kgVersion?: string }} [options]
+   * @returns {Promise<{ snapshot: Readonly<object>, addedNodes: number, addedEdges: number }>}
+   */
+  async buildKnowledgeGraph(input = {}, options = {}) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#knowledgeGraphBuilder)
+      throw new Error('[ApiGateway] KnowledgeGraphBuilder not wired');
+    return this.#knowledgeGraphBuilder.build(input, options);
   }
 }

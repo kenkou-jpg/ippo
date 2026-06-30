@@ -281,6 +281,13 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /knowledge-graph-node-entity/,  label: 'feature→KnowledgeGraphNodeEntity'  },
   { from: /\/screens\//,   to: /knowledge-graph-edge-entity/,  label: 'screen→KnowledgeGraphEdgeEntity'   },
   { from: /\/features\//,  to: /knowledge-graph-edge-entity/,  label: 'feature→KnowledgeGraphEdgeEntity'  },
+  // PR-052 — UI must not reach KnowledgeGraphBuilder or KgSnapshot internals directly;
+  //           access via ApiGateway → buildKnowledgeGraph.
+  //           BD-031: no AI/LLM — builder is deterministic; direct calls bypass permission gate.
+  { from: /\/screens\//,   to: /knowledge-graph-builder/,         label: 'screen→KnowledgeGraphBuilder'         },
+  { from: /\/features\//,  to: /knowledge-graph-builder/,         label: 'feature→KnowledgeGraphBuilder'        },
+  { from: /\/screens\//,   to: /knowledge-graph-snapshot-entity/,  label: 'screen→KnowledgeGraphSnapshotEntity'  },
+  { from: /\/features\//,  to: /knowledge-graph-snapshot-entity/,  label: 'feature→KnowledgeGraphSnapshotEntity' },
 ];
 
 export function runArchitectureGuard() {

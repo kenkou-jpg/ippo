@@ -173,6 +173,8 @@ import { SignalIntelligenceV2Service }         from '../domains/network/signal-i
 // PR-051 — Knowledge Graph Foundation
 import { KnowledgeGraphRepository } from '../domains/knowledge/knowledge-graph-repository.js';
 import { KnowledgeGraphService }    from '../domains/knowledge/knowledge-graph-service.js';
+// PR-052 — Knowledge Graph Builder
+import { KnowledgeGraphBuilder } from '../domains/knowledge/knowledge-graph-builder.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -318,6 +320,8 @@ export const TOKENS = Object.freeze({
   // PR-051 — Knowledge Graph Foundation
   KnowledgeGraphRepository:            'KnowledgeGraphRepository',
   KnowledgeGraphService:               'KnowledgeGraphService',
+  // PR-052 — Knowledge Graph Builder
+  KnowledgeGraphBuilder:               'KnowledgeGraphBuilder',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -683,6 +687,17 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Knowledge Graph Builder (PR-052) — Wave2 Phase C-2 ───────────────
+    // BD-028: Disease × Symptom × Outcome KG 骨格を Research Dataset から構築。
+    // BD-031: 純粋ルールベース — AI/LLM 禁止。
+    // BD-018: KnowledgeGraphSnapshot には generatedAt 必須。
+    // BD-036: すべての insert は KgService 経由 (Append-Only)。
+    c.singleton(TOKENS.KnowledgeGraphBuilder, (container) =>
+      new KnowledgeGraphBuilder({
+        kgService:      container.resolve(TOKENS.KnowledgeGraphService),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Signal Intelligence V2 (PR-050) — Wave2 Phase B-5 ───────────────
     // BD-024: Emotion Signal now included in all aggregations (Wave2 active).
     // BD-022: signal source = NetworkSignalPersistenceServiceV2 (persistent store).
@@ -967,6 +982,8 @@ export class CompositionRoot {
       signalIntelligenceV2Service: container.resolve(TOKENS.SignalIntelligenceV2Service),
       // PR-051
       knowledgeGraphService: container.resolve(TOKENS.KnowledgeGraphService),
+      // PR-052
+      knowledgeGraphBuilder: container.resolve(TOKENS.KnowledgeGraphBuilder),
     }));
 
     this._registerFeatures();
@@ -1010,5 +1027,6 @@ export class CompositionRoot {
     r.register('EnvironmentalSignal',      { status: 'active', migratesIn: 'PR-049' }); // PR-049 ✓
     r.register('SignalIntelligenceV2',     { status: 'active', migratesIn: 'PR-050' }); // PR-050 ✓
     r.register('KnowledgeGraph',           { status: 'active', migratesIn: 'PR-051' }); // PR-051 ✓
+    r.register('KnowledgeGraphBuilder',    { status: 'active', migratesIn: 'PR-052' }); // PR-052 ✓
   }
 }
