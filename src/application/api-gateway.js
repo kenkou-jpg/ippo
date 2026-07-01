@@ -125,6 +125,8 @@ export class ApiGateway {
   #patternDiscoveryService;
   // PR-059
   #caseRecommendationService;
+  // PR-060
+  #similarCaseSearchService;
 
   constructor({
     permissionService,
@@ -244,6 +246,8 @@ export class ApiGateway {
     patternDiscoveryService = null,
     // PR-059
     caseRecommendationService = null,
+    // PR-060
+    similarCaseSearchService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -352,6 +356,8 @@ export class ApiGateway {
     this.#patternDiscoveryService = patternDiscoveryService;
     // PR-059
     this.#caseRecommendationService = caseRecommendationService;
+    // PR-060
+    this.#similarCaseSearchService = similarCaseSearchService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2305,5 +2311,30 @@ export class ApiGateway {
     if (!this.#caseRecommendationService)
       throw new Error('[ApiGateway] CaseRecommendationService not wired');
     return this.#caseRecommendationService.getStatus();
+  }
+
+  // ── Similar Case Search (PR-060 / BD-030 / admin:research) ───────────────
+
+  /**
+   * Search for anonymized cases matching a SearchQuery.
+   * BD-030: k < 5 matched group → KAnonymityError (never silenced).
+   * Requires admin:research permission.
+   *
+   * @param {{ query: object, casePool: object[] }} input
+   * @returns {Promise<Readonly<object>>} SearchResult
+   */
+  async searchSimilarCases(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#similarCaseSearchService)
+      throw new Error('[ApiGateway] SimilarCaseSearchService not wired');
+    return this.#similarCaseSearchService.search(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getSimilarCaseSearchStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similarCaseSearchService)
+      throw new Error('[ApiGateway] SimilarCaseSearchService not wired');
+    return this.#similarCaseSearchService.getStatus();
   }
 }

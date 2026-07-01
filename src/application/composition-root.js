@@ -191,7 +191,9 @@ import { SignalInsightService }     from '../domains/signal-insight/signal-insig
 // PR-058
 import { PatternDiscoveryService }  from '../domains/pattern-discovery/pattern-discovery-service.js';
 // PR-059
-import { CaseRecommendationService } from '../domains/case-recommendation/case-recommendation-service.js';
+import { CaseRecommendationService }  from '../domains/case-recommendation/case-recommendation-service.js';
+// PR-060
+import { SimilarCaseSearchService }   from '../domains/similar-case-search/similar-case-search-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -356,6 +358,8 @@ export const TOKENS = Object.freeze({
   PatternDiscoveryService:             'PatternDiscoveryService',
   // PR-059 — Case Recommendation Foundation
   CaseRecommendationService:           'CaseRecommendationService',
+  // PR-060 — Similar Case Search
+  SimilarCaseSearchService:            'SimilarCaseSearchService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -760,6 +764,15 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Similar Case Search (PR-060) — Wave2 Phase D-4 ───────────────────────
+    // BD-030: k < 5 → KAnonymityError (ZERO TOLERANCE).
+    // BD-021: case data is read-only (no mutations).
+    // Access: admin:research only via ApiGateway permission check.
+    c.singleton(TOKENS.SimilarCaseSearchService, (container) =>
+      new SimilarCaseSearchService({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1108,6 +1121,8 @@ export class CompositionRoot {
       patternDiscoveryService: container.resolve(TOKENS.PatternDiscoveryService),
       // PR-059
       caseRecommendationService: container.resolve(TOKENS.CaseRecommendationService),
+      // PR-060
+      similarCaseSearchService: container.resolve(TOKENS.SimilarCaseSearchService),
     }));
 
     this._registerFeatures();
@@ -1159,5 +1174,6 @@ export class CompositionRoot {
     r.register('SignalInsight',            { status: 'active', migratesIn: 'PR-057' }); // PR-057 ✓ Phase D開始
     r.register('PatternDiscovery',         { status: 'active', migratesIn: 'PR-058' }); // PR-058 ✓
     r.register('CaseRecommendation',       { status: 'active', migratesIn: 'PR-059' }); // PR-059 ✓ admin:research only
+    r.register('SimilarCaseSearch',        { status: 'active', migratesIn: 'PR-060' }); // PR-060 ✓ admin:research only
   }
 }
