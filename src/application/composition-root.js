@@ -198,6 +198,8 @@ import { SimilarCaseSearchService }   from '../domains/similar-case-search/simil
 import { ResearchAssistanceService }  from '../domains/research-assistance/research-assistance-service.js';
 // PR-062
 import { AISafetyValidator }          from '../domains/ai-safety/ai-safety-validator.js';
+// PR-063 — Similarity Engine V2
+import { SimilarityEngineV2 }          from '../domains/similarity/similarity-engine-v2.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -366,6 +368,8 @@ export const TOKENS = Object.freeze({
   SimilarCaseSearchService:            'SimilarCaseSearchService',
   ResearchAssistanceService:           'ResearchAssistanceService',
   AISafetyValidator:                   'AISafetyValidator',
+  // PR-063 — Similarity Engine V2
+  SimilarityEngineV2:                  'SimilarityEngineV2',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -788,6 +792,17 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Similarity Engine V2 (PR-063) — Wave2 Phase E-1 ──────────────────────
+    // BD-042: 12-dim FeatureVector V2 cosine similarity. V1/V2 mixing rejected at input.
+    // BD-001: V1 edges are never touched — reuses the SAME SimilarityRepository
+    //         (similarity_edges table); V2 edges are additive rows (vectorVersion='2').
+    // Threshold parity with V1: uses EdgeGenerator.DEFAULT_THRESHOLD (0.5).
+    c.singleton(TOKENS.SimilarityEngineV2, (container) =>
+      new SimilarityEngineV2({
+        repository:     container.resolve(TOKENS.SimilarityRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1152,6 +1167,8 @@ export class CompositionRoot {
       researchAssistanceService: container.resolve(TOKENS.ResearchAssistanceService),
       // PR-062
       aiSafetyValidator: container.resolve(TOKENS.AISafetyValidator),
+      // PR-063
+      similarityEngineV2: container.resolve(TOKENS.SimilarityEngineV2),
     }));
 
     this._registerFeatures();
@@ -1206,5 +1223,6 @@ export class CompositionRoot {
     r.register('SimilarCaseSearch',        { status: 'active', migratesIn: 'PR-060' }); // PR-060 ✓ admin:research only
     r.register('ResearchAssistance',       { status: 'active', migratesIn: 'PR-061' }); // PR-061 ✓ admin:research only
     r.register('AISafetyLayer',            { status: 'active', migratesIn: 'PR-062' }); // PR-062 ✓ Phase D capstone
+    r.register('SimilarityEngineV2',       { status: 'active', migratesIn: 'PR-063' }); // PR-063 ✓ Phase E開始
   }
 }

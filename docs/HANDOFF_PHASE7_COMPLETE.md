@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  49（+ AISafetyLayer追加）
-ApiGateway methods:        135+（validateAIOutput / getAISafetyAuditReport / getAISafetyStatus追加）
-Domain Event Types:        38（AI_SAFETY_VIOLATION / AI_SAFETY_AUDIT_COMPLETED / AI_SAFETY追加）
-DI TOKENS:                 315+（PR-062: AISafetyValidator追加）
-Tests (全パス):            4,673件 / 252ファイル（39件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   114+
+Features (RouteRegistry):  50（+ SimilarityEngineV2追加）
+ApiGateway methods:        138+（runSimilarityV2 / computeSimilarityV2 / getSimilarityV2Status追加）
+Domain Event Types:        39（SIMILARITY_V2_EDGE_GENERATED追加）
+DI TOKENS:                 316+（PR-063: SimilarityEngineV2追加）
+Tests (全パス):            4,740件 / 253ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   116+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -214,12 +214,13 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-062  AI Safety Layer — AISafetyValidator / 拡張禁止ワードリスト(PR-057 FORBIDDEN_WORDS + extended 35パターン) / validate()/validateStrict()/validateBatch() / auditServiceStatus() / getAuditReport()→phaseDComplete / 違反ログ累積 / BD-031/BD-038全Phase Dサービス横断監査 / PR-059/060 bd031+bd038フィールド追加 / Phase D完了宣言 / AI_SAFETY_AUDIT_COMPLETED / 73件テスト
   ★ Phase D (PR-057〜062) 完了 — Phase E (Similarity Evolution) 入口条件成立
   Phase E (PR-063〜067): Similarity Evolution
+    ✓ PR-063  Similarity Engine V2 — SimilarityEngineV2.computeSimilarity()/.generateEdge()/.run() / FeatureVector V2(12次元)コサイン類似度 / vectorVersion='2'固定Edge生成 / BD-042 V1/V2混在は#assertV2で即例外 / BD-001 既存V1 Edgeは無変更（同一SimilarityRepositoryへ追記のみ）/ threshold=EdgeGenerator.DEFAULT_THRESHOLD(0.5)でV1と同値 / edgeId prefix "EDGEV2-"でV1と判別 / SIMILARITY_V2_EDGE_GENERATED / ApiGateway: runSimilarityV2/computeSimilarityV2/getSimilarityV2Status / ArchGuard+2ルール / 28件テスト
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-063 Similarity Engine V2（Phase E開始 / FeatureVector V2 12次元コサイン類似度 / BD-042 V1/V2混在禁止）
+Next PR: PR-064 Disease Network Score V2（Cluster Profile × V2 Edge × Longitudinal Context 統合スコア）
 ```
 
 ---
@@ -648,4 +649,8 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-（未定）
+**PR-064: Disease Network Score V2**（Phase E継続）
+- 目的: Disease Cluster統計とV2 Edgeを統合したNetwork Scoreを算出する
+- 依存PR: PR-046（Cluster）/ PR-048（Longitudinal）/ PR-063（Similarity V2）
+- 成果物: `DiseaseNetworkScoreV2Service` / NetworkScore構造体 `{ diseaseKey, nodeCount, edgeCount, avgScore, clusterCohesion, longitudinalTrend }`
+- 詳細: docs/WAVE2_ROADMAP.md PR-064参照

@@ -131,6 +131,8 @@ export class ApiGateway {
   #researchAssistanceService;
   // PR-062
   #aiSafetyValidator;
+  // PR-063
+  #similarityEngineV2;
 
   constructor({
     permissionService,
@@ -256,6 +258,8 @@ export class ApiGateway {
     researchAssistanceService = null,
     // PR-062
     aiSafetyValidator = null,
+    // PR-063
+    similarityEngineV2 = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -370,6 +374,8 @@ export class ApiGateway {
     this.#researchAssistanceService = researchAssistanceService;
     // PR-062
     this.#aiSafetyValidator = aiSafetyValidator;
+    // PR-063
+    this.#similarityEngineV2 = similarityEngineV2;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -974,6 +980,53 @@ export class ApiGateway {
     if (!this.#longitudinalEdgeEnricher)
       throw new Error('[ApiGateway] LongitudinalEdgeEnricher not wired');
     return this.#longitudinalEdgeEnricher.enrichAll(entries);
+  }
+
+  // ── Similarity Engine V2 API (PR-063) ─────────────────────────────────────
+  // BD-042: input vectors must ALL be vectorVersion='2' — mixing with V1 throws.
+  // BD-001: existing V1 edges are never touched; V2 edges are additive rows.
+
+  /**
+   * Run the V2 similarity pipeline over an array of FeatureVector V2 entities.
+   * Persists generated V2 edges to the same similarity_edges store as V1.
+   * BD-042: throws if any input vector is not vectorVersion='2'.
+   *
+   * @param {Readonly<object>[]} vectors  FeatureVector V2 entities
+   * @returns {Promise<Readonly<object>>} run result (edges, pairsEvaluated, networkDensity, ...)
+   */
+  async runSimilarityV2(vectors) {
+    await this.#permissionService.require('record:read');
+    if (!this.#similarityEngineV2)
+      throw new Error('[ApiGateway] SimilarityEngineV2 not wired');
+    return this.#similarityEngineV2.run(vectors);
+  }
+
+  /**
+   * Compute cosine similarity between two FeatureVector V2 entities (no persistence).
+   * BD-042: throws if either vector is not vectorVersion='2'.
+   *
+   * @param {Readonly<object>} vecA
+   * @param {Readonly<object>} vecB
+   * @returns {Promise<Readonly<object>>} { score, sameDiseaseKey, vectorVersion }
+   */
+  async computeSimilarityV2(vecA, vecB) {
+    await this.#permissionService.require('record:read');
+    if (!this.#similarityEngineV2)
+      throw new Error('[ApiGateway] SimilarityEngineV2 not wired');
+    return this.#similarityEngineV2.computeSimilarity(vecA, vecB);
+  }
+
+  /** @returns {Promise<{ threshold: number, vectorVersion: string, bd042Compliant: boolean }>} */
+  async getSimilarityV2Status() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similarityEngineV2)
+      throw new Error('[ApiGateway] SimilarityEngineV2 not wired');
+    return Object.freeze({
+      threshold:      this.#similarityEngineV2.threshold,
+      vectorVersion:  '2',
+      bd001Compliant: true,
+      bd042Compliant: true,
+    });
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

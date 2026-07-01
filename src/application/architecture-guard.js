@@ -331,6 +331,11 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /evidence-summary-entity/,         label: 'feature→EvidenceSummaryEntity'         },
   { from: /\/screens\//,   to: /evidence-types/,                  label: 'screen→EvidenceTypes'                  },
   { from: /\/features\//,  to: /evidence-types/,                  label: 'feature→EvidenceTypes'                 },
+  // PR-063 — UI must not reach SimilarityEngineV2 directly;
+  //           access via ApiGateway → runSimilarityV2 / computeSimilarityV2 / getSimilarityV2Status.
+  //           BD-042: V1/V2 mixing guard lives in the engine — bypass via direct import is forbidden.
+  { from: /\/screens\//,   to: /similarity-engine-v2/,             label: 'screen→SimilarityEngineV2'             },
+  { from: /\/features\//,  to: /similarity-engine-v2/,             label: 'feature→SimilarityEngineV2'            },
 ];
 
 export function runArchitectureGuard() {

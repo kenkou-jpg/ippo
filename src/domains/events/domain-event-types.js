@@ -74,6 +74,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   // Wave2 AI Safety Layer (PR-062 / BD-031 / BD-038 / Phase D capstone)
   AI_SAFETY_VIOLATION:              'AI_SAFETY_VIOLATION',
   AI_SAFETY_AUDIT_COMPLETED:        'AI_SAFETY_AUDIT_COMPLETED',
+  // Wave2 Similarity Engine V2 (PR-063 / BD-042 / Phase E)
+  SIMILARITY_V2_EDGE_GENERATED:     'SIMILARITY_V2_EDGE_GENERATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
