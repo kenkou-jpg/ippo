@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  47（+ SimilarCaseSearch追加）
-ApiGateway methods:        130+（searchSimilarCases / getSimilarCaseSearchStatus追加）
-Domain Event Types:        34（SIMILAR_CASE_SEARCHED追加）
-DI TOKENS:                 313+（PR-060: SimilarCaseSearchService追加）
-Tests (全パス):            4,542件 / 250ファイル（39件はtests/modules/既知のpre-existing failure）
-ArchitectureGuard rules:   114+（PR-060: テスト内ArchGuardルール7件追加）
+Features (RouteRegistry):  48（+ ResearchAssistance追加）
+ApiGateway methods:        132+（getResearchAssistance / getResearchAssistanceStatus追加）
+Domain Event Types:        36（RESEARCH_ASSISTANCE_GENERATED / RESEARCH_ASSISTANCE追加）
+DI TOKENS:                 314+（PR-061: ResearchAssistanceService追加）
+Tests (全パス):            4,600件 / 251ファイル（39件はtests/modules/既知のpre-existing failure）
+ArchitectureGuard rules:   114+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -210,13 +210,14 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-058  Pattern Discovery Service — PatternDiscoveryService.discoverPatterns() / PHASE_CORRELATION/SIGNAL_CO_OCCURRENCE/EXPERIMENT_RESPONSE/LONGITUDINAL_TREND 4種パターン / Pearson相関係数計算 / LOW信頼度返却（抑制なし）/ 因果断定ワード自動ブロック(BD-038) / PATTERN_DISCOVERED / ArchGuard+6ルール / 64件テスト
     ✓ PR-059  Case Recommendation Foundation — CaseRecommendationService.recommend() / FV V2コサイン類似度 / k-anonymity k≥5 ZERO TOLERANCE(BD-030 KAnonymityError) / BD-026 Phase3未完でpublic拒否(Phase3NotCompleteError) / 個人識別フィールド機械的除去 / admin:research限定 / CASE_RECOMMENDATION_GENERATED / ArchGuard+8ルール / 67件テスト
     ✓ PR-060  Similar Case Search — SimilarCaseSearchService.search() / SearchQuery{diseaseKey/signalTypes/phaseFilter/minScore} / k-anonymity k≥5 ZERO TOLERANCE(BD-030) / ClusterProfile集計 / 個人識別フィールド機械的除去 / admin:research限定 / SIMILAR_CASE_SEARCHED / ArchGuard+7ルール / 55件テスト
+    ✓ PR-061  Research Assistance — ResearchAssistanceService.analyze() / 記述統計(mean/std/min/max/median/count) / Pearson相関係数ペア計算 / Cluster比較 / EvidenceLayerService統合 / 因果推論表現自動ブロック(BD-038 ForbiddenWordValidator) / isMedicalAdvice:false機械付与 / RESEARCH_ASSISTANCE_GENERATED / admin:research限定 / 58件テスト
   Phase E (PR-063〜066): Research Platform V2
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-061 Research Assistance（admin:research / 記述統計・相関分析 / Evidence Layer統合 / 因果推論自動生成禁止）
+Next PR: PR-062 AI Safety Layer（Phase D capstone / BD-031 / BD-038 / 全AIサービスの横断安全検証）
 ```
 
 ---

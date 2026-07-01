@@ -69,6 +69,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   CASE_RECOMMENDATION_GENERATED:    'CASE_RECOMMENDATION_GENERATED',
   // Wave2 Similar Case Search (PR-060 / BD-030 / admin:research)
   SIMILAR_CASE_SEARCHED:            'SIMILAR_CASE_SEARCHED',
+  // Wave2 Research Assistance (PR-061 / BD-031 / BD-038 / admin:research)
+  RESEARCH_ASSISTANCE_GENERATED:    'RESEARCH_ASSISTANCE_GENERATED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -96,6 +98,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   PATTERN_DISCOVERY:        'PATTERN_DISCOVERY',
   CASE_RECOMMENDATION:      'CASE_RECOMMENDATION',
   SIMILAR_CASE_SEARCH:      'SIMILAR_CASE_SEARCH',
+  RESEARCH_ASSISTANCE:      'RESEARCH_ASSISTANCE',
 });
 
 /** Current event schema version. Bump on structural changes. */

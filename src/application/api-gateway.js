@@ -127,6 +127,8 @@ export class ApiGateway {
   #caseRecommendationService;
   // PR-060
   #similarCaseSearchService;
+  // PR-061
+  #researchAssistanceService;
 
   constructor({
     permissionService,
@@ -248,6 +250,8 @@ export class ApiGateway {
     caseRecommendationService = null,
     // PR-060
     similarCaseSearchService = null,
+    // PR-061
+    researchAssistanceService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -358,6 +362,8 @@ export class ApiGateway {
     this.#caseRecommendationService = caseRecommendationService;
     // PR-060
     this.#similarCaseSearchService = similarCaseSearchService;
+    // PR-061
+    this.#researchAssistanceService = researchAssistanceService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2336,5 +2342,35 @@ export class ApiGateway {
     if (!this.#similarCaseSearchService)
       throw new Error('[ApiGateway] SimilarCaseSearchService not wired');
     return this.#similarCaseSearchService.getStatus();
+  }
+
+  // ── Research Assistance (PR-061 / BD-031 / BD-038 / admin:research) ──────
+
+  /**
+   * Compute descriptive statistics, signal correlations, and cluster comparisons
+   * from research datasets. Causal inference language is auto-blocked (BD-038).
+   * Requires admin:research permission.
+   *
+   * @param {{
+   *   datasets:         Array<{ signalType: string, values: number[] }>,
+   *   cohorts?:         object[],
+   *   clusterStats?:    object[],
+   *   evidenceSummary?: object|null,
+   * }} input
+   * @returns {Promise<Readonly<object>>} ResearchResult
+   */
+  async getResearchAssistance(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchAssistanceService)
+      throw new Error('[ApiGateway] ResearchAssistanceService not wired');
+    return this.#researchAssistanceService.analyze(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getResearchAssistanceStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#researchAssistanceService)
+      throw new Error('[ApiGateway] ResearchAssistanceService not wired');
+    return this.#researchAssistanceService.getStatus();
   }
 }

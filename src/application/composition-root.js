@@ -194,6 +194,8 @@ import { PatternDiscoveryService }  from '../domains/pattern-discovery/pattern-d
 import { CaseRecommendationService }  from '../domains/case-recommendation/case-recommendation-service.js';
 // PR-060
 import { SimilarCaseSearchService }   from '../domains/similar-case-search/similar-case-search-service.js';
+// PR-061
+import { ResearchAssistanceService }  from '../domains/research-assistance/research-assistance-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -360,6 +362,7 @@ export const TOKENS = Object.freeze({
   CaseRecommendationService:           'CaseRecommendationService',
   // PR-060 — Similar Case Search
   SimilarCaseSearchService:            'SimilarCaseSearchService',
+  ResearchAssistanceService:           'ResearchAssistanceService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -773,6 +776,16 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
+    // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
+    // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
+    // Access: admin:research only via ApiGateway permission check.
+    c.singleton(TOKENS.ResearchAssistanceService, (container) =>
+      new ResearchAssistanceService({
+        eventPublisher:      container.resolve(TOKENS.EventPublisher),
+        evidenceLayerService: container.resolve(TOKENS.EvidenceLayerService),
+      }));
+
     // ── Dataset Version Management (PR-055) — Wave2 Phase C-5 ───────────
     // BD-021: DatasetVersion は Append-Only — バージョン固定後の内容変更禁止。
     // BD-018: publishedAt ISO string 必須（via buildDatasetVersion）。
@@ -1123,6 +1136,8 @@ export class CompositionRoot {
       caseRecommendationService: container.resolve(TOKENS.CaseRecommendationService),
       // PR-060
       similarCaseSearchService: container.resolve(TOKENS.SimilarCaseSearchService),
+      // PR-061
+      researchAssistanceService: container.resolve(TOKENS.ResearchAssistanceService),
     }));
 
     this._registerFeatures();
@@ -1175,5 +1190,6 @@ export class CompositionRoot {
     r.register('PatternDiscovery',         { status: 'active', migratesIn: 'PR-058' }); // PR-058 ✓
     r.register('CaseRecommendation',       { status: 'active', migratesIn: 'PR-059' }); // PR-059 ✓ admin:research only
     r.register('SimilarCaseSearch',        { status: 'active', migratesIn: 'PR-060' }); // PR-060 ✓ admin:research only
+    r.register('ResearchAssistance',       { status: 'active', migratesIn: 'PR-061' }); // PR-061 ✓ admin:research only
   }
 }
