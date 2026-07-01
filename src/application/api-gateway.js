@@ -133,6 +133,8 @@ export class ApiGateway {
   #aiSafetyValidator;
   // PR-063
   #similarityEngineV2;
+  // PR-064
+  #diseaseNetworkScoreV2Service;
 
   constructor({
     permissionService,
@@ -260,6 +262,8 @@ export class ApiGateway {
     aiSafetyValidator = null,
     // PR-063
     similarityEngineV2 = null,
+    // PR-064
+    diseaseNetworkScoreV2Service = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -376,6 +380,8 @@ export class ApiGateway {
     this.#aiSafetyValidator = aiSafetyValidator;
     // PR-063
     this.#similarityEngineV2 = similarityEngineV2;
+    // PR-064
+    this.#diseaseNetworkScoreV2Service = diseaseNetworkScoreV2Service;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1027,6 +1033,54 @@ export class ApiGateway {
       bd001Compliant: true,
       bd042Compliant: true,
     });
+  }
+
+  // ── Disease Network Score V2 API (PR-064) ─────────────────────────────────
+  // BD-042: input edges may be a mixed V1/V2 pool — service filters to V2 internally.
+  // BD-018: every NetworkScore carries generatedAt + vectorVersion='2'.
+
+  /**
+   * Compute a NetworkScore V2 for a single disease cluster.
+   *
+   * @param {{
+   *   diseaseKey:      string,
+   *   clusterProfile?: object|null,
+   *   edges?:          object[],
+   *   caseIds?:        string[]|null,
+   * }} input
+   * @returns {Promise<Readonly<object>>} NetworkScore V2
+   */
+  async computeDiseaseNetworkScoreV2(input) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseNetworkScoreV2Service)
+      throw new Error('[ApiGateway] DiseaseNetworkScoreV2Service not wired');
+    return this.#diseaseNetworkScoreV2Service.computeNetworkScore(input);
+  }
+
+  /**
+   * Compute NetworkScore V2 for every diseaseKey given.
+   *
+   * @param {{
+   *   diseaseKeys:       string[],
+   *   clusterProfiles?:  Record<string, object>,
+   *   edges?:            object[],
+   *   caseIdsByDisease?: Record<string, string[]>,
+   * }} input
+   * @returns {Promise<Readonly<object>[]>}
+   */
+  async computeDiseaseNetworkScoresV2(input) {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseNetworkScoreV2Service)
+      throw new Error('[ApiGateway] DiseaseNetworkScoreV2Service not wired');
+    return this.#diseaseNetworkScoreV2Service.computeForAllClusters(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getDiseaseNetworkScoreV2Status() {
+    await this.#permissionService.require('record:read');
+    if (!this.#diseaseNetworkScoreV2Service)
+      throw new Error('[ApiGateway] DiseaseNetworkScoreV2Service not wired');
+    return this.#diseaseNetworkScoreV2Service.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

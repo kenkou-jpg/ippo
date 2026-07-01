@@ -336,6 +336,11 @@ const FORBIDDEN = [
   //           BD-042: V1/V2 mixing guard lives in the engine — bypass via direct import is forbidden.
   { from: /\/screens\//,   to: /similarity-engine-v2/,             label: 'screen→SimilarityEngineV2'             },
   { from: /\/features\//,  to: /similarity-engine-v2/,             label: 'feature→SimilarityEngineV2'            },
+  // PR-064 — UI must not reach DiseaseNetworkScoreV2Service directly;
+  //           access via ApiGateway → computeDiseaseNetworkScoreV2 / computeDiseaseNetworkScoresV2 /
+  //           getDiseaseNetworkScoreV2Status.
+  { from: /\/screens\//,   to: /disease-network-score-v2-service/, label: 'screen→DiseaseNetworkScoreV2Service'   },
+  { from: /\/features\//,  to: /disease-network-score-v2-service/, label: 'feature→DiseaseNetworkScoreV2Service'  },
 ];
 
 export function runArchitectureGuard() {

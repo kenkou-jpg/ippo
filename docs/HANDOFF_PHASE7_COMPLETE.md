@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  50（+ SimilarityEngineV2追加）
-ApiGateway methods:        138+（runSimilarityV2 / computeSimilarityV2 / getSimilarityV2Status追加）
-Domain Event Types:        39（SIMILARITY_V2_EDGE_GENERATED追加）
-DI TOKENS:                 316+（PR-063: SimilarityEngineV2追加）
-Tests (全パス):            4,740件 / 253ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   116+
+Features (RouteRegistry):  51（+ DiseaseNetworkScoreV2追加）
+ApiGateway methods:        141+（computeDiseaseNetworkScoreV2 / computeDiseaseNetworkScoresV2 / getDiseaseNetworkScoreV2Status追加）
+Domain Event Types:        40（DISEASE_NETWORK_SCORE_V2_COMPUTED追加）
+DI TOKENS:                 317+（PR-064: DiseaseNetworkScoreV2Service追加）
+Tests (全パス):            4,766件 / 254ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   118+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -215,12 +215,13 @@ Wave2 (PR-041〜075) — Phase A実装中
   ★ Phase D (PR-057〜062) 完了 — Phase E (Similarity Evolution) 入口条件成立
   Phase E (PR-063〜067): Similarity Evolution
     ✓ PR-063  Similarity Engine V2 — SimilarityEngineV2.computeSimilarity()/.generateEdge()/.run() / FeatureVector V2(12次元)コサイン類似度 / vectorVersion='2'固定Edge生成 / BD-042 V1/V2混在は#assertV2で即例外 / BD-001 既存V1 Edgeは無変更（同一SimilarityRepositoryへ追記のみ）/ threshold=EdgeGenerator.DEFAULT_THRESHOLD(0.5)でV1と同値 / edgeId prefix "EDGEV2-"でV1と判別 / SIMILARITY_V2_EDGE_GENERATED / ApiGateway: runSimilarityV2/computeSimilarityV2/getSimilarityV2Status / ArchGuard+2ルール / 28件テスト
+    ✓ PR-064  Disease Network Score V2 — DiseaseNetworkScoreV2Service.computeNetworkScore()/.computeForAllClusters() / ClusterProfile(PR-046) × V2 Edge(PR-063) × LongitudinalContext(PR-048)統合 / NetworkScore{diseaseKey,nodeCount,edgeCount,avgScore,clusterCohesion,longitudinalTrend} / BD-042 edges配列はV1/V2混在store前提でV2のみ内部フィルタ（例外にしない） / avgScoreはdisplayScore優先 / clusterCohesion=edgeCount/maxPossiblePairs（1でクランプ）/ longitudinalTrendはsourceTrend+targetTrendの多数決 / DISEASE_NETWORK_SCORE_V2_COMPUTED / ApiGateway: computeDiseaseNetworkScoreV2/computeDiseaseNetworkScoresV2/getDiseaseNetworkScoreV2Status / ArchGuard+2ルール / 26件テスト
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-064 Disease Network Score V2（Cluster Profile × V2 Edge × Longitudinal Context 統合スコア）
+Next PR: PR-065 Similarity Snapshot V2（VECTOR_VERSION='2'対応Snapshot / BD-018 / BD-010 / V1・V2世代分離管理）
 ```
 
 ---
@@ -649,8 +650,8 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-064: Disease Network Score V2**（Phase E継続）
-- 目的: Disease Cluster統計とV2 Edgeを統合したNetwork Scoreを算出する
-- 依存PR: PR-046（Cluster）/ PR-048（Longitudinal）/ PR-063（Similarity V2）
-- 成果物: `DiseaseNetworkScoreV2Service` / NetworkScore構造体 `{ diseaseKey, nodeCount, edgeCount, avgScore, clusterCohesion, longitudinalTrend }`
-- 詳細: docs/WAVE2_ROADMAP.md PR-064参照
+**PR-065: Similarity Snapshot V2**（Phase E継続）
+- 目的: VECTOR_VERSION='2' 対応の Similarity Snapshot を実装する（BD-018 / BD-010）
+- 責務: `SimilaritySnapshotV2Service`（V2 Edge の Snapshot 生成）/ Snapshot構造体 `{ snapshotId, vectorVersion:'2', edgeCount, caseCount, computedAt, threshold }` / V1・V2 Snapshot の世代分離管理 / BD-023遵守（再計算時は新edgeId発行）
+- 依存PR: PR-063（Similarity V2）/ PR-064（Network Score V2）
+- 詳細: docs/WAVE2_ROADMAP.md PR-065参照

@@ -76,6 +76,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   AI_SAFETY_AUDIT_COMPLETED:        'AI_SAFETY_AUDIT_COMPLETED',
   // Wave2 Similarity Engine V2 (PR-063 / BD-042 / Phase E)
   SIMILARITY_V2_EDGE_GENERATED:     'SIMILARITY_V2_EDGE_GENERATED',
+  // Wave2 Disease Network Score V2 (PR-064 / BD-018 / Phase E)
+  DISEASE_NETWORK_SCORE_V2_COMPUTED: 'DISEASE_NETWORK_SCORE_V2_COMPUTED',
 });
 
 /** Set of all valid event type strings for fast validation. */

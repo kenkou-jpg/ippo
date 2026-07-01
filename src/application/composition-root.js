@@ -200,6 +200,8 @@ import { ResearchAssistanceService }  from '../domains/research-assistance/resea
 import { AISafetyValidator }          from '../domains/ai-safety/ai-safety-validator.js';
 // PR-063 — Similarity Engine V2
 import { SimilarityEngineV2 }          from '../domains/similarity/similarity-engine-v2.js';
+// PR-064 — Disease Network Score V2
+import { DiseaseNetworkScoreV2Service } from '../domains/similarity/disease-network-score-v2-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -370,6 +372,8 @@ export const TOKENS = Object.freeze({
   AISafetyValidator:                   'AISafetyValidator',
   // PR-063 — Similarity Engine V2
   SimilarityEngineV2:                  'SimilarityEngineV2',
+  // PR-064 — Disease Network Score V2
+  DiseaseNetworkScoreV2Service:        'DiseaseNetworkScoreV2Service',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -803,6 +807,15 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Disease Network Score V2 (PR-064) — Wave2 Phase E-2 ──────────────────
+    // Integrates DiseaseClusterStatisticsService profile × SimilarityEngineV2 edges ×
+    // LongitudinalEdgeEnricher context. BD-042: V1 edges filtered out internally.
+    // BD-018: every NetworkScore carries generatedAt + vectorVersion='2'.
+    c.singleton(TOKENS.DiseaseNetworkScoreV2Service, (container) =>
+      new DiseaseNetworkScoreV2Service({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1169,6 +1182,8 @@ export class CompositionRoot {
       aiSafetyValidator: container.resolve(TOKENS.AISafetyValidator),
       // PR-063
       similarityEngineV2: container.resolve(TOKENS.SimilarityEngineV2),
+      // PR-064
+      diseaseNetworkScoreV2Service: container.resolve(TOKENS.DiseaseNetworkScoreV2Service),
     }));
 
     this._registerFeatures();
@@ -1224,5 +1239,6 @@ export class CompositionRoot {
     r.register('ResearchAssistance',       { status: 'active', migratesIn: 'PR-061' }); // PR-061 ✓ admin:research only
     r.register('AISafetyLayer',            { status: 'active', migratesIn: 'PR-062' }); // PR-062 ✓ Phase D capstone
     r.register('SimilarityEngineV2',       { status: 'active', migratesIn: 'PR-063' }); // PR-063 ✓ Phase E開始
+    r.register('DiseaseNetworkScoreV2',    { status: 'active', migratesIn: 'PR-064' }); // PR-064 ✓
   }
 }
