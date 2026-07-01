@@ -196,6 +196,8 @@ import { CaseRecommendationService }  from '../domains/case-recommendation/case-
 import { SimilarCaseSearchService }   from '../domains/similar-case-search/similar-case-search-service.js';
 // PR-061
 import { ResearchAssistanceService }  from '../domains/research-assistance/research-assistance-service.js';
+// PR-062
+import { AISafetyValidator }          from '../domains/ai-safety/ai-safety-validator.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -363,6 +365,7 @@ export const TOKENS = Object.freeze({
   // PR-060 — Similar Case Search
   SimilarCaseSearchService:            'SimilarCaseSearchService',
   ResearchAssistanceService:           'ResearchAssistanceService',
+  AISafetyValidator:                   'AISafetyValidator',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -776,6 +779,15 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── AI Safety Layer (PR-062) — Wave2 Phase D capstone ────────────────────
+    // BD-031: audits all Phase D service statuses for rule-based compliance.
+    // BD-038: canonical forbidden word check + isMedicalAdvice:false enforcement.
+    // Phase D complete when all 5 Phase D services pass audit.
+    c.singleton(TOKENS.AISafetyValidator, (container) =>
+      new AISafetyValidator({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1138,6 +1150,8 @@ export class CompositionRoot {
       similarCaseSearchService: container.resolve(TOKENS.SimilarCaseSearchService),
       // PR-061
       researchAssistanceService: container.resolve(TOKENS.ResearchAssistanceService),
+      // PR-062
+      aiSafetyValidator: container.resolve(TOKENS.AISafetyValidator),
     }));
 
     this._registerFeatures();
@@ -1191,5 +1205,6 @@ export class CompositionRoot {
     r.register('CaseRecommendation',       { status: 'active', migratesIn: 'PR-059' }); // PR-059 ✓ admin:research only
     r.register('SimilarCaseSearch',        { status: 'active', migratesIn: 'PR-060' }); // PR-060 ✓ admin:research only
     r.register('ResearchAssistance',       { status: 'active', migratesIn: 'PR-061' }); // PR-061 ✓ admin:research only
+    r.register('AISafetyLayer',            { status: 'active', migratesIn: 'PR-062' }); // PR-062 ✓ Phase D capstone
   }
 }

@@ -71,6 +71,9 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   SIMILAR_CASE_SEARCHED:            'SIMILAR_CASE_SEARCHED',
   // Wave2 Research Assistance (PR-061 / BD-031 / BD-038 / admin:research)
   RESEARCH_ASSISTANCE_GENERATED:    'RESEARCH_ASSISTANCE_GENERATED',
+  // Wave2 AI Safety Layer (PR-062 / BD-031 / BD-038 / Phase D capstone)
+  AI_SAFETY_VIOLATION:              'AI_SAFETY_VIOLATION',
+  AI_SAFETY_AUDIT_COMPLETED:        'AI_SAFETY_AUDIT_COMPLETED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -99,6 +102,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   CASE_RECOMMENDATION:      'CASE_RECOMMENDATION',
   SIMILAR_CASE_SEARCH:      'SIMILAR_CASE_SEARCH',
   RESEARCH_ASSISTANCE:      'RESEARCH_ASSISTANCE',
+  AI_SAFETY:                'AI_SAFETY',
 });
 
 /** Current event schema version. Bump on structural changes. */

@@ -129,6 +129,8 @@ export class ApiGateway {
   #similarCaseSearchService;
   // PR-061
   #researchAssistanceService;
+  // PR-062
+  #aiSafetyValidator;
 
   constructor({
     permissionService,
@@ -252,6 +254,8 @@ export class ApiGateway {
     similarCaseSearchService = null,
     // PR-061
     researchAssistanceService = null,
+    // PR-062
+    aiSafetyValidator = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -364,6 +368,8 @@ export class ApiGateway {
     this.#similarCaseSearchService = similarCaseSearchService;
     // PR-061
     this.#researchAssistanceService = researchAssistanceService;
+    // PR-062
+    this.#aiSafetyValidator = aiSafetyValidator;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -2372,5 +2378,45 @@ export class ApiGateway {
     if (!this.#researchAssistanceService)
       throw new Error('[ApiGateway] ResearchAssistanceService not wired');
     return this.#researchAssistanceService.getStatus();
+  }
+
+  // ── AI Safety Layer (PR-062 / BD-031 / BD-038 / Phase D capstone) ─────────
+
+  /**
+   * Validate an AI output text for BD-038 compliance (non-throwing).
+   * Returns a SafetyResult with result: PASS | FAIL and violations list.
+   * Requires admin:research permission.
+   *
+   * @param {{ text: string, isMedicalAdvice: boolean, serviceId?: string }} input
+   * @returns {Promise<Readonly<object>>} SafetyResult
+   */
+  async validateAIOutput(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#aiSafetyValidator)
+      throw new Error('[ApiGateway] AISafetyValidator not wired');
+    return this.#aiSafetyValidator.validate(input);
+  }
+
+  /**
+   * Generate Phase D audit report from service statuses.
+   * Confirms phaseDComplete when all 5 Phase D services pass BD-031/BD-038 audit.
+   * Requires admin:research permission.
+   *
+   * @param {Object<string, object>} serviceStatuses
+   * @returns {Promise<Readonly<object>>} AuditReport
+   */
+  async getAISafetyAuditReport(serviceStatuses) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#aiSafetyValidator)
+      throw new Error('[ApiGateway] AISafetyValidator not wired');
+    return this.#aiSafetyValidator.getAuditReport(serviceStatuses);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getAISafetyStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#aiSafetyValidator)
+      throw new Error('[ApiGateway] AISafetyValidator not wired');
+    return this.#aiSafetyValidator.getStatus();
   }
 }

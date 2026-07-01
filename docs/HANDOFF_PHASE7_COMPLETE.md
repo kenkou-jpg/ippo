@@ -113,11 +113,11 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  48（+ ResearchAssistance追加）
-ApiGateway methods:        132+（getResearchAssistance / getResearchAssistanceStatus追加）
-Domain Event Types:        36（RESEARCH_ASSISTANCE_GENERATED / RESEARCH_ASSISTANCE追加）
-DI TOKENS:                 314+（PR-061: ResearchAssistanceService追加）
-Tests (全パス):            4,600件 / 251ファイル（39件はtests/modules/既知のpre-existing failure）
+Features (RouteRegistry):  49（+ AISafetyLayer追加）
+ApiGateway methods:        135+（validateAIOutput / getAISafetyAuditReport / getAISafetyStatus追加）
+Domain Event Types:        38（AI_SAFETY_VIOLATION / AI_SAFETY_AUDIT_COMPLETED / AI_SAFETY追加）
+DI TOKENS:                 315+（PR-062: AISafetyValidator追加）
+Tests (全パス):            4,673件 / 252ファイル（39件はtests/modules/既知のpre-existing failure）
 ArchitectureGuard rules:   114+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
@@ -211,13 +211,15 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-059  Case Recommendation Foundation — CaseRecommendationService.recommend() / FV V2コサイン類似度 / k-anonymity k≥5 ZERO TOLERANCE(BD-030 KAnonymityError) / BD-026 Phase3未完でpublic拒否(Phase3NotCompleteError) / 個人識別フィールド機械的除去 / admin:research限定 / CASE_RECOMMENDATION_GENERATED / ArchGuard+8ルール / 67件テスト
     ✓ PR-060  Similar Case Search — SimilarCaseSearchService.search() / SearchQuery{diseaseKey/signalTypes/phaseFilter/minScore} / k-anonymity k≥5 ZERO TOLERANCE(BD-030) / ClusterProfile集計 / 個人識別フィールド機械的除去 / admin:research限定 / SIMILAR_CASE_SEARCHED / ArchGuard+7ルール / 55件テスト
     ✓ PR-061  Research Assistance — ResearchAssistanceService.analyze() / 記述統計(mean/std/min/max/median/count) / Pearson相関係数ペア計算 / Cluster比較 / EvidenceLayerService統合 / 因果推論表現自動ブロック(BD-038 ForbiddenWordValidator) / isMedicalAdvice:false機械付与 / RESEARCH_ASSISTANCE_GENERATED / admin:research限定 / 58件テスト
-  Phase E (PR-063〜066): Research Platform V2
+    ✓ PR-062  AI Safety Layer — AISafetyValidator / 拡張禁止ワードリスト(PR-057 FORBIDDEN_WORDS + extended 35パターン) / validate()/validateStrict()/validateBatch() / auditServiceStatus() / getAuditReport()→phaseDComplete / 違反ログ累積 / BD-031/BD-038全Phase Dサービス横断監査 / PR-059/060 bd031+bd038フィールド追加 / Phase D完了宣言 / AI_SAFETY_AUDIT_COMPLETED / 73件テスト
+  ★ Phase D (PR-057〜062) 完了 — Phase E (Similarity Evolution) 入口条件成立
+  Phase E (PR-063〜067): Similarity Evolution
   Phase F (PR-067〜071): Similarity UI + Network Visualization
   Phase G (PR-072〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-062 AI Safety Layer（Phase D capstone / BD-031 / BD-038 / 全AIサービスの横断安全検証）
+Next PR: PR-063 Similarity Engine V2（Phase E開始 / FeatureVector V2 12次元コサイン類似度 / BD-042 V1/V2混在禁止）
 ```
 
 ---

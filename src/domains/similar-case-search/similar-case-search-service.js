@@ -132,6 +132,8 @@ export class SimilarCaseSearchService {
       ready:             true,
       schemaVersion:     SEARCH_RESULT_SCHEMA_VERSION,
       bd030:             `k < ${K_ANONYMITY_MIN} groups blocked — KAnonymityError thrown`,
+      bd031:             'query-filter search only — zero LLM/ML',
+      bd038:             'isMedicalAdvice:false stamped; personal fields structurally removed',
       maxResults:        MAX_SEARCH_RESULTS,
       supportedSignalTypes: SEARCH_SIGNAL_TYPES,
       supportedPhases:      SEARCH_PHASE_FILTERS,

@@ -193,6 +193,8 @@ export class CaseRecommendationService {
       maxRecommendations: MAX_RECOMMENDATIONS,
       bd026:              'user-facing access blocked until Phase 3 Founder verification',
       bd030:              `k < ${K_ANONYMITY_MIN} is ZERO TOLERANCE — groups blocked`,
+      bd031:              'cosine similarity computation only — zero LLM/ML',
+      bd038:              'isMedicalAdvice:false stamped; personal fields structurally removed',
       mode:               'admin:research (pre-release)',
     });
   }
