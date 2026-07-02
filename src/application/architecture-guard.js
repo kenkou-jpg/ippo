@@ -341,6 +341,13 @@ const FORBIDDEN = [
   //           getDiseaseNetworkScoreV2Status.
   { from: /\/screens\//,   to: /disease-network-score-v2-service/, label: 'screen→DiseaseNetworkScoreV2Service'   },
   { from: /\/features\//,  to: /disease-network-score-v2-service/, label: 'feature→DiseaseNetworkScoreV2Service'  },
+  // PR-065 — UI must not reach SimilaritySnapshotV2 internals directly;
+  //           access via ApiGateway → createSimilaritySnapshotV2 / getSimilaritySnapshotsV2 /
+  //           getLatestSimilaritySnapshotV2 / getSimilaritySnapshotV2Status.
+  { from: /\/screens\//,   to: /similarity-snapshot-v2-repository/, label: 'screen→SimilaritySnapshotV2Repository' },
+  { from: /\/features\//,  to: /similarity-snapshot-v2-repository/, label: 'feature→SimilaritySnapshotV2Repository'},
+  { from: /\/screens\//,   to: /similarity-snapshot-v2-service/,    label: 'screen→SimilaritySnapshotV2Service'    },
+  { from: /\/features\//,  to: /similarity-snapshot-v2-service/,    label: 'feature→SimilaritySnapshotV2Service'   },
 ];
 
 export function runArchitectureGuard() {

@@ -202,6 +202,9 @@ import { AISafetyValidator }          from '../domains/ai-safety/ai-safety-valid
 import { SimilarityEngineV2 }          from '../domains/similarity/similarity-engine-v2.js';
 // PR-064 — Disease Network Score V2
 import { DiseaseNetworkScoreV2Service } from '../domains/similarity/disease-network-score-v2-service.js';
+// PR-065 — Similarity Snapshot V2
+import { SimilaritySnapshotV2Repository } from '../domains/similarity/similarity-snapshot-v2-repository.js';
+import { SimilaritySnapshotV2Service }    from '../domains/similarity/similarity-snapshot-v2-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -374,6 +377,9 @@ export const TOKENS = Object.freeze({
   SimilarityEngineV2:                  'SimilarityEngineV2',
   // PR-064 — Disease Network Score V2
   DiseaseNetworkScoreV2Service:        'DiseaseNetworkScoreV2Service',
+  // PR-065 — Similarity Snapshot V2
+  SimilaritySnapshotV2Repository:      'SimilaritySnapshotV2Repository',
+  SimilaritySnapshotV2Service:         'SimilaritySnapshotV2Service',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -816,6 +822,18 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Similarity Snapshot V2 (PR-065) — Wave2 Phase E-3 ────────────────────
+    // BD-042: SimilaritySnapshotV2Repository rejects non-'2' snapshots — V1/V2 generation
+    //         separation is structural (two independent stores), not just filtering.
+    // BD-023: SimilaritySnapshotV2Service never overwrites — each createSnapshot() appends
+    //         a brand-new snapshotId (Append-Only, BD-032).
+    c.singleton(TOKENS.SimilaritySnapshotV2Repository, () => new SimilaritySnapshotV2Repository());
+    c.singleton(TOKENS.SimilaritySnapshotV2Service, (container) =>
+      new SimilaritySnapshotV2Service({
+        repository:     container.resolve(TOKENS.SimilaritySnapshotV2Repository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1184,6 +1202,8 @@ export class CompositionRoot {
       similarityEngineV2: container.resolve(TOKENS.SimilarityEngineV2),
       // PR-064
       diseaseNetworkScoreV2Service: container.resolve(TOKENS.DiseaseNetworkScoreV2Service),
+      // PR-065
+      similaritySnapshotV2Service: container.resolve(TOKENS.SimilaritySnapshotV2Service),
     }));
 
     this._registerFeatures();
@@ -1240,5 +1260,6 @@ export class CompositionRoot {
     r.register('AISafetyLayer',            { status: 'active', migratesIn: 'PR-062' }); // PR-062 ✓ Phase D capstone
     r.register('SimilarityEngineV2',       { status: 'active', migratesIn: 'PR-063' }); // PR-063 ✓ Phase E開始
     r.register('DiseaseNetworkScoreV2',    { status: 'active', migratesIn: 'PR-064' }); // PR-064 ✓
+    r.register('SimilaritySnapshotV2',     { status: 'active', migratesIn: 'PR-065' }); // PR-065 ✓
   }
 }

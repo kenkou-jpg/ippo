@@ -135,6 +135,8 @@ export class ApiGateway {
   #similarityEngineV2;
   // PR-064
   #diseaseNetworkScoreV2Service;
+  // PR-065
+  #similaritySnapshotV2Service;
 
   constructor({
     permissionService,
@@ -264,6 +266,8 @@ export class ApiGateway {
     similarityEngineV2 = null,
     // PR-064
     diseaseNetworkScoreV2Service = null,
+    // PR-065
+    similaritySnapshotV2Service = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -382,6 +386,8 @@ export class ApiGateway {
     this.#similarityEngineV2 = similarityEngineV2;
     // PR-064
     this.#diseaseNetworkScoreV2Service = diseaseNetworkScoreV2Service;
+    // PR-065
+    this.#similaritySnapshotV2Service = similaritySnapshotV2Service;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1081,6 +1087,47 @@ export class ApiGateway {
     if (!this.#diseaseNetworkScoreV2Service)
       throw new Error('[ApiGateway] DiseaseNetworkScoreV2Service not wired');
     return this.#diseaseNetworkScoreV2Service.getStatus();
+  }
+
+  // ── Similarity Snapshot V2 API (PR-065) ───────────────────────────────────
+  // BD-042: input edges may be a mixed V1/V2 pool — service filters to V2 internally.
+  // BD-023: each call appends a NEW snapshot — recomputation never overwrites a prior one.
+
+  /**
+   * Compute and persist a SimilaritySnapshot V2 from the current edge pool.
+   *
+   * @param {{ edges?: object[], threshold?: number, metadata?: object }} params
+   * @returns {Promise<Readonly<object>>} SimilaritySnapshot V2
+   */
+  async createSimilaritySnapshotV2(params) {
+    await this.#permissionService.require('record:read');
+    if (!this.#similaritySnapshotV2Service)
+      throw new Error('[ApiGateway] SimilaritySnapshotV2Service not wired');
+    return this.#similaritySnapshotV2Service.createSnapshot(params);
+  }
+
+  /** @returns {Promise<Readonly<object>[]>} */
+  async getSimilaritySnapshotsV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similaritySnapshotV2Service)
+      throw new Error('[ApiGateway] SimilaritySnapshotV2Service not wired');
+    return this.#similaritySnapshotV2Service.getSnapshots();
+  }
+
+  /** @returns {Promise<Readonly<object>|null>} */
+  async getLatestSimilaritySnapshotV2() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similaritySnapshotV2Service)
+      throw new Error('[ApiGateway] SimilaritySnapshotV2Service not wired');
+    return this.#similaritySnapshotV2Service.getLatestSnapshot();
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getSimilaritySnapshotV2Status() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similaritySnapshotV2Service)
+      throw new Error('[ApiGateway] SimilaritySnapshotV2Service not wired');
+    return this.#similaritySnapshotV2Service.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────
