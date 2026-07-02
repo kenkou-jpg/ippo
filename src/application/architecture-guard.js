@@ -427,6 +427,15 @@ const FORBIDDEN = [
   { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-repository/, label: 'aiService→ResearchDatasetRepository' },
   { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-builder/,    label: 'aiService→ResearchDatasetBuilder'    },
   { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-v2-entity/,  label: 'aiService→ResearchDatasetV2Entity'   },
+
+  // ── PR-075 — Wave2 Exit Audit (Phase G capstone) ────────────────────────
+
+  // PR-075 — UI must not reach Wave2ExitAuditService directly;
+  //           access via ApiGateway → generateWave2ExitReport / confirmWave2ExitAudit /
+  //           getWave2ExitAuditApprovals / generateWave3MigrationDocument / getWave2ExitAuditStatus
+  //           (admin:research; getWave2ExitAuditStatus is record:read).
+  { from: /\/screens\//,   to: /wave2-exit-audit-service/,   label: 'screen→Wave2ExitAuditService'  },
+  { from: /\/features\//,  to: /wave2-exit-audit-service/,   label: 'feature→Wave2ExitAuditService' },
 ];
 
 export function runArchitectureGuard() {

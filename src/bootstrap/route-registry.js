@@ -60,6 +60,7 @@ const KNOWN_FEATURES = new Set([
   'DoiCandidate',             // PR-070: Dataset DOI Candidate (Wave2 Phase F継続)
   'ResearchQueryAPI',         // PR-071: Research Query API (Wave2 Phase F継続)
   'ResearchPlatformAudit',    // PR-072: Research Platform Audit (Wave2 Phase F capstone)
+  'Wave2ExitAudit',           // PR-075: Wave2 Exit Audit (Wave2 Phase G capstone — Wave2正式完了)
 ]);
 
 export class RouteRegistry {

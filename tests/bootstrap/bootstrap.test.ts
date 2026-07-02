@@ -111,7 +111,7 @@ describe('RouteRegistry', () => {
     expect(known).toContain('EventSourcing');
     expect(known).toContain('Emotion');
     expect(known).toContain('MenstrualIntelligence');
-    expect(known).toHaveLength(59); // PR-073: KNOWN_FEATURES extended to cover Wave2 PR-051〜072
+    expect(known).toHaveLength(60); // PR-073: KNOWN_FEATURES extended to cover Wave2 PR-051〜072
   });
 });
 

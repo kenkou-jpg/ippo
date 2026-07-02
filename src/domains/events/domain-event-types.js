@@ -90,6 +90,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   RESEARCH_QUERY_EXECUTED:           'RESEARCH_QUERY_EXECUTED',
   // Wave2 Research Platform Audit (PR-072 / BD-021 / BD-030 / BD-036 / BD-037 / BD-039 / Phase F capstone)
   RESEARCH_PLATFORM_AUDIT_COMPLETED: 'RESEARCH_PLATFORM_AUDIT_COMPLETED',
+  // Wave2 Exit Audit (PR-075 / BD-027 / BD-040 / Phase G capstone — Wave2正式完了)
+  WAVE2_EXIT_CONFIRMED:              'WAVE2_EXIT_CONFIRMED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -122,6 +124,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   NETWORK_EVOLUTION:        'NETWORK_EVOLUTION',
   RESEARCH_QUERY:           'RESEARCH_QUERY',
   RESEARCH_PLATFORM_AUDIT:  'RESEARCH_PLATFORM_AUDIT',
+  WAVE2_EXIT_AUDIT:         'WAVE2_EXIT_AUDIT',
 });
 
 /** Current event schema version. Bump on structural changes. */

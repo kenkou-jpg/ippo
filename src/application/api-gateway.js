@@ -151,6 +151,8 @@ export class ApiGateway {
   #researchQueryApiService;
   // PR-072
   #researchPlatformAuditService;
+  // PR-075
+  #wave2ExitAuditService;
 
   constructor({
     permissionService,
@@ -296,6 +298,8 @@ export class ApiGateway {
     researchQueryApiService = null,
     // PR-072
     researchPlatformAuditService = null,
+    // PR-075
+    wave2ExitAuditService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -430,6 +434,8 @@ export class ApiGateway {
     this.#researchQueryApiService = researchQueryApiService;
     // PR-072
     this.#researchPlatformAuditService = researchPlatformAuditService;
+    // PR-075
+    this.#wave2ExitAuditService = wave2ExitAuditService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1423,6 +1429,66 @@ export class ApiGateway {
     if (!this.#researchPlatformAuditService)
       throw new Error('[ApiGateway] ResearchPlatformAuditService not wired');
     return this.#researchPlatformAuditService.getStatus();
+  }
+
+  // ── Wave2 Exit Audit (PR-075 / BD-027 / BD-040 / Phase G capstone — Wave2正式完了) ──
+
+  /**
+   * Generate the Founder-facing Wave2 Exit Report (EC-01〜15 + QC-01〜04 + BD-001〜043).
+   * wave3ReadyForFounderApproval=true only when every EC/QC passes and no mechanically
+   * audited BD has failed.
+   *
+   * @param {{ clusterProfiles?, aiSafetyServiceStatuses?, testSuiteStatus? }} input
+   * @returns {Promise<Readonly<object>>} Wave2ExitAuditReport
+   */
+  async generateWave2ExitReport(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#wave2ExitAuditService)
+      throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
+    return this.#wave2ExitAuditService.generateExitReport(input);
+  }
+
+  /**
+   * Record a Founder's confirmation of Wave2 → Wave3 migration.
+   * BD-040 / BD-027: hard-blocked unless the given exitReport shows
+   * wave3ReadyForFounderApproval=true.
+   *
+   * @param {{ founderId: string, exitReport: object, note?: string }} input
+   * @returns {Promise<Readonly<object>>} ApprovalRecord
+   */
+  async confirmWave2ExitAudit(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#wave2ExitAuditService)
+      throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
+    return this.#wave2ExitAuditService.confirmWave3Migration(input);
+  }
+
+  /** @returns {Promise<ReadonlyArray<Readonly<object>>>} Founder approval audit trail */
+  async getWave2ExitAuditApprovals() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#wave2ExitAuditService)
+      throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
+    return this.#wave2ExitAuditService.getApprovals();
+  }
+
+  /**
+   * Generate the Wave3 移行承認文書 — requires confirmWave2ExitAudit() to have run first.
+   * @param {{ exitReport: object, approvalRecord: object }} input
+   * @returns {Promise<Readonly<object>>}
+   */
+  async generateWave3MigrationDocument(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#wave2ExitAuditService)
+      throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
+    return this.#wave2ExitAuditService.generateWave3MigrationDocument(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getWave2ExitAuditStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#wave2ExitAuditService)
+      throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
+    return this.#wave2ExitAuditService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

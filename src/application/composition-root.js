@@ -220,6 +220,9 @@ import { DOICandidateService }            from '../domains/dataset-version/doi-c
 import { ResearchQueryApiService }        from '../domains/research-query/research-query-api-service.js';
 // PR-072 — Research Platform Audit
 import { ResearchPlatformAuditService }   from '../domains/research-platform-audit/research-platform-audit-service.js';
+// PR-075 — Wave2 Exit Audit
+import { Wave2ExitAuditRepository }       from '../domains/wave2-exit-audit/wave2-exit-audit-repository.js';
+import { Wave2ExitAuditService }          from '../domains/wave2-exit-audit/wave2-exit-audit-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -410,6 +413,9 @@ export const TOKENS = Object.freeze({
   ResearchQueryApiService:             'ResearchQueryApiService',
   // PR-072 — Research Platform Audit
   ResearchPlatformAuditService:        'ResearchPlatformAuditService',
+  // PR-075 — Wave2 Exit Audit
+  Wave2ExitAuditRepository:            'Wave2ExitAuditRepository',
+  Wave2ExitAuditService:               'Wave2ExitAuditService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -939,6 +945,21 @@ export class CompositionRoot {
         eventPublisher:           container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Wave2 Exit Audit (PR-075) — Phase G capstone / Wave2正式完了 ─────────
+    // ResearchPlatformAuditService（BD-021/030/036/037/039）+ Phase3CompletionValidator
+    // （BD-026）+ AISafetyValidator（BD-031/038）を集約し、EC-01〜15 + QC-01〜04 +
+    // BD-001〜043 の Founder 向け Wave2 Exit Report を生成する。confirmWave3Migration()
+    // は founderId 必須のゲート（BD-027）— generateExitReport() だけでは Wave2 は完了しない。
+    c.singleton(TOKENS.Wave2ExitAuditRepository, () => new Wave2ExitAuditRepository());
+    c.singleton(TOKENS.Wave2ExitAuditService, (container) =>
+      new Wave2ExitAuditService({
+        researchPlatformAuditService: container.resolve(TOKENS.ResearchPlatformAuditService),
+        phase3CompletionValidator:    container.resolve(TOKENS.Phase3CompletionValidator),
+        aiSafetyValidator:            container.resolve(TOKENS.AISafetyValidator),
+        repository:                   container.resolve(TOKENS.Wave2ExitAuditRepository),
+        eventPublisher:               container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1323,6 +1344,8 @@ export class CompositionRoot {
       researchQueryApiService: container.resolve(TOKENS.ResearchQueryApiService),
       // PR-072
       researchPlatformAuditService: container.resolve(TOKENS.ResearchPlatformAuditService),
+      // PR-075
+      wave2ExitAuditService: container.resolve(TOKENS.Wave2ExitAuditService),
     }));
 
     this._registerFeatures();
@@ -1387,5 +1410,6 @@ export class CompositionRoot {
     r.register('DoiCandidate',             { status: 'active', migratesIn: 'PR-070' }); // PR-070 ✓
     r.register('ResearchQueryAPI',         { status: 'active', migratesIn: 'PR-071' }); // PR-071 ✓ admin:research only
     r.register('ResearchPlatformAudit',    { status: 'active', migratesIn: 'PR-072' }); // PR-072 ✓ Phase F capstone
+    r.register('Wave2ExitAudit',           { status: 'active', migratesIn: 'PR-075' }); // PR-075 ✓ Phase G capstone — Wave2正式完了
   }
 }
