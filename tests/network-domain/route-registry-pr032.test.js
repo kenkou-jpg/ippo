@@ -14,7 +14,7 @@ describe('RouteRegistry PR-032 — Longitudinal feature', () => {
   });
 
   it('total knownFeatures count is 20 (PR-032: +Longitudinal)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(37);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(59);
   });
 
   it('registered Longitudinal descriptor is frozen with correct metadata', () => {

@@ -1380,6 +1380,11 @@ export class CompositionRoot {
     r.register('SimilarityEngineV2',       { status: 'active', migratesIn: 'PR-063' }); // PR-063 ✓ Phase E開始
     r.register('DiseaseNetworkScoreV2',    { status: 'active', migratesIn: 'PR-064' }); // PR-064 ✓
     r.register('SimilaritySnapshotV2',     { status: 'active', migratesIn: 'PR-065' }); // PR-065 ✓
+    r.register('Phase3Validation',         { status: 'active', migratesIn: 'PR-066' }); // PR-066 ✓ Phase E-4
+    r.register('SimilarityPublicGate',     { status: 'active', migratesIn: 'PR-067' }); // PR-067 ✓ Phase E capstone
+    r.register('ResearchDatasetV2',        { status: 'active', migratesIn: 'PR-068' }); // PR-068 ✓ Phase F開始
+    r.register('CohortResearchExport',     { status: 'active', migratesIn: 'PR-069' }); // PR-069 ✓
+    r.register('DoiCandidate',             { status: 'active', migratesIn: 'PR-070' }); // PR-070 ✓
     r.register('ResearchQueryAPI',         { status: 'active', migratesIn: 'PR-071' }); // PR-071 ✓ admin:research only
     r.register('ResearchPlatformAudit',    { status: 'active', migratesIn: 'PR-072' }); // PR-072 ✓ Phase F capstone
   }

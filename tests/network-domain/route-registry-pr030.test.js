@@ -14,7 +14,7 @@ describe('RouteRegistry PR-030 — NetworkSignal feature', () => {
   });
 
   it('total knownFeatures count includes PR-041 Wave2 feature', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(37);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(59);
   });
 
   it('registered NetworkSignal descriptor is frozen with correct metadata', () => {

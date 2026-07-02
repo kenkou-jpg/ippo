@@ -284,15 +284,12 @@ describe('CompositionRoot — PR-071 ResearchQueryApiService DI wiring', () => {
     expect(service.getStatus().ready).toBe(true);
   });
 
-  // NOTE: RouteRegistry.KNOWN_FEATURES (src/bootstrap/route-registry.js) has not been
-  // updated since PR-050 — every feature registered by PR-051〜070 is silently dropped
-  // by register()'s allowlist check (pre-existing gap, reproduced here for PR-071's
-  // 'ResearchQueryAPI' entry too). Updating KNOWN_FEATURES is out of PR-071 Scope
-  // (shared file, 20-PR-old gap unrelated to this PR) — asserting the actual
-  // (pre-existing) behavior instead of the intended one.
-  it('root.assemble() registers ResearchQueryAPI without throwing (KNOWN_FEATURES gap pre-dates PR-071)', async () => {
+  // RouteRegistry.KNOWN_FEATURES (src/bootstrap/route-registry.js) was extended to cover
+  // PR-051〜072 in PR-073 (Architecture Guard Wave2 Complete) — ResearchQueryAPI now
+  // registers successfully instead of being silently dropped.
+  it('root.assemble() registers ResearchQueryAPI (KNOWN_FEATURES gap closed in PR-073)', async () => {
     const { registry } = await makeRoot();
-    expect(registry.isRegistered('ResearchQueryAPI')).toBe(false);
+    expect(registry.isRegistered('ResearchQueryAPI')).toBe(true);
   });
 
   it('ApiGateway exposes executeResearchQuery / getResearchQueryStatus wired to ResearchQueryApiService', async () => {

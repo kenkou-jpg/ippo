@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  57（+ ResearchQueryAPI/ResearchPlatformAudit未登録、KNOWN_FEATURES反映はPR-073スコープ）
-ApiGateway methods:        168+（auditResearchPlatform / getResearchPlatformAuditStatus追加）
-Domain Event Types:        46（RESEARCH_PLATFORM_AUDIT_COMPLETED追加）
-DI TOKENS:                 327+（PR-072: ResearchPlatformAuditService追加）
-Tests (全パス):            4,967件 / 267ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   138+
+Features (RouteRegistry):  59（PR-073: KNOWN_FEATURESにPR-051〜072の22Feature追加、Wave2全PRが正式登録）
+ApiGateway methods:        168+（PR-073はApiGateway無変更）
+Domain Event Types:        46（PR-073はEvent無変更）
+DI TOKENS:                 327+（PR-073はDIトークン無変更、composition-root.js _registerFeatures()にPR-066〜070register()追加のみ）
+Tests (全パス):            5,000件 / 268ファイル（39件は5ファイルの既知pre-existing failure、PR無関係。内訳: tests/modules/2ファイル(壊れたインポート) + domain-event-types.test.js + event-menstrual.test.js(29固定値ドリフト) + disease-analyzer.test.js(日付依存)）
+ArchitectureGuard rules:   159+（PR-073: PR-042/PR-050/PR-057〜062欠落分+18 / 責務③AIサービス→ResearchDataset禁止+3 = +21）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -228,10 +228,12 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-072  Research Platform Audit — ResearchPlatformAuditService.auditPlatform()/.auditDatasetAttribution()/.auditKAnonymity()/.auditKnowledgeGraphAppendOnly()/.auditAiSafetyAlignment()/.getStatus() / BD-021（DatasetVersionService.getVersions()全件のcreatedBy Founder attribution再確認）/ BD-030・BD-036（clusterProfiles + CohortBuilderService.getCohorts()全件のk-anonymity再検証、ZERO TOLERANCE k>=5、目標k>=50を別途集計）/ BD-037（KnowledgeGraphRepository.deleteNode()/deleteEdge()が必ず例外を投げることを構造的に確認、副作用なしのprobe呼び出し）/ BD-039（AISafetyValidator.getAuditReport()委譲、phaseDComplete=true かつ累積違反ゼロを確認）/ phaseFComplete=true は4BD全PASS時のみ / ResearchPlatformAuditReport（Founder確認用、Object.freeze）/ RESEARCH_PLATFORM_AUDIT_COMPLETED / ApiGateway: auditResearchPlatform（admin:research）/getResearchPlatformAuditStatus（record:read）/ ArchGuard+2ルール / 29件テスト
   ★ Phase F (PR-068〜072) 完了 — Phase G（Wave2 Exit）入口条件成立
   Phase G (PR-073〜075): Integration + Quality Gate
+    ✓ PR-073  Architecture Guard Wave2 Complete — Wave2全Domain（PR-041〜072）に対するArchitectureGuard禁止依存ルールの完成 / 発見したギャップ: PR-042（Supabase Persistence: network-signal-supabase-repository / supabase-event-persistence-repository）・PR-050（SignalIntelligenceV2Service）・PR-057〜062（Phase D全6PR: SignalInsight/PatternDiscovery/CaseRecommendation/SimilarCaseSearch/ResearchAssistance/AISafetyValidator）にArchGuardルールが皆無だった欠落を解消（+18ルール）/ 責務③新規ルール: AIサービスDomain（signal-insight/pattern-discovery/case-recommendation/similar-case-search/research-assistance/ai-safety）→ research-dataset-repository・builder・v2-entityへの直接アクセス禁止（+3ルール、EvidenceLayerService/ResearchAssistanceService経由を強制）/ 責務②KG等直接アクセス禁止は既存PR-051ルールで充足済みを確認 / composition-root.js _registerFeatures()にPR-066〜070（Phase3Validation/SimilarityPublicGate/ResearchDatasetV2/CohortResearchExport/DoiCandidate）のr.register()呼び出しが丸ごと欠落していたギャップを解消 / route-registry.js KNOWN_FEATURESにPR-051〜072の22Feature名を追加（PR-050以降ずっと未反映だった構造的ギャップを解消、これまでWave2全PRのregister()呼び出しが「Unknown feature」で黙って握りつぶされていた）/ 既存テストの37→59固定値ドリフトを16ファイルで是正（KNOWN_FEATURES拡張の直接帰結）/ tests/arch/architecture-guard-pr073.test.js 31件テスト / ArchGuard+21ルール
+  Phase G (PR-073〜075) 進行中 — 残 PR-074〜075
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-073 Architecture Guard Wave2 Complete（Wave2で追加した全Domainに対するArchitectureGuard禁止依存ルールの完成 / KNOWN_FEATURESにWave2全Feature追加 / Architecture Health: A（違反ゼロ）確認）
+Next PR: PR-074 Wave2 Integration Test Suite（Phase A〜Fの全PRを横断する統合テスト / Exit Criteria EC-01〜EC-15自動検証スクリプト / QC-01〜QC-04自動確認 / vitest run全件パス確認 / Pre-existing failures（既知の5ファイル・39件）が増加していないことを確認）
 ```
 
 ---
@@ -660,16 +662,19 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-073: Architecture Guard Wave2 Complete**（Phase G開始）
-- 目的: Wave2 で追加した全 Domain の ArchitectureGuard ルールを完成させる
-- 責務: PR-041〜072 で追加した全 Domain に対する禁止依存ルールの追加 / screen・feature → knowledge-graph-repository 等の直接アクセス禁止 / AI サービス → Research Dataset への直接アクセス禁止 / ArchitectureGuard 違反ゼロの確認 / KNOWN_FEATURES に Wave2 全 Feature を追加
-- 依存PR: PR-041〜072（Wave2 全 PR）
-- 詳細: docs/WAVE2_ROADMAP.md PR-073参照
+**PR-074: Wave2 Integration Test Suite**（Phase G継続）
+- 目的: Wave1〜Wave2 の統合テストスイートを完成させ、全 Exit Criteria の自動検証を実現する
+- 責務: Phase A〜F の全 PR を横断する統合テスト（E2E シナリオ）/ Exit Criteria EC-01〜EC-15 の自動検証スクリプト / Exit Criteria QC-01〜QC-04 の自動確認 / `vitest run` で全件パス確認 / Pre-existing failures（既知の5ファイル・39件、下記メモ参照）が増加していないことを確認
+- 依存PR: PR-073（ArchGuard 完了）
+- 詳細: docs/WAVE2_ROADMAP.md PR-074参照
 
 ---
 
 ## 直前PR完了メモ
 
-**PR-072: Research Platform Audit**（Phase F capstone・完了）
-- Founder確認事項: `ResearchPlatformAuditReport`（`auditResearchPlatform()` 経由）を確認し、`phaseFComplete: true` を承認すること。BD-021/030/036/037/039のいずれか1つでもFAILの場合はphaseFComplete=falseとなり、Phase G入口条件は未成立。
-- 監査対象データ（`clusterProfiles` / `aiSafetyServiceStatuses`）は呼び出し側が収集して渡す設計（Phase3CompletionValidator・AISafetyValidatorと同じ契約）。実データでの監査実行はFounder/Ops側の次アクション。
+**PR-073: Architecture Guard Wave2 Complete**（Phase G開始・完了）
+- KNOWN_FEATURES（route-registry.js）がPR-050以降ずっと未更新で、composition-root.jsのPR-051〜072全register()呼び出しが「Unknown feature」で黙って握りつぶされていた構造的ギャップを解消（22Feature追加、57→59件）。
+- composition-root.js `_registerFeatures()` にPR-066〜070（Phase3Validation/SimilarityPublicGate/ResearchDatasetV2/CohortResearchExport/DoiCandidate）の`r.register()`呼び出し自体が存在しなかった欠落を追加で解消。
+- ArchitectureGuardルール欠落: PR-042（Supabase Persistence）/ PR-050（SignalIntelligenceV2）/ PR-057〜062（Phase D全6PR）にルールが皆無だった（+18ルール）。責務③としてAIサービスDomain→ResearchDataset内部への直接アクセス禁止ルールを新規追加（+3ルール、domain→domain種別の新パターン）。
+- 副作用: 既存テスト16ファイルがKNOWN_FEATURES件数の固定値（37）をハードコードしており、正しい59に更新（PR-073の直接帰結、スコープ内）。
+- **Pre-existing failure 5ファイル・39件は本PRと無関係**（tests/modules/2ファイル: src/modules/record.js の壊れたインポート / domain-event-types.test.js・event-menstrual.test.js: DOMAIN_EVENT_TYPES固定値29のドリフト（PR-057以降未更新、PR-073スコープ外）/ disease-analyzer.test.js: 日付依存の既存テスト）。PR-074でこれらの増加有無を確認する。

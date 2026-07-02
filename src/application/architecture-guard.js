@@ -382,6 +382,51 @@ const FORBIDDEN = [
   //           access via ApiGateway → auditResearchPlatform / getResearchPlatformAuditStatus.
   { from: /\/screens\//,   to: /research-platform-audit-service/,    label: 'screen→ResearchPlatformAuditService'   },
   { from: /\/features\//,  to: /research-platform-audit-service/,    label: 'feature→ResearchPlatformAuditService'  },
+
+  // ── PR-073 — Wave2 Architecture Guard completion (責務①②③) ─────────────
+
+  // PR-042 — UI must not reach the Supabase-backed NetworkSignal/Event repositories directly;
+  //           access only via NetworkSignalPersistenceService (Write-Through Cache) / EventStore.
+  { from: /\/screens\//,   to: /network-signal-supabase-repository/,       label: 'screen→NetworkSignalSupabaseRepository'       },
+  { from: /\/features\//,  to: /network-signal-supabase-repository/,       label: 'feature→NetworkSignalSupabaseRepository'      },
+  { from: /\/screens\//,   to: /supabase-event-persistence-repository/,    label: 'screen→SupabaseEventPersistenceRepository'    },
+  { from: /\/features\//,  to: /supabase-event-persistence-repository/,    label: 'feature→SupabaseEventPersistenceRepository'   },
+  // PR-050 — UI must not reach SignalIntelligenceV2Service directly;
+  //           access via ApiGateway → getSignalAggregationV2 / getSignalTrendV2 / getSignalTrendAllV2 /
+  //           getSignalTimelineV2 / getSignalSummaryV2 / createSignalSnapshotV2 / getSignalIntelligenceV2Status.
+  { from: /\/screens\//,   to: /signal-intelligence-v2-service/,           label: 'screen→SignalIntelligenceV2Service'           },
+  { from: /\/features\//,  to: /signal-intelligence-v2-service/,           label: 'feature→SignalIntelligenceV2Service'          },
+  // PR-057 — UI must not reach SignalInsightService directly;
+  //           access via ApiGateway → generateSignalInsights / getSignalInsightStatus.
+  { from: /\/screens\//,   to: /signal-insight-service/,                   label: 'screen→SignalInsightService'                  },
+  { from: /\/features\//,  to: /signal-insight-service/,                   label: 'feature→SignalInsightService'                 },
+  // PR-058 — UI must not reach PatternDiscoveryService directly;
+  //           access via ApiGateway → discoverPatterns / getPatternDiscoveryStatus.
+  { from: /\/screens\//,   to: /pattern-discovery-service/,                label: 'screen→PatternDiscoveryService'               },
+  { from: /\/features\//,  to: /pattern-discovery-service/,                label: 'feature→PatternDiscoveryService'              },
+  // PR-059 — UI must not reach CaseRecommendationService directly;
+  //           access via ApiGateway → getCaseRecommendations / getCaseRecommendationStatus (admin:research).
+  { from: /\/screens\//,   to: /case-recommendation-service/,              label: 'screen→CaseRecommendationService'             },
+  { from: /\/features\//,  to: /case-recommendation-service/,              label: 'feature→CaseRecommendationService'            },
+  // PR-060 — UI must not reach SimilarCaseSearchService directly;
+  //           access via ApiGateway → searchSimilarCases / getSimilarCaseSearchStatus (admin:research).
+  { from: /\/screens\//,   to: /similar-case-search-service/,              label: 'screen→SimilarCaseSearchService'              },
+  { from: /\/features\//,  to: /similar-case-search-service/,              label: 'feature→SimilarCaseSearchService'             },
+  // PR-061 — UI must not reach ResearchAssistanceService directly;
+  //           access via ApiGateway → getResearchAssistance / getResearchAssistanceStatus (admin:research).
+  { from: /\/screens\//,   to: /research-assistance-service/,              label: 'screen→ResearchAssistanceService'             },
+  { from: /\/features\//,  to: /research-assistance-service/,              label: 'feature→ResearchAssistanceService'            },
+  // PR-062 — UI must not reach AISafetyValidator directly;
+  //           access via ApiGateway → validateAIOutput / getAISafetyAuditReport / getAISafetyStatus (admin:research).
+  { from: /\/screens\//,   to: /ai-safety-validator/,                      label: 'screen→AISafetyValidator'                     },
+  { from: /\/features\//,  to: /ai-safety-validator/,                      label: 'feature→AISafetyValidator'                    },
+  // PR-073 責務③ — Phase D AI service domains (signal-insight / pattern-discovery /
+  //           case-recommendation / similar-case-search / research-assistance / ai-safety) must
+  //           not reach Research Dataset internals directly; composition only via
+  //           EvidenceLayerService (PR-056) / ResearchAssistanceService (PR-061).
+  { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-repository/, label: 'aiService→ResearchDatasetRepository' },
+  { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-builder/,    label: 'aiService→ResearchDatasetBuilder'    },
+  { from: /\/domains\/(signal-insight|pattern-discovery|case-recommendation|similar-case-search|research-assistance|ai-safety)\//, to: /research-dataset-v2-entity/,  label: 'aiService→ResearchDatasetV2Entity'   },
 ];
 
 export function runArchitectureGuard() {

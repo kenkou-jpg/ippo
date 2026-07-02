@@ -338,13 +338,10 @@ describe('CompositionRoot — PR-072 ResearchPlatformAuditService DI wiring', ()
     expect(TOKENS.ResearchPlatformAuditService).toBe('ResearchPlatformAuditService');
   });
 
-  // NOTE: RouteRegistry.KNOWN_FEATURES (src/bootstrap/route-registry.js) has not been
-  // updated since PR-050 — every feature registered by PR-051〜072 is silently dropped
-  // by register()'s allowlist check (pre-existing gap, reproduced here for PR-072's
-  // 'ResearchPlatformAudit' entry too). Updating KNOWN_FEATURES is out of PR-072 Scope
-  // (shared file, 22-PR-old gap unrelated to this PR) — asserting the actual
-  // (pre-existing) behavior instead of the intended one.
-  it('root.assemble() registers ResearchPlatformAudit without throwing (KNOWN_FEATURES gap pre-dates PR-072)', async () => {
+  // RouteRegistry.KNOWN_FEATURES (src/bootstrap/route-registry.js) was extended to cover
+  // PR-051〜072 in PR-073 (Architecture Guard Wave2 Complete) — ResearchPlatformAudit now
+  // registers successfully instead of being silently dropped.
+  it('root.assemble() registers ResearchPlatformAudit (KNOWN_FEATURES gap closed in PR-073)', async () => {
     const { CompositionRoot } = await import('../../src/application/composition-root.js');
     const { DependencyContainer } = await import('../../src/bootstrap/dependency-container.js');
     const { RouteRegistry }       = await import('../../src/bootstrap/route-registry.js');
@@ -354,7 +351,7 @@ describe('CompositionRoot — PR-072 ResearchPlatformAuditService DI wiring', ()
     const config    = loadBootstrapConfig();
     const root      = new CompositionRoot(container, registry, config);
     root.assemble();
-    expect(registry.isRegistered('ResearchPlatformAudit')).toBe(false);
+    expect(registry.isRegistered('ResearchPlatformAudit')).toBe(true);
 
     const { TOKENS } = await import('../../src/application/composition-root.js');
     const service = container.resolve(TOKENS.ResearchPlatformAuditService);
