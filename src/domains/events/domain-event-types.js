@@ -82,6 +82,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   SIMILARITY_SNAPSHOT_V2_CREATED:    'SIMILARITY_SNAPSHOT_V2_CREATED',
   // Wave2 Phase 3 Completion Validator (PR-066 / BD-026 / Phase E)
   PHASE3_VALIDATION_COMPLETED:       'PHASE3_VALIDATION_COMPLETED',
+  // Wave2 Similarity UI Public Gate (PR-067 / BD-026 / BD-027 / Phase E capstone)
+  SIMILARITY_PUBLICATION_APPROVED:   'SIMILARITY_PUBLICATION_APPROVED',
 });
 
 /** Set of all valid event type strings for fast validation. */

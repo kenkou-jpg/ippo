@@ -139,6 +139,8 @@ export class ApiGateway {
   #similaritySnapshotV2Service;
   // PR-066
   #phase3CompletionValidator;
+  // PR-067
+  #similarityPublicGateService;
 
   constructor({
     permissionService,
@@ -272,6 +274,8 @@ export class ApiGateway {
     similaritySnapshotV2Service = null,
     // PR-066
     phase3CompletionValidator = null,
+    // PR-067
+    similarityPublicGateService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -394,6 +398,8 @@ export class ApiGateway {
     this.#similaritySnapshotV2Service = similaritySnapshotV2Service;
     // PR-066
     this.#phase3CompletionValidator = phase3CompletionValidator;
+    // PR-067
+    this.#similarityPublicGateService = similarityPublicGateService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1161,6 +1167,52 @@ export class ApiGateway {
     if (!this.#phase3CompletionValidator)
       throw new Error('[ApiGateway] Phase3CompletionValidator not wired');
     return this.#phase3CompletionValidator.getStatus();
+  }
+
+  // ── Similarity UI Public Gate API (PR-067 / BD-026 / BD-027 / Phase E capstone) ──
+  // Founder-facing gate: Phase 3 verification → approval flow → publication readiness.
+
+  /**
+   * Check the gate: verify Phase 3 completion and combine with any existing Founder approval.
+   *
+   * @param {Record<string, object>} clusterProfiles  keyed by diseaseKey → DiseaseClusterProfile
+   * @returns {Promise<Readonly<object>>} GateStatus
+   */
+  async checkSimilarityPublicGate(clusterProfiles) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#similarityPublicGateService)
+      throw new Error('[ApiGateway] SimilarityPublicGateService not wired');
+    return this.#similarityPublicGateService.checkGate(clusterProfiles);
+  }
+
+  /**
+   * Record a Founder's approval of Similarity UI publication.
+   * BD-026 / BD-027: hard-blocked unless the given phase3Report shows phase3Complete=true.
+   *
+   * @param {{ founderId: string, phase3Report: object, note?: string }} input
+   * @returns {Promise<Readonly<object>>} ApprovalRecord
+   */
+  async approveSimilarityPublication(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#similarityPublicGateService)
+      throw new Error('[ApiGateway] SimilarityPublicGateService not wired');
+    return this.#similarityPublicGateService.approvePublication(input);
+  }
+
+  /** @returns {Promise<ReadonlyArray<Readonly<object>>>} Founder approval audit trail */
+  async getSimilarityPublicationApprovals() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#similarityPublicGateService)
+      throw new Error('[ApiGateway] SimilarityPublicGateService not wired');
+    return this.#similarityPublicGateService.getApprovals();
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getSimilarityPublicGateStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#similarityPublicGateService)
+      throw new Error('[ApiGateway] SimilarityPublicGateService not wired');
+    return this.#similarityPublicGateService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

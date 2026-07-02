@@ -352,6 +352,13 @@ const FORBIDDEN = [
   //           access via ApiGateway → validatePhase3Completion / getPhase3ValidationStatus.
   { from: /\/screens\//,   to: /phase3-completion-validator/,       label: 'screen→Phase3CompletionValidator'      },
   { from: /\/features\//,  to: /phase3-completion-validator/,       label: 'feature→Phase3CompletionValidator'     },
+  // PR-067 — UI must not reach SimilarityPublicGate internals directly;
+  //           access via ApiGateway → checkSimilarityPublicGate / approveSimilarityPublication /
+  //           getSimilarityPublicationApprovals / getSimilarityPublicGateStatus.
+  { from: /\/screens\//,   to: /similarity-public-gate-repository/, label: 'screen→SimilarityPublicGateRepository' },
+  { from: /\/features\//,  to: /similarity-public-gate-repository/, label: 'feature→SimilarityPublicGateRepository'},
+  { from: /\/screens\//,   to: /similarity-public-gate-service/,    label: 'screen→SimilarityPublicGateService'    },
+  { from: /\/features\//,  to: /similarity-public-gate-service/,    label: 'feature→SimilarityPublicGateService'   },
 ];
 
 export function runArchitectureGuard() {

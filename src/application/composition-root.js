@@ -207,6 +207,9 @@ import { SimilaritySnapshotV2Repository } from '../domains/similarity/similarity
 import { SimilaritySnapshotV2Service }    from '../domains/similarity/similarity-snapshot-v2-service.js';
 // PR-066 — Phase 3 Completion Validator
 import { Phase3CompletionValidator }      from '../domains/network-evolution/phase3-completion-validator.js';
+// PR-067 — Similarity UI Public Gate
+import { SimilarityPublicGateRepository } from '../domains/network-evolution/similarity-public-gate-repository.js';
+import { SimilarityPublicGateService }    from '../domains/network-evolution/similarity-public-gate-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -384,6 +387,9 @@ export const TOKENS = Object.freeze({
   SimilaritySnapshotV2Service:         'SimilaritySnapshotV2Service',
   // PR-066 — Phase 3 Completion Validator
   Phase3CompletionValidator:           'Phase3CompletionValidator',
+  // PR-067 — Similarity UI Public Gate
+  SimilarityPublicGateRepository:      'SimilarityPublicGateRepository',
+  SimilarityPublicGateService:         'SimilarityPublicGateService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -848,6 +854,19 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Similarity UI Public Gate (PR-067) — Wave2 Phase E capstone ──────────
+    // BD-026 / BD-027: Founder approval is hard-blocked (Phase3IncompleteError) unless
+    // Phase3CompletionValidator confirms Phase 3 completion. Approval records are
+    // Append-Only (BD-032) — this service never flips CaseRecommendationService's
+    // structural PHASE3_COMPLETE constant; that remains a deliberate code change.
+    c.singleton(TOKENS.SimilarityPublicGateRepository, () => new SimilarityPublicGateRepository());
+    c.singleton(TOKENS.SimilarityPublicGateService, (container) =>
+      new SimilarityPublicGateService({
+        phase3Validator: container.resolve(TOKENS.Phase3CompletionValidator),
+        repository:      container.resolve(TOKENS.SimilarityPublicGateRepository),
+        eventPublisher:  container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1220,6 +1239,8 @@ export class CompositionRoot {
       similaritySnapshotV2Service: container.resolve(TOKENS.SimilaritySnapshotV2Service),
       // PR-066
       phase3CompletionValidator: container.resolve(TOKENS.Phase3CompletionValidator),
+      // PR-067
+      similarityPublicGateService: container.resolve(TOKENS.SimilarityPublicGateService),
     }));
 
     this._registerFeatures();
