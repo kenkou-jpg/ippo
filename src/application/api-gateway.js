@@ -153,6 +153,9 @@ export class ApiGateway {
   #researchPlatformAuditService;
   // PR-075
   #wave2ExitAuditService;
+  // PR-077
+  #releaseReadinessService;
+  #dataDeletionService;
 
   constructor({
     permissionService,
@@ -300,6 +303,9 @@ export class ApiGateway {
     researchPlatformAuditService = null,
     // PR-075
     wave2ExitAuditService = null,
+    releaseReadinessService = null,
+    // PR-078
+    dataDeletionService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -436,6 +442,10 @@ export class ApiGateway {
     this.#researchPlatformAuditService = researchPlatformAuditService;
     // PR-075
     this.#wave2ExitAuditService = wave2ExitAuditService;
+    // PR-077
+    this.#releaseReadinessService = releaseReadinessService;
+    // PR-078
+    this.#dataDeletionService = dataDeletionService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1489,6 +1499,114 @@ export class ApiGateway {
     if (!this.#wave2ExitAuditService)
       throw new Error('[ApiGateway] Wave2ExitAuditService not wired');
     return this.#wave2ExitAuditService.getStatus();
+  }
+
+  // ── Release Readiness Recovery Program (PR-077 / docs/RELEASE_READINESS_COUNCIL.md) ──
+  // Additive to Wave2 Exit Audit above — closes Critical C-2/C-3: an Append-Only ledger
+  // for Founder confirmation of Regulatory Conditions (C-1〜C-5) and FOUNDER_REVIEW_REQUIRED BDs.
+
+  /**
+   * Record a Founder's confirmation (or explicit non-completion) of one Regulatory
+   * Condition (C-1〜C-5) or one FOUNDER_REVIEW_REQUIRED BD.
+   * @param {{ founderId: string, category: string, itemId: string, confirmed: boolean, note?: string }} input
+   * @returns {Promise<Readonly<object>>} ConfirmationRecord
+   */
+  async confirmReleaseReadinessItem(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#releaseReadinessService)
+      throw new Error('[ApiGateway] ReleaseReadinessService not wired');
+    return this.#releaseReadinessService.confirmItem(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} status across every Regulatory Condition and BD review */
+  async getReleaseReadinessConfirmationStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#releaseReadinessService)
+      throw new Error('[ApiGateway] ReleaseReadinessService not wired');
+    return this.#releaseReadinessService.getConfirmationStatus();
+  }
+
+  /** @returns {Promise<Readonly<object>>} beta-release gate — ready only when every item is confirmed */
+  async checkReleaseReadinessBetaGate() {
+    await this.#permissionService.require('record:read');
+    if (!this.#releaseReadinessService)
+      throw new Error('[ApiGateway] ReleaseReadinessService not wired');
+    return this.#releaseReadinessService.checkBetaReadinessGate();
+  }
+
+  /** @returns {Promise<ReadonlyArray<Readonly<object>>>} full confirmation audit trail */
+  async getReleaseReadinessHistory() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#releaseReadinessService)
+      throw new Error('[ApiGateway] ReleaseReadinessService not wired');
+    return this.#releaseReadinessService.getHistory();
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getReleaseReadinessStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#releaseReadinessService)
+      throw new Error('[ApiGateway] ReleaseReadinessService not wired');
+    return this.#releaseReadinessService.getStatus();
+  }
+
+  // ── Data Deletion Pipeline (PR-078 / BD-019) ──────────────────────────────
+  // 匿名化優先 → SoftDelete → 90日後HardDelete. Append-Only stage ledger + gate.
+
+  /** @returns {Promise<Readonly<object>>} DeletionStageRecord for the new REQUESTED stage. */
+  async requestDataDeletion(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.requestDeletion(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} DeletionStageRecord for the new ANONYMIZED stage. */
+  async confirmDataDeletionAnonymization(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.confirmAnonymization(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} DeletionStageRecord for the new SOFT_DELETED stage. */
+  async confirmDataDeletionSoftDelete(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.confirmSoftDelete(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} DeletionStageRecord for the new HARD_DELETED stage. */
+  async executeDataHardDelete(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.executeHardDelete(input);
+  }
+
+  /** @returns {Promise<Readonly<object>|null>} current stage + full history for one request. */
+  async getDataDeletionRequestStatus(requestId) {
+    await this.#permissionService.require('record:read');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.getRequestStatus(requestId);
+  }
+
+  /** @returns {Promise<ReadonlyArray<Readonly<object>>>} latest record for every deletion request. */
+  async getAllDataDeletionRequests() {
+    await this.#permissionService.require('admin:research');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.getAllLatest();
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getDataDeletionStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#dataDeletionService)
+      throw new Error('[ApiGateway] DataDeletionService not wired');
+    return this.#dataDeletionService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

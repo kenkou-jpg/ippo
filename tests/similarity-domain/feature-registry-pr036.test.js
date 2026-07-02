@@ -1,4 +1,4 @@
-// tests/similarity-domain/feature-registry-pr036.test.js
+﻿// tests/similarity-domain/feature-registry-pr036.test.js
 // RouteRegistry — PR-036 SimilarityIntelligence feature (23→24)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-036 SimilarityIntelligence', () => {
   it('SimilarityIntelligence appears in knownFeatures (total: 24)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('SimilarityIntelligence');
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('descriptor is frozen', () => {

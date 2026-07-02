@@ -6,8 +6,9 @@
 // BD-022: Wave1 in-memory only.
 // PR-040: Research Dataset Foundation
 
-import { buildResearchDataset } from './research-dataset-entity.js';
-import { ANONYMIZATION_LEVEL }  from './research-dataset-types.js';
+import { buildResearchDataset }  from './research-dataset-entity.js';
+import { ANONYMIZATION_LEVEL }   from './research-dataset-types.js';
+import { ConsentGateService }    from './consent-gate-service.js';
 
 export class ResearchDatasetBuilder {
   #signalService;
@@ -16,6 +17,7 @@ export class ResearchDatasetBuilder {
   #snapshotService;
   #featureVectorService;
   #similarityService;
+  #consentGateService;
 
   /**
    * @param {{
@@ -25,6 +27,7 @@ export class ResearchDatasetBuilder {
    *   snapshotService?:      object,
    *   featureVectorService?: object,
    *   similarityService?:    object,
+   *   consentGateService?:   import('./consent-gate-service.js').ConsentGateService|null,
    * }} deps
    */
   constructor({
@@ -34,6 +37,7 @@ export class ResearchDatasetBuilder {
     snapshotService      = null,
     featureVectorService = null,
     similarityService    = null,
+    consentGateService   = null,
   } = {}) {
     this.#signalService        = signalService;
     this.#diseaseService       = diseaseService;
@@ -41,6 +45,7 @@ export class ResearchDatasetBuilder {
     this.#snapshotService      = snapshotService;
     this.#featureVectorService = featureVectorService;
     this.#similarityService    = similarityService;
+    this.#consentGateService   = consentGateService ?? new ConsentGateService();
   }
 
   /**
@@ -150,18 +155,25 @@ export class ResearchDatasetBuilder {
 
   /**
    * Build the complete ResearchDataset from all domain sources.
-   * @param {{ anonymizationLevel?: string, datasetVersion?: string } = {}} options
+   * BD-049: when signals are present, requires an explicit `signalsConsentVerified: true`
+   * attestation that Research Consent filtering has already occurred upstream — see
+   * consent-gate-service.js header (NetworkSignal carries no userId to filter on directly).
+   * @param {{ anonymizationLevel?: string, datasetVersion?: string, signalsConsentVerified?: boolean } = {}} options
    * @returns {Readonly<object>}
+   * @throws {import('./consent-gate-service.js').ResearchConsentNotVerifiedError}
    */
   build({
-    anonymizationLevel = ANONYMIZATION_LEVEL.NONE,
-    datasetVersion     = '1.0.0',
+    anonymizationLevel     = ANONYMIZATION_LEVEL.NONE,
+    datasetVersion         = '1.0.0',
+    signalsConsentVerified = false,
   } = {}) {
     const signals                         = this.collectSignals();
     const diseases                        = this.collectDiseases();
     const events                          = this.collectEvents();
     const snapshots                       = this.collectSnapshots();
     const { featureVectors, similarityEdges } = this.collectSimilarityData();
+
+    this.#consentGateService.assertSignalsConsentVerified(signals, signalsConsentVerified);
 
     const completeness = this.verifyCompleteness({ signals, diseases, events, snapshots });
     if (!completeness.complete) {

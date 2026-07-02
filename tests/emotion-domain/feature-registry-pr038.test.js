@@ -1,4 +1,4 @@
-// tests/emotion-domain/feature-registry-pr038.test.js
+﻿// tests/emotion-domain/feature-registry-pr038.test.js
 // RouteRegistry — PR-038 Emotion feature (25→26)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -13,7 +13,7 @@ describe('RouteRegistry — PR-038 Emotion', () => {
     expect(makeRegistry().knownFeatures).toContain('Emotion');
   });
   it('total knownFeatures is 26', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(60);
+    expect(makeRegistry().knownFeatures).toHaveLength(62);
   });
   it('isRegistered returns true after register', () => {
     const r = makeRegistry();

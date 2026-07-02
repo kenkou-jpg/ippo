@@ -1,4 +1,4 @@
-// tests/network-domain/feature-registry-pr033.test.js
+﻿// tests/network-domain/feature-registry-pr033.test.js
 // RouteRegistry — PR-033 PersistentSignal feature (KNOWN_FEATURES 20→21)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-033 PersistentSignal', () => {
   it('PersistentSignal appears in knownFeatures (total count: 21)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('PersistentSignal');
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('registered descriptor is frozen', () => {

@@ -436,6 +436,25 @@ const FORBIDDEN = [
   //           (admin:research; getWave2ExitAuditStatus is record:read).
   { from: /\/screens\//,   to: /wave2-exit-audit-service/,   label: 'screen→Wave2ExitAuditService'  },
   { from: /\/features\//,  to: /wave2-exit-audit-service/,   label: 'feature→Wave2ExitAuditService' },
+
+  // ── PR-077 — Release Readiness Recovery Program ─────────────────────────
+
+  // PR-077 — UI must not reach ReleaseReadinessService directly;
+  //           access via ApiGateway → confirmReleaseReadinessItem / getReleaseReadinessConfirmationStatus /
+  //           checkReleaseReadinessBetaGate / getReleaseReadinessHistory / getReleaseReadinessStatus
+  //           (admin:research for writes/history; read endpoints are record:read).
+  { from: /\/screens\//,   to: /release-readiness-service/,   label: 'screen→ReleaseReadinessService'  },
+  { from: /\/features\//,  to: /release-readiness-service/,   label: 'feature→ReleaseReadinessService' },
+
+  // ── PR-078 — Data Deletion Pipeline (BD-019) ────────────────────────────
+
+  // PR-078 — UI must not reach DataDeletionService directly;
+  //           access via ApiGateway → requestDataDeletion / confirmDataDeletionAnonymization /
+  //           confirmDataDeletionSoftDelete / executeDataHardDelete / getDataDeletionRequestStatus /
+  //           getAllDataDeletionRequests / getDataDeletionStatus
+  //           (admin:research for writes/listing; getDataDeletionRequestStatus/getDataDeletionStatus are record:read).
+  { from: /\/screens\//,   to: /data-deletion-service/,   label: 'screen→DataDeletionService'  },
+  { from: /\/features\//,  to: /data-deletion-service/,   label: 'feature→DataDeletionService' },
 ];
 
 export function runArchitectureGuard() {

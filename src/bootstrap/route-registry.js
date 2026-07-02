@@ -61,6 +61,8 @@ const KNOWN_FEATURES = new Set([
   'ResearchQueryAPI',         // PR-071: Research Query API (Wave2 Phase F継続)
   'ResearchPlatformAudit',    // PR-072: Research Platform Audit (Wave2 Phase F capstone)
   'Wave2ExitAudit',           // PR-075: Wave2 Exit Audit (Wave2 Phase G capstone — Wave2正式完了)
+  'ReleaseReadiness',         // PR-077: Release Readiness Recovery Program (Regulatory C-1〜C-5 / BD Founder Review ledger)
+  'DataDeletion',             // PR-078: Data Deletion Pipeline (BD-019 / Release Readiness Completion Program)
 ]);
 
 export class RouteRegistry {

@@ -141,6 +141,37 @@ describe('ResearchDatasetV2Service.buildDatasetV2()', () => {
     expect(() => service.buildDatasetV2({})).not.toThrow();
   });
 
+  // ── BD-049 Research Consent gate (Release Readiness Recovery PR-076) ──────────
+
+  it('BD-049: excludes cases with consentLevel < 2 from the built dataset', () => {
+    const { service } = makeService();
+    const cases = [
+      { id: 'C1', consentLevel: 2 },
+      { id: 'C2', consentLevel: 0 },
+      { id: 'C3' }, // missing consentLevel — treated as unconsented (fail-closed)
+    ];
+    const dataset = service.buildDatasetV2({ cases });
+    expect(dataset.caseCount).toBe(1);
+    expect(dataset.cases.map(c => c.id)).toEqual(['C1']);
+  });
+
+  it('BD-049: includes cases with consentLevel >= 2', () => {
+    const { service } = makeService();
+    const cases = [{ id: 'C1', consentLevel: 2 }, { id: 'C2', consentLevel: 3 }];
+    const dataset = service.buildDatasetV2({ cases });
+    expect(dataset.caseCount).toBe(2);
+  });
+
+  it('BD-049: throws ResearchConsentNotVerifiedError when signals are present without signalsConsentVerified', () => {
+    const { service } = makeService();
+    expect(() => service.buildDatasetV2({ signals: [{ id: 's1' }] })).toThrow(/BD-049/);
+  });
+
+  it('BD-049: does not throw when signals are present with signalsConsentVerified:true', () => {
+    const { service } = makeService();
+    expect(() => service.buildDatasetV2({ signals: [{ id: 's1' }], signalsConsentVerified: true })).not.toThrow();
+  });
+
   it('publishes RESEARCH_DATASET_V2_BUILT (best-effort)', () => {
     const published = [];
     const repository            = new DatasetVersionRepository();

@@ -1,4 +1,4 @@
-// tests/network-domain/route-registry-pr041.test.js
+﻿// tests/network-domain/route-registry-pr041.test.js
 // PR-041 — Wave2 NetworkSignalV2 feature registration
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -24,6 +24,6 @@ describe('RouteRegistry PR-041 — NetworkSignalV2 feature', () => {
   });
 
   it('total knownFeatures count is 29 after PR-041', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(60);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(62);
   });
 });

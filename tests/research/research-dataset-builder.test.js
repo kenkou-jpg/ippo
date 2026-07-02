@@ -113,7 +113,7 @@ describe('ResearchDatasetBuilder — build', () => {
       eventStore:     makeEventStore([]),
       snapshotService: makeSnapshotService([]),
     });
-    const dataset = b.build({ anonymizationLevel: ANONYMIZATION_LEVEL.NONE });
+    const dataset = b.build({ anonymizationLevel: ANONYMIZATION_LEVEL.NONE, signalsConsentVerified: true });
     expect(Object.isFrozen(dataset)).toBe(true);
     expect(dataset.id).toMatch(/^dataset_/);
     expect(dataset.signalCount).toBe(1);
@@ -126,5 +126,20 @@ describe('ResearchDatasetBuilder — build', () => {
     const dataset = b.build();
     expect(dataset.signalCount).toBe(0);
     expect(dataset.diseaseCount).toBe(0);
+  });
+});
+
+// ── BD-049 Research Consent gate (Release Readiness Recovery PR-076) ──────────
+
+describe('ResearchDatasetBuilder — build BD-049', () => {
+  it('throws ResearchConsentNotVerifiedError when signals are present without signalsConsentVerified', () => {
+    const signals = [{ id: 's1', signalType: 'MOOD' }];
+    const b = new ResearchDatasetBuilder({ signalService: makeSignalService(signals) });
+    expect(() => b.build()).toThrow(/BD-049/);
+  });
+
+  it('does not throw for BD-049 when there are no signals at all', () => {
+    const b = new ResearchDatasetBuilder();
+    expect(() => b.build()).not.toThrow();
   });
 });

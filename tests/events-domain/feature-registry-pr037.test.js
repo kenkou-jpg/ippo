@@ -1,4 +1,4 @@
-// tests/events-domain/feature-registry-pr037.test.js
+﻿// tests/events-domain/feature-registry-pr037.test.js
 // RouteRegistry — PR-037 EventSourcing feature (24→25)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-037 EventSourcing', () => {
   it('EventSourcing appears in knownFeatures (total: 25)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('EventSourcing');
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('descriptor is frozen', () => {

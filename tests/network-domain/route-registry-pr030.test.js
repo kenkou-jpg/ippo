@@ -1,4 +1,4 @@
-// tests/network-domain/route-registry-pr030.test.js
+﻿// tests/network-domain/route-registry-pr030.test.js
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
 
@@ -14,7 +14,7 @@ describe('RouteRegistry PR-030 — NetworkSignal feature', () => {
   });
 
   it('total knownFeatures count includes PR-041 Wave2 feature', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(60);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(62);
   });
 
   it('registered NetworkSignal descriptor is frozen with correct metadata', () => {

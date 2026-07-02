@@ -1,4 +1,4 @@
-// tests/network-domain/route-registry-pr032.test.js
+﻿// tests/network-domain/route-registry-pr032.test.js
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
 
@@ -14,7 +14,7 @@ describe('RouteRegistry PR-032 — Longitudinal feature', () => {
   });
 
   it('total knownFeatures count is 20 (PR-032: +Longitudinal)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(60);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(62);
   });
 
   it('registered Longitudinal descriptor is frozen with correct metadata', () => {

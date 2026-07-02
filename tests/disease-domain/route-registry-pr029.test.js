@@ -1,4 +1,4 @@
-// tests/disease-domain/route-registry-pr029.test.js
+﻿// tests/disease-domain/route-registry-pr029.test.js
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
 
@@ -14,7 +14,7 @@ describe('RouteRegistry PR-029 — Disease feature', () => {
   });
 
   it('total knownFeatures count is 20 (updated PR-045: +DiseaseEntityV2/MenstrualPhaseResolution)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(60);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(62);
   });
 
   it('registered Disease descriptor is frozen with correct metadata', () => {

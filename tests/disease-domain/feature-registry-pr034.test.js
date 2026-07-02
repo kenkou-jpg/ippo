@@ -1,4 +1,4 @@
-// tests/disease-domain/feature-registry-pr034.test.js
+﻿// tests/disease-domain/feature-registry-pr034.test.js
 // RouteRegistry — PR-034 DiseaseCluster feature (21→22)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-034 DiseaseCluster', () => {
   it('DiseaseCluster appears in knownFeatures (total: 32 at PR-045)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('DiseaseCluster');
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('descriptor is frozen', () => {

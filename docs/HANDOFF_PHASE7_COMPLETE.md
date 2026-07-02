@@ -113,14 +113,14 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  60（PR-075: KNOWN_FEATURESに'Wave2ExitAudit'追加。既存16ファイルの固定値ドリフト(59→60)を是正 — PR-073と同型の回帰）
-ApiGateway methods:        173+（PR-075: generateWave2ExitReport / confirmWave2ExitAudit / getWave2ExitAuditApprovals / generateWave3MigrationDocument / getWave2ExitAuditStatus の5メソッド追加）
-Domain Event Types:        47（PR-075: WAVE2_EXIT_CONFIRMED追加）
-DI TOKENS:                 329（PR-075: Wave2ExitAuditRepository / Wave2ExitAuditService追加）
-Tests (全パス):            5,061件 / 274ファイル（39件は5ファイルの既知pre-existing failure、PR無関係。内訳: tests/modules/2ファイル(壊れたインポート) + domain-event-types.test.js + event-menstrual.test.js(29固定値ドリフト) + disease-analyzer.test.js(日付依存)。PR-075でtests/wave2-exit-audit/に30件・tests/arch/architecture-guard-pr075.test.jsに3件追加（既知failure件数・対象ファイルとも増加なしを確認済み））
-ArchitectureGuard rules:   161（PR-075: screen/feature→Wave2ExitAuditService直接アクセス禁止 +2ルール）
+Features (RouteRegistry):  62（PR-078: KNOWN_FEATURESに'DataDeletion'追加。既存17ファイルの固定値ドリフト(61→62)を是正 — PR-073/075/077と同型の回帰）
+ApiGateway methods:        185+（PR-078: requestDataDeletion / confirmDataDeletionAnonymization / confirmDataDeletionSoftDelete / executeDataHardDelete / getDataDeletionRequestStatus / getAllDataDeletionRequests / getDataDeletionStatus の7メソッド追加）
+Domain Event Types:        49（PR-078: DATA_DELETION_STAGE_ADVANCED追加）
+DI TOKENS:                 333（PR-078: DataDeletionRepository / DataDeletionService追加）
+Tests (全パス):            5,149件 / 279ファイル（39件は5ファイルの既知pre-existing failure、PR無関係。内訳: tests/modules/2ファイル(壊れたインポート) + domain-event-types.test.js + event-menstrual.test.js(29固定値ドリフト) + disease-analyzer.test.js(日付依存)。PR-078でtests/data-deletion/に32件・tests/arch/architecture-guard-pr078.test.jsに3件追加（既知failure件数・対象ファイルとも増加なしを確認済み））
+ArchitectureGuard rules:   165（PR-078: screen/feature→DataDeletionService直接アクセス禁止 +2ルール）
 Architecture Health:       A（違反ゼロ）
-Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
+Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照。2026-06-24時点のまま陳腐化 — docs/RELEASE_READINESS_COUNCIL.md M-1で指摘済み、未再生成）
 ```
 
 ### Layer Stack（Strangler-Fig — Wave2 Phase A-2完了）
@@ -184,7 +184,7 @@ Phase 7 (Intelligence Foundation) — Wave1完了
   ✓ PR-039       Menstrual Intelligence Foundation（menstrual-types / entity / validator / repository / service / phase-calculator / cycle-analysis）
   ✓ PR-040       Research Dataset Foundation（BD-021 / research-dataset-repository / builder / service / anonymization / export）
 
-Wave2 (PR-041〜075) — 全PR実装完了。Wave2正式完了はFounderのconfirmWave2ExitAudit()実行待ち（BD-027/BD-040）
+Wave2 (PR-041〜075) — 全PR実装完了。Wave2正式完了 済（Founder承認取得済み、BD-027/BD-040）
   Phase A (PR-041〜045): Supabase Migration Foundation
     ✓ PR-041  NetworkSignal Repository V2 — Interface / Adapter / Factory / PersistenceService / Migration / DI
     ✓ PR-042  Supabase Persistence Foundation — NetworkSignalSupabaseRepository / SupabaseEventPersistenceRepository / backend切替
@@ -231,11 +231,34 @@ Wave2 (PR-041〜075) — 全PR実装完了。Wave2正式完了はFounderのconfi
     ✓ PR-073  Architecture Guard Wave2 Complete — Wave2全Domain（PR-041〜072）に対するArchitectureGuard禁止依存ルールの完成 / 発見したギャップ: PR-042（Supabase Persistence: network-signal-supabase-repository / supabase-event-persistence-repository）・PR-050（SignalIntelligenceV2Service）・PR-057〜062（Phase D全6PR: SignalInsight/PatternDiscovery/CaseRecommendation/SimilarCaseSearch/ResearchAssistance/AISafetyValidator）にArchGuardルールが皆無だった欠落を解消（+18ルール）/ 責務③新規ルール: AIサービスDomain（signal-insight/pattern-discovery/case-recommendation/similar-case-search/research-assistance/ai-safety）→ research-dataset-repository・builder・v2-entityへの直接アクセス禁止（+3ルール、EvidenceLayerService/ResearchAssistanceService経由を強制）/ 責務②KG等直接アクセス禁止は既存PR-051ルールで充足済みを確認 / composition-root.js _registerFeatures()にPR-066〜070（Phase3Validation/SimilarityPublicGate/ResearchDatasetV2/CohortResearchExport/DoiCandidate）のr.register()呼び出しが丸ごと欠落していたギャップを解消 / route-registry.js KNOWN_FEATURESにPR-051〜072の22Feature名を追加（PR-050以降ずっと未反映だった構造的ギャップを解消、これまでWave2全PRのregister()呼び出しが「Unknown feature」で黙って握りつぶされていた）/ 既存テストの37→59固定値ドリフトを16ファイルで是正（KNOWN_FEATURES拡張の直接帰結）/ tests/arch/architecture-guard-pr073.test.js 31件テスト / ArchGuard+21ルール
     ✓ PR-074  Wave2 Integration Test Suite — tests/wave2/ 新設、Phase A〜Fの全PRを横断する統合テスト（責務①）/ Exit Criteria EC-01〜EC-14自動検証スクリプト（責務②、tests/wave2/wave2-exit-criteria.test.js 21件）: EC-01(NetworkSignalSupabaseRepository capabilities.supabase) / EC-02(EmotionSignalMapper) / EC-03(MenstrualPhaseResolverService — cycleDay 1〜28全件でUNKNOWNゼロ確認) / EC-04(buildDiseaseEntry icdCode/category/severity) / EC-05(EventStore/SupabaseEventPersistenceRepositoryにupdate/delete不在) / EC-06(VECTOR_VERSION_V2='2' / FV_V2_DIMENSION_COUNT=12) / EC-07(LongitudinalEdgeEnricher.enrich()のlongitudinalContext) / EC-08(KnowledgeGraphService.getStatus()) / EC-09(ForbiddenWordValidator.validateOutput) / EC-10(CohortBuilderService k-anonymity gate) / EC-11(DatasetVersionService.publish() versionId) / EC-12(DiseaseClusterStatisticsService.computeClusterProfile) / EC-13〜14はtests/wave2/wave2-integration.test.js（7件）: EC-13(EventStoreが全DOMAIN_EVENT_TYPESを型無差別に記録) / EC-14・QC-01(root.assemble()がPR-041〜072の31Feature全件を登録、PR-073が修正した「Unknown feature握りつぶし」regressionのガード) + Disease Entity V2→Cluster Stats→Cohort→DatasetVersion のPhase横断データフロー統合テスト / QC-03(k-anonymity強制) / QC-04(診断・治療文言ブロック) はwave2-exit-criteria.test.jsに含む / QC-02（BD-001〜043違反ゼロ確認）とFounder向けレポート生成・WAVE2_EXIT_CONFIRMED Eventの発行はPR-075スコープのため本PRでは実装せず / vitest run全件パス確認（責務④）: 5,028件 / 270ファイル、失敗39件は既知5ファイルのpre-existing failureのみで増加なし（責務⑤）/ 新規Domain Service・ApiGateway・DIトークン・ArchGuardルール追加なし（テストのみのPRのためScope外）
     ✓ PR-075  Wave2 Exit Audit — src/domains/wave2-exit-audit/ 新設。Wave2ExitAuditService.generateExitReport()/.confirmWave3Migration()/.generateWave3MigrationDocument()/.getStatus() / EC-01〜15の全項目確認レポート生成（責務①、EC-01〜14はtests/wave2/(PR-074)通過を根拠、EC-15はvitest run結果(failedTests/newFailureFiles)を入力に判定）/ QC-01〜04の全項目確認（責務②、QC-01はEC-14委譲、QC-02はBD監査集約、QC-03はResearchPlatformAuditService.auditKAnonymity()委譲、QC-04はAISafetyValidator.getAuditReport()委譲）/ BD-001〜BD-043の全43件チェックリスト生成（責務③）: 機械的検証可能な9件（BD-021/026/027/030/031/036/037/038/039）はResearchPlatformAuditService（PR-072）/Phase3CompletionValidator（PR-066）/AISafetyValidator（PR-062）に委譲しPASS/FAIL判定、残り34件は正直にFOUNDER_REVIEW_REQUIRED（コードで証明不可能な業務・歴史的決定を虚偽PASSにしない）/ confirmWave3Migration()はfounderId必須のFounder承認ゲート（責務④、BD-027）— wave3ReadyForFounderApproval=false時はWave2ExitCriteriaNotMetErrorで強制ブロック、承認時のみWAVE2_EXIT_CONFIRMED Event発行 + Wave2ExitAuditRepository(Append-Only)へ記録 / generateWave3MigrationDocument()はFounder向け移行承認文書を生成（責務⑤、承認記録なしでは生成不可）/ ApiGateway: generateWave2ExitReport/confirmWave2ExitAudit/getWave2ExitAuditApprovals/generateWave3MigrationDocument/getWave2ExitAuditStatus（admin:research、statusのみrecord:read）/ ArchGuard+2ルール（screen/feature→Wave2ExitAuditService直接アクセス禁止）/ KNOWN_FEATURES 59→60件（既存16ファイルの固定値ドリフトをPR-073と同型で是正）/ tests/wave2-exit-audit/wave2-exit-audit-service.test.js 30件 + tests/arch/architecture-guard-pr075.test.js 3件 / vitest run全件: 5,061件、失敗39件は既知5ファイルのpre-existing failureのみで増加なし
-  ★ Phase G (PR-073〜075) 実装完了 — ただし Wave2正式完了は未確定。confirmWave3Migration() は本PR内では実行していない（BD-027: Founder確認必須。founderIdによる明示的な承認アクションが別途必要）。Founderが generateWave2ExitReport() の結果を確認し、confirmWave2ExitAudit({ founderId, exitReport }) を実行して初めて Wave2 が正式完了する。
+  ★ Phase G (PR-073〜075) 実装完了 — Wave2正式完了。Founderが generateWave2ExitReport() の結果（EC-01〜15全PASS・QC-01〜04全PASS・機械監査可能9BD全PASS・残り34BDはFOUNDER_REVIEW_REQUIRED）を確認のうえ「APPROVE WAVE2 EXIT」を明示し、confirmWave2ExitAudit({ founderId: 'kenkou-jpg', exitReport }) を実行。ApprovalRecord: approvalId=wave2exit_1782980527914_1 / founderId=kenkou-jpg / ecPassCount=15 / qcPassCount=4 / confirmedAt=2026-07-02T08:22:07.914Z。
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next: Wave2実装（PR-041〜075）は完了。Wave2正式完了の宣言はFounderによる confirmWave2ExitAudit() 実行を待つ（BD-027 / BD-040）。承認後はWave3 Roadmap起点（Wave3 MASTER DESIGN入力）へ。
+Release Readiness Recovery Program（PR-076〜077）— docs/RELEASE_READINESS_COUNCIL.md（IPPO-RELEASE-001）Critical是正
+  ✓ PR-076  Research Dataset Consent Gate — src/domains/research/consent-gate-service.js 新設 / BD-021・BD-049準拠 / ResearchDatasetBuilder.build()・ResearchDatasetV2Service.buildDatasetV2()・CohortResearchExportService.exportCohort()にConsent Gate統合 / Case はconsentLevel>=2（RESEARCH許諾）でfilterCasesByResearchConsent()によりフィルタ、consentLevel未設定・0のCaseはfail-closedで除外 / Signal はNetworkSignal entityがuserId/consentLevelを保持しない設計制約のためsignalsConsentVerified:true の明示的表明を必須化（未表明時はResearchConsentNotVerifiedError、BD-030 all-or-nothing踏襲）/ 18件テスト追加（tests/research/consent-gate-service.test.js 10件 + 既存3ファイルへBD-049テスト追加8件）/ Architecture変更なし・Wave2ExitAudit等既存ドメイン無変更 / vitest run全件: 5,079件、失敗39件は既知5ファイルのみで増加なし
+  ✓ PR-077  Release Readiness Evidence Ledger — src/domains/release-readiness/ 新設。ReleaseReadinessService.confirmItem()/.getConfirmationStatus()/.checkBetaReadinessGate()/.getHistory()/.getStatus() / Wave2ExitAuditRepository（PR-075、Append-Only・Founder承認済み）には一切触れない独立追加台帳 / REGULATORY_CONDITIONS（C-1〜C-5、REGULATORY_MEDICAL_COUNCIL.md 条件一覧）+ FOUNDER_REVIEW_BD_LIST（BD_SCOPE_LIST − MECHANICALLY_AUDITED_BDS = 34件、wave2-exit-audit-types.jsから動的導出しドリフト不可能）計39項目をFounderが個別に確認・記録 / checkBetaReadinessGate()は39項目全件confirmed:trueでない限りready:falseを返す fail-closed設計（confirmed:falseの明示記録も「未レビュー」とは区別してブロック対象に含める）/ RELEASE_READINESS_ITEM_CONFIRMED Event追加 / ApiGateway: confirmReleaseReadinessItem/getReleaseReadinessConfirmationStatus/checkReleaseReadinessBetaGate/getReleaseReadinessHistory/getReleaseReadinessStatus（admin:research、read系はrecord:read）/ ArchGuard+2ルール（screen/feature→ReleaseReadinessService直接アクセス禁止）/ KNOWN_FEATURES 60→61件（既存16ファイルの固定値ドリフトをPR-073/075と同型で是正）/ tests/release-readiness/ 32件 + tests/arch/architecture-guard-pr077.test.js 3件 / vitest run全件: 5,114件、失敗39件は既知5ファイルのみで増加なし
+  ★ Release Readiness Recovery Program 完了 — 元Critical 3件のうち工学的に対処可能な設計欠陥（Consent Gate欠落・承認ゲート素通り）は解消。ただしReleaseReadinessServiceの確認台帳は現時点で0/39 confirmed — Founderが実際にC-1〜C-5の完了状況とFOUNDER_REVIEW_REQUIRED BD 34件を確認・記録するまで、β Release Readinessは引き続きCONDITIONAL GO（Score 90/100）。詳細: docs/RELEASE_READINESS_COUNCIL.md 16章参照。
+
+Founder Confirmation — HOLD RELEASE READINESS（2026-07-02、Founder: kenkou-jpg）
+  Founderより「全39項目を一括承認しない」との明示指示。以下を confirmItem() で個別実行:
+    17-A: confirmed:false（外部証跡・実データ不足）: C-1 / C-2 / C-3 / C-5 / BD-034 / BD-042 の6件
+    17-B/17-D: 承認候補15件（C-4 + BD 14件）を ① Code Verified 7件 / ② Evidence Verified 7件 / ③ Founder Judgment Required（C-4）1件 に分類 → Founderが①②をconfirmed:true、③(C-4)をconfirmed:false維持で確定指示
+      confirmed:true化14件: BD-002/010/013/017/022/032/035（①コード確認のみで確認可能）+ BD-004/006/012/014/024/040/041（②HANDOFF・既存承認記録で確認可能）
+      confirmed:false維持1件: C-4（理由: Signal経路がsignalsConsentVerified:trueの自己申告モデルに依存しBD-049/C-4の完全充足は追加判断が必要なため）
+    17-F: 残り18件を「確認過程を短縮」の指示のもと ① Code Verified 4件 / ② Evidence Verified 9件 / ③ Hold Before GO 5件 に再分類 → Founderが①②の13件を一括confirmed:true承認、③の5件はconfirmed:false（未レビュー）のまま保留する指示
+      confirmed:true化13件: BD-001/008/011/018（①コード確認）+ BD-005/007/009/016/020/023/025/028/043（②既存文書・監査記録で確認）
+      Hold Before GO維持5件（未レビューのまま）: BD-003（calendar-next.jsの旧暦UI表示とBD-003の整合性未確認）/ BD-015（Layer1→Layer2-7再構築保証が未検証）/ BD-019（削除パイプライン実装の所在未確認）/ BD-029（Similarity UI個人識別不可要件の未レビュー）/ BD-033（定性的戦略命題のため機械検証不可）
+  confirmed:true累計27件・confirmed:false累計7件（C-1/C-2/C-3/C-4/C-5/BD-034/BD-042）・未レビュー累計5件（Hold Before GO）。checkBetaReadinessGate().ready=false。CONDITIONAL GO維持。
+  詳細・記録全件: docs/RELEASE_READINESS_COUNCIL.md 17章（Founder Confirmation Log、17-F/17-G）参照。
+
+Release Readiness Completion Program（PR-078）— docs/RELEASE_READINESS_COUNCIL.md 18章
+  ✓ PR-078  Data Deletion Pipeline — src/domains/data-deletion/ 新設。DataDeletionService.requestDeletion()/.confirmAnonymization()/.confirmSoftDelete()/.executeHardDelete()/.getRequestStatus()/.getAllLatest()/.getHistory()/.getStatus() / BD-019準拠：REQUESTED→ANONYMIZED→SOFT_DELETED→HARD_DELETEDの順序をサーバー側で強制、段階スキップ・後戻りはDeletionStageOrderErrorで拒否 / SOFT_DELETED→HARD_DELETEDはHARD_DELETE_HOLD_DAYS=90を満たすまでHardDeleteNotEligibleErrorで拒否 / 既存RecordRepository/ConsentRepositoryには一切触れない自己完結的Append-Only監査台帳（PR-076/077と同型、Architecture変更なし）/ DATA_DELETION_STAGE_ADVANCED Event追加 / ApiGateway: requestDataDeletion/confirmDataDeletionAnonymization/confirmDataDeletionSoftDelete/executeDataHardDelete/getDataDeletionRequestStatus/getAllDataDeletionRequests/getDataDeletionStatus（admin:research、状態参照系はrecord:read）/ ArchGuard+2ルール（screen/feature→DataDeletionService直接アクセス禁止）/ KNOWN_FEATURES 61→62件（既存17ファイルの固定値ドリフトをPR-073/075/077と同型で是正）/ tests/data-deletion/ 32件 + tests/arch/architecture-guard-pr078.test.js 3件 / vite build PASS / vitest run全件: 5,149件、失敗39件は既知5ファイルのみで増加なし / 完了後 BD-019 を confirmItem() で confirmed:true 記録
+  BD-034監査（未実装）— persistence-config.jsのPERSISTENCE_CONFIGはnetworkSignalの1エントリのみで、Emotion/Menstrual/DiseaseCluster/KnowledgeGraph/ResearchDataset/Cohort等15以上のWave2ドメインがSupabaseアダプタ皆無の完全in-memoryと判明。1PRで閉じられる規模ではなく新規Roadmap起票を要するためImplementationからFounder Actionへ再分類。confirmed:falseのまま維持
+  confirmed:true累計28件・confirmed:false累計6件（C-1/C-2/C-3/C-4/BD-034/BD-042）・未レビュー累計5件（BD-003/BD-015/BD-029/BD-033/C-5）。checkBetaReadinessGate().ready=false。CONDITIONAL GO継続（Score 90→93/100）。
+  詳細・記録全件: docs/RELEASE_READINESS_COUNCIL.md 18章（Release Readiness Completion Program）参照。
+
+Next: Founder Action 3件（C-2医師アドバイザー招聘／C-4 Signal Consent自己申告モデルの是非判断／BD-034適用範囲の再解釈 or 新Roadmap起票判断）と External Evidence 2件（C-1プライバシーポリシー弁護士レビュー／C-3 SaMD非該当書面見解）が必須ブロッカー。Major 3件（BD-003/BD-015/BD-029）はLegacy Removal・Operations Council前に確認、Minor 3件（C-5/BD-033/BD-042）は当面保留可。checkBetaReadinessGate().ready=trueを確認した時点でβ公開可否を最終判断し、その後 Legacy Removal Council へ進む。Wave3 Roadmap起点（Wave3 MASTER DESIGN入力）はβ運営開始後に着手する。
 ```
 
 ---
@@ -664,15 +687,21 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-074: Wave2 Integration Test Suite**（Phase G継続）
-- 目的: Wave1〜Wave2 の統合テストスイートを完成させ、全 Exit Criteria の自動検証を実現する
-- 責務: Phase A〜F の全 PR を横断する統合テスト（E2E シナリオ）/ Exit Criteria EC-01〜EC-15 の自動検証スクリプト / Exit Criteria QC-01〜QC-04 の自動確認 / `vitest run` で全件パス確認 / Pre-existing failures（既知の5ファイル・39件、下記メモ参照）が増加していないことを確認
-- 依存PR: PR-073（ArchGuard 完了）
-- 詳細: docs/WAVE2_ROADMAP.md PR-074参照
+**Release Readiness Council**（Wave2正式完了後の次ステップ）
+- Wave2（PR-041〜075）は2026-07-02にFounder承認（kenkou-jpg）を得て正式完了。
+- Wave3 MASTER DESIGN入力・Wave3 Roadmap起点はRelease Readiness Council開催後に着手する。
+- 本HANDOFFはPR実行ルールのエントリポイントであり、Release Readiness Council / Legacy Removal / Operations Council開始の要否・進行はFounderが別途判断する。
 
 ---
 
 ## 直前PR完了メモ
+
+**Wave2 Official Completion — Founder Approval**（Wave2正式完了、Phase G capstone後続）
+- 2026-07-02、Founder（kenkou-jpg）が `generateWave2ExitReport()` の結果を確認し「APPROVE WAVE2 EXIT」を明示。
+- Exit Report: EC-01〜15 全15件PASS / QC-01〜04 全4件PASS / BD-001〜043のうち機械監査可能9件（BD-021,026,027,030,031,036,037,038,039）全PASS・FAILなし / 残り34件はFOUNDER_REVIEW_REQUIRED（コードで証明不可能な業務・歴史的決定のため、虚偽PASSにせずFounder自身が確認）。
+- EC-15根拠: `vitest run` 実測 5,061件中5,022件PASS・失敗39件＝既知5ファイル（tests/modules/build-draft-from-ui.test.js, tests/modules/save-record-screen.test.js, tests/events-domain/domain-event-types.test.js, tests/menstrual-domain/event-menstrual.test.js, tests/disease/disease-analyzer.test.js）のpre-existing failureのみ、新規失敗ゼロを確認。
+- `confirmWave3Migration()` 実行結果（ApprovalRecord）: approvalId=`wave2exit_1782980527914_1` / founderId=`kenkou-jpg` / ecPassCount=15 / qcPassCount=4 / confirmedAt=`2026-07-02T08:22:07.914Z`。
+- Wave3 Readiness: `wave3ReadyForFounderApproval=true`。Next: Release Readiness Council。
 
 **PR-073: Architecture Guard Wave2 Complete**（Phase G開始・完了）
 - KNOWN_FEATURES（route-registry.js）がPR-050以降ずっと未更新で、composition-root.jsのPR-051〜072全register()呼び出しが「Unknown feature」で黙って握りつぶされていた構造的ギャップを解消（22Feature追加、57→59件）。

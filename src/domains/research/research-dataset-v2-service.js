@@ -16,6 +16,7 @@ import {
 import { DATASET_TYPES }                  from '../dataset-version/dataset-version-types.js';
 import { buildDomainEvent }               from '../events/domain-event-entity.js';
 import { DOMAIN_EVENT_TYPES, AGGREGATE_TYPES } from '../events/domain-event-types.js';
+import { ConsentGateService }             from './consent-gate-service.js';
 
 /** Thrown when any included disease cluster has caseCount < K_ANONYMITY_MIN_K (BD-030 ZERO TOLERANCE). */
 export class DatasetKAnonymityError extends Error {
@@ -46,25 +47,32 @@ export class DatasetV2PublicationNotApprovedError extends Error {
 export class ResearchDatasetV2Service {
   #datasetVersionService;
   #eventPublisher;
+  #consentGateService;
 
   /**
    * @param {{
    *   datasetVersionService: import('../dataset-version/dataset-version-service.js').DatasetVersionService,
    *   eventPublisher?:       object|null,
+   *   consentGateService?:   import('./consent-gate-service.js').ConsentGateService|null,
    * }} deps
    */
-  constructor({ datasetVersionService, eventPublisher = null }) {
+  constructor({ datasetVersionService, eventPublisher = null, consentGateService = null }) {
     if (!datasetVersionService) {
       throw new Error('[ResearchDatasetV2Service] datasetVersionService is required');
     }
     this.#datasetVersionService = datasetVersionService;
     this.#eventPublisher        = eventPublisher ?? null;
+    this.#consentGateService    = consentGateService ?? new ConsentGateService();
   }
 
   /**
    * Build a Dataset V2 from pre-collected Wave2 assets.
    * BD-030 ZERO TOLERANCE: throws DatasetKAnonymityError if any clusterProfile has
    * caseCount < 5 — the dataset is not built at all (completion condition ②).
+   * BD-021 / BD-049: `cases` is filtered to Research Consent holders only
+   * (consentLevel >= 2) before assembly. `signals`, if supplied, require an explicit
+   * `signalsConsentVerified: true` attestation — see consent-gate-service.js header for why
+   * Signal-level filtering cannot yet be derived mechanically.
    *
    * @param {{
    *   signals?:         object[],
@@ -74,13 +82,16 @@ export class ResearchDatasetV2Service {
    *   clusterProfiles?: Record<string, object>,  keyed by diseaseKey → DiseaseClusterProfile (PR-046)
    *   kgSnapshot?:      object|null,              KnowledgeGraphSnapshot (PR-052)
    *   metadata?:        object,
+   *   signalsConsentVerified?: boolean,
    * }} input
    * @returns {Readonly<object>} ResearchDatasetV2
    * @throws {DatasetKAnonymityError}
+   * @throws {import('./consent-gate-service.js').ResearchConsentNotVerifiedError}
    */
   buildDatasetV2({
     signals = [], diseases = [], cases = [], v2Edges = [],
     clusterProfiles = {}, kgSnapshot = null, metadata = {},
+    signalsConsentVerified = false,
   } = {}) {
     for (const [diseaseKey, profile] of Object.entries(clusterProfiles)) {
       const count = profile?.caseCount ?? 0;
@@ -89,8 +100,11 @@ export class ResearchDatasetV2Service {
       }
     }
 
+    this.#consentGateService.assertSignalsConsentVerified(signals, signalsConsentVerified);
+    const { included: consentedCases } = this.#consentGateService.filterCasesByResearchConsent(cases);
+
     const dataset = buildResearchDatasetV2({
-      signals, diseases, cases, v2Edges, clusterProfiles, kgSnapshot, metadata,
+      signals, diseases, cases: consentedCases, v2Edges, clusterProfiles, kgSnapshot, metadata,
     });
     this.#publishBuilt(dataset);
     return dataset;
@@ -184,6 +198,8 @@ export class ResearchDatasetV2Service {
       bd021:          'publication requires an explicit Founder approval (founderId)',
       bd030:          `k < ${K_ANONYMITY_MIN_K} disease clusters block Dataset V2 generation entirely`,
       bd031:          'pure deterministic aggregation — zero LLM/AI',
+      bd049:          'cases without Research Consent (consentLevel >= 2) are excluded from build; ' +
+                       'signals require explicit signalsConsentVerified:true (Release Readiness Recovery PR-076)',
     });
   }
 

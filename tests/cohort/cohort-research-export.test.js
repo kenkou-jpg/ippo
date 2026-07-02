@@ -29,6 +29,8 @@ const SIGNALS = [
   { id: 's1', signalType: 'PAIN', normalizedValue: 0.5, rawValue: 5, unit: 'level', timestamp: '2026-01-01T00:00:00.000Z' },
 ];
 
+const SIGNALS_VERIFIED = { signalsConsentVerified: true };
+
 // ── constructor ───────────────────────────────────────────────────────────────
 
 describe('CohortResearchExportService constructor', () => {
@@ -67,7 +69,24 @@ describe('CohortResearchExportService.exportCohort() — BD-039', () => {
   it('succeeds when the cohort is verified with verifiedCount >= 5', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    expect(() => service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' })).not.toThrow();
+    expect(() => service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' })).not.toThrow();
+  });
+});
+
+// ── exportCohort — BD-049 Research Consent gate (Release Readiness Recovery PR-076) ──
+
+describe('CohortResearchExportService.exportCohort() — BD-049', () => {
+  it('throws ResearchConsentNotVerifiedError when signals are supplied without signalsConsentVerified', () => {
+    const { service, cohortBuilderService } = makeStack();
+    const cohort = defineVerifiedCohort(cohortBuilderService);
+    expect(() => service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' }))
+      .toThrow(/BD-049/);
+  });
+
+  it('does not throw for BD-049 when no signals are supplied at all', () => {
+    const { service, cohortBuilderService } = makeStack();
+    const cohort = defineVerifiedCohort(cohortBuilderService);
+    expect(() => service.exportCohort({ cohortId: cohort.cohortId, createdBy: 'r1' })).not.toThrow();
   });
 });
 
@@ -77,7 +96,7 @@ describe('CohortResearchExportService.exportCohort() — composition', () => {
   it('completion condition ①: returns a Dataset built from the given data pool', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(result.dataset.signalCount).toBe(1);
     expect(result.dataset.metadata.cohortId).toBe(cohort.cohortId);
   });
@@ -85,7 +104,7 @@ describe('CohortResearchExportService.exportCohort() — composition', () => {
   it('completion condition ③: DatasetVersion carries a versionId', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(typeof result.version.versionId).toBe('string');
     expect(result.version.versionId.length).toBeGreaterThan(0);
   });
@@ -93,28 +112,28 @@ describe('CohortResearchExportService.exportCohort() — composition', () => {
   it('names the DatasetVersion IPPO-DATASET-COHORT-{cohortId}-v1.0-{YYYYMMDD}', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService, { cohortId: 'coh_fixed_1' });
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(result.version.versionName).toMatch(/^IPPO-DATASET-COHORT-coh_fixed_1-v1\.0-\d{8}$/);
   });
 
   it('persists the DatasetVersion (BD-021 Append-Only)', () => {
     const { service, cohortBuilderService, versionRepository } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(versionRepository.findById(result.version.versionId)).not.toBeNull();
   });
 
   it('stamps createdBy on the DatasetVersion', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'researcher-9' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'researcher-9' });
     expect(result.version.createdBy).toBe('researcher-9');
   });
 
   it('returns the cohort definition alongside the dataset and version', () => {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService);
-    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    const result = service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(result.cohort.cohortId).toBe(cohort.cohortId);
   });
 
@@ -128,7 +147,7 @@ describe('CohortResearchExportService.exportCohort() — composition', () => {
     });
     const service = new CohortResearchExportService({ cohortBuilderService, datasetVersionService });
     const cohort  = defineVerifiedCohort(cohortBuilderService);
-    service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' });
+    service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' });
     expect(published).toHaveLength(1);
     expect(published[0].eventType).toBe('DATASET_VERSION_PUBLISHED');
   });
@@ -140,7 +159,7 @@ describe('CohortResearchExportService format export', () => {
   function buildDatasetV(cohortIdOverride) {
     const { service, cohortBuilderService } = makeStack();
     const cohort = defineVerifiedCohort(cohortBuilderService, { cohortId: cohortIdOverride });
-    return { service, ...service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, createdBy: 'r1' }) };
+    return { service, ...service.exportCohort({ cohortId: cohort.cohortId, signals: SIGNALS, ...SIGNALS_VERIFIED, createdBy: 'r1' }) };
   }
 
   it('exportJSON serializes the dataset', () => {

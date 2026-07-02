@@ -223,6 +223,12 @@ import { ResearchPlatformAuditService }   from '../domains/research-platform-aud
 // PR-075 — Wave2 Exit Audit
 import { Wave2ExitAuditRepository }       from '../domains/wave2-exit-audit/wave2-exit-audit-repository.js';
 import { Wave2ExitAuditService }          from '../domains/wave2-exit-audit/wave2-exit-audit-service.js';
+// PR-077 — Release Readiness Recovery Program
+import { ReleaseReadinessRepository }     from '../domains/release-readiness/release-readiness-repository.js';
+import { ReleaseReadinessService }        from '../domains/release-readiness/release-readiness-service.js';
+// PR-078 — Data Deletion Pipeline (BD-019 / Release Readiness Completion Program)
+import { DataDeletionRepository }         from '../domains/data-deletion/data-deletion-repository.js';
+import { DataDeletionService }            from '../domains/data-deletion/data-deletion-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -416,6 +422,12 @@ export const TOKENS = Object.freeze({
   // PR-075 — Wave2 Exit Audit
   Wave2ExitAuditRepository:            'Wave2ExitAuditRepository',
   Wave2ExitAuditService:               'Wave2ExitAuditService',
+  // PR-077 — Release Readiness Recovery Program
+  ReleaseReadinessRepository:          'ReleaseReadinessRepository',
+  ReleaseReadinessService:             'ReleaseReadinessService',
+  // PR-078 — Data Deletion Pipeline
+  DataDeletionRepository:              'DataDeletionRepository',
+  DataDeletionService:                 'DataDeletionService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -960,6 +972,28 @@ export class CompositionRoot {
         eventPublisher:               container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Release Readiness Recovery Program (PR-077) ──────────────────────────
+    // Additive to Wave2ExitAuditService above — does not read from or write to it.
+    // Closes docs/RELEASE_READINESS_COUNCIL.md Critical C-2/C-3: gives Founder an
+    // Append-Only ledger to confirm Regulatory Conditions (C-1〜C-5) and the 34
+    // FOUNDER_REVIEW_REQUIRED BDs that Wave2ExitAudit intentionally leaves unproven.
+    c.singleton(TOKENS.ReleaseReadinessRepository, () => new ReleaseReadinessRepository());
+    c.singleton(TOKENS.ReleaseReadinessService, (container) =>
+      new ReleaseReadinessService({
+        repository:     container.resolve(TOKENS.ReleaseReadinessRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
+    // ── Data Deletion Pipeline (PR-078) ───────────────────────────────────────
+    // BD-019: 匿名化優先 → SoftDelete → 90日後HardDelete. Self-contained Append-Only
+    // ledger + stage-order gate — does not reach into RecordRepository/ConsentRepository.
+    c.singleton(TOKENS.DataDeletionRepository, () => new DataDeletionRepository());
+    c.singleton(TOKENS.DataDeletionService, (container) =>
+      new DataDeletionService({
+        repository:     container.resolve(TOKENS.DataDeletionRepository),
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1346,6 +1380,10 @@ export class CompositionRoot {
       researchPlatformAuditService: container.resolve(TOKENS.ResearchPlatformAuditService),
       // PR-075
       wave2ExitAuditService: container.resolve(TOKENS.Wave2ExitAuditService),
+      // PR-077
+      releaseReadinessService: container.resolve(TOKENS.ReleaseReadinessService),
+      // PR-078
+      dataDeletionService: container.resolve(TOKENS.DataDeletionService),
     }));
 
     this._registerFeatures();
@@ -1411,5 +1449,7 @@ export class CompositionRoot {
     r.register('ResearchQueryAPI',         { status: 'active', migratesIn: 'PR-071' }); // PR-071 ✓ admin:research only
     r.register('ResearchPlatformAudit',    { status: 'active', migratesIn: 'PR-072' }); // PR-072 ✓ Phase F capstone
     r.register('Wave2ExitAudit',           { status: 'active', migratesIn: 'PR-075' }); // PR-075 ✓ Phase G capstone — Wave2正式完了
+    r.register('ReleaseReadiness',         { status: 'active', migratesIn: 'PR-077' }); // PR-077 ✓ Release Readiness Recovery Program
+    r.register('DataDeletion',             { status: 'active', migratesIn: 'PR-078' }); // PR-078 ✓ Data Deletion Pipeline (BD-019)
   }
 }

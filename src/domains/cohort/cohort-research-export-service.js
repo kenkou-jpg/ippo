@@ -12,25 +12,31 @@ import { buildResearchDataset } from '../research/research-dataset-entity.js';
 import { DatasetExportService } from '../research/dataset-export-service.js';
 import { ANONYMIZATION_LEVEL }  from '../research/research-dataset-types.js';
 import { DATASET_TYPES }        from '../dataset-version/dataset-version-types.js';
+import { ConsentGateService }   from '../research/consent-gate-service.js';
 
 export class CohortResearchExportService {
   #cohortBuilderService;
   #datasetVersionService;
   #datasetExportService;
+  #consentGateService;
 
   /**
    * @param {{
    *   cohortBuilderService:  import('./cohort-builder-service.js').CohortBuilderService,
    *   datasetVersionService: import('../dataset-version/dataset-version-service.js').DatasetVersionService,
    *   datasetExportService?: import('../research/dataset-export-service.js').DatasetExportService|null,
+   *   consentGateService?:   import('../research/consent-gate-service.js').ConsentGateService|null,
    * }} deps
    */
-  constructor({ cohortBuilderService, datasetVersionService, datasetExportService = null }) {
+  constructor({
+    cohortBuilderService, datasetVersionService, datasetExportService = null, consentGateService = null,
+  }) {
     if (!cohortBuilderService)  throw new Error('[CohortResearchExportService] cohortBuilderService is required');
     if (!datasetVersionService) throw new Error('[CohortResearchExportService] datasetVersionService is required');
     this.#cohortBuilderService  = cohortBuilderService;
     this.#datasetVersionService = datasetVersionService;
     this.#datasetExportService  = datasetExportService ?? new DatasetExportService();
+    this.#consentGateService    = consentGateService ?? new ConsentGateService();
   }
 
   /**
@@ -41,16 +47,25 @@ export class CohortResearchExportService {
    * matching records (query/filter matching is out of scope for this service — see
    * CohortBuilderService for the CohortDefinition.filters shape).
    *
+   * BD-049: when signals are supplied, requires an explicit `signalsConsentVerified: true`
+   * attestation (see consent-gate-service.js — NetworkSignal carries no userId to filter on).
+   *
    * @param {{
    *   cohortId:   string,
    *   signals?:   object[], diseases?: object[], events?: object[], snapshots?: object[],
    *   createdBy:  string,
+   *   signalsConsentVerified?: boolean,
    * }} input
    * @returns {Readonly<object>} { cohort, dataset, version }
    * @throws when the cohort is not k-anonymity eligible (BD-039, propagated from CohortBuilderService)
+   * @throws {import('../research/consent-gate-service.js').ResearchConsentNotVerifiedError}
    */
-  exportCohort({ cohortId, signals = [], diseases = [], events = [], snapshots = [], createdBy }) {
+  exportCohort({
+    cohortId, signals = [], diseases = [], events = [], snapshots = [], createdBy,
+    signalsConsentVerified = false,
+  }) {
     this.#cohortBuilderService.checkPublicationEligibility(cohortId); // BD-039 re-verification
+    this.#consentGateService.assertSignalsConsentVerified(signals, signalsConsentVerified); // BD-049
     const cohort = this.#cohortBuilderService.getCohort(cohortId);
 
     const dataset = buildResearchDataset({
@@ -101,6 +116,7 @@ export class CohortResearchExportService {
       namingPattern: 'IPPO-DATASET-COHORT-{cohortId}-v1.0-{YYYYMMDD}',
       bd021:         'publication is Append-Only via DatasetVersionService',
       bd039:         're-verifies cohort eligibility via CohortBuilderService immediately before every export',
+      bd049:         'signals require explicit signalsConsentVerified:true (Release Readiness Recovery PR-076)',
       formats:       ['JSON', 'CSV', 'PARQUET (Wave2 Stub)'],
     });
   }

@@ -1,4 +1,4 @@
-// tests/symptom/route-registry-pr028.test.js
+﻿// tests/symptom/route-registry-pr028.test.js
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
 
@@ -14,7 +14,7 @@ describe('RouteRegistry PR-028 — Symptom feature', () => {
   });
 
   it('total knownFeatures count is 20 (updated PR-032: +Longitudinal)', () => {
-    expect(new RouteRegistry().knownFeatures).toHaveLength(60);
+    expect(new RouteRegistry().knownFeatures).toHaveLength(62);
   });
 
   it('registered Symptom descriptor is frozen with correct metadata', () => {

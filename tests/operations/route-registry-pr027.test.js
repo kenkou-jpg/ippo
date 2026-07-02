@@ -1,4 +1,4 @@
-// tests/operations/route-registry-pr027.test.js
+﻿// tests/operations/route-registry-pr027.test.js
 // RouteRegistry — OperationsAutomation feature (PR-027)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -17,7 +17,7 @@ describe('RouteRegistry PR-027 — OperationsAutomation feature', () => {
 
   it('total knownFeatures count is 17', () => {
     const reg = new RouteRegistry();
-    expect(reg.knownFeatures).toHaveLength(60);
+    expect(reg.knownFeatures).toHaveLength(62);
   });
 
   it('registered descriptor is frozen with correct metadata', () => {

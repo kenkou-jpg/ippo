@@ -1,4 +1,4 @@
-// tests/menstrual-domain/feature-registry-pr039.test.js
+﻿// tests/menstrual-domain/feature-registry-pr039.test.js
 // RouteRegistry — PR-039 MenstrualIntelligence feature (26→27)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -7,7 +7,7 @@ function makeRegistry() { return new RouteRegistry(); }
 
 describe('RouteRegistry — PR-039 MenstrualIntelligence', () => {
   it('knownFeatures has 27 entries', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(60);
+    expect(makeRegistry().knownFeatures).toHaveLength(62);
   });
   it('knownFeatures contains MenstrualIntelligence', () => {
     expect(makeRegistry().knownFeatures).toContain('MenstrualIntelligence');
@@ -19,7 +19,7 @@ describe('RouteRegistry — PR-039 MenstrualIntelligence', () => {
     expect(makeRegistry().knownFeatures).toContain('MenstrualIntelligence');
   });
   it('total knownFeatures is 27', () => {
-    expect(makeRegistry().knownFeatures).toHaveLength(60);
+    expect(makeRegistry().knownFeatures).toHaveLength(62);
   });
   it('isRegistered returns true after register', () => {
     const r = makeRegistry();

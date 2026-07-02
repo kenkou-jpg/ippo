@@ -1,4 +1,4 @@
-// tests/research/feature-registry-pr040.test.js
+﻿// tests/research/feature-registry-pr040.test.js
 // Feature Registry PR-040 — ResearchDataset (27 → 28)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -12,7 +12,7 @@ describe('RouteRegistry — PR-040 ResearchDataset', () => {
 
   it('KNOWN_FEATURES has 28 entries', () => {
     const r = new RouteRegistry();
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('KNOWN_FEATURES includes ResearchDataset', () => {

@@ -1,4 +1,4 @@
-// tests/network-domain/feature-registry-pr035.test.js
+﻿// tests/network-domain/feature-registry-pr035.test.js
 // RouteRegistry — PR-035 SignalSnapshot feature (22→23)
 import { describe, it, expect } from 'vitest';
 import { RouteRegistry } from '../../src/bootstrap/route-registry.js';
@@ -20,7 +20,7 @@ describe('RouteRegistry — PR-035 SignalSnapshot', () => {
   it('SignalSnapshot appears in knownFeatures (total: 23)', () => {
     const r = makeRegistry();
     expect(r.knownFeatures).toContain('SignalSnapshot');
-    expect(r.knownFeatures).toHaveLength(60);
+    expect(r.knownFeatures).toHaveLength(62);
   });
 
   it('descriptor is frozen', () => {
