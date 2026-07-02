@@ -141,6 +141,8 @@ export class ApiGateway {
   #phase3CompletionValidator;
   // PR-067
   #similarityPublicGateService;
+  // PR-068
+  #researchDatasetV2Service;
 
   constructor({
     permissionService,
@@ -276,6 +278,8 @@ export class ApiGateway {
     phase3CompletionValidator = null,
     // PR-067
     similarityPublicGateService = null,
+    // PR-068
+    researchDatasetV2Service = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -400,6 +404,8 @@ export class ApiGateway {
     this.#phase3CompletionValidator = phase3CompletionValidator;
     // PR-067
     this.#similarityPublicGateService = similarityPublicGateService;
+    // PR-068
+    this.#researchDatasetV2Service = researchDatasetV2Service;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1213,6 +1219,62 @@ export class ApiGateway {
     if (!this.#similarityPublicGateService)
       throw new Error('[ApiGateway] SimilarityPublicGateService not wired');
     return this.#similarityPublicGateService.getStatus();
+  }
+
+  // ── Research Dataset V2 API (PR-068 / BD-021 / BD-030 / Phase F開始) ─────
+  // Composes Layer 2〜9 assets into the Wave2 completed Dataset format.
+
+  /**
+   * Build a Dataset V2 from pre-collected Wave2 assets.
+   * BD-030 ZERO TOLERANCE: throws when any included cluster has caseCount < 5.
+   *
+   * @param {{ signals?, diseases?, cases?, v2Edges?, clusterProfiles?, kgSnapshot?, metadata? }} input
+   * @returns {Promise<Readonly<object>>} ResearchDatasetV2
+   */
+  async buildResearchDatasetV2(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetV2Service)
+      throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
+    return this.#researchDatasetV2Service.buildDatasetV2(input);
+  }
+
+  /**
+   * Publish a built Dataset V2 as a versioned artifact. BD-021: requires an explicit
+   * Founder approval (founderId) — rejected otherwise.
+   *
+   * @param {object} datasetV2
+   * @param {{ founderId: string }} approval
+   * @returns {Promise<Readonly<object>>} DatasetVersion
+   */
+  async publishResearchDatasetV2(datasetV2, approval) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetV2Service)
+      throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
+    return this.#researchDatasetV2Service.publishDatasetV2(datasetV2, approval);
+  }
+
+  /** @param {object} datasetV2 @returns {Promise<Readonly<object>>} */
+  async exportResearchDatasetV2JSON(datasetV2) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetV2Service)
+      throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
+    return this.#researchDatasetV2Service.exportJSON(datasetV2);
+  }
+
+  /** @param {object} datasetV2 @returns {Promise<Readonly<object>>} */
+  async exportResearchDatasetV2CSV(datasetV2) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchDatasetV2Service)
+      throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
+    return this.#researchDatasetV2Service.exportCSV(datasetV2);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getResearchDatasetV2Status() {
+    await this.#permissionService.require('record:read');
+    if (!this.#researchDatasetV2Service)
+      throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
+    return this.#researchDatasetV2Service.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

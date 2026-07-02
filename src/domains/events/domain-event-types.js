@@ -84,6 +84,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   PHASE3_VALIDATION_COMPLETED:       'PHASE3_VALIDATION_COMPLETED',
   // Wave2 Similarity UI Public Gate (PR-067 / BD-026 / BD-027 / Phase E capstone)
   SIMILARITY_PUBLICATION_APPROVED:   'SIMILARITY_PUBLICATION_APPROVED',
+  // Wave2 Research Dataset V2 (PR-068 / BD-021 / BD-030 / Phase F開始)
+  RESEARCH_DATASET_V2_BUILT:         'RESEARCH_DATASET_V2_BUILT',
 });
 
 /** Set of all valid event type strings for fast validation. */

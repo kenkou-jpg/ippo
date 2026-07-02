@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  54（+ SimilarityPublicGate追加）
-ApiGateway methods:        151+（checkSimilarityPublicGate / approveSimilarityPublication / getSimilarityPublicationApprovals / getSimilarityPublicGateStatus追加）
-Domain Event Types:        43（SIMILARITY_PUBLICATION_APPROVED追加）
-DI TOKENS:                 322+（PR-067: SimilarityPublicGateRepository / SimilarityPublicGateService追加）
-Tests (全パス):            4,847件 / 257ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   128+
+Features (RouteRegistry):  55（+ ResearchDatasetV2追加）
+ApiGateway methods:        156+（buildResearchDatasetV2 / publishResearchDatasetV2 / exportResearchDatasetV2JSON / exportResearchDatasetV2CSV / getResearchDatasetV2Status追加）
+Domain Event Types:        44（RESEARCH_DATASET_V2_BUILT追加）
+DI TOKENS:                 323+（PR-068: ResearchDatasetV2Service追加）
+Tests (全パス):            4,873件 / 258ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   130+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -219,13 +219,15 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-065  Similarity Snapshot V2 — SimilaritySnapshotV2Service.createSnapshot()/.getSnapshots()/.getLatestSnapshot() / buildSimilaritySnapshotV2(){snapshotId,vectorVersion:'2',edgeCount,caseCount,threshold,computedAt} / BD-042 edges配列はV1/V2混在store前提でV2のみ内部フィルタ / SimilaritySnapshotV2Repositoryは非'2'を例外で拒否 → V1/V2世代分離を型レベルで保証 / BD-023 再計算のたびに新snapshotIdを発行（上書きなし、Append-Only）/ SimilarityEngineV2との統合テストでedgeId再計算非重複を実証 / SIMILARITY_SNAPSHOT_V2_CREATED / ApiGateway: createSimilaritySnapshotV2/getSimilaritySnapshotsV2/getLatestSimilaritySnapshotV2/getSimilaritySnapshotV2Status / ArchGuard+4ルール / 31件テスト
     ✓ PR-066  Phase 3 Completion Validator — Phase3CompletionValidator.checkDiseaseCluster()/.validatePhase3()/.assertComplete() / NETWORK_EVOLUTION_COUNCIL Section 2-C機械検証（BD-026）/ 疾患クラスターごとにcaseCount≥50（Section 2-C）かつsignalPercentiles計算済み（信頼水準）をpassed判定 / Phase3ValidationReport{result,phase3Complete,qualifiedDiseaseCount,requiredDiseaseCount:5,diseaseChecks,generatedAt}（Founder確認用）/ Section 1-A「5疾患以上でk≥50」= qualifiedDiseaseCount≥5でphase3Complete判定 / assertComplete()はPhase3IncompleteErrorを投げPR-067のSimilarity UI公開を自動ブロック（BD-026/BD-027）/ PHASE3_VALIDATION_COMPLETED / ApiGateway: validatePhase3Completion/getPhase3ValidationStatus / ArchGuard+2ルール / 21件テスト
     ✓ PR-067  Similarity UI Public Gate — SimilarityPublicGateService.checkGate()/.approvePublication()/.verifyCaseRecommendationAlignment() / Phase3CompletionValidator（PR-066）検証→Founder承認フロー→公開状態管理（BD-026/BD-027）/ GateStatus.gateState: BLOCKED（Phase3未達）→READY_FOR_APPROVAL（Phase3達成・未承認）→APPROVED（Founder承認済）/ approvePublication()はphase3Validator.assertComplete()を経由しPhase3IncompleteErrorで強制ブロック / ApprovalRecordはSimilarityPublicGateRepositoryにAppend-Only永続化（BD-032、Wave2 Supabase: similarity_public_gate_approvals table）/ verifyCaseRecommendationAlignment()はCaseRecommendationService（PR-059）の構造的PHASE3_COMPLETE定数との整合を検証し、Founder承認後もソース変更+再デプロイが別途必要なことを明示 / SIMILARITY_PUBLICATION_APPROVED / ApiGateway: checkSimilarityPublicGate/approveSimilarityPublication/getSimilarityPublicationApprovals/getSimilarityPublicGateStatus / ArchGuard+4ルール / 29件テスト
-  ★ Phase E (PR-063〜067) 完了 — Similarity Evolution完了。Phase F入口条件成立
+  Phase E (PR-063〜067) 完了 — Similarity Evolution完了。Phase F入口条件成立
   Phase F (PR-068〜072): Research Platform
+    ✓ PR-068  Research Dataset V2 — ResearchDatasetV2Service.buildDatasetV2()/.publishDatasetV2()/.exportJSON()/.exportCSV() / Record×Signal(6種)×DiseaseEntity×Case×V2Edge(PR-063)×ClusterStats(PR-046)×KG骨格(PR-052)統合 / buildDatasetV2()はclusterProfiles中にcaseCount<5があれば全体をDatasetKAnonymityErrorで拒否（BD-030 ZERO TOLERANCE、部分生成なし）/ publishDatasetV2()はfounderId必須 — 未指定はDatasetV2PublicationNotApprovedError（BD-021）/ 命名はDatasetVersionService（PR-055）経由でIPPO-DATASET-FULL-v2.0-{YYYYMMDD} / CSV ExportはV2Edgeプール（edgeId,sourceCaseId,targetCaseId,diseaseKey,score,displayScore,vectorVersion）でV1（signals行）と差別化 / RESEARCH_DATASET_V2_BUILT / ApiGateway: buildResearchDatasetV2/publishResearchDatasetV2/exportResearchDatasetV2JSON/exportResearchDatasetV2CSV/getResearchDatasetV2Status / ArchGuard+2ルール / 26件テスト
+  ★ Phase F (PR-068〜072) 進行中 — 残 PR-069〜072
   Phase G (PR-073〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-068 Research Dataset V2（KG/Cluster/V2 Edgeを含むWave2完成形Dataset / k-anonymity k≥5 / Founder承認フロー / BD-021/BD-030）
+Next PR: PR-069 Cohort Research Export（CohortDefinition→Dataset Export / IPPO-DATASET-COHORT-{cohortId}-v1.0-{DATE} / k-anonymity再検証 / BD-039）
 ```
 
 ---
@@ -654,8 +656,8 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-068: Research Dataset V2**（Phase F開始）
-- 目的: Research Dataset を KG / Cluster / V2 Edge を含む Wave2 完成形に強化する
-- 責務: `ResearchDatasetV2Service`（Layer 2〜9 の全資産を統合した Dataset 生成）/ Dataset V2 構成（Record × Signal(6種) × DiseaseEntity × Case × V2 Edge × ClusterStats × KG骨格）/ `IPPO-DATASET-*-v2.0-*` 命名 / JSON・CSV Export の V2 対応 / k-anonymity k≥5 適用（BD-021）/ Founder 承認フロー
-- 依存PR: PR-052（KG）/ PR-055（Dataset Version）/ PR-063（Similarity V2）/ PR-046（Cluster）
-- 詳細: docs/WAVE2_ROADMAP.md PR-068参照
+**PR-069: Cohort Research Export**（Phase F継続）
+- 目的: Cohort Builder で定義したコホートの Research Dataset Export を実装する
+- 責務: `CohortResearchExportService`（CohortDefinition → Dataset Export）/ `IPPO-DATASET-COHORT-{cohortId}-v1.0-{DATE}` 命名 / JSON・CSV・PARQUET-stub の Export / Export 前の k-anonymity 再検証（BD-039）/ `DATASET_VERSION_PUBLISHED` DomainEvent
+- 依存PR: PR-054（Cohort Builder）/ PR-068（Dataset V2）
+- 詳細: docs/WAVE2_ROADMAP.md PR-069参照

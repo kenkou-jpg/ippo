@@ -359,6 +359,11 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /similarity-public-gate-repository/, label: 'feature→SimilarityPublicGateRepository'},
   { from: /\/screens\//,   to: /similarity-public-gate-service/,    label: 'screen→SimilarityPublicGateService'    },
   { from: /\/features\//,  to: /similarity-public-gate-service/,    label: 'feature→SimilarityPublicGateService'   },
+  // PR-068 — UI must not reach ResearchDatasetV2Service directly;
+  //           access via ApiGateway → buildResearchDatasetV2 / publishResearchDatasetV2 /
+  //           exportResearchDatasetV2JSON / exportResearchDatasetV2CSV / getResearchDatasetV2Status.
+  { from: /\/screens\//,   to: /research-dataset-v2-service/,       label: 'screen→ResearchDatasetV2Service'       },
+  { from: /\/features\//,  to: /research-dataset-v2-service/,       label: 'feature→ResearchDatasetV2Service'      },
 ];
 
 export function runArchitectureGuard() {

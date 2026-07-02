@@ -210,6 +210,8 @@ import { Phase3CompletionValidator }      from '../domains/network-evolution/pha
 // PR-067 — Similarity UI Public Gate
 import { SimilarityPublicGateRepository } from '../domains/network-evolution/similarity-public-gate-repository.js';
 import { SimilarityPublicGateService }    from '../domains/network-evolution/similarity-public-gate-service.js';
+// PR-068 — Research Dataset V2
+import { ResearchDatasetV2Service }       from '../domains/research/research-dataset-v2-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -390,6 +392,8 @@ export const TOKENS = Object.freeze({
   // PR-067 — Similarity UI Public Gate
   SimilarityPublicGateRepository:      'SimilarityPublicGateRepository',
   SimilarityPublicGateService:         'SimilarityPublicGateService',
+  // PR-068 — Research Dataset V2
+  ResearchDatasetV2Service:            'ResearchDatasetV2Service',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -867,6 +871,16 @@ export class CompositionRoot {
         eventPublisher:  container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Research Dataset V2 (PR-068) — Wave2 Phase F開始 ─────────────────────
+    // Composes Layer 2〜9 assets (Signal/Disease/Case/V2 Edge/ClusterStats/KG) and
+    // publishes through DatasetVersionService (PR-055) under explicit Founder approval.
+    // BD-030: any included cluster with caseCount < 5 blocks generation entirely.
+    c.singleton(TOKENS.ResearchDatasetV2Service, (container) =>
+      new ResearchDatasetV2Service({
+        datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
+        eventPublisher:        container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1241,6 +1255,8 @@ export class CompositionRoot {
       phase3CompletionValidator: container.resolve(TOKENS.Phase3CompletionValidator),
       // PR-067
       similarityPublicGateService: container.resolve(TOKENS.SimilarityPublicGateService),
+      // PR-068
+      researchDatasetV2Service: container.resolve(TOKENS.ResearchDatasetV2Service),
     }));
 
     this._registerFeatures();
