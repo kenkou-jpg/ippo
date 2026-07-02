@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  57（+ ResearchQueryAPI追加、KNOWN_FEATURES未登録のため実効反映は別課題）
-ApiGateway methods:        166+（executeResearchQuery / getResearchQueryStatus追加）
-Domain Event Types:        45（RESEARCH_QUERY_EXECUTED追加）
-DI TOKENS:                 326+（PR-071: ResearchQueryApiService追加）
-Tests (全パス):            4,938件 / 261ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   136+
+Features (RouteRegistry):  57（+ ResearchQueryAPI/ResearchPlatformAudit未登録、KNOWN_FEATURES反映はPR-073スコープ）
+ApiGateway methods:        168+（auditResearchPlatform / getResearchPlatformAuditStatus追加）
+Domain Event Types:        46（RESEARCH_PLATFORM_AUDIT_COMPLETED追加）
+DI TOKENS:                 327+（PR-072: ResearchPlatformAuditService追加）
+Tests (全パス):            4,967件 / 267ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   138+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -225,12 +225,13 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-069  Cohort Research Export — CohortResearchExportService.exportCohort()/.exportJSON()/.exportCSV()/.exportPARQUET() / CohortDefinition（PR-054）→ ResearchDataset(PR-040形式) → DatasetVersion(PR-055)統合 / exportCohort()は毎回CohortBuilderService.checkPublicationEligibility()を呼びBD-039を再検証（未検証・k<5は例外で拒否、completion条件②）/ DatasetVersionServiceのbuildDatasetVersion()にcohortId対応命名を追加（PR-055拡張、後方互換）：cohortId指定時はIPPO-DATASET-{TYPE}-{cohortId}-v{MAJOR}.{MINOR}-{DATE} / JSON・CSV・PARQUET-stub ExportはDatasetExportService（PR-040）を直接再利用しフォーマットロジック重複なし / DATASET_VERSION_PUBLISHED（新規イベント型なし、PR-055既存イベントを再利用）/ ApiGateway: exportCohortResearchDataset/exportCohortDatasetJSON/exportCohortDatasetCSV/getCohortResearchExportStatus / ArchGuard+2ルール / 17件テスト
     ✓ PR-070  Dataset DOI Candidate — DOICandidateService.assignDoiCandidate()/.attachDoiCandidateToDatasetV2()/.generateCitation() / DatasetVersion（PR-055）を入力に10.{IPPO_DOI_PREFIX}/{datasetVersionId}形式のDOI候補IDを付与（IPPO_DOI_PREFIX='10.99999'はWave2プレースホルダー、Wave3で正式Crossref/DataCiteプレフィックスに置換予定）/ attachDoiCandidateToDatasetV2()はdatasetV2.metadata.doi_candidateへ非破壊で付与（BD-021、新規frozenオブジェクトを返す）/ citation-generator.jsでAPA・Nature形式のCitation文字列を生成 / 既存のdataset-version-entity.jsやDatasetVersionServiceは無変更（Architecture変更なし、STANDARD_MODE）/ 新規Domain Event追加なし（既存DatasetVersionへの純粋計算のみ）/ ApiGateway: assignDatasetDoiCandidate/attachDoiCandidateToDatasetV2/generateDatasetCitation/getDoiCandidateStatus / ArchGuard+2ルール / 20件テスト
     ✓ PR-071  Research Query API — ResearchQueryApiService.executeQuery()/.getStatus() / QueryType4種：COHORT_STATS（CohortBuilderService再検証+EvidenceLayerService統合）/ SIGNAL_CORRELATION（ResearchAssistanceService委譲、caseCount構造的k-anonymityゲート）/ DISEASE_CLUSTER_COMPARE（diseaseKeyごとに個別k-anonymityゲート）/ KG_PATH_QUERY（KnowledgeGraph BFS探索、maxDepth=4、構造データのみのためBD-030適用除外）/ BD-030 ZERO TOLERANCE：case-bearing結果はK_ANONYMITY_MIN(5)未満でKAnonymityError / BD-031：LLM/ML不使用、決定論的集計・グラフ探索のみ / BD-036：KG読み取り専用（追記・変更なし）/ 全結果isMedicalAdvice:false機械付与・Object.freeze / RESEARCH_QUERY_EXECUTED / ApiGateway: executeResearchQuery（admin:research）/getResearchQueryStatus / ArchGuard+2ルール / 28件テスト
-  ★ Phase F (PR-068〜072) 進行中 — 残 PR-072
+    ✓ PR-072  Research Platform Audit — ResearchPlatformAuditService.auditPlatform()/.auditDatasetAttribution()/.auditKAnonymity()/.auditKnowledgeGraphAppendOnly()/.auditAiSafetyAlignment()/.getStatus() / BD-021（DatasetVersionService.getVersions()全件のcreatedBy Founder attribution再確認）/ BD-030・BD-036（clusterProfiles + CohortBuilderService.getCohorts()全件のk-anonymity再検証、ZERO TOLERANCE k>=5、目標k>=50を別途集計）/ BD-037（KnowledgeGraphRepository.deleteNode()/deleteEdge()が必ず例外を投げることを構造的に確認、副作用なしのprobe呼び出し）/ BD-039（AISafetyValidator.getAuditReport()委譲、phaseDComplete=true かつ累積違反ゼロを確認）/ phaseFComplete=true は4BD全PASS時のみ / ResearchPlatformAuditReport（Founder確認用、Object.freeze）/ RESEARCH_PLATFORM_AUDIT_COMPLETED / ApiGateway: auditResearchPlatform（admin:research）/getResearchPlatformAuditStatus（record:read）/ ArchGuard+2ルール / 29件テスト
+  ★ Phase F (PR-068〜072) 完了 — Phase G（Wave2 Exit）入口条件成立
   Phase G (PR-073〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-072 Research Platform Audit（Wave2 Research Platform PR-051〜071の完全性・安全性監査 / BD-021・BD-030・BD-036・BD-037・BD-039全チェック / k-anonymity全Dataset再検証 / AI Safety Layer整合性確認 / Research Platform Audit Report生成 / Phase F完了宣言）
+Next PR: PR-073 Architecture Guard Wave2 Complete（Wave2で追加した全Domainに対するArchitectureGuard禁止依存ルールの完成 / KNOWN_FEATURESにWave2全Feature追加 / Architecture Health: A（違反ゼロ）確認）
 ```
 
 ---
@@ -659,8 +660,16 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-071: Research Query API**（Phase F継続）
-- 目的: 研究者向けの統合 Research Query API を実装する（`admin:research` 権限）
-- 責務: `ResearchQueryApiService`（KG / Dataset / Cohort / Evidence を統合したクエリ）/ QueryType：`COHORT_STATS` / `SIGNAL_CORRELATION` / `DISEASE_CLUSTER_COMPARE` / `KG_PATH_QUERY` / ApiGateway に Research Query メソッド群を追加 / 全クエリ結果に k-anonymity 確認（BD-030）/ Evidence Layer（PR-056）との統合
-- 依存PR: PR-056（Evidence）/ PR-060（Similar Case）/ PR-061（Research Assistance）/ PR-070（DOI Candidate）
-- 詳細: docs/WAVE2_ROADMAP.md PR-071参照
+**PR-073: Architecture Guard Wave2 Complete**（Phase G開始）
+- 目的: Wave2 で追加した全 Domain の ArchitectureGuard ルールを完成させる
+- 責務: PR-041〜072 で追加した全 Domain に対する禁止依存ルールの追加 / screen・feature → knowledge-graph-repository 等の直接アクセス禁止 / AI サービス → Research Dataset への直接アクセス禁止 / ArchitectureGuard 違反ゼロの確認 / KNOWN_FEATURES に Wave2 全 Feature を追加
+- 依存PR: PR-041〜072（Wave2 全 PR）
+- 詳細: docs/WAVE2_ROADMAP.md PR-073参照
+
+---
+
+## 直前PR完了メモ
+
+**PR-072: Research Platform Audit**（Phase F capstone・完了）
+- Founder確認事項: `ResearchPlatformAuditReport`（`auditResearchPlatform()` 経由）を確認し、`phaseFComplete: true` を承認すること。BD-021/030/036/037/039のいずれか1つでもFAILの場合はphaseFComplete=falseとなり、Phase G入口条件は未成立。
+- 監査対象データ（`clusterProfiles` / `aiSafetyServiceStatuses`）は呼び出し側が収集して渡す設計（Phase3CompletionValidator・AISafetyValidatorと同じ契約）。実データでの監査実行はFounder/Ops側の次アクション。

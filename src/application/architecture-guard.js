@@ -378,6 +378,10 @@ const FORBIDDEN = [
   //           access via ApiGateway → executeResearchQuery / getResearchQueryStatus.
   { from: /\/screens\//,   to: /research-query-api-service/,         label: 'screen→ResearchQueryApiService'        },
   { from: /\/features\//,  to: /research-query-api-service/,         label: 'feature→ResearchQueryApiService'       },
+  // PR-072 — UI must not reach ResearchPlatformAuditService directly;
+  //           access via ApiGateway → auditResearchPlatform / getResearchPlatformAuditStatus.
+  { from: /\/screens\//,   to: /research-platform-audit-service/,    label: 'screen→ResearchPlatformAuditService'   },
+  { from: /\/features\//,  to: /research-platform-audit-service/,    label: 'feature→ResearchPlatformAuditService'  },
 ];
 
 export function runArchitectureGuard() {

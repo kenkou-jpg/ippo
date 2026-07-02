@@ -218,6 +218,8 @@ import { CohortResearchExportService }    from '../domains/cohort/cohort-researc
 import { DOICandidateService }            from '../domains/dataset-version/doi-candidate-service.js';
 // PR-071 — Research Query API
 import { ResearchQueryApiService }        from '../domains/research-query/research-query-api-service.js';
+// PR-072 — Research Platform Audit
+import { ResearchPlatformAuditService }   from '../domains/research-platform-audit/research-platform-audit-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -406,6 +408,8 @@ export const TOKENS = Object.freeze({
   DOICandidateService:                 'DOICandidateService',
   // PR-071 — Research Query API
   ResearchQueryApiService:             'ResearchQueryApiService',
+  // PR-072 — Research Platform Audit
+  ResearchPlatformAuditService:        'ResearchPlatformAuditService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -922,6 +926,19 @@ export class CompositionRoot {
         eventPublisher:            container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Research Platform Audit (PR-072) — Wave2 Phase F capstone ────────────
+    // BD-021 / BD-030 / BD-036 / BD-037 / BD-039 の全チェック + k-anonymity 全 Dataset 再検証 +
+    // AI Safety Layer（PR-062）整合性確認を統合し、Founder確認用の Research Platform Audit
+    // Report を生成する。allPass 時に phaseFComplete=true（Phase G 入口条件成立）。
+    c.singleton(TOKENS.ResearchPlatformAuditService, (container) =>
+      new ResearchPlatformAuditService({
+        datasetVersionService:    container.resolve(TOKENS.DatasetVersionService),
+        cohortBuilderService:     container.resolve(TOKENS.CohortBuilderService),
+        knowledgeGraphRepository: container.resolve(TOKENS.KnowledgeGraphRepository),
+        aiSafetyValidator:        container.resolve(TOKENS.AISafetyValidator),
+        eventPublisher:           container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1304,6 +1321,8 @@ export class CompositionRoot {
       doiCandidateService: container.resolve(TOKENS.DOICandidateService),
       // PR-071
       researchQueryApiService: container.resolve(TOKENS.ResearchQueryApiService),
+      // PR-072
+      researchPlatformAuditService: container.resolve(TOKENS.ResearchPlatformAuditService),
     }));
 
     this._registerFeatures();
@@ -1362,5 +1381,6 @@ export class CompositionRoot {
     r.register('DiseaseNetworkScoreV2',    { status: 'active', migratesIn: 'PR-064' }); // PR-064 ✓
     r.register('SimilaritySnapshotV2',     { status: 'active', migratesIn: 'PR-065' }); // PR-065 ✓
     r.register('ResearchQueryAPI',         { status: 'active', migratesIn: 'PR-071' }); // PR-071 ✓ admin:research only
+    r.register('ResearchPlatformAudit',    { status: 'active', migratesIn: 'PR-072' }); // PR-072 ✓ Phase F capstone
   }
 }

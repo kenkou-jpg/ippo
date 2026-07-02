@@ -149,6 +149,8 @@ export class ApiGateway {
   #doiCandidateService;
   // PR-071
   #researchQueryApiService;
+  // PR-072
+  #researchPlatformAuditService;
 
   constructor({
     permissionService,
@@ -292,6 +294,8 @@ export class ApiGateway {
     doiCandidateService = null,
     // PR-071
     researchQueryApiService = null,
+    // PR-072
+    researchPlatformAuditService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -424,6 +428,8 @@ export class ApiGateway {
     this.#doiCandidateService = doiCandidateService;
     // PR-071
     this.#researchQueryApiService = researchQueryApiService;
+    // PR-072
+    this.#researchPlatformAuditService = researchPlatformAuditService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1392,6 +1398,31 @@ export class ApiGateway {
     if (!this.#researchQueryApiService)
       throw new Error('[ApiGateway] ResearchQueryApiService not wired');
     return this.#researchQueryApiService.getStatus();
+  }
+
+  // ── Research Platform Audit (PR-072 / BD-021 / BD-030 / BD-036 / BD-037 / BD-039 / Phase F capstone) ──
+
+  /**
+   * Run the full Wave2 Research Platform Audit (PR-051〜071) and generate the
+   * Founder-facing ResearchPlatformAuditReport. phaseFComplete=true only when
+   * BD-021 / BD-030 / BD-036 / BD-037 / BD-039 all PASS.
+   *
+   * @param {{ clusterProfiles?: Record<string, object>, aiSafetyServiceStatuses?: object }} input
+   * @returns {Promise<Readonly<object>>} ResearchPlatformAuditReport
+   */
+  async auditResearchPlatform(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchPlatformAuditService)
+      throw new Error('[ApiGateway] ResearchPlatformAuditService not wired');
+    return this.#researchPlatformAuditService.auditPlatform(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getResearchPlatformAuditStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#researchPlatformAuditService)
+      throw new Error('[ApiGateway] ResearchPlatformAuditService not wired');
+    return this.#researchPlatformAuditService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────
