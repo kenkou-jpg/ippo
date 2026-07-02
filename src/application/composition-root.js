@@ -205,6 +205,8 @@ import { DiseaseNetworkScoreV2Service } from '../domains/similarity/disease-netw
 // PR-065 — Similarity Snapshot V2
 import { SimilaritySnapshotV2Repository } from '../domains/similarity/similarity-snapshot-v2-repository.js';
 import { SimilaritySnapshotV2Service }    from '../domains/similarity/similarity-snapshot-v2-service.js';
+// PR-066 — Phase 3 Completion Validator
+import { Phase3CompletionValidator }      from '../domains/network-evolution/phase3-completion-validator.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -380,6 +382,8 @@ export const TOKENS = Object.freeze({
   // PR-065 — Similarity Snapshot V2
   SimilaritySnapshotV2Repository:      'SimilaritySnapshotV2Repository',
   SimilaritySnapshotV2Service:         'SimilaritySnapshotV2Service',
+  // PR-066 — Phase 3 Completion Validator
+  Phase3CompletionValidator:           'Phase3CompletionValidator',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -834,6 +838,16 @@ export class CompositionRoot {
         eventPublisher: container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Phase 3 Completion Validator (PR-066) — Wave2 Phase E-4 ──────────────
+    // NETWORK_EVOLUTION_COUNCIL Section 2-C / BD-026: mechanically verifies Phase 3
+    // completion (per-disease Case count >= 50 + statistics confidence, across >= 5
+    // clusters). assertComplete() is the hard gate PR-067 must call before Similarity
+    // UI publication.
+    c.singleton(TOKENS.Phase3CompletionValidator, (container) =>
+      new Phase3CompletionValidator({
+        eventPublisher: container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1204,6 +1218,8 @@ export class CompositionRoot {
       diseaseNetworkScoreV2Service: container.resolve(TOKENS.DiseaseNetworkScoreV2Service),
       // PR-065
       similaritySnapshotV2Service: container.resolve(TOKENS.SimilaritySnapshotV2Service),
+      // PR-066
+      phase3CompletionValidator: container.resolve(TOKENS.Phase3CompletionValidator),
     }));
 
     this._registerFeatures();

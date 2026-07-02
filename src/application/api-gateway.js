@@ -137,6 +137,8 @@ export class ApiGateway {
   #diseaseNetworkScoreV2Service;
   // PR-065
   #similaritySnapshotV2Service;
+  // PR-066
+  #phase3CompletionValidator;
 
   constructor({
     permissionService,
@@ -268,6 +270,8 @@ export class ApiGateway {
     diseaseNetworkScoreV2Service = null,
     // PR-065
     similaritySnapshotV2Service = null,
+    // PR-066
+    phase3CompletionValidator = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -388,6 +392,8 @@ export class ApiGateway {
     this.#diseaseNetworkScoreV2Service = diseaseNetworkScoreV2Service;
     // PR-065
     this.#similaritySnapshotV2Service = similaritySnapshotV2Service;
+    // PR-066
+    this.#phase3CompletionValidator = phase3CompletionValidator;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1128,6 +1134,33 @@ export class ApiGateway {
     if (!this.#similaritySnapshotV2Service)
       throw new Error('[ApiGateway] SimilaritySnapshotV2Service not wired');
     return this.#similaritySnapshotV2Service.getStatus();
+  }
+
+  // ── Phase 3 Completion Validator API (PR-066 / BD-026) ────────────────────
+  // NETWORK_EVOLUTION_COUNCIL Section 2-C: mechanically verifies Phase 3 completion
+  // (per-disease Case count >= 50 + statistics confidence, across >= 5 clusters).
+  // Founder-facing report — requires admin:research permission.
+
+  /**
+   * Validate Phase 3 completion across all provided disease cluster profiles and
+   * generate the Founder-facing Phase3ValidationReport.
+   *
+   * @param {Record<string, object>} clusterProfiles  keyed by diseaseKey → DiseaseClusterProfile (PR-046)
+   * @returns {Promise<Readonly<object>>} Phase3ValidationReport
+   */
+  async validatePhase3Completion(clusterProfiles) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#phase3CompletionValidator)
+      throw new Error('[ApiGateway] Phase3CompletionValidator not wired');
+    return this.#phase3CompletionValidator.validatePhase3(clusterProfiles);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getPhase3ValidationStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#phase3CompletionValidator)
+      throw new Error('[ApiGateway] Phase3CompletionValidator not wired');
+    return this.#phase3CompletionValidator.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

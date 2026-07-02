@@ -348,6 +348,10 @@ const FORBIDDEN = [
   { from: /\/features\//,  to: /similarity-snapshot-v2-repository/, label: 'feature→SimilaritySnapshotV2Repository'},
   { from: /\/screens\//,   to: /similarity-snapshot-v2-service/,    label: 'screen→SimilaritySnapshotV2Service'    },
   { from: /\/features\//,  to: /similarity-snapshot-v2-service/,    label: 'feature→SimilaritySnapshotV2Service'   },
+  // PR-066 — UI must not reach Phase3CompletionValidator directly;
+  //           access via ApiGateway → validatePhase3Completion / getPhase3ValidationStatus.
+  { from: /\/screens\//,   to: /phase3-completion-validator/,       label: 'screen→Phase3CompletionValidator'      },
+  { from: /\/features\//,  to: /phase3-completion-validator/,       label: 'feature→Phase3CompletionValidator'     },
 ];
 
 export function runArchitectureGuard() {

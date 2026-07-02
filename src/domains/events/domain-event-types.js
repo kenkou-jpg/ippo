@@ -80,6 +80,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   DISEASE_NETWORK_SCORE_V2_COMPUTED: 'DISEASE_NETWORK_SCORE_V2_COMPUTED',
   // Wave2 Similarity Snapshot V2 (PR-065 / BD-018 / BD-010 / BD-023)
   SIMILARITY_SNAPSHOT_V2_CREATED:    'SIMILARITY_SNAPSHOT_V2_CREATED',
+  // Wave2 Phase 3 Completion Validator (PR-066 / BD-026 / Phase E)
+  PHASE3_VALIDATION_COMPLETED:       'PHASE3_VALIDATION_COMPLETED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -109,6 +111,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   SIMILAR_CASE_SEARCH:      'SIMILAR_CASE_SEARCH',
   RESEARCH_ASSISTANCE:      'RESEARCH_ASSISTANCE',
   AI_SAFETY:                'AI_SAFETY',
+  NETWORK_EVOLUTION:        'NETWORK_EVOLUTION',
 });
 
 /** Current event schema version. Bump on structural changes. */
