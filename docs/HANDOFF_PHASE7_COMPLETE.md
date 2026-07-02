@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  59（PR-073: KNOWN_FEATURESにPR-051〜072の22Feature追加、Wave2全PRが正式登録）
-ApiGateway methods:        168+（PR-073はApiGateway無変更）
-Domain Event Types:        46（PR-073はEvent無変更）
-DI TOKENS:                 327+（PR-073はDIトークン無変更、composition-root.js _registerFeatures()にPR-066〜070register()追加のみ）
-Tests (全パス):            5,000件 / 268ファイル（39件は5ファイルの既知pre-existing failure、PR無関係。内訳: tests/modules/2ファイル(壊れたインポート) + domain-event-types.test.js + event-menstrual.test.js(29固定値ドリフト) + disease-analyzer.test.js(日付依存)）
-ArchitectureGuard rules:   159+（PR-073: PR-042/PR-050/PR-057〜062欠落分+18 / 責務③AIサービス→ResearchDataset禁止+3 = +21）
+Features (RouteRegistry):  59（PR-074はFeature無変更 — 統合テストのみ、新規Domain Serviceなし）
+ApiGateway methods:        168+（PR-074はApiGateway無変更）
+Domain Event Types:        46（PR-074はEvent無変更）
+DI TOKENS:                 327+（PR-074はDIトークン無変更）
+Tests (全パス):            5,028件 / 270ファイル（39件は5ファイルの既知pre-existing failure、PR無関係。内訳: tests/modules/2ファイル(壊れたインポート) + domain-event-types.test.js + event-menstrual.test.js(29固定値ドリフト) + disease-analyzer.test.js(日付依存)。PR-074でtests/wave2/に28件追加（既知failure件数・対象ファイルとも増加なしを確認済み））
+ArchitectureGuard rules:   159+（PR-074はArchGuard無変更 — 新規Domain Serviceなしのため禁止依存ルール追加不要）
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -229,11 +229,12 @@ Wave2 (PR-041〜075) — Phase A実装中
   ★ Phase F (PR-068〜072) 完了 — Phase G（Wave2 Exit）入口条件成立
   Phase G (PR-073〜075): Integration + Quality Gate
     ✓ PR-073  Architecture Guard Wave2 Complete — Wave2全Domain（PR-041〜072）に対するArchitectureGuard禁止依存ルールの完成 / 発見したギャップ: PR-042（Supabase Persistence: network-signal-supabase-repository / supabase-event-persistence-repository）・PR-050（SignalIntelligenceV2Service）・PR-057〜062（Phase D全6PR: SignalInsight/PatternDiscovery/CaseRecommendation/SimilarCaseSearch/ResearchAssistance/AISafetyValidator）にArchGuardルールが皆無だった欠落を解消（+18ルール）/ 責務③新規ルール: AIサービスDomain（signal-insight/pattern-discovery/case-recommendation/similar-case-search/research-assistance/ai-safety）→ research-dataset-repository・builder・v2-entityへの直接アクセス禁止（+3ルール、EvidenceLayerService/ResearchAssistanceService経由を強制）/ 責務②KG等直接アクセス禁止は既存PR-051ルールで充足済みを確認 / composition-root.js _registerFeatures()にPR-066〜070（Phase3Validation/SimilarityPublicGate/ResearchDatasetV2/CohortResearchExport/DoiCandidate）のr.register()呼び出しが丸ごと欠落していたギャップを解消 / route-registry.js KNOWN_FEATURESにPR-051〜072の22Feature名を追加（PR-050以降ずっと未反映だった構造的ギャップを解消、これまでWave2全PRのregister()呼び出しが「Unknown feature」で黙って握りつぶされていた）/ 既存テストの37→59固定値ドリフトを16ファイルで是正（KNOWN_FEATURES拡張の直接帰結）/ tests/arch/architecture-guard-pr073.test.js 31件テスト / ArchGuard+21ルール
-  Phase G (PR-073〜075) 進行中 — 残 PR-074〜075
+    ✓ PR-074  Wave2 Integration Test Suite — tests/wave2/ 新設、Phase A〜Fの全PRを横断する統合テスト（責務①）/ Exit Criteria EC-01〜EC-14自動検証スクリプト（責務②、tests/wave2/wave2-exit-criteria.test.js 21件）: EC-01(NetworkSignalSupabaseRepository capabilities.supabase) / EC-02(EmotionSignalMapper) / EC-03(MenstrualPhaseResolverService — cycleDay 1〜28全件でUNKNOWNゼロ確認) / EC-04(buildDiseaseEntry icdCode/category/severity) / EC-05(EventStore/SupabaseEventPersistenceRepositoryにupdate/delete不在) / EC-06(VECTOR_VERSION_V2='2' / FV_V2_DIMENSION_COUNT=12) / EC-07(LongitudinalEdgeEnricher.enrich()のlongitudinalContext) / EC-08(KnowledgeGraphService.getStatus()) / EC-09(ForbiddenWordValidator.validateOutput) / EC-10(CohortBuilderService k-anonymity gate) / EC-11(DatasetVersionService.publish() versionId) / EC-12(DiseaseClusterStatisticsService.computeClusterProfile) / EC-13〜14はtests/wave2/wave2-integration.test.js（7件）: EC-13(EventStoreが全DOMAIN_EVENT_TYPESを型無差別に記録) / EC-14・QC-01(root.assemble()がPR-041〜072の31Feature全件を登録、PR-073が修正した「Unknown feature握りつぶし」regressionのガード) + Disease Entity V2→Cluster Stats→Cohort→DatasetVersion のPhase横断データフロー統合テスト / QC-03(k-anonymity強制) / QC-04(診断・治療文言ブロック) はwave2-exit-criteria.test.jsに含む / QC-02（BD-001〜043違反ゼロ確認）とFounder向けレポート生成・WAVE2_EXIT_CONFIRMED Eventの発行はPR-075スコープのため本PRでは実装せず / vitest run全件パス確認（責務④）: 5,028件 / 270ファイル、失敗39件は既知5ファイルのpre-existing failureのみで増加なし（責務⑤）/ 新規Domain Service・ApiGateway・DIトークン・ArchGuardルール追加なし（テストのみのPRのためScope外）
+  ★ Phase G (PR-073〜074) 完了 — PR-075（Wave2 Exit Audit）入口条件成立
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-074 Wave2 Integration Test Suite（Phase A〜Fの全PRを横断する統合テスト / Exit Criteria EC-01〜EC-15自動検証スクリプト / QC-01〜QC-04自動確認 / vitest run全件パス確認 / Pre-existing failures（既知の5ファイル・39件）が増加していないことを確認）
+Next PR: PR-075 Wave2 Exit Audit（EC-01〜EC-15 + QC-01〜QC-04の全項目確認レポート生成 / BD-001〜BD-043への違反ゼロ確認 / WAVE2_EXIT_CONFIRMED DomainEventの発行（Founder承認記録）/ Wave3移行承認文書の生成 / Wave2正式完了）
 ```
 
 ---
