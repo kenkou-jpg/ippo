@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  55（+ ResearchDatasetV2追加）
-ApiGateway methods:        156+（buildResearchDatasetV2 / publishResearchDatasetV2 / exportResearchDatasetV2JSON / exportResearchDatasetV2CSV / getResearchDatasetV2Status追加）
-Domain Event Types:        44（RESEARCH_DATASET_V2_BUILT追加）
-DI TOKENS:                 323+（PR-068: ResearchDatasetV2Service追加）
-Tests (全パス):            4,873件 / 258ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   130+
+Features (RouteRegistry):  56（+ CohortResearchExport追加）
+ApiGateway methods:        160+（exportCohortResearchDataset / exportCohortDatasetJSON / exportCohortDatasetCSV / getCohortResearchExportStatus追加）
+Domain Event Types:        44（DATASET_VERSION_PUBLISHED再利用、新規イベントなし）
+DI TOKENS:                 324+（PR-069: CohortResearchExportService追加）
+Tests (全パス):            4,890件 / 259ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   132+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -222,12 +222,13 @@ Wave2 (PR-041〜075) — Phase A実装中
   Phase E (PR-063〜067) 完了 — Similarity Evolution完了。Phase F入口条件成立
   Phase F (PR-068〜072): Research Platform
     ✓ PR-068  Research Dataset V2 — ResearchDatasetV2Service.buildDatasetV2()/.publishDatasetV2()/.exportJSON()/.exportCSV() / Record×Signal(6種)×DiseaseEntity×Case×V2Edge(PR-063)×ClusterStats(PR-046)×KG骨格(PR-052)統合 / buildDatasetV2()はclusterProfiles中にcaseCount<5があれば全体をDatasetKAnonymityErrorで拒否（BD-030 ZERO TOLERANCE、部分生成なし）/ publishDatasetV2()はfounderId必須 — 未指定はDatasetV2PublicationNotApprovedError（BD-021）/ 命名はDatasetVersionService（PR-055）経由でIPPO-DATASET-FULL-v2.0-{YYYYMMDD} / CSV ExportはV2Edgeプール（edgeId,sourceCaseId,targetCaseId,diseaseKey,score,displayScore,vectorVersion）でV1（signals行）と差別化 / RESEARCH_DATASET_V2_BUILT / ApiGateway: buildResearchDatasetV2/publishResearchDatasetV2/exportResearchDatasetV2JSON/exportResearchDatasetV2CSV/getResearchDatasetV2Status / ArchGuard+2ルール / 26件テスト
-  ★ Phase F (PR-068〜072) 進行中 — 残 PR-069〜072
+    ✓ PR-069  Cohort Research Export — CohortResearchExportService.exportCohort()/.exportJSON()/.exportCSV()/.exportPARQUET() / CohortDefinition（PR-054）→ ResearchDataset(PR-040形式) → DatasetVersion(PR-055)統合 / exportCohort()は毎回CohortBuilderService.checkPublicationEligibility()を呼びBD-039を再検証（未検証・k<5は例外で拒否、completion条件②）/ DatasetVersionServiceのbuildDatasetVersion()にcohortId対応命名を追加（PR-055拡張、後方互換）：cohortId指定時はIPPO-DATASET-{TYPE}-{cohortId}-v{MAJOR}.{MINOR}-{DATE} / JSON・CSV・PARQUET-stub ExportはDatasetExportService（PR-040）を直接再利用しフォーマットロジック重複なし / DATASET_VERSION_PUBLISHED（新規イベント型なし、PR-055既存イベントを再利用）/ ApiGateway: exportCohortResearchDataset/exportCohortDatasetJSON/exportCohortDatasetCSV/getCohortResearchExportStatus / ArchGuard+2ルール / 17件テスト
+  ★ Phase F (PR-068〜072) 進行中 — 残 PR-070〜072
   Phase G (PR-073〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-069 Cohort Research Export（CohortDefinition→Dataset Export / IPPO-DATASET-COHORT-{cohortId}-v1.0-{DATE} / k-anonymity再検証 / BD-039）
+Next PR: PR-070 Dataset DOI Candidate（DOICandidateService / doi_candidate付与 / Citation生成（APA/Nature）/ 依存PR-055・PR-069）
 ```
 
 ---
@@ -656,8 +657,8 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-069: Cohort Research Export**（Phase F継続）
-- 目的: Cohort Builder で定義したコホートの Research Dataset Export を実装する
-- 責務: `CohortResearchExportService`（CohortDefinition → Dataset Export）/ `IPPO-DATASET-COHORT-{cohortId}-v1.0-{DATE}` 命名 / JSON・CSV・PARQUET-stub の Export / Export 前の k-anonymity 再検証（BD-039）/ `DATASET_VERSION_PUBLISHED` DomainEvent
-- 依存PR: PR-054（Cohort Builder）/ PR-068（Dataset V2）
-- 詳細: docs/WAVE2_ROADMAP.md PR-069参照
+**PR-070: Dataset DOI Candidate**（Phase F継続）
+- 目的: Research Dataset に DOI 申請候補 ID を付与し、学術引用可能性を確立する
+- 責務: `DOICandidateService`（Dataset Version → DOI 候補 ID の付与）/ DOI 候補形式 `10.{ippo-prefix}/{datasetVersionId}`（将来の正式DOI取得のための準備）/ Dataset メタデータへの `doi_candidate` フィールド追加 / Citation フォーマット生成（APA / Nature 形式）
+- 依存PR: PR-055（Dataset Version）/ PR-069（Cohort Export）
+- 詳細: docs/WAVE2_ROADMAP.md PR-070参照

@@ -212,6 +212,8 @@ import { SimilarityPublicGateRepository } from '../domains/network-evolution/sim
 import { SimilarityPublicGateService }    from '../domains/network-evolution/similarity-public-gate-service.js';
 // PR-068 — Research Dataset V2
 import { ResearchDatasetV2Service }       from '../domains/research/research-dataset-v2-service.js';
+// PR-069 — Cohort Research Export
+import { CohortResearchExportService }    from '../domains/cohort/cohort-research-export-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -394,6 +396,8 @@ export const TOKENS = Object.freeze({
   SimilarityPublicGateService:         'SimilarityPublicGateService',
   // PR-068 — Research Dataset V2
   ResearchDatasetV2Service:            'ResearchDatasetV2Service',
+  // PR-069 — Cohort Research Export
+  CohortResearchExportService:         'CohortResearchExportService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -881,6 +885,16 @@ export class CompositionRoot {
         eventPublisher:        container.resolve(TOKENS.EventPublisher),
       }));
 
+    // ── Cohort Research Export (PR-069) — Wave2 Phase F継続 ──────────────────
+    // BD-039: re-verifies cohort eligibility via CohortBuilderService immediately before
+    // every export. Reuses DatasetExportService (PR-040) for JSON/CSV/PARQUET serialization
+    // and DatasetVersionService (PR-055, cohortId-aware naming) for Append-Only publication.
+    c.singleton(TOKENS.CohortResearchExportService, (container) =>
+      new CohortResearchExportService({
+        cohortBuilderService:  container.resolve(TOKENS.CohortBuilderService),
+        datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1257,6 +1271,8 @@ export class CompositionRoot {
       similarityPublicGateService: container.resolve(TOKENS.SimilarityPublicGateService),
       // PR-068
       researchDatasetV2Service: container.resolve(TOKENS.ResearchDatasetV2Service),
+      // PR-069
+      cohortResearchExportService: container.resolve(TOKENS.CohortResearchExportService),
     }));
 
     this._registerFeatures();

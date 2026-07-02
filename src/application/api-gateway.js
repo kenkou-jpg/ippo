@@ -143,6 +143,8 @@ export class ApiGateway {
   #similarityPublicGateService;
   // PR-068
   #researchDatasetV2Service;
+  // PR-069
+  #cohortResearchExportService;
 
   constructor({
     permissionService,
@@ -280,6 +282,8 @@ export class ApiGateway {
     similarityPublicGateService = null,
     // PR-068
     researchDatasetV2Service = null,
+    // PR-069
+    cohortResearchExportService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -406,6 +410,8 @@ export class ApiGateway {
     this.#similarityPublicGateService = similarityPublicGateService;
     // PR-068
     this.#researchDatasetV2Service = researchDatasetV2Service;
+    // PR-069
+    this.#cohortResearchExportService = cohortResearchExportService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1275,6 +1281,46 @@ export class ApiGateway {
     if (!this.#researchDatasetV2Service)
       throw new Error('[ApiGateway] ResearchDatasetV2Service not wired');
     return this.#researchDatasetV2Service.getStatus();
+  }
+
+  // ── Cohort Research Export API (PR-069 / BD-021 / BD-039) ─────────────────
+
+  /**
+   * Export a cohort's matching data pool as a versioned Research Dataset.
+   * BD-039: re-verified for k-anonymity eligibility on every call.
+   *
+   * @param {{ cohortId: string, signals?, diseases?, events?, snapshots?, createdBy: string }} input
+   * @returns {Promise<Readonly<object>>} { cohort, dataset, version }
+   */
+  async exportCohortResearchDataset(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortResearchExportService)
+      throw new Error('[ApiGateway] CohortResearchExportService not wired');
+    return this.#cohortResearchExportService.exportCohort(input);
+  }
+
+  /** @param {object} dataset @returns {Promise<Readonly<object>>} */
+  async exportCohortDatasetJSON(dataset) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortResearchExportService)
+      throw new Error('[ApiGateway] CohortResearchExportService not wired');
+    return this.#cohortResearchExportService.exportJSON(dataset);
+  }
+
+  /** @param {object} dataset @returns {Promise<Readonly<object>>} */
+  async exportCohortDatasetCSV(dataset) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#cohortResearchExportService)
+      throw new Error('[ApiGateway] CohortResearchExportService not wired');
+    return this.#cohortResearchExportService.exportCSV(dataset);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getCohortResearchExportStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#cohortResearchExportService)
+      throw new Error('[ApiGateway] CohortResearchExportService not wired');
+    return this.#cohortResearchExportService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

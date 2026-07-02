@@ -364,6 +364,11 @@ const FORBIDDEN = [
   //           exportResearchDatasetV2JSON / exportResearchDatasetV2CSV / getResearchDatasetV2Status.
   { from: /\/screens\//,   to: /research-dataset-v2-service/,       label: 'screen→ResearchDatasetV2Service'       },
   { from: /\/features\//,  to: /research-dataset-v2-service/,       label: 'feature→ResearchDatasetV2Service'      },
+  // PR-069 — UI must not reach CohortResearchExportService directly;
+  //           access via ApiGateway → exportCohortResearchDataset / exportCohortDatasetJSON /
+  //           exportCohortDatasetCSV / getCohortResearchExportStatus.
+  { from: /\/screens\//,   to: /cohort-research-export-service/,    label: 'screen→CohortResearchExportService'    },
+  { from: /\/features\//,  to: /cohort-research-export-service/,    label: 'feature→CohortResearchExportService'   },
 ];
 
 export function runArchitectureGuard() {

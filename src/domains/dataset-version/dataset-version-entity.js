@@ -72,7 +72,10 @@ export function buildDatasetVersion({
 
   const now     = new Date();
   const datePart = _yyyymmdd(now);
-  const vName   = `IPPO-DATASET-${type}-v${major}.${minor}-${datePart}`;
+  // PR-069: when cohortId is present, embed it in the name — IPPO-DATASET-{TYPE}-{cohortId}-v{MAJOR}.{MINOR}-{DATE}.
+  const vName   = cohortId
+    ? `IPPO-DATASET-${type}-${cohortId}-v${major}.${minor}-${datePart}`
+    : `IPPO-DATASET-${type}-v${major}.${minor}-${datePart}`;
 
   return Object.freeze({
     versionId:     versionId ?? `dv_${Date.now()}_${++_idCounter}`,
