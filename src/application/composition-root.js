@@ -214,6 +214,8 @@ import { SimilarityPublicGateService }    from '../domains/network-evolution/sim
 import { ResearchDatasetV2Service }       from '../domains/research/research-dataset-v2-service.js';
 // PR-069 — Cohort Research Export
 import { CohortResearchExportService }    from '../domains/cohort/cohort-research-export-service.js';
+// PR-070 — Dataset DOI Candidate
+import { DOICandidateService }            from '../domains/dataset-version/doi-candidate-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -398,6 +400,8 @@ export const TOKENS = Object.freeze({
   ResearchDatasetV2Service:            'ResearchDatasetV2Service',
   // PR-069 — Cohort Research Export
   CohortResearchExportService:         'CohortResearchExportService',
+  // PR-070 — Dataset DOI Candidate
+  DOICandidateService:                 'DOICandidateService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -895,6 +899,11 @@ export class CompositionRoot {
         datasetVersionService: container.resolve(TOKENS.DatasetVersionService),
       }));
 
+    // ── Dataset DOI Candidate (PR-070) — Wave2 Phase F継続 ───────────────────
+    // Stateless: assigns 10.{ippo-prefix}/{datasetVersionId} DOI candidates and generates
+    // APA/Nature citations from already-published DatasetVersion records (PR-055).
+    c.singleton(TOKENS.DOICandidateService, () => new DOICandidateService());
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1273,6 +1282,8 @@ export class CompositionRoot {
       researchDatasetV2Service: container.resolve(TOKENS.ResearchDatasetV2Service),
       // PR-069
       cohortResearchExportService: container.resolve(TOKENS.CohortResearchExportService),
+      // PR-070
+      doiCandidateService: container.resolve(TOKENS.DOICandidateService),
     }));
 
     this._registerFeatures();

@@ -369,6 +369,11 @@ const FORBIDDEN = [
   //           exportCohortDatasetCSV / getCohortResearchExportStatus.
   { from: /\/screens\//,   to: /cohort-research-export-service/,    label: 'screen→CohortResearchExportService'    },
   { from: /\/features\//,  to: /cohort-research-export-service/,    label: 'feature→CohortResearchExportService'   },
+  // PR-070 — UI must not reach DOICandidateService directly;
+  //           access via ApiGateway → assignDatasetDoiCandidate / attachDoiCandidateToDatasetV2 /
+  //           generateDatasetCitation / getDoiCandidateStatus.
+  { from: /\/screens\//,   to: /doi-candidate-service/,              label: 'screen→DOICandidateService'            },
+  { from: /\/features\//,  to: /doi-candidate-service/,              label: 'feature→DOICandidateService'           },
 ];
 
 export function runArchitectureGuard() {

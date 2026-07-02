@@ -145,6 +145,8 @@ export class ApiGateway {
   #researchDatasetV2Service;
   // PR-069
   #cohortResearchExportService;
+  // PR-070
+  #doiCandidateService;
 
   constructor({
     permissionService,
@@ -284,6 +286,8 @@ export class ApiGateway {
     researchDatasetV2Service = null,
     // PR-069
     cohortResearchExportService = null,
+    // PR-070
+    doiCandidateService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -412,6 +416,8 @@ export class ApiGateway {
     this.#researchDatasetV2Service = researchDatasetV2Service;
     // PR-069
     this.#cohortResearchExportService = cohortResearchExportService;
+    // PR-070
+    this.#doiCandidateService = doiCandidateService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1321,6 +1327,40 @@ export class ApiGateway {
     if (!this.#cohortResearchExportService)
       throw new Error('[ApiGateway] CohortResearchExportService not wired');
     return this.#cohortResearchExportService.getStatus();
+  }
+
+  // ── Dataset DOI Candidate API (PR-070) ────────────────────────────────────
+
+  /** @param {object} datasetVersion @returns {Promise<Readonly<object>>} */
+  async assignDatasetDoiCandidate(datasetVersion) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#doiCandidateService)
+      throw new Error('[ApiGateway] DOICandidateService not wired');
+    return this.#doiCandidateService.assignDoiCandidate(datasetVersion);
+  }
+
+  /** @param {object} datasetV2 @param {object} datasetVersion @returns {Promise<Readonly<object>>} */
+  async attachDoiCandidateToDatasetV2(datasetV2, datasetVersion) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#doiCandidateService)
+      throw new Error('[ApiGateway] DOICandidateService not wired');
+    return this.#doiCandidateService.attachDoiCandidateToDatasetV2(datasetV2, datasetVersion);
+  }
+
+  /** @param {object} datasetVersion @param {string} [format] @returns {Promise<string>} */
+  async generateDatasetCitation(datasetVersion, format) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#doiCandidateService)
+      throw new Error('[ApiGateway] DOICandidateService not wired');
+    return this.#doiCandidateService.generateCitation(datasetVersion, format);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getDoiCandidateStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#doiCandidateService)
+      throw new Error('[ApiGateway] DOICandidateService not wired');
+    return this.#doiCandidateService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────
