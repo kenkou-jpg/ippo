@@ -147,6 +147,8 @@ export class ApiGateway {
   #cohortResearchExportService;
   // PR-070
   #doiCandidateService;
+  // PR-071
+  #researchQueryApiService;
 
   constructor({
     permissionService,
@@ -288,6 +290,8 @@ export class ApiGateway {
     cohortResearchExportService = null,
     // PR-070
     doiCandidateService = null,
+    // PR-071
+    researchQueryApiService = null,
   }) {
     this.#permissionService          = permissionService;
     this.#similarityAccessGuard      = similarityAccessGuard;
@@ -418,6 +422,8 @@ export class ApiGateway {
     this.#cohortResearchExportService = cohortResearchExportService;
     // PR-070
     this.#doiCandidateService = doiCandidateService;
+    // PR-071
+    this.#researchQueryApiService = researchQueryApiService;
   }
 
   // ── Records ──────────────────────────────────────────────────────────────────
@@ -1361,6 +1367,31 @@ export class ApiGateway {
     if (!this.#doiCandidateService)
       throw new Error('[ApiGateway] DOICandidateService not wired');
     return this.#doiCandidateService.getStatus();
+  }
+
+  // ── Research Query API (PR-071 / BD-030) ──────────────────────────────────
+
+  /**
+   * Execute a Research Query. QueryType: COHORT_STATS / SIGNAL_CORRELATION /
+   * DISEASE_CLUSTER_COMPARE / KG_PATH_QUERY. BD-030: case-bearing results are
+   * k-anonymity gated (throws KAnonymityError if k < 5).
+   *
+   * @param {{ queryType: string, params?: object }} input
+   * @returns {Promise<Readonly<object>>} QueryResult
+   */
+  async executeResearchQuery(input) {
+    await this.#permissionService.require('admin:research');
+    if (!this.#researchQueryApiService)
+      throw new Error('[ApiGateway] ResearchQueryApiService not wired');
+    return this.#researchQueryApiService.executeQuery(input);
+  }
+
+  /** @returns {Promise<Readonly<object>>} */
+  async getResearchQueryStatus() {
+    await this.#permissionService.require('record:read');
+    if (!this.#researchQueryApiService)
+      throw new Error('[ApiGateway] ResearchQueryApiService not wired');
+    return this.#researchQueryApiService.getStatus();
   }
 
   // ── Network Signal API (PR-030) ───────────────────────────────────────────

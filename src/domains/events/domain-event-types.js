@@ -86,6 +86,8 @@ export const DOMAIN_EVENT_TYPES = Object.freeze({
   SIMILARITY_PUBLICATION_APPROVED:   'SIMILARITY_PUBLICATION_APPROVED',
   // Wave2 Research Dataset V2 (PR-068 / BD-021 / BD-030 / Phase F開始)
   RESEARCH_DATASET_V2_BUILT:         'RESEARCH_DATASET_V2_BUILT',
+  // Wave2 Research Query API (PR-071 / BD-030 / Phase F継続)
+  RESEARCH_QUERY_EXECUTED:           'RESEARCH_QUERY_EXECUTED',
 });
 
 /** Set of all valid event type strings for fast validation. */
@@ -116,6 +118,7 @@ export const AGGREGATE_TYPES = Object.freeze({
   RESEARCH_ASSISTANCE:      'RESEARCH_ASSISTANCE',
   AI_SAFETY:                'AI_SAFETY',
   NETWORK_EVOLUTION:        'NETWORK_EVOLUTION',
+  RESEARCH_QUERY:           'RESEARCH_QUERY',
 });
 
 /** Current event schema version. Bump on structural changes. */

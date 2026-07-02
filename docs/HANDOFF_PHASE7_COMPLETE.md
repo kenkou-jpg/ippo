@@ -113,12 +113,12 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 ### Architecture Health
 
 ```
-Features (RouteRegistry):  57（+ DOICandidate追加）
-ApiGateway methods:        164+（assignDatasetDoiCandidate / attachDoiCandidateToDatasetV2 / generateDatasetCitation / getDoiCandidateStatus追加）
-Domain Event Types:        44（新規イベントなし — 既存DatasetVersionを入力とする純粋計算のみ）
-DI TOKENS:                 325+（PR-070: DOICandidateService追加）
-Tests (全パス):            4,910件 / 260ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
-ArchitectureGuard rules:   134+
+Features (RouteRegistry):  57（+ ResearchQueryAPI追加、KNOWN_FEATURES未登録のため実効反映は別課題）
+ApiGateway methods:        166+（executeResearchQuery / getResearchQueryStatus追加）
+Domain Event Types:        45（RESEARCH_QUERY_EXECUTED追加）
+DI TOKENS:                 326+（PR-071: ResearchQueryApiService追加）
+Tests (全パス):            4,938件 / 261ファイル（39件はtests/modules/既知のpre-existing failure、PR無関係）
+ArchitectureGuard rules:   136+
 Architecture Health:       A（違反ゼロ）
 Technical Debt:            TD-001〜（TECHNICAL_DEBT_AUDIT.md参照）
 ```
@@ -224,12 +224,13 @@ Wave2 (PR-041〜075) — Phase A実装中
     ✓ PR-068  Research Dataset V2 — ResearchDatasetV2Service.buildDatasetV2()/.publishDatasetV2()/.exportJSON()/.exportCSV() / Record×Signal(6種)×DiseaseEntity×Case×V2Edge(PR-063)×ClusterStats(PR-046)×KG骨格(PR-052)統合 / buildDatasetV2()はclusterProfiles中にcaseCount<5があれば全体をDatasetKAnonymityErrorで拒否（BD-030 ZERO TOLERANCE、部分生成なし）/ publishDatasetV2()はfounderId必須 — 未指定はDatasetV2PublicationNotApprovedError（BD-021）/ 命名はDatasetVersionService（PR-055）経由でIPPO-DATASET-FULL-v2.0-{YYYYMMDD} / CSV ExportはV2Edgeプール（edgeId,sourceCaseId,targetCaseId,diseaseKey,score,displayScore,vectorVersion）でV1（signals行）と差別化 / RESEARCH_DATASET_V2_BUILT / ApiGateway: buildResearchDatasetV2/publishResearchDatasetV2/exportResearchDatasetV2JSON/exportResearchDatasetV2CSV/getResearchDatasetV2Status / ArchGuard+2ルール / 26件テスト
     ✓ PR-069  Cohort Research Export — CohortResearchExportService.exportCohort()/.exportJSON()/.exportCSV()/.exportPARQUET() / CohortDefinition（PR-054）→ ResearchDataset(PR-040形式) → DatasetVersion(PR-055)統合 / exportCohort()は毎回CohortBuilderService.checkPublicationEligibility()を呼びBD-039を再検証（未検証・k<5は例外で拒否、completion条件②）/ DatasetVersionServiceのbuildDatasetVersion()にcohortId対応命名を追加（PR-055拡張、後方互換）：cohortId指定時はIPPO-DATASET-{TYPE}-{cohortId}-v{MAJOR}.{MINOR}-{DATE} / JSON・CSV・PARQUET-stub ExportはDatasetExportService（PR-040）を直接再利用しフォーマットロジック重複なし / DATASET_VERSION_PUBLISHED（新規イベント型なし、PR-055既存イベントを再利用）/ ApiGateway: exportCohortResearchDataset/exportCohortDatasetJSON/exportCohortDatasetCSV/getCohortResearchExportStatus / ArchGuard+2ルール / 17件テスト
     ✓ PR-070  Dataset DOI Candidate — DOICandidateService.assignDoiCandidate()/.attachDoiCandidateToDatasetV2()/.generateCitation() / DatasetVersion（PR-055）を入力に10.{IPPO_DOI_PREFIX}/{datasetVersionId}形式のDOI候補IDを付与（IPPO_DOI_PREFIX='10.99999'はWave2プレースホルダー、Wave3で正式Crossref/DataCiteプレフィックスに置換予定）/ attachDoiCandidateToDatasetV2()はdatasetV2.metadata.doi_candidateへ非破壊で付与（BD-021、新規frozenオブジェクトを返す）/ citation-generator.jsでAPA・Nature形式のCitation文字列を生成 / 既存のdataset-version-entity.jsやDatasetVersionServiceは無変更（Architecture変更なし、STANDARD_MODE）/ 新規Domain Event追加なし（既存DatasetVersionへの純粋計算のみ）/ ApiGateway: assignDatasetDoiCandidate/attachDoiCandidateToDatasetV2/generateDatasetCitation/getDoiCandidateStatus / ArchGuard+2ルール / 20件テスト
-  ★ Phase F (PR-068〜072) 進行中 — 残 PR-071〜072
+    ✓ PR-071  Research Query API — ResearchQueryApiService.executeQuery()/.getStatus() / QueryType4種：COHORT_STATS（CohortBuilderService再検証+EvidenceLayerService統合）/ SIGNAL_CORRELATION（ResearchAssistanceService委譲、caseCount構造的k-anonymityゲート）/ DISEASE_CLUSTER_COMPARE（diseaseKeyごとに個別k-anonymityゲート）/ KG_PATH_QUERY（KnowledgeGraph BFS探索、maxDepth=4、構造データのみのためBD-030適用除外）/ BD-030 ZERO TOLERANCE：case-bearing結果はK_ANONYMITY_MIN(5)未満でKAnonymityError / BD-031：LLM/ML不使用、決定論的集計・グラフ探索のみ / BD-036：KG読み取り専用（追記・変更なし）/ 全結果isMedicalAdvice:false機械付与・Object.freeze / RESEARCH_QUERY_EXECUTED / ApiGateway: executeResearchQuery（admin:research）/getResearchQueryStatus / ArchGuard+2ルール / 28件テスト
+  ★ Phase F (PR-068〜072) 進行中 — 残 PR-072
   Phase G (PR-073〜075): Integration + Quality Gate
 
   詳細: docs/WAVE2_ROADMAP.md（IPPO-COUNCIL-006）参照
 
-Next PR: PR-071 Research Query API（ResearchQueryApiService / KG・Dataset・Cohort・Evidence統合クエリ / QueryType4種 / k-anonymity確認 / admin:research限定 / 依存PR-056・PR-060・PR-061・PR-070）
+Next PR: PR-072 Research Platform Audit（Wave2 Research Platform PR-051〜071の完全性・安全性監査 / BD-021・BD-030・BD-036・BD-037・BD-039全チェック / k-anonymity全Dataset再検証 / AI Safety Layer整合性確認 / Research Platform Audit Report生成 / Phase F完了宣言）
 ```
 
 ---

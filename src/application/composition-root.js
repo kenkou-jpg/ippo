@@ -216,6 +216,8 @@ import { ResearchDatasetV2Service }       from '../domains/research/research-dat
 import { CohortResearchExportService }    from '../domains/cohort/cohort-research-export-service.js';
 // PR-070 — Dataset DOI Candidate
 import { DOICandidateService }            from '../domains/dataset-version/doi-candidate-service.js';
+// PR-071 — Research Query API
+import { ResearchQueryApiService }        from '../domains/research-query/research-query-api-service.js';
 
 // DI token constants — use these everywhere instead of bare strings
 export const TOKENS = Object.freeze({
@@ -402,6 +404,8 @@ export const TOKENS = Object.freeze({
   CohortResearchExportService:         'CohortResearchExportService',
   // PR-070 — Dataset DOI Candidate
   DOICandidateService:                 'DOICandidateService',
+  // PR-071 — Research Query API
+  ResearchQueryApiService:             'ResearchQueryApiService',
   // PR-037
   EventStore:              'EventStore',
   EventBus:                'EventBus',
@@ -904,6 +908,20 @@ export class CompositionRoot {
     // APA/Nature citations from already-published DatasetVersion records (PR-055).
     c.singleton(TOKENS.DOICandidateService, () => new DOICandidateService());
 
+    // ── Research Query API (PR-071) — Wave2 Phase F継続 ──────────────────────
+    // BD-030: COHORT_STATS / SIGNAL_CORRELATION / DISEASE_CLUSTER_COMPARE are k-anonymity
+    // gated (k>=5); KG_PATH_QUERY is structural-only (read-only KG traversal, BD-036).
+    // Integrates Cohort Builder (PR-054) / Research Assistance (PR-061, wraps Evidence
+    // Layer PR-056) / Knowledge Graph (PR-051/052) into 4 QueryTypes.
+    c.singleton(TOKENS.ResearchQueryApiService, (container) =>
+      new ResearchQueryApiService({
+        evidenceLayerService:      container.resolve(TOKENS.EvidenceLayerService),
+        researchAssistanceService: container.resolve(TOKENS.ResearchAssistanceService),
+        cohortBuilderService:      container.resolve(TOKENS.CohortBuilderService),
+        knowledgeGraphService:     container.resolve(TOKENS.KnowledgeGraphService),
+        eventPublisher:            container.resolve(TOKENS.EventPublisher),
+      }));
+
     // ── Research Assistance (PR-061) — Wave2 Phase D-5 ───────────────────────
     // BD-031: rule-based descriptive statistics + Pearson r — no LLM.
     // BD-038: isMedicalAdvice:false stamped; causal language auto-blocked.
@@ -1284,6 +1302,8 @@ export class CompositionRoot {
       cohortResearchExportService: container.resolve(TOKENS.CohortResearchExportService),
       // PR-070
       doiCandidateService: container.resolve(TOKENS.DOICandidateService),
+      // PR-071
+      researchQueryApiService: container.resolve(TOKENS.ResearchQueryApiService),
     }));
 
     this._registerFeatures();
@@ -1341,5 +1361,6 @@ export class CompositionRoot {
     r.register('SimilarityEngineV2',       { status: 'active', migratesIn: 'PR-063' }); // PR-063 ✓ Phase E開始
     r.register('DiseaseNetworkScoreV2',    { status: 'active', migratesIn: 'PR-064' }); // PR-064 ✓
     r.register('SimilaritySnapshotV2',     { status: 'active', migratesIn: 'PR-065' }); // PR-065 ✓
+    r.register('ResearchQueryAPI',         { status: 'active', migratesIn: 'PR-071' }); // PR-071 ✓ admin:research only
   }
 }

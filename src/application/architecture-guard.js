@@ -374,6 +374,10 @@ const FORBIDDEN = [
   //           generateDatasetCitation / getDoiCandidateStatus.
   { from: /\/screens\//,   to: /doi-candidate-service/,              label: 'screen→DOICandidateService'            },
   { from: /\/features\//,  to: /doi-candidate-service/,              label: 'feature→DOICandidateService'           },
+  // PR-071 — UI must not reach ResearchQueryApiService directly;
+  //           access via ApiGateway → executeResearchQuery / getResearchQueryStatus.
+  { from: /\/screens\//,   to: /research-query-api-service/,         label: 'screen→ResearchQueryApiService'        },
+  { from: /\/features\//,  to: /research-query-api-service/,         label: 'feature→ResearchQueryApiService'       },
 ];
 
 export function runArchitectureGuard() {
