@@ -1522,14 +1522,8 @@ function manualCloudRestore(){
 }
   
 // (bare `state` lexical bridge は app-legacy.js 最上部で宣言済み)
-
-// Current record being built（let → var でグローバル化して module 側からも参照可能）
-// PR-079: currentRecord は src/modules/record-input.js の _currentRecord へ移行済み。
-// currentStep / STEPS も同モジュールの _currentStep / _steps へ移行済み（buildSteps/renderStep/
-// nextStep/prevStep は下記で RecordInput へ委譲）。
-// currentRecord の bare identifier は、PR-080 で saveRecord が移植されるまでの一時互換として
-// RecordInput.getCurrentRecord() 経由のブリッジで維持する（window.currentRecord への同期は禁止 — SG-4）。
-var currentRecord = RecordInput.getCurrentRecord();
+// PR-079: currentRecord/currentStep/STEPS は src/modules/record-input.js へ移行済み。
+// PR-080: currentRecord のモジュールスコープ bridge 変数を撤去。saveRecord() が直接呼び出す（SG-4）。
 
 
 // saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
@@ -3282,7 +3276,6 @@ function openRecordModal() {
   const activeScreen = document.querySelector('.screen.active');
   if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
   RecordInput.resetCurrentRecord();
-  currentRecord = RecordInput.getCurrentRecord(); // PR-080までの一時ブリッジ（SG-4）
   var steps = RecordInput.initSteps();
   // ステップインジケーターのドットを動的生成
   var indicator = document.getElementById('step-indicator');
@@ -3382,7 +3375,9 @@ const updateSliderDetail = RecordInput.updateSliderDetail;
 const selectBowelCount = RecordInput.selectBowelCount;
 
 // ===== SAVE RECORD =====
+// PR-080: currentRecord bridge 撤去。毎回 RecordInput.getCurrentRecord() から取得する。
 function saveRecord() {
+  var currentRecord = RecordInput.getCurrentRecord();
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
   // Object schema を排除: consumer は全て Array schema (三カード) を前提とする

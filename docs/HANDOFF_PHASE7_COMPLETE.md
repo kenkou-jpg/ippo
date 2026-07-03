@@ -293,8 +293,55 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   （tests/modules/build-draft-from-ui.test.js・save-record-screen.test.js・
   tests/disease/disease-analyzer.test.js・tests/events-domain/domain-event-types.test.js・
   tests/menstrual-domain/event-menstrual.test.js）のみで増加なし / vite build PASS
-  Next: PR-080（Batch-2: Record Screen & Edit — openRecordScreen/saveRecord等 約14関数、
-  currentRecordの完全移植を含む。PR-079完了が前提）
+  ✓ PR-080  Batch-2（Scope縮小版）: currentRecord Bridge撤去 — 当初Scopeは
+  openRecordScreen/editPastRecord/saveRecord等 約14関数だったが、実装前調査で
+  openRecordScreen()・editPastRecord()の安全な物理移動には追加のDIスキャフォールドが
+  必要と判明（Founder判断によりPR-081以降へ繰り越し。詳細は次段落）。本PRは
+  saveRecord() / getSuccessMessage() / closeSuccess() の currentRecord 依存解消のみを実施 /
+  PR-079で導入した `var currentRecord = RecordInput.getCurrentRecord();`
+  モジュールスコープbridge変数（1521行付近）を完全撤去。saveRecord() 内で毎回
+  `var currentRecord = RecordInput.getCurrentRecord();` をローカル取得する形に変更
+  （責務不変・取得元のみ変更、SG-4準拠）。getSuccessMessage/closeSuccessはcurrentRecord非依存と
+  判明したため無変更 / openRecordModal() から一時ブリッジ同期行を削除 / Adapter完全撤去確認
+  （`window.__recordInputBridge`等の追加Adapterは存在せず、上記1行のみが対象だった）/
+  app-legacy.js: 10,247行→10,242行、SG-7 BASELINE_LINE_COUNTを10,242に更新 / vitest run全件:
+  5,152件、失敗39件は既知5ファイルのみで増加なし（新規テスト追加なし、PR-079由来の
+  record-input-b1-*.test.js 80件を含め全PASS）/ vite build PASS。
+
+  【Batch-2繰り越し・重要な発見】openRecordScreen()（app-legacy.js、約378行）は
+  home CTA経由のwindow.openRecordScreenでは到達不能（record-three-card.jsが
+  window.openRecordScreen=openThreeCardRecordで上書きするため）だが、
+  calendar.js/timeline.jsのonclick="editPastRecord(...)" → window.editPastRecord →
+  window.openLegacyRecordScreen（app-legacy.js側が別名で常時export）という
+  独立した到達経路が存在し、Dead Codeではないと確認済み。ただし物理移動には
+  saveAndSync/updateStats/updateHistory/buildCalendar/updateHomeCTAState/closeModal等の
+  window未エクスポートのbare呼び出し、および_bowelCount/_prevTab共有変数への対応
+  （DIスキャフォールド新設）が必要でBatch-2の責務を超えるためFounder判断によりPR-081以降の
+  専用PRへ繰り越し。あわせて以下の**PR-080に起因しない既存の不具合**を発見・記録した
+  （本PRでは修正せず、Scope外として現状維持）:
+    - `window.saveRecord` は record.js の自己参照ガード（`callExistingFunction`）により
+      恒常的にno-op。app-legacy.js は `window.saveRecord` を一度もexportしていないため、
+      saveRecord()（app-legacy.js）はwindow経由では到達不能（app-legacy.js内にbare
+      `saveRecord()`呼び出し箇所も存在しない）。
+    - `window.closeModal` は record-modal-controller.js の `_inlineCloseModal` が
+      未設定のままno-op（PR-079で確認済みの `window.openRecordModal` と同型の
+      pre-existingバグ）。
+    - 上記により、通常のUI操作からは openRecordModal()/saveRecord() 系の
+      currentRecordモーダルフローに到達しない。ブラウザ検証は
+      `window.openRecordScreen` を一時的にundefinedにして `handleHomeCTA()` の
+      正規フォールバック分岐からbareの `openRecordModal()` を発火させ、
+      saveRecord() は検証専用の一時的な `window.__pr080VerifySaveRecord` フック
+      （検証後に削除済み、最終diffには含まれない）経由で直接呼び出して実施した。
+      新規記録→保存→一覧反映／編集→保存→一覧更新／編集キャンセル→データ非破壊／
+      モーダル再オープン時のドラフト破棄／currentRecordが旧bare変数に依存しないこと、
+      をすべて確認しエラーなし。
+
+  Next: PR-081 — Batch-2残タスク（openRecordScreen/editPastRecord/selectTempMethod/
+  toggleRsChip/selectRsCycle/updateRecProgressDots/toggleRecordDetails/gatherDiseaseData の
+  物理移動）専用PR。着手前にDIスキャフォールド設計（saveAndSync等の未exportなbare依存の
+  解消方針）を確定すること。上記で発見した `window.saveRecord` / `window.closeModal` の
+  pre-existing no-op も、この専用PR着手時にあわせて方針確認すること（放置するか修正するかは
+  Founder判断）。
 
 ---
 

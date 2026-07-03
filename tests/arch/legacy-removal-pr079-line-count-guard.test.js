@@ -14,9 +14,9 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-079時点のベースライン（Batch-1委譲後の実測値）。
-// PR-078時点は10,804行だった（docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 10247;
+// PR-080時点のベースライン（Batch-2: currentRecord bridge撤去後の実測値）。
+// PR-079時点は10,247行、PR-078時点は10,804行だった（docs/HANDOFF_PHASE7_COMPLETE.md参照）。
+const BASELINE_LINE_COUNT = 10242;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {
