@@ -14,10 +14,12 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-080B時点のベースライン（updateHistory bare呼び出し6箇所を整理後の実測値）。
-// PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
+// PR-080G時点のベースライン（buildCalendar/changeMonth/renderCalendarMonthlySummaryの
+// Dead Code削除によりapp-legacy.jsから約88行削除後の実測値）。
+// PR-080E時点は9,768行、PR-080D時点は10,237行、PR-080時点は10,242行、
+// PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 10237;
+const BASELINE_LINE_COUNT = 9680;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {

@@ -11,6 +11,8 @@
 // ============================================================
 
 import * as RecordInput from './modules/record-input.js';
+// PR-080E: openRecordScreen/editPastRecord は src/modules/record-screen.js へ物理移動済み。
+import { openRecordScreen, editPastRecord } from './modules/record-screen.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1445,7 +1447,7 @@ function restoreFromHistory(historyId){
         if(r.data && r.data.state && r.data.state.records){
           state.records = mergeRecords(state.records, r.data.state.records);
           saveState();
-          buildCalendar();
+          // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
           updateHomeSummary();
           showRecoveryBanner(true, state.records.length);
           var el = document.getElementById('diagnosis-overlay');
@@ -3262,9 +3264,7 @@ function switchTab(tab, btn) {
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
     if (typeof updateTodayMessage === 'function') updateTodayMessage();
   }
-  if (tab === 'calendar') {
-    buildCalendar();
-  }
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
 }
 　
 
@@ -3405,7 +3405,7 @@ function saveRecord() {
     updateStats();
     updateUnlock();
     updateHistory();
-    buildCalendar();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     document.getElementById('success-message').innerHTML = '記録を更新しました。';
 document.getElementById('success-overlay').classList.add('active');
     return;
@@ -3448,7 +3448,7 @@ document.getElementById('success-overlay').classList.add('active');
   updateStats();
   updateUnlock();
   updateHistory();
-  buildCalendar();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
   updateHomeCTA();
   if (typeof updateHomeCTAState === 'function') updateHomeCTAState();
   if (typeof updateStreakBadge === 'function') updateStreakBadge();
@@ -3923,80 +3923,7 @@ function updateHomeSummary(){
 }
 
 
-function editPastRecord(dateStr) {
-  // オーバーレイを閉じる
-  var overlay = document.getElementById('dmOverlay');
-  if (overlay) overlay.classList.remove('dm-open');
-  var dayModal = document.getElementById('dayDetailModal');
-  if (dayModal) dayModal.style.display = 'none';
-  
-  var rec = state.records.find(function(r) {
-    if (r.record_date && r.record_date.slice(0, 10) === dateStr) return true;
-    if (r.date) {
-      var _d = new Date(r.date);
-      var _local = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
-      if (_local === dateStr) return true;
-    }
-    return false;
-  });
-  
-  state.draft = {
-    record_date: dateStr,
-    meals: { free: '', firstTime: '', lastTime: '' },
-    mealFree: '',
-    mealCount: 0,
-    firstMealTime: '',
-    lastMealTime: '',
-    fasting: 0,
-    temperature: null,
-    symptoms: [],
-    menstrualCycle: '',
-    diseaseCheck: {},
-    note: '',
-    painLocation: [],
-    painType: [],
-    painLevel: 0,
-    medication: [],
-    bloodClot: [],
-    bloodColor: [],
-    emotion: '',
-    wellness_score: 0,
-    energy_score: 0,
-    bodyChoices: {}
-  };
-  
-  if (rec) {
-    Object.keys(rec).forEach(function(key) {
-      state.draft[key] = rec[key];
-    });
-  }
-  
-  state.editingDate = dateStr;
-  
-  // 記録画面に遷移
-  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('active'); });
-  var recScreen = document.getElementById('screen-record');
-  if(recScreen) recScreen.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
-  var navItems = document.querySelectorAll('.nav-item');
-  if(navItems[2]) navItems[2].classList.add('active');
-  
-  if(typeof window.openLegacyRecordScreen === 'function') window.openLegacyRecordScreen();
-
-  // タイトルを対象日に変更
-  setTimeout(function() {
-    var d = new Date(dateStr);
-    var WDAY = ['日','月','火','水','木','金','土'];
-    var dateLabel = document.getElementById('rec-screen-date');
-    var titleLabel = document.getElementById('rec-screen-title');
-    if (dateLabel) {
-      dateLabel.textContent = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WDAY[d.getDay()]+'）';
-    }
-    if (titleLabel) {
-      titleLabel.textContent = d.getDate()+'日の記録を編集';
-    }
-  }, 150);
-}
+// PR-080E: editPastRecord は src/modules/record-screen.js へ物理移動済み（ファイル冒頭でimport）。
 
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
@@ -5013,7 +4940,7 @@ function saveEditRecord(){
   else delete rec.note;
 
   saveState();
-  buildCalendar();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
   if(typeof cloudSaveRecord === 'function') cloudSaveRecord(rec);
 
   closeEditRecord();
@@ -5036,7 +4963,7 @@ function deleteEditRecord(){
       return new Date(r.date).toDateString() !== editingDateStr || r.id;
     });
     saveState();
-    buildCalendar();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     closeEditRecord();
     document.getElementById('dmOverlay').classList.remove('dm-open');
   });
@@ -5477,7 +5404,7 @@ function saveQuickLog() {
   _quickSelectedSymptoms = [];
   _quickPainLevel = -1;
   updateHomeSummary();
-  buildCalendar();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
 }
 
 function showQuickLogDone() {
@@ -5494,99 +5421,13 @@ function showQuickLogDone() {
   }
 }
 
-function buildCalendar(){
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('buildCalendar', buildCalendar);
-    return;
-  }
-  var label = document.getElementById('calLabel');
-  var grid = document.getElementById('calGrid');
-  if(!label||!grid) return;
-  label.textContent = calYear + '年 ' + (calMonth+1) + '月';
-  grid.innerHTML = '';
-  var firstDow = new Date(calYear, calMonth, 1).getDay();
-  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  var today = new Date();
-  for(var e=0; e<firstDow; e++){
-    var empty = document.createElement('div');
-    empty.className = 'cal-day empty';
-    grid.appendChild(empty);
-  }
-  for(var d=1; d<=daysInMonth; d++){
-    var el = document.createElement('div');
-    el.className = 'cal-day';
-    var isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
-    if(isToday) el.classList.add('today');
-    var ds = new Date(calYear, calMonth, d).toDateString();
-    var localDs = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    var hasRec = state.records.some(function(r){ return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs); });
-    if(hasRec) el.classList.add('has-record');
-    // 痛みレベルに応じたクラスを付与
-    if(hasRec) {
-      var rec = state.records.find(function(r) {
-        return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
-      });
-      if(rec) {
-        var pain = rec.painLevel;
-        if(pain !== null && pain !== undefined && pain >= 0) {
-          el.classList.add('pain-' + Math.min(pain, 4));
-        } else {
-          el.classList.add('has-record-no-pain');
-        }
-      }
-    }
-    el.textContent = d;
-    el.addEventListener('click', (function(day){ return function(){ openDayDetail(day); }; })(d));
-    grid.appendChild(el);
-  }
-}
-
-// カレンダータブ：月別サマリーカード描画
-function renderCalendarMonthlySummary() {
-  var el = document.getElementById('cal-monthly-summary');
-  if (!el) return;
-  var monthStr = calYear + '-' + String(calMonth + 1).padStart(2, '0');
-  var recs = state.records.filter(function(r) {
-    return (r.date && r.date.slice(0, 7) === monthStr) ||
-           (r.record_date && r.record_date.slice(0, 7) === monthStr);
-  });
-  if (recs.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + calYear + '年' + (calMonth + 1) + '月の記録はまだありません</div>';
-    return;
-  }
-  // 集計
-  var painTotal = 0, painCount = 0, symptomMap = {};
-  recs.forEach(function(r) {
-    if (r.painLevel !== null && r.painLevel !== undefined) { painTotal += r.painLevel; painCount++; }
-    if (r.symptoms) r.symptoms.forEach(function(s) { symptomMap[s] = (symptomMap[s] || 0) + 1; });
-  });
-  var avgPain = painCount > 0 ? (painTotal / painCount).toFixed(1) : '—';
-  var topSymptoms = Object.keys(symptomMap).sort(function(a, b) { return symptomMap[b] - symptomMap[a]; }).slice(0, 3);
-  var html = '<div style="display:flex;gap:16px;margin-bottom:10px;">';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + recs.length + '</div><div style="font-size:10px;color:var(--ink-light);">記録日数</div></div>';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + avgPain + '</div><div style="font-size:10px;color:var(--ink-light);">平均痛みレベル</div></div>';
-  html += '</div>';
-  if (topSymptoms.length > 0) {
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">多かった症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    topSymptoms.forEach(function(s) {
-      html += '<span style="background:var(--rose-pale);color:var(--rose-dark);border-radius:20px;padding:3px 10px;font-size:11px;">' + s + ' <span style="opacity:0.6;">×' + symptomMap[s] + '</span></span>';
-    });
-    html += '</div>';
-  }
-  // month label サブタイトル更新
-  var subLabel = document.getElementById('cal-screen-month-label');
-  if (subLabel) subLabel.textContent = calYear + '年 ' + (calMonth + 1) + '月 — ' + recs.length + '件の記録';
-  el.innerHTML = html;
-}
-
-function changeMonth(delta){
-  calMonth += delta;
-  if(calMonth > 11){ calMonth = 0; calYear++; }
-  if(calMonth < 0){ calMonth = 11; calYear--; }
-  buildCalendar();
-  renderCalendarMonthlySummary();
-}
+// PR-080G: buildCalendar/renderCalendarMonthlySummary/changeMonth を削除（確認済みDead Code）。
+// #calLabel/#calGrid/#cal-monthly-summary/#cal-screen-month-labelはapp.html/calendar.htmlに
+// 存在せず、これら3関数は常に即return（no-op）していた。changeMonth()はbare呼び出し・
+// window export（app-legacy.js側）のいずれも存在せず、calPrev/calNextのDOMContentLoaded
+// リスナー（下記）もelement不在によりガード発火せず、到達経路ゼロを確認済み。
+// calYear/calMonth変数はopenDayDetail/openDayDetailByDate（生存・上記参照）が引き続き使用するため保持。
+// 詳細: docs/HANDOFF_PHASE7_COMPLETE.md PR-080G節。
 
 document.addEventListener('DOMContentLoaded', function(){
   var prev = document.getElementById('calPrev');
@@ -5847,410 +5688,7 @@ function openDayDetail(d){
 
 
 
-// ===== 記録モーダル → 詳細記録画面への引き継ぎ =====
-function prefillRecordFromModal() {
-  var today = new Date().toISOString().slice(0, 10);
-  var rec = (state.records || []).find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-  if (!rec) return;
-
-  // モーダルで保存された症状を症状チップに反映
-  if (rec.symptoms && rec.symptoms.length > 0) {
-    document.querySelectorAll('#rs-symptoms .chip').forEach(function(chip) {
-      if (rec.symptoms.indexOf(chip.textContent.trim()) !== -1) {
-        chip.classList.add('selected');
-      }
-    });
-  }
-
-  // 痛みレベルをスライダーに反映
-  if (rec.painLevel !== null && rec.painLevel !== undefined) {
-    var painSlider = document.getElementById('rs-pain-level');
-    var painDisplay = document.getElementById('pain-level-display');
-    if (painSlider) painSlider.value = rec.painLevel;
-    if (painDisplay) painDisplay.textContent = rec.painLevel;
-  }
-}
-
-// ===== RECORD SCREEN =====
-function openRecordScreen(){
-  // welcome-reset-guard が setTimeout(0) で showScreen(getCurrentScreen()) を呼ぶため、
-  // state.currentScreen を先に更新しないと旧タブに戻される。
-  state.currentScreen = 'record';
-    // 今日の記録が既にある場合は自動的に編集モードにする
-  if(!state.editingDate){
-    var todayStr = new Date().toDateString();
-    var todaySlice = new Date().toISOString().slice(0, 10);
-    var todayExists = state.records.some(function(r){
-      return (r.date && new Date(r.date).toDateString() === todayStr) ||
-             (r.record_date && r.record_date.slice(0, 10) === todaySlice);
-    });
-    if(todayExists){
-      state.editingDate = todaySlice;
-    }
-  }
-
-  var now = new Date();
-  var wd = ['日','月','火','水','木','金','土'];
-  
-  // ★ 編集モード：対象日の日付とデータを使用
-  var isEditing = !!state.editingDate;
-  var targetDate = isEditing ? new Date(state.editingDate) : now;
-  
-  var el = document.getElementById('rec-screen-date');
-  if(el) el.textContent = targetDate.getFullYear()+'年'+(targetDate.getMonth()+1)+'月'+targetDate.getDate()+'日（'+wd[targetDate.getDay()]+'）';
-  
-  // フォームをリセット
-  ['rs-morning','rs-lunch','rs-dinner','rs-snack','rs-note'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-  ['rs-first-time','rs-last-time'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-  var te = document.getElementById('rs-temp'); if(te) te.value='';
-  var mealFreeEl = document.getElementById('rs-meal-free'); if(mealFreeEl) mealFreeEl.value='';
-  document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
-  renderSymptomLayers(); // 3層チップを描画（選択リセット込み）
-  var di = document.getElementById('draft-indicator');
-  if(di) di.style.display = 'none';
-    // 追加フォームのリセット
-  document.querySelectorAll('#rs-pain-location .chip, #rs-pain-type .chip, #rs-medication .chip, #rs-blood-clot .chip, #rs-blood-color .chip').forEach(function(c){ c.classList.remove('selected'); });
-  var painLevel = document.getElementById('rs-pain-level');
-  if(painLevel){ painLevel.value = 0; }
-  var painDisplay = document.getElementById('pain-level-display');
-  if(painDisplay){ painDisplay.textContent = '0'; }
-  var painSection = document.getElementById('pain-detail-section');
-  if(painSection){ painSection.style.display = 'none'; } // 痛み症状選択時に展開
-  var cycleDetail = document.getElementById('cycle-detail-section');
-  if(cycleDetail){ cycleDetail.style.display = 'none'; }
-  // 気分・おりもの・便カウントをリセット
-  document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
-  document.querySelectorAll('#rs-discharge-amount .chip, #rs-discharge-type .chip').forEach(function(c){ c.classList.remove('selected'); });
-  _bowelCount = 0;
-  var _bcd = document.getElementById('bowel-count-display'); if(_bcd) _bcd.textContent = '0';
-  // 詳細セクションの折りたたみ状態をlocalStorageから復元
-  try{
-    var _detailsOpen = localStorage.getItem('ippo_rec_details_open') === '1';
-    var _detailsSec = document.getElementById('rec-details-section');
-    var _detailsArrow = document.getElementById('rec-details-arrow');
-    if(_detailsSec) _detailsSec.style.display = _detailsOpen ? 'block' : 'none';
-    if(_detailsArrow) _detailsArrow.textContent = _detailsOpen ? '▴' : '▾';
-  }catch(e){}
-  setTimeout(function(){ updateRecProgressDots(); }, 100);
-  // 記録モーダルで保存済みの症状・痛みを引き継ぐ（非編集モード時のみ）
-  if(!isEditing){ prefillRecordFromModal(); }
-  // ★ 編集モード：既存記録をフォームに復元
-  if(isEditing){
-    var editDateStr = targetDate.toDateString();
-    var editRec = null;
-    for(var ri=0; ri<state.records.length; ri++){
-      var _r = state.records[ri];
-      var _rDateStr = _r.date ? new Date(_r.date).toDateString()
-                    : _r.record_date ? new Date(_r.record_date + 'T00:00:00').toDateString()
-                    : '';
-      if(_rDateStr === editDateStr){
-        editRec = _r;
-        break;
-      }
-    }
-    if(editRec){
-      if(editRec.temperature){ var et=document.getElementById('rs-temp'); if(et) et.value=editRec.temperature; }
-      if(editRec.note){ var en=document.getElementById('rs-note'); if(en) en.value=editRec.note; }
-      if(editRec.mealFree){ var mf=document.getElementById('rs-meal-free'); if(mf){ mf.value=editRec.mealFree; if(typeof updateMealParse==='function') updateMealParse(); } }
-      if(editRec.meals){
-        var m=editRec.meals;
-        if(m.morning){ var em=document.getElementById('rs-morning'); if(em) em.value=m.morning; }
-        if(m.lunch){ var el2=document.getElementById('rs-lunch'); if(el2) el2.value=m.lunch; }
-        if(m.dinner){ var ed=document.getElementById('rs-dinner'); if(ed) ed.value=m.dinner; }
-        if(m.snack){ var es=document.getElementById('rs-snack'); if(es) es.value=m.snack; }
-        if(m.free){ var ef=document.getElementById('rs-meal-free'); if(ef){ ef.value=m.free; if(typeof updateMealParse==='function') updateMealParse(); } }
-      }
-      if(editRec.firstMealTime){ var ft=document.getElementById('rs-first-time'); if(ft) ft.value=editRec.firstMealTime; }
-      if(editRec.lastMealTime){ var lt=document.getElementById('rs-last-time'); if(lt) lt.value=editRec.lastMealTime; }
-      if(editRec.symptoms && editRec.symptoms.length){
-        document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-          if(editRec.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.menstrualCycle){
-        document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-          if(c.textContent === editRec.menstrualCycle) c.classList.add('selected');
-        });
-      }
-            // 痛みの詳細を復元
-      if(editRec.painLocation && editRec.painLocation.length){
-        document.querySelectorAll('#rs-pain-location .chip').forEach(function(c){
-          if(editRec.painLocation.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.painType && editRec.painType.length){
-        document.querySelectorAll('#rs-pain-type .chip').forEach(function(c){
-          if(editRec.painType.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.painLevel){
-        var pl = document.getElementById('rs-pain-level');
-        var pld = document.getElementById('pain-level-display');
-        if(pl){ pl.value = editRec.painLevel; }
-        if(pld){ pld.textContent = editRec.painLevel; }
-      }
-      // 痛み症状が選択済みなら詳細セクションを表示
-      var hasPainOnEdit = (editRec.painLevel && editRec.painLevel > 0)
-        || (editRec.painLocation && editRec.painLocation.length)
-        || (editRec.painType && editRec.painType.length)
-        || (function(){ var painSyms = ['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛']; var found = false; document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ if(painSyms.indexOf(c.textContent)!==-1) found=true; }); return found; })();
-      var painSection = document.getElementById('pain-detail-section');
-      if(painSection){ painSection.style.display = hasPainOnEdit ? 'block' : 'none'; }
-      // 服薬を復元
-      if(editRec.medication && editRec.medication.length){
-        document.querySelectorAll('#rs-medication .chip').forEach(function(c){
-          if(editRec.medication.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-            // 経血詳細を復元
-      if(editRec.bloodClot && editRec.bloodClot.length){
-        document.querySelectorAll('#rs-blood-clot .chip').forEach(function(c){
-          if(editRec.bloodClot.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.bloodColor && editRec.bloodColor.length){
-        document.querySelectorAll('#rs-blood-color .chip').forEach(function(c){
-          if(editRec.bloodColor.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-            // エネルギー復元
-      if(editRec.energy){
-        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===editRec.energy) c.classList.add('selected');
-        });
-      }
-      // 睡眠復元
-      if(editRec.sleepBed){ var sb=document.getElementById('rs-sleep-bed'); if(sb) sb.value=editRec.sleepBed; }
-      if(editRec.sleepWake){ var sw=document.getElementById('rs-sleep-wake'); if(sw) sw.value=editRec.sleepWake; }
-      if(editRec.sleepQuality){
-        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===editRec.sleepQuality) c.classList.add('selected');
-        });
-      }
-      // ファクター復元
-      if(editRec.factors && editRec.factors.length){
-        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
-          if(editRec.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // お通じ復元
-      if(editRec.bowel){
-        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
-          if(c.textContent === editRec.bowel) c.classList.add('selected');
-        });
-      }
-      // 便カウント復元
-      if(editRec.bowelCount){
-        _bowelCount = editRec.bowelCount;
-        var bcd = document.getElementById('bowel-count-display');
-        if(bcd) bcd.textContent = _bowelCount;
-      }
-      // 気分復元
-      if(editRec.mood){
-        document.querySelectorAll('#rs-mood .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val')) === editRec.mood) c.classList.add('selected');
-        });
-      }
-      // おりもの量復元
-      if(editRec.dischargeAmount){
-        document.querySelectorAll('#rs-discharge-amount .chip').forEach(function(c){
-          if(c.textContent === editRec.dischargeAmount) c.classList.add('selected');
-        });
-      }
-      // おりもの状態復元（dischargeType は配列で保存される）
-      if(editRec.dischargeType && editRec.dischargeType.length){
-        document.querySelectorAll('#rs-discharge-type .chip').forEach(function(c){
-          if(editRec.dischargeType.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // 経血詳細セクション表示
-      var cycleDetail = document.getElementById('cycle-detail-section');
-      if(cycleDetail && editRec.menstrualCycle && editRec.menstrualCycle !== 'なし'){
-        cycleDetail.style.display = 'block';
-      }
-      if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
-      // ★ 編集モードでも疾患セルフチェックを表示・復元
-      var _editDiseaseCheck = editRec ? (editRec.diseaseCheck || null) : null;
-      setTimeout(function(){
-        updateDiseaseQuestions();
-        if(_editDiseaseCheck){
-          Object.keys(_editDiseaseCheck).forEach(function(key){
-            var group = document.querySelector('[data-disease-q="'+key+'"]');
-            if(group){
-              group.querySelectorAll('.chip').forEach(function(c){
-                if(c.textContent === _editDiseaseCheck[key]) c.classList.add('selected');
-              });
-            }
-          });
-        }
-      }, 300);
-    }
-    // 編集モードでは下書き復元をスキップ
-    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-    document.getElementById('screen-record').classList.add('active');
-    // P1-3: クイック記録ターゲットへスクロール（編集モード）
-    (function() {
-      var _t = window.__ippoQuickRecordTarget; window.__ippoQuickRecordTarget = null;
-      if (_t) {
-        var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
-        var _id = _m[_t];
-        if (_id) {
-          // 食事・体温・メモは詳細セクション内なので折りたたみを開く
-          if (_t === 'food' || _t === 'temp' || _t === 'note') {
-            var _ds = document.getElementById('rec-details-section');
-            var _da = document.getElementById('rec-details-arrow');
-            if (_ds) { _ds.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
-            if (_da) { _da.textContent = '▴'; }
-          }
-          setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
-        }
-      }
-    })();
-    return;
-  }
-
-  var draft = localStorage.getItem('ippo_draft');
-  if(draft){
-    try {
-      var d = JSON.parse(draft);
-      if(new Date(d._draftDate).toDateString() === now.toDateString()){
-              // フリーメモ下書き復元
-        var mealDraft = localStorage.getItem('ippo_meal_draft');
-        if(mealDraft){
-          try {
-            var md = JSON.parse(mealDraft);
-            if(new Date(md._draftDate).toDateString() === now.toDateString()){
-              var ta = document.getElementById('rs-meal-free');
-              if(ta && md.mealFree){ ta.value = md.mealFree; updateMealParse(); }
-            }
-          } catch(e){}
-        }
-      if(d.temp){ var et=document.getElementById('rs-temp'); if(et) et.value=d.temp; }
-      if(d.tempMethod) selectTempMethod(d.tempMethod);
-        if(d.note){ var en=document.getElementById('rs-note'); if(en) en.value=d.note; }
-        if(d.symptoms && d.symptoms.length){
-          document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-            if(d.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
-          });
-        }
-              // エネルギー下書き復元
-      if(d.energy){
-        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===d.energy) c.classList.add('selected');
-        });
-      }
-      // 睡眠下書き復元
-      if(d.sleepBed){ var dsb=document.getElementById('rs-sleep-bed'); if(dsb) dsb.value=d.sleepBed; }
-      if(d.sleepWake){ var dsw=document.getElementById('rs-sleep-wake'); if(dsw) dsw.value=d.sleepWake; }
-      if(d.sleepQuality){
-        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===d.sleepQuality) c.classList.add('selected');
-        });
-      }
-      // ファクター下書き復元
-      if(d.factors && d.factors.length){
-        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
-          if(d.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // お通じ下書き復元
-      if(d.bowel){
-        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
-          if(c.textContent === d.bowel) c.classList.add('selected');
-        });
-      }
-        if(d.cycle){
-          document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-            if(c.textContent === d.cycle) c.classList.add('selected');
-          });
-        }
-        if(di){ di.textContent='下書きを復元しました'; di.style.display='block'; setTimeout(function(){ di.style.display='none'; }, 3000); }
-      }
-    } catch(e){}
-  }
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('screen-record').classList.add('active');
-    // 既存記録の食事メモを復元
-  var todayRec = null;
-  for(var ri=0; ri<state.records.length; ri++){
-    if(new Date(state.records[ri].date).toDateString() === now.toDateString()){ todayRec = state.records[ri]; break; }
-  }
-  if(todayRec && todayRec.mealFree){
-    var mealTA = document.getElementById('rs-meal-free');
-    if(mealTA && !mealTA.value.trim()){ mealTA.value = todayRec.mealFree; updateMealParse(); }
-  }
-    // 既存記録の体温を復元
-  if(todayRec && todayRec.temperature){
-    var tempEl = document.getElementById('rs-temp');
-    if(tempEl && !tempEl.value) tempEl.value = todayRec.temperature;
-  }
-  // 体温測定方法を復元
-  selectTempMethod((todayRec && todayRec.tempMethod) ? todayRec.tempMethod : 'sublingual');
-  // 既存記録の症状を復元（3層チップ対応: 下層に選択済みがあれば自動展開）
-  if(todayRec && todayRec.symptoms && todayRec.symptoms.length){
-    var _needL2=false, _needL3=false;
-    document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-      if(todayRec.symptoms.indexOf(c.textContent) !== -1){
-        c.classList.add('selected');
-        var l2=document.getElementById('rs-symp-l2'), l3=document.getElementById('rs-symp-l3');
-        if(l2 && l2.contains(c)) _needL2=true;
-        if(l3 && l3.contains(c)) _needL3=true;
-      }
-    });
-    if(_needL2) toggleSympLayer(2);
-    if(_needL3) toggleSympLayer(3);
-    // 痛み系症状の復元に応じてPAIN DETAILセクションも展開
-    var painSyms=['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛'];
-    var _hasPain=todayRec.symptoms.some(function(s){ return painSyms.indexOf(s)!==-1; });
-    var ps=document.getElementById('pain-detail-section');
-    if(ps) ps.style.display=_hasPain?'block':'none';
-  }
-  // 既存記録の生理周期を復元
-  if(todayRec && todayRec.menstrualCycle){
-    document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-      if(c.textContent === todayRec.menstrualCycle || c.getAttribute('data-val') === todayRec.menstrualCycle) c.classList.add('selected');
-    });
-  }
-  var _diseaseCheckToRestore = (todayRec && todayRec.diseaseCheck) ? todayRec.diseaseCheck : null;
-  setTimeout(function(){
-    updateDiseaseQuestions();
-    if(_diseaseCheckToRestore){
-      var dc = _diseaseCheckToRestore;
-      Object.keys(dc).forEach(function(key){
-        var group = document.querySelector('[data-disease-q="'+key+'"]');
-        if(group){
-          group.querySelectorAll('.chip').forEach(function(c){
-            if(c.textContent === dc[key]) c.classList.add('selected');
-          });
-        }
-      });
-    }
-  }, 300);
-
-  // P1-3: クイック記録ターゲットへスクロール
-  var _qrt = window.__ippoQuickRecordTarget;
-  window.__ippoQuickRecordTarget = null;
-  window.scrollTo(0, 0);
-  if (_qrt) {
-    var _qrMap = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
-    var _qrId = _qrMap[_qrt];
-    if (_qrId) {
-      // 食事・体温・メモは詳細セクション内なので折りたたみを開く
-      if (_qrt === 'food' || _qrt === 'temp' || _qrt === 'note') {
-        var _qrDs = document.getElementById('rec-details-section');
-        var _qrDa = document.getElementById('rec-details-arrow');
-        if (_qrDs) { _qrDs.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
-        if (_qrDa) { _qrDa.textContent = '▴'; }
-      }
-      setTimeout(function() {
-        var _qrEl = document.getElementById(_qrId);
-        if (_qrEl) _qrEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 200);
-    }
-  }
-}
+// PR-080E: prefillRecordFromModal / openRecordScreen は src/modules/record-screen.js へ物理移動済み（ファイル冒頭でimport）。
 
 function selectTempMethod(method){
   document.getElementById('temp-tab-sublingual').classList.toggle('selected', method === 'sublingual');
@@ -6488,6 +5926,11 @@ function selectBowel(btn, val){
 
 // ===== 気分選択（Step 1） =====
 var _bowelCount = 0;
+// PR-080E: openRecordScreen（record-screen.jsへ物理移動済み）が _bowelCount を
+// 参照するための最小限のブリッジ。adjustBowelCount・保存時の読み取りは
+// 従来どおりbare _bowelCountのまま（挙動変更なし）。
+window.__ippoGetBowelCount = function () { return _bowelCount; };
+window.__ippoSetBowelCount = function (v) { _bowelCount = v; };
 function selectMood(btn, val){
   document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
   btn.classList.add('selected');
@@ -8013,7 +7456,7 @@ var todayStr = targetDate.toDateString();
     checkAndShowTempAlert();
     if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
     updateStats();
-    buildCalendar();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
     localStorage.removeItem('ippo_draft');
     var _cloudBackupFn = (typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : cloudBackupAll);

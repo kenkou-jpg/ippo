@@ -57,6 +57,11 @@ function getGreetingText() {
   return 'おつかれさまです';
 }
 
+// PR-080C: app-legacy.js に同名のローカル実装が並存する（classic scriptとES moduleはscopeが
+// 分離しているため、app-legacy.js内のbare呼び出しは常にapp-legacy.js側のローカル版を実行し
+// 実質2実装状態）。getState() とapp-legacy.js側のbare `state` 変数の等価性が既存コードから
+// 確証できないため、Business Logic変更禁止の制約下では統合を見送る
+// （詳細: docs/HANDOFF_PHASE7_COMPLETE.md PR-080C節）。
 function calcPainFreeDaysThisMonth() {
   var s = getState();
   var now = new Date();
@@ -72,6 +77,8 @@ function calcPainFreeDaysThisMonth() {
   return count;
 }
 
+// PR-080C: app-legacy.js に同名の重複実装あり。理由は calcPainFreeDaysThisMonth() 直前の
+// コメント参照。
 function calcAvgPainThisMonth() {
   var s = getState();
   var now = new Date();
@@ -132,6 +139,10 @@ export function updateGreeting() {
 
 // ── 統計 ─────────────────────────────────────────────────────
 
+// PR-080C: app-legacy.js に同名のローカル実装が並存する。window.updateStats はこのモジュール版が
+// 上書きするが、app-legacy.js内のbare呼び出しはscope分離によりapp-legacy.js側のローカル版を
+// 常に実行するため無効化されない。統合見送りの理由は calcPainFreeDaysThisMonth() 直前の
+// コメント参照。
 export function updateStats() {
   var s = getState();
   var streakEl = document.getElementById('streak-count');

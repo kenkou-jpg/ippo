@@ -7,119 +7,21 @@
 import { getState } from '../store/state.js';
 
 // ─── カレンダー状態 ─────────────────────────────────────────
+// PR-080G: buildCalendar/renderCalendarMonthlySummary/changeMonth/
+// prefillRecordFromModal/toggleHomeCalendarを削除（確認済みDead Code）。
+// buildCalendar/renderCalendarMonthlySummaryは#calLabel/#calGrid/
+// #cal-monthly-summary/#cal-screen-month-labelがapp.html/calendar.htmlに
+// 存在せず常に即return、changeMonthはwindow.buildCalendarがcalendar-next.jsに
+// 上書き済み・呼び出し元（calPrev/calNext）もelement不在で到達不能、
+// prefillRecordFromModal/toggleHomeCalendarは外部呼び出し元ゼロと確認済み
+// （詳細: docs/HANDOFF_PHASE7_COMPLETE.md PR-080G節）。
+// calYear/calMonthはopenDayDetail（生存・下記）が使用するため保持。
 var _now = new Date();
 export var calYear  = _now.getFullYear();
 export var calMonth = _now.getMonth();
 // window 互換（他モジュール・onclick から参照するため）
 window.calYear  = calYear;
 window.calMonth = calMonth;
-
-// ─── calYear/calMonth の変更をすべて window.* 経由に統一するヘルパー ─
-function _setCalMonth(m) { calMonth = m; window.calMonth = m; }
-function _setCalYear(y)  { calYear  = y; window.calYear  = y; }
-
-// ─── buildCalendar ───────────────────────────────────────────
-export function buildCalendar() {
-  var label = document.getElementById('calLabel');
-  var grid  = document.getElementById('calGrid');
-  if (!label || !grid) return;
-  var cy = window.calYear !== undefined ? window.calYear : calYear;
-  var cm = window.calMonth !== undefined ? window.calMonth : calMonth;
-  label.textContent = cy + '年 ' + (cm + 1) + '月';
-  grid.innerHTML = '';
-  var firstDow   = new Date(cy, cm, 1).getDay();
-  var daysInMonth = new Date(cy, cm + 1, 0).getDate();
-  var today = new Date();
-  var st = getState();
-  for (var e = 0; e < firstDow; e++) {
-    var empty = document.createElement('div');
-    empty.className = 'cal-day empty';
-    grid.appendChild(empty);
-  }
-  for (var d = 1; d <= daysInMonth; d++) {
-    var el = document.createElement('div');
-    el.className = 'cal-day';
-    var isToday = d === today.getDate() && cm === today.getMonth() && cy === today.getFullYear();
-    if (isToday) el.classList.add('today');
-    var ds     = new Date(cy, cm, d).toDateString();
-    var localDs = cy + '-' + String(cm + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    var records = st.records || [];
-    var hasRec = records.some(function (r) {
-      return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
-    });
-    if (hasRec) el.classList.add('has-record');
-    if (hasRec) {
-      var rec = records.find(function (r) {
-        return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
-      });
-      if (rec) {
-        var pain = rec.painLevel;
-        if (pain !== null && pain !== undefined && pain >= 0) {
-          el.classList.add('pain-' + Math.min(pain, 4));
-        } else {
-          el.classList.add('has-record-no-pain');
-        }
-      }
-    }
-    el.textContent = d;
-    el.addEventListener('click', (function (day) { return function () { openDayDetail(day); }; })(d));
-    grid.appendChild(el);
-  }
-}
-
-// ─── renderCalendarMonthlySummary ────────────────────────────
-export function renderCalendarMonthlySummary() {
-  var el = document.getElementById('cal-monthly-summary');
-  if (!el) return;
-  var cy = window.calYear !== undefined ? window.calYear : calYear;
-  var cm = window.calMonth !== undefined ? window.calMonth : calMonth;
-  var monthStr = cy + '-' + String(cm + 1).padStart(2, '0');
-  var st = getState();
-  var records = st.records || [];
-  var recs = records.filter(function (r) {
-    return (r.date && r.date.slice(0, 7) === monthStr) ||
-           (r.record_date && r.record_date.slice(0, 7) === monthStr);
-  });
-  if (recs.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + cy + '年' + (cm + 1) + '月の記録はまだありません</div>';
-    return;
-  }
-  var painTotal = 0, painCount = 0, symptomMap = {};
-  recs.forEach(function (r) {
-    if (r.painLevel !== null && r.painLevel !== undefined) { painTotal += r.painLevel; painCount++; }
-    if (r.symptoms) r.symptoms.forEach(function (s) { symptomMap[s] = (symptomMap[s] || 0) + 1; });
-  });
-  var avgPain = painCount > 0 ? (painTotal / painCount).toFixed(1) : '—';
-  var topSymptoms = Object.keys(symptomMap).sort(function (a, b) { return symptomMap[b] - symptomMap[a]; }).slice(0, 3);
-  var html = '<div style="display:flex;gap:16px;margin-bottom:10px;">';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + recs.length + '</div><div style="font-size:10px;color:var(--ink-light);">記録日数</div></div>';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + avgPain + '</div><div style="font-size:10px;color:var(--ink-light);">平均痛みレベル</div></div>';
-  html += '</div>';
-  if (topSymptoms.length > 0) {
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">多かった症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    topSymptoms.forEach(function (s) {
-      html += '<span style="background:var(--rose-pale);color:var(--rose-dark);border-radius:20px;padding:3px 10px;font-size:11px;">' + s + ' <span style="opacity:0.6;">×' + symptomMap[s] + '</span></span>';
-    });
-    html += '</div>';
-  }
-  var subLabel = document.getElementById('cal-screen-month-label');
-  if (subLabel) subLabel.textContent = cy + '年 ' + (cm + 1) + '月 — ' + recs.length + '件の記録';
-  el.innerHTML = html;
-}
-
-// ─── changeMonth ─────────────────────────────────────────────
-export function changeMonth(delta) {
-  var cm = window.calMonth !== undefined ? window.calMonth : calMonth;
-  var cy = window.calYear  !== undefined ? window.calYear  : calYear;
-  cm += delta;
-  if (cm > 11) { cm = 0; cy++; }
-  if (cm < 0)  { cm = 11; cy--; }
-  _setCalMonth(cm);
-  _setCalYear(cy);
-  buildCalendar();
-  renderCalendarMonthlySummary();
-}
 
 // ─── openDayDetail ───────────────────────────────────────────
 export function openDayDetail(d) {
@@ -330,47 +232,8 @@ export function openDayDetail(d) {
   document.getElementById('dmOverlay').classList.add('dm-open');
 }
 
-// ─── prefillRecordFromModal ───────────────────────────────────
-export function prefillRecordFromModal() {
-  var today = new Date().toISOString().slice(0, 10);
-  var st = getState();
-  var rec = (st.records || []).find(function (r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-  if (!rec) return;
-  if (rec.symptoms && rec.symptoms.length > 0) {
-    document.querySelectorAll('#rs-symptoms .chip').forEach(function (chip) {
-      if (rec.symptoms.indexOf(chip.textContent.trim()) !== -1) chip.classList.add('selected');
-    });
-  }
-  if (rec.painLevel !== null && rec.painLevel !== undefined) {
-    var painSlider  = document.getElementById('rs-pain-level');
-    var painDisplay = document.getElementById('pain-level-display');
-    if (painSlider)  painSlider.value = rec.painLevel;
-    if (painDisplay) painDisplay.textContent = rec.painLevel;
-  }
-}
-
-// ─── toggleHomeCalendar ──────────────────────────────────────
-export function toggleHomeCalendar() {
-  var panel = document.getElementById('home-calendar-panel');
-  var arrow = document.getElementById('home-cal-arrow');
-  var btn   = document.getElementById('home-cal-toggle');
-  if (!panel) return;
-  var isOpen = panel.style.display !== 'none';
-  panel.style.display = isOpen ? 'none' : 'block';
-  if (arrow) arrow.textContent = isOpen ? '▾' : '▴';
-  if (btn)   btn.setAttribute('aria-expanded', String(!isOpen));
-  if (!isOpen && typeof window.renderCalendar === 'function') window.renderCalendar();
-}
-
 // ─── calPrev / calNext / dmClose / dmOverlay はapp-legacy.js の
 //     DOMContentLoaded ハンドラで登録される（重複防止）
 
 // ─── window 互換 ──────────────────────────────────────────────
-window.buildCalendar                 = buildCalendar;
-window.renderCalendarMonthlySummary  = renderCalendarMonthlySummary;
-window.changeMonth                   = changeMonth;
 window.openDayDetail                 = openDayDetail;
-window.prefillRecordFromModal        = prefillRecordFromModal;
-window.toggleHomeCalendar            = toggleHomeCalendar;
