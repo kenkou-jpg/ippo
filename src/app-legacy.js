@@ -1503,7 +1503,6 @@ function manualCloudRestore(){
 
         // UI再描画
         if(typeof updateStats === 'function') updateStats();
-        if(typeof updateHistory === 'function') updateHistory();
         if(typeof buildCalendar === 'function') buildCalendar();
         if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
         if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
@@ -2115,6 +2114,7 @@ function calcAvgPainThisMonth() {
   return Math.round(total / count * 10) / 10;
 }
 
+// PR-080B: 確定Dead Code。saveRecord()内の無条件bare呼び出し2箇所が残るため定義は維持（PR-080Eで対応）。
 function updateHistory(){
   // 最近の記録セクション削除済み
 }
@@ -4815,7 +4815,6 @@ function clearData() {
   saveState();
   updateStats();
   updateUnlock();
-  updateHistory();
 }
 
 // ===== DAILY MESSAGES =====
@@ -5015,7 +5014,6 @@ function saveEditRecord(){
 
   saveState();
   buildCalendar();
-  updateHistory();
   if(typeof cloudSaveRecord === 'function') cloudSaveRecord(rec);
 
   closeEditRecord();
@@ -5039,7 +5037,6 @@ function deleteEditRecord(){
     });
     saveState();
     buildCalendar();
-    updateHistory();
     closeEditRecord();
     document.getElementById('dmOverlay').classList.remove('dm-open');
   });
@@ -8016,7 +8013,6 @@ var todayStr = targetDate.toDateString();
     checkAndShowTempAlert();
     if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
     updateStats();
-    updateHistory();
     buildCalendar();
     if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
     localStorage.removeItem('ippo_draft');
@@ -9573,7 +9569,6 @@ async function submitSync() {
             state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
           }
           if (typeof updateStats === 'function') updateStats();
-          if (typeof updateHistory === 'function') updateHistory();
           if (typeof buildCalendar === 'function') buildCalendar();
           if (typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
           if (typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();

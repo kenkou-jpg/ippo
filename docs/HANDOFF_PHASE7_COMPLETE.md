@@ -336,12 +336,100 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
       モーダル再オープン時のドラフト破棄／currentRecordが旧bare変数に依存しないこと、
       をすべて確認しエラーなし。
 
-  Next: PR-081 — Batch-2残タスク（openRecordScreen/editPastRecord/selectTempMethod/
-  toggleRsChip/selectRsCycle/updateRecProgressDots/toggleRecordDetails/gatherDiseaseData の
-  物理移動）専用PR。着手前にDIスキャフォールド設計（saveAndSync等の未exportなbare依存の
-  解消方針）を確定すること。上記で発見した `window.saveRecord` / `window.closeModal` の
-  pre-existing no-op も、この専用PR着手時にあわせて方針確認すること（放置するか修正するかは
-  Founder判断）。
+  ✓ PR-080A  Record Screen DI Scaffold（設計のみ、コード変更ゼロ）— 詳細:
+  docs/PR-080A-record-screen-di-scaffold.md。実コード確認によりopenRecordScreen/saveRecord/
+  editPastRecordのbare依存関係を完全監査。新規発見（HANDOFF未記載だった事項）:
+  ① updateStats/buildCalendar/closeModalはapp-legacy.js内ローカル実装と、
+  home-renderer.js/calendar.js/record-modal-controller.jsのwindow.*export版が
+  重複併存しており、app-legacy.js内部のbare呼び出しは常にローカル版を実行する
+  （windowの同名propertyは無視される）。単純なwindow bridge化では済まず、
+  重複解消PRが物理移動の前提条件と判明 / ② app.html:346のbottom-nav「記録」ボタンは
+  window.openLegacyRecordScreen（=openRecordScreen）を直接呼んでおり、editPastRecord経由に
+  加えてopenRecordScreenへの第3の到達経路が存在する（app.htmlのコメントは3-card誘導と
+  記載しているが実装と矛盾）/ _bowelCount（app-legacy.js内で完全自己完結）・_prevTab
+  （openRecordModal/closeModal専用、openRecordScreenとは無関係と判明）のShared State監査完了 /
+  Physical Move判定: updateHistory=A（空関数、削除のみ）、saveAndSync/_bowelCount/saveRecord/
+  editPastRecord/openRecordScreen等=B（DI後に移動可）、updateStats/buildCalendar/closeModal=C
+  （重複解消PRが別途必要）、window.saveRecord・window.closeModalのno-opバグ=D（現状維持、
+  Founder判断待ち）/ PR分割案PR-080B〜F を提示（Founder承認後に番号確定）/
+  コード変更なし（Step2「DI設計のみ作成する」指示に従い、消費者が存在しないDIコードの
+  先行実装を避けた。推測によるScope外実装禁止 — AI_EXECUTION.md 5章）/
+  docs/LEGACY_REMOVAL_PLAN.md 4章・9-A章・10章（Decision Log追補）を更新し、
+  既存PR-081〜090の番号は変更せずPR-080AをBatch-2とBatch-3の間に挿入 /
+  vitest run・vite build: 変更なし（コード非変更のため既存ベースラインのまま、
+  新規リグレッションなし）。
+
+  ✓ PR-080B  Batch-2 Completion Program①: updateHistory依存の整理 — Founderが
+  PR-080B〜F（Batch-2 Completion Program）の内訳を確定（docs/LEGACY_REMOVAL_PLAN.md
+  4章・9-A章に反映、PR-081〜090は無変更）。updateHistory()（確定Dead Code・空関数）への
+  bare呼び出し8箇所のうち、saveRecord()内の無条件呼び出し2箇所（禁止事項によりPR-080Eへ
+  据え置き）を除く6箇所を整理: cloudRestore()内（1506、guard付き）/ clearData()内（4818）/
+  saveEditRecord()内（5018、day-detail経由の別編集フロー・editPastRecordとは別物）/
+  deleteEditRecord()内（5042）/ **saveRecordScreen()内（8019）**/ ログイン後クラウド復元
+  callback内（9576、guard付き）。updateHistory()定義自体は
+  saveRecord()の残存呼び出しが存在する限り削除不可のため維持し、その理由をコメントで明記。
+  【新規発見】`saveRecordScreen()`（app-legacy.js:7875〜、app.html:677
+  `id="save-record-btn"`の実際の保存ハンドラ）が、PR-080Aの監査で対象とした`saveRecord()`
+  （record-modal/3-card用、record-input.jsのnextStep()から呼ばれる別関数）とは
+  **完全に別の関数**であり、openRecordScreen()と対になる本来の保存ハンドラだったと判明。
+  saveRecordScreen()はupdateHomeSummary/updateHomeCTA/buildHomeWeekRow/
+  updateHomeInsightCard等、saveRecord()より遥かに多くのbare依存を持つため、
+  PR-080E（物理移動）のスコープはPR-080Aの想定より拡大する可能性がある（次PRで詳細監査要）。
+  SG-7 line-count-guard: 6箇所整理により app-legacy.js 10,242行→10,237行
+  （`split('\n').length`計測、BASELINE_LINE_COUNTを10,237に更新）。vitest run全件:
+  5,152件、失敗39件は既知5ファイルのみで増加なし。vite build PASS。Browser Verification:
+  bottom-nav「記録」→openRecordScreen()表示→この内容で記録する→saveRecordScreen()実行
+  →records反映、calendar→editPastRecord('2026-07-03')→編集画面に既存データ復元、
+  戻るボタン→home、いずれもConsole Errorなし（vite websocket接続失敗の環境ノイズのみ）。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+
+  【PR-080C 引き継ぎ・未実装】新規チャットへ移行のため、PR-080C
+  （updateStats/buildCalendar重複実装整理）はコード変更ゼロの調査段階で中断。
+  以下は本チャットで完了した調査結果（git上のコード変更なし、確認済みの事実のみ）。
+
+  現在地: docs/PR-080A-record-screen-di-scaffold.md を唯一の設計入力として
+  PR-080B〜Fを実行中。PR-080B（updateHistory整理）は完了・HANDOFF記録済み（上記）。
+  PR-080C以降は着手前に必ずこのHANDOFFの本セクションを読むこと。
+
+  【PR-080C 調査で判明した重要事実（未着手ぶんの前提条件）】
+  ① app-legacy.jsの`updateStats()`（現在2035行目）と home-renderer.jsの
+  `updateStats()`（135行目、`window.updateStats`export）は、DOM操作・`state.streak`等の
+  参照ロジックはほぼ同一だが、**calcPainFreeDaysThisMonth()/calcAvgPainThisMonth()を
+  それぞれが別々に自前定義している**（home-renderer.js内: 60行目・75行目、
+  app-legacy.js内: 2085行目・2100行目付近）。すなわち「updateStatsの重複」は
+  1関数の重複ではなく、少なくとも3関数×2実装の重複が連鎖している。
+  ② app-legacy.jsの`buildCalendar()`（現在5497行目）と calendar.jsの
+  `buildCalendar()`（22行目、`window.buildCalendar`export）は、**より深刻な相違点**として
+  `calYear`/`calMonth`を別々の独立変数として保持している。calendar.js側は
+  `export var calYear/calMonth` を持ち `window.calYear`/`window.calMonth` に
+  常時ミラーする設計（11-19行目）。一方app-legacy.js側は bare `var calYear, calMonth`
+  （4836行目付近、window非同期）で、独自の`changeMonth()`（5585行目付近）が
+  この bare 変数のみを更新し `window.calYear`には一切反映しない。
+  **この2つのbuildCalendar()は「同じロジックの重複」ではなく「別々の状態を参照する
+  別物」であり、単純な delegation 統合は状態不整合を招く一可能性があるため
+  「Business Logic変更禁止」の制約下では実施不可と判断した。**
+  ③ calendar.jsは独自の`openDayDetail()`（125行目、export）も持ち、
+  app-legacy.jsの`openDayDetail()`（bare、buildCalendar内から`d`引数で呼ばれる）とは
+  別実装。buildCalendar統合を検討する場合はopenDayDetailの統合可否も連動する。
+
+  【PR-080C 推奨方針（次チャットでの判断材料）】
+  PR-080Bで確立した「呼び出し元は変更せず、定義箇所にのみ現状維持の理由を
+  コメントする」という保守的パターンを踏襲するのが安全（updateHistoryは空関数で
+  無害だったが、updateStats/buildCalendarは実処理を持つため、delegation化は
+  等価性を完全に立証できない限りBusiness Logic変更のリスクを伴う）。
+  buildCalendarについては calYear/calMonth の状態統一という、PR-080Cの
+  「重複実装整理」という範囲を超える別種の作業（状態統合）が前提条件になるため、
+  次チャット開始時にFounderへ「PR-080Cのスコースをコメントのみに留めるか、
+  calYear/calMonth統合を別PRとして切り出すか」を確認することを推奨する。
+
+  未着手のためコード変更・HANDOFF追記（本節除く）・Decision Log・Regression/Build/
+  Browser Verificationはすべて次チャットでのPR-080C実施時に行うこと。
+  app-legacy.jsは現在PR-080B完了時点のまま（10,237行、BASELINE_LINE_COUNT=10,237）。
+
+  Next: PR-080C — 上記の調査結果を前提に、Scopeをコメントのみに絞るか
+  Founderに確認したうえで実施。完了後 PR-080D（closeModal/saveAndSync周辺依存整理）
+  → PR-080E（openRecordScreen/editPastRecord物理移動、saveRecordScreen()の追加監査を含む）
+  → PR-080F（Batch-2 Exit Audit）の順。
 
 ---
 
