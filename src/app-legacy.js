@@ -13,6 +13,9 @@
 import * as RecordInput from './modules/record-input.js';
 // PR-080E: openRecordScreen/editPastRecord は src/modules/record-screen.js へ物理移動済み。
 import { openRecordScreen, editPastRecord } from './modules/record-screen.js';
+// PR-081: premiumGate/closePremiumLock/renderProHero/updatePremiumBadges/submitPremiumWaitlist は
+// src/modules/premium/premium-lock.js へ物理移動済み。
+import { closePremiumLock, premiumGate, renderProHero, updatePremiumBadges, submitPremiumWaitlist } from './modules/premium/premium-lock.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1150,32 +1153,7 @@ function updateDiseaseQuestions(){if(typeof window.updateDiseaseQuestions==='fun
 
 
   // ===== プレミアム先行登録 =====
-function submitPremiumWaitlist(){
-  var emailInput = document.getElementById('premium-email');
-  var email = emailInput ? emailInput.value.trim() : '';
-  if(!email || email.indexOf('@') === -1){
-    showAlertModal('メールアドレスを入力してください');
-    return;
-  }
-  if(!supabase){ showAlertModal('通信エラーが発生しました'); return; }
-  supabase.auth.getSession().then(function(res){
-    var userId = res.data.session ? res.data.session.user.id : null;
-    return supabase.from('premium_waitlist').insert({ email: email, user_id: userId });
-  }).then(function(result){
-    if(!result.error){
-      document.getElementById('premium-form-area').style.display = 'none';
-      document.getElementById('premium-done').style.display = 'block';
-      localStorage.setItem('ippo_premium_registered', email);
-    } else if(result.error.code === '23505'){
-      showAlertModal('このメールアドレスは既に登録済みです');
-    } else {
-      showAlertModal('送信に失敗しました。もう一度お試しください');
-    }
-  }).catch(function(e){
-    console.warn('Waitlist error:', e);
-    showAlertModal('通信エラーが発生しました');
-  });
-}
+  // PR-081: submitPremiumWaitlist は src/modules/premium/premium-lock.js へ物理移動済み（import参照）
 
 // 既に登録済みなら完了表示
 
@@ -9326,105 +9304,16 @@ function updateSettingsHero() {
 function isAdminOrPremium() {
   return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
 }
-function updatePremiumBadges() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updatePremiumBadges', updatePremiumBadges);
-    return;
-  }
-  var unlocked = isAdminOrPremium();
-  document.querySelectorAll('.pf-lock-badge').forEach(badge => {
-    badge.style.display = unlocked ? 'none' : 'inline';
-  });
-  renderProHero();
-  updateSettingsHero();
-  // インサイトタブが表示中ならプレミアム確定後に相関分析を再描画
-  var insightsEl = document.getElementById('screen-insights');
-  if (insightsEl && insightsEl.classList.contains('active')) {
-    if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
-    if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
-  }
-  if (typeof renderPhaseMap === 'function') renderPhaseMap();
-}
-
-function renderProHero() {
-  var hero = document.getElementById('pro-hero');
-  if (!hero) return;
-  if (isAdminOrPremium()) {
-    hero.innerHTML =
-      '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
-      + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
-      + '<div style="font-size:10px;letter-spacing:0.18em;opacity:0.75;margin-bottom:5px;">PREMIUM MEMBER</div>'
-      + '<div style="font-family:\'Shippori Mincho\',serif;font-size:20px;font-weight:700;margin-bottom:6px;">プレミアム会員中 ✨</div>'
-      + '<div style="font-size:12px;opacity:0.85;line-height:1.6;">すべての分析・レポート機能をご利用いただけます</div>'
-      + '</div>';
-  } else {
-    hero.innerHTML =
-      '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
-      + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
-      + '<div style="font-size:10px;letter-spacing:0.18em;opacity:0.75;margin-bottom:5px;">PREMIUM PLAN</div>'
-      + '<div style="font-family:\'Shippori Mincho\',serif;font-size:20px;font-weight:700;margin-bottom:10px;">からだの声を、もっと深く</div>'
-      + '<div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">'
-      +   '<div style="text-align:center;">'
-      +     '<div style="font-size:24px;font-weight:800;line-height:1;">¥580</div>'
-      +     '<div style="font-size:10px;opacity:0.7;margin-top:2px;">/月</div>'
-      +   '</div>'
-      +   '<div style="opacity:0.45;font-size:12px;">または</div>'
-      +   '<div style="text-align:center;">'
-      +     '<div style="font-size:24px;font-weight:800;line-height:1;">¥4,800</div>'
-      +     '<div style="font-size:10px;opacity:0.7;margin-top:2px;">/年&nbsp;<span style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;">31%オフ</span></div>'
-      +   '</div>'
-      + '</div>'
-      + '<button onclick="startStripeCheckout()" style="width:100%;background:white;color:var(--plum);border:none;border-radius:50px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;letter-spacing:0.03em;">プレミアムを始める →</button>'
-      + '</div>';
-  }
-}
-
-function premiumGate(callback) {
-  if (isAdminOrPremium()) {
-    callback();
-  } else {
-    // 動的な価値説明を追加
-    var dynamicMsg = document.getElementById('premium-dynamic-msg');
-    if(dynamicMsg){
-      var msg = '';
-      if(callback === openTempReport){
-        var tempCount = state.records.filter(function(r){return r.temperature;}).length;
-        if(tempCount >= 14){
-          var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-          if(analysis.status === 'ready' && analysis.alerts.length > 0){
-            msg = '⚠️ あなたの体温データから'+analysis.alerts.length+'件の気になるパターンが検出されています。詳細な分析と医師相談の目安を確認できます。';
-          } else {
-            msg = '🌡️ '+tempCount+'日分の体温データから、低温期・高温期の判定、二相性分析、排卵推定、AMED研究（31万人）との比較が可能です。';
-          }
-        }
-      } else if(callback === openCorrelationReport){
-        msg = '🔬 あなたの生活要因と症状の相関を分析。「カフェインを摂った日は痛みが2.4倍」のような具体的な発見ができます。';
-      } else if(callback === openFlareupReport){
-        var flareCount = detectFlareups(state.records).length;
-        if(flareCount > 0){
-          msg = '🔥 '+flareCount+'件のフレアアップ（体調急変）を検出。トリガーとなった要因を特定できます。';
-        }
-      } else if(callback === openCyclePhaseReport){
-        msg = '🌸 生理周期の各フェーズ（月経期・卵胞期・排卵期・黄体期）ごとの体調傾向を比較できます。';
-      } else if(callback === openExperiments){
-        msg = '🧪 「グルテンフリー30日」「毎日運動」など、仮説を立てて体調変化を検証できます。';
-      }
-
-      if(msg){
-        dynamicMsg.innerHTML = '<div style="padding:12px 16px;background:linear-gradient(135deg,#fdf8f6,#f8f0ec);border-radius:12px;margin-bottom:16px;font-size:11px;color:var(--ink-mid);line-height:1.7;">'+msg+'</div>';
-        dynamicMsg.style.display = 'block';
-      } else {
-        dynamicMsg.style.display = 'none';
-      }
-    }
-
-    document.getElementById('premiumLockOverlay').classList.add('active');
-  }
-}
-
-function closePremiumLock() {
-  document.getElementById('premiumLockOverlay').classList.remove('active');
-}
+// PR-081: settings-display-runtime.js に同名の別実装（window.updateSettingsHero、
+// initSettingsPanels()呼び出しを追加で行う）が既に存在し、load順（後着ロード）で
+// window.updateSettingsHero は常にそちらに上書きされる。premium-lock.js へ移動した
+// updatePremiumBadges() 内の bare 呼び出しは本ローカル実装（initSettingsPanels非呼び出し）を
+// 維持する必要があるため、専用ブリッジを設ける（挙動変更なし、PR-080E
+// window.__ippoGetBowelCount と同型パターン）。updateSettingsHero 自体の重複解消は
+// 製品判断が必要なため本PRのScope外（PR-080C/PR-080G と同型の判断）。
+window.__ippoLegacyUpdateSettingsHero = updateSettingsHero;
+// PR-081: updatePremiumBadges/renderProHero/premiumGate/closePremiumLock は
+// src/modules/premium/premium-lock.js へ物理移動済み（import参照）
 
 var premiumOverlay = document.getElementById('premiumLockOverlay');
 if(premiumOverlay) premiumOverlay.addEventListener('click', function(e) {

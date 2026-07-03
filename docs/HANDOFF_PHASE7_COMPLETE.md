@@ -591,12 +591,50 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   buildHomeWeekRow等5関数のUI差異解消は製品判断を要するためDecision Log候補として
   次回Founderへ提起することを推奨）。
 
-  Next: PR-081 — Legacy Removal Batch-3（Premium Gate & Lock）。
-  ただしBatch-2の残課題（saveRecordScreen物理移動の前提条件となる
+  ✓ PR-081  Batch-3: Premium Gate & Lock — docs/phase4d-legacy-migration-audit.md
+  5章「Batch-3」記載の対象6関数（premiumGate/closePremiumLock/updateSettingsHero/
+  renderProHero/updatePremiumBadges/submitPremiumWaitlist）を実装前に再監査した結果、
+  premiumGate/closePremiumLock/renderProHero/updatePremiumBadges/submitPremiumWaitlist
+  の5関数を src/modules/premium/premium-lock.js（新設）へ物理移動 / updateSettingsHero
+  のみ対象から除外——settings-display-runtime.js に既に別実装（window.updateSettingsHero、
+  initSettingsPanels()呼び出しを追加で行う点のみ相違、load順で後着のため
+  window.updateSettingsHeroは常にそちらが勝つ）が存在すると判明し、PR-080C/PR-080Gと
+  同型の「重複実装は統合しない」判断を適用（app-legacy.js側のローカル実装は無変更のまま
+  維持、どちらを正とするかは製品判断が必要なため本PRのScope外）/ 移動した
+  updatePremiumBadges()内の bare `updateSettingsHero()`呼び出しは従来どおり
+  app-legacy.js側ローカル実装を呼ぶ必要があるため、`window.__ippoLegacyUpdateSettingsHero`
+  という専用ブリッジをapp-legacy.js側に追加（PR-080E `__ippoGetBowelCount`と同型パターン、
+  挙動変更なし）/ premiumGate内の callback比較（`callback===openTempReport`等）および
+  `state.records`参照は、record-screen.js（PR-080E）と同型でそれぞれ
+  `window.openTempReport`等・`window.state.records`に置換（openTempReport/
+  openCorrelationReport/openFlareupReport/openCyclePhaseReport/openExperiments/
+  calcTemperaturePhases/detectFlareupsはBatch-4以降のScopeのためapp-legacy.jsに残存、
+  window export経由で同一オブジェクト参照を維持）/ app.htmlの11箇所
+  `onclick="premiumGate(...)"`（音査時点の想定「8箇所」よりapp.html実装は11箇所と判明）は
+  window.premiumGateブリッジが維持されるため無改造（PR-079以降のwindow bridge方針を踏襲、
+  audit文書が想定していた「onclick全置換」は不要と判明）/ tests/modules/premium-lock.test.js
+  新設19件（premiumGate分岐5種・renderProHero両分岐・updatePremiumBadges・
+  submitPremiumWaitlist正常/異常系を網羅）/ app-legacy.js: 9,680行→9,569行
+  （111行削減）、SG-7 BASELINE_LINE_COUNTを9569に更新 / vitest run全件: 5,171件
+  （新規22件はpremium-lock.test.js 19件+line-count-guard更新分）、失敗39件は既知5ファイル
+  のみで増加なし / vite build PASS / Browser Verification: app.html実機（Vite dev server）で
+  設定タブ→renderProHero()が無料プランUpsellヒーロー（¥580/¥4,800表示）を正しく描画、
+  インサイトタブ→premiumGate(openCorrelationReport)等5種のonclickカードクリックで
+  premiumLockOverlayが正しく開き、callback別の動的メッセージ（🔬相関/🌸周期/🧪実験/
+  該当なしでメッセージ非表示）が期待通り分岐、closePremiumLock()でoverlay解除、
+  updatePremiumBadges()で.pf-lock-badge（9箇所）が正しくinline表示、Console Errorなし
+  （vite websocket接続失敗・Supabase未設定はローカル開発環境ノイズのみ、既知。なお
+  Service Workerの古いキャッシュにより初回ロードでwindow.__ippoLegacyUpdateSettingsHero
+  が未定義に見える事象を検出したが、SW cache clear + reloadで解消する検証専用の
+  環境要因でありPR-081のコード起因ではないと確認済み）。Decision Log: 更新不要
+  （Architecture/Roadmap/Business/Founder Strategy変更なし）。
+
+  Next: PR-082 — Legacy Removal Batch-4（Pro Reports: Doctor Summary/AI Analysis/
+  各種Report）。ただしBatch-2の残課題（saveRecordScreen物理移動の前提条件となる
   buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeCTAState/
   updateHomeDiseaseAdviceの5関数はいずれもUI/Business Logic差異を伴う別実装であり、
-  Founder/製品判断なしに統合不可）は未着手のまま残っているため、Batch-3着手前に
-  Founderへ優先順位を確認すること。
+  Founder/製品判断なしに統合不可）およびupdateSettingsHeroの重複実装解消（本PRで新規発見）
+  は未着手のまま残っているため、Batch-4着手前にFounderへ優先順位を確認すること。
 
 ---
 
