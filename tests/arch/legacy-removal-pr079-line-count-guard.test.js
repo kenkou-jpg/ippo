@@ -1,0 +1,38 @@
+// tests/arch/legacy-removal-pr079-line-count-guard.test.js
+// PR-079 (Legacy Removal Batch-1): SG-7 — app-legacy.js の行数がPR前後で
+// 減少していることを機械的に監視する。
+//
+// 背景: ARCHITECTURE_V3.md は「CIチェックでLOCKED」と記載しているが、
+// src/application/architecture-guard.js には app-legacy.js の行数を検証する
+// ルールが存在しなかった（docs/LEGACY_REMOVAL_PLAN.md 6章 SG-7 注記）。
+// 本テストはその是正であり、以降の Batch PR（PR-080〜089）は
+// BASELINE_LINE_COUNT を実際の行数に合わせて更新するたびに「減少」していることを
+// 確認すること（増加は即座に差し戻し）。
+import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
+
+// PR-079時点のベースライン（Batch-1委譲後の実測値）。
+// PR-078時点は10,804行だった（docs/HANDOFF_PHASE7_COMPLETE.md参照）。
+const BASELINE_LINE_COUNT = 10247;
+const PRE_PR079_LINE_COUNT = 10804;
+
+function countLines(text) {
+  return text.split('\n').length;
+}
+
+describe('Legacy Removal SG-7 — app-legacy.js line count guard', () => {
+  it('does not exceed the PR-079 baseline', () => {
+    expect(countLines(appLegacy)).toBeLessThanOrEqual(BASELINE_LINE_COUNT);
+  });
+
+  it('has decreased from the pre-PR-079 (PR-078) line count', () => {
+    expect(countLines(appLegacy)).toBeLessThan(PRE_PR079_LINE_COUNT);
+  });
+
+  it('imports record-input.js (Batch-1 delegation target)', () => {
+    expect(appLegacy).toMatch(/import \* as RecordInput from ['"]\.\/modules\/record-input\.js['"]/);
+  });
+});

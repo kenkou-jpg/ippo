@@ -4,7 +4,13 @@
 //
 //  移植元: app.html script block 2 (line 1595–13041)
 //  設計: ES module として import。state はグローバル getter 経由。
+//
+//  PR-079 (Legacy Removal Batch-1): Record Input UI (renderStep 等 約22関数)は
+//  src/modules/record-input.js へ委譲済み。onclick 文字列から呼ばれる関数名は
+//  window 経由で record-input.js 側へ向け替え済み（本ファイル末尾の bridge 参照）。
 // ============================================================
+
+import * as RecordInput from './modules/record-input.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1518,9 +1524,12 @@ function manualCloudRestore(){
 // (bare `state` lexical bridge は app-legacy.js 最上部で宣言済み)
 
 // Current record being built（let → var でグローバル化して module 側からも参照可能）
-var currentRecord = {};
-var currentStep = 0;
-var STEPS = [];
+// PR-079: currentRecord は src/modules/record-input.js の _currentRecord へ移行済み。
+// currentStep / STEPS も同モジュールの _currentStep / _steps へ移行済み（buildSteps/renderStep/
+// nextStep/prevStep は下記で RecordInput へ委譲）。
+// currentRecord の bare identifier は、PR-080 で saveRecord が移植されるまでの一時互換として
+// RecordInput.getCurrentRecord() 経由のブリッジで維持する（window.currentRecord への同期は禁止 — SG-4）。
+var currentRecord = RecordInput.getCurrentRecord();
 
 
 // saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
@@ -3272,14 +3281,14 @@ let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき�
 function openRecordModal() {
   const activeScreen = document.querySelector('.screen.active');
   if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
-  currentRecord = {};
-  currentStep = 0;
-  STEPS = window.STEPS = buildSteps();
+  RecordInput.resetCurrentRecord();
+  currentRecord = RecordInput.getCurrentRecord(); // PR-080までの一時ブリッジ（SG-4）
+  var steps = RecordInput.initSteps();
   // ステップインジケーターのドットを動的生成
   var indicator = document.getElementById('step-indicator');
   if (indicator) {
     indicator.innerHTML = '';
-    window.STEPS.forEach(function() {
+    steps.forEach(function() {
       var dot = document.createElement('div');
       dot.className = 'step-dot';
       indicator.appendChild(dot);
@@ -3303,356 +3312,41 @@ function closeModal() {
   if (prevBtn) prevBtn.focus();
 }
 
-function renderStep() {
-  const step = STEPS[currentStep];
-  document.getElementById('modal-title').innerHTML = step.title.replace('\n', '<br>');
-  document.getElementById('modal-step-label').textContent = step.label;
-
-  const dots = document.querySelectorAll('#step-indicator .step-dot');
-  dots.forEach((d, i) => {
-    d.classList.remove('active', 'done');
-    if (i < currentStep) d.classList.add('done');
-    else if (i === currentStep) d.classList.add('active');
-  });
-
-  document.getElementById('modal-back-btn').style.display = currentStep === 0 ? 'none' : 'block';
-  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する' : '次へ →';
-
-  step.render();
-}
-
-function nextStep() {
-  if (currentStep < STEPS.length - 1) {
-    currentStep++;
-    renderStep();
-  } else {
-    saveRecord();
-  }
-}
-
-function prevStep() {
-  if (currentStep > 0) {
-    currentStep--;
-    renderStep();
-  }
-}
+// PR-079: renderStep/nextStep/prevStep は src/modules/record-input.js へ移植済み。
+// bare identifier は委譲のみ（再実装禁止）。nextStep の saveRecord() 呼び出しは
+// record-input.js 側で window.saveRecord 経由に置き換え済み。
+const renderStep = RecordInput.renderStep;
+const nextStep = RecordInput.nextStep;
+const prevStep = RecordInput.prevStep;
 
 // ===== STEP RENDERERS =====
-function renderWellness() {
-  const scores = [
-    { v: 1, emoji: '😔', label: 'とてもつらい' },
-    { v: 2, emoji: '😕', label: 'しんどい' },
-    { v: 3, emoji: '😐', label: 'ふつう' },
-    { v: 4, emoji: '🙂', label: 'わりと元気' },
-    { v: 5, emoji: '😊', label: 'とても元気' },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="score-selector">
-      ${scores.map(s => `
-        <button class="score-btn ${currentRecord.wellness === s.v ? 'selected' : ''}" onclick="selectWellness(${s.v}, this)">
-          ${s.emoji}<span class="score-label">${s.label}</span>
-        </button>
-      `).join('')}
-    </div>
-  `;
-}
-
-function selectWellness(v, el) {
-  currentRecord.wellness = v;
-  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
+// PR-079: renderWellness/selectWellness は src/modules/record-input.js へ移植済み。
+const renderWellness = RecordInput.renderWellness;
+const selectWellness = RecordInput.selectWellness;
 
 
 
-function renderFood() {
-  const foods = ['根菜類', '発酵食品', '温かいもの', '砂糖控え', 'グルテンフリー', 'EPA/DHA', 'ビタミンD', '鉄分', '水2L以上'];
-  if (!currentRecord.foodItems) currentRecord.foodItems = [];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="score-selector" style="margin-bottom:16px;">
-      ${[1,2,3,4,5,6,7,8,9,10].map(v => `
-        <button class="score-btn ${currentRecord.foodScore === v ? 'selected' : ''}" style="font-size:14px;padding:10px 2px;" onclick="selectFood(${v}, this)">
-          ${v}<span class="score-label"></span>
-        </button>
-      `).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">意識した食材（複数OK）</div>
-    <div class="chips" id="food-chips">
-      ${foods.map(f => `<div class="chip ${currentRecord.foodItems.includes(f) ? 'selected' : ''}" onclick="toggleFoodItem('${f}', this)">${f}</div>`).join('')}
-    </div>
-  `;
-}
+// PR-079: renderFood/selectFood/toggleFoodItem は src/modules/record-input.js へ移植済み。
+const renderFood = RecordInput.renderFood;
+const selectFood = RecordInput.selectFood;
+const toggleFoodItem = RecordInput.toggleFoodItem;
 
-function selectFood(v, el) {
-  currentRecord.foodScore = v;
-  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
+// PR-079: renderFasting/selectFasting は src/modules/record-input.js へ移植済み。
+const renderFasting = RecordInput.renderFasting;
+const selectFasting = RecordInput.selectFasting;
 
-function toggleFoodItem(item, el) {
-  if (!currentRecord.foodItems) currentRecord.foodItems = [];
-  if (currentRecord.foodItems.includes(item)) {
-    currentRecord.foodItems = currentRecord.foodItems.filter(f => f !== item);
-    el.classList.remove('selected');
-  } else {
-    currentRecord.foodItems.push(item);
-    el.classList.add('selected');
-  }
-}
+// PR-079: renderEmotion/selectEmotion は src/modules/record-input.js へ移植済み。
+const renderEmotion = RecordInput.renderEmotion;
+const selectEmotion = RecordInput.selectEmotion;
 
-function renderFasting() {
-  // バグ05: インデックスではなく実際の値で比較・保存する
-  const opts = [
-    { label: '記録しない', value: null },
-    { label: '12時間',     value: 12 },
-    { label: '14時間',     value: 14 },
-    { label: '16時間',     value: 16 },
-    { label: '18時間以上', value: 18 },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="chips" style="flex-direction:column;gap:8px;">
-      ${opts.map(o => `
-        <div class="chip ${currentRecord.fasting === o.value ? 'selected' : ''}"
-             style="padding:12px 16px;font-size:13px;border-radius:14px;"
-             onclick="selectFasting(${o.value === null ? 'null' : o.value}, this)">${o.label}</div>
-      `).join('')}
-    </div>
-  `;
-}
-
-function selectFasting(v, el) {
-  currentRecord.fasting = v === 'null' ? null : Number(v);
-  document.querySelectorAll('.chips .chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function renderEmotion() {
-  const emotions = [
-    { emoji: '🌸', label: '穏やか\n平和', key: '穏やか' },
-    { emoji: '✨', label: 'うれしい\n満たされ', key: 'うれしい' },
-    { emoji: '🌙', label: '疲れ\n重さ', key: '疲れ' },
-    { emoji: '🌊', label: '不安\n緊張', key: '不安' },
-    { emoji: '🔥', label: 'イライラ\n焦り', key: 'イライラ' },
-    { emoji: '☁️', label: 'ふつう', key: 'ふつう' },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="emotion-grid">
-      ${emotions.map(e => `
-        <button class="emotion-btn ${currentRecord.emotion === e.key ? 'selected' : ''}" onclick="selectEmotion('${e.key}', this)">
-          <span class="emotion-emoji">${e.emoji}</span>
-          <span class="emotion-label">${e.label.replace('\n', '<br>')}</span>
-        </button>
-      `).join('')}
-    </div>
-    <textarea class="modal-textarea" id="journal-note" placeholder="今日感じたことを自由に…">${currentRecord.note || ''}</textarea>
-  `;
-}
-
-function selectEmotion(key, el) {
-  currentRecord.emotion = key;
-  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  const note = document.getElementById('journal-note');
-  if (note) currentRecord.note = note.value;
-}
-
-// ===== STEPS ビルダー =====
-function buildSteps() {
-  var stepCount = 3 + (state.fastingEnabled ? 1 : 0);
-  var steps = [
-    {
-      title: getBodyCheckTitle(),
-      label: '1 / ' + stepCount,
-      render: renderBodyCheck
-    },
-    {
-      title: '症状と痛みを\n記録しましょう',
-      label: '2 / ' + stepCount,
-      render: renderSymptomDetail
-    },
-    {
-      title: '今日の気持ちと\nひとことメモ',
-      label: '3 / ' + stepCount,
-      render: renderEmotion
-    }
-  ];
-  if (state.fastingEnabled) {
-    steps.push({
-      title: '今日のファスティング',
-      label: '4 / 4',
-      render: renderFasting
-    });
-  }
-  return steps;
-}
-
-// ===== Step1: からだチェック（時間帯・疾患別） =====
-function getBodyCheckTitle() {
-  var hour = new Date().getHours();
-  if (hour >= 5  && hour < 12) return '今朝のからだの\n状態を教えてください';
-  if (hour >= 12 && hour < 17) return '今日のからだは\nどうですか？';
-  if (hour >= 17 && hour < 21) return '今日一日\nお疲れさまでした';
-  return '今夜のからだの\n状態を教えてください';
-}
-
-function renderBodyCheck() {
-  var hour = new Date().getHours();
-  var diseases = state.myDiseases || [];
-  var isMorning = hour >= 5 && hour < 12;
-  var isNight   = hour >= 20 || hour < 5;
-
-  var html = '';
-
-  // --- 痛みレベル（全時間帯・SVG顔アイコン） ---
-  html += '<div style="margin-bottom:18px;">';
-  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日の痛みレベルはどのくらいですか？</div>';
-  html += renderPainScale(currentRecord.painLevel, 'painLevel');
-  html += '</div>';
-
-  // --- 睡眠の質（朝のみ表示・SVGアイコン） ---
-  if (isMorning) {
-    html += '<div style="margin-bottom:18px;">';
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">昨夜の眠りはどうでしたか？</div>';
-    var sleepOpts = [
-      { v: 1, icon: 'moon',        label: 'ぐっすり' },
-      { v: 2, icon: 'faceGood',    label: 'まあまあ' },
-      { v: 3, icon: 'faceNeutral', label: 'あまり眠れず' },
-      { v: 4, icon: 'faceBad',     label: 'ほとんど眠れず' }
-    ];
-    html += '<div class="score-selector">';
-    sleepOpts.forEach(function(s) {
-      var sel = currentRecord.sleepQuality === s.v;
-      var c = sel ? 'var(--rose)' : '#9a8e88';
-      html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'sleepQuality\',' + s.v + ',this)">'
-        + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
-    });
-    html += '</div></div>';
-  }
-
-  // --- エネルギー（全時間帯・SVGアイコン） ---
-  html += '<div style="margin-bottom:18px;">';
-  if (isMorning) {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今朝、からだはどんな感じですか？</div>';
-  } else if (isNight) {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日一日、からだはどうでしたか？</div>';
-  } else {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今の体の状態を教えてください</div>';
-  }
-  var energyOpts = [
-    { v: 5, icon: 'sun',          label: 'エネルギーがある' },
-    { v: 4, icon: 'faceGood',     label: 'まあまあ元気' },
-    { v: 3, icon: 'faceNeutral',  label: 'ふつう' },
-    { v: 2, icon: 'faceBad',      label: '疲れている' },
-    { v: 1, icon: 'faceVeryBad',  label: 'とても疲れている' }
-  ];
-  html += '<div class="score-selector">';
-  energyOpts.forEach(function(s) {
-    var sel = currentRecord.energy === s.v;
-    var c = sel ? 'var(--rose)' : '#9a8e88';
-    html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'energy\',' + s.v + ',this)">'
-      + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
-  });
-  html += '</div></div>';
-
-  // --- 疾患別の追加質問（1問のみ） ---
-  var extraQ = getDiseaseMorningQuestion(diseases, isMorning, isNight);
-  if (extraQ) {
-    html += '<div style="margin-bottom:18px;">';
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + extraQ.question + '</div>';
-    html += '<div class="chips">';
-    extraQ.options.forEach(function(opt) {
-      var sel = (currentRecord.extraAnswer || '') === opt;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckExtra(\'' + opt.replace(/'/g, "\\'") + '\',this)">' + opt + '</div>';
-    });
-    html += '</div></div>';
-  }
-
-  document.getElementById('modal-body').innerHTML = html;
-}
-
-function selectBodyCheckItem(field, value, el) {
-  currentRecord[field] = value;
-  var group = el.closest('.score-selector');
-  if (group) group.querySelectorAll('.score-btn').forEach(function(b) { b.classList.remove('selected'); });
-  el.classList.add('selected');
-}
-
-function selectBodyCheckExtra(value, el) {
-  currentRecord.extraAnswer = value;
-  var group = el.closest('.chips');
-  if (group) group.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
-  el.classList.add('selected');
-}
-
-// ===== 疾患別追加質問 =====
-function getDiseaseMorningQuestion(diseases, isMorning, isNight) {
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (isMorning) return {
-      question: '朝起きたとき、骨盤周りの痛みはありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった', '起きるのがつらかった']
-    };
-    if (isNight) return {
-      question: '今日一日の骨盤の痛みのピークはいつでしたか？',
-      options: ['なかった', '朝', '午後', '夕方以降', '常にあった']
-    };
-    return {
-      question: '今の骨盤周りの状態は？',
-      options: ['楽', '少し重い', '痛みがある', 'かなり痛い']
-    };
-  }
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (isMorning) return {
-      question: '今朝の基礎体温を計りましたか？',
-      options: ['計った（記録欄に入力）', '忘れた', '今日は計らない']
-    };
-    return {
-      question: '今日の食欲はどうでしたか？',
-      options: ['ふつう', '少し多め', 'かなり多め', '少なめ']
-    };
-  }
-  if (diseases.indexOf('子宮筋腫') !== -1) {
-    if (isMorning) return {
-      question: '今朝、下腹部の圧迫感はありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった']
-    };
-    return {
-      question: '今日の経血量は（生理中の場合）？',
-      options: ['生理中ではない', '少ない', 'ふつう', '多い', 'とても多い']
-    };
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (isMorning) return {
-      question: '今朝の気分はどうですか？',
-      options: ['穏やか', 'すこし不安定', 'かなり不安定', 'とても辛い']
-    };
-    return {
-      question: '今日、感情のコントロールは難しかったですか？',
-      options: ['問題なかった', '少し難しかった', 'かなり難しかった', 'とても辛かった']
-    };
-  }
-  if (diseases.indexOf('更年期障害') !== -1) {
-    if (isMorning) return {
-      question: '昨夜、寝汗やほてりで目が覚めましたか？',
-      options: ['なかった', '1回あった', '2〜3回あった', '何度も目が覚めた']
-    };
-    return {
-      question: '今日のほてり・のぼせはありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった', 'とても辛かった']
-    };
-  }
-  if (diseases.indexOf('卵巣嚢腫') !== -1) {
-    return {
-      question: '今日、片側の腹部に違和感はありましたか？',
-      options: ['なかった', '左側に少し', '右側に少し', 'どちらかにかなり', '強い痛みがあった']
-    };
-  }
-  // 疾患未設定のデフォルト
-  if (isMorning) return {
-    question: '今日一日の予定を考えると、からだの状態は？',
-    options: ['問題なさそう', '少し心配', 'かなり心配', '無理せず休みたい']
-  };
-  return null;
-}
+// PR-079: buildSteps/getBodyCheckTitle/renderBodyCheck/selectBodyCheckItem/
+// selectBodyCheckExtra/getDiseaseMorningQuestion は src/modules/record-input.js へ移植済み。
+const buildSteps = RecordInput.buildSteps;
+const getBodyCheckTitle = RecordInput.getBodyCheckTitle;
+const renderBodyCheck = RecordInput.renderBodyCheck;
+const selectBodyCheckItem = RecordInput.selectBodyCheckItem;
+const selectBodyCheckExtra = RecordInput.selectBodyCheckExtra;
+const getDiseaseMorningQuestion = RecordInput.getDiseaseMorningQuestion;
 
 // ===== 今日のヒントカード（時間帯・疾患別） =====
 function updateDailyHintCard() {
@@ -3674,271 +3368,18 @@ function updateDailyHintCard() {
     + '</div>';
 }
 
-function getDailyHint(diseases, isMorning, isNight) {
-  var d = new Date().getDay();
-
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (isMorning) return { label: '💡 今日のケア', text: '骨盤を温めると血流が改善し、痛みが和らぐことがあります。今日も無理せず過ごしましょう。' };
-    if (isNight)   return { label: '🌙 夜のケア',   text: '就寝前の軽いストレッチが骨盤のこわばりをやわらげます。今日の症状を記録しておきましょう。' };
-    return { label: '📊 記録のヒント', text: '痛みの部位・性質・強さを記録すると、診察時に医師へ正確に伝えられます。' };
-  }
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (isMorning) return { label: '🌡 基礎体温', text: '毎朝同じ時間に基礎体温を測ると、排卵のパターンが見えてきます。' };
-    if (isNight)   return { label: '🍽 食事メモ', text: '血糖値の急上昇を避けると、PCOSの症状管理に役立つことがあります。今日の食事を記録しましょう。' };
-    return { label: '💡 今日のヒント', text: '適度な有酸素運動はインスリン抵抗性の改善に役立つと言われています。' };
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (isMorning) return { label: '🌸 今日の気分', text: 'PMSの症状は生理前7〜14日に出やすいです。今日の気分の変化も記録しておきましょう。' };
-    if (isNight)   return { label: '🌙 夜のケア',   text: '生理前は睡眠の質が落ちやすい時期です。スマートフォンの画面は早めに閉じましょう。' };
-    return { label: '💡 気分の記録', text: '気分の波をパターンとして記録すると、PMSとPMDDの違いが見えてきます。' };
-  }
-  if (diseases.indexOf('更年期障害') !== -1) {
-    if (isMorning) return { label: '🌡 今朝のチェック', text: 'ほてりや寝汗の有無を毎朝記録すると、症状の変化のパターンがわかります。' };
-    if (isNight)   return { label: '🌙 夜のケア',       text: '寝室を涼しくしておくと、夜間のほてりや寝汗が軽減されることがあります。' };
-    return { label: '💡 SMIチェック', text: '更年期指数（SMI）の記録を続けると、症状の改善・悪化が数値でわかります。' };
-  }
-
-  var defaults = {
-    morning: [
-      { label: '🌸 今日も一歩', text: '今日の記録が、未来の診察を変えます。まず症状チップをタップしてみましょう。' },
-      { label: '💡 記録のコツ', text: '毎日同じ時間に記録すると、からだのパターンが見えやすくなります。' }
-    ],
-    night: [
-      { label: '🌙 お疲れさまでした', text: '今日の症状を記録して、一日を締めくくりましょう。' },
-      { label: '📊 今日の振り返り',   text: '今日気になったことがあれば、メモ欄に残しておくと診察で役立ちます。' }
-    ],
-    day: [
-      { label: '💡 記録の習慣', text: '30日記録を続けると、あなただけの症状パターンが見えてきます。' },
-      { label: '🏥 診察の準備', text: '症状の記録が7日分たまったら、医師向けレポートを作成できます。' }
-    ]
-  };
-  var pool = isMorning ? defaults.morning : isNight ? defaults.night : defaults.day;
-  return pool[d % pool.length];
-}
+// PR-079: getDailyHint は src/modules/record-input.js へ移植済み。
+const getDailyHint = RecordInput.getDailyHint;
 
 // ===== 症状詳細展開UI（Step2） =====
-function renderSymptomDetail() {
-  var prioritized = [];
-  var diseases = state.myDiseases || [];
-  diseases.forEach(function(d) {
-    var cfg = DISEASE_CONFIG[d];
-    if (!cfg || !cfg.specificSymptoms) return;
-    cfg.specificSymptoms.forEach(function(s) {
-      if (prioritized.indexOf(s) === -1) prioritized.push(s);
-    });
-  });
-  var userSymptoms = state.mySymptoms || [];
-  userSymptoms.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-  var defaults = ['下腹部痛', '腰痛', '頭痛', '骨盤痛', 'だるさ', '不正出血', '吐き気', 'むくみ', 'おりもの', '気分の落ち込み', 'イライラ'];
-  defaults.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  if (!currentRecord.symptoms) currentRecord.symptoms = [];
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-
-  var html = '';
-  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">今日の症状（複数選択可）</div>';
-  html += '<div class="chips" id="sd-chips" style="margin-bottom:16px;">';
-  prioritized.slice(0, 12).forEach(function(s) {
-    var sel = currentRecord.symptoms.indexOf(s) !== -1;
-    html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-      + 'onclick="toggleSymptomChip(\'' + s.replace(/'/g, "\\'") + '\', this)" '
-      + 'style="transition:all 0.2s;">'
-      + s + '</div>';
-  });
-  html += '</div>';
-  html += '<div id="sd-details"></div>';
-
-  document.getElementById('modal-body').innerHTML = html;
-
-  // 既に選択済みのものは詳細を展開
-  currentRecord.symptoms.forEach(function(s) {
-    appendSymptomDetail(s);
-  });
-}
-
-function toggleSymptomChip(symptomName, el) {
-  if (!currentRecord.symptoms) currentRecord.symptoms = [];
-  var idx = currentRecord.symptoms.indexOf(symptomName);
-  if (idx !== -1) {
-    currentRecord.symptoms.splice(idx, 1);
-    el.classList.remove('selected');
-    var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
-    var detail = document.getElementById(safeId);
-    if (detail) {
-      detail.style.maxHeight = detail.scrollHeight + 'px';
-      requestAnimationFrame(function() {
-        detail.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
-        detail.style.maxHeight = '0';
-        detail.style.opacity = '0';
-        setTimeout(function() { if (detail.parentNode) detail.remove(); }, 300);
-      });
-    }
-  } else {
-    currentRecord.symptoms.push(symptomName);
-    el.classList.add('selected');
-    appendSymptomDetail(symptomName);
-  }
-}
-
-function appendSymptomDetail(symptomName) {
-  var cfg = SYMPTOM_DETAIL_CONFIG[symptomName];
-  if (!cfg) return;
-
-  var container = document.getElementById('sd-details');
-  if (!container) return;
-  var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
-  if (document.getElementById(safeId)) return;
-
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  var detail = currentRecord.symptomDetails[symptomName];
-
-  var html = '<div id="' + safeId + '" style="background:var(--cream);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid var(--rose);max-height:0;opacity:0;overflow:hidden;">';
-  html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:10px;">| DETAIL<br>' + symptomName + 'の詳細</div>';
-
-  // 位置・量選択
-  if (cfg.positions && cfg.positions.length > 0) {
-    var posLabel = symptomName === 'おりもの' ? '量' : '痛みの位置';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + posLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.positions.forEach(function(pos) {
-      var sel = (detail.positions || []).indexOf(pos) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'positions\',\'' + pos.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + pos + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // 種類選択
-  if (cfg.types && cfg.types.length > 0) {
-    var typesLabel = symptomName === 'おりもの' ? 'おりものの状態' : '痛みの種類';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + typesLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.types.forEach(function(type) {
-      var sel = (detail.types || []).indexOf(type) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'types\',\'' + type.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + type + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // タイミング選択
-  if (cfg.timing && cfg.timing.length > 0) {
-    var timingLabel = symptomName === 'おりもの' ? 'その他の症状' : 'タイミング';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + timingLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.timing.forEach(function(t) {
-      var sel = (detail.timing || []).indexOf(t) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'timing\',\'' + t.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + t + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // 注記（おりものなど）
-  if (cfg.note) {
-    html += '<div style="font-size:10px;color:var(--ink-light);background:rgba(184,112,122,0.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;">ℹ️ ' + cfg.note + '</div>';
-  }
-
-  // 排便回数
-  if (cfg.bowelCount) {
-    var bowelVal = detail.bowelCount || 0;
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">今日の排便回数</div>';
-    html += '<div style="display:flex;gap:6px;margin-bottom:12px;">';
-    for (var i = 0; i <= 5; i++) {
-      html += '<button onclick="selectBowelCount(\'' + symptomName.replace(/'/g, "\\'") + '\',' + i + ',this)" '
-        + 'style="width:36px;height:36px;border-radius:50%;border:1.5px solid '
-        + (bowelVal === i ? 'var(--rose)' : '#e8ddd8') + ';'
-        + 'background:' + (bowelVal === i ? 'var(--rose-pale)' : 'var(--white)') + ';'
-        + 'font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;transition:all 0.15s;">'
-        + (i === 0 ? 'なし' : i) + '</button>';
-    }
-    html += '</div>';
-  }
-
-  // 強さスライダー
-  if (cfg.hasSlider) {
-    var sliderLabel = cfg.sliderLabel || '痛みの強さ';
-    var sliderVal = detail.intensity !== undefined ? detail.intensity : 0;
-    var pct = Math.round(sliderVal / 10 * 100);
-    var labels = ['なし', '軽い', '中程度', '強い', '激痛'];
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-    html += '<div style="font-size:11px;color:var(--ink-light);">' + sliderLabel + '</div>';
-    html += '<div style="font-size:13px;font-weight:600;color:var(--rose);" id="slider-val-' + safeId + '">' + sliderVal + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span></div>';
-    html += '</div>';
-    html += '<input type="range" min="0" max="10" value="' + sliderVal + '" '
-      + 'style="width:100%;height:4px;margin-bottom:8px;background:linear-gradient(to right,var(--rose) 0%,var(--rose) ' + pct + '%,#e8ddd8 ' + pct + '%,#e8ddd8 100%);" '
-      + 'oninput="updateSliderDetail(\'' + symptomName.replace(/'/g, "\\'") + '\',this.value,\'' + safeId + '\',this)">';
-    html += '<div style="display:flex;justify-content:space-between;">';
-    labels.forEach(function(l) {
-      html += '<span style="font-size:9px;color:var(--ink-light);">' + l + '</span>';
-    });
-    html += '</div>';
-    html += '<div style="margin-top:10px;background:rgba(184,112,122,0.08);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--ink-light);">💡 ' + symptomName + 'の記録が症状の変化の把握に役立ちます</div>';
-  }
-
-  html += '</div>';
-  container.insertAdjacentHTML('beforeend', html);
-
-  var el = document.getElementById(safeId);
-  if (el) {
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        el.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
-        el.style.maxHeight = '700px';
-        el.style.opacity = '1';
-      });
-    });
-  }
-}
-
-function toggleDetailItem(symptomName, field, value, el) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  var detail = currentRecord.symptomDetails[symptomName];
-  if (!detail[field]) detail[field] = [];
-  var idx = detail[field].indexOf(value);
-  if (idx !== -1) {
-    detail[field].splice(idx, 1);
-    el.classList.remove('selected');
-  } else {
-    detail[field].push(value);
-    el.classList.add('selected');
-  }
-}
-
-function updateSliderDetail(symptomName, value, safeId, sliderEl) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  currentRecord.symptomDetails[symptomName].intensity = parseInt(value);
-  var valEl = document.getElementById('slider-val-' + safeId);
-  if (valEl) valEl.innerHTML = value + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span>';
-  // スライダー背景グラデーション更新
-  if (sliderEl) {
-    var pct = Math.round(parseInt(value) / 10 * 100);
-    sliderEl.style.background = 'linear-gradient(to right, var(--rose) 0%, var(--rose) ' + pct + '%, #e8ddd8 ' + pct + '%, #e8ddd8 100%)';
-  }
-}
-
-function selectBowelCount(symptomName, count, el) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  currentRecord.symptomDetails[symptomName].bowelCount = count;
-  var parent = el.parentNode;
-  parent.querySelectorAll('button').forEach(function(b) {
-    b.style.background = 'var(--white)';
-    b.style.borderColor = '#e8ddd8';
-  });
-  el.style.background = 'var(--rose-pale)';
-  el.style.borderColor = 'var(--rose)';
-}
+// PR-079: renderSymptomDetail/toggleSymptomChip/appendSymptomDetail/toggleDetailItem/
+// updateSliderDetail/selectBowelCount は src/modules/record-input.js へ移植済み。
+const renderSymptomDetail = RecordInput.renderSymptomDetail;
+const toggleSymptomChip = RecordInput.toggleSymptomChip;
+const appendSymptomDetail = RecordInput.appendSymptomDetail;
+const toggleDetailItem = RecordInput.toggleDetailItem;
+const updateSliderDetail = RecordInput.updateSliderDetail;
+const selectBowelCount = RecordInput.selectBowelCount;
 
 // ===== SAVE RECORD =====
 function saveRecord() {
@@ -10799,6 +10240,7 @@ if (typeof updateSymptomSettingDisplay === "function") window.updateSymptomSetti
 if (typeof updateTodayMessage === "function") window.updateTodayMessage = updateTodayMessage;
 if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
 // ─── グローバル変数エクスポート ───────────────────────────────
-if (typeof currentRecord !== "undefined") window.currentRecord = currentRecord;
-if (typeof currentStep   !== "undefined") window.currentStep   = currentStep;
-if (typeof STEPS         !== "undefined") window.STEPS         = STEPS;
+// PR-079: currentRecord/currentStep/STEPS は src/modules/record-input.js へ移行済み。
+// window.currentRecord への同期エクスポートは禁止（SG-4）。ライブ参照が必要な場合は
+// RecordInput.getCurrentRecord() / getSteps() / getCurrentStep() を直接呼ぶこと。
+if (typeof RecordInput.getCurrentRecord === "function") window.getCurrentRecord = RecordInput.getCurrentRecord;

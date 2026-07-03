@@ -263,6 +263,41 @@ Next: Founder Action 3件（C-2医師アドバイザー招聘／C-4 Signal Conse
 
 ---
 
+Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-LEGACY-001）
+  ✓ PR-079  Batch-1: Record Input UI — app-legacy.js の Record Input UI 系 約28関数
+  （renderStep/nextStep/prevStep/buildSteps/renderWellness/selectWellness/renderFood/selectFood/
+  toggleFoodItem/renderFasting/selectFasting/renderEmotion/selectEmotion/getBodyCheckTitle/
+  renderBodyCheck/selectBodyCheckItem/selectBodyCheckExtra/getDiseaseMorningQuestion/getDailyHint/
+  renderSymptomDetail/toggleSymptomChip/appendSymptomDetail/toggleDetailItem/updateSliderDetail/
+  selectBowelCount）を src/modules/record-input.js（既存骨格コミットe62a8b3を土台に再利用、再実装ゼロ）へ
+  委譲。app-legacy.js側は `import * as RecordInput from './modules/record-input.js'` + `const fn = RecordInput.fn`
+  形式のエイリアスのみで、onclick文字列から呼ばれる関数名は既存の window bridge（ファイル末尾）経由で
+  そのまま record-input.js 側へ向くよう変更済み / STEPS・currentStep は record-input.js の
+  内部変数 `_steps`/`_currentStep`（initSteps()/getSteps()/getCurrentStep()）へ完全移行、
+  app-legacy.js側の同名グローバル宣言は削除 / openRecordModal()（Batch-2非対象だがSTEPS/currentStep/
+  currentRecordを直接初期化する唯一の箇所のため本PRで更新）は `RecordInput.resetCurrentRecord()` +
+  `RecordInput.initSteps()` を呼ぶ形に変更 / currentRecordはPR-080でsaveRecordが移植されるまでの
+  一時ブリッジとして `var currentRecord = RecordInput.getCurrentRecord()` を維持（saveRecord本体は
+  無変更、bare identifier経由で同一オブジェクト参照を共有）。window.currentRecordへの同期エクスポートは
+  SG-4により廃止し、代わりに `window.getCurrentRecord = RecordInput.getCurrentRecord`（ライブ参照）を
+  bridge / SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js 新設（app-legacy.js行数の
+  CI監視、ARCHITECTURE_V3.md C-20のCIロック欠如を是正、以降のBatch PRはBASELINE_LINE_COUNTを更新するたび
+  減少を確認）/ app-legacy.js: 10,804行→10,247行 / ブラウザ実機検証（record-modal-controller.js経由の
+  window.openRecordModal wrapperは`_inlineOpenRecordModal`未設定のためno-op — これはPR-079以前からの
+  既存挙動で本PR起因ではない。実際の呼び出し経路はhandleHomeCTA内のbare `openRecordModal()`
+  フォールバックのみで、app.htmlのrecord-modalは2026-05-27時点で既にsoft-isolated/unreachableと判明
+  （app.html:1178コメント記載）。record-input.jsを直接importして initSteps()→renderStep()→
+  selectEmotion()の一連の流れを検証し、currentRecordブリッジが同一オブジェクト参照を
+  正しく共有することを確認済み）/ 新規テスト追加なし（既存tests/modules/record-input-b1-*.test.js
+  80件が引き続き対象）/ vitest run全件: 5,152件（新規3件はSG-7 line-count-guard）、失敗39件は既知5ファイル
+  （tests/modules/build-draft-from-ui.test.js・save-record-screen.test.js・
+  tests/disease/disease-analyzer.test.js・tests/events-domain/domain-event-types.test.js・
+  tests/menstrual-domain/event-menstrual.test.js）のみで増加なし / vite build PASS
+  Next: PR-080（Batch-2: Record Screen & Edit — openRecordScreen/saveRecord等 約14関数、
+  currentRecordの完全移植を含む。PR-079完了が前提）
+
+---
+
 ## 完了済みPhase
 
 | Phase | 成果物 | 状態 |
