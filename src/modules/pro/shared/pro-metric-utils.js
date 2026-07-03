@@ -247,3 +247,63 @@ export function getSortedDates(records) {
     .filter(Boolean)
     .sort();
 }
+
+// ─── Wellness score ───────────────────────────────────────────
+// PR-082 (Legacy Removal Batch-4): app-legacy.js から物理移動。
+// saveRecordScreen() (app-legacy.js、Record Screen保存フロー) が
+// rec.wellnessScore = calcWellnessScore(rec) の形でbare呼び出しする
+// ため、app-legacy.js側でimportして再利用する（挙動変更なし）。
+/**
+ * 1件の記録からウェルネススコア（0〜100）を計算する。
+ * @param {Object} rec - 記録1件
+ * @returns {number}
+ */
+export function calcWellnessScore(rec){
+  var score = 50; // ベース
+
+  // エネルギー（1〜5 → -20〜+20）
+  if(rec.energy){
+    score += (rec.energy - 3) * 10;
+  }
+
+  // 睡眠の質（1〜5 → -20〜+20）
+  if(rec.sleepQuality){
+    score += (rec.sleepQuality - 3) * 10;
+  }
+
+  // 睡眠時間（6〜8時間が理想）
+  if(rec.sleepHours){
+    if(rec.sleepHours >= 6 && rec.sleepHours <= 8) score += 5;
+    else if(rec.sleepHours < 5 || rec.sleepHours > 10) score -= 10;
+    else score -= 5;
+  }
+
+  // 症状数（多いほどマイナス）
+  if(rec.symptoms && rec.symptoms.length){
+    score -= Math.min(rec.symptoms.length * 4, 20);
+  }
+
+  // 痛みレベル（0〜10 → 0〜-15）
+  if(rec.painLevel){
+    score -= Math.min(Math.round(rec.painLevel * 1.5), 15);
+  }
+
+  // ポジティブファクター加点
+  var positiveFactors = ['運動した', '入浴・半身浴', '瞑想・リラックス'];
+  var negativeFactors = ['ストレス高', '夜更かし', 'アルコール'];
+  if(rec.factors && rec.factors.length){
+    rec.factors.forEach(function(f){
+      if(positiveFactors.indexOf(f) !== -1) score += 3;
+      if(negativeFactors.indexOf(f) !== -1) score -= 3;
+    });
+  }
+
+  // お通じ（普通が理想）
+  if(rec.bowel){
+    if(rec.bowel === '普通') score += 3;
+    else if(rec.bowel === 'なし' || rec.bowel === '軟便・下痢') score -= 5;
+  }
+
+  // 0〜100にクランプ
+  return Math.max(0, Math.min(100, Math.round(score)));
+}

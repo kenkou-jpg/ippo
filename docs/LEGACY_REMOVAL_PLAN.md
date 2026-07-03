@@ -95,7 +95,7 @@ app-legacy.js の残り約194関数すべて。詳細は 3 章（責務分解）
 | `user_data` JSONB（Supabase テーブル） | `cloudBackupAll` / `cloudRestore` が読み書きする唯一の永続化先。新テーブル（records 等）への完全移行が未確認 | ARCHITECTURE_V3.md Phase S-2〜S-3 の Dual Write 検証完了後 |
 | `app.html` の onclick 属性 80+ 箇所 | Batch-1〜10 の移植完了まで、window ブリッジとして必要 | Batch-11 直前まで |
 | `<script>` 経由の `app-legacy.js` import（main.js:52） | 未移植関数が残る限り、window 経由の呼び出しが機能する必要がある | Batch-1〜10 完了後 |
-| jsPDF 外部ライブラリ依存（`downloadDoctorPDF`） | 外部依存の存在確認が未実施（phase4d監査で MEDIUM リスクと明記） | Batch-4（PR-082）着手時に確認 |
+| jsPDF 外部ライブラリ依存（`downloadDoctorPDF`） | PR-082Aで確認済み: npm依存ではなくcdnjs.cloudflare.com経由のCDN動的スクリプト注入（`window.jspdf`未定義時のみ読み込み）。既存の読み込み機構は無変更のまま物理移動 | 解消済み（PR-082A） |
 
 ### ▍永久保持（Permanent Hold）— 削除しない
 
@@ -153,7 +153,13 @@ Mode 判定: AI_EXECUTION.md 1章「Legacy Removal は必ず FULL」に従い、
 | **PR-080E** | Batch-2 継続（Completion Program） | `openRecordScreen`/`editPastRecord`の物理移動（Record Screen Moduleへ完全移行、Legacy Adapter除去） | 2 | 未定 | HIGH（最大378行の物理移動・全画面UI回帰） | PR-080D |
 | **PR-080F** | Batch-2 Exit Audit（capstone） | Batch-2 Completion Program 監査のみ（新規実装禁止） | — | — | — | PR-080E |
 | **PR-081** | Batch-3 | Premium Gate & Lock | 約6 | 2〜3 | MEDIUM（app.html 8箇所置換） | なし（並行可） |
-| **PR-082** | Batch-4 | Pro Reports（Doctor Summary/AI Analysis/各種Report） | 約18 | 5〜6 | MEDIUM（jsPDF依存確認） | PR-080, PR-081 |
+| **PR-082A** | Batch-4 分割① | Doctor Summary / Doctor PDF（`openDoctorSummary`/`closeDoctorSummary`/`generateDoctorSummary`/`downloadDoctorPDF`/`_generateDoctorPDF`/`copyDoctorSummary`） | 6 | 2（app-legacy.js / doctor-summary.js） | MEDIUM（jsPDF依存確認） | PR-080, PR-081 |
+| **PR-082B** | Batch-4 分割② | AI Analysis Overlay（`openAIAnalysis`/`closeAIAnalysis`/`copyAIAnalysis`/`runAIAnalysis`/`callAIAPI`） | 5 | 未定 | LOW | PR-082A |
+| **PR-082C** | Batch-4 分割③ | Monthly Report（`openMonthlyReport`/`closeMonthlyReport`/`changeReportMonth`/`updateMonthLabel`/`generateMonthlyReport`/`downloadReportPDF`） | 6 | 未定 | MEDIUM（jsPDF依存） | PR-082B |
+| **PR-082D** | Batch-4 分割④ | Cycle Phase Report（`openCyclePhaseReport`/`renderPhaseMap`/`selectPhaseTab`/`_buildPhaseBarPreview`） | 4 | 未定 | LOW | PR-082C |
+| **PR-082E** | Batch-4 分割⑤ | Temperature Report（`calcTemperaturePhases`/`openTempReport`/`showTempEducation`） | 3 | 未定 | LOW | PR-082D |
+| **PR-082F** | Batch-4 分割⑥ | Flareup / Correlation Report（`detectFlareups`/`openFlareupReport`/`calcFactorCorrelations`/`renderComparisonChart`/`openCorrelationReport`/`setCGRange`/`toggleCGFactor`/`getMetricValue`/`getMetricLabel`/`getMetricMax`/`calcWellnessScore`） | 11 | 未定 | MEDIUM（renderComparisonChart系の一体化クラスタ） | PR-082E |
+| **PR-082G** | Batch-4 Exit Audit（capstone） | Pro Reports Exit Audit（監査のみ・新規実装禁止） | — | — | — | PR-082F |
 | **PR-083** | Batch-5 | Sync Modal & Auth UI | 約6 | 2 | LOW | なし（並行可） |
 | **PR-084** | Batch-6 | Settings & Data Management | 約18 | 3〜4 | LOW | なし |
 | **PR-085** | Batch-7 | Meal Tracker & Fasting | 約13 | 2 | LOW | PR-079（`state.draft`参照） |
@@ -182,7 +188,19 @@ PR-080E (openRecordScreen/editPastRecord物理移動)
   ↓
 PR-080F (Batch-2 Exit Audit)
   ↓
-PR-082 (Batch-4) ←──────────────────────────┘
+PR-082A (Doctor Summary/PDF) ←───────────────┘
+  ↓
+PR-082B (AI Analysis Overlay)
+  ↓
+PR-082C (Monthly Report)
+  ↓
+PR-082D (Cycle Phase Report)
+  ↓
+PR-082E (Temperature Report)
+  ↓
+PR-082F (Flareup/Correlation Report)
+  ↓
+PR-082G (Batch-4 Exit Audit)
   ↓
 PR-084 (Batch-6)   PR-085 (Batch-7)   PR-086 (Batch-8)   PR-087 (Batch-9)   PR-088 (Batch-10)
   ↓ (全Batch完了後)
@@ -194,6 +212,16 @@ PR-090 (Legacy Removal Exit Audit)
 **PR-087（Batch-9）は依存ゼロのため PR-079 と並行着手可能** — 純粋関数の移植は他Batchの完了を待たない。
 
 **PR-080A 命名規則:** PR-080着手後に発見された `openRecordScreen`/`editPastRecord` のDI未整備という追加調査タスクを、既存PR-081〜090の番号を変更せずに挿入するため `PR-080A` とした。PR-080Aの成果物（Step6: PR分割）が新たな物理移動PRを要求する場合は `PR-080B`・`PR-080C`… の形式で追番する（既存PR-082=Pro Reports等の番号とは衝突させない）。
+
+**PR-082A〜G 分割規則:** PR-082（Batch-4: Pro Reports、約18関数）は実装前調査の結果、
+Doctor Summary / AI Analysis / Monthly Report / Cycle Phase Report / Temperature Report /
+Flareup・Correlation Report の6機能クラスタが、それぞれ独立したoverlay・状態を持つ
+一体化された実装単位であり、かつ複数クラスタでaudit文書に無かった未文書化のヘルパー関数
+（`generateDoctorSummary`/`_getMrOverlay`/`_getAiOverlay`/`setCGRange`等）が発見されたため、
+1PRでまとめて実装するとRegression確認・Rollback単位が粗くなりすぎると判断し、
+PR-080B〜Fと同型の分割命名（`PR-082A`〜`PR-082G`）を適用した。既存PR-083〜090の番号は
+変更しない。分割順はPro Reportsクラスタの依存グラフ上の独立性が高い順
+（Doctor Summary→AI Analysis→Monthly→Cycle→Temperature→Flareup/Correlation→Exit Audit）。
 
 **PR-090 の役割（Wave2 Exit Audit / Release Readiness Recovery と同型パターン）:**
 
@@ -317,7 +345,7 @@ Rollback判定基準:
 | R-1 | **HIGH** | `currentRecord`/`STEPS` グローバルの移行方針が未確定（phase4d監査6章より継承） | PR-079着手前に確定必須（SG-4） |
 | R-2 | **HIGH** | app.html onclick 80+箇所の一括置換（Batch-11）— 全画面UIへの影響 | PR-089、SG-5で軽減 |
 | R-3 | **HIGH** | `openRecordScreen`（最大378行）の分割 — three-card実装との優先順位制御が既存 | PR-080 |
-| R-4 | MEDIUM | jsPDF外部ライブラリ依存の存在未確認（`downloadDoctorPDF`） | PR-082着手時に確認 |
+| R-4 | MEDIUM | jsPDF外部ライブラリ依存の存在未確認（`downloadDoctorPDF`） | 解消済み（PR-082Aで確認、2章参照） |
 | R-5 | MEDIUM | community/admin系のSupabase直接呼び出し — Mock Supabaseでのテストが必要 | PR-088 |
 | R-6 | MEDIUM | `premiumGate`のapp.html 8箇所onclick置換 | PR-081 |
 | R-7 | LOW | 純粋関数の移動自体はリスク低いが、35件と件数が多く見落としやすい | PR-087（機械的チェックリストで対応） |
@@ -333,7 +361,7 @@ Rollback判定基準:
 ```
 Phase 1（並行着手可）: PR-079（Batch-1）+ PR-087（Batch-9・依存ゼロ）
 Phase 2: PR-080（Batch-2）→ PR-080A（Record Screen DI Scaffold）+ PR-081（Batch-3）+ PR-083（Batch-5）
-Phase 3: PR-082（Batch-4）
+Phase 3: PR-082A〜G（Batch-4、分割実装）
 Phase 4（並行着手可）: PR-084, PR-085, PR-086, PR-088（Batch-6/7/8/10）
 Phase 5（最終）: PR-089（Batch-11: app.html Cleanup & Legacy Removal）
 Phase 6（capstone）: PR-090（Legacy Removal Exit Audit）
@@ -417,6 +445,41 @@ Founder判断を仰いだ結果、以下の方針が確定した:
 
 根拠: CLAUDE.md「Legacy Removalは小PRで進める」「PR-081はDI Scaffoldから開始」との
 Founder確定事項、およびAI_EXECUTION.md 9章（Roadmap変更はDecision Log候補）に基づく。
+```
+
+## 10-B. Decision Log 追補（2026-07-03・PR-082分割）
+
+```
+決定事項: PR-082（Batch-4: Pro Reports、約18関数）着手前の重複実装監査の結果、
+Doctor Summary / AI Analysis / Monthly Report / Cycle Phase Report / Temperature Report /
+Flareup・Correlation Report の6機能クラスタがそれぞれ独立したoverlay・module-scope状態
+（_mrOverlayApi/_aiOverlayApi/_cycleOverlayApi/_tempOverlayApi/_flareupOverlayApi/
+_corrOverlayApi/_cgRange/_cgFactors等）を持ち、かつ複数クラスタでaudit文書
+（phase4d-legacy-migration-audit.md）に無かった未文書化の結合ヘルパー関数
+（generateDoctorSummary/_generateDoctorPDF/_getMrOverlay/generateMonthlyReport/
+downloadReportPDF/_getAiOverlay/callAIAPI/setCGRange/toggleCGFactor/getMetricValue/
+getMetricLabel/getMetricMax）が新規発見されたため、Founderの指示によりPR-082を
+PR-082A〜G（Batch-4分割①〜⑥＋Exit Audit）へ分割することが確定した。
+
+  □ 既存PR-083〜090の番号は変更しない
+  □ PR-082A（Doctor Summary/Doctor PDF）を本チャットで実装完了
+  □ PR-082B〜Fは各機能クラスタ単位（AI Analysis→Monthly→Cycle→Temperature→
+    Flareup/Correlation）で今後個別に実装する
+  □ PR-082Bで実装するsrc/modules/pro/analysis/analysis-overlay.js・
+    src/modules/pro/monthly-report.js・src/modules/pro/cycle-report.js・
+    src/modules/pro/temp-report.js・src/modules/pro/flareup-report.js・
+    src/modules/pro/correlation-report.jsおよびsrc/modules/pro/shared/
+    pro-metric-utils.jsのcalcWellnessScore追加は、本チャットで先行ドラフト作成済み
+    （app-legacy.js側は未配線・Scope外のためimport追加せず現状維持）。次PR着手時に
+    内容の再検証（app-legacy.js側の最新状態との整合確認）を行った上で正式に組み込む
+  □ PR-082G（Exit Audit）でPR-082A〜Fの物理移動完了・Business Logic無変更を
+    まとめて監査する（Batch-2のPR-080F/Wave2 Exit Auditと同型パターン）
+  □ 本追補・4章ロードマップ表・依存グラフ・9-A章・2章（jsPDF依存確認）・
+    8章（R-4）の更新のみを行い、5章以降のDependency Map/Safety Gate/Rollback/
+    9-E判定は無変更
+
+根拠: Founder指示「PR-082のScopeを分割してください」、およびAI_EXECUTION.md 9章
+（Roadmap変更・Legacy Removal判断はDecision Log候補）に基づく。
 ```
 
 ---

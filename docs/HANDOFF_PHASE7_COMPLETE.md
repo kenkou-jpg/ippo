@@ -629,12 +629,60 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   環境要因でありPR-081のコード起因ではないと確認済み）。Decision Log: 更新不要
   （Architecture/Roadmap/Business/Founder Strategy変更なし）。
 
-  Next: PR-082 — Legacy Removal Batch-4（Pro Reports: Doctor Summary/AI Analysis/
-  各種Report）。ただしBatch-2の残課題（saveRecordScreen物理移動の前提条件となる
-  buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeCTAState/
-  updateHomeDiseaseAdviceの5関数はいずれもUI/Business Logic差異を伴う別実装であり、
-  Founder/製品判断なしに統合不可）およびupdateSettingsHeroの重複実装解消（本PRで新規発見）
-  は未着手のまま残っているため、Batch-4着手前にFounderへ優先順位を確認すること。
+  ✓ PR-082A  Batch-4 分割①: Doctor Summary / Doctor PDF — 実装前に対象関数の重複実装を
+  監査した結果、`openDoctorSummary`/`closeDoctorSummary`（ds-prefix、「からだサマリー」）は
+  既存の`src/modules/pro/doctor-summary/doctor-summary.js`が提供する`openDoctorVisitSummary`/
+  `closeDoctorVisitSummary`（dvs-prefix、「受診用まとめ」）とは識別子・overlay要素とも
+  完全に別物（ファイル冒頭コメントに「完全分離」と明記済み）で衝突なしと確認 → A区分
+  （同一ファイルへの拡充として物理移動可能）。`gatherRecordData`は監査対象に含まれていたが、
+  実際には`draftRecordScreen`/`saveRecordScreen`（Record Screen保存フロー、PR-080F/080Gで
+  未移動と判断済み）専用のデータ収集関数でありPro Reportsのどの関数からも呼ばれていないと
+  判明 → C区分（Founder判断が必要、本PRではapp-legacy.js内に現状維持）。
+  実装: `openDoctorSummary`/`closeDoctorSummary`/`generateDoctorSummary`（未文書化の結合
+  ヘルパー、同梱移動）/`downloadDoctorPDF`/`_generateDoctorPDF`（同）/`copyDoctorSummary`を
+  `src/modules/pro/doctor-summary/doctor-summary.js`へ物理移動 / bare `state`参照は
+  `window.state`に置換（_ippoStateHooksにより同一オブジェクト参照、挙動変更なし）/
+  `document.getElementById('doctorSummaryOverlay').addEventListener(...)`（closeDoctorSummary
+  呼び出し元）はapp-legacy.js側のDOM配線処理のためapp-legacy.jsに残置し、importされた
+  識別子をそのまま参照する形に変更（PR-079以降のimport-binding方式を踏襲）/
+  `generateDoctorSummary`内の`typeof DISEASE_CONFIG !== 'undefined'`分岐は、app-legacy.jsが
+  DISEASE_CONFIGをbare importしていないため現状も常にfalseの到達不能コードと判明、
+  移動後も同一の到達可能性を保つためDISEASE_CONFIGのimportは追加せず分岐をそのまま温存 /
+  jsPDF依存（R-4/MEDIUM）を確認: npm依存ではなくcdnjs.cloudflare.com経由のCDN動的
+  スクリプト注入（`window.jspdf`未定義時のみ`<script>`生成、既存機構を無変更のまま移動）
+  と判明、リスク解消済みとして記録 / app-legacy.js: 8,977行→（importで6行追加・
+  関数本体598行削除）、SG-7 BASELINE_LINE_COUNTを8,977に更新 / vitest run全件:
+  5,171件、失敗39件は既知5ファイルのみで増加なし（新規テスト追加なし、DOM操作中心の
+  UI関数の純粋物理移動のためBrowser Verificationで代替、PR-080E/PR-081と同型判断）/
+  vite build PASS / Browser Verification: `window.openDoctorSummary()`実行→
+  doctorSummaryOverlayに`active`クラス付与・からだサマリー本文生成（体温/エネルギー等の
+  集計文章）を確認、`window.closeDoctorSummary()`→`active`クラス除去→再度open可能、
+  `window.copyDoctorSummary()`→コピー処理自体は実行されるがクリップボード読み取り確認は
+  ヘッドレス環境のdocument focus制約により未検証（既存コードと同一のnavigator.clipboard
+  API呼び出しのため本PR起因の問題ではない）、`window.downloadDoctorPDF()`→
+  「PDF生成中…」表示・jsPDF CDN読み込み試行を確認（サンドボックス環境の外部ネットワーク
+  制限によりCDN読み込み完了は未確認、既存コードと同一の動作でありPR起因ではない）、
+  いずれもConsole Errorなし（vite websocket接続失敗の環境ノイズのみ、既知）。
+  Decision Log: 更新あり（docs/LEGACY_REMOVAL_PLAN.md 10-B章、PR-082のA〜G分割）。
+
+  【Scope分割・次PRへの引き継ぎ】Founder指示によりPR-082をPR-082A〜G
+  （Doctor Summary→AI Analysis→Monthly Report→Cycle Phase Report→Temperature Report→
+  Flareup/Correlation Report→Exit Audit）に分割（詳細: docs/LEGACY_REMOVAL_PLAN.md
+  4章・10-B章）。本チャットではPR-082Bの先行ドラフトとして以下7ファイルを作成/編集済み
+  だがapp-legacy.js側への配線（import追加）は未実施（Scope外のため保留、Founder判断で
+  「次PR用に保持」を選択）: `src/modules/pro/analysis/analysis-overlay.js`（新設）/
+  `src/modules/pro/monthly-report.js`（新設）/`src/modules/pro/cycle-report.js`（新設）/
+  `src/modules/pro/temp-report.js`（新設）/`src/modules/pro/flareup-report.js`（新設）/
+  `src/modules/pro/correlation-report.js`（新設）/`src/modules/pro/shared/
+  pro-metric-utils.js`（`calcWellnessScore`追加）。PR-082B以降の着手時は、これらドラフトの
+  内容をapp-legacy.jsの最新状態と再照合してから正式に組み込むこと（本PR時点のapp-legacy.js
+  からの抽出のため、後続PRでのapp-legacy.js変更と差分が生じていないか要確認）。
+  Next: PR-082B — AI Analysis Overlay（`openAIAnalysis`/`closeAIAnalysis`/
+  `copyAIAnalysis`/`runAIAnalysis`/`callAIAPI`）。移動先はaudit文書では
+  analysis-module.js（既存拡充）を示唆していたが、同ファイルは「Pure Read Only・
+  DOM操作禁止」契約を明記しているため新規兄弟ファイル
+  `src/modules/pro/analysis/analysis-overlay.js`への分離が必要（ドラフト作成済み、
+  上記参照）。
 
 ---
 
