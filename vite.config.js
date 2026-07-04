@@ -40,7 +40,7 @@ export default defineConfig({
     // jsdom: required for DOM-touching modules (calendar, home-renderer, reminders-ui)
     environment: 'jsdom',
     globals: true,
-    include: ['tests/**/*.test.js'],
+    include: ['tests/**/*.test.js', 'tests/**/*.test.ts'],
     coverage: {
       provider: 'v8',
       include: ['src/**/*.js'],

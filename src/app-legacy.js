@@ -4,7 +4,99 @@
 //
 //  移植元: app.html script block 2 (line 1595–13041)
 //  設計: ES module として import。state はグローバル getter 経由。
+//
+//  PR-079 (Legacy Removal Batch-1): Record Input UI (renderStep 等 約22関数)は
+//  src/modules/record-input.js へ委譲済み。onclick 文字列から呼ばれる関数名は
+//  window 経由で record-input.js 側へ向け替え済み（本ファイル末尾の bridge 参照）。
 // ============================================================
+
+import * as RecordInput from './modules/record-input.js';
+// PR-080E: openRecordScreen/editPastRecord は src/modules/record-screen.js へ物理移動済み。
+import { openRecordScreen, editPastRecord } from './modules/record-screen.js';
+// PR-081: premiumGate/closePremiumLock/renderProHero/updatePremiumBadges/submitPremiumWaitlist は
+// src/modules/premium/premium-lock.js へ物理移動済み。
+import { closePremiumLock, premiumGate, renderProHero, updatePremiumBadges, submitPremiumWaitlist } from './modules/premium/premium-lock.js';
+// PR-082A (Legacy Removal Batch-4 分割①): Doctor Summary / Doctor PDF は
+// src/modules/pro/doctor-summary/doctor-summary.js へ物理移動済み。
+import { openDoctorSummary, closeDoctorSummary, downloadDoctorPDF, copyDoctorSummary } from './modules/pro/doctor-summary/doctor-summary.js';
+// PR-082B (Legacy Removal Batch-4 分割②): AI Analysis Overlay は
+// src/modules/pro/analysis/analysis-overlay.js へ物理移動済み。
+import { openAIAnalysis, closeAIAnalysis, runAIAnalysis, copyAIAnalysis } from './modules/pro/analysis/analysis-overlay.js';
+// PR-082C (Legacy Removal Batch-4 分割③): Monthly Report は
+// src/modules/pro/monthly-report.js へ物理移動済み。
+import { openMonthlyReport, closeMonthlyReport, changeReportMonth, updateMonthLabel, downloadReportPDF } from './modules/pro/monthly-report.js';
+// PR-082D (Legacy Removal Batch-4 分割④): Cycle Phase Report は
+// src/modules/pro/cycle-report.js へ物理移動済み。
+import { openCyclePhaseReport, renderPhaseMap, selectPhaseTab, _buildPhaseBarPreview } from './modules/pro/cycle-report.js';
+// PR-082E (Legacy Removal Batch-4 分割⑤): Temperature Report は
+// src/modules/pro/temp-report.js へ物理移動済み。
+import { calcTemperaturePhases, openTempReport, showTempEducation } from './modules/pro/temp-report.js';
+// PR-082F (Legacy Removal Batch-4 分割⑥): Flareup Report / Correlation Report は
+// src/modules/pro/flareup-report.js / src/modules/pro/correlation-report.js へ物理移動済み。
+// calcWellnessScore は src/modules/pro/shared/pro-metric-utils.js へ物理移動済み。
+import { detectFlareups, openFlareupReport } from './modules/pro/flareup-report.js';
+import { calcFactorCorrelations, setCGRange, toggleCGFactor, getMetricValue, getMetricLabel, getMetricMax, renderComparisonChart, openCorrelationReport } from './modules/pro/correlation-report.js';
+import { calcWellnessScore } from './modules/pro/shared/pro-metric-utils.js';
+// PR-083 (Legacy Removal Batch-5): Sync Modal & Auth UI は
+// src/modules/sync-modal.js へ物理移動済み。
+import { openSyncModal, closeSyncModal, showLoginForm, toggleSyncMode, showMessage, hideMessage } from './modules/sync-modal.js';
+// PR-084 (Legacy Removal Batch-6): Symptom Settings は src/modules/symptom-settings.js へ物理移動済み。
+import { openSymptomSettings, closeSymptomSettings, saveSymptomSettings, getRecentSymptoms, saveSymptomSelection, updateSymptomSettingDisplay, buildSymptomChips, applySymptomChipPriority } from './modules/symptom-settings.js';
+// PR-084: reorderRecordSections は src/modules/record-section-order.js へ物理移動済み。
+import { reorderRecordSections } from './modules/record-section-order.js';
+// PR-084: exportJSON/exportCSV/csvSafe/formatDiseaseCheck/clearData は src/modules/data-export.js へ物理移動済み。
+import { exportJSON, exportCSV, csvSafe, formatDiseaseCheck, clearData } from './modules/data-export.js';
+// PR-084: showConfirmModal/showAlertModal/showPrivacyInfo/setDailyMessage は src/modules/ui-notifications.js へ物理移動済み。
+import { showConfirmModal, showAlertModal, showPrivacyInfo, setDailyMessage } from './modules/ui-notifications.js';
+// PR-085 (Legacy Removal Batch-7): Meal Tracker は src/modules/meal-tracker.js へ物理移動済み
+// （同ファイルはPhase 4-C由来のopenMealTimePicker/addMealTime以来 未importのorphaned moduleだったが、
+// 本importにより初めてバンドル対象になる — PR-084A disease-settings.jsと同型のギャップ解消）。
+import { parseMealMemo, _updateMealParseFreetextLegacy, saveMealDraft, toggleMealSection, renderMealSections, updateMealParse } from './modules/meal-tracker.js';
+// PR-085 (Legacy Removal Batch-7): Fasting Timer は src/modules/fasting.js へ新設・物理移動済み。
+// FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDEはtoggleFast()（本ファイル残置、Batch-7対象外）も
+// 参照するためfasting.jsをsource of truthとしimport backしている。
+import { FAST_PHASE_CONFIG, FAST_DISEASE_OVERRIDE, setFastGoal, endFast, startFastTimer, resumeFasting, updateFastingWidgetPhase, toggleFastingFeature, applyFastingVisibility } from './modules/fasting.js';
+// PR-086 (Legacy Removal Batch-8): getPhaseForDate/isPeriodExpected/buildComparisonComment
+// （+ 未文書化ヘルパー buildDayComparison/buildWeekComparison）は
+// src/modules/cycle-utils.js へ新設・物理移動済み。
+import { getPhaseForDate, isPeriodExpected, buildComparisonComment, buildDayComparison, buildWeekComparison } from './modules/cycle-utils.js';
+// PR-086: switchInsTab/renderInsightDiscoveries/_updateInsMainCard/updateFoodBodyCorrelation/
+// updateCycleSymptomCorrelation は src/modules/insights-tab-panel.js へ新設・物理移動済み
+// （audit文書はinsights-dynamic-renderer.js拡充を想定していたが、実装前調査の結果同ファイルは
+// 別世代の独立した動的インサイトレンダラーと判明したため専用新設ファイルへ変更）。
+import { switchInsTab, renderInsightDiscoveries, _updateInsMainCard, updateFoodBodyCorrelation, updateCycleSymptomCorrelation } from './modules/insights-tab-panel.js';
+// PR-086: updateTodayMessage/updateDailyHintCard は src/modules/home-renderer.js へ物理移動済み。
+import { updateTodayMessage, updateDailyHintCard } from './modules/home-renderer.js';
+// PR-087 (Legacy Removal Batch-9): escapeHtml/getTimeAgo/toLocalDateKey は
+// src/utils/string-utils.js へ新設・物理移動済み。
+import { escapeHtml, getTimeAgo, toLocalDateKey } from './utils/string-utils.js';
+// PR-087: calcPainFreeDaysThisMonth/calcAvgPainThisMonth/calcSMIScore は
+// src/utils/stats-utils.js へ新設・物理移動済み。
+import { calcPainFreeDaysThisMonth, calcAvgPainThisMonth, calcSMIScore } from './utils/stats-utils.js';
+// PR-087: shareApp/addToHome は src/modules/share.js へ新設・物理移動済み。
+import { shareApp, addToHome } from './modules/share.js';
+// PR-087: setRating/submitFeedback は src/modules/feedback.js へ新設・物理移動済み。
+import { setRating, submitFeedback } from './modules/feedback.js';
+// PR-087: checkSuddenTempRise/checkAndShowTempAlert/showTempAlertBanner は
+// src/modules/temp-alert.js へ新設・物理移動済み。
+import { checkSuddenTempRise, checkAndShowTempAlert, showTempAlertBanner } from './modules/temp-alert.js';
+// PR-087: addCustomFactor は src/modules/record-factors.js へ新設・物理移動済み
+// （audit文書は移植先未指定。toggleRsChip依存が無いため専用新設ファイルへ分離）。
+import { addCustomFactor } from './modules/record-factors.js';
+// PR-087: getSuccessMessage は src/modules/success-message.js へ新設・物理移動済み
+// （audit文書は移植先未指定。cycle-utils.js等と同型の専用新設ファイルへ分離）。
+import { getSuccessMessage } from './modules/success-message.js';
+// PR-088 (Legacy Removal Batch-10): Community Voice（loadCommunityTopic/switchCVTab/
+// loadCVArchive/toggleArchiveReplies/loadCommunityReplies/postCommunityReply/
+// likeCommunityReply/deleteCommunityReply/updateReplyLikeCount/checkMyLikes）は
+// src/modules/community.js へ新設・物理移動済み（audit未記載の未文書化ヘルパー4件を
+// 含む、「1 feature = 1 owner」判断はPR-086と同型）。
+import { loadCommunityTopic, switchCVTab, loadCVArchive, toggleArchiveReplies, loadCommunityReplies, postCommunityReply, likeCommunityReply, deleteCommunityReply, updateReplyLikeCount, checkMyLikes } from './modules/community.js';
+// PR-088: Admin Panel（initAdminPanel/adminSetPremium/adminLoadPremiumUsers）は
+// src/modules/admin.js へ新設・物理移動済み。ADMIN_USER_ID は isAdminOrPremium()
+// （本ファイル残置、Batch-10対象外）も参照するため import back（fasting.js
+// FAST_PHASE_CONFIGと同型パターン）。
+import { initAdminPanel, adminSetPremium, adminLoadPremiumUsers, ADMIN_USER_ID } from './modules/admin.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -26,6 +118,9 @@ window._ippoStateHooks.push(function(nextState) {
 // (SDK 管理の実値は checkPremiumStatus / auth callback で同期される)
 var supabaseToken = null;
 var supabaseUserId = null;
+// PR-088: community.js/admin.js（物理移動先）がログイン中ユーザーIDを取得するための
+// 専用ブリッジ（PR-080E window.__ippoGetBowelCount と同型パターン）。
+window.__ippoGetSupabaseUserId = function () { return supabaseUserId; };
 
 // ─── Deferred Cloud Restore Queue ────────────────────────────────
 // auth 復元前に cloudRestore が呼ばれた場合、auth ready 後にリトライする
@@ -362,119 +457,10 @@ var _SVG_REFLECT    = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
 var _SVG_TRY        = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6v7.5l4 8a1 1 0 01-.9 1.5H5.9A1 1 0 015 18.5l4-8V3z"/><line x1="6.5" y1="8" x2="17.5" y2="8"/></svg>';
 var _SVG_SHARE      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2.5"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="16" x2="13" y2="16"/><line x1="8" y1="8" x2="16" y2="8"/></svg>';
 
-var _cycleOverlayApi = null;
-function openCyclePhaseReport(){
-  var analysis = analyzeCyclePhases(state.records);
-  var phaseNames = ['月経期','卵胞期','排卵期','黄体期'];
-  var phaseIcons = {'月経期':'🔴','卵胞期':'🌱','排卵期':'🥚','黄体期':'🌙'};
-  var phaseColors = {'月経期':'#c4878c','卵胞期':'#6b9e78','排卵期':'#d4a574','黄体期':'#7ba3c4'};
 
-  var totalRecs = state.records.length;
-  var lastDate = '';
-  if(totalRecs > 0){
-    var _sorted = state.records.slice().sort(function(a,b){
-      return (b.record_date||b.date||'').localeCompare(a.record_date||a.date||'');
-    });
-    var _ld = new Date(_sorted[0].record_date || _sorted[0].date || '');
-    if(!isNaN(_ld.getTime())) lastDate = (_ld.getMonth()+1)+'月'+_ld.getDate()+'日';
-  }
-
-  if (!_cycleOverlayApi) {
-    _cycleOverlayApi = window.createProOverlay({
-      id:        'cyclePhaseOverlay',
-      ariaLabel: '周期ごとの体調の違い',
-      title:     '周期ごとの体調の違い',
-      subtitle:  '周期ごとの記録を整理しています',
-      footer:    [{ id: 'cycle-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
-      onClose:   function(){ _cycleOverlayApi.close(); },
-    });
-    _cycleOverlayApi.getButton('cycle-close').addEventListener('click', function(){ _cycleOverlayApi.close(); });
-  }
-
-  var bodyHtml = '';
-  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
-    + totalRecs+'件の記録'+(lastDate?' ／ 最終記録 '+lastDate:'')+'</div>';
-
-  if(Object.keys(analysis).length === 0){
-    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">🌸 生理周期のデータがまだ不足しています。<br>生理日を記録し続けると、フェーズ別の傾向が見えてきます。</div>';
-  } else {
-
-    // ① 今見えていること
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
-      + '<div style="display:flex;gap:6px;">';
-    phaseNames.forEach(function(name){
-      var d = analysis[name];
-      var color = phaseColors[name];
-      bodyHtml += '<div style="flex:1;background:var(--white);border-radius:12px;padding:10px 6px;text-align:center;box-shadow:0 1px 4px var(--shadow);">'
-        + '<div style="font-size:16px;margin-bottom:4px;">'+phaseIcons[name]+'</div>'
-        + '<div style="font-size:9px;color:var(--ink-light);margin-bottom:4px;">'+name+'</div>';
-      if(d){
-        bodyHtml += '<div style="font-size:18px;font-weight:700;color:'+color+';">'+(d.avgWellness!=='-'?d.avgWellness:'-')+'</div>'
-          + '<div style="font-size:10px;color:var(--ink-light);">ウェルネス</div>';
-      } else {
-        bodyHtml += '<div style="font-size:14px;color:var(--ink-light);">—</div>';
-      }
-      bodyHtml += '</div>';
-    });
-    bodyHtml += '</div></div>';
-
-    // ② なぜそう考えた？
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
-      + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">各フェーズで記録した体調データ（ウェルネス・エネルギー・睡眠の質・痛み）の平均値を比較しています。記録が多いほど、傾向がより正確に見えてきます。</div>'
-      + '</div>';
-
-    // ③ 詳しいデータを見る
-    bodyHtml += '<div style="margin-bottom:8px;"><div class="pha-section-title">詳しいデータを見る</div>';
-    phaseNames.forEach(function(name){
-      var d = analysis[name];
-      if(!d) return;
-      var color = phaseColors[name];
-
-      bodyHtml += '<div class="pha-card" style="border-left:3px solid '+color+';">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
-        + '<div style="font-size:15px;font-weight:500;color:var(--ink);">'+phaseIcons[name]+' '+name+'</div>'
-        + '<div style="font-size:11px;color:var(--ink-light);background:var(--cream);padding:3px 8px;border-radius:8px;">'+d.days+'日分の記録</div>'
-        + '</div>';
-
-      bodyHtml += '<div class="pha-grid-2" style="margin-bottom:10px;">';
-      var metrics = [
-        {label:'エネルギー', val:d.avgEnergy, max:5, unit:'/5'},
-        {label:'睡眠の質', val:d.avgSleep, max:5, unit:'/5'},
-        {label:'痛みレベル', val:d.avgPain, max:10, unit:'/10'},
-        {label:'ウェルネス', val:d.avgWellness, max:100, unit:'/100'}
-      ];
-      metrics.forEach(function(m){
-        var pct = m.val !== '-' ? Math.round(parseFloat(m.val)/m.max*100) : 0;
-        bodyHtml += '<div class="pha-metric">'
-          + '<div style="font-size:11px;color:var(--ink-light);margin-bottom:4px;">'+m.label+'</div>'
-          + '<div style="font-size:16px;font-weight:600;color:'+color+';">'+m.val+'<span style="font-size:11px;color:var(--ink-light);">'+m.unit+'</span></div>'
-          + '<div class="pha-bar"><div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:4px;"></div></div>'
-          + '</div>';
-      });
-      bodyHtml += '</div>';
-
-      if(d.topSymptoms.length > 0){
-        bodyHtml += '<div style="margin-bottom:6px;"><span style="font-size:12px;color:var(--ink-light);">この時期に多い症状：</span>';
-        d.topSymptoms.forEach(function(s){
-          bodyHtml += '<span style="font-size:12px;background:var(--warm-light);color:var(--ink-mid);padding:2px 8px;border-radius:8px;margin-left:4px;">'+s[0]+' ('+s[1]+'日)</span>';
-        });
-        bodyHtml += '</div>';
-      }
-      if(d.topFactors.length > 0){
-        bodyHtml += '<div><span style="font-size:12px;color:var(--ink-light);">この時期に多い要因：</span>';
-        d.topFactors.forEach(function(f){
-          bodyHtml += '<span style="font-size:12px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;margin-left:4px;">'+f[0]+' ('+f[1]+'日)</span>';
-        });
-        bodyHtml += '</div>';
-      }
-      bodyHtml += '</div>';
-    });
-    bodyHtml += '</div>';
-  }
-
-  _cycleOverlayApi.body.innerHTML = bodyHtml;
-  _cycleOverlayApi.open();
-}
+  // ===== 周期ごとの体調の違い (Cycle Phase Report) =====
+// PR-082D (Legacy Removal Batch-4 分割④): openCyclePhaseReport は
+// src/modules/pro/cycle-report.js へ物理移動済み（import参照）。
   // ===== ヘルスエクスペリメント =====
 
 // ─── P38: 疾患別コンパニオン指標ルール ─────────────────────────
@@ -1142,32 +1128,7 @@ function updateDiseaseQuestions(){if(typeof window.updateDiseaseQuestions==='fun
 
 
   // ===== プレミアム先行登録 =====
-function submitPremiumWaitlist(){
-  var emailInput = document.getElementById('premium-email');
-  var email = emailInput ? emailInput.value.trim() : '';
-  if(!email || email.indexOf('@') === -1){
-    showAlertModal('メールアドレスを入力してください');
-    return;
-  }
-  if(!supabase){ showAlertModal('通信エラーが発生しました'); return; }
-  supabase.auth.getSession().then(function(res){
-    var userId = res.data.session ? res.data.session.user.id : null;
-    return supabase.from('premium_waitlist').insert({ email: email, user_id: userId });
-  }).then(function(result){
-    if(!result.error){
-      document.getElementById('premium-form-area').style.display = 'none';
-      document.getElementById('premium-done').style.display = 'block';
-      localStorage.setItem('ippo_premium_registered', email);
-    } else if(result.error.code === '23505'){
-      showAlertModal('このメールアドレスは既に登録済みです');
-    } else {
-      showAlertModal('送信に失敗しました。もう一度お試しください');
-    }
-  }).catch(function(e){
-    console.warn('Waitlist error:', e);
-    showAlertModal('通信エラーが発生しました');
-  });
-}
+  // PR-081: submitPremiumWaitlist は src/modules/premium/premium-lock.js へ物理移動済み（import参照）
 
 // 既に登録済みなら完了表示
 
@@ -1388,6 +1349,10 @@ function saveAndSync(){
     });
   }
 }
+// PR-085: fasting.js（endFast、物理移動済み）が saveAndSync をbare呼び出しするための
+// 専用ブリッジ（window.saveAndSync は record-modal-controller.js が Phase D-1 パターンで
+// 別用途に先取り済み・現状no-opのため衝突を回避、PR-084 __ippoLegacyUpdateStats と同型）。
+window.__ippoLegacySaveAndSync = saveAndSync;
 
 // softDeleteRecord: UI コードから呼ばれる
 function softDeleteRecord(recordId){
@@ -1439,7 +1404,7 @@ function restoreFromHistory(historyId){
         if(r.data && r.data.state && r.data.state.records){
           state.records = mergeRecords(state.records, r.data.state.records);
           saveState();
-          buildCalendar();
+          // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
           updateHomeSummary();
           showRecoveryBanner(true, state.records.length);
           var el = document.getElementById('diagnosis-overlay');
@@ -1497,7 +1462,6 @@ function manualCloudRestore(){
 
         // UI再描画
         if(typeof updateStats === 'function') updateStats();
-        if(typeof updateHistory === 'function') updateHistory();
         if(typeof buildCalendar === 'function') buildCalendar();
         if(typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
         if(typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
@@ -1516,11 +1480,8 @@ function manualCloudRestore(){
 }
   
 // (bare `state` lexical bridge は app-legacy.js 最上部で宣言済み)
-
-// Current record being built（let → var でグローバル化して module 側からも参照可能）
-var currentRecord = {};
-var currentStep = 0;
-var STEPS = [];
+// PR-079: currentRecord/currentStep/STEPS は src/modules/record-input.js へ移行済み。
+// PR-080: currentRecord のモジュールスコープ bridge 変数を撤去。saveRecord() が直接呼び出す（SG-4）。
 
 
 // saveState: モジュール版（state.js）の実行前に init() から呼ばれる場合があるため
@@ -1570,286 +1531,8 @@ document.addEventListener('keydown', function(e){
 
 // visibilitychange ハンドラは src/services/supabase.js に移植済み（Priority 4 Step 4-4）。
 
-  function updateFoodBodyCorrelation() {
-  var container = document.getElementById('food-body-correlation');
-  if (!container) return;
-
-  if (!isPremium) {
-    container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
-      +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
-      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 ファスティングと不調の関係</div>'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h以上</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:35%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">35%</span></div>'
-      +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--ink-light);width:70px;">16h未満</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:65%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;"></div></div><span style="font-size:11px;width:35px;text-align:right;">65%</span></div></div>'
-      +'<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--ink);">🔍 注目の食材パターン</div>'
-      +'<div style="margin-top:8px;padding:10px;background:var(--warm-light);border-radius:10px;font-size:12px;color:var(--ink);">「小麦」を含む日は不調が...</div>'
-      +'</div>'
-      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(250,246,242,0.4);border-radius:12px;">'
-      +'<div style="font-size:28px;margin-bottom:8px;">🔒</div>'
-      +'<div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px;">プレミアム機能</div>'
-      +'<div style="font-size:11px;color:var(--ink-light);margin-bottom:12px;">食事と体調の相関を分析します</div>'
-      +'<button onclick="document.getElementById(\'premiumLockOverlay\').classList.add(\'active\')" style="padding:8px 24px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,107,0.3);">Premiumで解放</button>'
-      +'</div></div>';
-    return;
-  }
-
-    var records = state.records || [];
-  if (records.length < 7) {
-    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">7日以上記録すると相関分析が表示されます。<br>あと' + Math.max(0, 7 - records.length) + '日！</div>';
-    return;
-  }
-
-  var html = '';
-
-  //  ① ファスティングと症状の関係
-  var longFast = [];
-  var shortFast = [];
-  records.forEach(function(r) {
-    var f = parseFloat(r.fasting) || 0;
-    var symptoms = r.symptoms || [];
-    var checks = r.diseaseCheck || {};
-    var hasIssue = symptoms.length > 0 || Object.values(checks).some(function(v) { return v !== 'なし' && v; });
-    if (f >= 16) longFast.push({ hasIssue: hasIssue, symptoms: symptoms, checks: checks });
-    else if (f > 0) shortFast.push({ hasIssue: hasIssue, symptoms: symptoms, checks: checks });
-  });
-
-  if (longFast.length >= 2 && shortFast.length >= 2) {
-    var longIssueRate = Math.round(longFast.filter(function(d) { return d.hasIssue; }).length / longFast.length * 100);
-    var shortIssueRate = Math.round(shortFast.filter(function(d) { return d.hasIssue; }).length / shortFast.length * 100);
-    var maxRate = Math.max(longIssueRate, shortIssueRate, 1);
-
-    html += '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 ファスティングと不調の関係</div>';
-    html += '<div style="margin-bottom:6px;display:flex;align-items:center;gap:8px;">';
-    html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h以上</span>';
-    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
-    html += '<div style="height:100%;width:' + (longIssueRate / maxRate * 100) + '%;background:linear-gradient(90deg,#e8b4b8,#c9747a);border-radius:10px;transition:width 0.5s;"></div></div>';
-    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:35px;text-align:right;">' + longIssueRate + '%</span>';
-    html += '</div>';
-    html += '<div style="display:flex;align-items:center;gap:8px;">';
-    html += '<span style="font-size:11px;color:var(--ink-light);width:70px;flex-shrink:0;">16h未満</span>';
-    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
-    html += '<div style="height:100%;width:' + (shortIssueRate / maxRate * 100) + '%;background:linear-gradient(90deg,#c4d4b0,#8aab96);border-radius:10px;transition:width 0.5s;"></div></div>';
-    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:35px;text-align:right;">' + shortIssueRate + '%</span>';
-    html += '</div>';
-
-    html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;margin-top:10px;padding:10px;background:var(--warm-light);border-radius:10px;">';
-    if (longIssueRate < shortIssueRate) {
-      html += 'ファスティング16時間以上の日は不調の記録が <strong style="color:var(--rose);">少ない</strong> 傾向があります。あなたのからだに合っているかもしれません。';
-    } else if (longIssueRate > shortIssueRate) {
-      html += 'ファスティング16時間以上の日に不調の記録が <strong style="color:var(--rose);">多い</strong> 傾向があります。ファスティング時間を調整してみましょう。';
-    } else {
-      html += 'ファスティングと不調に明確な差は見られません。引き続き記録を続けましょう。';
-    }
-    html += '</div></div>';
-  }
-
-  // ② 食事回数と体調の関係
-  var fewMeals = [];
-  var manyMeals = [];
-  records.forEach(function(r) {
-    var mc = r.mealCount || 0;
-    var checks = r.diseaseCheck || {};
-    var issueCount = Object.values(checks).filter(function(v) { return v !== 'なし' && v; }).length;
-    if (mc > 0 && mc <= 3) fewMeals.push(issueCount);
-    else if (mc > 3) manyMeals.push(issueCount);
-  });
-
-  if (fewMeals.length >= 2 && manyMeals.length >= 2) {
-    var fewAvg = (fewMeals.reduce(function(a, b) { return a + b; }, 0) / fewMeals.length).toFixed(1);
-    var manyAvg = (manyMeals.reduce(function(a, b) { return a + b; }, 0) / manyMeals.length).toFixed(1);
-
-    html += '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🍽 食事回数と疾患チェック</div>';
-    html += '<div style="display:flex;gap:12px;margin-bottom:8px;">';
-    html += '<div style="flex:1;text-align:center;padding:12px;background:var(--warm-light);border-radius:12px;">';
-    html += '<div style="font-size:10px;color:var(--ink-light);">3食以下の日</div>';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);margin-top:4px;">' + fewAvg + '</div>';
-    html += '<div style="font-size:10px;color:var(--ink-light);">平均チェック項目</div></div>';
-    html += '<div style="flex:1;text-align:center;padding:12px;background:var(--warm-light);border-radius:12px;">';
-    html += '<div style="font-size:10px;color:var(--ink-light);">4食以上の日</div>';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);margin-top:4px;">' + manyAvg + '</div>';
-    html += '<div style="font-size:10px;color:var(--ink-light);">平均チェック項目</div></div>';
-    html += '</div>';
-
-    html += '<div style="font-size:12px;color:var(--ink);line-height:1.8;padding:10px;background:var(--warm-light);border-radius:10px;">';
-    if (parseFloat(fewAvg) < parseFloat(manyAvg)) {
-      html += '食事回数が少ない日の方が疾患チェックの項目数が <strong style="color:#8aab96;">少なく</strong> 安定しています。';
-    } else if (parseFloat(fewAvg) > parseFloat(manyAvg)) {
-      html += '食事回数が多い日の方が疾患チェックが <strong style="color:#8aab96;">安定</strong> しています。';
-    } else {
-      html += '食事回数と疾患チェックに明確な差は見られません。';
-    }
-    html += '</div></div>';
-  }
-
-  // ③ 食材キーワードと症状
-  var keywords = [
-    { word: '小麦', aliases: ['パン', 'パスタ', 'うどん', 'ラーメン', 'グルテン'] },
-    { word: '乳製品', aliases: ['牛乳', 'チーズ', 'ヨーグルト', '乳'] },
-    { word: '砂糖', aliases: ['甘い', 'クッキー', 'ケーキ', 'チョコ', 'お菓子', 'アイス'] },
-    { word: 'カフェイン', aliases: ['コーヒー', '紅茶', 'カフェ'] },
-    { word: 'アルコール', aliases: ['ビール', 'ワイン', '酒', 'サワー'] }
-  ];
-
-  var keywordResults = [];
-  keywords.forEach(function(kw) {
-    var withFood = [];
-    var withoutFood = [];
-    records.forEach(function(r) {
-      var memo = (r.mealFree || '') + ' ' + (r.meals && r.meals.free ? r.meals.free : '');
-      var hasKeyword = false;
-      var allWords = [kw.word].concat(kw.aliases);
-      allWords.forEach(function(w) { if (memo.indexOf(w) !== -1) hasKeyword = true; });
-      var symptoms = (r.symptoms || []).length;
-      var checks = r.diseaseCheck ? Object.values(r.diseaseCheck).filter(function(v) { return v !== 'なし' && v; }).length : 0;
-      var total = symptoms + checks;
-      if (hasKeyword) withFood.push(total);
-      else withoutFood.push(total);
-    });
-    if (withFood.length >= 2 && withoutFood.length >= 2) {
-      var withAvg = withFood.reduce(function(a, b) { return a + b; }, 0) / withFood.length;
-      var withoutAvg = withoutFood.reduce(function(a, b) { return a + b; }, 0) / withoutFood.length;
-      if (withAvg > withoutAvg + 0.3) {
-        keywordResults.push({ word: kw.word, days: withFood.length, diff: (withAvg - withoutAvg).toFixed(1) });
-      }
-    }
-  });
-
-  if (keywordResults.length > 0) {
-    html += '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🔍 注目の食材パターン</div>';
-    keywordResults.forEach(function(kr) {
-      html += '<div style="padding:10px;background:var(--warm-light);border-radius:10px;margin-bottom:8px;font-size:12px;color:var(--ink);line-height:1.8;">';
-      html += '「<strong style="color:var(--rose);">' + kr.word + '</strong>」を含む日（' + kr.days + '日）は、不調の記録が平均 <strong style="color:var(--rose);">+' + kr.diff + '</strong> 項目多い傾向があります。';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  if (html === '') {
-    html = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;line-height:1.8;">まだ十分なデータがありません。<br>記録を続けると食事と体調の関係が見えてきます。</div>';
-  }
-
-  container.innerHTML = html;
-}
-
-
-
-  function updateCycleSymptomCorrelation(){
-  var container = document.getElementById('cycle-symptom-correlation');
-  if(!container) return;
-
-  if(!isPremium){
-    container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
-      +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
-      +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">📊 フェーズ別の不調出現率</div>'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:65px;text-align:right;">生理期間</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:72%;background:linear-gradient(90deg,#E88D9788,#E88D97);border-radius:10px;"></div></div><span style="font-size:11px;width:40px;text-align:right;">72%</span></div>'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:11px;color:var(--ink-light);width:65px;text-align:right;">高温期</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:45%;background:linear-gradient(90deg,#c4878c88,#c4878c);border-radius:10px;"></div></div><span style="font-size:11px;width:40px;text-align:right;">45%</span></div>'
-      +'<div style="display:flex;align-items:center;gap:8px;"><span style="font-size:11px;color:var(--ink-light);width:65px;text-align:right;">排卵期</span><div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;"><div style="height:100%;width:28%;background:linear-gradient(90deg,#F4B86088,#F4B860);border-radius:10px;"></div></div><span style="font-size:11px;width:40px;text-align:right;">28%</span></div></div>'
-      +'<div style="margin-top:12px;font-size:12px;font-weight:600;color:var(--ink);">🔍 フェーズ別の頻出症状</div>'
-      +'<div style="margin-top:8px;padding:10px;background:var(--white);border-radius:10px;border-left:3px solid #E88D97;font-size:12px;">生理期間：頭痛・腰痛・倦怠感...</div>'
-      +'</div>'
-      +'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(250,246,242,0.4);border-radius:12px;">'
-      +'<div style="font-size:28px;margin-bottom:8px;">🔒</div>'
-      +'<div style="font-size:13px;color:var(--ink);font-weight:500;margin-bottom:4px;">プレミアム機能</div>'
-      +'<div style="font-size:11px;color:var(--ink-light);margin-bottom:12px;">周期ごとの症状パターンを分析します</div>'
-      +'<button onclick="document.getElementById(\'premiumLockOverlay\').classList.add(\'active\')" style="padding:8px 24px;background:var(--rose);color:white;border:none;border-radius:20px;font-size:12px;font-family:Noto Sans JP,sans-serif;cursor:pointer;box-shadow:0 2px 8px rgba(255,107,107,0.3);">Premiumで解放</button>'
-      +'</div></div>';
-    return;
-  }
-
-  var records = state.records || [];
-  var phases = {};
-
-  records.forEach(function(r){
-    var cycle = r.menstrualCycle;
-    if(!cycle || cycle === 'なし' || cycle === 'none' || !cycle.trim()) return;
-    var phase = displayPhases[cycle] || cycle;
-    if(!phases[phase]) phases[phase] = { total:0, withSymptoms:0, symptoms:{} };
-    phases[phase].total++;
-    var syms = r.symptoms || [];
-    if(syms.length > 0){
-      phases[phase].withSymptoms++;
-      syms.forEach(function(s){
-        phases[phase].symptoms[s] = (phases[phase].symptoms[s]||0) + 1;
-      });
-    }
-  });
-
-  var phaseKeys = Object.keys(phases);
-
-  if(phaseKeys.length === 0){
-    container.innerHTML = '<div style="text-align:center;padding:24px 0;">'
-      +'<div style="font-size:28px;margin-bottom:8px;">🌸</div>'
-      +'<div style="font-size:13px;color:var(--ink-light);line-height:1.8;">生理周期の記録があると<br>フェーズごとの症状パターンが表示されます。</div>'
-      +'<div style="font-size:12px;color:var(--ink-light);margin-top:10px;">記録画面の「生理の状態」で状態を選択してください。</div>'
-      +'</div>';
-    return;
-  }
-
-  var html = '';
-
-  // ① フェーズ別の症状出現率
-  html += '<div style="margin-bottom:20px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:12px;">📊 フェーズ別の不調出現率</div>';
-  var phaseColors = {'生理期間':'#E88D97','排卵期':'#F4B860','高温期':'#c4878c','低温期':'#7FC8A9','不正出血':'#C4A7D7'};
-  var maxRate = 0;
-  phaseKeys.forEach(function(p){ var rate = phases[p].total > 0 ? phases[p].withSymptoms / phases[p].total * 100 : 0; if(rate > maxRate) maxRate = rate; });
-  if(maxRate === 0) maxRate = 1;
-
-  phaseKeys.forEach(function(p){
-    var d = phases[p];
-    var rate = d.total > 0 ? Math.round(d.withSymptoms / d.total * 100) : 0;
-    var color = phaseColors[p] || '#b8a9d4';
-    html += '<div style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">';
-    html += '<span style="font-size:11px;color:var(--ink-light);width:65px;flex-shrink:0;text-align:right;">'+p+'</span>';
-    html += '<div style="flex:1;height:20px;background:#f0ebe6;border-radius:10px;overflow:hidden;">';
-    html += '<div style="height:100%;width:'+(rate/maxRate*100)+'%;background:linear-gradient(90deg,'+color+'88,'+color+');border-radius:10px;transition:width 0.5s;"></div></div>';
-    html += '<span style="font-size:11px;color:var(--ink);font-weight:500;width:40px;text-align:right;">'+rate+'%</span>';
-    html += '<span style="font-size:10px;color:var(--ink-light);width:30px;">('+d.total+'日)</span>';
-    html += '</div>';
-  });
-  html += '</div>';
-
-  // ② フェーズ別の頻出症状
-  html += '<div style="margin-bottom:20px;">';
-  html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:12px;">🔍 フェーズ別の頻出症状</div>';
-  phaseKeys.forEach(function(p){
-    var d = phases[p];
-    var sorted = Object.entries(d.symptoms).sort(function(a,b){ return b[1]-a[1]; });
-    if(sorted.length === 0) return;
-    var color = phaseColors[p] || '#b8a9d4';
-    html += '<div style="margin-bottom:12px;padding:12px;background:var(--white);border-radius:12px;border-left:3px solid '+color+';">';
-    html += '<div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:8px;">'+p+'</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    sorted.slice(0,5).forEach(function(entry){
-      html += '<span style="font-size:11px;padding:4px 10px;border-radius:12px;background:'+color+'20;color:'+color.replace('88','')+';">'+entry[0]+' ('+entry[1]+'日)</span>';
-    });
-    html += '</div></div>';
-  });
-  html += '</div>';
-
-  // ③ パターンコメント
-  html += '<div style="padding:12px;background:var(--warm-light);border-radius:12px;font-size:12px;color:var(--ink);line-height:1.8;">';
-  var mostSymptomPhase = phaseKeys.reduce(function(best, p){
-    var rate = phases[p].total > 0 ? phases[p].withSymptoms / phases[p].total : 0;
-    if(!best || rate > best.rate) return {phase:p, rate:rate};
-    return best;
-  }, null);
-
-  if(mostSymptomPhase && mostSymptomPhase.rate > 0){
-    html += '「<strong style="color:var(--rose);">'+mostSymptomPhase.phase+'</strong>」に不調の記録が最も集中しています（'+Math.round(mostSymptomPhase.rate*100)+'%）。';
-    var topSym = Object.entries(phases[mostSymptomPhase.phase].symptoms).sort(function(a,b){return b[1]-a[1];})[0];
-    if(topSym){
-      html += 'この時期は特に「<strong style="color:var(--rose);">'+topSym[0]+'</strong>」に注意してみましょう。';
-    }
-  } else {
-    html += '記録を続けると、周期ごとの症状パターンが見えてきます。';
-  }
-  html += '</div>';
-
-  container.innerHTML = html;
-}
+// PR-086 (Legacy Removal Batch-8): updateFoodBodyCorrelation/updateCycleSymptomCorrelation は
+// src/modules/insights-tab-panel.js へ物理移動済み（本ファイル冒頭で import back）。
 
 
 
@@ -1878,102 +1561,8 @@ var _obReminderSelected = null;
 
 
 
-function reorderRecordSections() {
-  var diseases = state.myDiseases || [];
-  if (diseases.length === 0) return;
-
-  // 疾患カテゴリに基づく優先セクションID
-  var prioritySections = [];
-
-  var hasUterine = diseases.some(function(d) {
-    return ['子宮内膜症', '子宮筋腫', '子宮腺筋症'].indexOf(d) !== -1;
-  });
-  var hasOvarian = diseases.some(function(d) {
-    return ['卵巣嚢腫', 'PCOS'].indexOf(d) !== -1;
-  });
-  var hasHormonal = diseases.some(function(d) {
-    return ['PMS/PMDD', '更年期障害', '不妊症・排卵障害'].indexOf(d) !== -1;
-  });
-  var hasPelvic = diseases.some(function(d) {
-    return ['骨盤臓器脱', '慢性骨盤痛'].indexOf(d) !== -1;
-  });
-
-  // 疾患チェックセクションを常に上位に移動
-  var diseaseQ = document.getElementById('disease-questions');
-  if (diseaseQ && diseaseQ.parentNode) {
-    var recordScreen = diseaseQ.closest('.screen') || diseaseQ.parentNode;
-    var symptomsSection = document.getElementById('rs-symptoms');
-    if (symptomsSection) {
-      var symptomsCard = symptomsSection.closest('.section-card');
-      if (symptomsCard && symptomsCard.parentNode) {
-        symptomsCard.parentNode.insertBefore(diseaseQ, symptomsCard.nextSibling);
-      }
-    }
-  }
-
-  // 更年期障害選択時：睡眠セクションにハイライトを追加
-  if (hasHormonal && diseases.indexOf('更年期障害') !== -1) {
-    var sleepSection = document.getElementById('rs-sleep-bed');
-    if (sleepSection) {
-      var sleepCard = sleepSection.closest('.section-card');
-      if (sleepCard) {
-        sleepCard.style.borderLeft = '3px solid var(--rose)';
-        var hint = document.createElement('div');
-        hint.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint.textContent = '💡 更年期障害では睡眠の質の記録が重要です';
-        sleepCard.appendChild(hint);
-      }
-    }
-  }
-
-  // 子宮系疾患選択時：痛み記録にハイライト
-  if (hasUterine) {
-    var painSection = document.querySelector('[data-section="pain"]') || document.getElementById('rs-pain-level');
-    if (painSection) {
-      var painCard = painSection.closest('.section-card');
-      if (painCard) {
-        painCard.style.borderLeft = '3px solid var(--rose)';
-        var hint2 = document.createElement('div');
-        hint2.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint2.textContent = '💡 痛みの記録が症状の変化の把握に役立ちます';
-        painCard.appendChild(hint2);
-      }
-    }
-  }
-
-  // PCOS選択時：生活ファクターにハイライト
-  if (hasOvarian && diseases.indexOf('PCOS') !== -1) {
-    var factorsSection = document.getElementById('rs-factors');
-    if (factorsSection) {
-      var factorsCard = factorsSection.closest('.section-card');
-      if (factorsCard) {
-        factorsCard.style.borderLeft = '3px solid var(--rose)';
-        var hint3 = document.createElement('div');
-        hint3.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint3.textContent = '💡 食事・運動の記録がPCOS管理に重要です';
-        factorsCard.appendChild(hint3);
-      }
-    }
-  }
-
-  // 骨盤系選択時：排便にハイライト
-  if (hasPelvic) {
-    var bowelSection = document.getElementById('rs-bowel');
-    if (bowelSection) {
-      var bowelCard = bowelSection.closest('.section-card');
-      if (bowelCard) {
-        bowelCard.style.borderLeft = '3px solid var(--rose)';
-        var hint4 = document.createElement('div');
-        hint4.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint4.textContent = '💡 骨盤臓器脱では排便の記録が参考になります';
-        bowelCard.appendChild(hint4);
-      }
-    }
-  }
-
-  // 疾患チェックセクションを自動表示
-  updateDiseaseQuestions();
-}
+// PR-084 (Legacy Removal Batch-6): reorderRecordSections は
+// src/modules/record-section-order.js へ物理移動済み（import参照）。
 
 // Phase E (Step 3): home-renderer.js へ移植済み。
 // window.showMain は main.js ロード後にモジュール版で上書きされる。
@@ -2054,6 +1643,11 @@ function updateStats() {
   var apEl = document.getElementById('avg-pain-score');
   if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
 }
+// PR-084: clearData（data-export.js側、物理移動済み）がupdateStats（本ファイルの
+// ローカル実装、home-renderer.js版とは別、PR-080C重複整理と同型の「統合しない」
+// 判断を踏襲）をbare呼び出しするための専用ブリッジ（PR-081
+// window.__ippoLegacyUpdateSettingsHero と同型パターン）。
+window.__ippoLegacyUpdateStats = updateStats;
 
 // 今月の無痛み日数を計算して表示
 function calcPainFreeDays() {
@@ -2078,85 +1672,16 @@ function calcPainFreeDays() {
   if (el) el.textContent = count > 0 ? count : '—';
 }
 
-// 今月の無痛み日数を返す（stats-grid用）
-function calcPainFreeDaysThisMonth() {
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var count = 0;
-  (state.records || []).forEach(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    if (d.getFullYear() !== year || d.getMonth() !== month) return;
-    var pain = r.painLevel;
-    if (pain === null || pain === undefined || pain === 0) count++;
-  });
-  return count;
-}
+// PR-087 (Legacy Removal Batch-9): calcPainFreeDaysThisMonth/calcAvgPainThisMonth は
+// src/utils/stats-utils.js へ物理移動済み（import参照）。
 
-// 今月の平均痛みスコアを返す（stats-grid用）
-function calcAvgPainThisMonth() {
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var total = 0;
-  var count = 0;
-  (state.records || []).forEach(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    if (d.getFullYear() !== year || d.getMonth() !== month) return;
-    if (r.painLevel !== null && r.painLevel !== undefined && r.painLevel > 0) {
-      total += r.painLevel;
-      count++;
-    }
-  });
-  if (count === 0) return null;
-  return Math.round(total / count * 10) / 10;
-}
-
+// PR-080B: 確定Dead Code。saveRecord()内の無条件bare呼び出し2箇所が残るため定義は維持（PR-080Eで対応）。
 function updateHistory(){
   // 最近の記録セクション削除済み
 }
 
-// ===== 疾患別症状チップ優先表示 =====
-function buildSymptomChips() {
-  var prioritized = [];
-  var diseases = state.myDiseases || [];
-
-  // 疾患別症状を優先的に追加
-  diseases.forEach(function(d) {
-    var cfg = DISEASE_CONFIG[d];
-    if (!cfg || !cfg.specificSymptoms) return;
-    cfg.specificSymptoms.forEach(function(s) {
-      if (prioritized.indexOf(s) === -1) prioritized.push(s);
-    });
-  });
-
-  // ユーザー設定の症状を次に追加
-  var userSymptoms = state.selectedSymptoms || [];
-  userSymptoms.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  // デフォルト症状をフォールバックとして追加
-  var defaults = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み','だるさ','不正出血','吐き気','むくみ','気分の落ち込み','イライラ'];
-  defaults.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  return prioritized;
-}
-
-function applySymptomChipPriority() {
-  var prioritized = buildSymptomChips();
-  var container = document.getElementById('rs-symptoms');
-  if (!container) return;
-  // 疾患優先症状に一致するチップを先頭に移動
-  prioritized.forEach(function(sym) {
-    var chip = Array.prototype.find.call(container.querySelectorAll('.chip'), function(c) {
-      return c.textContent === sym;
-    });
-    if (chip) container.insertBefore(chip, container.firstChild);
-  });
-}
+// PR-084 (Legacy Removal Batch-6): buildSymptomChips/applySymptomChipPriority は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 function updateUnlock(){
   var days = state.totalDays || 0;
@@ -2184,110 +1709,8 @@ function updateUnlock(){
 
 
 // ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
-
-var FAST_PHASE_CONFIG = {
-  '月経期': {
-    icon: '🔴',
-    rec: '12〜13h',
-    goalMin: 12, goalMax: 13,
-    tip: '月経中は無理をせず。鉄分が失われる時期なので短めが安心です。',
-    safeMax: 14,
-    bedRisk: false
-  },
-  '卵胞期': {
-    icon: '🌱',
-    rec: '14〜16h',
-    goalMin: 14, goalMax: 16,
-    tip: 'エストロゲンが上昇し代謝が活発に。断食に取り組みやすい時期です。',
-    safeMax: 18,
-    bedRisk: false
-  },
-  '排卵期': {
-    icon: '🥚',
-    rec: '14〜16h',
-    goalMin: 14, goalMax: 16,
-    tip: 'エネルギー需要が高まる時期。16h以内を目安にしましょう。',
-    safeMax: 16,
-    bedRisk: false
-  },
-  '黄体期': {
-    icon: '🌙',
-    rec: '12〜14h',
-    goalMin: 12, goalMax: 14,
-    // 研究根拠: 黄体期はエストロゲン低下・プロゲステロン上昇により Hedonic Hunger（糖質・高カロリー食への渇望）が増大
-    tip: '今は食欲が増しやすいホルモン状態です。糖質・甘いものへの渇望を感じても、それはあなたの意志の問題ではなくホルモンの働きです。',
-    safeMax: 14,
-    bedRisk: true  // Hedonic Hunger リスク高
-  },
-  '黄体期後期': {
-    icon: '🌑',
-    rec: '12〜13h',
-    goalMin: 12, goalMax: 13,
-    // 研究根拠: PMDD患者では黄体期に卵胞期比で有意にカロリー摂取増加・過食エピソード増加
-    tip: 'PMS/PMDDの影響で食欲コントロールが難しくなる時期です。過食衝動を感じても自分を責めないで。12hの軽めなファスティングがベストです。',
-    safeMax: 13,
-    bedRisk: true  // PMS/PMDD 過食エピソードリスク最大
-  }
-};
-
-// 疾患別推奨値オーバーライド（研究エビデンスに基づく）
-var FAST_DISEASE_OVERRIDE = {
-  // PCOS: インスリン抵抗性改善が治療の鍵（16hファスティングのエビデンスあり）
-  // ただしBEDリスクOR 1.53（2024メタアナリシス N=287,000）に注意
-  'PCOS': {
-    rec: '14〜16h（インスリン感受性向上）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: 'PCOSは過食性障害のリスクが約1.5倍高いというデータがあります。食欲の波は意志の問題ではなくインスリン・アンドロゲンの影響です。'
-  },
-  // 更年期: ペリメノポーズ期のBED有病率3.6%（閉経前0.5%の7倍）
-  '更年期障害': {
-    rec: '13〜15h（代謝サポート）',
-    goalMin: 13, goalMax: 15,
-    bedRisk: true,
-    bedNote: '更年期移行期はホルモン変動により食欲が不安定になりやすい時期です。無理な断食より、規則正しい食事リズムを優先しましょう。'
-  },
-  // PMS/PMDDは黄体期と重複するが疾患として選択している場合は明示
-  'PMS/PMDD': {
-    rec: '12〜14h（黄体期に合わせた柔軟な設定）',
-    goalMin: 12, goalMax: 14,
-    bedRisk: true,
-    bedNote: '黄体期には糖質・高カロリー食への渇望（Hedonic Hunger）が増大します。過食衝動は病気の症状であり、あなたのせいではありません。'
-  },
-  // 子宮内膜症: 抗炎症ファスティングに有効性あり
-  // ただし摂食障害リスクOR 2.94（遺伝的相関rg=0.61, 2026年最新レビュー）に注意
-  // 慢性疼痛による感情的過食・エンドベリーによるボディイメージ低下が引き金
-  '子宮内膜症': {
-    rec: '14〜16h（抗炎症・ケトーシス効果）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: '子宮内膜症のある方は摂食障害のリスクが約3倍高いという最新研究があります。慢性的な痛みやお腹の張り（エンドベリー）が感情的な過食の引き金になりやすいのは自然な反応です。'
-  },
-  // 子宮筋腫: 過食→肥満→エストロゲン過剰→筋腫増大の悪循環を断つ
-  // 体重管理が治療の鍵だが、過度な制限はリバウンドリスクあり
-  '子宮筋腫': {
-    rec: '12〜14h（体重・エストロゲン管理）',
-    goalMin: 12, goalMax: 14,
-    bedRisk: true,
-    bedNote: '過食→体重増加→脂肪組織でのエストロゲン産生増加→筋腫の成長促進という悪循環が研究で示されています。無理な制限よりも、安定したリズムが大切です。'
-  },
-  // 子宮腺筋症: 子宮内膜症に準じた抗炎症アプローチ
-  '子宮腺筋症': {
-    rec: '14〜16h（抗炎症サポート）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: '慢性的な痛みやストレスが感情的過食につながりやすい傾向があります。断食より、まず痛みの管理を優先してください。'
-  },
-  // 卵巣嚢腫: オートファジー活性化・酸化ストレス軽減・HPO軸修復
-  // [根拠] Yin et al. 2018: 30%カロリー制限でマウスの子宮内膜症性嚢腫が最大93%縮小（オートファジー促進・VEGF抑制）
-  // [根拠] Ryu et al. 2023 (Scientific Reports): 20h断食TRFでPCOS性嚢胞が正常形態に回復、テストステロン・LH正常化
-  '卵巣嚢腫': {
-    rec: '13〜15h（オートファジー促進・酸化ストレス軽減）',
-    goalMin: 13, goalMax: 15,
-    bedRisk: false,
-    bedNote: '食事リズムを整えることで、インスリンバランスとホルモン環境を安定させるサポートができます。規則的な断食パターンと卵巣の健康との関連は動物実験で研究されており、オートファジー（細胞の自食作用）の活性化や酸化ストレスの軽減が注目されています。※本アプリはセルフケアのサポートを目的としており、医療行為ではありません。'
-  }
-};
+// PR-085 (Legacy Removal Batch-7): FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDE は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
 
 // 過食衝動サポート: フェーズ・疾患別の検証メッセージと対処法
 var BINGE_URGE_SUPPORT = {
@@ -2369,65 +1792,13 @@ var FAST_RECOVERY_FOODS = {
 
 function getCurrentCyclePhase(){return typeof window.getCurrentCyclePhase==='function'?window.getCurrentCyclePhase():null;}
 
-function updateFastingWidgetPhase() {
-  var infoEl = document.getElementById('fast-phase-info');
-  if (!infoEl) return;
-
-  var phase = getCurrentCyclePhase();
-  var diseases = state.myDiseases || [];
-
-  // 疾患オーバーライド（優先順位: PCOS > 子宮内膜症 > PMS/PMDD > 子宮腺筋症 > 子宮筋腫 > 更年期 > 卵巣嚢腫）
-  var diseaseOverride = null;
-  var activeDiseaseName = null;
-  ['PCOS', '子宮内膜症', 'PMS/PMDD', '子宮腺筋症', '子宮筋腫', '更年期障害', '卵巣嚢腫'].forEach(function(dk) {
-    if (!diseaseOverride && diseases.indexOf(dk) !== -1 && FAST_DISEASE_OVERRIDE[dk]) {
-      diseaseOverride = FAST_DISEASE_OVERRIDE[dk];
-      activeDiseaseName = dk;
-    }
-  });
-
-  if (!phase && !diseaseOverride) { infoEl.style.display = 'none'; return; }
-
-  infoEl.style.display = 'block';
-  var cfg = (phase && FAST_PHASE_CONFIG[phase]) || {};
-
-  var iconEl  = document.getElementById('fast-phase-icon');
-  var nameEl  = document.getElementById('fast-phase-name');
-  var recEl   = document.getElementById('fast-phase-rec');
-  var tipEl   = document.getElementById('fast-phase-tip');
-
-  if (phase && cfg.icon) {
-    if (iconEl) iconEl.textContent = cfg.icon;
-    if (nameEl) nameEl.textContent = phase + (activeDiseaseName ? ' · ' + activeDiseaseName : '');
-    var recText = diseaseOverride ? diseaseOverride.rec : cfg.rec;
-    if (recEl)  recEl.textContent  = recText;
-    if (tipEl)  tipEl.textContent  = cfg.tip || '';
-  } else if (diseaseOverride) {
-    if (iconEl) iconEl.textContent = '💊';
-    if (nameEl) nameEl.textContent = activeDiseaseName + 'モード';
-    if (recEl)  recEl.textContent  = diseaseOverride.rec;
-    if (tipEl)  tipEl.textContent  = diseaseOverride.bedNote || '';
-  }
-
-  // 過食衝動サポートボタン: BEDリスク高のフェーズ or 疾患の場合に表示
-  var showBingeBtn = (cfg.bedRisk) || (diseaseOverride && diseaseOverride.bedRisk);
-  var bingeBtnWrap = document.getElementById('fast-binge-btn-wrap');
-  if (bingeBtnWrap) bingeBtnWrap.style.display = showBingeBtn ? 'block' : 'none';
-}
-
-function showRecoveryGuide(){if(typeof window.showRecoveryGuide==='function')window.showRecoveryGuide();}
+// PR-085 (Legacy Removal Batch-7): updateFastingWidgetPhase/showRecoveryGuide(local wrapper)/
+// fastInterval/window.__ippoStopFastInterval/setFastGoal は src/modules/fasting.js へ物理移動済み
+// （本ファイル冒頭で import back）。
 
 // 過食衝動サポートモーダル（研究エビデンスに基づく）
 
 // ===== FASTING TIMER =====
-let fastInterval = null;
-
-function setFastGoal(h, el) {
-  state.fastGoal = h;
-  saveState();
-  document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-}
 
 function toggleFast() {
   // fastingActiveがtrueでもfastingStartが欠落している不整合状態をリセット
@@ -2490,89 +1861,8 @@ function toggleFast() {
 }
 
 
-function endFast() {
-  if (!state.fastingActive) return;
-  const elapsed = (Date.now() - state.fastingStart) / 1000 / 3600;
-  state.fastingActive = false;
-  state.fastingStart = null;
-  state.fastingEnded = Date.now();
-  clearInterval(fastInterval);
-
-  // タイマー結果を今日の記録に保存
-  var todayStr = new Date().toDateString();
-  var rec = null;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
-  }
-  if(!rec){
-    var _now = new Date();
-    rec = { date: _now.toISOString(), record_date: _now.toISOString().slice(0, 10) };
-    state.records.push(rec);
-  }
-  rec.fastingTimer = Math.round(elapsed * 10) / 10;
-  rec.fastingGoal = state.fastGoal || 16;
-
-  saveState();
-  saveAndSync()
-  document.getElementById('fast-start-btn').style.display = 'block';
-  document.getElementById('fast-stop-btn').style.display = 'none';
-  document.getElementById('fast-timer').textContent = '00:00:00';
-  document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
-
-  // 回復食ガイドを表示
-  showRecoveryGuide();
-}
-
-function resumeFasting() {
-  // Restore pill active state from saved goal
-  document.querySelectorAll('.fw-pill').forEach(p => {
-    p.classList.toggle('active', parseInt(p.textContent) === state.fastGoal);
-  });
-  document.getElementById('fast-start-btn').style.display = 'none';
-  document.getElementById('fast-stop-btn').style.display = 'block';
-  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
-  startFastTimer();
-}
-
-function startFastTimer() {
-  // Always clear before starting — prevents double-run on re-render
-  if (fastInterval !== null) {
-    clearInterval(fastInterval);
-    fastInterval = null;
-  }
-  fastInterval = setInterval(() => {
-    if (!state.fastingStart) return;
-    const elapsed = Date.now() - state.fastingStart;
-    const h = Math.floor(elapsed / 3600000);
-    const m = Math.floor((elapsed % 3600000) / 60000);
-    const s = Math.floor((elapsed % 60000) / 1000);
-    const fmt = v => String(v).padStart(2, '0');
-    const timerEl = document.getElementById('fast-timer');
-    const statusEl = document.getElementById('fast-status');
-    if (!timerEl || !statusEl) { clearInterval(fastInterval); fastInterval = null; return; }
-    timerEl.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
-    const goalMs = state.fastGoal * 3600000;
-      if (elapsed >= goalMs) {
-      statusEl.textContent = '🎉 ' + state.fastGoal + 'h 達成！';
-      if (!state.fastingNotified) {
-        state.fastingNotified = true;
-        saveState();
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('ippo 🌸ファスティング達成！', {
-            body: state.fastGoal + '時間のファスティングを達成しました！おつかれさまです。',
-            icon: 'images/icon-192.png'
-          });
-        }
-      }
-    } else {
-      const remaining = goalMs - elapsed;
-      const rh = Math.floor(remaining / 3600000);
-      const rm = Math.floor((remaining % 3600000) / 60000);
-      statusEl.textContent = '目標まであと ' + rh + 'h' + rm + 'm';
-    }
-  }, 1000);
-}
-
+// PR-085 (Legacy Removal Batch-7): endFast/resumeFasting/startFastTimer は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
 
 // ===== ホーム周期フェーズバナー =====
 var PHASE_BANNER_CONFIG = {
@@ -2708,17 +1998,8 @@ function openDayDetailByDate(isoStr) {
   openDayDetail(d.getDate());
 }
 
-function getPhaseForDate(date) {
-  if (!state.lastPeriodDate || !state.cycleLength) return '不明';
-  var last     = new Date(state.lastPeriodDate + 'T00:00:00');
-  var dayNum   = Math.floor((date - last) / 86400000) + 1;
-  var cycle    = state.cycleLength || 28;
-  var adjusted = ((dayNum - 1) % cycle) + 1;
-  if (adjusted <= 5)                         return '月経期';
-  if (adjusted <= Math.floor(cycle * 0.46)) return '卵胞期';
-  if (adjusted <= Math.floor(cycle * 0.53)) return '排卵期';
-  return '黄体期';
-}
+// PR-086 (Legacy Removal Batch-8): getPhaseForDate は src/modules/cycle-utils.js へ
+// 新設・物理移動済み（本ファイル冒頭で import back）。
 
 function buildPhaseBar(monday) {
   var bar    = document.getElementById('home-phase-bar');
@@ -2869,176 +2150,8 @@ function updateHomeDiseaseAdvice() {
 }
 
 // ===== インサイト タブ切り替え (Pattern B: 5タブ) =====
-function switchInsTab(tab) {
-  // 旧タブ名の後方互換マッピング
-  var legacyMap = { free: 'recommended', pro: 'trends', doctor: 'report' };
-  if (legacyMap[tab]) tab = legacyMap[tab];
-
-  var panes = ['recommended', 'trends', 'cycle', 'experiments', 'report'];
-  panes.forEach(function(p) {
-    var pane = document.getElementById('ins-pane-' + p);
-    var btn  = document.getElementById('ins-tab-btn-' + p);
-    if (!pane || !btn) return;
-    if (p === tab) {
-      pane.style.display = 'block';
-      btn.style.background = '#F3EFFD';
-      btn.style.color = '#A78BFA';
-      btn.style.fontWeight = '500';
-      btn.style.borderColor = 'rgba(167,139,250,0.22)';
-      btn.style.boxShadow = 'none';
-    } else {
-      pane.style.display = 'none';
-      btn.style.background = 'transparent';
-      btn.style.color = 'rgba(45,31,26,0.42)';
-      btn.style.fontWeight = '400';
-      btn.style.borderColor = 'transparent';
-      btn.style.boxShadow = 'none';
-    }
-  });
-
-  if (tab === 'recommended') {
-    renderInsightDiscoveries();
-    renderMonthlySummaryText();
-  }
-  if (tab === 'trends') {
-    setTimeout(function(){
-      if (typeof renderComparisonChart === 'function') renderComparisonChart();
-      if (typeof renderTimeline === 'function') renderTimeline();
-    }, 80);
-  }
-  if (tab === 'cycle') {
-    if (typeof renderPhaseMap === 'function') renderPhaseMap();
-    setTimeout(function(){
-      if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
-      if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
-    }, 80);
-  }
-}
-
-// ===== インサイト発見ロジック＋メインカード更新 =====
-function renderInsightDiscoveries() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderInsightDiscoveries', renderInsightDiscoveries);
-    return;
-  }
-  var now = new Date();
-  var records30 = (state.records || []).filter(function(r){
-    var d = new Date(r.record_date || r.date);
-    return (now - d) / 86400000 <= 30;
-  });
-
-  // 記録不足の場合は空状態を表示
-  var emptyEl = document.getElementById('insights-empty-state');
-  if (records30.length < 3) {
-    if (emptyEl) emptyEl.style.display = 'block';
-    _updateInsMainCard(
-      '記録を続けると、\nあなたの体のパターンが見えてきます。',
-      '7日間記録すると、食事・症状・周期のつながりが分かってきます。'
-    );
-    return;
-  }
-  if (emptyEl) emptyEl.style.display = 'none';
-
-  // ── 発見候補を生成 ──────────────────────────────────
-  var best = null; // { main, sub, priority }
-
-  // 1. 睡眠が短い翌日の痛み
-  var shortSleepDays = records30.filter(function(r){ return (r.sleepHours || 8) < 6 && r.sleepHours > 0; });
-  if (shortSleepDays.length >= 2) {
-    var nextDayPains = shortSleepDays.map(function(r){
-      var d = new Date(r.record_date || r.date); d.setDate(d.getDate()+1);
-      var nx = records30.find(function(r2){ return new Date(r2.record_date || r2.date).toDateString() === d.toDateString(); });
-      return nx ? (nx.painLevel || 0) : null;
-    }).filter(function(v){ return v !== null; });
-    if (nextDayPains.length >= 1) {
-      var avgNP = nextDayPains.reduce(function(a,b){return a+b;},0)/nextDayPains.length;
-      if (avgNP >= 2) {
-        var pct = Math.round(nextDayPains.filter(function(v){return v>=2;}).length / nextDayPains.length * 100);
-        best = {
-          priority: 5,
-          main: '睡眠が6時間未満の日の翌日は、\n頭痛が出やすい傾向があります',
-          sub:  '過去30日の記録からみると、約' + pct + '%の確率で見られます。あなたの体のパターンです。'
-        };
-      }
-    }
-  }
-
-  // 2. 生理前の痛み集中
-  var painDays = records30.filter(function(r){ return (r.painLevel || 0) >= 4; });
-  if (painDays.length >= 3) {
-    var preLuteal = painDays.filter(function(r){
-      if (!state.lastPeriodDate || !state.cycleLength) return false;
-      var last = new Date(state.lastPeriodDate + 'T00:00:00');
-      var dayNum = Math.floor((new Date(r.date) - last) / 86400000) + 1;
-      var cl = state.cycleLength || 28;
-      return dayNum >= (cl - 7) && dayNum <= cl;
-    });
-    if (preLuteal.length >= 2 && (!best || best.priority < 6)) {
-      best = {
-        priority: 6,
-        main: '生理前の時期に、\n痛みが集中しやすい傾向があります',
-        sub:  '過去30日で生理前' + preLuteal.length + '日間に痛みが集中しています。周期を把握することが助けになります。'
-      };
-    }
-  }
-
-  // 3. 運動した翌日の気分向上
-  var exerciseDays = records30.filter(function(r){ return r.factors && r.factors.indexOf('運動した') !== -1; });
-  if (exerciseDays.length >= 2 && (!best || best.priority < 4)) {
-    var avgMoodEx = exerciseDays.reduce(function(s,r){ return s+(r.mood||3); },0) / exerciseDays.length;
-    var nonEx = records30.filter(function(r){ return !r.factors || r.factors.indexOf('運動した') === -1; });
-    var avgMoodNo = nonEx.length ? nonEx.reduce(function(s,r){ return s+(r.mood||3); },0) / nonEx.length : 3;
-    if (avgMoodEx > avgMoodNo + 0.3) {
-      best = {
-        priority: 4,
-        main: '運動した翌日は、\n気分が上向きやすいかもしれません',
-        sub:  '運動した日と比べ、気分スコアが高い傾向が見られます。続けることが助けになりそうです。'
-      };
-    }
-  }
-
-  // 4. 繰り返し症状
-  if (!best || best.priority < 3) {
-    var symCount = {};
-    records30.forEach(function(r){ (r.symptoms||[]).forEach(function(s){ symCount[s]=(symCount[s]||0)+1; }); });
-    var topSym = Object.entries ? Object.entries(symCount).sort(function(a,b){return b[1]-a[1];})[0] : null;
-    if (!topSym) {
-      var keys = Object.keys(symCount).sort(function(a,b){return symCount[b]-symCount[a];});
-      if (keys.length) topSym = [keys[0], symCount[keys[0]]];
-    }
-    if (topSym && topSym[1] >= 3) {
-      best = {
-        priority: 3,
-        main: '今月、「' + topSym[0] + '」が\n' + topSym[1] + '日続いています',
-        sub:  '記録を継続することで、症状のパターンが見えてきます。'
-      };
-    }
-  }
-
-  // 記録継続（ポジティブ）
-  if (!best && records30.length >= 5) {
-    best = {
-      priority: 1,
-      main: '今月は' + records30.length + '日、\n記録が続いています',
-      sub:  '続けるほど、あなただけのからだのパターンが見えてきます。'
-    };
-  }
-
-  if (best) {
-    _updateInsMainCard(best.main, best.sub);
-  }
-
-  // discoveries-cards（非表示コンテナ）にも書き込む（後方互換）
-  var container = document.getElementById('discoveries-cards');
-  if (container) container.innerHTML = '';
-}
-
-function _updateInsMainCard(main, sub) {
-  var textEl = document.getElementById('ins-main-insight-text');
-  var subEl  = document.getElementById('ins-main-insight-sub');
-  if (textEl) textEl.innerHTML = main.replace(/\n/g, '<br>');
-  if (subEl)  subEl.textContent = sub;
-}
+// PR-086 (Legacy Removal Batch-8): switchInsTab/renderInsightDiscoveries/_updateInsMainCard は
+// src/modules/insights-tab-panel.js へ新設・物理移動済み（本ファイル冒頭で import back）。
 
 // ===== 今月のサマリーテキスト生成 =====
 function renderMonthlySummaryText() {
@@ -3082,158 +2195,8 @@ function renderMonthlySummaryText() {
 }
 
 // ===== フェーズ別症状マップ =====
-function renderPhaseMap() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderPhaseMap', renderPhaseMap);
-    return;
-  }
-  var container = document.getElementById('phase-map-content');
-  if (!container) return;
-
-  // PRO以外はロックカードを表示
-  if (!isAdminOrPremium()) {
-    container.innerHTML =
-      '<div onclick="premiumGate(openCyclePhaseReport)" style="background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:18px;padding:18px 20px;cursor:pointer;position:relative;overflow:hidden;">'
-      + '<div style="position:absolute;top:0;right:0;bottom:0;width:50%;background:linear-gradient(135deg,rgba(200,169,110,0.08),transparent);"></div>'
-      + '<div style="font-size:13px;font-weight:500;color:var(--ink);margin-bottom:6px;">周期フェーズ × 症状のパターンを見る</div>'
-      + '<div style="font-size:11px;color:var(--ink-light);line-height:1.7;margin-bottom:14px;">どのフェーズで骨盤痛が集中しているか、黄体期のエネルギーレベルはどうかがわかります。診察前の確認にも役立ちます。</div>'
-      + '<div style="display:flex;gap:8px;margin-bottom:12px;">'
-      + _buildPhaseBarPreview()
-      + '</div>'
-      + '<div style="background:var(--rose);color:white;border-radius:12px;padding:10px;text-align:center;font-size:13px;font-weight:500;">🔓 PROで全フェーズを確認する</div>'
-      + '</div>';
-    return;
-  }
-
-  // PROユーザー：実データを描画
-  var analysis = analyzeCyclePhases(state.records || []);
-  var phaseNames = ['月経期', '卵胞期', '排卵期', '黄体期'];
-  var phaseColors = { '月経期': '#c4878c', '卵胞期': '#6b9e78', '排卵期': '#d4a574', '黄体期': '#7ba3c4' };
-  var phaseIcons  = { '月経期': '🔴', '卵胞期': '🌱', '排卵期': '🥚', '黄体期': '🌙' };
-
-  if (Object.keys(analysis).length === 0) {
-    container.innerHTML =
-      '<div style="background:var(--white);border-radius:16px;padding:20px;text-align:center;color:var(--ink-light);font-size:12px;line-height:1.8;box-shadow:0 1px 6px var(--shadow);">'
-      + '🌸 生理周期のデータがまだ不足しています。<br>生理日を記録し続けると、フェーズ別の傾向が見えてきます。'
-      + '</div>';
-    return;
-  }
-
-  // フェーズ選択タブ
-  var html = '<div id="phase-tab-row" style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;">';
-  phaseNames.forEach(function(name, idx) {
-    var active = idx === 0 ? 'background:var(--rose);color:white;border-color:var(--rose);' : 'background:var(--white);color:var(--ink-light);border-color:#e8ddd8;';
-    html += '<button onclick="selectPhaseTab(\'' + name + '\')" id="phase-tab-' + name + '" style="flex-shrink:0;padding:7px 14px;border-radius:20px;border:1.5px solid;font-size:12px;font-family:\'Noto Sans JP\',sans-serif;cursor:pointer;transition:all 0.2s;' + active + '">'
-      + phaseIcons[name] + ' ' + name + '</button>';
-  });
-  html += '</div>';
-
-  // 各フェーズのパネル
-  phaseNames.forEach(function(name) {
-    var d = analysis[name];
-    var color = phaseColors[name];
-    var display = name === '月経期' ? 'block' : 'none';
-
-    html += '<div id="phase-panel-' + name + '" style="display:' + display + ';">';
-    if (!d) {
-      html += '<div style="background:var(--white);border-radius:16px;padding:16px;text-align:center;color:var(--ink-light);font-size:12px;box-shadow:0 1px 6px var(--shadow);">'
-        + 'このフェーズのデータがまだありません。</div>';
-    } else {
-      html += '<div style="background:var(--white);border-radius:18px;padding:18px;box-shadow:0 1px 8px var(--shadow);border-top:3px solid ' + color + ';">';
-
-      // 指標グリッド
-      html += '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">';
-      var metrics = [
-        { label: '平均痛みレベル', val: d.avgPain,     unit: '/10',  max: 10,  warn: 5    },
-        { label: 'エネルギー',     val: d.avgEnergy,   unit: '/5',   max: 5,   warn: null },
-        { label: '睡眠の質',       val: d.avgSleep,    unit: '/5',   max: 5,   warn: null },
-        { label: 'ウェルネス',     val: d.avgWellness, unit: '/100', max: 100, warn: 40   }
-      ];
-      metrics.forEach(function(m) {
-        var pct = m.val !== '-' ? Math.round(parseFloat(m.val) / m.max * 100) : 0;
-        var valColor = (m.warn && m.val !== '-' && parseFloat(m.val) >= m.warn) ? '#c4878c' : color;
-        html += '<div style="background:var(--cream);border-radius:12px;padding:12px;">';
-        html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">' + m.label + '</div>';
-        html += '<div style="font-size:18px;font-weight:600;color:' + valColor + ';line-height:1;">' + m.val + '<span style="font-size:10px;color:var(--ink-light);">' + m.unit + '</span></div>';
-        html += '<div style="height:4px;background:#e8ddd8;border-radius:2px;margin-top:6px;overflow:hidden;">';
-        html += '<div style="height:100%;width:' + pct + '%;background:' + valColor + ';border-radius:2px;transition:width 0.4s;"></div>';
-        html += '</div></div>';
-      });
-      html += '</div>';
-
-      // 多い症状
-      if (d.topSymptoms && d.topSymptoms.length > 0) {
-        html += '<div style="margin-bottom:12px;">';
-        html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">このフェーズで多い症状</div>';
-        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-        d.topSymptoms.slice(0, 5).forEach(function(s) {
-          html += '<span style="font-size:11px;background:#fdf0f2;color:#c4878c;padding:4px 10px;border-radius:12px;">'
-            + s[0] + ' <span style="font-size:10px;opacity:0.7;">(' + s[1] + '日)</span></span>';
-        });
-        html += '</div></div>';
-      }
-
-      // 多い生活要因
-      if (d.topFactors && d.topFactors.length > 0) {
-        html += '<div style="margin-bottom:12px;">';
-        html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">このフェーズで多い要因</div>';
-        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-        d.topFactors.slice(0, 4).forEach(function(f) {
-          html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:12px;">'
-            + f[0] + ' <span style="font-size:10px;opacity:0.7;">(' + f[1] + '日)</span></span>';
-        });
-        html += '</div></div>';
-      }
-
-      // 詳細レポートへのリンク
-      html += '<button onclick="openCyclePhaseReport()" style="width:100%;padding:11px;background:var(--cream);border:1.5px solid #e8ddd8;border-radius:12px;font-family:\'Noto Sans JP\',sans-serif;font-size:12px;color:var(--ink-light);cursor:pointer;margin-top:4px;">全フェーズの詳細比較を見る →</button>';
-
-      html += '</div>';
-    }
-    html += '</div>';
-  });
-
-  container.innerHTML = html;
-}
-
-function selectPhaseTab(name) {
-  var phaseNames = ['月経期', '卵胞期', '排卵期', '黄体期'];
-  var phaseColors = { '月経期': '#c4878c', '卵胞期': '#6b9e78', '排卵期': '#d4a574', '黄体期': '#7ba3c4' };
-  phaseNames.forEach(function(n) {
-    var tab = document.getElementById('phase-tab-' + n);
-    var panel = document.getElementById('phase-panel-' + n);
-    if (tab) {
-      if (n === name) {
-        tab.style.background = phaseColors[n] || 'var(--rose)';
-        tab.style.color = 'white';
-        tab.style.borderColor = phaseColors[n] || 'var(--rose)';
-      } else {
-        tab.style.background = 'var(--white)';
-        tab.style.color = 'var(--ink-light)';
-        tab.style.borderColor = '#e8ddd8';
-      }
-    }
-    if (panel) panel.style.display = n === name ? 'block' : 'none';
-  });
-}
-
-// 非PROユーザー向けのぼかしプレビューバーを生成
-function _buildPhaseBarPreview() {
-  var phases = [
-    { name: '月経期', color: '#c4878c', val: 65 },
-    { name: '卵胞期', color: '#6b9e78', val: 85 },
-    { name: '排卵期', color: '#d4a574', val: 80 },
-    { name: '黄体期', color: '#7ba3c4', val: 60 }
-  ];
-  return phases.map(function(p) {
-    return '<div style="flex:1;text-align:center;">'
-      + '<div style="height:40px;background:' + p.color + '33;border-radius:8px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;">'
-      + '<div style="width:70%;height:' + p.val + '%;background:' + p.color + '88;border-radius:4px 4px 0 0;filter:blur(1px);"></div>'
-      + '</div>'
-      + '<div style="font-size:9px;color:var(--ink-light);margin-top:4px;">' + p.name + '</div>'
-      + '</div>';
-  }).join('');
-}
+// PR-082D (Legacy Removal Batch-4 分割④): renderPhaseMap/selectPhaseTab/
+// _buildPhaseBarPreview は src/modules/pro/cycle-report.js へ物理移動済み（import参照）。
 
 // ===== TABS =====
 function switchTab(tab, btn) {
@@ -3259,9 +2222,7 @@ function switchTab(tab, btn) {
     if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
     if (typeof updateTodayMessage === 'function') updateTodayMessage();
   }
-  if (tab === 'calendar') {
-    buildCalendar();
-  }
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
 }
 　
 
@@ -3272,14 +2233,13 @@ let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき�
 function openRecordModal() {
   const activeScreen = document.querySelector('.screen.active');
   if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
-  currentRecord = {};
-  currentStep = 0;
-  STEPS = window.STEPS = buildSteps();
+  RecordInput.resetCurrentRecord();
+  var steps = RecordInput.initSteps();
   // ステップインジケーターのドットを動的生成
   var indicator = document.getElementById('step-indicator');
   if (indicator) {
     indicator.innerHTML = '';
-    window.STEPS.forEach(function() {
+    steps.forEach(function() {
       var dot = document.createElement('div');
       dot.className = 'step-dot';
       indicator.appendChild(dot);
@@ -3303,645 +2263,63 @@ function closeModal() {
   if (prevBtn) prevBtn.focus();
 }
 
-function renderStep() {
-  const step = STEPS[currentStep];
-  document.getElementById('modal-title').innerHTML = step.title.replace('\n', '<br>');
-  document.getElementById('modal-step-label').textContent = step.label;
-
-  const dots = document.querySelectorAll('#step-indicator .step-dot');
-  dots.forEach((d, i) => {
-    d.classList.remove('active', 'done');
-    if (i < currentStep) d.classList.add('done');
-    else if (i === currentStep) d.classList.add('active');
-  });
-
-  document.getElementById('modal-back-btn').style.display = currentStep === 0 ? 'none' : 'block';
-  document.getElementById('modal-next-btn').textContent = currentStep === STEPS.length - 1 ? '保存する' : '次へ →';
-
-  step.render();
-}
-
-function nextStep() {
-  if (currentStep < STEPS.length - 1) {
-    currentStep++;
-    renderStep();
-  } else {
-    saveRecord();
-  }
-}
-
-function prevStep() {
-  if (currentStep > 0) {
-    currentStep--;
-    renderStep();
-  }
-}
+// PR-079: renderStep/nextStep/prevStep は src/modules/record-input.js へ移植済み。
+// bare identifier は委譲のみ（再実装禁止）。nextStep の saveRecord() 呼び出しは
+// record-input.js 側で window.saveRecord 経由に置き換え済み。
+const renderStep = RecordInput.renderStep;
+const nextStep = RecordInput.nextStep;
+const prevStep = RecordInput.prevStep;
 
 // ===== STEP RENDERERS =====
-function renderWellness() {
-  const scores = [
-    { v: 1, emoji: '😔', label: 'とてもつらい' },
-    { v: 2, emoji: '😕', label: 'しんどい' },
-    { v: 3, emoji: '😐', label: 'ふつう' },
-    { v: 4, emoji: '🙂', label: 'わりと元気' },
-    { v: 5, emoji: '😊', label: 'とても元気' },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="score-selector">
-      ${scores.map(s => `
-        <button class="score-btn ${currentRecord.wellness === s.v ? 'selected' : ''}" onclick="selectWellness(${s.v}, this)">
-          ${s.emoji}<span class="score-label">${s.label}</span>
-        </button>
-      `).join('')}
-    </div>
-  `;
-}
-
-function selectWellness(v, el) {
-  currentRecord.wellness = v;
-  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
+// PR-079: renderWellness/selectWellness は src/modules/record-input.js へ移植済み。
+const renderWellness = RecordInput.renderWellness;
+const selectWellness = RecordInput.selectWellness;
 
 
 
-function renderFood() {
-  const foods = ['根菜類', '発酵食品', '温かいもの', '砂糖控え', 'グルテンフリー', 'EPA/DHA', 'ビタミンD', '鉄分', '水2L以上'];
-  if (!currentRecord.foodItems) currentRecord.foodItems = [];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="score-selector" style="margin-bottom:16px;">
-      ${[1,2,3,4,5,6,7,8,9,10].map(v => `
-        <button class="score-btn ${currentRecord.foodScore === v ? 'selected' : ''}" style="font-size:14px;padding:10px 2px;" onclick="selectFood(${v}, this)">
-          ${v}<span class="score-label"></span>
-        </button>
-      `).join('')}
-    </div>
-    <div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">意識した食材（複数OK）</div>
-    <div class="chips" id="food-chips">
-      ${foods.map(f => `<div class="chip ${currentRecord.foodItems.includes(f) ? 'selected' : ''}" onclick="toggleFoodItem('${f}', this)">${f}</div>`).join('')}
-    </div>
-  `;
-}
+// PR-079: renderFood/selectFood/toggleFoodItem は src/modules/record-input.js へ移植済み。
+const renderFood = RecordInput.renderFood;
+const selectFood = RecordInput.selectFood;
+const toggleFoodItem = RecordInput.toggleFoodItem;
 
-function selectFood(v, el) {
-  currentRecord.foodScore = v;
-  document.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-}
+// PR-079: renderFasting/selectFasting は src/modules/record-input.js へ移植済み。
+const renderFasting = RecordInput.renderFasting;
+const selectFasting = RecordInput.selectFasting;
 
-function toggleFoodItem(item, el) {
-  if (!currentRecord.foodItems) currentRecord.foodItems = [];
-  if (currentRecord.foodItems.includes(item)) {
-    currentRecord.foodItems = currentRecord.foodItems.filter(f => f !== item);
-    el.classList.remove('selected');
-  } else {
-    currentRecord.foodItems.push(item);
-    el.classList.add('selected');
-  }
-}
+// PR-079: renderEmotion/selectEmotion は src/modules/record-input.js へ移植済み。
+const renderEmotion = RecordInput.renderEmotion;
+const selectEmotion = RecordInput.selectEmotion;
 
-function renderFasting() {
-  // バグ05: インデックスではなく実際の値で比較・保存する
-  const opts = [
-    { label: '記録しない', value: null },
-    { label: '12時間',     value: 12 },
-    { label: '14時間',     value: 14 },
-    { label: '16時間',     value: 16 },
-    { label: '18時間以上', value: 18 },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="chips" style="flex-direction:column;gap:8px;">
-      ${opts.map(o => `
-        <div class="chip ${currentRecord.fasting === o.value ? 'selected' : ''}"
-             style="padding:12px 16px;font-size:13px;border-radius:14px;"
-             onclick="selectFasting(${o.value === null ? 'null' : o.value}, this)">${o.label}</div>
-      `).join('')}
-    </div>
-  `;
-}
-
-function selectFasting(v, el) {
-  currentRecord.fasting = v === 'null' ? null : Number(v);
-  document.querySelectorAll('.chips .chip').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-function renderEmotion() {
-  const emotions = [
-    { emoji: '🌸', label: '穏やか\n平和', key: '穏やか' },
-    { emoji: '✨', label: 'うれしい\n満たされ', key: 'うれしい' },
-    { emoji: '🌙', label: '疲れ\n重さ', key: '疲れ' },
-    { emoji: '🌊', label: '不安\n緊張', key: '不安' },
-    { emoji: '🔥', label: 'イライラ\n焦り', key: 'イライラ' },
-    { emoji: '☁️', label: 'ふつう', key: 'ふつう' },
-  ];
-  document.getElementById('modal-body').innerHTML = `
-    <div class="emotion-grid">
-      ${emotions.map(e => `
-        <button class="emotion-btn ${currentRecord.emotion === e.key ? 'selected' : ''}" onclick="selectEmotion('${e.key}', this)">
-          <span class="emotion-emoji">${e.emoji}</span>
-          <span class="emotion-label">${e.label.replace('\n', '<br>')}</span>
-        </button>
-      `).join('')}
-    </div>
-    <textarea class="modal-textarea" id="journal-note" placeholder="今日感じたことを自由に…">${currentRecord.note || ''}</textarea>
-  `;
-}
-
-function selectEmotion(key, el) {
-  currentRecord.emotion = key;
-  document.querySelectorAll('.emotion-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  const note = document.getElementById('journal-note');
-  if (note) currentRecord.note = note.value;
-}
-
-// ===== STEPS ビルダー =====
-function buildSteps() {
-  var stepCount = 3 + (state.fastingEnabled ? 1 : 0);
-  var steps = [
-    {
-      title: getBodyCheckTitle(),
-      label: '1 / ' + stepCount,
-      render: renderBodyCheck
-    },
-    {
-      title: '症状と痛みを\n記録しましょう',
-      label: '2 / ' + stepCount,
-      render: renderSymptomDetail
-    },
-    {
-      title: '今日の気持ちと\nひとことメモ',
-      label: '3 / ' + stepCount,
-      render: renderEmotion
-    }
-  ];
-  if (state.fastingEnabled) {
-    steps.push({
-      title: '今日のファスティング',
-      label: '4 / 4',
-      render: renderFasting
-    });
-  }
-  return steps;
-}
-
-// ===== Step1: からだチェック（時間帯・疾患別） =====
-function getBodyCheckTitle() {
-  var hour = new Date().getHours();
-  if (hour >= 5  && hour < 12) return '今朝のからだの\n状態を教えてください';
-  if (hour >= 12 && hour < 17) return '今日のからだは\nどうですか？';
-  if (hour >= 17 && hour < 21) return '今日一日\nお疲れさまでした';
-  return '今夜のからだの\n状態を教えてください';
-}
-
-function renderBodyCheck() {
-  var hour = new Date().getHours();
-  var diseases = state.myDiseases || [];
-  var isMorning = hour >= 5 && hour < 12;
-  var isNight   = hour >= 20 || hour < 5;
-
-  var html = '';
-
-  // --- 痛みレベル（全時間帯・SVG顔アイコン） ---
-  html += '<div style="margin-bottom:18px;">';
-  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日の痛みレベルはどのくらいですか？</div>';
-  html += renderPainScale(currentRecord.painLevel, 'painLevel');
-  html += '</div>';
-
-  // --- 睡眠の質（朝のみ表示・SVGアイコン） ---
-  if (isMorning) {
-    html += '<div style="margin-bottom:18px;">';
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">昨夜の眠りはどうでしたか？</div>';
-    var sleepOpts = [
-      { v: 1, icon: 'moon',        label: 'ぐっすり' },
-      { v: 2, icon: 'faceGood',    label: 'まあまあ' },
-      { v: 3, icon: 'faceNeutral', label: 'あまり眠れず' },
-      { v: 4, icon: 'faceBad',     label: 'ほとんど眠れず' }
-    ];
-    html += '<div class="score-selector">';
-    sleepOpts.forEach(function(s) {
-      var sel = currentRecord.sleepQuality === s.v;
-      var c = sel ? 'var(--rose)' : '#9a8e88';
-      html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'sleepQuality\',' + s.v + ',this)">'
-        + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
-    });
-    html += '</div></div>';
-  }
-
-  // --- エネルギー（全時間帯・SVGアイコン） ---
-  html += '<div style="margin-bottom:18px;">';
-  if (isMorning) {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今朝、からだはどんな感じですか？</div>';
-  } else if (isNight) {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今日一日、からだはどうでしたか？</div>';
-  } else {
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">今の体の状態を教えてください</div>';
-  }
-  var energyOpts = [
-    { v: 5, icon: 'sun',          label: 'エネルギーがある' },
-    { v: 4, icon: 'faceGood',     label: 'まあまあ元気' },
-    { v: 3, icon: 'faceNeutral',  label: 'ふつう' },
-    { v: 2, icon: 'faceBad',      label: '疲れている' },
-    { v: 1, icon: 'faceVeryBad',  label: 'とても疲れている' }
-  ];
-  html += '<div class="score-selector">';
-  energyOpts.forEach(function(s) {
-    var sel = currentRecord.energy === s.v;
-    var c = sel ? 'var(--rose)' : '#9a8e88';
-    html += '<button class="score-btn' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckItem(\'energy\',' + s.v + ',this)">'
-      + ICONS[s.icon](18, c) + '<span class="score-label">' + s.label + '</span></button>';
-  });
-  html += '</div></div>';
-
-  // --- 疾患別の追加質問（1問のみ） ---
-  var extraQ = getDiseaseMorningQuestion(diseases, isMorning, isNight);
-  if (extraQ) {
-    html += '<div style="margin-bottom:18px;">';
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">' + extraQ.question + '</div>';
-    html += '<div class="chips">';
-    extraQ.options.forEach(function(opt) {
-      var sel = (currentRecord.extraAnswer || '') === opt;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" onclick="selectBodyCheckExtra(\'' + opt.replace(/'/g, "\\'") + '\',this)">' + opt + '</div>';
-    });
-    html += '</div></div>';
-  }
-
-  document.getElementById('modal-body').innerHTML = html;
-}
-
-function selectBodyCheckItem(field, value, el) {
-  currentRecord[field] = value;
-  var group = el.closest('.score-selector');
-  if (group) group.querySelectorAll('.score-btn').forEach(function(b) { b.classList.remove('selected'); });
-  el.classList.add('selected');
-}
-
-function selectBodyCheckExtra(value, el) {
-  currentRecord.extraAnswer = value;
-  var group = el.closest('.chips');
-  if (group) group.querySelectorAll('.chip').forEach(function(c) { c.classList.remove('selected'); });
-  el.classList.add('selected');
-}
-
-// ===== 疾患別追加質問 =====
-function getDiseaseMorningQuestion(diseases, isMorning, isNight) {
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (isMorning) return {
-      question: '朝起きたとき、骨盤周りの痛みはありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった', '起きるのがつらかった']
-    };
-    if (isNight) return {
-      question: '今日一日の骨盤の痛みのピークはいつでしたか？',
-      options: ['なかった', '朝', '午後', '夕方以降', '常にあった']
-    };
-    return {
-      question: '今の骨盤周りの状態は？',
-      options: ['楽', '少し重い', '痛みがある', 'かなり痛い']
-    };
-  }
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (isMorning) return {
-      question: '今朝の基礎体温を計りましたか？',
-      options: ['計った（記録欄に入力）', '忘れた', '今日は計らない']
-    };
-    return {
-      question: '今日の食欲はどうでしたか？',
-      options: ['ふつう', '少し多め', 'かなり多め', '少なめ']
-    };
-  }
-  if (diseases.indexOf('子宮筋腫') !== -1) {
-    if (isMorning) return {
-      question: '今朝、下腹部の圧迫感はありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった']
-    };
-    return {
-      question: '今日の経血量は（生理中の場合）？',
-      options: ['生理中ではない', '少ない', 'ふつう', '多い', 'とても多い']
-    };
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (isMorning) return {
-      question: '今朝の気分はどうですか？',
-      options: ['穏やか', 'すこし不安定', 'かなり不安定', 'とても辛い']
-    };
-    return {
-      question: '今日、感情のコントロールは難しかったですか？',
-      options: ['問題なかった', '少し難しかった', 'かなり難しかった', 'とても辛かった']
-    };
-  }
-  if (diseases.indexOf('更年期障害') !== -1) {
-    if (isMorning) return {
-      question: '昨夜、寝汗やほてりで目が覚めましたか？',
-      options: ['なかった', '1回あった', '2〜3回あった', '何度も目が覚めた']
-    };
-    return {
-      question: '今日のほてり・のぼせはありましたか？',
-      options: ['なかった', '少しあった', 'かなりあった', 'とても辛かった']
-    };
-  }
-  if (diseases.indexOf('卵巣嚢腫') !== -1) {
-    return {
-      question: '今日、片側の腹部に違和感はありましたか？',
-      options: ['なかった', '左側に少し', '右側に少し', 'どちらかにかなり', '強い痛みがあった']
-    };
-  }
-  // 疾患未設定のデフォルト
-  if (isMorning) return {
-    question: '今日一日の予定を考えると、からだの状態は？',
-    options: ['問題なさそう', '少し心配', 'かなり心配', '無理せず休みたい']
-  };
-  return null;
-}
+// PR-079: buildSteps/getBodyCheckTitle/renderBodyCheck/selectBodyCheckItem/
+// selectBodyCheckExtra/getDiseaseMorningQuestion は src/modules/record-input.js へ移植済み。
+const buildSteps = RecordInput.buildSteps;
+const getBodyCheckTitle = RecordInput.getBodyCheckTitle;
+const renderBodyCheck = RecordInput.renderBodyCheck;
+const selectBodyCheckItem = RecordInput.selectBodyCheckItem;
+const selectBodyCheckExtra = RecordInput.selectBodyCheckExtra;
+const getDiseaseMorningQuestion = RecordInput.getDiseaseMorningQuestion;
 
 // ===== 今日のヒントカード（時間帯・疾患別） =====
-function updateDailyHintCard() {
-  var container = document.getElementById('today-message');
-  if (!container) return;
+// PR-086 (Legacy Removal Batch-8): updateDailyHintCard は src/modules/home-renderer.js へ
+// 物理移動済み（本ファイル冒頭で import back）。
 
-  var hour     = new Date().getHours();
-  var diseases = state.myDiseases || [];
-  var isMorning = hour >= 5  && hour < 12;
-  var isNight   = hour >= 20 || hour < 5;
-
-  var hint = getDailyHint(diseases, isMorning, isNight);
-  if (!hint) return;
-
-  container.innerHTML =
-    '<div style="border-left:3px solid var(--rose);padding-left:10px;">'
-    + '<div style="font-size:10px;color:var(--rose);font-weight:500;margin-bottom:3px;">' + hint.label + '</div>'
-    + '<div style="font-size:12px;color:var(--ink);line-height:1.7;">' + hint.text + '</div>'
-    + '</div>';
-}
-
-function getDailyHint(diseases, isMorning, isNight) {
-  var d = new Date().getDay();
-
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (isMorning) return { label: '💡 今日のケア', text: '骨盤を温めると血流が改善し、痛みが和らぐことがあります。今日も無理せず過ごしましょう。' };
-    if (isNight)   return { label: '🌙 夜のケア',   text: '就寝前の軽いストレッチが骨盤のこわばりをやわらげます。今日の症状を記録しておきましょう。' };
-    return { label: '📊 記録のヒント', text: '痛みの部位・性質・強さを記録すると、診察時に医師へ正確に伝えられます。' };
-  }
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (isMorning) return { label: '🌡 基礎体温', text: '毎朝同じ時間に基礎体温を測ると、排卵のパターンが見えてきます。' };
-    if (isNight)   return { label: '🍽 食事メモ', text: '血糖値の急上昇を避けると、PCOSの症状管理に役立つことがあります。今日の食事を記録しましょう。' };
-    return { label: '💡 今日のヒント', text: '適度な有酸素運動はインスリン抵抗性の改善に役立つと言われています。' };
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (isMorning) return { label: '🌸 今日の気分', text: 'PMSの症状は生理前7〜14日に出やすいです。今日の気分の変化も記録しておきましょう。' };
-    if (isNight)   return { label: '🌙 夜のケア',   text: '生理前は睡眠の質が落ちやすい時期です。スマートフォンの画面は早めに閉じましょう。' };
-    return { label: '💡 気分の記録', text: '気分の波をパターンとして記録すると、PMSとPMDDの違いが見えてきます。' };
-  }
-  if (diseases.indexOf('更年期障害') !== -1) {
-    if (isMorning) return { label: '🌡 今朝のチェック', text: 'ほてりや寝汗の有無を毎朝記録すると、症状の変化のパターンがわかります。' };
-    if (isNight)   return { label: '🌙 夜のケア',       text: '寝室を涼しくしておくと、夜間のほてりや寝汗が軽減されることがあります。' };
-    return { label: '💡 SMIチェック', text: '更年期指数（SMI）の記録を続けると、症状の改善・悪化が数値でわかります。' };
-  }
-
-  var defaults = {
-    morning: [
-      { label: '🌸 今日も一歩', text: '今日の記録が、未来の診察を変えます。まず症状チップをタップしてみましょう。' },
-      { label: '💡 記録のコツ', text: '毎日同じ時間に記録すると、からだのパターンが見えやすくなります。' }
-    ],
-    night: [
-      { label: '🌙 お疲れさまでした', text: '今日の症状を記録して、一日を締めくくりましょう。' },
-      { label: '📊 今日の振り返り',   text: '今日気になったことがあれば、メモ欄に残しておくと診察で役立ちます。' }
-    ],
-    day: [
-      { label: '💡 記録の習慣', text: '30日記録を続けると、あなただけの症状パターンが見えてきます。' },
-      { label: '🏥 診察の準備', text: '症状の記録が7日分たまったら、医師向けレポートを作成できます。' }
-    ]
-  };
-  var pool = isMorning ? defaults.morning : isNight ? defaults.night : defaults.day;
-  return pool[d % pool.length];
-}
+// PR-079: getDailyHint は src/modules/record-input.js へ移植済み。
+const getDailyHint = RecordInput.getDailyHint;
 
 // ===== 症状詳細展開UI（Step2） =====
-function renderSymptomDetail() {
-  var prioritized = [];
-  var diseases = state.myDiseases || [];
-  diseases.forEach(function(d) {
-    var cfg = DISEASE_CONFIG[d];
-    if (!cfg || !cfg.specificSymptoms) return;
-    cfg.specificSymptoms.forEach(function(s) {
-      if (prioritized.indexOf(s) === -1) prioritized.push(s);
-    });
-  });
-  var userSymptoms = state.mySymptoms || [];
-  userSymptoms.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-  var defaults = ['下腹部痛', '腰痛', '頭痛', '骨盤痛', 'だるさ', '不正出血', '吐き気', 'むくみ', 'おりもの', '気分の落ち込み', 'イライラ'];
-  defaults.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  if (!currentRecord.symptoms) currentRecord.symptoms = [];
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-
-  var html = '';
-  html += '<div style="font-size:12px;color:var(--ink-light);margin-bottom:10px;">今日の症状（複数選択可）</div>';
-  html += '<div class="chips" id="sd-chips" style="margin-bottom:16px;">';
-  prioritized.slice(0, 12).forEach(function(s) {
-    var sel = currentRecord.symptoms.indexOf(s) !== -1;
-    html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-      + 'onclick="toggleSymptomChip(\'' + s.replace(/'/g, "\\'") + '\', this)" '
-      + 'style="transition:all 0.2s;">'
-      + s + '</div>';
-  });
-  html += '</div>';
-  html += '<div id="sd-details"></div>';
-
-  document.getElementById('modal-body').innerHTML = html;
-
-  // 既に選択済みのものは詳細を展開
-  currentRecord.symptoms.forEach(function(s) {
-    appendSymptomDetail(s);
-  });
-}
-
-function toggleSymptomChip(symptomName, el) {
-  if (!currentRecord.symptoms) currentRecord.symptoms = [];
-  var idx = currentRecord.symptoms.indexOf(symptomName);
-  if (idx !== -1) {
-    currentRecord.symptoms.splice(idx, 1);
-    el.classList.remove('selected');
-    var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
-    var detail = document.getElementById(safeId);
-    if (detail) {
-      detail.style.maxHeight = detail.scrollHeight + 'px';
-      requestAnimationFrame(function() {
-        detail.style.transition = 'max-height 0.3s ease, opacity 0.3s ease';
-        detail.style.maxHeight = '0';
-        detail.style.opacity = '0';
-        setTimeout(function() { if (detail.parentNode) detail.remove(); }, 300);
-      });
-    }
-  } else {
-    currentRecord.symptoms.push(symptomName);
-    el.classList.add('selected');
-    appendSymptomDetail(symptomName);
-  }
-}
-
-function appendSymptomDetail(symptomName) {
-  var cfg = SYMPTOM_DETAIL_CONFIG[symptomName];
-  if (!cfg) return;
-
-  var container = document.getElementById('sd-details');
-  if (!container) return;
-  var safeId = 'sd-detail-' + symptomName.replace(/[^a-zA-Z0-9]/g, '_');
-  if (document.getElementById(safeId)) return;
-
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  var detail = currentRecord.symptomDetails[symptomName];
-
-  var html = '<div id="' + safeId + '" style="background:var(--cream);border-radius:14px;padding:14px;margin-bottom:10px;border-left:3px solid var(--rose);max-height:0;opacity:0;overflow:hidden;">';
-  html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:10px;">| DETAIL<br>' + symptomName + 'の詳細</div>';
-
-  // 位置・量選択
-  if (cfg.positions && cfg.positions.length > 0) {
-    var posLabel = symptomName === 'おりもの' ? '量' : '痛みの位置';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + posLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.positions.forEach(function(pos) {
-      var sel = (detail.positions || []).indexOf(pos) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'positions\',\'' + pos.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + pos + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // 種類選択
-  if (cfg.types && cfg.types.length > 0) {
-    var typesLabel = symptomName === 'おりもの' ? 'おりものの状態' : '痛みの種類';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + typesLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.types.forEach(function(type) {
-      var sel = (detail.types || []).indexOf(type) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'types\',\'' + type.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + type + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // タイミング選択
-  if (cfg.timing && cfg.timing.length > 0) {
-    var timingLabel = symptomName === 'おりもの' ? 'その他の症状' : 'タイミング';
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">' + timingLabel + '</div>';
-    html += '<div class="chips" style="margin-bottom:12px;">';
-    cfg.timing.forEach(function(t) {
-      var sel = (detail.timing || []).indexOf(t) !== -1;
-      html += '<div class="chip' + (sel ? ' selected' : '') + '" '
-        + 'onclick="toggleDetailItem(\'' + symptomName.replace(/'/g, "\\'") + '\',\'timing\',\'' + t.replace(/'/g, "\\'") + '\',this)" '
-        + 'style="font-size:11px;transition:all 0.15s;">' + t + '</div>';
-    });
-    html += '</div>';
-  }
-
-  // 注記（おりものなど）
-  if (cfg.note) {
-    html += '<div style="font-size:10px;color:var(--ink-light);background:rgba(184,112,122,0.07);border-radius:8px;padding:8px 10px;margin-bottom:10px;">ℹ️ ' + cfg.note + '</div>';
-  }
-
-  // 排便回数
-  if (cfg.bowelCount) {
-    var bowelVal = detail.bowelCount || 0;
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:7px;">今日の排便回数</div>';
-    html += '<div style="display:flex;gap:6px;margin-bottom:12px;">';
-    for (var i = 0; i <= 5; i++) {
-      html += '<button onclick="selectBowelCount(\'' + symptomName.replace(/'/g, "\\'") + '\',' + i + ',this)" '
-        + 'style="width:36px;height:36px;border-radius:50%;border:1.5px solid '
-        + (bowelVal === i ? 'var(--rose)' : '#e8ddd8') + ';'
-        + 'background:' + (bowelVal === i ? 'var(--rose-pale)' : 'var(--white)') + ';'
-        + 'font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;transition:all 0.15s;">'
-        + (i === 0 ? 'なし' : i) + '</button>';
-    }
-    html += '</div>';
-  }
-
-  // 強さスライダー
-  if (cfg.hasSlider) {
-    var sliderLabel = cfg.sliderLabel || '痛みの強さ';
-    var sliderVal = detail.intensity !== undefined ? detail.intensity : 0;
-    var pct = Math.round(sliderVal / 10 * 100);
-    var labels = ['なし', '軽い', '中程度', '強い', '激痛'];
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-    html += '<div style="font-size:11px;color:var(--ink-light);">' + sliderLabel + '</div>';
-    html += '<div style="font-size:13px;font-weight:600;color:var(--rose);" id="slider-val-' + safeId + '">' + sliderVal + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span></div>';
-    html += '</div>';
-    html += '<input type="range" min="0" max="10" value="' + sliderVal + '" '
-      + 'style="width:100%;height:4px;margin-bottom:8px;background:linear-gradient(to right,var(--rose) 0%,var(--rose) ' + pct + '%,#e8ddd8 ' + pct + '%,#e8ddd8 100%);" '
-      + 'oninput="updateSliderDetail(\'' + symptomName.replace(/'/g, "\\'") + '\',this.value,\'' + safeId + '\',this)">';
-    html += '<div style="display:flex;justify-content:space-between;">';
-    labels.forEach(function(l) {
-      html += '<span style="font-size:9px;color:var(--ink-light);">' + l + '</span>';
-    });
-    html += '</div>';
-    html += '<div style="margin-top:10px;background:rgba(184,112,122,0.08);border-radius:8px;padding:8px 10px;font-size:10px;color:var(--ink-light);">💡 ' + symptomName + 'の記録が症状の変化の把握に役立ちます</div>';
-  }
-
-  html += '</div>';
-  container.insertAdjacentHTML('beforeend', html);
-
-  var el = document.getElementById(safeId);
-  if (el) {
-    requestAnimationFrame(function() {
-      requestAnimationFrame(function() {
-        el.style.transition = 'max-height 0.35s ease, opacity 0.35s ease';
-        el.style.maxHeight = '700px';
-        el.style.opacity = '1';
-      });
-    });
-  }
-}
-
-function toggleDetailItem(symptomName, field, value, el) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  var detail = currentRecord.symptomDetails[symptomName];
-  if (!detail[field]) detail[field] = [];
-  var idx = detail[field].indexOf(value);
-  if (idx !== -1) {
-    detail[field].splice(idx, 1);
-    el.classList.remove('selected');
-  } else {
-    detail[field].push(value);
-    el.classList.add('selected');
-  }
-}
-
-function updateSliderDetail(symptomName, value, safeId, sliderEl) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  currentRecord.symptomDetails[symptomName].intensity = parseInt(value);
-  var valEl = document.getElementById('slider-val-' + safeId);
-  if (valEl) valEl.innerHTML = value + '<span style="font-size:10px;font-weight:400;color:var(--ink-light);">/10</span>';
-  // スライダー背景グラデーション更新
-  if (sliderEl) {
-    var pct = Math.round(parseInt(value) / 10 * 100);
-    sliderEl.style.background = 'linear-gradient(to right, var(--rose) 0%, var(--rose) ' + pct + '%, #e8ddd8 ' + pct + '%, #e8ddd8 100%)';
-  }
-}
-
-function selectBowelCount(symptomName, count, el) {
-  if (!currentRecord.symptomDetails) currentRecord.symptomDetails = {};
-  if (!currentRecord.symptomDetails[symptomName]) currentRecord.symptomDetails[symptomName] = {};
-  currentRecord.symptomDetails[symptomName].bowelCount = count;
-  var parent = el.parentNode;
-  parent.querySelectorAll('button').forEach(function(b) {
-    b.style.background = 'var(--white)';
-    b.style.borderColor = '#e8ddd8';
-  });
-  el.style.background = 'var(--rose-pale)';
-  el.style.borderColor = 'var(--rose)';
-}
+// PR-079: renderSymptomDetail/toggleSymptomChip/appendSymptomDetail/toggleDetailItem/
+// updateSliderDetail/selectBowelCount は src/modules/record-input.js へ移植済み。
+const renderSymptomDetail = RecordInput.renderSymptomDetail;
+const toggleSymptomChip = RecordInput.toggleSymptomChip;
+const appendSymptomDetail = RecordInput.appendSymptomDetail;
+const toggleDetailItem = RecordInput.toggleDetailItem;
+const updateSliderDetail = RecordInput.updateSliderDetail;
+const selectBowelCount = RecordInput.selectBowelCount;
 
 // ===== SAVE RECORD =====
+// PR-080: currentRecord bridge 撤去。毎回 RecordInput.getCurrentRecord() から取得する。
 function saveRecord() {
+  var currentRecord = RecordInput.getCurrentRecord();
   const noteEl = document.getElementById('journal-note');
   if (noteEl) currentRecord.note = noteEl.value;
   // Object schema を排除: consumer は全て Array schema (三カード) を前提とする
@@ -3969,7 +2347,7 @@ function saveRecord() {
     updateStats();
     updateUnlock();
     updateHistory();
-    buildCalendar();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     document.getElementById('success-message').innerHTML = '記録を更新しました。';
 document.getElementById('success-overlay').classList.add('active');
     return;
@@ -4012,7 +2390,7 @@ document.getElementById('success-overlay').classList.add('active');
   updateStats();
   updateUnlock();
   updateHistory();
-  buildCalendar();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
   updateHomeCTA();
   if (typeof updateHomeCTAState === 'function') updateHomeCTAState();
   if (typeof updateStreakBadge === 'function') updateStreakBadge();
@@ -4029,26 +2407,8 @@ document.getElementById('success-overlay').classList.add('active');
   document.getElementById('success-overlay').classList.add('active');
 }
 
-// ===== パーソナライズされた記録完了メッセージ =====
-function getSuccessMessage(record) {
-  var streak = state.streak || 0;
-  var pain = record && record.painLevel !== undefined ? record.painLevel : -1;
-
-  var iconSvg = ICONS.check(32, 'var(--rose)');
-  var title = '記録できました';
-  var msg = '今日もからだの声を聴いてくれてありがとう。';
-
-  // 連続記録マイルストーン
-  if (streak === 7)  { iconSvg = ICONS.star(32, 'var(--gold)'); title = '7日連続達成！'; msg = '1週間、続けられました。パターンが見え始めてきます。'; }
-  else if (streak === 14) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '2週間連続！'; msg = 'この記録が、次の診察を変えてくれます。'; }
-  else if (streak === 30) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '1ヶ月達成！'; msg = 'AIパターン解析でこの30日間を振り返りましょう。'; }
-
-  // 痛みがある日
-  else if (pain >= 3) { iconSvg = ICONS.heart(32, 'var(--rose)'); title = '記録できました'; msg = 'つらい日も記録してくれてありがとう。この積み重ねが大切です。'; }
-  else if (pain === 0) { iconSvg = ICONS.sun(32, 'var(--gold)'); title = '今日は楽な日ですね'; msg = 'こういう日のデータも、パターン発見に役立ちます。'; }
-
-  return { icon: iconSvg, title: title, msg: msg };
-}
+// PR-087 (Legacy Removal Batch-9): getSuccessMessage は
+// src/modules/success-message.js へ物理移動済み（import参照）。
 
 function closeSuccess() {
   if (window.__ippoSuccessOverlayTimer) {
@@ -4063,26 +2423,8 @@ function closeSuccess() {
 }
 
 // ===== MISC =====
-function shareApp() {
-  if (navigator.share) {
-    navigator.share({
-      title: 'ippo - 卵巣ケア記録アプリ',
-      text: '生理周期・卵巣ケアのセルフ記録アプリです。一緒に続けましょう！',
-      url: window.location.href
-    });
-  } else {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      showAlertModal('URLをコピーしました！友だちに送ってください。');
-    });
-  }
-}
-
-function addToHome() {
-  showAlertModal('ブラウザの「ホーム画面に追加」からアプリとして追加できます。<br>iOS: 共有ボタン → 「ホーム画面に追加」<br>Android: メニュー → 「ホーム画面に追加」');
-  // バグ18: フラグを保存してリロード後も非表示を維持
-  try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
-  document.getElementById('add-home-banner').style.display = 'none';
-}
+// PR-087 (Legacy Removal Batch-9): shareApp/addToHome は
+// src/modules/share.js へ物理移動済み（import参照）。
 
 function setGraphTab(tab, el) {
   document.querySelectorAll('.sg-tab').forEach(t => t.classList.remove('active'));
@@ -4105,52 +2447,12 @@ function setGraphTab(tab, el) {
   }
 }
 
-function setRating(n) {
-  state.rating = n;
-  document.querySelectorAll('.fb-star').forEach((s, i) => {
-    s.classList.toggle('active', i < n);
-  });
-}
+// PR-087 (Legacy Removal Batch-9): setRating は
+// src/modules/feedback.js へ物理移動済み（import参照）。
 
-  // ===== 症状設定 =====
-var ALL_SYMPTOMS = ['頭痛','腰痛','肩こり','むくみ','冷え','便秘','下痢','肌荒れ','不眠','眠気','イライラ','不安感','食欲増加','食欲不振','胸の張り','下腹部痛','めまい','吐き気','倦怠感','関節痛'];
-
-function openSymptomSettings(){
-  var saved = state.mySymptoms || [];
-  var container = document.getElementById('symptomSettingsChips');
-  container.innerHTML = '';
-  for(var i = 0; i < ALL_SYMPTOMS.length; i++){
-    var s = ALL_SYMPTOMS[i];
-    var selected = saved.indexOf(s) !== -1;
-    var chip = document.createElement('span');
-    chip.className = 'chip' + (selected ? ' selected' : '');
-    chip.setAttribute('data-val', s);
-    chip.textContent = s;
-    chip.onclick = function(){ this.classList.toggle('selected'); };
-    container.appendChild(chip);
-  }
-  var overlay = document.getElementById('symptomSettingsOverlay');
-  overlay.style.display = 'flex';
-}
-
-function closeSymptomSettings(){
-  document.getElementById('symptomSettingsOverlay').style.display = 'none';
-}
-
-function saveSymptomSettings(){
-  var selected = [];
-  document.querySelectorAll('#symptomSettingsChips .chip.selected').forEach(function(c){
-    selected.push(c.getAttribute('data-val'));
-  });
-  state.mySymptoms = selected;
-  saveState();
-  var display = document.getElementById('symptom-setting-display');
-  if(display){
-    display.textContent = selected.length ? selected.join('・') : '設定する';
-  }
-  closeSymptomSettings();
-  updateRecordSymptoms();
-}
+// PR-084 (Legacy Removal Batch-6): 症状設定（ALL_SYMPTOMS/openSymptomSettings/
+// closeSymptomSettings/saveSymptomSettings）は src/modules/symptom-settings.js
+// へ物理移動済み（import参照）。
 
 // ===== ホーム画面サマリー =====
 function updateHomeSummary(){
@@ -4487,80 +2789,7 @@ function updateHomeSummary(){
 }
 
 
-function editPastRecord(dateStr) {
-  // オーバーレイを閉じる
-  var overlay = document.getElementById('dmOverlay');
-  if (overlay) overlay.classList.remove('dm-open');
-  var dayModal = document.getElementById('dayDetailModal');
-  if (dayModal) dayModal.style.display = 'none';
-  
-  var rec = state.records.find(function(r) {
-    if (r.record_date && r.record_date.slice(0, 10) === dateStr) return true;
-    if (r.date) {
-      var _d = new Date(r.date);
-      var _local = _d.getFullYear() + '-' + String(_d.getMonth() + 1).padStart(2, '0') + '-' + String(_d.getDate()).padStart(2, '0');
-      if (_local === dateStr) return true;
-    }
-    return false;
-  });
-  
-  state.draft = {
-    record_date: dateStr,
-    meals: { free: '', firstTime: '', lastTime: '' },
-    mealFree: '',
-    mealCount: 0,
-    firstMealTime: '',
-    lastMealTime: '',
-    fasting: 0,
-    temperature: null,
-    symptoms: [],
-    menstrualCycle: '',
-    diseaseCheck: {},
-    note: '',
-    painLocation: [],
-    painType: [],
-    painLevel: 0,
-    medication: [],
-    bloodClot: [],
-    bloodColor: [],
-    emotion: '',
-    wellness_score: 0,
-    energy_score: 0,
-    bodyChoices: {}
-  };
-  
-  if (rec) {
-    Object.keys(rec).forEach(function(key) {
-      state.draft[key] = rec[key];
-    });
-  }
-  
-  state.editingDate = dateStr;
-  
-  // 記録画面に遷移
-  document.querySelectorAll('.screen').forEach(function(el){ el.classList.remove('active'); });
-  var recScreen = document.getElementById('screen-record');
-  if(recScreen) recScreen.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(function(el){ el.classList.remove('active'); });
-  var navItems = document.querySelectorAll('.nav-item');
-  if(navItems[2]) navItems[2].classList.add('active');
-  
-  if(typeof window.openLegacyRecordScreen === 'function') window.openLegacyRecordScreen();
-
-  // タイトルを対象日に変更
-  setTimeout(function() {
-    var d = new Date(dateStr);
-    var WDAY = ['日','月','火','水','木','金','土'];
-    var dateLabel = document.getElementById('rec-screen-date');
-    var titleLabel = document.getElementById('rec-screen-title');
-    if (dateLabel) {
-      dateLabel.textContent = d.getFullYear()+'年'+(d.getMonth()+1)+'月'+d.getDate()+'日（'+WDAY[d.getDay()]+'）';
-    }
-    if (titleLabel) {
-      titleLabel.textContent = d.getDate()+'日の記録を編集';
-    }
-  }, 150);
-}
+// PR-080E: editPastRecord は src/modules/record-screen.js へ物理移動済み（ファイル冒頭でimport）。
 
   // ===== ホーム画面CTAボタン =====
 function updateHomeCTA(){
@@ -4615,50 +2844,8 @@ function handleHomeCTA(){
 }
 
 // ===== ホーム CTAカード 記録前後状態更新 =====
-// ===== 今日のメッセージ（ホーム1枚） =====
-function updateTodayMessage() {
-  var wrap = document.getElementById('home-today-message');
-  var textEl = document.getElementById('home-today-msg-text');
-  var btnWrap = document.getElementById('home-today-msg-btn-wrap');
-  if (!wrap || !textEl) return;
-
-  var today = new Date().toISOString().slice(0,10);
-  var todayRec = (state.records||[]).find(function(r){
-    return (r.date||'').slice(0,10) === today;
-  });
-  var streak = state.streak || 0;
-  var msg = '';
-  var showBtn = false;
-
-  // 優先順位1: 未記録
-  if (!todayRec) {
-    msg = '今日の記録がまだです。3タップで完了します。';
-    showBtn = true;
-  } else {
-    // 優先順位2〜5: フェーズ別
-    var phase = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : '';
-    var daysToNext = 99;
-    if (state.lastPeriodDate && state.cycleLength) {
-      var last = new Date(state.lastPeriodDate + 'T00:00:00');
-      var dayNum = Math.floor((new Date() - last) / 86400000) + 1;
-      daysToNext = (state.cycleLength || 28) - dayNum;
-    }
-    if (phase === '生理期') {
-      var dayNum2 = state.lastPeriodDate ? Math.floor((new Date() - new Date(state.lastPeriodDate+'T00:00:00'))/86400000)+1 : 1;
-      msg = '生理' + dayNum2 + '日目です。無理せず過ごしましょう。鎮痛剤の飲みすぎに注意。';
-    } else if (daysToNext <= 3 && daysToNext >= 0) {
-      msg = '生理が近づいています。鎮痛剤を手元に準備しておきましょう。';
-    } else if (phase === '排卵期') {
-      msg = '排卵期です。体温の変化を確認しましょう。';
-    } else {
-      msg = '今日も記録しました。連続' + streak + '日です。';
-    }
-  }
-
-  textEl.textContent = msg;
-  if (btnWrap) btnWrap.style.display = showBtn ? 'block' : 'none';
-  wrap.style.display = 'block';
-}
+// PR-086 (Legacy Removal Batch-8): updateTodayMessage は src/modules/home-renderer.js へ
+// 物理移動済み（本ファイル冒頭で import back）。
 
 function updateHomeCTAState() {
   var today = new Date().toISOString().slice(0, 10);
@@ -4706,466 +2893,23 @@ function updateStreakBadge() {
 }
 
 // ===== 比較コメント生成 =====
-function buildComparisonComment(todayRec) {
-  var records = state.records || [];
-  var diseases = state.myDiseases || [];
-
-  var recordCount = records.length;
-
-  if (recordCount <= 1) {
-    return '最初の記録ができました。続けるほど見えてくるものがあります';
-  }
-
-  var yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  var yesterdayStr = yesterday.toISOString().slice(0, 10);
-  var yesterdayRec = records.find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === yesterdayStr;
-  });
-
-  if (recordCount < 7) {
-    if (!yesterdayRec) return '昨日の記録がないため比較できません。毎日記録すると変化がわかります';
-    return buildDayComparison(todayRec, yesterdayRec, diseases);
-  }
-
-  var lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 7);
-  var lastWeekStr = lastWeek.toISOString().slice(0, 10);
-  var lastWeekRec = records.find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === lastWeekStr;
-  });
-
-  if (lastWeekRec) {
-    return buildWeekComparison(todayRec, lastWeekRec, diseases);
-  }
-
-  if (yesterdayRec) {
-    return buildDayComparison(todayRec, yesterdayRec, diseases);
-  }
-
-  return '記録を続けています。パターンが見えてきます';
-}
-
-function buildDayComparison(today, yesterday, diseases) {
-  var todayPain = today.painLevel || 0;
-  var yestPain  = yesterday.painLevel || 0;
-  var diff = todayPain - yestPain;
-
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (diff < -1) return '昨日より骨盤の痛みが和らいでいます';
-    if (diff > 1)  return '昨日より痛みが強めです。無理せず過ごしてください';
-    if (todayPain === 0) return '今日は痛みのない日です。この記録も大切です';
-  }
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (diff < -1) return '昨日より体調が落ち着いています';
-    if (diff > 1)  return '昨日より症状が強めです。記録を続けましょう';
-  }
-  if (diseases.indexOf('子宮筋腫') !== -1) {
-    if (diff < -1) return '昨日より楽な一日でした';
-    if (diff > 1)  return '昨日より経血量や痛みに変化がありますか？';
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (diff < -1) return '昨日より気分・痛みが落ち着いています';
-    if (diff > 1)  return '昨日より症状が強めです。ゆっくり過ごしてください';
-  }
-  if (diseases.indexOf('更年期障害') !== -1) {
-    if (diff < -1) return '昨日より体調が穏やかです';
-    if (diff > 1)  return '昨日より症状が強めです。SMIチェックも記録してください';
-  }
-
-  if (diff < -1) return '昨日より痛みが1段階楽でした';
-  if (diff > 1)  return '昨日より痛みが強めです';
-  if (diff === 0 && todayPain === 0) return '今日も痛みのない日でした';
-  return '昨日と同じような状態が続いています';
-}
-
-function buildWeekComparison(today, lastWeek, diseases) {
-  var todayPain = today.painLevel || 0;
-  var lastPain  = lastWeek.painLevel || 0;
-  var diff = todayPain - lastPain;
-
-  var now = new Date();
-  var painFreeDays = (state.records || []).filter(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    return d.getFullYear() === now.getFullYear()
-      && d.getMonth() === now.getMonth()
-      && (r.painLevel === 0 || r.painLevel === null || r.painLevel === undefined);
-  }).length;
-
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    if (diff < -1) return '先週の同じ曜日より骨盤の痛みが落ち着いています';
-    if (diff > 1)  return '先週の同じ曜日より痛みが強めです。この変化を記録しておきましょう';
-  }
-  if (diseases.indexOf('PMS/PMDD') !== -1) {
-    if (diff < 0) return '先週より症状が軽めです。周期のパターンが見えてきます';
-    if (diff > 0) return '先週より症状が強めです。生理前のフェーズを確認してみましょう';
-  }
-
-  if (painFreeDays > 0) {
-    return '今月のらくな日が' + painFreeDays + '日になりました';
-  }
-  if (diff < -1) return '先週の同じ曜日より体調が落ち着いています';
-  if (diff > 1)  return '先週の同じ曜日より痛みが強めです';
-  return '記録が7日続きました。パターンが見えてきます';
-}
-
-function isPeriodExpected(){
-  // 過去の「生理開始」または「生理中」の記録から次の生理予定日を予測
-  var starts = [];
-  for(var i=0; i<state.records.length; i++){
-    var r = state.records[i];
-    if(r.menstrualCycle === '生理開始' || r.menstrualCycle === '生理中'){
-      var d = new Date(r.date);
-      // 連続する生理中の最初の日だけを取得
-      var isDuplicate = false;
-      for(var j=0; j<starts.length; j++){
-        if(Math.abs(starts[j] - d) < 5 * 86400000){ isDuplicate = true; break; }
-      }
-      if(!isDuplicate) starts.push(d);
-    }
-  }
-  if(starts.length < 2) return false;
-
-  // 平均周期を計算
-  starts.sort(function(a,b){ return a - b; });
-  var totalDays = 0;
-  for(var k=1; k<starts.length; k++){
-    totalDays += (starts[k] - starts[k-1]) / 86400000;
-  }
-  var avgCycle = Math.round(totalDays / (starts.length - 1));
-
-  // 次の予定日
-  var lastStart = starts[starts.length - 1];
-  var nextExpected = new Date(lastStart.getTime() + avgCycle * 86400000);
-  var today = new Date();
-  var diffDays = (nextExpected - today) / 86400000;
-
-  // 予定日の前後3日以内
-  return diffDays >= -3 && diffDays <= 3;
-}
+// PR-086 (Legacy Removal Batch-8): buildComparisonComment/buildDayComparison/
+// buildWeekComparison/isPeriodExpected は src/modules/cycle-utils.js へ新設・物理移動済み
+// （本ファイル冒頭で import back）。
 
   // ===== COMMUNITY VOICE =====
-var currentTopicId = null;
+// PR-088 (Legacy Removal Batch-10): loadCommunityTopic/switchCVTab/loadCVArchive/
+// toggleArchiveReplies/loadCommunityReplies/postCommunityReply/likeCommunityReply/
+// deleteCommunityReply/updateReplyLikeCount/checkMyLikes は
+// src/modules/community.js へ新設・物理移動済み（本ファイル冒頭で import）。
 
-function loadCommunityTopic(){
-  // 未認証時は 401 になるため、認証済みの場合のみリクエストを送る
-  if (!supabaseUserId) {
-    var qEl = document.getElementById('community-question');
-    if(qEl) qEl.textContent = 'コミュニティ機能は準備中です。もうしばらくお待ちください 🌸';
-    return;
-  }
-  fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.true&order=created_at.desc&limit=1', {
-    headers: {'apikey': SUPABASE_KEY}
-  })
-  .then(function(r){
-    if(!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  })
-  .then(function(data){
-    if(!Array.isArray(data) || data.length === 0){
-      // テーブル未作成またはトピックなし → フォールバック表示
-      var qEl = document.getElementById('community-question');
-      if(qEl) qEl.textContent = 'コミュニティ機能は準備中です。もうしばらくお待ちください 🌸';
-      return;
-    }
-    currentTopicId = data[0].id;
-    var weekEl = document.getElementById('community-week');
-    var qEl = document.getElementById('community-question');
-    if(weekEl) weekEl.textContent = data[0].week_label || '';
-    if(qEl) qEl.textContent = data[0].question || '';
-    loadCommunityReplies();
-  })
-  .catch(function(e){
-    // silent fail — community_topics table policy not set
-    var qEl = document.getElementById('community-question');
-    if(qEl) qEl.textContent = 'コミュニティ機能は準備中です 🌸';
-  });
-}
-
-  function switchCVTab(tab){
-  var current = document.getElementById('cv-current');
-  var archive = document.getElementById('cv-archive');
-  var tabCurrent = document.getElementById('cv-tab-current');
-  var tabArchive = document.getElementById('cv-tab-archive');
-  if(tab === 'current'){
-    current.style.display = 'block';
-    archive.style.display = 'none';
-    tabCurrent.style.background = 'var(--rose)';
-    tabCurrent.style.color = 'white';
-    tabCurrent.style.borderColor = 'var(--rose)';
-    tabArchive.style.background = 'var(--white)';
-    tabArchive.style.color = 'var(--ink-mid)';
-    tabArchive.style.borderColor = '#e8ddd8';
-  } else {
-    current.style.display = 'none';
-    archive.style.display = 'block';
-    tabArchive.style.background = 'var(--rose)';
-    tabArchive.style.color = 'white';
-    tabArchive.style.borderColor = 'var(--rose)';
-    tabCurrent.style.background = 'var(--white)';
-    tabCurrent.style.color = 'var(--ink-mid)';
-    tabCurrent.style.borderColor = '#e8ddd8';
-    loadCVArchive();
-  }
-}
-
-function loadCVArchive(){
-  var container = document.getElementById('cv-archive-list');
-  container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込み中...</div>';
-  fetch(SUPABASE_URL + '/rest/v1/community_topics?is_active=eq.false&order=created_at.desc&limit=20', {
-    headers: { 'apikey': SUPABASE_KEY }
-  })
-  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(function(topics){
-    if(!Array.isArray(topics) || topics.length === 0){
-      container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">過去のテーマはまだありません</div>';
-      return;
-    }
-    var html = '';
-    topics.forEach(function(t){
-      var date = new Date(t.created_at);
-      var dateStr = date.getFullYear() + '/' + (date.getMonth()+1) + '/' + date.getDate();
-      html += '<div class="cv-archive-item" style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #f0ebe6;cursor:pointer;" onclick="toggleArchiveReplies(this, \''+t.id+'\')">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;">';
-      html += '<div style="font-size:13px;color:var(--ink);font-weight:600;line-height:1.6;flex:1;">'+t.question+'</div>';
-      html += '<div style="font-size:10px;color:var(--ink-light);flex-shrink:0;margin-left:10px;">'+dateStr+'</div>';
-      html += '</div>';
-      html += '<div class="cv-archive-replies" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid #f0ebe6;"></div>';
-      html += '</div>';
-    });
-    container.innerHTML = html;
-  })
-  .catch(function(e){
-    container.innerHTML = '<div style="text-align:center;padding:20px 0;color:var(--ink-light);font-size:13px;">読み込みに失敗しました</div>';
-  });
-}
-
-function toggleArchiveReplies(el, topicId){
-  var repliesDiv = el.querySelector('.cv-archive-replies');
-  if(repliesDiv.style.display === 'block'){
-    repliesDiv.style.display = 'none';
-    return;
-  }
-  repliesDiv.style.display = 'block';
-  repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込み中...</div>';
-  fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.'+topicId+'&order=created_at.desc&limit=20', {
-    headers: { 'apikey': SUPABASE_KEY }
-  })
-  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(function(replies){
-    if(!Array.isArray(replies) || replies.length === 0){
-      repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">まだ回答がありません</div>';
-      return;
-    }
-    var html = '';
-    replies.forEach(function(r){
-      html += '<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #f5f0eb;">';
-      html += '<div style="font-size:11px;color:var(--ink-mid);font-weight:600;margin-bottom:4px;">'+(r.display_name || '匿名さん')+'</div>';
-      html += '<div style="font-size:13px;color:var(--ink);line-height:1.7;">'+escapeHtml(r.body)+'</div>';
-      html += '</div>';
-    });
-    repliesDiv.innerHTML = html;
-  })
-  .catch(function(e){
-    console.warn('アーカイブ回答読込スキップ:', e.message);
-    repliesDiv.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込みに失敗しました</div>';
-  });
-}
-
-function loadCommunityReplies(){
-  if(!currentTopicId) return;
-  fetch(SUPABASE_URL + '/rest/v1/community_replies?topic_id=eq.' + currentTopicId + '&order=likes.desc,created_at.desc&limit=20', {
-    headers: {'apikey': SUPABASE_KEY}
-  })
-  .then(function(r){ if(!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-  .then(function(replies){
-    var container = document.getElementById('community-replies');
-    if(!container) return;
-    if(!Array.isArray(replies) || replies.length === 0){
-      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-light);font-size:13px;">まだ回答がありません。最初の声を届けてみませんか？</div>';
-      return;
-    }
-    var html = '';
-    for(var i=0; i<replies.length; i++){
-      var r = replies[i];
-      var timeAgo = getTimeAgo(r.created_at);
-      var isMyLike = false; // 後で確認
-      html += '<div style="background:var(--white);border-radius:12px;padding:14px;margin-bottom:10px;border:1px solid #f0ebe6;">';
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
-      html += '<div style="font-size:12px;color:var(--ink-mid);font-weight:600;">' + (r.display_name || '匿名さん') + '</div>';
-      html += '<div style="font-size:10px;color:var(--ink-light);">' + timeAgo + '</div>';
-      html += '</div>';
-      html += '<div style="font-size:13px;color:var(--ink);line-height:1.7;margin-bottom:10px;">' + escapeHtml(r.body) + '</div>';
-      html += '<div style="display:flex;align-items:center;gap:4px;">';
-      html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">';
-      html += '♡ 共感</button>';
-      if(supabaseUserId && r.user_id === supabaseUserId){
-        html += '<button onclick="deleteCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">削除</button>';
-      }
-      html += '</div>';
-      html += '</div>';
-    }
-    container.innerHTML = html;
-    checkMyLikes(replies);
-  })
-  .catch(function(e){ console.log('回答読込エラー:', e); });
-}
-
-function postCommunityReply(){
-  var input = document.getElementById('community-input');
-  if(!input || !input.value.trim()) return;
-  if(!currentTopicId){ showToast('テーマが読み込まれていません', 'warn'); return; }
-  if(input.value.trim().length < 10){ showToast('10文字以上で入力してください', 'warn'); return; }
-
-  var body = {
-    topic_id: currentTopicId,
-    user_id: supabaseUserId || null,
-    display_name: (state.name || '匿名') + 'さん',
-    body: input.value.trim()
-  };
-
-  fetch(SUPABASE_URL + '/rest/v1/community_replies', {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify(body)
-  })
-  .then(function(r){
-    if(r.ok){
-      input.value = '';
-      loadCommunityReplies();
-      showToast('投稿しました ✓', 'success');
-    } else {
-      showToast('投稿に失敗しました。もう一度お試しください。', 'warn');
-    }
-  })
-  .catch(function(e){ showToast('通信エラーが発生しました', 'warn'); });
-}
-
-function likeCommunityReply(replyId, btn){
-  if(!supabaseUserId){ showToast('いいねするにはログインが必要です', 'warn'); return; }
-
-  fetch(SUPABASE_URL + '/rest/v1/community_likes', {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ reply_id: replyId, user_id: supabaseUserId })
-  })
-  .then(function(r){
-    if(r.ok){
-      // likes カウントを更新（RPC使わずクライアント側で+1）
-      var span = btn.querySelector('span');
-      var current = parseInt(span.textContent) || 0;
-      span.textContent = current + 1;
-      btn.style.color = 'var(--rose)';
-      btn.style.borderColor = 'var(--rose)';
-      btn.disabled = true;
-      // DBのlikesカウントも更新
-      updateReplyLikeCount(replyId, current + 1);
-    }
-  })
-  .catch(function(e){ console.log('いいねエラー:', e); });
-}
-
- function deleteCommunityReply(replyId, btn){
-  showToast('この投稿を削除しました', 'info');
-  supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session){
-      showToast('ログインが必要です', 'warn');
-      return;
-    }
-    fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId + '&user_id=eq.' + session.user.id, {
-      method: 'DELETE',
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + session.access_token
-      }
-    })
-    .then(function(r){
-      if(r.ok){
-        var card = btn.closest('div[style*="background:var(--white)"]');
-        if(card) card.remove();
-      } else {
-        showToast('削除に失敗しました', 'warn');
-      }
-    })
-    .catch(function(e){ showToast('通信エラーが発生しました', 'warn'); });
-  });
-}
-
-  
-function updateReplyLikeCount(replyId, newCount){
-  fetch(SUPABASE_URL + '/rest/v1/community_replies?id=eq.' + replyId, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Prefer': 'return=minimal'
-    },
-    body: JSON.stringify({ likes: newCount })
-  });
-}
-
-function checkMyLikes(replies){
-  if(!supabaseUserId) return;
-  var ids = replies.map(function(r){ return r.id; });
-  fetch(SUPABASE_URL + '/rest/v1/community_likes?user_id=eq.' + supabaseUserId + '&reply_id=in.(' + ids.join(',') + ')', {
-    headers: {'apikey': SUPABASE_KEY}
-  })
-  .then(function(r){ return r.json(); })
-  .then(function(likes){
-    var likedIds = {};
-    likes.forEach(function(l){ likedIds[l.reply_id] = true; });
-    var buttons = document.querySelectorAll('#community-replies button');
-    buttons.forEach(function(btn){
-      var onclick = btn.getAttribute('onclick') || '';
-      var match = onclick.match(/likeCommunityReply\('([^']+)'/);
-      if(match && likedIds[match[1]]){
-        btn.style.color = 'var(--rose)';
-        btn.style.borderColor = 'var(--rose)';
-        var span = btn.querySelector('span');btn.innerHTML = '♥ ' + (span ? span.textContent : '共感');
-        btn.disabled = true;
-      }
-    });
-  });
-}
-
-function escapeHtml(text){
-  var div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function getTimeAgo(dateStr){
-  var now = new Date();
-  var d = new Date(dateStr);
-  var diff = Math.floor((now - d) / 1000);
-  if(diff < 60) return 'たった今';
-  if(diff < 3600) return Math.floor(diff / 60) + '分前';
-  if(diff < 86400) return Math.floor(diff / 3600) + '時間前';
-  if(diff < 604800) return Math.floor(diff / 86400) + '日前';
-  return (d.getMonth()+1) + '/' + d.getDate();
-}
+// PR-087 (Legacy Removal Batch-9): escapeHtml/getTimeAgo は
+// src/utils/string-utils.js へ物理移動済み（import参照）。
 
 
 function updateDiseaseSettingDisplay(){if(typeof window.updateDiseaseSettingDisplay==='function')window.updateDiseaseSettingDisplay();}
-function updateSymptomSettingDisplay(){
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updateSymptomSettingDisplay', updateSymptomSettingDisplay);
-    return;
-  }
-  var display = document.getElementById('symptom-setting-display');
-  if(!display) return;
-  var saved = state.mySymptoms || [];
-  display.textContent = saved.length ? saved.join('・') : '設定する';
-}
+// PR-084 (Legacy Removal Batch-6): updateSymptomSettingDisplay は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 var SYMPTOM_CATEGORIES = {
   '頭痛':'body','腰痛':'body','下腹部痛':'body','むくみ':'body',
@@ -5180,31 +2924,8 @@ var SYMPTOM_CATEGORIES = {
 };
 var _sympTabCurrent = 'all';
 
-
-function getRecentSymptoms() {
-  try {
-    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
-    var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return recent
-      .filter(function(s){ return s.timestamp > cutoff; })
-      .sort(function(a,b){ return b.count - a.count; })
-      .slice(0, 3)
-      .map(function(s){ return s.name; });
-  } catch(e){ return []; }
-}
-
-function saveSymptomSelection(symptoms) {
-  try {
-    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
-    symptoms.forEach(function(name){
-      var existing = null;
-      for(var i=0;i<recent.length;i++){ if(recent[i].name===name){ existing=recent[i]; break; } }
-      if(existing){ existing.count++; existing.timestamp = Date.now(); }
-      else { recent.push({ name: name, count: 1, timestamp: Date.now() }); }
-    });
-    localStorage.setItem('ippo_recent_symptoms', JSON.stringify(recent));
-  } catch(e){}
-}
+// PR-084 (Legacy Removal Batch-6): getRecentSymptoms/saveSymptomSelection は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 function buildEffectiveLayer1() {
   var diseases = state.myDiseases || [];
@@ -5338,65 +3059,13 @@ function updateRecordSymptoms(){
   switchSymptomTab(_sympTabCurrent, null);
 }
 
-function submitFeedback() {
-  if (!state.rating) { showAlertModal('評価を選んでください'); return; }
-  var comment = document.getElementById('fb-comment') ? document.getElementById('fb-comment').value.trim() : '';
-  var subject = encodeURIComponent('ippoフィードバック - ' + state.rating + '星');
-  var body = encodeURIComponent('評価: ' + state.rating + '/5\n\n感想:\n' + (comment || '（なし）') + '\n\nユーザー: ' + (state.name || '匿名') + '\n日時: ' + new Date().toLocaleString('ja-JP'));
-  window.location.href = 'mailto:YOUR_EMAIL@example.com?subject=' + subject + '&body=' + body;
-  showAlertModal('ありがとうございます！メーラーが開きます 🌸');
-  state.rating = 0;
-  document.querySelectorAll('.fb-star').forEach(function(s){ s.classList.remove('active'); });
-  if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
-}
+// PR-087 (Legacy Removal Batch-9): submitFeedback は
+// src/modules/feedback.js へ物理移動済み（import参照）。
 
-function clearData() {
-  // P0-FIX-10: 意図的なリセットフラグをセット。
-  // cloudBackupAll の FIX-9 Guard が空 records の同期をブロックするため、
-  // ユーザー明示リセット時のみ Guard を通過させるためのフラグ。
-  // フラグは cloudBackupAll の Guard 内で消費される（delete）。
-  window.__ippoExplicitDataReset = true;
+// PR-084 (Legacy Removal Batch-6): clearData は src/modules/data-export.js へ、
+// setDailyMessage は src/modules/ui-notifications.js へ、それぞれ物理移動済み
+// （import参照）。
 
-  state.records    = [];
-  state.streak     = 0;
-  state.totalDays  = 0;
-  // バグ20: リペアタイマーも確実にリセット
-  state.fastingActive = false;
-  state.fastingStart  = null;
-  if (fastInterval !== null) {
-    clearInterval(fastInterval);
-    fastInterval = null;
-  }
-  // タイマーUIを初期状態に戻す
-  const timerEl  = document.getElementById('fast-timer');
-  const statusEl = document.getElementById('fast-status');
-  const startBtn = document.getElementById('fast-start-btn');
-  const stopBtn  = document.getElementById('fast-stop-btn');
-  if (timerEl)  timerEl.textContent  = '00:00:00';
-  if (statusEl) statusEl.textContent = 'ファスティングを始めましょう';
-  if (startBtn) startBtn.style.display = 'block';
-  if (stopBtn)  stopBtn.style.display  = 'none';
-  saveState();
-  updateStats();
-  updateUnlock();
-  updateHistory();
-}
-
-// ===== DAILY MESSAGES =====
-const messages = [
-  'からだの小さな変化に\n気づくことが、最初の一歩。',
-  '今日の記録が、\n明日の自分を助けてくれる。',
-  '無理なく、ていねいに。\nあなたのペースでいい。',
-  '子宮は第二の心。\nからだの声に耳を傾けて。',
-  '感情もからだの一部。\n正直に記録することが癒しになる。',
-];
-
-function setDailyMessage() {
-  const idx = new Date().getDate() % messages.length;
-  const el = document.getElementById('today-message');
-  // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
-  if (el) el.innerHTML = messages[idx].replaceAll('\n', '<br>');
-}
 // ===== CALENDAR =====
 var calYear, calMonth;
 (function(){ var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); })();
@@ -5578,8 +3247,7 @@ function saveEditRecord(){
   else delete rec.note;
 
   saveState();
-  buildCalendar();
-  updateHistory();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
   if(typeof cloudSaveRecord === 'function') cloudSaveRecord(rec);
 
   closeEditRecord();
@@ -5602,8 +3270,7 @@ function deleteEditRecord(){
       return new Date(r.date).toDateString() !== editingDateStr || r.id;
     });
     saveState();
-    buildCalendar();
-    updateHistory();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     closeEditRecord();
     document.getElementById('dmOverlay').classList.remove('dm-open');
   });
@@ -5801,150 +3468,16 @@ function createMealDonut(meals, fasting, fastingGoal){
   return html;
 }
 
-// ===== 独自モーダル（alert/confirm代替） =====
-function showConfirmModal(message, onConfirm, onCancel) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
-  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:17px;color:var(--ink);margin-bottom:16px;line-height:1.6;">' + message + '</div>'
-    + '<div style="display:flex;gap:10px;">'
-    + '<button id="_confirm_cancel" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid #e8ddd8;background:var(--white);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:var(--ink-mid);cursor:pointer;">キャンセル</button>'
-    + '<button id="_confirm_ok" style="flex:1;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:white;font-weight:500;cursor:pointer;">確認</button>'
-    + '</div>';
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  box.querySelector('#_confirm_ok').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
-  box.querySelector('#_confirm_cancel').onclick = function() { overlay.remove(); if (onCancel) onCancel(); };
-}
-
-function showPrivacyInfo() {
-  showAlertModal(
-    'あなたの記録について\n\n'
-    + '・症状・体調の記録はあなただけが見られます\n'
-    + '・広告配信への利用は行いません\n'
-    + '・第三者へのデータ販売は行いません\n'
-    + '・データはいつでも設定から削除できます\n'
-    + '・クラウド同期はSupabaseの暗号化通信で行われます'
-  );
-}
-
-function showAlertModal(message, onClose) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
-  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:16px;color:var(--ink);margin-bottom:20px;line-height:1.7;">' + message + '</div>'
-    + '<button style="width:100%;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:14px;color:white;font-weight:500;cursor:pointer;">閉じる</button>';
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  box.querySelector('button').onclick = function() { overlay.remove(); if (onClose) onClose(); };
-}
+// PR-084 (Legacy Removal Batch-6): showConfirmModal/showPrivacyInfo/showAlertModal は
+// src/modules/ui-notifications.js へ物理移動済み（import参照）。
 
 // ===== ファスティング機能のオプション化 =====
-function toggleFastingFeature() {
-  state.fastingEnabled = !state.fastingEnabled;
-  saveState();
-  applyFastingVisibility();
-  var label = document.getElementById('fasting-toggle-label');
-  if (label) label.textContent = state.fastingEnabled ? 'オン' : 'オフ';
-}
-
-function applyFastingVisibility() {
-  var widget = document.getElementById('home-fasting-widget');
-  var recoveryCard = document.getElementById('fast-recovery-card');
-  var show = !!state.fastingEnabled;
-  if (widget) widget.style.display = show ? 'block' : 'none';
-  if (recoveryCard) recoveryCard.style.display = 'none'; // 終了時のみ表示
-  // ファスティング中なら強制表示
-  if (state.fastingActive && widget) widget.style.display = 'block';
-  // ラベル更新
-  var label = document.getElementById('fasting-toggle-label');
-  if (label) label.textContent = show ? 'オン' : 'オフ';
-}
+// PR-085 (Legacy Removal Batch-7): toggleFastingFeature/applyFastingVisibility は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back）。
 
 // ===== 体温アラート =====
-function checkSuddenTempRise(records, diseases) {
-  if (diseases.indexOf('卵巣嚢腫') === -1) return null;
-
-  var tempRecords = records
-    .filter(function(r) { return r.temperature; })
-    .sort(function(a, b) {
-      return new Date(a.date || a.record_date) - new Date(b.date || b.record_date);
-    });
-
-  if (tempRecords.length < 2) return null;
-
-  var latest = tempRecords[tempRecords.length - 1];
-  var prev   = tempRecords[tempRecords.length - 2];
-  var diff   = parseFloat(latest.temperature) - parseFloat(prev.temperature);
-
-  if (diff >= 0.8) {
-    return { level: 'caution', diff: diff.toFixed(1), latestTemp: latest.temperature };
-  }
-  if (parseFloat(latest.temperature) >= 38.0) {
-    return { level: 'warning', temp: latest.temperature };
-  }
-  return null;
-}
-
-function checkAndShowTempAlert() {
-  var diseases = state.myDiseases || [];
-  if (!state.records || state.records.length < 2) return;
-
-  // 既存 calcTemperaturePhases alerts チェック
-  var tempCount = state.records.filter(function(r) { return r.temperature; }).length;
-  if (tempCount >= 14) {
-    var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-    if (analysis && analysis.alerts && analysis.alerts.length > 0) {
-      var hasEmergency = analysis.alerts.some(function(a) {
-        return a.level === 'emergency' || a.level === 'danger';
-      });
-      if (hasEmergency) {
-        showTempAlertBanner('体温に気になるパターンがあります。体温グラフで確認してください', 'warn');
-        return;
-      }
-    }
-  }
-
-  // 急激な体温上昇チェック（卵巣嚢腫ユーザーのみ）
-  var suddenRise = checkSuddenTempRise(state.records, diseases);
-  if (suddenRise) {
-    var msg = suddenRise.level === 'warning'
-      ? '体温が' + suddenRise.temp + '℃と高めです。腹痛や吐き気を伴う場合は医療機関にご相談ください'
-      : '前日より体温が' + suddenRise.diff + '℃上昇しています。腹痛や吐き気を伴う場合は医療機関にご相談ください';
-    showTempAlertBanner(msg, suddenRise.level === 'warning' ? 'danger' : 'caution');
-  }
-}
-
-function showTempAlertBanner(message, level) {
-  var existing = document.getElementById('temp-alert-banner');
-  if (existing) existing.remove();
-
-  var colors = {
-    'danger':  { bg: '#fde8e8', border: '#c4878c', text: '#8a4050', btn: '#c4878c' },
-    'caution': { bg: '#fdf3e8', border: '#d4a574', text: '#7a5020', btn: '#d4a574' },
-    'warn':    { bg: '#fdf8e8', border: '#d4c474', text: '#6a5820', btn: '#d4c474' }
-  };
-  var c = colors[level] || colors['warn'];
-
-  var banner = document.createElement('div');
-  banner.id = 'temp-alert-banner';
-  banner.style.cssText = 'margin:0 20px 12px;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:12px 14px;';
-  banner.innerHTML =
-    '<div style="font-size:12px;color:' + c.text + ';line-height:1.6;margin-bottom:8px;">🌡️ ' + message + '</div>'
-    + '<div style="font-size:10px;color:' + c.text + ';opacity:0.75;margin-bottom:8px;">※ これは記録データに基づく参考情報です。医学的診断ではありません。</div>'
-    + '<div style="display:flex;gap:8px;">'
-    + '<button onclick="premiumGate(openTempReport)" style="flex:1;padding:8px;background:' + c.btn + ';color:white;border:none;border-radius:10px;font-size:11px;font-family:\'Noto Sans JP\',sans-serif;cursor:pointer;">体温グラフを確認する</button>'
-    + '<button onclick="document.getElementById(\'temp-alert-banner\').remove()" style="padding:8px 12px;background:transparent;border:1px solid ' + c.border + ';border-radius:10px;font-size:11px;color:' + c.text + ';cursor:pointer;">閉じる</button>'
-    + '</div>';
-
-  // CTAカード直後に挿入
-  var ctaCard = document.getElementById('home-record-cta');
-  if (ctaCard && ctaCard.parentNode) {
-    ctaCard.parentNode.insertBefore(banner, ctaCard.nextSibling);
-  }
-}
+// PR-087 (Legacy Removal Batch-9): checkSuddenTempRise/checkAndShowTempAlert/
+// showTempAlertBanner は src/modules/temp-alert.js へ物理移動済み（import参照）。
 
 // ===== クイック症状ログ（後方互換のため残す） =====
 var _quickPainLevel = -1;
@@ -6044,7 +3577,7 @@ function saveQuickLog() {
   _quickSelectedSymptoms = [];
   _quickPainLevel = -1;
   updateHomeSummary();
-  buildCalendar();
+  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
 }
 
 function showQuickLogDone() {
@@ -6061,99 +3594,13 @@ function showQuickLogDone() {
   }
 }
 
-function buildCalendar(){
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('buildCalendar', buildCalendar);
-    return;
-  }
-  var label = document.getElementById('calLabel');
-  var grid = document.getElementById('calGrid');
-  if(!label||!grid) return;
-  label.textContent = calYear + '年 ' + (calMonth+1) + '月';
-  grid.innerHTML = '';
-  var firstDow = new Date(calYear, calMonth, 1).getDay();
-  var daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
-  var today = new Date();
-  for(var e=0; e<firstDow; e++){
-    var empty = document.createElement('div');
-    empty.className = 'cal-day empty';
-    grid.appendChild(empty);
-  }
-  for(var d=1; d<=daysInMonth; d++){
-    var el = document.createElement('div');
-    el.className = 'cal-day';
-    var isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
-    if(isToday) el.classList.add('today');
-    var ds = new Date(calYear, calMonth, d).toDateString();
-    var localDs = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(d).padStart(2, '0');
-    var hasRec = state.records.some(function(r){ return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs); });
-    if(hasRec) el.classList.add('has-record');
-    // 痛みレベルに応じたクラスを付与
-    if(hasRec) {
-      var rec = state.records.find(function(r) {
-        return (r.date && new Date(r.date).toDateString() === ds) || (r.record_date && r.record_date.slice(0, 10) === localDs);
-      });
-      if(rec) {
-        var pain = rec.painLevel;
-        if(pain !== null && pain !== undefined && pain >= 0) {
-          el.classList.add('pain-' + Math.min(pain, 4));
-        } else {
-          el.classList.add('has-record-no-pain');
-        }
-      }
-    }
-    el.textContent = d;
-    el.addEventListener('click', (function(day){ return function(){ openDayDetail(day); }; })(d));
-    grid.appendChild(el);
-  }
-}
-
-// カレンダータブ：月別サマリーカード描画
-function renderCalendarMonthlySummary() {
-  var el = document.getElementById('cal-monthly-summary');
-  if (!el) return;
-  var monthStr = calYear + '-' + String(calMonth + 1).padStart(2, '0');
-  var recs = state.records.filter(function(r) {
-    return (r.date && r.date.slice(0, 7) === monthStr) ||
-           (r.record_date && r.record_date.slice(0, 7) === monthStr);
-  });
-  if (recs.length === 0) {
-    el.innerHTML = '<div style="text-align:center;color:var(--ink-light);font-size:12px;padding:8px 0;">' + calYear + '年' + (calMonth + 1) + '月の記録はまだありません</div>';
-    return;
-  }
-  // 集計
-  var painTotal = 0, painCount = 0, symptomMap = {};
-  recs.forEach(function(r) {
-    if (r.painLevel !== null && r.painLevel !== undefined) { painTotal += r.painLevel; painCount++; }
-    if (r.symptoms) r.symptoms.forEach(function(s) { symptomMap[s] = (symptomMap[s] || 0) + 1; });
-  });
-  var avgPain = painCount > 0 ? (painTotal / painCount).toFixed(1) : '—';
-  var topSymptoms = Object.keys(symptomMap).sort(function(a, b) { return symptomMap[b] - symptomMap[a]; }).slice(0, 3);
-  var html = '<div style="display:flex;gap:16px;margin-bottom:10px;">';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + recs.length + '</div><div style="font-size:10px;color:var(--ink-light);">記録日数</div></div>';
-  html += '<div style="flex:1;text-align:center;"><div style="font-size:20px;font-weight:700;color:var(--rose);">' + avgPain + '</div><div style="font-size:10px;color:var(--ink-light);">平均痛みレベル</div></div>';
-  html += '</div>';
-  if (topSymptoms.length > 0) {
-    html += '<div style="font-size:11px;color:var(--ink-light);margin-bottom:6px;">多かった症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-    topSymptoms.forEach(function(s) {
-      html += '<span style="background:var(--rose-pale);color:var(--rose-dark);border-radius:20px;padding:3px 10px;font-size:11px;">' + s + ' <span style="opacity:0.6;">×' + symptomMap[s] + '</span></span>';
-    });
-    html += '</div>';
-  }
-  // month label サブタイトル更新
-  var subLabel = document.getElementById('cal-screen-month-label');
-  if (subLabel) subLabel.textContent = calYear + '年 ' + (calMonth + 1) + '月 — ' + recs.length + '件の記録';
-  el.innerHTML = html;
-}
-
-function changeMonth(delta){
-  calMonth += delta;
-  if(calMonth > 11){ calMonth = 0; calYear++; }
-  if(calMonth < 0){ calMonth = 11; calYear--; }
-  buildCalendar();
-  renderCalendarMonthlySummary();
-}
+// PR-080G: buildCalendar/renderCalendarMonthlySummary/changeMonth を削除（確認済みDead Code）。
+// #calLabel/#calGrid/#cal-monthly-summary/#cal-screen-month-labelはapp.html/calendar.htmlに
+// 存在せず、これら3関数は常に即return（no-op）していた。changeMonth()はbare呼び出し・
+// window export（app-legacy.js側）のいずれも存在せず、calPrev/calNextのDOMContentLoaded
+// リスナー（下記）もelement不在によりガード発火せず、到達経路ゼロを確認済み。
+// calYear/calMonth変数はopenDayDetail/openDayDetailByDate（生存・上記参照）が引き続き使用するため保持。
+// 詳細: docs/HANDOFF_PHASE7_COMPLETE.md PR-080G節。
 
 document.addEventListener('DOMContentLoaded', function(){
   var prev = document.getElementById('calPrev');
@@ -6414,410 +3861,7 @@ function openDayDetail(d){
 
 
 
-// ===== 記録モーダル → 詳細記録画面への引き継ぎ =====
-function prefillRecordFromModal() {
-  var today = new Date().toISOString().slice(0, 10);
-  var rec = (state.records || []).find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-  if (!rec) return;
-
-  // モーダルで保存された症状を症状チップに反映
-  if (rec.symptoms && rec.symptoms.length > 0) {
-    document.querySelectorAll('#rs-symptoms .chip').forEach(function(chip) {
-      if (rec.symptoms.indexOf(chip.textContent.trim()) !== -1) {
-        chip.classList.add('selected');
-      }
-    });
-  }
-
-  // 痛みレベルをスライダーに反映
-  if (rec.painLevel !== null && rec.painLevel !== undefined) {
-    var painSlider = document.getElementById('rs-pain-level');
-    var painDisplay = document.getElementById('pain-level-display');
-    if (painSlider) painSlider.value = rec.painLevel;
-    if (painDisplay) painDisplay.textContent = rec.painLevel;
-  }
-}
-
-// ===== RECORD SCREEN =====
-function openRecordScreen(){
-  // welcome-reset-guard が setTimeout(0) で showScreen(getCurrentScreen()) を呼ぶため、
-  // state.currentScreen を先に更新しないと旧タブに戻される。
-  state.currentScreen = 'record';
-    // 今日の記録が既にある場合は自動的に編集モードにする
-  if(!state.editingDate){
-    var todayStr = new Date().toDateString();
-    var todaySlice = new Date().toISOString().slice(0, 10);
-    var todayExists = state.records.some(function(r){
-      return (r.date && new Date(r.date).toDateString() === todayStr) ||
-             (r.record_date && r.record_date.slice(0, 10) === todaySlice);
-    });
-    if(todayExists){
-      state.editingDate = todaySlice;
-    }
-  }
-
-  var now = new Date();
-  var wd = ['日','月','火','水','木','金','土'];
-  
-  // ★ 編集モード：対象日の日付とデータを使用
-  var isEditing = !!state.editingDate;
-  var targetDate = isEditing ? new Date(state.editingDate) : now;
-  
-  var el = document.getElementById('rec-screen-date');
-  if(el) el.textContent = targetDate.getFullYear()+'年'+(targetDate.getMonth()+1)+'月'+targetDate.getDate()+'日（'+wd[targetDate.getDay()]+'）';
-  
-  // フォームをリセット
-  ['rs-morning','rs-lunch','rs-dinner','rs-snack','rs-note'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-  ['rs-first-time','rs-last-time'].forEach(function(id){ var e=document.getElementById(id); if(e) e.value=''; });
-  var te = document.getElementById('rs-temp'); if(te) te.value='';
-  var mealFreeEl = document.getElementById('rs-meal-free'); if(mealFreeEl) mealFreeEl.value='';
-  document.querySelectorAll('#rs-cycle .chip').forEach(function(c){ c.classList.remove('selected'); });
-  renderSymptomLayers(); // 3層チップを描画（選択リセット込み）
-  var di = document.getElementById('draft-indicator');
-  if(di) di.style.display = 'none';
-    // 追加フォームのリセット
-  document.querySelectorAll('#rs-pain-location .chip, #rs-pain-type .chip, #rs-medication .chip, #rs-blood-clot .chip, #rs-blood-color .chip').forEach(function(c){ c.classList.remove('selected'); });
-  var painLevel = document.getElementById('rs-pain-level');
-  if(painLevel){ painLevel.value = 0; }
-  var painDisplay = document.getElementById('pain-level-display');
-  if(painDisplay){ painDisplay.textContent = '0'; }
-  var painSection = document.getElementById('pain-detail-section');
-  if(painSection){ painSection.style.display = 'none'; } // 痛み症状選択時に展開
-  var cycleDetail = document.getElementById('cycle-detail-section');
-  if(cycleDetail){ cycleDetail.style.display = 'none'; }
-  // 気分・おりもの・便カウントをリセット
-  document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
-  document.querySelectorAll('#rs-discharge-amount .chip, #rs-discharge-type .chip').forEach(function(c){ c.classList.remove('selected'); });
-  _bowelCount = 0;
-  var _bcd = document.getElementById('bowel-count-display'); if(_bcd) _bcd.textContent = '0';
-  // 詳細セクションの折りたたみ状態をlocalStorageから復元
-  try{
-    var _detailsOpen = localStorage.getItem('ippo_rec_details_open') === '1';
-    var _detailsSec = document.getElementById('rec-details-section');
-    var _detailsArrow = document.getElementById('rec-details-arrow');
-    if(_detailsSec) _detailsSec.style.display = _detailsOpen ? 'block' : 'none';
-    if(_detailsArrow) _detailsArrow.textContent = _detailsOpen ? '▴' : '▾';
-  }catch(e){}
-  setTimeout(function(){ updateRecProgressDots(); }, 100);
-  // 記録モーダルで保存済みの症状・痛みを引き継ぐ（非編集モード時のみ）
-  if(!isEditing){ prefillRecordFromModal(); }
-  // ★ 編集モード：既存記録をフォームに復元
-  if(isEditing){
-    var editDateStr = targetDate.toDateString();
-    var editRec = null;
-    for(var ri=0; ri<state.records.length; ri++){
-      var _r = state.records[ri];
-      var _rDateStr = _r.date ? new Date(_r.date).toDateString()
-                    : _r.record_date ? new Date(_r.record_date + 'T00:00:00').toDateString()
-                    : '';
-      if(_rDateStr === editDateStr){
-        editRec = _r;
-        break;
-      }
-    }
-    if(editRec){
-      if(editRec.temperature){ var et=document.getElementById('rs-temp'); if(et) et.value=editRec.temperature; }
-      if(editRec.note){ var en=document.getElementById('rs-note'); if(en) en.value=editRec.note; }
-      if(editRec.mealFree){ var mf=document.getElementById('rs-meal-free'); if(mf){ mf.value=editRec.mealFree; if(typeof updateMealParse==='function') updateMealParse(); } }
-      if(editRec.meals){
-        var m=editRec.meals;
-        if(m.morning){ var em=document.getElementById('rs-morning'); if(em) em.value=m.morning; }
-        if(m.lunch){ var el2=document.getElementById('rs-lunch'); if(el2) el2.value=m.lunch; }
-        if(m.dinner){ var ed=document.getElementById('rs-dinner'); if(ed) ed.value=m.dinner; }
-        if(m.snack){ var es=document.getElementById('rs-snack'); if(es) es.value=m.snack; }
-        if(m.free){ var ef=document.getElementById('rs-meal-free'); if(ef){ ef.value=m.free; if(typeof updateMealParse==='function') updateMealParse(); } }
-      }
-      if(editRec.firstMealTime){ var ft=document.getElementById('rs-first-time'); if(ft) ft.value=editRec.firstMealTime; }
-      if(editRec.lastMealTime){ var lt=document.getElementById('rs-last-time'); if(lt) lt.value=editRec.lastMealTime; }
-      if(editRec.symptoms && editRec.symptoms.length){
-        document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-          if(editRec.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.menstrualCycle){
-        document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-          if(c.textContent === editRec.menstrualCycle) c.classList.add('selected');
-        });
-      }
-            // 痛みの詳細を復元
-      if(editRec.painLocation && editRec.painLocation.length){
-        document.querySelectorAll('#rs-pain-location .chip').forEach(function(c){
-          if(editRec.painLocation.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.painType && editRec.painType.length){
-        document.querySelectorAll('#rs-pain-type .chip').forEach(function(c){
-          if(editRec.painType.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.painLevel){
-        var pl = document.getElementById('rs-pain-level');
-        var pld = document.getElementById('pain-level-display');
-        if(pl){ pl.value = editRec.painLevel; }
-        if(pld){ pld.textContent = editRec.painLevel; }
-      }
-      // 痛み症状が選択済みなら詳細セクションを表示
-      var hasPainOnEdit = (editRec.painLevel && editRec.painLevel > 0)
-        || (editRec.painLocation && editRec.painLocation.length)
-        || (editRec.painType && editRec.painType.length)
-        || (function(){ var painSyms = ['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛']; var found = false; document.querySelectorAll('#rs-symptoms .chip.selected').forEach(function(c){ if(painSyms.indexOf(c.textContent)!==-1) found=true; }); return found; })();
-      var painSection = document.getElementById('pain-detail-section');
-      if(painSection){ painSection.style.display = hasPainOnEdit ? 'block' : 'none'; }
-      // 服薬を復元
-      if(editRec.medication && editRec.medication.length){
-        document.querySelectorAll('#rs-medication .chip').forEach(function(c){
-          if(editRec.medication.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-            // 経血詳細を復元
-      if(editRec.bloodClot && editRec.bloodClot.length){
-        document.querySelectorAll('#rs-blood-clot .chip').forEach(function(c){
-          if(editRec.bloodClot.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      if(editRec.bloodColor && editRec.bloodColor.length){
-        document.querySelectorAll('#rs-blood-color .chip').forEach(function(c){
-          if(editRec.bloodColor.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-            // エネルギー復元
-      if(editRec.energy){
-        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===editRec.energy) c.classList.add('selected');
-        });
-      }
-      // 睡眠復元
-      if(editRec.sleepBed){ var sb=document.getElementById('rs-sleep-bed'); if(sb) sb.value=editRec.sleepBed; }
-      if(editRec.sleepWake){ var sw=document.getElementById('rs-sleep-wake'); if(sw) sw.value=editRec.sleepWake; }
-      if(editRec.sleepQuality){
-        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===editRec.sleepQuality) c.classList.add('selected');
-        });
-      }
-      // ファクター復元
-      if(editRec.factors && editRec.factors.length){
-        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
-          if(editRec.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // お通じ復元
-      if(editRec.bowel){
-        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
-          if(c.textContent === editRec.bowel) c.classList.add('selected');
-        });
-      }
-      // 便カウント復元
-      if(editRec.bowelCount){
-        _bowelCount = editRec.bowelCount;
-        var bcd = document.getElementById('bowel-count-display');
-        if(bcd) bcd.textContent = _bowelCount;
-      }
-      // 気分復元
-      if(editRec.mood){
-        document.querySelectorAll('#rs-mood .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val')) === editRec.mood) c.classList.add('selected');
-        });
-      }
-      // おりもの量復元
-      if(editRec.dischargeAmount){
-        document.querySelectorAll('#rs-discharge-amount .chip').forEach(function(c){
-          if(c.textContent === editRec.dischargeAmount) c.classList.add('selected');
-        });
-      }
-      // おりもの状態復元（dischargeType は配列で保存される）
-      if(editRec.dischargeType && editRec.dischargeType.length){
-        document.querySelectorAll('#rs-discharge-type .chip').forEach(function(c){
-          if(editRec.dischargeType.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // 経血詳細セクション表示
-      var cycleDetail = document.getElementById('cycle-detail-section');
-      if(cycleDetail && editRec.menstrualCycle && editRec.menstrualCycle !== 'なし'){
-        cycleDetail.style.display = 'block';
-      }
-      if(di){ di.textContent='編集モード：'+targetDate.getFullYear()+'/'+(targetDate.getMonth()+1)+'/'+targetDate.getDate(); di.style.display='block'; }
-      // ★ 編集モードでも疾患セルフチェックを表示・復元
-      var _editDiseaseCheck = editRec ? (editRec.diseaseCheck || null) : null;
-      setTimeout(function(){
-        updateDiseaseQuestions();
-        if(_editDiseaseCheck){
-          Object.keys(_editDiseaseCheck).forEach(function(key){
-            var group = document.querySelector('[data-disease-q="'+key+'"]');
-            if(group){
-              group.querySelectorAll('.chip').forEach(function(c){
-                if(c.textContent === _editDiseaseCheck[key]) c.classList.add('selected');
-              });
-            }
-          });
-        }
-      }, 300);
-    }
-    // 編集モードでは下書き復元をスキップ
-    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-    document.getElementById('screen-record').classList.add('active');
-    // P1-3: クイック記録ターゲットへスクロール（編集モード）
-    (function() {
-      var _t = window.__ippoQuickRecordTarget; window.__ippoQuickRecordTarget = null;
-      if (_t) {
-        var _m = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
-        var _id = _m[_t];
-        if (_id) {
-          // 食事・体温・メモは詳細セクション内なので折りたたみを開く
-          if (_t === 'food' || _t === 'temp' || _t === 'note') {
-            var _ds = document.getElementById('rec-details-section');
-            var _da = document.getElementById('rec-details-arrow');
-            if (_ds) { _ds.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
-            if (_da) { _da.textContent = '▴'; }
-          }
-          setTimeout(function() { var _e = document.getElementById(_id); if (_e) _e.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
-        }
-      }
-    })();
-    return;
-  }
-
-  var draft = localStorage.getItem('ippo_draft');
-  if(draft){
-    try {
-      var d = JSON.parse(draft);
-      if(new Date(d._draftDate).toDateString() === now.toDateString()){
-              // フリーメモ下書き復元
-        var mealDraft = localStorage.getItem('ippo_meal_draft');
-        if(mealDraft){
-          try {
-            var md = JSON.parse(mealDraft);
-            if(new Date(md._draftDate).toDateString() === now.toDateString()){
-              var ta = document.getElementById('rs-meal-free');
-              if(ta && md.mealFree){ ta.value = md.mealFree; updateMealParse(); }
-            }
-          } catch(e){}
-        }
-      if(d.temp){ var et=document.getElementById('rs-temp'); if(et) et.value=d.temp; }
-      if(d.tempMethod) selectTempMethod(d.tempMethod);
-        if(d.note){ var en=document.getElementById('rs-note'); if(en) en.value=d.note; }
-        if(d.symptoms && d.symptoms.length){
-          document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-            if(d.symptoms.indexOf(c.textContent) !== -1) c.classList.add('selected');
-          });
-        }
-              // エネルギー下書き復元
-      if(d.energy){
-        document.querySelectorAll('#rs-energy .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===d.energy) c.classList.add('selected');
-        });
-      }
-      // 睡眠下書き復元
-      if(d.sleepBed){ var dsb=document.getElementById('rs-sleep-bed'); if(dsb) dsb.value=d.sleepBed; }
-      if(d.sleepWake){ var dsw=document.getElementById('rs-sleep-wake'); if(dsw) dsw.value=d.sleepWake; }
-      if(d.sleepQuality){
-        document.querySelectorAll('#rs-sleep-quality .chip').forEach(function(c){
-          if(parseInt(c.getAttribute('data-val'))===d.sleepQuality) c.classList.add('selected');
-        });
-      }
-      // ファクター下書き復元
-      if(d.factors && d.factors.length){
-        document.querySelectorAll('#rs-factors .chip').forEach(function(c){
-          if(d.factors.indexOf(c.textContent) !== -1) c.classList.add('selected');
-        });
-      }
-      // お通じ下書き復元
-      if(d.bowel){
-        document.querySelectorAll('#rs-bowel .chip').forEach(function(c){
-          if(c.textContent === d.bowel) c.classList.add('selected');
-        });
-      }
-        if(d.cycle){
-          document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-            if(c.textContent === d.cycle) c.classList.add('selected');
-          });
-        }
-        if(di){ di.textContent='下書きを復元しました'; di.style.display='block'; setTimeout(function(){ di.style.display='none'; }, 3000); }
-      }
-    } catch(e){}
-  }
-  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
-  document.getElementById('screen-record').classList.add('active');
-    // 既存記録の食事メモを復元
-  var todayRec = null;
-  for(var ri=0; ri<state.records.length; ri++){
-    if(new Date(state.records[ri].date).toDateString() === now.toDateString()){ todayRec = state.records[ri]; break; }
-  }
-  if(todayRec && todayRec.mealFree){
-    var mealTA = document.getElementById('rs-meal-free');
-    if(mealTA && !mealTA.value.trim()){ mealTA.value = todayRec.mealFree; updateMealParse(); }
-  }
-    // 既存記録の体温を復元
-  if(todayRec && todayRec.temperature){
-    var tempEl = document.getElementById('rs-temp');
-    if(tempEl && !tempEl.value) tempEl.value = todayRec.temperature;
-  }
-  // 体温測定方法を復元
-  selectTempMethod((todayRec && todayRec.tempMethod) ? todayRec.tempMethod : 'sublingual');
-  // 既存記録の症状を復元（3層チップ対応: 下層に選択済みがあれば自動展開）
-  if(todayRec && todayRec.symptoms && todayRec.symptoms.length){
-    var _needL2=false, _needL3=false;
-    document.querySelectorAll('#rs-symptoms .chip').forEach(function(c){
-      if(todayRec.symptoms.indexOf(c.textContent) !== -1){
-        c.classList.add('selected');
-        var l2=document.getElementById('rs-symp-l2'), l3=document.getElementById('rs-symp-l3');
-        if(l2 && l2.contains(c)) _needL2=true;
-        if(l3 && l3.contains(c)) _needL3=true;
-      }
-    });
-    if(_needL2) toggleSympLayer(2);
-    if(_needL3) toggleSympLayer(3);
-    // 痛み系症状の復元に応じてPAIN DETAILセクションも展開
-    var painSyms=['頭痛','腰痛','下腹部痛','関節痛','排便痛','性交痛'];
-    var _hasPain=todayRec.symptoms.some(function(s){ return painSyms.indexOf(s)!==-1; });
-    var ps=document.getElementById('pain-detail-section');
-    if(ps) ps.style.display=_hasPain?'block':'none';
-  }
-  // 既存記録の生理周期を復元
-  if(todayRec && todayRec.menstrualCycle){
-    document.querySelectorAll('#rs-cycle .chip').forEach(function(c){
-      if(c.textContent === todayRec.menstrualCycle || c.getAttribute('data-val') === todayRec.menstrualCycle) c.classList.add('selected');
-    });
-  }
-  var _diseaseCheckToRestore = (todayRec && todayRec.diseaseCheck) ? todayRec.diseaseCheck : null;
-  setTimeout(function(){
-    updateDiseaseQuestions();
-    if(_diseaseCheckToRestore){
-      var dc = _diseaseCheckToRestore;
-      Object.keys(dc).forEach(function(key){
-        var group = document.querySelector('[data-disease-q="'+key+'"]');
-        if(group){
-          group.querySelectorAll('.chip').forEach(function(c){
-            if(c.textContent === dc[key]) c.classList.add('selected');
-          });
-        }
-      });
-    }
-  }, 300);
-
-  // P1-3: クイック記録ターゲットへスクロール
-  var _qrt = window.__ippoQuickRecordTarget;
-  window.__ippoQuickRecordTarget = null;
-  window.scrollTo(0, 0);
-  if (_qrt) {
-    var _qrMap = { period: 'rs-cycle', mood: 'rs-mood', symptom: 'rs-symptoms', food: 'rs-meal-free', temp: 'rs-temp', note: 'rs-note' };
-    var _qrId = _qrMap[_qrt];
-    if (_qrId) {
-      // 食事・体温・メモは詳細セクション内なので折りたたみを開く
-      if (_qrt === 'food' || _qrt === 'temp' || _qrt === 'note') {
-        var _qrDs = document.getElementById('rec-details-section');
-        var _qrDa = document.getElementById('rec-details-arrow');
-        if (_qrDs) { _qrDs.style.display = 'block'; try { localStorage.setItem('ippo_rec_details_open', '1'); } catch(e){} }
-        if (_qrDa) { _qrDa.textContent = '▴'; }
-      }
-      setTimeout(function() {
-        var _qrEl = document.getElementById(_qrId);
-        if (_qrEl) _qrEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 200);
-    }
-  }
-}
+// PR-080E: prefillRecordFromModal / openRecordScreen は src/modules/record-screen.js へ物理移動済み（ファイル冒頭でimport）。
 
 function selectTempMethod(method){
   document.getElementById('temp-tab-sublingual').classList.toggle('selected', method === 'sublingual');
@@ -6848,76 +3892,9 @@ function selectRsCycle(el, val){
   }
 }
 // ===== フリーメモ自動解析 =====
-function parseMealMemo(text){
-  if(!text) return null;
-  var lines = text.split('\n');
-  var allTimes = [];
-  var foodTimes = [];
-  var drinkPattern = /飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/;
-  lines.forEach(function(line){
-    line = line.trim();
-    if(!line) return;
-    var m = line.match(/(\d{1,2}):?(\d{2})/);
-    if(m){
-      var h = parseInt(m[1]);
-      var min = parseInt(m[2]);
-      if(h >= 0 && h <= 23 && min >= 0 && min <= 59){
-        var totalMin = h * 60 + min;
-        allTimes.push(totalMin);
-        // 飲み物判定
-        var label = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
-        if(!label) return; // 食品名のない行はスキップ
-        var items = label.split(/[、,\/\s]+/).filter(function(s){ return s; });
-        var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
-        var isDrinkOnly = drinkItems.length > 0 && drinkItems.length >= items.length;
-        if(!isDrinkOnly){
-          foodTimes.push(totalMin);
-        }
-      }
-    }
-  });
-  if(allTimes.length === 0) return null;
-  // 食事がない場合（飲み物のみ）はファスティングなし
-  if(foodTimes.length === 0){
-    var toTime2 = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-    return { mealCount: 0, firstTime: '', lastTime: '', fastingHours: 0 };
-  }
-  var countTimes = foodTimes;
-  countTimes.sort(function(a,b){ return a-b; });
-  var firstMin = countTimes[0];
-  var lastMin = countTimes[countTimes.length - 1];
-  var fastHours = 0;
-  if(foodTimes.length >= 2){
-    var eatWindow = lastMin - firstMin;
-    fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
-    if(fastHours < 12) fastHours = 0;
-  }
-  var toTime = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-  return { mealCount: foodTimes.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
-}
-
-function _updateMealParseFreetextLegacy(){
-  var ta = document.getElementById('rs-meal-free');
-  var box = document.getElementById('meal-auto-parse');
-  if(!ta || !box) return;
-  var result = parseMealMemo(ta.value);
-  if(result && result.mealCount > 0){
-    box.style.display = 'block';
-    document.getElementById('parse-meal-count').textContent = result.mealCount;
-    document.getElementById('parse-first-time').textContent = result.firstTime;
-    document.getElementById('parse-last-time').textContent = result.lastTime;
-    var _fastEl = document.getElementById('parse-fasting'); if(_fastEl) _fastEl.textContent = result.fastingHours;
-  } else {
-    box.style.display = 'none';
-  }
-}
-
-if(!window._ippoInputListenerAdded){
-  window._ippoInputListenerAdded = true;
-  document.addEventListener('input', function(e){
-    if(e.target.id === 'rs-meal-free') _updateMealParseFreetextLegacy();
-  });
-}
+// PR-085 (Legacy Removal Batch-7): parseMealMemo/_updateMealParseFreetextLegacy
+// （及び付随する input リスナー登録）は src/modules/meal-tracker.js へ物理移動済み
+// （本ファイル冒頭で import back）。
 
   function insertMealTemplate(type) {
   var ta = document.getElementById('rs-meal-free');
@@ -6942,100 +3919,9 @@ if(!window._ippoInputListenerAdded){
   else if (typeof _updateMealParseFreetextLegacy === 'function') _updateMealParseFreetextLegacy();
 }
 
-function saveMealDraft(){
-  var ta = document.getElementById('rs-meal-free');
-  if(!ta) return;
-  localStorage.setItem('ippo_meal_draft', JSON.stringify({ mealFree: ta.value, _draftDate: new Date().toISOString() }));
-  var msg = document.getElementById('draft-saved-msg');
-  if(msg){ msg.style.display = 'inline'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
-}
-
-
-  // ===== 食事セクション管理 =====
-var mealSectionConfig = {
-  morning: { icon: '🌅', label: '朝食', defaultTime: '07:00' },
-  lunch:   { icon: '☀️', label: '昼食', defaultTime: '12:00' },
-  dinner:  { icon: '🌙', label: '夕食', defaultTime: '19:00' },
-  snack:   { icon: '🍪', label: '間食', defaultTime: '15:00' }
-};
-var openMealSections = [];
-
-function toggleMealSection(key) {
-  var idx = openMealSections.indexOf(key);
-  if (idx !== -1) {
-    openMealSections.splice(idx, 1);
-  } else {
-    openMealSections.push(key);
-  }
-  renderMealSections();
-}
-
-function renderMealSections() {
-  var container = document.getElementById('meal-sections');
-  var html = '';
-  var keys = ['morning', 'lunch', 'dinner', 'snack'];
-  
-  keys.forEach(function(key) {
-    var btn = document.getElementById('meal-btn-' + key);
-    if (openMealSections.indexOf(key) !== -1) {
-      btn.classList.add('selected');
-      var cfg = mealSectionConfig[key];
-      var timeVal = document.getElementById('meal-time-' + key);
-      var textVal = document.getElementById('meal-text-' + key);
-      var currentTime = timeVal ? timeVal.value : cfg.defaultTime;
-      var currentText = textVal ? textVal.value : '';
-      
-      html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 6px var(--shadow);">';
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
-      html += '<span style="font-size:18px;">' + cfg.icon + '</span>';
-      html += '<span style="font-size:14px;font-weight:500;color:var(--ink);">' + cfg.label + '</span>';
-      html += '<input type="time" id="meal-time-' + key + '" class="meal-time-input" value="' + currentTime + '" onchange="updateMealParse()" style="margin-left:auto;width:auto;">';
-      html += '</div>';
-      html += '<textarea id="meal-text-' + key + '" class="modal-textarea" placeholder="食べたものを入力..." oninput="updateMealParse()" style="min-height:60px;margin-bottom:0;">' + currentText + '</textarea>';
-      html += '</div>';
-    } else {
-      btn.classList.remove('selected');
-    }
-  });
-  
-  container.innerHTML = html;
-  updateMealParse();
-}
-
-function updateMealParse() {
-  var count = 0;
-  var times = [];
-  var keys = ['morning', 'lunch', 'dinner', 'snack'];
-  
-  keys.forEach(function(key) {
-    if (openMealSections.indexOf(key) === -1) return;
-    var textEl = document.getElementById('meal-text-' + key);
-    var timeEl = document.getElementById('meal-time-' + key);
-    if (textEl && textEl.value.trim()) {
-      count++;
-      if (timeEl && timeEl.value) times.push(timeEl.value);
-    }
-  });
-  
-  times.sort();
-  var countEl = document.getElementById('parse-meal-count');
-  var firstEl = document.getElementById('parse-first-time');
-  var lastEl = document.getElementById('parse-last-time');
-  var fastEl = document.getElementById('parse-fasting');
-  if(countEl) countEl.textContent = count;
-  if(firstEl) firstEl.textContent = times.length > 0 ? times[0] : '--:--';
-  if(lastEl) lastEl.textContent = times.length > 0 ? times[times.length - 1] : '--:--';
-  
-  if (times.length >= 2) {
-    var first = times[0].split(':');
-    var last = times[times.length - 1].split(':');
-    var eating = (parseInt(last[0]) + parseInt(last[1]) / 60) - (parseInt(first[0]) + parseInt(first[1]) / 60);
-    var fasting = Math.round((24 - eating) * 10) / 10;
-    if(fastEl) fastEl.textContent = fasting;
-  } else {
-    if(fastEl) fastEl.textContent = '0';
-  }
-}
+// PR-085 (Legacy Removal Batch-7): saveMealDraft/mealSectionConfig/openMealSections/
+// toggleMealSection/renderMealSections/updateMealParse は src/modules/meal-tracker.js へ
+// 物理移動済み（本ファイル冒頭で import back）。
 
   // ===== 新規記録セクション用関数 =====
 function selectEnergy(btn, val){
@@ -7055,6 +3941,11 @@ function selectBowel(btn, val){
 
 // ===== 気分選択（Step 1） =====
 var _bowelCount = 0;
+// PR-080E: openRecordScreen（record-screen.jsへ物理移動済み）が _bowelCount を
+// 参照するための最小限のブリッジ。adjustBowelCount・保存時の読み取りは
+// 従来どおりbare _bowelCountのまま（挙動変更なし）。
+window.__ippoGetBowelCount = function () { return _bowelCount; };
+window.__ippoSetBowelCount = function (v) { _bowelCount = v; };
 function selectMood(btn, val){
   document.querySelectorAll('#rs-mood .chip').forEach(function(c){ c.classList.remove('selected'); });
   btn.classList.add('selected');
@@ -7100,20 +3991,8 @@ function adjustBowelCount(delta){
   if(el) el.textContent = _bowelCount;
 }
 
-function addCustomFactor(){
-  var input = document.getElementById('rs-factor-custom');
-  if(!input) return;
-  var text = input.value.trim();
-  if(!text) return;
-  var container = document.getElementById('rs-factors');
-  if(!container) return;
-  var chip = document.createElement('div');
-  chip.className = 'chip selected';
-  chip.textContent = text;
-  chip.setAttribute('onclick', 'toggleRsChip(this)');
-  container.appendChild(chip);
-  input.value = '';
-}
+// PR-087 (Legacy Removal Batch-9): addCustomFactor は
+// src/modules/record-factors.js へ物理移動済み（import参照）。
 
 function gatherDiseaseData(){
   var container = document.getElementById('disease-questions');
@@ -7127,569 +4006,12 @@ function gatherDiseaseData(){
   return data;
 }
  // ===== 更年期SMI（簡略更年期指数）自動計算 =====
-function calcSMIScore(diseaseCheck){
-  // SMI配点：各症状ごとの重み × 選択肢の重度
-  var smiWeights = {
-    'hot_flash': 10,
-    'sweating': 10,
-    'insomnia': 14,
-    'irritable': 12,
-    'depression': 14,
-    'fatigue': 8,
-    'headache': 8,
-    'palpitation': 8,
-    'shoulder': 5,
-    'numbness': 5
-  };
-  var severityMap = {
-    'なし': 0,
-    '軽い': 0.33,
-    '中程度': 0.66,
-    '強い': 1
-  };
-  var total = 0;
-  var found = false;
-  var keys = Object.keys(smiWeights);
-  for(var i=0;i<keys.length;i++){
-    var qKey = '更年期障害__' + keys[i];
-    if(diseaseCheck[qKey]){
-      found = true;
-      var sev = severityMap[diseaseCheck[qKey]] || 0;
-      total += smiWeights[keys[i]] * sev;
-    }
-  }
-  if(!found) return null;
-  return Math.round(total);
-}
+// PR-087 (Legacy Removal Batch-9): calcSMIScore は
+// src/utils/stats-utils.js へ物理移動済み（import参照）。
 
   // ===== 体温フェーズ自動判定エンジン =====
-function calcTemperaturePhases(records) {
-  // 体温データを抽出（14日以上必要）
-  var temps = [];
-  var sorted = records.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
-  sorted.forEach(function(r) {
-    if (r.temperature) {
-      temps.push({ date: r.date, temp: parseFloat(r.temperature) });
-    }
-  });
-
-  if (temps.length < 14) {
-    return {
-      status: 'insufficient',
-      count: temps.length,
-      required: 14,
-      message: 'あと' + (14 - temps.length) + '日分の体温記録が必要です'
-    };
-  }
-
-  // 基本統計
-  var values = temps.map(function(t){ return t.temp; });
-  var minTemp = Math.min.apply(null, values);
-  var maxTemp = Math.max.apply(null, values);
-  var tempDiff = Math.round((maxTemp - minTemp) * 100) / 100;
-  var avgTemp = Math.round(values.reduce(function(a,b){return a+b;},0) / values.length * 100) / 100;
-  var threshold = Math.round((minTemp + tempDiff * 0.5) * 100) / 100;
-
-  // 各日をフェーズ分類
-  var phases = temps.map(function(t) {
-    return {
-      date: t.date,
-      temp: t.temp,
-      phase: t.temp < threshold ? 'low' : 'high'
-    };
-  });
-
-  // 低温期・高温期の平均
-  var lowTemps = phases.filter(function(p){ return p.phase === 'low'; }).map(function(p){ return p.temp; });
-  var highTemps = phases.filter(function(p){ return p.phase === 'high'; }).map(function(p){ return p.temp; });
-  var avgLow = lowTemps.length > 0 ? Math.round(lowTemps.reduce(function(a,b){return a+b;},0) / lowTemps.length * 100) / 100 : null;
-  var avgHigh = highTemps.length > 0 ? Math.round(highTemps.reduce(function(a,b){return a+b;},0) / highTemps.length * 100) / 100 : null;
-
-  // 二相性判定
-  var biphasic = 'none';
-  if (tempDiff >= 0.3) biphasic = 'clear';
-  else if (tempDiff >= 0.2) biphasic = 'unclear';
-  else biphasic = 'none';
-
-  // M字パターン検出（高温期中に0.3℃以上の一時低下）
-  var mPattern = false;
-  var inHighPhase = false;
-  var highStart = -1;
-  for (var i = 0; i < phases.length; i++) {
-    if (phases[i].phase === 'high' && !inHighPhase) {
-      inHighPhase = true;
-      highStart = i;
-    }
-    if (phases[i].phase === 'low' && inHighPhase) {
-      // 高温期中に低温に戻った
-      if (i - highStart >= 3 && i + 1 < phases.length && phases[i+1] && phases[i+1].phase === 'high') {
-        mPattern = true;
-      }
-      inHighPhase = false;
-    }
-  }
-
-  // 高温期の日数
-  var highPhaseDays = 0;
-  var currentHighStreak = 0;
-  var maxHighStreak = 0;
-  phases.forEach(function(p) {
-    if (p.phase === 'high') {
-      currentHighStreak++;
-      if (currentHighStreak > maxHighStreak) maxHighStreak = currentHighStreak;
-    } else {
-      currentHighStreak = 0;
-    }
-  });
-  highPhaseDays = maxHighStreak;
-
-  // 低温期の日数
-  var lowPhaseDays = 0;
-  var currentLowStreak = 0;
-  var maxLowStreak = 0;
-  phases.forEach(function(p) {
-    if (p.phase === 'low') {
-      currentLowStreak++;
-      if (currentLowStreak > maxLowStreak) maxLowStreak = currentLowStreak;
-    } else {
-      currentLowStreak = 0;
-    }
-  });
-  lowPhaseDays = maxLowStreak;
-
-  // 排卵推定日（低温期の最後の日）
-  var ovulationDate = null;
-  for (var j = phases.length - 1; j >= 1; j--) {
-    if (phases[j].phase === 'high' && phases[j-1].phase === 'low') {
-      ovulationDate = phases[j-1].date;
-      break;
-    }
-  }
-
-  // 疾患別警戒値チェック
-  var diseases = state.myDiseases || [];
-  var alerts = [];
-
-  // 共通警戒値
-  if (avgLow !== null && avgLow >= 37.0) {
-    alerts.push({ level: 'danger', message: '低温期の平均が37.0℃以上です。慢性炎症の可能性があります。医師への相談をおすすめします。' });
-  } else if (avgLow !== null && avgLow >= 36.5) {
-    alerts.push({ level: 'warning', message: '低温期の平均が36.5℃以上です。やや高めの傾向です。' });
-  }
-
-  if (avgHigh !== null && avgHigh >= 37.5) {
-    alerts.push({ level: 'danger', message: '高温期の平均が37.5℃以上です。異常な高温期の可能性があります。' });
-  }
-
-  if (maxTemp >= 38.0) {
-    alerts.push({ level: 'emergency', message: '38℃以上の体温が記録されています。感染や嚢腫破裂の可能性があり、早急な受診をおすすめします。' });
-  }
-
-  // 卵巣嚢腫固有
-  if (diseases.indexOf('卵巣嚢腫') !== -1) {
-    if (avgLow !== null && avgLow >= 37.0) {
-      alerts.push({ level: 'disease', disease: '卵巣嚢腫', message: '低温期37℃以上は卵巣嚢腫による慢性炎症を示唆する体温パターンです。' });
-    }
-    if (tempDiff >= 0.8) {
-      alerts.push({ level: 'disease', disease: '卵巣嚢腫', message: '温度差が' + tempDiff + '℃と大きく、炎症の悪化が疑われます。' });
-    }
-  }
-
-  // 子宮内膜症固有
-  if (diseases.indexOf('子宮内膜症') !== -1) {
-    // 月経初日の高体温チェック
-    var cycleRecords = records.filter(function(r){ return r.menstrualCycle && r.menstrualCycle !== 'なし' && r.temperature; });
-    var periodHighTemp = cycleRecords.filter(function(r){ return parseFloat(r.temperature) >= 36.5; });
-    if (periodHighTemp.length >= 2) {
-      alerts.push({ level: 'disease', disease: '子宮内膜症', message: '月経中の体温が36.5℃以上の日が' + periodHighTemp.length + '日あります。骨盤内膜症との関連が報告されているパターンです。' });
-    }
-  }
-
-  // PCOS固有
-  if (diseases.indexOf('PCOS') !== -1) {
-    if (biphasic === 'none') {
-      alerts.push({ level: 'disease', disease: 'PCOS', message: '二相性が不明確です。排卵障害の可能性があります。' });
-    }
-    if (lowPhaseDays >= 18) {
-      alerts.push({ level: 'disease', disease: 'PCOS', message: '低温期が' + lowPhaseDays + '日と長く、LH/FSH比の異常が疑われます。' });
-    }
-  }
-
-  // 黄体機能不全パターン（PDFデータ：高温期10日以下、温度差0.2℃以下）
-  if (highPhaseDays > 0 && highPhaseDays < 10) {
-    alerts.push({ level: 'warning', message: '高温期が' + highPhaseDays + '日と短めです（正常12〜14日）。プロゲステロン不足・黄体機能不全の可能性があります。' });
-  }
-  if (mPattern) {
-    alerts.push({ level: 'warning', message: '高温期中に体温が一時低下するM字パターンが検出されました。黄体ホルモンの分泌が不安定な可能性があります。' });
-  }
-  // 温度差が小さい（PDFデータ：0.2℃以下で黄体機能不全）
-  if (tempDiff > 0 && tempDiff < 0.2) {
-    alerts.push({ level: 'warning', message: '低温期と高温期の温度差が' + tempDiff + '℃（正常0.3〜0.5℃）と小さく、黄体機能不全・排卵障害の可能性があります。医師への相談をお勧めします。' });
-  } else if (tempDiff >= 0.2 && tempDiff < 0.3) {
-    alerts.push({ level: 'caution', message: '温度差が' + tempDiff + '℃とやや小さめです（正常0.3〜0.5℃）。プロゲステロン分泌がやや不十分な可能性があります。' });
-  }
-  // 低温期が長い（PDFデータ：20日以上で排卵遅延）
-  if (lowPhaseDays >= 20) {
-    alerts.push({ level: 'warning', message: '低温期が' + lowPhaseDays + '日（正常12〜16日）と長く、排卵遅延の可能性があります。ホルモンバランスの乱れが疑われます。' });
-  }
-  // 全体的な低体温（PDFデータ：甲状腺機能低下症）
-  if (avgLow !== null && avgLow < 35.8) {
-    alerts.push({ level: 'warning', message: '低温期の平均が35.8℃未満と低体温傾向です。甲状腺機能低下症との関連が報告されています。受診をお勧めします。' });
-  }
-  // PMS/PMDDの高温期高体温
-  if (diseases.indexOf('PMS/PMDD') !== -1 && avgHigh !== null && avgHigh >= 37.0) {
-    alerts.push({ level: 'disease', disease: 'PMS/PMDD', message: '高温期の平均が' + avgHigh + '℃と高めです（BMC研究）。メラトニン低下による体温調節異常が関与する可能性があります。睡眠の質改善もお試しください。' });
-  }
-  // 更年期障害の低体温
-  if (diseases.indexOf('更年期障害') !== -1 && avgTemp !== null && avgTemp < 36.0) {
-    alerts.push({ level: 'disease', disease: '更年期障害', message: '平均体温が' + avgTemp + '℃と低め（2025年研究：閉経後女性は中核体温が低下）。代謝低下に注意し、定期的な受診をお勧めします。' });
-  }
-  // 二相性なし（共通：無排卵症）
-  if (biphasic === 'none' && diseases.indexOf('PCOS') === -1) {
-    alerts.push({ level: 'warning', message: '二相性が確認できません。排卵が起こっていない可能性（無排卵症）があります。医師への相談をお勧めします。' });
-  }
-
-  // 次回月経予測
-  var nextPeriod = null;
-  if (ovulationDate) {
-    var ovDate = new Date(ovulationDate);
-    ovDate.setDate(ovDate.getDate() + 14);
-    nextPeriod = ovDate.toISOString().split('T')[0];
-  }
-
-  return {
-    status: 'ready',
-    count: temps.length,
-    minTemp: minTemp,
-    maxTemp: maxTemp,
-    tempDiff: tempDiff,
-    avgTemp: avgTemp,
-    threshold: threshold,
-    avgLow: avgLow,
-    avgHigh: avgHigh,
-    biphasic: biphasic,
-    mPattern: mPattern,
-    highPhaseDays: highPhaseDays,
-    lowPhaseDays: lowPhaseDays,
-    ovulationDate: ovulationDate,
-    nextPeriod: nextPeriod,
-    phases: phases,
-    alerts: alerts
-  };
-}
-
-var _tempOverlayApi = null;
-function openTempReport(){
-  var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-
-  // 分析対象メタ情報
-  var tempRecs = state.records.filter(function(r){ return r.temperature; });
-  var lastTempDate = '';
-  if(tempRecs.length > 0){
-    var _tSorted = tempRecs.slice().sort(function(a,b){
-      return (b.date||'').localeCompare(a.date||'');
-    });
-    var _tLd = new Date(_tSorted[0].date || '');
-    if(!isNaN(_tLd.getTime())) lastTempDate = (_tLd.getMonth()+1)+'月'+_tLd.getDate()+'日';
-  }
-
-  if (!_tempOverlayApi) {
-    _tempOverlayApi = window.createProOverlay({
-      id:        'tempReportOverlay',
-      ariaLabel: '体温のリズム',
-      title:     '体温のリズム',
-      subtitle:  '体温記録から整理しています',
-      footer:    [{ id: 'temp-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
-      onClose:   function(){ _tempOverlayApi.close(); },
-    });
-    _tempOverlayApi.getButton('temp-close').addEventListener('click', function(){ _tempOverlayApi.close(); });
-  }
-  _tempOverlayApi.overlay.querySelector('.pob-subtitle').textContent = analysis.count + '日分の体温記録から整理しています';
-
-  var bodyHtml = '';
-  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
-    + tempRecs.length+'件の体温記録'+(lastTempDate?' ／ 最終記録 '+lastTempDate:'')+'</div>';
-
-  bodyHtml += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
-    + '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;">ℹ️ この画面は記録から体温のリズムを整理するものです。診断や医療判断を行うものではありません。</div>'
-    + '</div>';
-
-  if(analysis.status === 'insufficient'){
-    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">🌡️ '+analysis.message+'<br>毎朝の基礎体温記録を続けましょう。</div>';
-  } else {
-
-    // ① 今見えていること
-    var diffColor = analysis.tempDiff >= 0.3 ? '#6b9e78' : analysis.tempDiff >= 0.2 ? '#d4a574' : '#c4878c';
-    var bLabel = analysis.biphasic === 'clear' ? '明確' : analysis.biphasic === 'unclear' ? 'やや不明瞭' : 'なし';
-    var bColor = analysis.biphasic === 'clear' ? '#6b9e78' : analysis.biphasic === 'unclear' ? '#d4a574' : '#c4878c';
-
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
-      + '<div class="pha-card" style="margin-bottom:0;"><div class="pha-grid-2">'
-      + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">低温期の平均</div><div style="font-size:18px;font-weight:600;color:#7ba3c4;">'+(analysis.avgLow||'-')+'℃</div></div>'
-      + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">高温期の平均</div><div style="font-size:18px;font-weight:600;color:#c4878c;">'+(analysis.avgHigh||'-')+'℃</div></div>'
-      + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">低温・高温の差</div><div style="font-size:18px;font-weight:600;color:'+diffColor+';">'+analysis.tempDiff+'℃</div></div>'
-      + '<div class="pha-metric"><div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">2段階のリズム</div><div style="font-size:18px;font-weight:600;color:'+bColor+';">'+bLabel+'</div></div>'
-      + '</div></div></div>';
-
-    // ② なぜそう考えた？
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
-      + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">記録された体温を低温期・高温期に分類し、それぞれの平均と差を計算しています。差が大きいほど体温のリズムが安定していると考えられます。</div>'
-      + '</div>';
-
-    // ③ 直近30日の体温マップ
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">直近30日の体温マップ</div>'
-      + '<div class="pha-card" style="margin-bottom:0;">'
-      + '<div class="pha-temp-map">';
-    var recentPhases = analysis.phases.slice(-30);
-    recentPhases.forEach(function(p){
-      var d = new Date(p.date);
-      var dayLabel = (d.getMonth()+1)+'/'+d.getDate();
-      var bgColor = p.phase === 'low' ? '#d4e6f1' : '#f5cdd0';
-      var textColor = p.phase === 'low' ? '#5b8fb9' : '#b85c6a';
-      bodyHtml += '<div class="pha-temp-cell" style="background:'+bgColor+';" title="'+dayLabel+' '+p.temp+'℃">'
-        + '<div class="pha-temp-day" style="color:'+textColor+';">'+d.getDate()+'</div>'
-        + '<div class="pha-temp-val" style="color:'+textColor+';">'+p.temp.toFixed(1)+'</div>'
-        + '</div>';
-    });
-    bodyHtml += '</div>'
-      + '<div style="display:flex;gap:12px;justify-content:center;margin-top:10px;">'
-      + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#d4e6f1;border-radius:2px;"></div><span style="font-size:10px;color:var(--ink-light);">低温期</span></div>'
-      + '<div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;background:#f5cdd0;border-radius:2px;"></div><span style="font-size:10px;color:var(--ink-light);">高温期</span></div>'
-      + '</div></div></div>';
-
-    // ④ 周期の目安
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">周期の目安</div>'
-      + '<div class="pha-card" style="margin-bottom:0;">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">低温期の長さ</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(analysis.lowPhaseDays||'-')+'日間</div></div>'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">高温期の長さ</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(analysis.highPhaseDays||'-')+'日間</div></div>';
-
-    if(analysis.ovulationDate){
-      var ovD = new Date(analysis.ovulationDate);
-      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;"><div style="font-size:14px;color:var(--ink-mid);">体温変化が見られた時期</div><div style="font-size:14px;font-weight:500;color:var(--ink);">'+(ovD.getMonth()+1)+'月'+ovD.getDate()+'日ごろ</div></div>';
-    }
-    if(analysis.nextPeriod){
-      var npD = new Date(analysis.nextPeriod);
-      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;"><div style="font-size:14px;color:var(--ink-mid);">次回月経の参考時期</div><div style="font-size:14px;font-weight:500;color:var(--rose);">'+(npD.getMonth()+1)+'月'+npD.getDate()+'日ごろ</div></div>';
-    }
-    if(analysis.mPattern){
-      bodyHtml += '<div style="margin-top:10px;padding:10px 12px;background:#fdf3f3;border-radius:10px;"><div style="font-size:12px;color:#c4878c;font-weight:500;">⚠️ M字パターンが見られます</div><div style="font-size:12px;color:var(--ink-light);margin-top:4px;line-height:1.7;">高温期の途中で体温が一時的に下がる日がありました。黄体ホルモンの分泌が不安定な可能性があります。</div></div>';
-    }
-    bodyHtml += '</div></div>';
-
-    // ⑤ 気になる点（アラート）
-    if(analysis.alerts.length > 0){
-      bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">気になる点</div>'
-        + '<div class="pha-card" style="margin-bottom:0;">';
-      analysis.alerts.forEach(function(alert){
-        var alertBg, alertBorder, alertText;
-        if(alert.level === 'emergency'){ alertBg='#fde0e0'; alertBorder='#c44848'; alertText='#c44848'; }
-        else if(alert.level === 'danger'){ alertBg='#fde8e8'; alertBorder='#c4878c'; alertText='#c4878c'; }
-        else if(alert.level === 'disease'){ alertBg='#fdf3e8'; alertBorder='#d4a574'; alertText='#a07840'; }
-        else { alertBg='#fdf8e8'; alertBorder='#d4c474'; alertText='#8a7a40'; }
-        bodyHtml += '<div style="padding:10px 12px;background:'+alertBg+';border-left:3px solid '+alertBorder+';border-radius:8px;margin-bottom:8px;">';
-        if(alert.disease) bodyHtml += '<div style="font-size:12px;color:'+alertText+';font-weight:600;margin-bottom:4px;">'+alert.disease+'</div>';
-        bodyHtml += '<div style="font-size:14px;color:'+alertText+';line-height:1.7;">'+alert.message+'</div></div>';
-      });
-      bodyHtml += '<div style="margin-top:10px;padding:10px 12px;background:var(--cream);border-radius:10px;font-size:12px;color:var(--ink-light);line-height:1.7;">※ これらは統計データに基づく参考情報であり、医学的な診断ではありません。気になる場合は医師にご相談ください。</div>'
-        + '</div></div>';
-    }
-
-    // ⑥ 正常範囲との比較
-    var compItems = [
-      {label:'低温期の平均', yours:analysis.avgLow, normal:'36.2℃'},
-      {label:'高温期の平均', yours:analysis.avgHigh, normal:'36.7℃'},
-      {label:'低温・高温の差', yours:analysis.tempDiff, normal:'0.3〜0.5℃'}
-    ];
-    bodyHtml += '<div style="margin-bottom:16px;"><div class="pha-section-title">一般的な参考値との比較</div>'
-      + '<div class="pha-card" style="margin-bottom:0;">'
-      + '<div style="font-size:12px;color:var(--ink-light);margin-bottom:12px;">AMED研究（日本人女性31万人）に基づく参考値</div>';
-    compItems.forEach(function(item){
-      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f0ebe6;">'
-        + '<div style="font-size:14px;color:var(--ink-mid);flex:1;">'+item.label+'</div>'
-        + '<div style="font-size:14px;font-weight:500;color:var(--ink);flex:1;text-align:center;">'+(item.yours !== null ? item.yours+'℃' : '-')+'</div>'
-        + '<div style="font-size:12px;color:var(--ink-light);flex:1;text-align:right;">目安: '+item.normal+'</div>'
-        + '</div>';
-    });
-    bodyHtml += '</div></div>';
-  }
-
-  _tempOverlayApi.body.innerHTML = bodyHtml;
-  _tempOverlayApi.open();
-}
-
-// ===== 体温教育カード =====
-function showTempEducation(){
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('showTempEducation', showTempEducation);
-    return;
-  }
-  var card = document.getElementById('temp-edu-card');
-  if(!card) return;
-
-  var diseases = state.myDiseases || [];
-  var tempCount = state.records.filter(function(r){ return r.temperature; }).length;
-  var analysis = tempCount >= 14 ? (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records) : null;
-
-  // 表示条件：体温データ0件、または3日以上記録が途切れている
-  var lastTempDate = null;
-  for(var i = state.records.length - 1; i >= 0; i--){
-    if(state.records[i].temperature){
-      lastTempDate = new Date(state.records[i].date);
-      break;
-    }
-  }
-  var daysSinceLast = lastTempDate ? Math.floor((Date.now() - lastTempDate.getTime()) / 86400000) : 999;
-  var showCard = tempCount === 0 || daysSinceLast >= 3 || (tempCount > 0 && tempCount < 14);
-
-  if(!showCard && !analysis){
-    card.style.display = 'none';
-    return;
-  }
-
-  var html = '';
-
-  if(tempCount === 0){
-    // 初めて：なぜ記録するか
-    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px;">🌡️ なぜ基礎体温を記録するの？</div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">';
-
-    if(diseases.indexOf('卵巣嚢腫') !== -1){
-      html += '卵巣嚢腫では、慢性炎症により低温期でも体温が高くなることがあります。毎日の記録で<strong>炎症の変化</strong>を早期に察知できます。';
-    } else if(diseases.indexOf('子宮内膜症') !== -1){
-      html += '研究により、月経初日の体温が36.5℃以上の場合、骨盤内膜症との関連が報告されています。毎日の記録で<strong>あなたのパターン</strong>を把握しましょう。';
-    } else if(diseases.indexOf('PCOS') !== -1){
-      html += 'PCOSでは排卵障害により<strong>二相性（低温期と高温期の区別）が不明確</strong>になることがあります。基礎体温は排卵の有無を知る重要な手がかりです。';
-    } else if(diseases.indexOf('更年期障害') !== -1){
-      html += '更年期ではホルモンバランスの変化により<strong>体温リズムが乱れやすく</strong>なります。記録を続けることで変化の傾向を把握できます。';
-    } else if(diseases.indexOf('不妊症・排卵障害') !== -1){
-      html += '基礎体温の二相性は<strong>排卵の有無を判断する最も基本的な方法</strong>です。14日以上の記録で排卵日の推定も可能になります。';
-    } else {
-      html += '日本人女性31万人の研究（AMED）によると、低温期の平均は36.2℃、高温期は36.7℃。<strong>14日以上の記録</strong>であなたのパターンが見えてきます。';
-    }
-
-    html += '</div>';
-    html += '<div style="font-size:10px;color:var(--rose);margin-top:8px;">💡 朝起きてすぐ、動く前に舌の下で測定するのがポイントです</div>';
-
-  } else if(tempCount < 14){
-    // 記録途中：進捗を励ます
-    var progress = Math.round(tempCount / 14 * 100);
-    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px;">📊 体温パターン分析まであと'+(14-tempCount)+'日</div>';
-    html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;margin-bottom:8px;">';
-    html += '<div style="height:100%;width:'+progress+'%;background:linear-gradient(90deg,var(--rose),#e8b4b8);border-radius:3px;"></div>';
-    html += '</div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">';
-
-    if(tempCount < 5){
-      html += '記録を始めたばかりですね。毎朝の測定を習慣にすると、自分の体温リズムが見えてきます。';
-    } else if(tempCount < 10){
-      html += '順調です！もう少しで低温期と高温期のパターンが判定できるようになります。';
-    } else {
-      html += 'あともう少し！14日分のデータが揃うと、二相性の判定・排卵推定・警戒値チェックが利用可能になります。';
-    }
-
-    html += '</div>';
-
-  } else if(daysSinceLast >= 3){
-    // 記録が途切れている：再開を促す
-    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px;">🌡️ 基礎体温の記録が'+daysSinceLast+'日途切れています</div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">';
-    html += '連続した記録ほどパターンの精度が高まります。今日から再開しましょう。';
-
-    if(diseases.indexOf('卵巣嚢腫') !== -1){
-      html += '<br>卵巣嚢腫の炎症モニタリングには、できるだけ毎日の記録が重要です。';
-    }
-
-    html += '</div>';
-  }
-
-  // 14日以上データあり → 医学的パターン解釈カードを追加
-  if(analysis && tempCount >= 14 && daysSinceLast < 3){
-    var biphasic = analysis.biphasic;
-    var tempDiff = analysis.tempDiff;
-    var avgLow = analysis.avgLow;
-    var avgHigh = analysis.avgHigh;
-    var highDays = analysis.highPhaseDays;
-    var lowDays = analysis.lowPhaseDays;
-
-    // 二相性ラベル
-    var biphasicLabel = biphasic === 'clear' ? '二相性あり（明瞭）' :
-                        biphasic === 'unclear' ? '二相性あり（不明瞭）' : '二相性なし';
-    var biphasicColor = biphasic === 'clear' ? '#4caf80' :
-                        biphasic === 'unclear' ? '#e8a04a' : '#e05c5c';
-
-    // パターン解釈テキスト
-    var interpretation = '';
-    if(biphasic === 'none'){
-      interpretation = '二相性が確認できません。排卵が起こっていない可能性（無排卵症）があります。';
-      if(diseases.indexOf('PCOS') !== -1) interpretation += ' PCOSでは排卵障害が原因となることがあります。';
-    } else if(tempDiff !== null && tempDiff < 0.2){
-      interpretation = '温度差が'+tempDiff.toFixed(2)+'℃と小さく（正常0.3〜0.5℃）、黄体機能不全・排卵障害の可能性があります。';
-    } else if(tempDiff !== null && tempDiff < 0.3){
-      interpretation = '温度差が'+tempDiff.toFixed(2)+'℃とやや小さめです（正常0.3〜0.5℃）。プロゲステロン分泌がやや不十分な可能性があります。';
-    } else if(highDays !== null && highDays < 10){
-      interpretation = '高温期が'+highDays+'日（正常12〜14日）と短め。黄体機能不全の可能性があります。';
-    } else if(lowDays !== null && lowDays >= 20){
-      interpretation = '低温期が'+lowDays+'日（正常12〜16日）と長く、排卵遅延が疑われます。';
-    } else if(avgLow !== null && avgLow < 35.8){
-      interpretation = '低温期の平均が'+avgLow.toFixed(1)+'℃と低体温傾向です。甲状腺機能低下症との関連が報告されています。';
-    } else {
-      interpretation = '体温パターンは概ね正常範囲内です。引き続き記録を続けましょう。';
-    }
-
-    html += '<div style="margin-top:10px;padding:10px;background:rgba(232,176,184,0.12);border-radius:10px;border-left:3px solid var(--rose);">';
-    html += '<div style="font-size:12px;font-weight:500;color:var(--ink);margin-bottom:6px;">📈 現在の体温パターン分析</div>';
-    html += '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">';
-
-    // 二相性バッジ
-    html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+biphasicColor+';color:#fff;">'+biphasicLabel+'</span>';
-
-    // 温度差バッジ
-    if(tempDiff !== null){
-      var diffColor = tempDiff >= 0.3 ? '#4caf80' : tempDiff >= 0.2 ? '#e8a04a' : '#e05c5c';
-      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+diffColor+';color:#fff;">温度差 '+tempDiff.toFixed(2)+'℃</span>';
-    }
-
-    // 低温期・高温期日数バッジ
-    if(lowDays !== null){
-      var ldColor = (lowDays >= 12 && lowDays <= 16) ? '#4caf80' : '#e8a04a';
-      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+ldColor+';color:#fff;">低温期 '+lowDays+'日</span>';
-    }
-    if(highDays !== null){
-      var hdColor = (highDays >= 12 && highDays <= 14) ? '#4caf80' : '#e8a04a';
-      html += '<span style="font-size:11px;padding:3px 10px;border-radius:12px;background:'+hdColor+';color:#fff;">高温期 '+highDays+'日</span>';
-    }
-
-    html += '</div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);line-height:1.7;">'+interpretation+'</div>';
-
-    // 疾患別補足
-    var diseaseNote = '';
-    if(diseases.indexOf('子宮内膜症') !== -1 && avgLow !== null && avgLow >= 36.5){
-      diseaseNote = '子宮内膜症：月経初日の体温が36.5℃以上は骨盤内膜症との関連が報告されています（Fertil Steril 2020）。';
-    } else if(diseases.indexOf('PMS/PMDD') !== -1 && avgHigh !== null && avgHigh >= 37.0){
-      diseaseNote = 'PMS/PMDD：高温期の平均が'+avgHigh.toFixed(1)+'℃と高めです。メラトニン低下による体温調節異常の関与が報告されています（BMC研究）。';
-    } else if(diseases.indexOf('PCOS') !== -1 && biphasic === 'none'){
-      diseaseNote = 'PCOS：二相性がない場合、無排卵の可能性があります。婦人科での検査をお勧めします。';
-    } else if(diseases.indexOf('更年期障害') !== -1){
-      diseaseNote = '更年期障害：ホルモン変動により体温リズムが不規則になりやすい時期です。定期的な受診を継続してください。';
-    } else if(diseases.indexOf('甲状腺疾患') !== -1 && avgLow !== null && avgLow < 36.0){
-      diseaseNote = '甲状腺機能低下症：低体温傾向があります。甲状腺ホルモン値の定期チェックをお勧めします。';
-    }
-    if(diseaseNote){
-      html += '<div style="font-size:10px;color:var(--rose);margin-top:6px;line-height:1.6;">💊 '+diseaseNote+'</div>';
-    }
-
-    html += '<div style="font-size:10px;color:#aaa;margin-top:6px;">※ この情報は参考目的です。診断は医師にご相談ください。</div>';
-    html += '</div>';
-  }
-
-  if(html){
-    card.innerHTML = html;
-    card.style.display = 'block';
-  } else {
-    card.style.display = 'none';
-  }
-}
+// PR-082E (Legacy Removal Batch-4 分割⑤): calcTemperaturePhases/openTempReport/
+// showTempEducation は src/modules/pro/temp-report.js へ物理移動済み（import参照）。
 
 // 記録画面を開いた時に教育カードを表示
 var _origOpenRecord = typeof openRecordScreen === 'function' ? openRecordScreen : null;
@@ -7713,611 +4035,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
 
 
-// ===== ウェルネススコア自動計算 =====
-function calcWellnessScore(rec){
-  var score = 50; // ベース
-
-  // エネルギー（1〜5 → -20〜+20）
-  if(rec.energy){
-    score += (rec.energy - 3) * 10;
-  }
-
-  // 睡眠の質（1〜5 → -20〜+20）
-  if(rec.sleepQuality){
-    score += (rec.sleepQuality - 3) * 10;
-  }
-
-  // 睡眠時間（6〜8時間が理想）
-  if(rec.sleepHours){
-    if(rec.sleepHours >= 6 && rec.sleepHours <= 8) score += 5;
-    else if(rec.sleepHours < 5 || rec.sleepHours > 10) score -= 10;
-    else score -= 5;
-  }
-
-  // 症状数（多いほどマイナス）
-  if(rec.symptoms && rec.symptoms.length){
-    score -= Math.min(rec.symptoms.length * 4, 20);
-  }
-
-  // 痛みレベル（0〜10 → 0〜-15）
-  if(rec.painLevel){
-    score -= Math.min(Math.round(rec.painLevel * 1.5), 15);
-  }
-
-  // ポジティブファクター加点
-  var positiveFactors = ['運動した', '入浴・半身浴', '瞑想・リラックス'];
-  var negativeFactors = ['ストレス高', '夜更かし', 'アルコール'];
-  if(rec.factors && rec.factors.length){
-    rec.factors.forEach(function(f){
-      if(positiveFactors.indexOf(f) !== -1) score += 3;
-      if(negativeFactors.indexOf(f) !== -1) score -= 3;
-    });
-  }
-
-  // お通じ（普通が理想）
-  if(rec.bowel){
-    if(rec.bowel === '普通') score += 3;
-    else if(rec.bowel === 'なし' || rec.bowel === '軟便・下痢') score -= 5;
-  }
-
-  // 0〜100にクランプ
-  return Math.max(0, Math.min(100, Math.round(score)));
-}
-// ===== ファクター相関計算 =====
-function calcFactorCorrelations(records){
-  // 各ファクターの有無で、他のメトリクスの平均を比較する
-  var factorSet = {};
-  records.forEach(function(r){
-    if(r.factors && r.factors.length){
-      r.factors.forEach(function(f){ factorSet[f] = true; });
-    }
-  });
-
-  var factors = Object.keys(factorSet);
-  if(!factors.length) return {};
-
-  var results = {};
-
-  factors.forEach(function(factor){
-    var withDays = [];
-    var withoutDays = [];
-
-    records.forEach(function(r){
-      var hasFactor = r.factors && r.factors.indexOf(factor) !== -1;
-      var day = {
-        energy: r.energy || null,
-        sleepQuality: r.sleepQuality || null,
-        sleepHours: r.sleepHours || null,
-        painLevel: r.painLevel || null,
-        symptomCount: (r.symptoms && r.symptoms.length) || 0,
-        wellnessScore: r.wellnessScore !== undefined ? r.wellnessScore : null
-      };
-      if(hasFactor) withDays.push(day);
-      else withoutDays.push(day);
-    });
-
-    if(withDays.length < 2 || withoutDays.length < 2) return;
-
-    var metrics = ['energy','sleepQuality','sleepHours','painLevel','symptomCount','wellnessScore'];
-    var comparison = { days: withDays.length, totalDays: records.length };
-
-    metrics.forEach(function(m){
-      var wVals = withDays.filter(function(d){ return d[m] !== null; }).map(function(d){ return d[m]; });
-      var woVals = withoutDays.filter(function(d){ return d[m] !== null; }).map(function(d){ return d[m]; });
-      if(wVals.length >= 2 && woVals.length >= 2){
-        var wAvg = wVals.reduce(function(a,b){ return a+b; },0) / wVals.length;
-        var woAvg = woVals.reduce(function(a,b){ return a+b; },0) / woVals.length;
-        var diff = wAvg - woAvg;
-        var pct = woAvg !== 0 ? Math.round((diff / Math.abs(woAvg)) * 100) : 0;
-        comparison[m] = {
-          with: Math.round(wAvg * 10) / 10,
-          without: Math.round(woAvg * 10) / 10,
-          diff: Math.round(diff * 10) / 10,
-          pct: pct
-        };
-      }
-    });
-
-    // 症状別の出現率比較
-    var symptomWithRate = {};
-    var symptomWithoutRate = {};
-    withDays.forEach(function(d, idx){
-      var r = records.filter(function(rec){ return rec.factors && rec.factors.indexOf(factor) !== -1; })[idx];
-      if(r && r.symptoms){
-        r.symptoms.forEach(function(s){ symptomWithRate[s] = (symptomWithRate[s]||0) + 1; });
-      }
-    });
-    withoutDays.forEach(function(d, idx){
-      var r = records.filter(function(rec){ return !rec.factors || rec.factors.indexOf(factor) === -1; })[idx];
-      if(r && r.symptoms){
-        r.symptoms.forEach(function(s){ symptomWithoutRate[s] = (symptomWithoutRate[s]||0) + 1; });
-      }
-    });
-
-    var symptomEffects = {};
-    Object.keys(symptomWithRate).forEach(function(s){
-      var wRate = symptomWithRate[s] / withDays.length;
-      var woRate = (symptomWithoutRate[s] || 0) / withoutDays.length;
-      if(wRate > 0 && woRate > 0){
-        symptomEffects[s] = {
-          withRate: Math.round(wRate * 100),
-          withoutRate: Math.round(woRate * 100),
-          ratio: Math.round((wRate / woRate) * 10) / 10
-        };
-      } else if(wRate > 0){
-        symptomEffects[s] = {
-          withRate: Math.round(wRate * 100),
-          withoutRate: 0,
-          ratio: '∞'
-        };
-      }
-    });
-
-    if(Object.keys(symptomEffects).length > 0){
-      comparison.symptomEffects = symptomEffects;
-    }
-
-    results[factor] = comparison;
-  });
-
-  return results;
-}
-// ===== 比較グラフ =====
-var _cgRange = 30;
-var _cgFactors = {};
-
-function setCGRange(days, btn){
-  _cgRange = days;
-  if(btn){
-    document.querySelectorAll('.cg-range-btn').forEach(function(b){
-      b.style.background='var(--white)'; b.style.color='var(--ink-mid)'; b.style.borderColor='#e8ddd8';
-    });
-    btn.style.background='var(--rose-pale)'; btn.style.color='var(--rose)'; btn.style.borderColor='var(--rose)';
-  }
-  renderComparisonChart();
-}
-
-function toggleCGFactor(factor, btn){
-  _cgFactors[factor] = !_cgFactors[factor];
-  btn.style.background = _cgFactors[factor] ? 'var(--rose-pale)' : 'var(--white)';
-  btn.style.color = _cgFactors[factor] ? 'var(--rose)' : 'var(--ink-mid)';
-  btn.style.borderColor = _cgFactors[factor] ? 'var(--rose)' : '#e8ddd8';
-  renderComparisonChart();
-}
-
-function getMetricValue(rec, metric){
-  if(metric === 'symptomCount') return rec.symptoms ? rec.symptoms.length : 0;
-  return rec[metric] || 0;
-}
-
-function getMetricLabel(metric){
-  var labels = {
-    energy:'エネルギー', sleepQuality:'睡眠の質', sleepHours:'睡眠時間',
-    painLevel:'痛み', wellnessScore:'ウェルネス', smiScore:'SMI', symptomCount:'症状数'
-  };
-  return labels[metric] || metric;
-}
-
-function getMetricMax(metric){
-  var maxes = {
-    energy:5, sleepQuality:5, sleepHours:12,
-    painLevel:10, wellnessScore:100, smiScore:94, symptomCount:15
-  };
-  return maxes[metric] || 10;
-}
-
-function renderComparisonChart(){
-  var svg = document.getElementById('cg-chart');
-  var legend = document.getElementById('cg-legend');
-  var toggles = document.getElementById('cg-factor-toggles');
-  if(!svg) return;
-
-  var m1 = (document.getElementById('cg-metric1')||{}).value || 'energy';
-  var m2 = (document.getElementById('cg-metric2')||{}).value || '';
-
-  // 期間内レコード取得
-  var now = new Date();
-  var cutoff = new Date(now.getTime() - _cgRange * 86400000);
-  var recs = state.records.filter(function(r){
-    return new Date(r.date) >= cutoff;
-  }).sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
-
-  if(recs.length < 2){
-    svg.innerHTML = '<text x="50%" y="100" text-anchor="middle" fill="#9a8880" font-size="12">データが不足しています（2日以上の記録が必要）</text>';
-    if(legend) legend.innerHTML = '';
-    return;
-  }
-
-  // ファクタートグル生成
-  var allFactors = {};
-  recs.forEach(function(r){
-    if(r.factors) r.factors.forEach(function(f){ allFactors[f] = true; });
-  });
-  if(toggles){
-    var tHtml = '';
-    Object.keys(allFactors).forEach(function(f){
-      var active = _cgFactors[f];
-      tHtml += '<button onclick="toggleCGFactor(\''+f+'\',this)" style="padding:3px 8px;border:1px solid '+(active?'var(--rose)':'#e8ddd8')+';border-radius:6px;font-size:9px;background:'+(active?'var(--rose-pale)':'var(--white)')+';color:'+(active?'var(--rose)':'var(--ink-mid)')+';cursor:pointer;">'+f+'</button>';
-    });
-    toggles.innerHTML = tHtml;
-  }
-
-  // SVG描画設定
-  var W = Math.max(300, recs.length * 28);
-  var H = 180;
-  var padL = 30, padR = 10, padT = 15, padB = 30;
-  var chartW = W - padL - padR;
-  var chartH = H - padT - padB;
-
-  svg.setAttribute('width', W);
-  svg.setAttribute('height', H);
-
-  var html = '';
-
-  // 背景のファクターハイライト
-  var activeFactors = Object.keys(_cgFactors).filter(function(f){ return _cgFactors[f]; });
-  if(activeFactors.length > 0){
-    recs.forEach(function(r, idx){
-      var hasAny = r.factors && activeFactors.some(function(f){ return r.factors.indexOf(f) !== -1; });
-      if(hasAny){
-        var x = padL + (idx / (recs.length - 1)) * chartW;
-        html += '<rect x="'+(x-8)+'" y="'+padT+'" width="16" height="'+chartH+'" fill="rgba(255,107,107,0.08)" rx="4"/>';
-      }
-    });
-  }
-
-  // グリッド線
-  for(var g=0;g<=4;g++){
-    var gy = padT + (g/4) * chartH;
-    html += '<line x1="'+padL+'" y1="'+gy+'" x2="'+(W-padR)+'" y2="'+gy+'" stroke="#f0ebe6" stroke-width="1"/>';
-  }
-
-  // 指標1の折れ線
-  var max1 = getMetricMax(m1);
-  var points1 = [];
-  recs.forEach(function(r, idx){
-    var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
-    var v = getMetricValue(r, m1);
-    var y = padT + chartH - (v / max1) * chartH;
-    points1.push(x+','+y);
-  });
-  html += '<polyline points="'+points1.join(' ')+'" fill="none" stroke="var(--rose)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>';
-  // ドット
-  points1.forEach(function(p){
-    var xy = p.split(',');
-    html += '<circle cx="'+xy[0]+'" cy="'+xy[1]+'" r="3" fill="var(--rose)"/>';
-  });
-
-  // 指標2の折れ線
-  if(m2){
-    var max2 = getMetricMax(m2);
-    var points2 = [];
-    recs.forEach(function(r, idx){
-      var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
-      var v = getMetricValue(r, m2);
-      var y = padT + chartH - (v / max2) * chartH;
-      points2.push(x+','+y);
-    });
-    html += '<polyline points="'+points2.join(' ')+'" fill="none" stroke="var(--sage)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4,3"/>';
-    points2.forEach(function(p){
-      var xy = p.split(',');
-      html += '<circle cx="'+xy[0]+'" cy="'+xy[1]+'" r="3" fill="var(--sage)"/>';
-    });
-  }
-
-  // X軸ラベル（間引き）
-  var step = Math.max(1, Math.floor(recs.length / 6));
-  recs.forEach(function(r, idx){
-    if(idx % step === 0 || idx === recs.length - 1){
-      var x = padL + (idx / Math.max(1, recs.length - 1)) * chartW;
-      var d = new Date(r.date);
-      var label = (d.getMonth()+1)+'/'+d.getDate();
-      html += '<text x="'+x+'" y="'+(H-5)+'" text-anchor="middle" fill="#9a8880" font-size="9">'+label+'</text>';
-    }
-  });
-
-  svg.innerHTML = html;
-
-  // 凡例
-  if(legend){
-    var lHtml = '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--rose);border-radius:2px;"></span>'+getMetricLabel(m1)+'</span>';
-    if(m2){
-      lHtml += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:3px;background:var(--sage);border-radius:2px;border-top:1px dashed var(--sage);"></span>'+getMetricLabel(m2)+'</span>';
-    }
-    if(activeFactors.length > 0){
-      lHtml += '<span style="display:flex;align-items:center;gap:4px;"><span style="width:12px;height:8px;background:rgba(255,107,107,0.15);border-radius:2px;"></span>'+activeFactors.join('・')+'</span>';
-    }
-    legend.innerHTML = lHtml;
-  }
-}
-  // ===== 要因効果レポート =====
-var _corrOverlayApi = null;
-function openCorrelationReport(){
-  var corr = calcFactorCorrelations(state.records);
-  var factors = Object.keys(corr);
-
-  // 分析対象メタ情報
-  var totalRecs = state.records.length;
-  var lastDate = '';
-  if(totalRecs > 0){
-    var _crSorted = state.records.slice().sort(function(a,b){
-      return (b.record_date||b.date||'').localeCompare(a.record_date||a.date||'');
-    });
-    var _crLd = new Date(_crSorted[0].record_date || _crSorted[0].date || '');
-    if(!isNaN(_crLd.getTime())) lastDate = (_crLd.getMonth()+1)+'月'+_crLd.getDate()+'日';
-  }
-
-  if (!_corrOverlayApi) {
-    _corrOverlayApi = window.createProOverlay({
-      id:        'corrReportOverlay',
-      ariaLabel: '一緒に起きやすいこと',
-      title:     '一緒に起きやすいこと',
-      subtitle:  '生活習慣と体調の記録を整理しています',
-      footer:    [{ id: 'corr-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
-      onClose:   function(){ _corrOverlayApi.close(); },
-    });
-    _corrOverlayApi.getButton('corr-close').addEventListener('click', function(){ _corrOverlayApi.close(); });
-  }
-
-  var bodyHtml = '';
-  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
-    + totalRecs+'件の記録'+(lastDate?' ／ 最終記録 '+lastDate:'')+'</div>';
-
-  bodyHtml += '<div style="background:rgba(180,160,150,0.12);border-radius:12px;padding:10px 14px;margin-bottom:24px;">'
-    + '<div style="font-size:12px;color:var(--ink-light);line-height:1.7;">ℹ️ この結果は傾向を整理したものであり、因果関係を示すものではありません。</div>'
-    + '</div>';
-
-  if(factors.length === 0){
-    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📊 まだ十分なデータがありません。<br>生活ファクターを記録した日が<br>各要因3日以上になると表示されます。</div>';
-  } else {
-
-    // ① 今見えていること
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
-      + '<div class="pha-card" style="margin-bottom:0;padding:14px;">';
-    factors.slice(0,5).forEach(function(factor, fi){
-      var data = corr[factor];
-      var wsData = data['wellnessScore'];
-      var diff = wsData ? wsData.diff : null;
-      var arrow = diff === null ? '—' : diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      var color = diff === null ? '#9a8880' : diff > 0 ? '#6b9e78' : diff < 0 ? '#c4878c' : '#9a8880';
-      bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;'+(fi>0?'margin-top:8px;padding-top:8px;border-top:1px solid #f5f0ec;':'')+'">'
-        + '<div style="font-size:14px;color:var(--ink);">'+factor+'</div>'
-        + '<div style="font-size:13px;font-weight:600;color:'+color+';">'+arrow+(diff !== null ? ' ウェルネス'+(diff > 0 ? '+' : '')+diff : '')+'</div>'
-        + '</div>';
-    });
-    bodyHtml += '</div></div>';
-
-    // ② なぜそう考えた？
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
-      + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">「その習慣があった日」と「なかった日」の体調データの平均を比べています。差が大きいほど関連が強い傾向があります。</div>'
-      + '</div>';
-
-    // ③ 詳しいデータ
-    bodyHtml += '<div style="margin-bottom:8px;"><div class="pha-section-title">詳しいデータを見る</div>';
-    var metricLabels = {energy:'エネルギー',sleepQuality:'睡眠の質',painLevel:'痛み',symptomCount:'症状の数',wellnessScore:'ウェルネス'};
-
-    factors.forEach(function(factor){
-      var data = corr[factor];
-      bodyHtml += '<div class="pha-card">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">'
-        + '<div style="font-size:15px;font-weight:500;color:var(--ink);">'+factor+'</div>'
-        + '<div style="font-size:12px;color:var(--ink-light);background:var(--cream);padding:3px 8px;border-radius:8px;">'+data.days+'日あり / '+data.totalDays+'日中</div>'
-        + '</div>';
-
-      ['energy','sleepQuality','painLevel','symptomCount','wellnessScore'].forEach(function(m){
-        if(!data[m]) return;
-        var d = data[m];
-        var isNegative = (m === 'painLevel' || m === 'symptomCount');
-        var isGood = isNegative ? d.diff < 0 : d.diff > 0;
-        var color = isGood ? '#6b9e78' : d.diff === 0 ? '#9a8880' : '#c4878c';
-        var arrow = d.diff > 0 ? '↑' : d.diff < 0 ? '↓' : '→';
-        var pctText = d.pct > 0 ? '+'+d.pct+'%' : d.pct+'%';
-        var maxVal = Math.max(d.with, d.without) || 1;
-
-        bodyHtml += '<div style="margin-bottom:12px;">'
-          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
-          + '<div style="font-size:13px;color:var(--ink-mid);">'+metricLabels[m]+'</div>'
-          + '<div style="font-size:12px;font-weight:600;color:'+color+';">'+arrow+' '+pctText+'</div>'
-          + '</div>'
-          + '<div style="display:flex;gap:8px;align-items:center;">'
-          + '<div style="flex:1;"><div style="font-size:12px;color:var(--ink-light);margin-bottom:3px;">あった日：'+d.with+'</div>'
-          + '<div class="pha-bar"><div style="height:100%;width:'+Math.round(d.with/maxVal*100)+'%;background:'+color+';border-radius:4px;"></div></div></div>'
-          + '<div style="flex:1;"><div style="font-size:12px;color:var(--ink-light);margin-bottom:3px;">なかった日：'+d.without+'</div>'
-          + '<div class="pha-bar"><div style="height:100%;width:'+Math.round(d.without/maxVal*100)+'%;background:#b8b0a8;border-radius:4px;"></div></div></div>'
-          + '</div></div>';
-      });
-
-      if(data.symptomEffects){
-        var effects = Object.keys(data.symptomEffects);
-        if(effects.length > 0){
-          bodyHtml += '<div style="margin-top:10px;padding-top:10px;border-top:1px solid #f0ebe6;">'
-            + '<div style="font-size:12px;color:var(--ink-light);margin-bottom:8px;">一緒に出やすい症状</div>';
-          effects.sort(function(a,b){
-            var ra = data.symptomEffects[a].ratio === '∞' ? 999 : data.symptomEffects[a].ratio;
-            var rb = data.symptomEffects[b].ratio === '∞' ? 999 : data.symptomEffects[b].ratio;
-            return rb - ra;
-          });
-          effects.slice(0,5).forEach(function(s){
-            var eff = data.symptomEffects[s];
-            var ratioText = eff.ratio === '∞' ? '∞' : eff.ratio + '倍';
-            var ratioColor = (eff.ratio === '∞' || eff.ratio >= 1.5) ? '#c4878c' : eff.ratio >= 1.1 ? '#d4a574' : '#6b9e78';
-            bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;">'
-              + '<div style="font-size:13px;color:var(--ink-mid);">'+s+'</div>'
-              + '<div style="font-size:12px;font-weight:600;color:'+ratioColor+';">'+ratioText+'<span style="font-size:12px;color:var(--ink-light);margin-left:4px;">('+eff.withRate+'% / '+eff.withoutRate+'%)</span></div>'
-              + '</div>';
-          });
-          bodyHtml += '</div>';
-        }
-      }
-      bodyHtml += '</div>';
-    });
-    bodyHtml += '</div>';
-  }
-
-  _corrOverlayApi.body.innerHTML = bodyHtml;
-  _corrOverlayApi.open();
-}
-
-// ===== フレアアップ自動検出 =====
-function detectFlareups(records){
-  var sorted = records.slice().sort(function(a,b){ return new Date(a.date) - new Date(b.date); });
-  var flareups = [];
-  for(var i=1; i<sorted.length; i++){
-    var prev = sorted[i-1];
-    var curr = sorted[i];
-    var reasons = [];
-
-    // 痛みが前日比+3以上
-    if((curr.painLevel||0) - (prev.painLevel||0) >= 3){
-      reasons.push('痛み急上昇 ('+(prev.painLevel||0)+'→'+(curr.painLevel||0)+')');
-    }
-    // ウェルネスが前日比-20以上
-    if((prev.wellnessScore||50) - (curr.wellnessScore||50) >= 20){
-      reasons.push('ウェルネス急低下 ('+(prev.wellnessScore||50)+'→'+(curr.wellnessScore||50)+')');
-    }
-    // 症状が前日比+3以上
-    var prevSym = prev.symptoms ? prev.symptoms.length : 0;
-    var currSym = curr.symptoms ? curr.symptoms.length : 0;
-    if(currSym - prevSym >= 3){
-      reasons.push('症状急増 ('+prevSym+'→'+currSym+'個)');
-    }
-    // エネルギーが前日比-2以上
-    if((prev.energy||3) - (curr.energy||3) >= 2){
-      reasons.push('エネルギー急低下 ('+(prev.energy||3)+'→'+(curr.energy||3)+')');
-    }
-
-    if(reasons.length > 0){
-      var d = new Date(curr.date);
-      flareups.push({
-        date: curr.date,
-        dateStr: (d.getMonth()+1)+'/'+d.getDate(),
-        reasons: reasons,
-        painLevel: curr.painLevel || 0,
-        symptoms: curr.symptoms || [],
-        factors: curr.factors || [],
-        wellness: curr.wellnessScore,
-        energy: curr.energy || 0,
-        prevFactors: prev.factors || []
-      });
-    }
-  }
-  return flareups;
-}
-
-var _flareupOverlayApi = null;
-function openFlareupReport(){
-  var flareups = detectFlareups(state.records);
-
-  // 分析対象メタ情報
-  var totalRecs = state.records.length;
-  var lastDate = '';
-  if(totalRecs > 0){
-    var _flSorted = state.records.slice().sort(function(a,b){
-      return (b.record_date||b.date||'').localeCompare(a.record_date||a.date||'');
-    });
-    var _flLd = new Date(_flSorted[0].record_date || _flSorted[0].date || '');
-    if(!isNaN(_flLd.getTime())) lastDate = (_flLd.getMonth()+1)+'月'+_flLd.getDate()+'日';
-  }
-  var firstDate = '';
-  if(totalRecs > 0){
-    var _flFirst = state.records.slice().sort(function(a,b){
-      return (a.record_date||a.date||'').localeCompare(b.record_date||b.date||'');
-    });
-    var _flFd = new Date(_flFirst[0].record_date || _flFirst[0].date || '');
-    if(!isNaN(_flFd.getTime())) firstDate = (_flFd.getMonth()+1)+'月'+_flFd.getDate()+'日';
-  }
-
-  if (!_flareupOverlayApi) {
-    _flareupOverlayApi = window.createProOverlay({
-      id:        'flareupOverlay',
-      ariaLabel: '症状が強かった日の共通点',
-      title:     '症状が強かった日の共通点',
-      subtitle:  '症状が急に強くなった日とその前後を整理します',
-      footer:    [{ id: 'flareup-close', label: '閉じる', cls: 'pob-btn pob-btn-secondary' }],
-      onClose:   function(){ _flareupOverlayApi.close(); },
-    });
-    _flareupOverlayApi.getButton('flareup-close').addEventListener('click', function(){ _flareupOverlayApi.close(); });
-  }
-
-  var bodyHtml = '';
-  bodyHtml += '<div class="pha-meta"><span style="font-size:11px;color:var(--ink-light);display:block;margin-bottom:4px;">📋 分析対象</span>'
-    + totalRecs+'件の記録'+(firstDate&&lastDate?' ／ '+firstDate+' 〜 '+lastDate:'')+'</div>';
-
-  if(totalRecs < 2){
-    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">📋 分析できる記録がまだ十分ではありません。<br>記録を続けると傾向が見えてきます。</div>';
-  } else if(flareups.length === 0){
-    bodyHtml += '<div style="text-align:center;padding:40px 0;color:var(--ink-light);font-size:14px;line-height:1.9;">✨ 急な変化は見られませんでした。<br><span style="font-size:12px;">（'+totalRecs+'件の記録を確認しました）</span></div>';
-  } else {
-
-    // ① 今見えていること
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">今見えていること</div>'
-      + '<div style="background:var(--rose-pale);border-radius:14px;padding:14px 16px;">'
-      + '<div style="font-size:15px;color:var(--ink-mid);line-height:1.7;">'+flareups.length+'日、症状が急に強くなった日が見つかりました</div>'
-      + '</div></div>';
-
-    // ② なぜそう考えた？
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">なぜそう考えた？</div>'
-      + '<div class="pha-card" style="margin-bottom:0;font-size:14px;color:var(--ink-mid);line-height:1.8;">前日と比べて、痛み・ウェルネス・症状の数・エネルギーのうちいずれかが急変した日を検出しています。</div>'
-      + '</div>';
-
-    // ③ 詳しいデータ
-    bodyHtml += '<div style="margin-bottom:var(--screen-section-gap,32px);"><div class="pha-section-title">詳しいデータを見る</div>';
-    flareups.slice().reverse().forEach(function(f){
-      bodyHtml += '<div class="pha-card" style="border-left:3px solid var(--rose);">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
-        + '<div style="font-size:15px;font-weight:600;color:var(--ink);">'+f.dateStr+'</div>'
-        + '<div style="display:flex;gap:4px;">';
-      if(f.wellness !== undefined) bodyHtml += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">WS:'+f.wellness+'</span>';
-      if(f.energy) bodyHtml += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:2px 8px;border-radius:8px;">⚡'+f.energy+'</span>';
-      if(f.painLevel) bodyHtml += '<span style="font-size:11px;background:#fde8e8;color:#c4878c;padding:2px 8px;border-radius:8px;">痛み'+f.painLevel+'</span>';
-      bodyHtml += '</div></div>';
-
-      bodyHtml += '<div style="margin-bottom:8px;">';
-      f.reasons.forEach(function(r){
-        bodyHtml += '<div style="font-size:13px;color:var(--rose);margin-bottom:4px;">🔺 '+r+'</div>';
-      });
-      bodyHtml += '</div>';
-
-      if(f.symptoms.length > 0){
-        bodyHtml += '<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;">';
-        f.symptoms.forEach(function(s){
-          bodyHtml += '<span style="font-size:12px;background:var(--warm-light);color:var(--ink-mid);padding:3px 10px;border-radius:8px;">'+s+'</span>';
-        });
-        bodyHtml += '</div>';
-      }
-      if(f.factors.length > 0) bodyHtml += '<div style="font-size:12px;color:var(--ink-light);margin-top:6px;">📋 当日の要因：'+f.factors.join('・')+'</div>';
-      if(f.prevFactors.length > 0) bodyHtml += '<div style="font-size:12px;color:var(--ink-light);margin-top:3px;">📋 前日の要因：'+f.prevFactors.join('・')+'</div>';
-      bodyHtml += '</div>';
-    });
-    bodyHtml += '</div>';
-
-    // ④ 共通点（トリガー分析）
-    var triggerCounts = {};
-    flareups.forEach(function(f){
-      f.factors.concat(f.prevFactors).forEach(function(fac){
-        triggerCounts[fac] = (triggerCounts[fac] || 0) + 1;
-      });
-    });
-    var triggers = Object.entries(triggerCounts).sort(function(a,b){ return b[1]-a[1]; });
-    if(triggers.length > 0){
-      bodyHtml += '<div style="margin-bottom:16px;"><div class="pha-section-title">症状が強かった日に多かった要因</div>'
-        + '<div class="pha-card" style="margin-bottom:0;">';
-      triggers.slice(0,5).forEach(function(t){
-        var pct = Math.round(t[1] / flareups.length * 100);
-        bodyHtml += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">'
-          + '<div style="font-size:13px;color:var(--ink-mid);">'+t[0]+'</div>'
-          + '<div style="display:flex;align-items:center;gap:6px;flex:1;margin-left:12px;">'
-          + '<div class="pha-bar" style="flex:1;"><div style="height:100%;width:'+pct+'%;background:var(--rose);border-radius:4px;"></div></div>'
-          + '<div style="font-size:11px;color:var(--ink-light);min-width:32px;text-align:right;">'+t[1]+'日</div>'
-          + '</div></div>';
-      });
-      bodyHtml += '</div></div>';
-    }
-  }
-
-  _flareupOverlayApi.body.innerHTML = bodyHtml;
-  _flareupOverlayApi.open();
-}
+// ===== ウェルネススコア自動計算 / ファクター相関計算 / 比較グラフ / フレアアップ検出 =====
+// PR-082F (Legacy Removal Batch-4 分割⑥): calcWellnessScore/calcFactorCorrelations/
+// setCGRange/toggleCGFactor/getMetricValue/getMetricLabel/getMetricMax/renderComparisonChart/
+// openCorrelationReport/detectFlareups/openFlareupReport は src/modules/pro/flareup-report.js ・
+// src/modules/pro/correlation-report.js ・ src/modules/pro/shared/pro-metric-utils.js へ物理移動済み（import参照）。
 
 function gatherRecordData(){
   var mealFree = (document.getElementById('rs-meal-free')||{}).value||'';
@@ -8428,13 +4150,8 @@ function draftRecordScreen(){
   if(di){ di.textContent='一時保存しました'; di.style.display='block'; di.style.color='var(--sage)'; setTimeout(function(){ di.style.display='none'; }, 2500); }
 }
 
-function toLocalDateKey(date) {
-  var d = date instanceof Date ? date : new Date(date);
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
-  var day = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + day;
-}
+// PR-087 (Legacy Removal Batch-9): toLocalDateKey は
+// src/utils/string-utils.js へ物理移動済み（import参照）。
 
 function saveRecordScreen(){
   try {
@@ -8580,8 +4297,7 @@ var todayStr = targetDate.toDateString();
     checkAndShowTempAlert();
     if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
     updateStats();
-    updateHistory();
-    buildCalendar();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
     if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
     localStorage.removeItem('ippo_draft');
     var _cloudBackupFn = (typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : cloudBackupAll);
@@ -8671,551 +4387,14 @@ setDailyMessage();
 
 
 // ===== BODY SUMMARY (からだサマリー) =====
-
-function openDoctorSummary() {
-  document.getElementById('doctorSummaryOverlay').classList.add('active');
-  generateDoctorSummary();
-}
-
-function closeDoctorSummary() {
-  document.getElementById('doctorSummaryOverlay').classList.remove('active');
-}
+// PR-082A (Legacy Removal Batch-4 分割①): openDoctorSummary/closeDoctorSummary/
+// generateDoctorSummary/downloadDoctorPDF/_generateDoctorPDF/copyDoctorSummary は
+// src/modules/pro/doctor-summary/doctor-summary.js へ物理移動済み（import参照）。
 
 document.getElementById('doctorSummaryOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeDoctorSummary();
 });
 
-async function generateDoctorSummary() {
-  const body = document.getElementById('doctorSummaryBody');
-  body.innerHTML = '<div class="ds-empty">データを読み込み中...</div>';
-
-  try {
-    const today = new Date();
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const fromDate = thirtyDaysAgo.toISOString().split('T')[0];
-    const toDate = today.toISOString().split('T')[0];
-    const monthLabel = (today.getMonth() + 1) + '月';
-
-    // ローカルのstate.recordsから過去30日分を取得
-    const records = state.records.filter(function(r) {
-      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
-      return d >= fromDate && d <= toDate;
-    }).map(function(r) {
-      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
-    });
-
-    if (records.length === 0) {
-      body.innerHTML = '<div class="ds-empty">過去30日間の記録がありません。<br>毎日の記録を続けると、ここにからだサマリーが届きます。</div>';
-      return;
-    }
-
-    // データ集計
-    const totalDays = records.length;
-    const symptomCounts = {};
-    const temperatures = [];
-    const fastingHours = [];
-    const cycleStatuses = [];
-    const mealCounts = [];
-    const diseaseChecks = [];
-    const energyLevels = [];
-const sleepData = [];
-const wellnessScores = [];
-const smiScores = [];
-const factorCounts = {};
-const bowelCounts = {};
-const painData = [];
-const medicationCounts = {};
-
-    records.forEach(function(r) {
-      var d = r.data || {};
-
-      if (d.symptoms && d.symptoms.length > 0) {
-        d.symptoms.forEach(function(s) {
-          symptomCounts[s] = (symptomCounts[s] || 0) + 1;
-        });
-      }
-
-      if (d.temperature) {
-        temperatures.push({ date: r.record_date, value: parseFloat(d.temperature) });
-      }
-
-      if (d.fasting && parseFloat(d.fasting) >= 12) {
-        fastingHours.push({ date: r.record_date, value: parseFloat(d.fasting) });
-      }
-
-      if (d.menstrualCycle && d.menstrualCycle.trim() && d.menstrualCycle !== 'なし') {
-        cycleStatuses.push({ date: r.record_date, status: d.menstrualCycle });
-      }
-
-      if (d.mealCount) {
-        mealCounts.push(d.mealCount);
-      }
-
-      if (d.diseaseCheck && Object.keys(d.diseaseCheck).length > 0) {
-        diseaseChecks.push({ date: r.record_date, check: d.diseaseCheck });
-      }
-            if (d.energy) {
-        energyLevels.push(d.energy);
-      }
-
-      if (d.sleepHours || d.sleepQuality) {
-        sleepData.push({
-          date: r.record_date,
-          hours: d.sleepHours || null,
-          quality: d.sleepQuality || null,
-          bed: d.sleepBed || '',
-          wake: d.sleepWake || ''
-        });
-      }
-
-      if (d.wellnessScore !== undefined) {
-        wellnessScores.push(d.wellnessScore);
-      }
-
-      if (d.smiScore !== undefined) {
-        smiScores.push(d.smiScore);
-      }
-
-      if (d.factors && d.factors.length) {
-        d.factors.forEach(function(f) {
-          factorCounts[f] = (factorCounts[f] || 0) + 1;
-        });
-      }
-
-      if (d.bowel) {
-        bowelCounts[d.bowel] = (bowelCounts[d.bowel] || 0) + 1;
-      }
-
-      if (d.painLevel && d.painLevel > 0) {
-        painData.push({
-          date: r.record_date,
-          level: d.painLevel,
-          location: d.painLocation || '',
-          type: d.painType || ''
-        });
-      }
-
-      if (d.medication && d.medication.length) {
-        d.medication.forEach(function(m) {
-          medicationCounts[m] = (medicationCounts[m] || 0) + 1;
-        });
-      }
-    });
-
-    // ===== 文章生成 =====
-    var html = '';
-
-    // ヘッダー
-    html += '<div style="text-align:center;margin-bottom:24px;">';
-    html += '<div style="font-size:11px;letter-spacing:0.15em;color:var(--ink-light);margin-bottom:4px;">BODY SUMMARY</div>';
-    html += '<div style="font-family:Shippori Mincho,serif;font-size:20px;color:var(--ink);">' + monthLabel + 'のからだサマリー</div>';
-    html += '<div style="font-size:12px;color:var(--ink-light);margin-top:6px;">' + fromDate + ' 〜 ' + toDate + '（' + totalDays + '日間の記録）</div>';
-    html += '</div>';
-
-    // ① 体温のリズム
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">🌡 体温のリズム</div>';
-    if (temperatures.length >= 3) {
-      var avgTemp = (temperatures.reduce(function(s, t) { return s + t.value; }, 0) / temperatures.length).toFixed(2);
-      var minTemp = Math.min.apply(null, temperatures.map(function(t) { return t.value; })).toFixed(2);
-      var maxTemp = Math.max.apply(null, temperatures.map(function(t) { return t.value; })).toFixed(2);
-      var tempRange = (maxTemp - minTemp).toFixed(2);
-
-      html += '<div class="ds-narrative">';
-      html += '今月の基礎体温は平均 <strong>' + avgTemp + '℃</strong> でした。';
-      html += '最低 ' + minTemp + '℃ 〜 最高 ' + maxTemp + '℃ の範囲で、';
-      if (tempRange >= 0.3) {
-        html += '高温期と低温期の差が <strong>' + tempRange + '℃</strong> あり、二相性のリズムが見られます。';
-      } else {
-        html += '変動幅は ' + tempRange + '℃ と小さめです。引き続き記録を続けると、リズムがより明確になります。';
-      }
-      html += '</div>';
-    } else {
-      html += '<div class="ds-narrative">体温の記録が' + temperatures.length + '日分です。あと' + (3 - temperatures.length) + '日記録すると、リズムの傾向が見えてきます。</div>';
-    }
-    html += '</div>';
-
-    // ② 食事とからだの関係
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">🍽 食事とからだの関係</div>';
-    html += '<div class="ds-narrative">';
-    if (fastingHours.length >= 3) {
-      var avgFast = (fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length).toFixed(1);
-      var longFastDays = fastingHours.filter(function(h) { return h.value >= 16; }).length;
-      html += '今月の平均ファスティングは <strong>' + avgFast + '時間</strong> でした。';
-      if (longFastDays > 0) {
-        html += '16時間以上のファスティングを達成した日は <strong>' + longFastDays + '日</strong> あります。';
-
-        // ファスティングが長い日と症状の関係を分析
-        var longFastDates = fastingHours.filter(function(h) { return h.value >= 16; }).map(function(h) { return h.date; });
-        var symptomOnFastDay = {};
-        records.forEach(function(r) {
-          if (longFastDates.indexOf(r.record_date) !== -1 && r.data.symptoms) {
-            r.data.symptoms.forEach(function(s) {
-              symptomOnFastDay[s] = (symptomOnFastDay[s] || 0) + 1;
-            });
-          }
-        });
-        if (Object.keys(symptomOnFastDay).length > 0) {
-          var topSymptom = Object.entries(symptomOnFastDay).sort(function(a, b) { return b[1] - a[1]; })[0];
-          html += 'ファスティングが長い日には「' + topSymptom[0] + '」の記録が目立ちます。';
-        } else {
-          html += 'ファスティングが長い日に特定の症状は記録されていません。良い傾向です。';
-        }
-      }
-    } else if (mealCounts.length > 0) {
-      var avgMeals = (mealCounts.reduce(function(s, m) { return s + m; }, 0) / mealCounts.length).toFixed(1);
-      html += '1日あたりの平均食事回数は <strong>' + avgMeals + '回</strong> でした。';
-    } else {
-      html += '食事の記録をもう少し増やすと、食事と体調の関係が見えてきます。';
-    }
-    html += '</div>';
-    html += '</div>';
-
-    // ③ 気になるパターン
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">🔍 気になるパターン</div>';
-    html += '<div class="ds-narrative">';
-    var sortedSymptoms = Object.entries(symptomCounts).sort(function(a, b) { return b[1] - a[1]; });
-    if (sortedSymptoms.length > 0) {
-      html += '今月もっとも多く記録された症状は「<strong>' + sortedSymptoms[0][0] + '</strong>」で、' + sortedSymptoms[0][1] + '日間記録されています。';
-      if (sortedSymptoms.length > 1) {
-        html += '次いで「' + sortedSymptoms[1][0] + '」が' + sortedSymptoms[1][1] + '日間です。';
-      }
-
-      // 症状と生理周期の関係
-      if (cycleStatuses.length > 0) {
-        var cycleDates = cycleStatuses.map(function(c) { return c.date; });
-        var symptomNearCycle = 0;
-        records.forEach(function(r) {
-          if (r.data.symptoms && r.data.symptoms.length > 0) {
-            var rDate = new Date(r.record_date);
-            cycleDates.forEach(function(cd) {
-              var diff = Math.abs(rDate - new Date(cd));
-              if (diff <= 3 * 86400000) symptomNearCycle++;
-            });
-          }
-        });
-        if (symptomNearCycle > 0) {
-          html += '<br>生理前後に症状の記録が集中する傾向が見られます。来月も同じ時期に注目してみましょう。';
-        }
-      }
-    } else {
-      html += '今月は症状の記録がありません。体調が安定していた月かもしれません。';
-    }
-
-    // 疾患チェックの傾向
-    if (diseaseChecks.length > 0) {
-      var checkCounts = {};
-      diseaseChecks.forEach(function(dc) {
-        Object.entries(dc.check).forEach(function(entry) {
-          var key = entry[0];
-          var val = entry[1];
-          if (val !== 'なし') {
-            checkCounts[key] = (checkCounts[key] || 0) + 1;
-          }
-        });
-      });
-      var sortedChecks = Object.entries(checkCounts).sort(function(a, b) { return b[1] - a[1]; });
-      if (sortedChecks.length > 0) {
-        var topCheck = sortedChecks[0];
-        var topKey = topCheck[0];
-        var topParts = topKey.split('__');
-        var topDKey = topParts.length > 1 ? topParts[0] : '';
-        var topQId = topParts.length > 1 ? topParts[1] : topKey;
-        var topQCfg = (typeof DISEASE_CONFIG !== 'undefined' && topDKey) ? DISEASE_CONFIG[topDKey] : null;
-        var checkName = topQId;
-        if(topQCfg && topQCfg.questions){
-          for(var cqi=0;cqi<topQCfg.questions.length;cqi++){
-            if(topQCfg.questions[cqi].id === topQId){ checkName = topQCfg.questions[cqi].text.replace('？',''); break; }
-          }
-        }
-        html += '<br>疾患チェックでは「' + checkName + '」が' + topCheck[1] + '日間記録されています。';
-      }
-    }
-    html += '</div>';
-    html += '</div>';
-        // ④ エネルギー・睡眠・生活の傾向
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">⚡ エネルギー・睡眠・生活の傾向</div>';
-    html += '<div class="ds-narrative">';
-
-    if(energyLevels.length > 0){
-      var avgEnergy = (energyLevels.reduce(function(a,b){return a+b;},0) / energyLevels.length).toFixed(1);
-      var lowDays = energyLevels.filter(function(e){return e <= 2;}).length;
-      html += '平均エネルギーレベルは <strong>' + avgEnergy + '/5</strong> です（' + energyLevels.length + '日分）。';
-      if(lowDays > 0) html += '低エネルギー（2以下）の日が <strong>' + lowDays + '日</strong> ありました。';
-      html += '<br>';
-    }
-
-    if(sleepData.length > 0){
-      var sleepHrs = sleepData.filter(function(s){return s.hours;}).map(function(s){return s.hours;});
-      var sleepQuals = sleepData.filter(function(s){return s.quality;}).map(function(s){return s.quality;});
-      if(sleepHrs.length > 0){
-        var avgSH = (sleepHrs.reduce(function(a,b){return a+b;},0) / sleepHrs.length).toFixed(1);
-        var shortDays = sleepHrs.filter(function(h){return h < 6;}).length;
-        html += '平均睡眠時間は <strong>' + avgSH + '時間</strong>（' + sleepHrs.length + '日分）。';
-        if(shortDays > 0) html += '6時間未満の日が <strong>' + shortDays + '日</strong>。';
-      }
-      if(sleepQuals.length > 0){
-        var avgSQ = (sleepQuals.reduce(function(a,b){return a+b;},0) / sleepQuals.length).toFixed(1);
-        html += '睡眠の質の平均は <strong>' + avgSQ + '/5</strong>。';
-      }
-      html += '<br>';
-    }
-
-    if(wellnessScores.length > 0){
-      var avgWS = Math.round(wellnessScores.reduce(function(a,b){return a+b;},0) / wellnessScores.length);
-      var minWS = Math.min.apply(null, wellnessScores);
-      var maxWS = Math.max.apply(null, wellnessScores);
-      html += 'ウェルネススコアは平均 <strong>' + avgWS + '/100</strong>（最低 ' + minWS + '、最高 ' + maxWS + '）。';
-      if(avgWS < 40) html += '全体的に低めの傾向が続いています。';
-      html += '<br>';
-    }
-
-    if(smiScores.length > 0){
-      var avgSMI = Math.round(smiScores.reduce(function(a,b){return a+b;},0) / smiScores.length);
-      html += '更年期指数（SMI）の平均は <strong>' + avgSMI + '/94</strong>（' + smiScores.length + '日分）。';
-      if(avgSMI > 50) html += '症状が強めに出ている傾向があります。';
-      html += '<br>';
-    }
-
-    if(energyLevels.length === 0 && sleepData.length === 0 && wellnessScores.length === 0){
-      html += 'エネルギー・睡眠の記録がまだありません。記録を始めると、ここに傾向が表示されます。';
-    }
-
-    html += '</div>';
-    html += '</div>';
-
-    // ⑤ 痛み・服薬の傾向
-    if(painData.length > 0 || Object.keys(medicationCounts).length > 0){
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">💊 痛み・服薬の傾向</div>';
-      html += '<div class="ds-narrative">';
-
-      if(painData.length > 0){
-        var avgPain = (painData.reduce(function(a,p){return a+p.level;},0) / painData.length).toFixed(1);
-        var maxPain = Math.max.apply(null, painData.map(function(p){return p.level;}));
-        var locationCounts = {};
-        painData.forEach(function(p){
-          if(p.location){
-            var locs = Array.isArray(p.location) ? p.location : [p.location];
-            locs.forEach(function(l){ locationCounts[l] = (locationCounts[l]||0)+1; });
-          }
-        });
-        var topLocations = Object.entries(locationCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,3);
-        html += '痛みの記録が <strong>' + painData.length + '日</strong> あり、平均強度は <strong>' + avgPain + '/10</strong>（最大 ' + maxPain + '）。';
-        if(topLocations.length > 0){
-          html += '主な部位は「' + topLocations.map(function(t){return t[0]+'（'+t[1]+'日）';}).join('、') + '」。';
-        }
-        html += '<br>';
-      }
-
-      if(Object.keys(medicationCounts).length > 0){
-        var sortedMeds = Object.entries(medicationCounts).sort(function(a,b){return b[1]-a[1];});
-        var totalMedDays = new Set(painData.filter(function(p){return p.level>0;}).map(function(p){return p.date;})).size;
-        html += '服薬記録：';
-        sortedMeds.forEach(function(m){
-          html += '「' + m[0] + '」' + m[1] + '日、';
-        });
-        html = html.slice(0,-1) + '。';
-      }
-
-      html += '</div>';
-      html += '</div>';
-    }
-
-    // ⑥ 生活ファクター・お通じの傾向
-    if(Object.keys(factorCounts).length > 0 || Object.keys(bowelCounts).length > 0){
-      html += '<div class="ds-section">';
-      html += '<div class="ds-section-title">📋 生活ファクター・お通じ</div>';
-      html += '<div class="ds-narrative">';
-
-      if(Object.keys(factorCounts).length > 0){
-        var sortedFactors = Object.entries(factorCounts).sort(function(a,b){return b[1]-a[1];});
-        html += '記録された生活ファクター：';
-        sortedFactors.slice(0,5).forEach(function(f){
-          html += '「' + f[0] + '」' + f[1] + '日、';
-        });
-        html = html.slice(0,-1) + '。<br>';
-      }
-
-      if(Object.keys(bowelCounts).length > 0){
-        var sortedBowel = Object.entries(bowelCounts).sort(function(a,b){return b[1]-a[1];});
-        html += 'お通じの傾向：';
-        sortedBowel.forEach(function(b){
-          html += '「' + b[0] + '」' + b[1] + '日、';
-        });
-        html = html.slice(0,-1) + '。';
-        if(bowelCounts['なし'] && bowelCounts['なし'] >= 5){
-          html += '<br>お通じなしの日が多く見られます。';
-        }
-      }
-
-      html += '</div>';
-      html += '</div>';
-    }
-    // ⑦ 来月のセルフケアヒント
-    html += '<div class="ds-section">';
-    html += '<div class="ds-section-title">💡 来月のセルフケアヒント</div>';
-    html += '<div class="ds-narrative">';
-    var hints = [];
-    if (temperatures.length < 15) {
-      hints.push('基礎体温の記録を増やすと、高温期・低温期のリズムがより明確になります。');
-    }
-    if (fastingHours.length > 0) {
-      var avgF = fastingHours.reduce(function(s, h) { return s + h.value; }, 0) / fastingHours.length;
-      if (avgF >= 16) {
-        hints.push('ファスティングが安定しています。この習慣を続けましょう。');
-      } else {
-        hints.push('ファスティングを少し延ばすと、体調の変化が見えやすくなるかもしれません。');
-      }
-    }
-    if (sortedSymptoms.length > 0 && cycleStatuses.length > 0) {
-      hints.push('生理前後の症状に注目して記録すると、周期ごとのパターンが見つかりやすくなります。');
-    }
-    if (totalDays < 20) {
-      hints.push('記録日数を増やすと、より正確なパターンが見えてきます。毎日1〜2分の記録を習慣にしてみましょう。');
-    }
-        if(energyLevels.length > 0){
-      var lowEDays = energyLevels.filter(function(e){return e<=2;}).length;
-      if(lowEDays >= 5) hints.push('低エネルギーの日が目立ちます。睡眠時間や生活ファクターとの関連を確認してみましょう。');
-    }
-    if(sleepData.length > 0){
-      var shortSleep = sleepData.filter(function(s){return s.hours && s.hours<6;}).length;
-      if(shortSleep >= 5) hints.push('睡眠時間が6時間未満の日が多いようです。就寝時間を少し早めることを試してみましょう。');
-    }
-    if(smiScores.length > 0){
-      var highSMI = smiScores.filter(function(s){return s>50;}).length;
-      if(highSMI >= 3) hints.push('更年期症状が強めに出ている日があります。この記録を持って専門医に相談されることも検討してみてください。');
-    }
-    if (hints.length === 0) {
-      hints.push('今月の記録は充実しています。来月も同じペースで続けると、長期的なパターンが見えてきます。');
-    }
-    hints.forEach(function(h) {
-      html += '・' + h + '<br>';
-    });
-    html += '</div>';
-    html += '</div>';
-
-    // ⑧ PDF保存への案内
-    html += '<div style="margin-top:20px;padding:14px;background:var(--warm-light);border-radius:12px;font-size:12px;color:var(--ink-light);line-height:1.7;text-align:center;">';
-    html += '📄 このサマリーをPDFで保存して、婦人科に持参することもできます。';
-    html += '</div>';
-
-    body.innerHTML = html;
-
-  } catch (err) {
-    console.error('Body summary error:', err);
-    body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。<br>もう一度お試しください。</div>';
-  }
-}
-function downloadDoctorPDF(){
-  var btn = event.target;
-  var original = btn.textContent;
-  btn.textContent = 'PDF生成中…';
-  btn.style.pointerEvents = 'none';
-
-  try {
-    if(!window.jspdf){
-      var script = document.createElement('script');
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-      script.onload = function(){ _generateDoctorPDF(btn, original); };
-      document.head.appendChild(script);
-    } else {
-      _generateDoctorPDF(btn, original);
-    }
-  } catch(e){
-    console.error('Doctor PDF error:', e);
-    btn.textContent = '生成に失敗しました';
-    setTimeout(function(){ btn.textContent = original; btn.style.pointerEvents = ''; }, 2000);
-  }
-}
-
-function _generateDoctorPDF(btn, original){
-  var body = document.getElementById('doctorSummaryBody');
-  if(!body){ btn.textContent = original; btn.style.pointerEvents = ''; return; }
-
-  var { jsPDF } = window.jspdf;
-  var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-  var pageW = doc.internal.pageSize.getWidth();
-  var margin = 15;
-  var maxW = pageW - margin * 2;
-  var y = 20;
-
-  // フォント設定
-  doc.setFont('Helvetica');
-
-  // タイトル
-  doc.setFontSize(16);
-  doc.setTextColor(44,36,32);
-  doc.text('ippo からだサマリー（受診用）', margin, y);
-  y += 8;
-
-  doc.setFontSize(9);
-  doc.setTextColor(154,136,128);
-  var today = new Date();
-  doc.text('生成日: ' + today.getFullYear() + '/' + (today.getMonth()+1) + '/' + today.getDate(), margin, y);
-  y += 4;
-
-  doc.setDrawColor(232,221,216);
-  doc.line(margin, y, pageW - margin, y);
-  y += 8;
-
-  // セクションを取得して描画
-  var sections = body.querySelectorAll('.ds-section');
-  doc.setFontSize(10);
-
-  sections.forEach(function(section){
-    var title = section.querySelector('.ds-section-title');
-    var narrative = section.querySelector('.ds-narrative');
-
-    if(y > 265){ doc.addPage(); y = 20; }
-
-    if(title){
-      doc.setFontSize(12);
-      doc.setTextColor(44,36,32);
-      var titleText = title.textContent.replace(/[^\x00-\x7F]/g, function(c){ return c; });
-      doc.text(titleText, margin, y);
-      y += 7;
-    }
-
-    if(narrative){
-      doc.setFontSize(9);
-      doc.setTextColor(90,74,68);
-      var text = narrative.innerText || narrative.textContent;
-      var lines = doc.splitTextToSize(text, maxW);
-      lines.forEach(function(line){
-        if(y > 275){ doc.addPage(); y = 20; }
-        doc.text(line, margin, y);
-        y += 4.5;
-      });
-      y += 4;
-    }
-  });
-
-  // フッター
-  if(y > 265){ doc.addPage(); y = 20; }
-  y += 8;
-  doc.setFontSize(7);
-  doc.setTextColor(180,170,165);
-  doc.text('※ このレポートはippoアプリのセルフチェック記録に基づく参考情報です。医学的な診断ではありません。', margin, y);
-  y += 4;
-  doc.text('https://www.ippo-app.com', margin, y);
-
-  // ダウンロード
-  var monthLabel = (today.getMonth()+1) + '月';
-  doc.save('ippo-doctor-summary-' + monthLabel + '.pdf');
-
-  btn.textContent = 'ダウンロード完了 ✓';
-  btn.style.background = '#8aab96';
-  setTimeout(function(){
-    btn.textContent = original;
-    btn.style.background = '';
-    btn.style.pointerEvents = '';
-  }, 2000);
-}
   function showExportMenu(){
   var overlay = document.createElement('div');
   overlay.id = 'export-overlay';
@@ -9243,745 +4422,24 @@ function _generateDoctorPDF(btn, original){
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); }, { once: true });
 }
 
-function exportJSON(){
-  var d = JSON.stringify(state, null, 2);
-  var b = new Blob([d], {type:'application/json'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(b);
-  a.download = 'ippo-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-// ===== CSVエクスポート =====
-function exportCSV(){
-  if(!state.records || state.records.length === 0){
-    showAlertModal('エクスポートする記録がありません。');
-    return;
-  }
-
-  // ヘッダー定義
-  var headers = [
-    '日付',
-    '基礎体温',
-    'エネルギー',
-    '睡眠_就寝',
-    '睡眠_起床',
-    '睡眠時間',
-    '睡眠の質',
-    'ウェルネススコア',
-    'SMIスコア',
-    '生理周期',
-    '痛みレベル',
-    '痛み部位',
-    '痛みタイプ',
-    '症状',
-    '服薬',
-    '経血_塊',
-    '経血_色',
-    'お通じ',
-    '生活ファクター',
-    '食事メモ',
-    '食事回数',
-    '最初の食事',
-    '最後の食事',
-    'ファスティング時間',
-    '疾患チェック',
-    '疾患',
-    'メモ'
-  ];
-
-  var rows = [headers.join(',')];
-
-  // 日付順にソート
-  var sorted = state.records.slice().sort(function(a,b){
-    return new Date(a.date) - new Date(b.date);
-  });
-
-  sorted.forEach(function(r){
-    var row = [
-      r.date || '',
-      r.temperature || '',
-      r.energy || '',
-      r.sleepBed || '',
-      r.sleepWake || '',
-      r.sleepHours || '',
-      r.sleepQuality || '',
-      r.wellnessScore !== undefined ? r.wellnessScore : '',
-      r.smiScore !== undefined ? r.smiScore : '',
-      r.menstrualCycle || '',
-      r.painLevel || '',
-      csvSafe(Array.isArray(r.painLocation) ? r.painLocation.join('・') : (r.painLocation || '')),
-      csvSafe(Array.isArray(r.painType) ? r.painType.join('・') : (r.painType || '')),
-      csvSafe((r.symptoms || []).join('・')),
-      csvSafe((r.medication || []).join('・')),
-      csvSafe((r.bloodClot || []).join('・')),
-      csvSafe((r.bloodColor || []).join('・')),
-      r.bowel || '',
-      csvSafe((r.factors || []).join('・')),
-      csvSafe(r.mealFree || ''),
-      r.mealCount || '',
-      r.firstTime || '',
-      r.lastTime || '',
-      r.fastingHours || '',
-      csvSafe(formatDiseaseCheck(r.diseaseCheck)),
-      csvSafe((r.diseases || []).join('・')),
-      csvSafe(r.note || '')
-    ];
-    rows.push(row.join(','));
-  });
-
-  var csvContent = '\uFEFF' + rows.join('\n'); // BOM付きUTF-8
-  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  var today = new Date();
-  a.download = 'ippo-records-' + today.getFullYear() + (today.getMonth()+1+'').padStart(2,'0') + (today.getDate()+'').padStart(2,'0') + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function csvSafe(str){
-  if(!str) return '';
-  str = String(str);
-  if(str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1){
-    return '"' + str.replace(/"/g, '""') + '"';
-  }
-  return str;
-}
-
-function formatDiseaseCheck(dc){
-  if(!dc || typeof dc !== 'object') return '';
-  var parts = [];
-  Object.keys(dc).forEach(function(key){
-    parts.push(key + ':' + dc[key]);
-  });
-  return parts.join('／');
-}
-
-
-// テキストコピー機能
-function copyDoctorSummary() {
-  const body = document.getElementById('doctorSummaryBody');
-  let text = '【ippo 体調サマリー】\n';
-  text += '生成日: ' + new Date().toLocaleDateString('ja-JP') + '\n\n';
-
-  const sections = body.querySelectorAll('.ds-section');
-  sections.forEach(section => {
-    const title = section.querySelector('.ds-section-title');
-    if (title) text += '■ ' + title.textContent + '\n';
-
-    const rows = section.querySelectorAll('.ds-row');
-    rows.forEach(row => {
-      const label = row.querySelector('.ds-row-label');
-      const value = row.querySelector('.ds-row-value');
-      if (label && value) text += '  ' + label.textContent + ': ' + value.textContent + '\n';
-    });
-
-    const notes = section.querySelectorAll('.ds-note-item');
-    notes.forEach(note => {
-      const date = note.querySelector('.ds-note-date');
-      const noteText = note.querySelector('.ds-note-text');
-      if (date && noteText) text += '  ' + date.textContent + ' — ' + noteText.textContent + '\n';
-    });
-
-    const meals = section.querySelectorAll('.ds-meal-day');
-    meals.forEach(meal => {
-      const date = meal.querySelector('.ds-meal-date');
-      const items = meal.querySelector('.ds-meal-items');
-      if (date) text += '  ' + date.textContent + '\n';
-      if (items) text += '  ' + items.textContent.replace(/<br>/g, ' / ') + '\n';
-    });
-
-    text += '\n';
-  });
-
-  text += '※ このサマリーはippoアプリの記録データを整理したものです。医学的診断ではありません。';
-
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.ds-btn.primary');
-    const original = btn.textContent;
-    btn.textContent = 'コピーしました ✓';
-    btn.style.background = '#8aab96';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-    }, 2000);
-  }).catch(() => {
-    // フォールバック
-    const ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
-  });
-}
+// PR-084 (Legacy Removal Batch-6): exportJSON/exportCSV/csvSafe/formatDiseaseCheck は
+// src/modules/data-export.js へ物理移動済み（import参照）。
 
   // ===== MONTHLY REPORT (月次レポート) =====
-
-var _mrOverlayApi = null;
-
-function _getMrOverlay() {
-  if (!_mrOverlayApi) {
-    _mrOverlayApi = window.createProOverlay({
-      id: 'mr-pro-overlay',
-      ariaLabel: '月次レポート',
-      title: '月次レポート',
-      subtitle: '月ごとの体調データを可視化',
-      footer: [
-        { id: 'mr-close-btn', label: '閉じる', cls: 'pob-btn pob-btn-secondary' },
-        { id: 'mr-pdf-btn', label: 'PDF ダウンロード', cls: 'pob-btn pob-btn-primary' },
-      ],
-      onClose: closeMonthlyReport,
-    });
-    _mrOverlayApi.body.innerHTML =
-      '<div class="mr-month-selector">' +
-        '<button class="mr-month-btn" onclick="changeReportMonth(-1)">←</button>' +
-        '<div class="mr-month-label" id="mrMonthLabel"></div>' +
-        '<button class="mr-month-btn" onclick="changeReportMonth(1)">→</button>' +
-      '</div>' +
-      '<div id="monthlyReportBody"></div>';
-    _mrOverlayApi.getButton('mr-close-btn').addEventListener('click', closeMonthlyReport);
-    _mrOverlayApi.getButton('mr-pdf-btn').addEventListener('click', downloadReportPDF);
-  }
-  return _mrOverlayApi;
-}
-
-let reportYear = new Date().getFullYear();
-let reportMonth = new Date().getMonth(); // 0-indexed
-
-function openMonthlyReport() {
-  reportYear = new Date().getFullYear();
-  reportMonth = new Date().getMonth();
-  _getMrOverlay().open();
-  updateMonthLabel();
-  generateMonthlyReport();
-}
-
-function closeMonthlyReport() {
-  if (_mrOverlayApi) _mrOverlayApi.close();
-}
-
-function changeReportMonth(delta) {
-  reportMonth += delta;
-  if (reportMonth > 11) { reportMonth = 0; reportYear++; }
-  if (reportMonth < 0) { reportMonth = 11; reportYear--; }
-  updateMonthLabel();
-  generateMonthlyReport();
-}
-
-function updateMonthLabel() {
-  document.getElementById('mrMonthLabel').textContent = reportYear + '年' + (reportMonth + 1) + '月';
-}
-
-async function generateMonthlyReport() {
-  const token = _mrOverlayApi ? _mrOverlayApi.nextToken() : null;
-  const body = document.getElementById('monthlyReportBody');
-  body.innerHTML = '<div class="mr-generating">データを読み込み中...</div>';
-
-  try {
-    const firstDay = new Date(reportYear, reportMonth, 1);
-    const lastDay = new Date(reportYear, reportMonth + 1, 0);
-    const fromDate = firstDay.toISOString().split('T')[0];
-    const toDate = lastDay.toISOString().split('T')[0];
-    const daysInMonth = lastDay.getDate();
-
-    // ローカルから取得
-    const records = state.records.filter(function(r) {
-      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
-      return d >= fromDate && d <= toDate;
-    }).map(function(r) {
-      return { record_date: r.record_date || (r.date ? r.date.slice(0, 10) : ''), data: r };
-    });
-
-    if (records.length === 0) {
-      body.innerHTML = '<div class="ds-empty">この月の記録はありません。</div>';
-      return;
-    }
-    
-    // 集計
-    const totalDays = records.length;
-    const emotionCounts = {};
-    const symptomCounts = {};
-    const temperatures = [];
-    const fastingHours = [];
-    let mealRecordDays = 0;
-    let noteCount = 0;
-    const scores = [];
-
-    records.forEach(r => {
-      const d = r.data || {};
-      if (d.emotion) emotionCounts[d.emotion] = (emotionCounts[d.emotion] || 0) + 1;
-      if (d.symptoms && d.symptoms.length > 0) {
-        d.symptoms.forEach(s => { symptomCounts[s] = (symptomCounts[s] || 0) + 1; });
-      }
-      if (d.temperature) temperatures.push(parseFloat(d.temperature));
-      if (d.meals && (d.meals.morning || d.meals.lunch || d.meals.dinner || d.meals.free || d.mealCount)) mealRecordDays++;
-      if (d.note && d.note.trim()) noteCount++;
-      if (d.score) scores.push(Number(d.score));
-      if (d.firstMealTime && d.lastMealTime) {
-        const first = d.firstMealTime.split(':').map(Number);
-        const last = d.lastMealTime.split(':').map(Number);
-        const eating = (last[0] * 60 + last[1]) - (first[0] * 60 + first[1]);
-        if (eating > 0) fastingHours.push(24 - (eating / 60));
-      }
-    });
-
-    let html = '';
-
-    // プレビューカード
-    html += '<div class="mr-preview">';
-    html += '<div class="mr-preview-title">ippo 月次レポート</div>';
-    html += '<div class="mr-preview-period">' + fromDate + ' 〜 ' + toDate + '</div>';
-
-    // 統計グリッド
-    html += '<div class="mr-stat-grid">';
-    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + totalDays + '</div><div class="mr-stat-label">記録日数 / ' + daysInMonth + '日</div></div>';
-    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + Math.round(totalDays / daysInMonth * 100) + '%</div><div class="mr-stat-label">記録率</div></div>';
-
-    if (temperatures.length > 0) {
-      const avgTemp = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2);
-      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgTemp + '</div><div class="mr-stat-label">平均基礎体温 ℃</div></div>';
-    }
-    if (fastingHours.length > 0) {
-      const avgFast = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
-      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgFast + '</div><div class="mr-stat-label">平均ファスティング h</div></div>';
-    }
-    if (scores.length > 0) {
-      const avgScore = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-      html += '<div class="mr-stat-box"><div class="mr-stat-num">' + avgScore + '</div><div class="mr-stat-label">平均体調スコア</div></div>';
-    }
-    html += '<div class="mr-stat-box"><div class="mr-stat-num">' + mealRecordDays + '</div><div class="mr-stat-label">食事記録日</div></div>';
-    html += '</div>';
-
-       // ファスティングの達成率
-    if (fastingHours.length > 0) {
-      var longFast = fastingHours.filter(function(h){ return h >= 16; }).length;
-      var shortFast = fastingHours.filter(function(h){ return h >= 12 && h < 16; }).length;
-      var longPct = Math.round(longFast / fastingHours.length * 100);
-      var shortPct = Math.round(shortFast / fastingHours.length * 100);
-      html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">ファスティング 達成率</div>';
-      html += '<div class="mr-bar-chart">';
-      html += '<div class="mr-bar-row"><div class="mr-bar-label">16h+</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + longPct + '%;background:var(--rose);"></div></div><div class="mr-bar-count">' + longFast + '日 (' + longPct + '%)</div></div>';
-      html += '<div class="mr-bar-row"><div class="mr-bar-label">12-16h</div><div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + shortPct + '%;background:#f0c9a6;"></div></div><div class="mr-bar-count">' + shortFast + '日 (' + shortPct + '%)</div></div>';
-      html += '</div></div>';
-    }
-
-    // 症状の週別推移
-    if (Object.keys(symptomCounts).length > 0) {
-      var weekSymptoms = [{},{},{},{}];
-      records.forEach(function(r){
-        var day = new Date(r.date).getDate();
-        var weekIdx = Math.min(3, Math.floor((day - 1) / 7));
-        (r.symptoms || []).forEach(function(s){
-          weekSymptoms[weekIdx][s] = (weekSymptoms[weekIdx][s] || 0) + 1;
-        });
-      });
-      html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">症状の週別推移</div>';
-      html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px;">';
-      ['第1週','第2週','第3週','第4週'].forEach(function(label, idx){
-        var ws = weekSymptoms[idx];
-        var top = Object.entries(ws).sort(function(a,b){ return b[1]-a[1]; }).slice(0,2);
-        html += '<div style="background:var(--white);border-radius:10px;padding:10px;text-align:center;border:1px solid #f0ebe6;">';
-        html += '<div style="font-weight:600;color:var(--ink);margin-bottom:4px;">' + label + '</div>';
-        if(top.length > 0){
-          top.forEach(function(t){ html += '<div style="color:var(--ink-light);">' + t[0] + ' ' + t[1] + '日</div>'; });
-        } else {
-          html += '<div style="color:var(--ink-light);">記録なし</div>';
-        }
-        html += '</div>';
-      });
-      html += '</div></div>';
-    }
-
-    // 感情棒グラフ
-    if (Object.keys(emotionCounts).length > 0) {
-      const maxEmotion = Math.max(...Object.values(emotionCounts));
-      html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">感情・気分の傾向</div>';
-      html += '<div class="mr-bar-chart">';
-      Object.entries(emotionCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
-        const pct = Math.round(count / maxEmotion * 100);
-        html += '<div class="mr-bar-row">';
-        html += '<div class="mr-bar-label">' + key + '</div>';
-        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
-        html += '<div class="mr-bar-count">' + count + '日</div>';
-        html += '</div>';
-      });
-      html += '</div></div>';
-    }
-
-    // 症状棒グラフ
-    if (Object.keys(symptomCounts).length > 0) {
-      const maxSymptom = Math.max(...Object.values(symptomCounts));
-      html += '<div class="mr-chart-section">';
-      html += '<div class="mr-chart-title">記録された症状</div>';
-      html += '<div class="mr-bar-chart">';
-      Object.entries(symptomCounts).sort((a, b) => b[1] - a[1]).forEach(([key, count]) => {
-        const pct = Math.round(count / maxSymptom * 100);
-        html += '<div class="mr-bar-row">';
-        html += '<div class="mr-bar-label">' + key + '</div>';
-        html += '<div class="mr-bar-track"><div class="mr-bar-fill" style="width:' + pct + '%"></div></div>';
-        html += '<div class="mr-bar-count">' + count + '日</div>';
-        html += '</div>';
-      });
-      html += '</div></div>';
-    }
-
-    // サマリーテキスト
-    html += '<div class="mr-summary-text">';
-    html += reportYear + '年' + (reportMonth + 1) + '月は、' + daysInMonth + '日中 ' + totalDays + '日の記録がありました。';
-    if (temperatures.length > 0) {
-      const avgT = (temperatures.reduce((a, b) => a + b, 0) / temperatures.length).toFixed(2);
-      html += '基礎体温の平均は ' + avgT + '℃ でした。';
-    }
-    if (fastingHours.length > 0) {
-      const avgF = (fastingHours.reduce((a, b) => a + b, 0) / fastingHours.length).toFixed(1);
-      html += 'ファスティングは平均 ' + avgF + ' 時間を維持しました。';
-    }
-    html += '</div>';
-
-    html += '</div>'; // mr-preview 閉じ
-
-    if (token !== null && _mrOverlayApi.isStale(token)) return;
-    body.innerHTML = html;
-
-  } catch (err) {
-    console.error('Monthly report error:', err);
-    if (token === null || !_mrOverlayApi.isStale(token)) {
-      body.innerHTML = '<div class="ds-empty">データの読み込みに失敗しました。</div>';
-    }
-  }
-}
-
-// PDF ダウンロード
-async function downloadReportPDF() {
-  const btn = _mrOverlayApi ? _mrOverlayApi.getButton('mr-pdf-btn') : null;
-  if (!btn) return;
-  const original = btn.textContent;
-  btn.textContent = 'PDF 生成中...';
-  btn.style.pointerEvents = 'none';
-
-  try {
-    // jsPDF を動的に読み込み
-    if (!window.jspdf) {
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-        script.onload = resolve;
-        script.onerror = reject;
-        document.head.appendChild(script);
-      });
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    // フォント設定（日本語対応のためシンプルなテキストベース）
-    doc.setFontSize(18);
-    doc.setTextColor(44, 36, 32);
-    doc.text('ippo Monthly Report', 20, 25);
-
-    doc.setFontSize(10);
-    doc.setTextColor(154, 136, 128);
-    const monthLabel = reportYear + '/' + String(reportMonth + 1).padStart(2, '0');
-    doc.text(monthLabel, 20, 33);
-
-    // 区切り線
-    doc.setDrawColor(200, 180, 170);
-    doc.line(20, 37, 190, 37);
-
-    // レポート内容をテキストとして取得
-    const preview = document.querySelector('.mr-preview');
-    if (!preview) throw new Error('No report data');
-
-    let y = 45;
-    const lineHeight = 6;
-
-    // 統計ボックスからデータ取得
-    const statBoxes = preview.querySelectorAll('.mr-stat-box');
-    if (statBoxes.length > 0) {
-      doc.setFontSize(12);
-      doc.setTextColor(44, 36, 32);
-      doc.text('Summary', 20, y);
-      y += 8;
-
-      doc.setFontSize(10);
-      statBoxes.forEach(box => {
-        const num = box.querySelector('.mr-stat-num')?.textContent || '';
-        const label = box.querySelector('.mr-stat-label')?.textContent || '';
-        doc.setTextColor(44, 36, 32);
-        doc.text(num, 25, y);
-        doc.setTextColor(154, 136, 128);
-        doc.text(' — ' + label, 25 + doc.getTextWidth(num) + 2, y);
-        y += lineHeight;
-      });
-      y += 4;
-    }
-
-    // 棒グラフデータ
-    const chartSections = preview.querySelectorAll('.mr-chart-section');
-    chartSections.forEach(section => {
-      const title = section.querySelector('.mr-chart-title')?.textContent || '';
-      doc.setFontSize(12);
-      doc.setTextColor(44, 36, 32);
-      doc.text(title, 20, y);
-      y += 8;
-
-      const rows = section.querySelectorAll('.mr-bar-row');
-      doc.setFontSize(9);
-      rows.forEach(row => {
-        const label = row.querySelector('.mr-bar-label')?.textContent || '';
-        const count = row.querySelector('.mr-bar-count')?.textContent || '';
-        doc.setTextColor(90, 74, 68);
-        doc.text(label + ': ' + count, 25, y);
-        y += 5;
-      });
-      y += 4;
-
-      // ページ溢れ防止
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-    });
-
-    // サマリーテキスト
-    const summaryEl = preview.querySelector('.mr-summary-text');
-    if (summaryEl) {
-      y += 2;
-      doc.setFontSize(10);
-      doc.setTextColor(90, 74, 68);
-      const summaryLines = doc.splitTextToSize(summaryEl.textContent, 165);
-      doc.text(summaryLines, 20, y);
-      y += summaryLines.length * 5 + 8;
-    }
-
-    // 免責
-    doc.setFontSize(7);
-    doc.setTextColor(180, 170, 165);
-    doc.text('This report is generated by ippo. It is not a medical diagnosis.', 20, 285);
-    doc.text('https://www.ippo-app.com', 20, 289);
-
-    // ダウンロード
-    doc.save('ippo-report-' + monthLabel + '.pdf');
-
-    btn.textContent = 'ダウンロード完了 ✓';
-    btn.style.background = '#8aab96';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-      btn.style.pointerEvents = '';
-    }, 2000);
-
-  } catch (err) {
-    console.error('PDF generation error:', err);
-    btn.textContent = 'PDF生成に失敗しました';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.pointerEvents = '';
-    }, 2000);
-  }
-}
+// PR-082C (Legacy Removal Batch-4 分割③): openMonthlyReport/closeMonthlyReport/
+// changeReportMonth/updateMonthLabel/generateMonthlyReport/downloadReportPDF は
+// src/modules/pro/monthly-report.js へ物理移動済み（import参照）。
 
   // ===== AI PATTERN ANALYSIS (AIパターン解析) =====
-
-// AI analysis uses Edge Function (ai-analyze) — no client-side API key needed
-
-var _aiOverlayApi = null;
-
-function _getAiOverlay() {
-  if (!_aiOverlayApi) {
-    _aiOverlayApi = window.createProOverlay({
-      id: 'ai-pro-overlay',
-      ariaLabel: 'AIパターン解析',
-      title: 'AIパターン解析',
-      subtitle: 'あなたの記録データからパターンを読み解きます',
-      footer: [
-        { id: 'ai-close-btn', label: '閉じる', cls: 'pob-btn pob-btn-secondary' },
-        { id: 'ai-copy-btn', label: 'テキストをコピー', cls: 'pob-btn pob-btn-primary' },
-      ],
-      onClose: closeAIAnalysis,
-    });
-    _aiOverlayApi.getButton('ai-close-btn').addEventListener('click', closeAIAnalysis);
-    _aiOverlayApi.getButton('ai-copy-btn').addEventListener('click', copyAIAnalysis);
-  }
-  return _aiOverlayApi;
-}
-
-function openAIAnalysis() {
-  _getAiOverlay().open();
-  runAIAnalysis();
-}
-
-function closeAIAnalysis() {
-  if (_aiOverlayApi) _aiOverlayApi.close();
-}
-
-async function runAIAnalysis() {
-  const api = _getAiOverlay();
-  const token = api.nextToken();
-  const body = api.body;
-  body.innerHTML = '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">データを収集しています...</div></div>';
-
-  try {
-    const today = new Date();
-    const ninetyDaysAgo = new Date(today);
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-    const fromDate = ninetyDaysAgo.toISOString().split('T')[0];
-    const toDate = today.toISOString().split('T')[0];
-
-    const records = state.records.filter(function(r) {
-      var d = r.record_date || (r.date ? r.date.slice(0, 10) : '');
-      return d >= fromDate && d <= toDate;
-    });
-
-    if (records.length < 3) {
-      body.innerHTML = '<div class="ai-error">パターン解析には最低3日分の記録が必要です。<br>記録を続けてから、もう一度お試しください。</div>';
-      return;
-    }
-
-    body.querySelector('.ai-loading-text').textContent = 'パターンを解析中...';
-
-    // PR-E1: Prediction / Cluster DB→State
-    if (window.loadProfileCache && window.supabase && window.supabaseUserId) {
-      try {
-        const cache = await window.loadProfileCache(window.supabase, window.supabaseUserId);
-        state.predictionCache = cache.predictionCache;
-        state.clusterId       = cache.clusterId;
-        state.clusterMeta     = cache.clusterMeta;
-      } catch (_e) {
-        // キャッシュ取得失敗時は従来分析継続
-      }
-    }
-
-
-    // 新経路: buildAIPrompt → features
-    const p        = window.buildAIPrompt(state.records, state);
-    const features = p.features;
-
-    // 解析モードをセッション状態で事前判定（表示用）
-    const _sc = window.supabase;
-    const _sd = _sc ? (await _sc.auth.getSession()).data?.session : null;
-    const _isAI = !!_sd;
-    const modeBadge = _isAI
-      ? '<span style="display:inline-flex;align-items:center;gap:4px;background:#e8f4ec;color:#4a7c5c;font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600;">✨ AI解析モード</span>'
-      : '<span style="display:inline-flex;align-items:center;gap:4px;background:rgba(200,180,170,0.2);color:var(--ink-light);font-size:11px;padding:3px 10px;border-radius:8px;font-weight:600;">🏠 ローカル解析モード</span>';
-
-    if (api.isStale(token)) return;
-
-    let dataHtml = '<div class="ai-data-summary">';
-    dataHtml += '<div class="ai-data-title" style="display:flex;justify-content:space-between;align-items:center;">解析対象データ ' + modeBadge + '</div>';
-    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">期間</span><span class="ai-data-value">' + fromDate + ' 〜 ' + toDate + '</span></div>';
-    dataHtml += '<div class="ai-data-row"><span class="ai-data-label">記録件数</span><span class="ai-data-value">' + features.sampleSize + ' 件</span></div>';
-    if (features.topSymptoms && features.topSymptoms.length) {
-      dataHtml += '<div class="ai-data-row"><span class="ai-data-label">主な症状</span><span class="ai-data-value">' + features.topSymptoms.slice(0, 2).join('・') + '</span></div>';
-    }
-    if (features.flareTrigger) {
-      dataHtml += '<div class="ai-data-row"><span class="ai-data-label">主なトリガー</span><span class="ai-data-value">' + features.flareTrigger + '</span></div>';
-    }
-    if (!_isAI) dataHtml += '<div class="ai-data-row" style="margin-top:6px;"><span style="font-size:11px;color:var(--ink-light);">ℹ️ ログインするとAIによる詳細解析が利用できます</span></div>';
-    dataHtml += '</div>';
-
-    body.innerHTML = dataHtml + '<div class="ai-loading"><div class="ai-loading-icon">✨</div><div class="ai-loading-text">パターンを読み解いています...</div></div>';
-
-    const aiComment = await callAIAPI({ features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt });
-    if (api.isStale(token)) return;
-
-    // 結果を表示
-    let resultHtml = dataHtml;
-    resultHtml += '<div class="ai-result">';
-    resultHtml += '<div class="ai-result-header">';
-    resultHtml += '<div class="ai-result-icon">✨</div>';
-    resultHtml += '<div class="ai-result-label">パターン解析</div>';
-    resultHtml += '<div class="ai-result-date">' + new Date().toLocaleDateString('ja-JP') + '</div>';
-    resultHtml += '</div>';
-    resultHtml += '<div class="ai-result-text">' + aiComment + '</div>';
-    resultHtml += '</div>';
-
-    body.innerHTML = resultHtml;
-
-  } catch (err) {
-    console.error('AI analysis error:', err);
-    if (!api.isStale(token)) {
-      body.innerHTML = '<div class="ai-error">解析中にエラーが発生しました。<br><br>' + (err.message || '') + '<br><br><button class="ai-retry-btn" onclick="runAIAnalysis()">もう一度試す</button></div>';
-    }
-  }
-}
-
-
-// PR-C4: features 経路のみ。旧 records/analysisType 分岐・generateLocalAnalysis 削除済み。
-async function callAIAPI(apiPayload) {
-  var supabaseClient = window.supabase;
-  var sessionData = supabaseClient ? (await supabaseClient.auth.getSession()).data?.session : null;
-
-  if (!sessionData) {
-    return 'ログインするとAIによる詳細解析が利用できます。記録が蓄積されています。';
-  }
-
-  var supabaseUrl = window.SUPABASE_URL || 'https://ekaoojdqhkpeudujfsdh.supabase.co';
-
-  var resp = await fetch(supabaseUrl + '/functions/v1/ai-analyze', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + sessionData.access_token,
-    },
-    body: JSON.stringify(apiPayload),
-  });
-
-  if (!resp.ok) {
-    if (resp.status === 429) throw new Error('解析リクエストが多すぎます。1分後にもう一度お試しください。');
-    const errData = await resp.json().catch(() => ({}));
-    throw new Error('API error: ' + (errData.error || resp.status));
-  }
-
-  var data = await resp.json();
-  var content = data.content?.[0]?.text ?? data.choices?.[0]?.message?.content ?? null;
-  if (!content) throw new Error('AIの応答を取得できませんでした。');
-  return content;
-}
-
-function copyAIAnalysis() {
-  const body = _aiOverlayApi ? _aiOverlayApi.body : null;
-  const resultEl = body ? body.querySelector('.ai-result-text') : null;
-  if (!resultEl) return;
-
-  let text = '【ippo AIパターン解析】\n';
-  text += '解析日: ' + new Date().toLocaleDateString('ja-JP') + '\n\n';
-  text += resultEl.textContent;
-  text += '\n\n※ このコメントはippoアプリの記録データに基づく参考情報です。医学的診断ではありません。';
-
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = _aiOverlayApi ? _aiOverlayApi.getButton('ai-copy-btn') : null;
-    if (!btn) return;
-    const original = btn.textContent;
-    btn.textContent = 'コピーしました ✓';
-    btn.style.background = '#8aab96';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-    }, 2000);
-  });
-}
+// PR-082B (Legacy Removal Batch-4 分割②): openAIAnalysis/closeAIAnalysis/
+// runAIAnalysis/callAIAPI/copyAIAnalysis は
+// src/modules/pro/analysis/analysis-overlay.js へ物理移動済み（import参照）。
 
   // ===== DEVICE SYNC (デバイス間同期) =====
-
-function openSyncModal() {
-  document.getElementById('syncOverlay').classList.add('active');
-  renderSyncUI();
-}
-
-function closeSyncModal() {
-  document.getElementById('syncOverlay').classList.remove('active');
-}
+// PR-083 (Legacy Removal Batch-5): openSyncModal/closeSyncModal/showLoginForm/
+// toggleSyncMode/showMessage/hideMessage は src/modules/sync-modal.js へ
+// 物理移動済み（import参照）。renderSyncUI/submitSync/syncNow/logoutSync/
+// migrateDataToUserはSync本体ロジックのため本PRのScope外、app-legacy.jsに残置。
 
 document.getElementById('syncOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSyncModal();
@@ -10020,59 +4478,15 @@ async function renderSyncUI() {
     showLoginForm();
   }
 }
-
-function showLoginForm() {
-  const body = document.getElementById('syncBody');
-  body.innerHTML = `
-    <div class="sync-status">
-      <div class="sync-status-icon">🔄</div>
-      <div class="sync-status-text">データを同期する</div>
-      <div class="sync-status-sub">メールアドレスでログインすると、<br>どの端末からでも同じ記録にアクセスできます</div>
-    </div>
-    <div style="background:#FBEAF0;border-radius:10px;padding:10px 14px;margin:12px 0 4px;font-size:11px;color:#72243E;line-height:1.7;">同期データはSupabaseで暗号化管理されます。パスワードは暗号化されており、ippoスタッフも閲覧できません。</div>
-    <div id="syncMessage" class="sync-message"></div>
-    <div class="sync-form" id="syncLoginForm">
-      <div class="sync-form-title" id="syncFormTitle">ログイン</div>
-      <input type="email" class="sync-input" id="syncEmail" placeholder="メールアドレス" autocomplete="email">
-      <input type="password" class="sync-input" id="syncPassword" placeholder="パスワード（6文字以上）" autocomplete="current-password">
-      <button class="sync-form-btn" id="syncSubmitBtn" onclick="submitSync()">ログイン</button>
-      <button class="sync-form-toggle" id="syncToggleBtn" onclick="toggleSyncMode()">アカウントをお持ちでない方 → 新規登録</button>
-    </div>
-  `;
-}
+// PR-083: openSyncModal（sync-modal.js側、物理移動済み）がrenderSyncUI（本ファイル残置）
+// をbare呼び出しするための専用ブリッジ（PR-080E window.__ippoGetBowelCountと同型パターン）。
+window.renderSyncUI = renderSyncUI;
 
 var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
-
-function toggleSyncMode() {
-  syncMode = syncMode === 'login' ? 'signup' : 'login';
-  const title = document.getElementById('syncFormTitle');
-  const btn = document.getElementById('syncSubmitBtn');
-  const toggle = document.getElementById('syncToggleBtn');
-  
-  if (syncMode === 'signup') {
-    title.textContent = '新規登録';
-    btn.textContent = '登録する';
-    toggle.textContent = 'すでにアカウントをお持ちの方 → ログイン';
-  } else {
-    title.textContent = 'ログイン';
-    btn.textContent = 'ログイン';
-    toggle.textContent = 'アカウントをお持ちでない方 → 新規登録';
-  }
-  
-  hideMessage();
-}
-
-function showMessage(text, type) {
-  const msg = document.getElementById('syncMessage');
-  if (!msg) return;
-  msg.className = 'sync-message ' + type;
-  msg.textContent = text;
-}
-
-function hideMessage() {
-  const msg = document.getElementById('syncMessage');
-  if (msg) msg.className = 'sync-message';
-}
+// PR-083: toggleSyncMode（sync-modal.js側、物理移動済み）がsyncMode（本ファイル残置、
+// submitSyncが参照）を読み書きするための専用ブリッジ（同型パターン）。
+window.__ippoGetSyncMode = function () { return syncMode; };
+window.__ippoSetSyncMode = function (v) { syncMode = v; };
 
 async function submitSync() {
   const email = document.getElementById('syncEmail').value.trim();
@@ -10137,7 +4551,6 @@ async function submitSync() {
             state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
           }
           if (typeof updateStats === 'function') updateStats();
-          if (typeof updateHistory === 'function') updateHistory();
           if (typeof buildCalendar === 'function') buildCalendar();
           if (typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
           if (typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
@@ -10285,61 +4698,10 @@ window.toggleSyncMode = toggleSyncMode;
 window.syncNow = syncNow;
 window.logoutSync = logoutSync;
 // ===== ADMIN PANEL =====
-var ADMIN_USER_ID = '723dba96-caf3-48d6-9fdc-4151071bbc89';
-
-function initAdminPanel(){
-  if(supabaseUserId === ADMIN_USER_ID){
-    var panel = document.getElementById('admin-panel');
-    if(panel) panel.style.display = 'block';
-  }
-}
-
-function adminSetPremium(value){
-  var email = document.getElementById('admin-email').value.trim();
-  var result = document.getElementById('admin-result');
-  if(!email){
-    result.innerHTML = '<span style="color:#c9747a;">メールアドレスまたはuser_idを入力してください</span>';
-    return;
-  }
-  result.innerHTML = '<span style="color:var(--ink-light);">処理中...</span>';
-
-  supabase.auth.getSession().then(function(res){
-    var session = res.data.session;
-    if(!session){ result.innerHTML = '<span style="color:#c9747a;">ログインが必要です</span>'; return; }
-
-    // まずuser_idとして試す
-    supabase.from('profiles').update({ is_premium: value }).eq('user_id', email).select().then(function(r){
-      if(r.data && r.data.length > 0){
-        result.innerHTML = '<span style="color:#8aab96;">✓ ' + email + ' を Premium ' + (value ? 'ON' : 'OFF') + ' に設定しました</span>';
-        document.getElementById('admin-email').value = '';
-      } else {
-        result.innerHTML = '<span style="color:#c9747a;">ユーザーが見つかりません。user_idを確認してください。</span>';
-      }
-    });
-  });
-}
-
-function adminLoadPremiumUsers(){
-  var list = document.getElementById('admin-user-list');
-  list.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">読み込み中...</div>';
-
-  supabase.from('profiles').select('user_id,name,is_premium,created_at').eq('is_premium', true).then(function(r){
-    if(!r.data || r.data.length === 0){
-      list.innerHTML = '<div style="font-size:12px;color:var(--ink-light);">プレミアムユーザーはいません</div>';
-      return;
-    }
-    var html = '';
-    r.data.forEach(function(u){
-      var date = new Date(u.created_at).toLocaleDateString('ja-JP');
-      html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:var(--white);border-radius:10px;margin-bottom:6px;border:1px solid #f0ebe6;">';
-      html += '<div><div style="font-size:13px;color:var(--ink);font-weight:500;">' + (u.name || '名前なし') + '</div>';
-      html += '<div style="font-size:10px;color:var(--ink-light);">' + u.user_id.substring(0,8) + '... | ' + date + '</div></div>';
-      html += '<span style="font-size:10px;background:var(--rose-pale);color:var(--rose);padding:3px 8px;border-radius:8px;">PRO</span>';
-      html += '</div>';
-    });
-    list.innerHTML = html;
-  });
-}
+// PR-088 (Legacy Removal Batch-10): ADMIN_USER_ID/initAdminPanel/adminSetPremium/
+// adminLoadPremiumUsers は src/modules/admin.js へ新設・物理移動済み
+// （ADMIN_USER_ID は isAdminOrPremium() が本ファイル残置で参照するため import back、
+// 本ファイル冒頭で import）。
 
 // EL-2: 匿名/オフライン時の無限稼働を防ぐため最大30秒で打ち切り
 // removal condition: auth 確定後に adminCheckInterval が不要になったら削除可。
@@ -10363,6 +4725,11 @@ var adminCheckInterval = setInterval(function(){
 // isPremium は premium-service.js (subscriptions テーブル) が管理する。
 // ippo:premium-updated イベントを受け取り、この変数を同期する。
 var isPremium = false;
+// PR-086: insights-tab-panel.js（updateFoodBodyCorrelation/updateCycleSymptomCorrelation、
+// 物理移動済み）が raw isPremium をbare参照するための専用ブリッジ（isAdminOrPremium()とは
+// 意味が異なり管理者バイパスを含まないため、既存挙動を変えないよう別名で新設。
+// PR-080E __ippoGetBowelCount と同型パターン）。
+window.__ippoGetIsPremium = function () { return isPremium; };
 
 window.addEventListener('ippo:premium-updated', function (e) {
   if (e.detail && typeof e.detail.isPremium === 'boolean') {
@@ -10452,105 +4819,16 @@ function updateSettingsHero() {
 function isAdminOrPremium() {
   return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
 }
-function updatePremiumBadges() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updatePremiumBadges', updatePremiumBadges);
-    return;
-  }
-  var unlocked = isAdminOrPremium();
-  document.querySelectorAll('.pf-lock-badge').forEach(badge => {
-    badge.style.display = unlocked ? 'none' : 'inline';
-  });
-  renderProHero();
-  updateSettingsHero();
-  // インサイトタブが表示中ならプレミアム確定後に相関分析を再描画
-  var insightsEl = document.getElementById('screen-insights');
-  if (insightsEl && insightsEl.classList.contains('active')) {
-    if (typeof updateFoodBodyCorrelation === 'function') updateFoodBodyCorrelation();
-    if (typeof updateCycleSymptomCorrelation === 'function') updateCycleSymptomCorrelation();
-  }
-  if (typeof renderPhaseMap === 'function') renderPhaseMap();
-}
-
-function renderProHero() {
-  var hero = document.getElementById('pro-hero');
-  if (!hero) return;
-  if (isAdminOrPremium()) {
-    hero.innerHTML =
-      '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
-      + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
-      + '<div style="font-size:10px;letter-spacing:0.18em;opacity:0.75;margin-bottom:5px;">PREMIUM MEMBER</div>'
-      + '<div style="font-family:\'Shippori Mincho\',serif;font-size:20px;font-weight:700;margin-bottom:6px;">プレミアム会員中 ✨</div>'
-      + '<div style="font-size:12px;opacity:0.85;line-height:1.6;">すべての分析・レポート機能をご利用いただけます</div>'
-      + '</div>';
-  } else {
-    hero.innerHTML =
-      '<div style="background:linear-gradient(135deg,var(--plum) 0%,var(--rose) 100%);border-radius:22px;padding:22px 24px;color:white;position:relative;overflow:hidden;">'
-      + '<div style="position:absolute;top:-24px;right:-24px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08);"></div>'
-      + '<div style="font-size:10px;letter-spacing:0.18em;opacity:0.75;margin-bottom:5px;">PREMIUM PLAN</div>'
-      + '<div style="font-family:\'Shippori Mincho\',serif;font-size:20px;font-weight:700;margin-bottom:10px;">からだの声を、もっと深く</div>'
-      + '<div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">'
-      +   '<div style="text-align:center;">'
-      +     '<div style="font-size:24px;font-weight:800;line-height:1;">¥580</div>'
-      +     '<div style="font-size:10px;opacity:0.7;margin-top:2px;">/月</div>'
-      +   '</div>'
-      +   '<div style="opacity:0.45;font-size:12px;">または</div>'
-      +   '<div style="text-align:center;">'
-      +     '<div style="font-size:24px;font-weight:800;line-height:1;">¥4,800</div>'
-      +     '<div style="font-size:10px;opacity:0.7;margin-top:2px;">/年&nbsp;<span style="background:rgba(255,255,255,0.2);padding:1px 6px;border-radius:6px;font-size:9px;font-weight:700;">31%オフ</span></div>'
-      +   '</div>'
-      + '</div>'
-      + '<button onclick="startStripeCheckout()" style="width:100%;background:white;color:var(--plum);border:none;border-radius:50px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;letter-spacing:0.03em;">プレミアムを始める →</button>'
-      + '</div>';
-  }
-}
-
-function premiumGate(callback) {
-  if (isAdminOrPremium()) {
-    callback();
-  } else {
-    // 動的な価値説明を追加
-    var dynamicMsg = document.getElementById('premium-dynamic-msg');
-    if(dynamicMsg){
-      var msg = '';
-      if(callback === openTempReport){
-        var tempCount = state.records.filter(function(r){return r.temperature;}).length;
-        if(tempCount >= 14){
-          var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-          if(analysis.status === 'ready' && analysis.alerts.length > 0){
-            msg = '⚠️ あなたの体温データから'+analysis.alerts.length+'件の気になるパターンが検出されています。詳細な分析と医師相談の目安を確認できます。';
-          } else {
-            msg = '🌡️ '+tempCount+'日分の体温データから、低温期・高温期の判定、二相性分析、排卵推定、AMED研究（31万人）との比較が可能です。';
-          }
-        }
-      } else if(callback === openCorrelationReport){
-        msg = '🔬 あなたの生活要因と症状の相関を分析。「カフェインを摂った日は痛みが2.4倍」のような具体的な発見ができます。';
-      } else if(callback === openFlareupReport){
-        var flareCount = detectFlareups(state.records).length;
-        if(flareCount > 0){
-          msg = '🔥 '+flareCount+'件のフレアアップ（体調急変）を検出。トリガーとなった要因を特定できます。';
-        }
-      } else if(callback === openCyclePhaseReport){
-        msg = '🌸 生理周期の各フェーズ（月経期・卵胞期・排卵期・黄体期）ごとの体調傾向を比較できます。';
-      } else if(callback === openExperiments){
-        msg = '🧪 「グルテンフリー30日」「毎日運動」など、仮説を立てて体調変化を検証できます。';
-      }
-
-      if(msg){
-        dynamicMsg.innerHTML = '<div style="padding:12px 16px;background:linear-gradient(135deg,#fdf8f6,#f8f0ec);border-radius:12px;margin-bottom:16px;font-size:11px;color:var(--ink-mid);line-height:1.7;">'+msg+'</div>';
-        dynamicMsg.style.display = 'block';
-      } else {
-        dynamicMsg.style.display = 'none';
-      }
-    }
-
-    document.getElementById('premiumLockOverlay').classList.add('active');
-  }
-}
-
-function closePremiumLock() {
-  document.getElementById('premiumLockOverlay').classList.remove('active');
-}
+// PR-081: settings-display-runtime.js に同名の別実装（window.updateSettingsHero、
+// initSettingsPanels()呼び出しを追加で行う）が既に存在し、load順（後着ロード）で
+// window.updateSettingsHero は常にそちらに上書きされる。premium-lock.js へ移動した
+// updatePremiumBadges() 内の bare 呼び出しは本ローカル実装（initSettingsPanels非呼び出し）を
+// 維持する必要があるため、専用ブリッジを設ける（挙動変更なし、PR-080E
+// window.__ippoGetBowelCount と同型パターン）。updateSettingsHero 自体の重複解消は
+// 製品判断が必要なため本PRのScope外（PR-080C/PR-080G と同型の判断）。
+window.__ippoLegacyUpdateSettingsHero = updateSettingsHero;
+// PR-081: updatePremiumBadges/renderProHero/premiumGate/closePremiumLock は
+// src/modules/premium/premium-lock.js へ物理移動済み（import参照）
 
 var premiumOverlay = document.getElementById('premiumLockOverlay');
 if(premiumOverlay) premiumOverlay.addEventListener('click', function(e) {
@@ -10799,6 +5077,7 @@ if (typeof updateSymptomSettingDisplay === "function") window.updateSymptomSetti
 if (typeof updateTodayMessage === "function") window.updateTodayMessage = updateTodayMessage;
 if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
 // ─── グローバル変数エクスポート ───────────────────────────────
-if (typeof currentRecord !== "undefined") window.currentRecord = currentRecord;
-if (typeof currentStep   !== "undefined") window.currentStep   = currentStep;
-if (typeof STEPS         !== "undefined") window.STEPS         = STEPS;
+// PR-079: currentRecord/currentStep/STEPS は src/modules/record-input.js へ移行済み。
+// window.currentRecord への同期エクスポートは禁止（SG-4）。ライブ参照が必要な場合は
+// RecordInput.getCurrentRecord() / getSteps() / getCurrentStep() を直接呼ぶこと。
+if (typeof RecordInput.getCurrentRecord === "function") window.getCurrentRecord = RecordInput.getCurrentRecord;

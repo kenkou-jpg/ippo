@@ -57,6 +57,11 @@ function getGreetingText() {
   return 'おつかれさまです';
 }
 
+// PR-080C: app-legacy.js に同名のローカル実装が並存する（classic scriptとES moduleはscopeが
+// 分離しているため、app-legacy.js内のbare呼び出しは常にapp-legacy.js側のローカル版を実行し
+// 実質2実装状態）。getState() とapp-legacy.js側のbare `state` 変数の等価性が既存コードから
+// 確証できないため、Business Logic変更禁止の制約下では統合を見送る
+// （詳細: docs/HANDOFF_PHASE7_COMPLETE.md PR-080C節）。
 function calcPainFreeDaysThisMonth() {
   var s = getState();
   var now = new Date();
@@ -72,6 +77,8 @@ function calcPainFreeDaysThisMonth() {
   return count;
 }
 
+// PR-080C: app-legacy.js に同名の重複実装あり。理由は calcPainFreeDaysThisMonth() 直前の
+// コメント参照。
 function calcAvgPainThisMonth() {
   var s = getState();
   var now = new Date();
@@ -132,6 +139,10 @@ export function updateGreeting() {
 
 // ── 統計 ─────────────────────────────────────────────────────
 
+// PR-080C: app-legacy.js に同名のローカル実装が並存する。window.updateStats はこのモジュール版が
+// 上書きするが、app-legacy.js内のbare呼び出しはscope分離によりapp-legacy.js側のローカル版を
+// 常に実行するため無効化されない。統合見送りの理由は calcPainFreeDaysThisMonth() 直前の
+// コメント参照。
 export function updateStats() {
   var s = getState();
   var streakEl = document.getElementById('streak-count');
@@ -335,6 +346,83 @@ export function updateHomeDiseaseAdvice() {
   card.style.display = 'block';
 }
 
+// PR-086 (Legacy Removal Batch-8): app-legacy.js の updateTodayMessage/updateDailyHintCard を
+// 物理移動。Business Logic変更なし。
+// ・bare `state` → `window.state`（_ippoStateHooks経由、既存idiomと同型。本ファイル既存の
+//   updateHomeDiseaseAdvice等は getState() を使うが、PR-080Cで指摘の通り getState() と
+//   app-legacy.js側bare `state` の等価性は既存コードから確証できないため、物理移動元の
+//   挙動を厳密に保つ window.state を採用）。
+// ・getCurrentCyclePhase（app-legacy.js残置、Batch-8対象外・多数の他関数が使用中のため
+//   移動不可）は window.getCurrentCyclePhase 経由のguarded呼び出しに変更
+//   （recovery-journey.js/onboarding-runtime.jsと同型のidiom）。
+// ・getDailyHint（record-input.js、PR-079物理移動済み）は既存のupdateHomeDiseaseAdviceと
+//   同様 window.getDailyHint 経由のguarded呼び出しに変更。
+
+// ===== 今日のメッセージ（ホーム1枚） =====
+export function updateTodayMessage() {
+  var wrap = document.getElementById('home-today-message');
+  var textEl = document.getElementById('home-today-msg-text');
+  var btnWrap = document.getElementById('home-today-msg-btn-wrap');
+  if (!wrap || !textEl) return;
+
+  var today = new Date().toISOString().slice(0,10);
+  var todayRec = (window.state.records||[]).find(function(r){
+    return (r.date||'').slice(0,10) === today;
+  });
+  var streak = window.state.streak || 0;
+  var msg = '';
+  var showBtn = false;
+
+  // 優先順位1: 未記録
+  if (!todayRec) {
+    msg = '今日の記録がまだです。3タップで完了します。';
+    showBtn = true;
+  } else {
+    // 優先順位2〜5: フェーズ別
+    var phase = typeof window.getCurrentCyclePhase === 'function' ? window.getCurrentCyclePhase() : '';
+    var daysToNext = 99;
+    if (window.state.lastPeriodDate && window.state.cycleLength) {
+      var last = new Date(window.state.lastPeriodDate + 'T00:00:00');
+      var dayNum = Math.floor((new Date() - last) / 86400000) + 1;
+      daysToNext = (window.state.cycleLength || 28) - dayNum;
+    }
+    if (phase === '生理期') {
+      var dayNum2 = window.state.lastPeriodDate ? Math.floor((new Date() - new Date(window.state.lastPeriodDate+'T00:00:00'))/86400000)+1 : 1;
+      msg = '生理' + dayNum2 + '日目です。無理せず過ごしましょう。鎮痛剤の飲みすぎに注意。';
+    } else if (daysToNext <= 3 && daysToNext >= 0) {
+      msg = '生理が近づいています。鎮痛剤を手元に準備しておきましょう。';
+    } else if (phase === '排卵期') {
+      msg = '排卵期です。体温の変化を確認しましょう。';
+    } else {
+      msg = '今日も記録しました。連続' + streak + '日です。';
+    }
+  }
+
+  textEl.textContent = msg;
+  if (btnWrap) btnWrap.style.display = showBtn ? 'block' : 'none';
+  wrap.style.display = 'block';
+}
+
+// ===== 今日のヒントカード（時間帯・疾患別） =====
+export function updateDailyHintCard() {
+  var container = document.getElementById('today-message');
+  if (!container) return;
+
+  var hour     = new Date().getHours();
+  var diseases = window.state.myDiseases || [];
+  var isMorning = hour >= 5  && hour < 12;
+  var isNight   = hour >= 20 || hour < 5;
+
+  var hint = typeof window.getDailyHint === 'function' ? window.getDailyHint(diseases, isMorning, isNight) : null;
+  if (!hint) return;
+
+  container.innerHTML =
+    '<div style="border-left:3px solid var(--rose);padding-left:10px;">'
+    + '<div style="font-size:10px;color:var(--rose);font-weight:500;margin-bottom:3px;">' + hint.label + '</div>'
+    + '<div style="font-size:12px;color:var(--ink);line-height:1.7;">' + hint.text + '</div>'
+    + '</div>';
+}
+
 // ── ホーム埋め込みカレンダー ──────────────────────────────────
 
 var _homeCalNow = new Date();
@@ -489,6 +577,8 @@ window.updateHomeInsightCard = updateHomeInsightCard;
 window.updateHomeNumbers     = updateHomeNumbers;
 window.updateHomeDiseaseAdvice = updateHomeDiseaseAdvice;
 window.updateHomeCTAState    = updateHomeCTAState;
+window.updateTodayMessage    = updateTodayMessage;
+window.updateDailyHintCard   = updateDailyHintCard;
 window.buildHomeCalendar     = buildHomeCalendar;
 window.changeHomeCalMonth    = changeHomeCalMonth;
 

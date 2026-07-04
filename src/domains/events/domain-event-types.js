@@ -1,0 +1,137 @@
+// domain-event-types.js — SSOT for Domain Event Registry.
+// BD-015: Record保全 → Layer 2〜7 決定論的再構築 — all events must be replayable.
+// BD-018: occurredAt required on every DomainEvent.
+// Append Only — EventStore entries are permanent.
+// PR-037: Event Sourcing Foundation
+
+/**
+ * Domain Event type registry.
+ * 12 event types across 6 aggregate domains.
+ * @readonly
+ */
+export const DOMAIN_EVENT_TYPES = Object.freeze({
+  // Record domain
+  RECORD_CREATED:                 'RECORD_CREATED',
+  RECORD_UPDATED:                 'RECORD_UPDATED',
+  // Signal domain
+  SIGNAL_CREATED:                 'SIGNAL_CREATED',
+  SIGNAL_SNAPSHOT_CREATED:        'SIGNAL_SNAPSHOT_CREATED',
+  LONGITUDINAL_SNAPSHOT_CREATED:  'LONGITUDINAL_SNAPSHOT_CREATED',
+  // Disease domain
+  DISEASE_CREATED:                'DISEASE_CREATED',
+  DISEASE_UPDATED:                'DISEASE_UPDATED',
+  DISEASE_SNAPSHOT_CREATED:       'DISEASE_SNAPSHOT_CREATED',
+  // Similarity domain
+  FEATURE_VECTOR_CREATED:         'FEATURE_VECTOR_CREATED',
+  SIMILARITY_CALCULATED:          'SIMILARITY_CALCULATED',
+  // Consent domain
+  CONSENT_UPDATED:                'CONSENT_UPDATED',
+  // Experiment domain
+  EXPERIMENT_CREATED:             'EXPERIMENT_CREATED',
+  // Emotion domain (PR-038)
+  EMOTION_CREATED:                'EMOTION_CREATED',
+  // Menstrual domain (PR-039)
+  MENSTRUAL_RECORDED:             'MENSTRUAL_RECORDED',
+  // Research domain (PR-040)
+  RESEARCH_DATASET_CREATED:       'RESEARCH_DATASET_CREATED',
+  // Wave2 Signal Generation (PR-043)
+  EMOTION_SIGNAL_GENERATED:       'EMOTION_SIGNAL_GENERATED',
+  // Wave2 MenstrualPhase Auto-Resolution (PR-044 / BD-014)
+  MENSTRUAL_PHASE_RESOLVED:       'MENSTRUAL_PHASE_RESOLVED',
+  // Wave2 Disease Entity V2 Upgrade (PR-045 / BD-004)
+  DISEASE_ENTITY_UPGRADED:        'DISEASE_ENTITY_UPGRADED',
+  // Wave2 Disease Cluster Statistics (PR-046 / BD-009)
+  DISEASE_CLUSTER_COMPUTED:       'DISEASE_CLUSTER_COMPUTED',
+  // Wave2 FeatureVector V2 (PR-047 / BD-010 / BD-035)
+  FEATURE_VECTOR_V2_CREATED:      'FEATURE_VECTOR_V2_CREATED',
+  // Wave2 Longitudinal Edge Enricher (PR-048 / BD-012)
+  LONGITUDINAL_EDGE_ENRICHED:     'LONGITUDINAL_EDGE_ENRICHED',
+  // Wave2 Environmental Signal Collector (PR-049 / BD-043)
+  ENVIRONMENTAL_SIGNAL_RECORDED:  'ENVIRONMENTAL_SIGNAL_RECORDED',
+  // Wave2 Knowledge Graph Foundation (PR-051 / BD-036)
+  KNOWLEDGE_GRAPH_NODE_ADDED:     'KNOWLEDGE_GRAPH_NODE_ADDED',
+  KNOWLEDGE_GRAPH_EDGE_ADDED:     'KNOWLEDGE_GRAPH_EDGE_ADDED',
+  // Wave2 Knowledge Graph Builder (PR-052 / BD-028 / BD-018)
+  KNOWLEDGE_GRAPH_SNAPSHOT_CREATED: 'KNOWLEDGE_GRAPH_SNAPSHOT_CREATED',
+  // Wave2 Feature Store V1 (PR-053 / BD-037)
+  FEATURE_STORE_UPDATED:            'FEATURE_STORE_UPDATED',
+  // Wave2 Cohort Builder (PR-054 / BD-039)
+  COHORT_DEFINED:                   'COHORT_DEFINED',
+  // Wave2 Dataset Version Management (PR-055 / BD-021)
+  DATASET_VERSION_PUBLISHED:        'DATASET_VERSION_PUBLISHED',
+  // Wave2 Evidence Layer (PR-056 / Phase C capstone)
+  EVIDENCE_SUMMARY_CREATED:         'EVIDENCE_SUMMARY_CREATED',
+  // Wave2 Signal Insight Service (PR-057 / BD-031 / BD-038)
+  SIGNAL_INSIGHT_GENERATED:         'SIGNAL_INSIGHT_GENERATED',
+  // Wave2 Pattern Discovery Service (PR-058 / BD-031 / BD-038)
+  PATTERN_DISCOVERED:               'PATTERN_DISCOVERED',
+  // Wave2 Case Recommendation Foundation (PR-059 / BD-029 / BD-030)
+  CASE_RECOMMENDATION_GENERATED:    'CASE_RECOMMENDATION_GENERATED',
+  // Wave2 Similar Case Search (PR-060 / BD-030 / admin:research)
+  SIMILAR_CASE_SEARCHED:            'SIMILAR_CASE_SEARCHED',
+  // Wave2 Research Assistance (PR-061 / BD-031 / BD-038 / admin:research)
+  RESEARCH_ASSISTANCE_GENERATED:    'RESEARCH_ASSISTANCE_GENERATED',
+  // Wave2 AI Safety Layer (PR-062 / BD-031 / BD-038 / Phase D capstone)
+  AI_SAFETY_VIOLATION:              'AI_SAFETY_VIOLATION',
+  AI_SAFETY_AUDIT_COMPLETED:        'AI_SAFETY_AUDIT_COMPLETED',
+  // Wave2 Similarity Engine V2 (PR-063 / BD-042 / Phase E)
+  SIMILARITY_V2_EDGE_GENERATED:     'SIMILARITY_V2_EDGE_GENERATED',
+  // Wave2 Disease Network Score V2 (PR-064 / BD-018 / Phase E)
+  DISEASE_NETWORK_SCORE_V2_COMPUTED: 'DISEASE_NETWORK_SCORE_V2_COMPUTED',
+  // Wave2 Similarity Snapshot V2 (PR-065 / BD-018 / BD-010 / BD-023)
+  SIMILARITY_SNAPSHOT_V2_CREATED:    'SIMILARITY_SNAPSHOT_V2_CREATED',
+  // Wave2 Phase 3 Completion Validator (PR-066 / BD-026 / Phase E)
+  PHASE3_VALIDATION_COMPLETED:       'PHASE3_VALIDATION_COMPLETED',
+  // Wave2 Similarity UI Public Gate (PR-067 / BD-026 / BD-027 / Phase E capstone)
+  SIMILARITY_PUBLICATION_APPROVED:   'SIMILARITY_PUBLICATION_APPROVED',
+  // Wave2 Research Dataset V2 (PR-068 / BD-021 / BD-030 / Phase F開始)
+  RESEARCH_DATASET_V2_BUILT:         'RESEARCH_DATASET_V2_BUILT',
+  // Wave2 Research Query API (PR-071 / BD-030 / Phase F継続)
+  RESEARCH_QUERY_EXECUTED:           'RESEARCH_QUERY_EXECUTED',
+  // Wave2 Research Platform Audit (PR-072 / BD-021 / BD-030 / BD-036 / BD-037 / BD-039 / Phase F capstone)
+  RESEARCH_PLATFORM_AUDIT_COMPLETED: 'RESEARCH_PLATFORM_AUDIT_COMPLETED',
+  // Wave2 Exit Audit (PR-075 / BD-027 / BD-040 / Phase G capstone — Wave2正式完了)
+  WAVE2_EXIT_CONFIRMED:              'WAVE2_EXIT_CONFIRMED',
+  // Release Readiness Recovery Program (PR-077 / BD-027 / BD-049 / BD-051 / Regulatory C-1〜C-5)
+  RELEASE_READINESS_ITEM_CONFIRMED:  'RELEASE_READINESS_ITEM_CONFIRMED',
+  // Data Deletion Pipeline (PR-078 / BD-019 / Release Readiness Completion Program)
+  DATA_DELETION_STAGE_ADVANCED:      'DATA_DELETION_STAGE_ADVANCED',
+});
+
+/** Set of all valid event type strings for fast validation. */
+export const DOMAIN_EVENT_TYPE_SET = Object.freeze(new Set(Object.values(DOMAIN_EVENT_TYPES)));
+
+/**
+ * Aggregate type registry — the domain object an event belongs to.
+ * @readonly
+ */
+export const AGGREGATE_TYPES = Object.freeze({
+  RECORD:     'RECORD',
+  SIGNAL:     'SIGNAL',
+  DISEASE:    'DISEASE',
+  SIMILARITY: 'SIMILARITY',
+  CONSENT:    'CONSENT',
+  EXPERIMENT: 'EXPERIMENT',
+  RESEARCH:   'RESEARCH',
+  EMOTION:    'EMOTION',
+  KNOWLEDGE:     'KNOWLEDGE',
+  FEATURE_STORE: 'FEATURE_STORE',
+  COHORT:          'COHORT',
+  DATASET_VERSION: 'DATASET_VERSION',
+  EVIDENCE:        'EVIDENCE',
+  SIGNAL_INSIGHT:      'SIGNAL_INSIGHT',
+  PATTERN_DISCOVERY:        'PATTERN_DISCOVERY',
+  CASE_RECOMMENDATION:      'CASE_RECOMMENDATION',
+  SIMILAR_CASE_SEARCH:      'SIMILAR_CASE_SEARCH',
+  RESEARCH_ASSISTANCE:      'RESEARCH_ASSISTANCE',
+  AI_SAFETY:                'AI_SAFETY',
+  NETWORK_EVOLUTION:        'NETWORK_EVOLUTION',
+  RESEARCH_QUERY:           'RESEARCH_QUERY',
+  RESEARCH_PLATFORM_AUDIT:  'RESEARCH_PLATFORM_AUDIT',
+  WAVE2_EXIT_AUDIT:         'WAVE2_EXIT_AUDIT',
+  RELEASE_READINESS:        'RELEASE_READINESS',
+  DATA_DELETION:            'DATA_DELETION',
+});
+
+/** Current event schema version. Bump on structural changes. */
+export const EVENT_SCHEMA_VERSION = '1';

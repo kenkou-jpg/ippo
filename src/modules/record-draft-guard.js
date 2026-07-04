@@ -19,6 +19,10 @@
 //    records に正式保存されていない場合に表示する。
 // ============================================================
 
+// PR-013: route draft persistence through StorageService adapter
+import { LocalStorageAdapter } from '../adapters/storage/local-storage-adapter.js';
+var _draftStorage = new LocalStorageAdapter();
+
 var DRAFT_KEY = 'ippo_record_draft';
 var _dirtyFlag = false; // 入力中フラグ（P0-FIX-5 SW更新ガードとも共有）
 
@@ -76,7 +80,7 @@ function _saveDraft() {
   try {
     var draft = _gatherDraft();
     if (!draft) return;
-    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    _draftStorage.set(DRAFT_KEY, draft); // PR-013: via StorageService adapter
     console.log('[record-draft-guard] draft saved:', draft.targetDate);
   } catch(e) {
     console.warn('[record-draft-guard] draft save error:', e);
@@ -89,10 +93,10 @@ function _isDraftAlreadySaved(draft) {
     if (!draft || !draft.targetDate) return false;
     var s = (typeof window.getState === 'function') ? window.getState() : null;
     var records = (s && s.records) || [];
-    // P0-A 修正③: state 未ハイドレート時は localStorage から直接取得
+    // P0-A 修正③: state 未ハイドレート時は StorageService 経由で取得 (PR-013)
     if (records.length === 0) {
       try {
-        var ls = JSON.parse(localStorage.getItem('ippo_state') || '{}');
+        var ls = _draftStorage.get('ippo_state') || {};
         records = ls.records || [];
       } catch(_) {}
     }
@@ -109,7 +113,7 @@ function _isDraftAlreadySaved(draft) {
 function _showRestorePrompt(draft) {
   if (!draft || !draft.draft) return;
   if (_isDraftAlreadySaved(draft)) {
-    localStorage.removeItem(DRAFT_KEY);
+    _draftStorage.remove(DRAFT_KEY);
     return;
   }
 
@@ -164,12 +168,12 @@ function _showRestorePrompt(draft) {
     } catch(e) {
       console.warn('[record-draft-guard] restore error:', e);
     }
-    localStorage.removeItem(DRAFT_KEY);
+    _draftStorage.remove(DRAFT_KEY);
   });
 
   document.getElementById('ippo-draft-dismiss-btn').addEventListener('click', function() {
     banner.remove();
-    localStorage.removeItem(DRAFT_KEY);
+    _draftStorage.remove(DRAFT_KEY);
     markRecordClean();
   });
 
@@ -184,17 +188,17 @@ function _showRestorePrompt(draft) {
 // ─── 起動時チェック ───────────────────────────────────────
 export function checkAndShowDraftRestore() {
   try {
-    var raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return;
-    var draft = JSON.parse(raw);
-    if (!draft || !draft.targetDate) { localStorage.removeItem(DRAFT_KEY); return; }
+    // PR-013: read via StorageService adapter (returns parsed object directly)
+    var draft = _draftStorage.get(DRAFT_KEY);
+    if (!draft) return;
+    if (!draft.targetDate) { _draftStorage.remove(DRAFT_KEY); return; }
 
     // 24時間以上古いドラフトは破棄
     var age = Date.now() - new Date(draft.updatedAt || 0).getTime();
-    if (age > 86400000) { localStorage.removeItem(DRAFT_KEY); return; }
+    if (age > 86400000) { _draftStorage.remove(DRAFT_KEY); return; }
 
     // 正式保存済みなら不要
-    if (_isDraftAlreadySaved(draft)) { localStorage.removeItem(DRAFT_KEY); return; }
+    if (_isDraftAlreadySaved(draft)) { _draftStorage.remove(DRAFT_KEY); return; }
 
     // プロンプト表示（DOM ready を待つ）
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -206,7 +210,7 @@ export function checkAndShowDraftRestore() {
     }
   } catch(e) {
     console.warn('[record-draft-guard] check error:', e);
-    try { localStorage.removeItem(DRAFT_KEY); } catch(_) {}
+    try { _draftStorage.remove(DRAFT_KEY); } catch(_) {}
   }
 }
 

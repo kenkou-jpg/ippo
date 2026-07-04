@@ -183,7 +183,8 @@ import './modules/settings-display-runtime.js';
 import { startPremiumSync } from './modules/premium/premium-service.js';
 
 // ─── Phase E (Step 1/5): startup bootstrap ───────────────
-import { bootstrap } from './modules/app-bootstrap.js';
+// PR-011: routed through Bootstrap → CompositionRoot → LegacyBridge → modules/app-bootstrap
+import { boot } from './bootstrap/app-bootstrap.js';
 
 // ─── Phase E (Step 3): home renderer ─────────────────────
 import './modules/home-renderer.js';
@@ -300,6 +301,11 @@ addPostSaveHook(function _predictionCacheHook(saveErr) {
 import './services/settings-profile.js';
 import './modules/settings-panel.js';
 
+// ─── Disease Settings (PR-084A: orphaned module復旧、app-legacy.js より後にロード必須) ──
+// window.openDiseaseSettings 等を自己登録するself-containedモジュール（settings-panel.jsと同型）。
+// Phase 4-C (491d0fd) で app-legacy.js から抽出後、import wiring漏れにより未import状態だった。
+import './modules/disease-settings.js';
+
 // ─── Phase A: Settings Store (settings-profile の後に import) ──
 // 統一設定 source of truth。trackedConditions / reminderSettings を追加管理。
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
@@ -367,7 +373,7 @@ if (typeof window.ippoMarkViteReady === 'function') {
 }
 
 // ─── Startup ownership signal ────────────────────────────
-bootstrap();
+boot();
 
 // P0-FIX-4: 起動時にドラフト復元プロンプトを確認
 // bootstrap 後に実行（state hydration 完了後）

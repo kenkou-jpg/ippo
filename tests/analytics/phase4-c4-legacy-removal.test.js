@@ -13,6 +13,9 @@ import { resolve }      from 'path';
 
 const appLegacy      = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 const analysisModule = readFileSync(resolve(process.cwd(), 'src/modules/pro/analysis/analysis-module.js'), 'utf-8');
+// PR-082B (Legacy Removal Batch-4 分割②): callAIAPI/runAIAnalysis は
+// src/modules/pro/analysis/analysis-overlay.js へ物理移動済み。
+const analysisOverlayModule = readFileSync(resolve(process.cwd(), 'src/modules/pro/analysis/analysis-overlay.js'), 'utf-8');
 const aiAnalyzeTs    = readFileSync(resolve(process.cwd(), 'supabase/functions/ai-analyze/index.ts'), 'utf-8');
 
 // ─────────────────────────────────────────────────────────────
@@ -38,24 +41,25 @@ describe('PR-C4: app-legacy.js — legacy 経路削除確認', () => {
   });
 
   it('callAIAPI が features ペイロードを受け取る形式になっている', () => {
-    expect(appLegacy).toContain('async function callAIAPI(apiPayload)');
+    expect(analysisOverlayModule).toContain('async function callAIAPI(apiPayload)');
   });
 
   it('callAIAPI 内に records / analysisType の直接送信が存在しない', () => {
     // callAIAPI 関数内でのみ確認 — 関数本体を抽出
-    const fnStart = appLegacy.indexOf('async function callAIAPI(apiPayload)');
-    const fnEnd   = appLegacy.indexOf('\nfunction copyAIAnalysis', fnStart);
-    const fnBody  = appLegacy.slice(fnStart, fnEnd);
+    const fnStart = analysisOverlayModule.indexOf('async function callAIAPI(apiPayload)');
+    const fnEnd   = analysisOverlayModule.indexOf('\nexport function copyAIAnalysis', fnStart);
+    const fnBody  = analysisOverlayModule.slice(fnStart, fnEnd);
     expect(fnBody).not.toContain('analysisType');
     expect(fnBody).not.toContain('records: records');
   });
 
   it('runAIAnalysis が buildAIPrompt を使用している', () => {
-    expect(appLegacy).toContain('window.buildAIPrompt(state.records, state)');
+    // PR-082A/PR-081同型: bare `state` は `window.state` に置換（挙動不変、同一オブジェクト参照）
+    expect(analysisOverlayModule).toContain('window.buildAIPrompt(window.state.records, window.state)');
   });
 
   it('runAIAnalysis が features ペイロードを callAIAPI に渡している', () => {
-    expect(appLegacy).toContain('callAIAPI({ features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt })');
+    expect(analysisOverlayModule).toContain('callAIAPI({ features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt })');
   });
 });
 
@@ -135,8 +139,9 @@ describe('PR-C4: 最終判定 — features 経路のみで動作', () => {
   });
 
   it('app-legacy は buildAIPrompt 経由で ai-analyze を呼ぶ', () => {
-    expect(appLegacy).toContain('window.buildAIPrompt(state.records, state)');
-    expect(appLegacy).toContain("features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt");
+    // PR-082B: 実装は src/modules/pro/analysis/analysis-overlay.js へ物理移動済み（import参照）
+    expect(analysisOverlayModule).toContain('window.buildAIPrompt(window.state.records, window.state)');
+    expect(analysisOverlayModule).toContain("features: features, systemPrompt: p.systemPrompt, userPrompt: p.userPrompt");
   });
 
   it('ai-analyze は features のみを受け付ける', () => {
