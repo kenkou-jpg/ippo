@@ -1214,8 +1214,8 @@
 | Area | Status | Progress |
 |------|--------|----------|
 | Phase 4-C Protection Layer | 🟢 A (Code Complete) | 100% (PR-2A + PR-2B 完了・469/469 tests・2026-06-11) |
-| Phase 4-D Batch-1 | 🟡 PR Review | Batch-1/11 完了 (record-input.js・549/549・PR #362 レビュー中) |
-| Legacy Removal | 🟡 In Progress | 9% (Batch-1/11 PR 作成済み) |
+| Phase 4-D Batch-1〜10 | 🟢 Complete | Batch-1〜10/11 完了 (PR-079〜088、vitest 5,154 PASS・vite build PASS) |
+| Legacy Removal | 🟡 In Progress | Batch-1〜10/11 完了。Batch-11（PR-089: app.html全置換・app-legacy.js削除）はFounder個別承認待ちで未着手（LEGACY_REMOVAL_PLAN.md 9-E章 条件2） |
 | Runtime | 🟡 In Progress | 89% (production-diagnostics.js 分割のみ延期) |
 | Premium | 🟢 Complete | 100% |
 | Insight | 🟢 Complete | 100% |
