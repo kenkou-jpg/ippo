@@ -103,6 +103,12 @@ import { openExperiments, startExperiment, startCustomExperiment, cancelExperime
 // PR-089C (Legacy Removal Batch-11分割②): renderSyncUI/submitSync/migrateDataToUser/
 // syncNow/logoutSync は src/services/supabase.js へ物理移動済み。
 import { renderSyncUI, submitSync, migrateDataToUser, syncNow, logoutSync } from './services/supabase.js';
+// PR-089D (Legacy Removal Batch-11分割③): updateHomePhaseBanner/buildPhaseBar/
+// renderMonthlySummaryText/updateHomeSummary/updateHomeCTA/handleHomeCTA/updateStreakBadge は
+// src/modules/home-renderer.js へ物理移動済み（bare呼び出し継続のためimport back。
+// FAST_PHASE_CONFIGと同型idiom）。openDayDetailByDateはCalendar側calYear/calMonth・
+// AMBIGUOUS判定済みopenDayDetailに依存するため対象外・本ファイル残置（PR-089E対象）。
+import { updateHomePhaseBanner, buildPhaseBar, renderMonthlySummaryText, updateHomeSummary, updateHomeCTA, handleHomeCTA, updateStreakBadge } from './modules/home-renderer.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1281,29 +1287,8 @@ var PHASE_BANNER_CONFIG = {
   }
 };
 
-function updateHomePhaseBanner() {
-  // 新デザイン：home-phase-badge に表示
-  var badge     = document.getElementById('home-phase-badge');
-  var badgeText = document.getElementById('home-phase-badge-text');
-  if (!badge || !badgeText) return;
-
-  // getCurrentCyclePhase が null の場合は getPhaseForDate でフォールバック
-  var phase = (typeof getCurrentCyclePhase === 'function') ? getCurrentCyclePhase() : null;
-  if (!phase && state.lastPeriodDate && state.cycleLength) {
-    phase = getPhaseForDate(new Date());
-  }
-  if (!phase) { badge.style.display = 'none'; return; }
-
-  var last = state.lastPeriodDate ? new Date(state.lastPeriodDate + 'T00:00:00') : null;
-  var dayNum = last ? Math.floor((new Date() - last) / 86400000) + 1 : null;
-  // 周期内日数に補正（次の周期になっている場合）
-  if (dayNum && state.cycleLength && dayNum > state.cycleLength) {
-    dayNum = ((dayNum - 1) % state.cycleLength) + 1;
-  }
-
-  badgeText.textContent = phase + (dayNum ? ' ' + dayNum + '日目' : '');
-  badge.style.display = 'block';
-}
+// PR-089D (Legacy Removal Batch-11分割③): updateHomePhaseBanner は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 
 // ===== ホーム 週間カレンダーバー =====
 function buildHomeWeekRow() {
@@ -1375,54 +1360,8 @@ function openDayDetailByDate(isoStr) {
 
 // PR-086 (Legacy Removal Batch-8): getPhaseForDate は src/modules/cycle-utils.js へ
 // 新設・物理移動済み（本ファイル冒頭で import back）。
-
-function buildPhaseBar(monday) {
-  var bar    = document.getElementById('home-phase-bar');
-  var labels = document.getElementById('home-phase-labels');
-  if (!bar) return;
-
-  var cycle = state.cycleLength || 28;
-
-  // 全周期の比例バー（4フェーズの長さ）
-  var menLen  = 5;
-  var folLen  = Math.floor(cycle * 0.46) - 5;
-  var ovLen   = Math.floor(cycle * 0.53) - Math.floor(cycle * 0.46);
-  var lutLen  = cycle - Math.floor(cycle * 0.53);
-
-  var phaseData = [
-    { name:'月経',  days: menLen,  color:'#e87080' },
-    { name:'卵胞',  days: folLen,  color:'#70b88a' },
-    { name:'排卵',  days: ovLen,   color:'#70a8c0' },
-    { name:'黄体',  days: lutLen,  color:'#d4a060' }
-  ];
-
-  // 今日の周期内フェーズを特定（フォールバック付き）
-  var currentPhase = typeof getCurrentCyclePhase === 'function' ? getCurrentCyclePhase() : null;
-  if (!currentPhase && state.lastPeriodDate && state.cycleLength) {
-    currentPhase = getPhaseForDate(new Date());
-  }
-  var phaseNameMap = { '月経期':'月経', '卵胞期':'卵胞', '排卵期':'排卵', '黄体期':'黄体' };
-  var currentShort = phaseNameMap[currentPhase] || '';
-
-  // バーHTML
-  var barHtml = phaseData.map(function(p) {
-    return '<div style="flex:' + p.days + ';background:' + p.color + ';"></div>';
-  }).join('');
-  bar.innerHTML = barHtml;
-
-  // ラベルHTML（フェーズ名＋現在フェーズに▼）
-  if (labels) {
-    var labelHtml = phaseData.map(function(p) {
-      var isCurrent = p.name === currentShort;
-      return '<div style="flex:' + p.days + ';font-size:9px;text-align:center;'
-        + 'color:' + (isCurrent ? 'var(--ink)' : 'var(--ink-light)') + ';'
-        + 'font-weight:' + (isCurrent ? '600' : '400') + ';">'
-        + p.name + (isCurrent ? ' ◀' : '')
-        + '</div>';
-    }).join('');
-    labels.innerHTML = labelHtml;
-  }
-}
+// PR-089D (Legacy Removal Batch-11分割③): buildPhaseBar は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 
 // ===== 今週の気づき =====
 function updateHomeInsightCard() {
@@ -1528,46 +1467,8 @@ function updateHomeDiseaseAdvice() {
 // PR-086 (Legacy Removal Batch-8): switchInsTab/renderInsightDiscoveries/_updateInsMainCard は
 // src/modules/insights-tab-panel.js へ新設・物理移動済み（本ファイル冒頭で import back）。
 
-// ===== 今月のサマリーテキスト生成 =====
-function renderMonthlySummaryText() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('renderMonthlySummaryText', renderMonthlySummaryText);
-    return;
-  }
-  var el = document.getElementById('ins-monthly-summary-text');
-  if (!el) return;
-
-  var now = new Date();
-  var monthNames = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
-  var mn = monthNames[now.getMonth()];
-
-  var monthRecs = (state.records || []).filter(function(r){
-    var d = new Date(r.date);
-    return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-  });
-
-  if (monthRecs.length < 3) {
-    el.innerHTML = mn + 'の記録を集めています。<br><span style="font-size:12px;color:#9a8a80;">記録が増えるほど、より正確な分析が見えてきます。</span>';
-    return;
-  }
-
-  var painDays = monthRecs.filter(function(r){ return (r.painLevel||0) >= 2; }).length;
-  var freeDays = monthRecs.length - painDays;
-
-  var avgSleep = monthRecs.reduce(function(s,r){ return s+(r.sleepHours||0); },0) / monthRecs.length;
-
-  var sentence;
-  if (freeDays > painDays) {
-    sentence = mn + 'のあなたは、<strong style="color:#6B8F71;font-weight:600;">痛みのない日が多い</strong>、穏やかな1ヶ月でした。';
-  } else if (avgSleep >= 6.5) {
-    sentence = mn + 'のあなたは、<strong style="color:#8B82B8;font-weight:600;">睡眠が比較的安定</strong>してきた1ヶ月でした。';
-  } else {
-    sentence = mn + 'のあなたは、痛みと向き合いながら記録を続けた1ヶ月でした。';
-  }
-
-  var note = monthRecs.length + '日の記録から見えてきたパターンです。';
-  el.innerHTML = sentence + '<br><span style="font-size:12px;color:#9a8a80;line-height:1.7;">' + note + '</span>';
-}
+// PR-089D (Legacy Removal Batch-11分割③): renderMonthlySummaryText は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 
 // ===== フェーズ別症状マップ =====
 // PR-082D (Legacy Removal Batch-4 分割④): renderPhaseMap/selectPhaseTab/
@@ -1637,6 +1538,11 @@ function closeModal() {
   // バグ14: モーダルを閉じたらナビボタンにフォーカスを戻す
   if (prevBtn) prevBtn.focus();
 }
+// PR-089D: handleHomeCTA（home-renderer.js、物理移動済み）のfallback分岐が本ファイル
+// 残置のopenRecordModal（SAFE_DEAD版、record-modal-controller.jsが優先実装）を明示的に
+// 呼び出すための専用ブリッジ（window.openRecordModalは既にrecord-modal-controller.js側が
+// 先取り済みのため衝突回避。PR-085 __ippoLegacySaveAndSyncと同型パターン）。
+window.__ippoLegacyOpenRecordModal = openRecordModal;
 
 // PR-079: renderStep/nextStep/prevStep は src/modules/record-input.js へ移植済み。
 // bare identifier は委譲のみ（再実装禁止）。nextStep の saveRecord() 呼び出しは
@@ -1829,394 +1735,12 @@ function setGraphTab(tab, el) {
 // closeSymptomSettings/saveSymptomSettings）は src/modules/symptom-settings.js
 // へ物理移動済み（import参照）。
 
-// ===== ホーム画面サマリー =====
-function updateHomeSummary(){
-  var container = document.getElementById('home-summary');
-  var content = document.getElementById('summary-content');
-  var status = document.getElementById('summary-status');
-  if(!container || !content || !status) return;
-
-  var todayStr = new Date().toDateString();
-  var rec = null;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
-  }
-
-  container.style.display = 'block';
-
-  if(!rec){
-    status.textContent = '未記録';
-    content.innerHTML =
-      '<div style="text-align:center;padding:22px 0 10px;">'
-      + '<div style="font-size:38px;margin-bottom:10px;">📋</div>'
-      + '<div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:5px;">まだ今日の記録がありません</div>'
-      + '<div style="font-size:11px;color:var(--ink-light);line-height:1.6;">中央の ＋ ボタンから<br>今日の体調を入力しましょう</div>'
-      + '</div>';
-    return;
-  }
-
-  status.textContent = '記録済み ✓';
-
-  // 食事データ解析（飲み物除外）
-  var drinkPattern = /飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/;
-  var mealLines = (rec.mealFree || '').split('\n').filter(function(l){return l.trim();});
-  var allSlots = [];
-  var foodSlots = [];
-  mealLines.forEach(function(line){
-    line = line.trim();
-    if(!line) return;
-    var timeMatch = line.match(/(\d{1,2}):?(\d{2})/);
-    var time = timeMatch ? ('0'+parseInt(timeMatch[1])).slice(-2)+':'+timeMatch[2] : '';
-    var food = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
-    var items = food.split(/[、,\/\s]+/).filter(function(s){ return s; });
-    var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
-    var isDrinkOnly = drinkItems.length > 0 && drinkItems.length >= items.length;
-    allSlots.push({time:time, food:food, isDrink:isDrinkOnly});
-    if(!isDrinkOnly) foodSlots.push({time:time, food:food});
-  });
-
-  var parsed = parseMealMemo(rec.mealFree);
-  var mealCount = parsed ? parsed.mealCount : 0;
-  var fastH = parsed ? parsed.fastingHours : 0;
-  var goalH = state.fastingGoal || 16;
-  var eatH = 24 - fastH;
-
-  var html = '';
-
-  // ① 痛みスコア（最上部・大きく表示）
-  var painLevel = rec.painLevel !== null && rec.painLevel !== undefined ? rec.painLevel : -1;
-  if (painLevel >= 0) {
-    var painEmoji = ['😊','🙂','😐','😣','😭'][Math.min(Math.floor(painLevel / 2), 4)];
-    var painLabels = ['痛みなし','軽い痛み','中程度','強い痛み','とても強い'];
-    var painLabelIdx = painLevel === 0 ? 0 : painLevel <= 2 ? 1 : painLevel <= 5 ? 2 : painLevel <= 8 ? 3 : 4;
-    var painColor = painLevel === 0 ? '#639922' : painLevel <= 2 ? '#ba7517' : painLevel <= 5 ? '#c4878c' : '#993556';
-    html += '<div style="display:flex;align-items:center;gap:12px;background:var(--cream);border-radius:14px;padding:12px 16px;margin-bottom:12px;">';
-    html += '<div style="font-size:28px;">' + painEmoji + '</div>';
-    html += '<div style="flex:1;">';
-    html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:2px;">今日の痛み</div>';
-    html += '<div style="font-size:15px;font-weight:600;color:' + painColor + ';">' + painLabels[painLabelIdx] + '</div>';
-    html += '</div>';
-    var painPct = Math.round(painLevel / 10 * 100);
-    html += '<div style="width:60px;">';
-    html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
-    html += '<div style="height:100%;width:' + painPct + '%;background:' + painColor + ';border-radius:3px;transition:width 0.5s;"></div>';
-    html += '</div>';
-    html += '<div style="font-size:9px;color:var(--ink-light);text-align:right;margin-top:3px;">' + painLevel + '/10</div>';
-    html += '</div>';
-    html += '</div>';
-  }
-
-  // ② 症状チップ
-  var sympChips = [];
-  if(rec.symptoms && rec.symptoms.length) sympChips = sympChips.concat(rec.symptoms);
-  if(rec.bloodClot && rec.bloodClot.length) sympChips = sympChips.concat(rec.bloodClot.map(function(b){return '🩸 '+b;}));
-  if(rec.bloodColor && rec.bloodColor.length) sympChips = sympChips.concat(rec.bloodColor);
-  if(sympChips.length){
-    html += '<div style="margin-bottom:12px;">';
-    html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:6px;">今日の症状</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">';
-    sympChips.forEach(function(s){
-      html += '<span style="font-size:11px;background:var(--rose-pale);color:var(--rose);border-radius:12px;padding:3px 10px;">'+s+'</span>';
-    });
-    html += '</div></div>';
-  }
-
-  // ③ バイタル指標ピル行
-  var vitals = [];
-  if(rec.temperature) vitals.push({icon:'🌡', label: rec.temperature+'℃', color:'#d4a574', bg:'#fdf5ec'});
-  if(rec.menstrualCycle && rec.menstrualCycle !== 'なし') vitals.push({icon:'🌸', label: rec.menstrualCycle, color:'#c4878c', bg:'#fdf0f2'});
-  if(rec.energy) vitals.push({icon:'⚡', label:'元気 '+rec.energy+'/5', color:'#d4a574', bg:'#fdf5ec'});
-  if(rec.sleepHours) vitals.push({icon:'😴', label:'睡眠 '+rec.sleepHours+'h', color:'#7ba3c4', bg:'#eef4fb'});
-  if(vitals.length){
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;">';
-    vitals.forEach(function(v){
-      html += '<div style="display:flex;align-items:center;gap:5px;background:'+v.bg+';border-radius:20px;padding:5px 10px;">';
-      html += '<span style="font-size:12px;">'+v.icon+'</span>';
-      html += '<span style="font-size:11px;font-weight:600;color:'+v.color+';">'+v.label+'</span>';
-      html += '</div>';
-    });
-    html += '</div>';
-  }
-
-  // ④ 食事タイムライン（折りたたみ）
-  var hasMealData = !!(rec.mealFree && rec.mealFree.trim());
-  if (hasMealData || state.fastingEnabled) {
-    var mealToggleId = 'meal-acc-' + Date.now();
-    html += '<div style="border-top:0.5px solid var(--rose-light);margin-bottom:12px;padding-top:10px;">';
-    html += '<button onclick="(function(){var c=document.getElementById(\'' + mealToggleId + '\');var a=document.getElementById(\'' + mealToggleId + '-arrow\');if(c.style.display===\'none\'){c.style.display=\'block\';a.textContent=\'▲\';}else{c.style.display=\'none\';a.textContent=\'▼\';}})()" '
-      + 'style="width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:none;padding:0;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;">';
-    html += '<span style="font-size:12px;color:var(--ink-light);">食事の記録を見る</span>';
-    html += '<span id="' + mealToggleId + '-arrow" style="font-size:10px;color:var(--ink-light);">▼</span>';
-    html += '</button>';
-    html += '<div id="' + mealToggleId + '" style="display:none;margin-top:12px;">';
-    // ドーナツチャート + タイムライン（既存のまま）
-    (function(){
-      var circumference = 2 * Math.PI * 46;
-      html += '<div style="display:flex;align-items:center;gap:18px;margin-bottom:16px;">';
-      html += '<div style="position:relative;width:108px;height:108px;flex-shrink:0;">';
-      html += '<svg width="108" height="108" viewBox="0 0 108 108" style="transform:rotate(-90deg)">';
-      html += '<circle cx="54" cy="54" r="46" fill="none" stroke="var(--cream)" stroke-width="9"/>';
-      foodSlots.forEach(function(slot){
-        if(!slot.time) return;
-        var parts = slot.time.split(':');
-        var h = parseInt(parts[0]);
-        var m = parseInt(parts[1]) || 0;
-        var hourDecimal = h + m / 60;
-        var arcLen = circumference / 24 * 1.2;
-        var dashGap = circumference - arcLen;
-        var offset = -(hourDecimal / 24 * circumference);
-        var dotColor;
-        if(h >= 5 && h < 10) dotColor = '#d4a574';
-        else if(h >= 10 && h < 14) dotColor = '#6b9e78';
-        else if(h >= 17 && h < 22) dotColor = '#c4878c';
-        else dotColor = '#7ba3c4';
-        html += '<circle cx="54" cy="54" r="46" fill="none" stroke="'+dotColor+'" stroke-width="9" stroke-dasharray="'+arcLen.toFixed(1)+' '+dashGap.toFixed(1)+'" stroke-dashoffset="'+offset.toFixed(1)+'" stroke-linecap="round"/>';
-      });
-      html += '</svg>';
-      html += '<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
-      if(fastH > 0){
-        html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+fastH+'</div>';
-        html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">時間断食</div>';
-      } else if(mealCount > 0){
-        html += '<div style="font-family:Inter,sans-serif;font-size:19px;font-weight:700;color:var(--ink);line-height:1;">'+mealCount+'</div>';
-        html += '<div style="font-size:8px;color:var(--ink-light);margin-top:1px;">食</div>';
-      } else {
-        html += '<div style="font-size:10px;color:var(--ink-light);">飲み物<br>のみ</div>';
-      }
-      html += '</div></div>';
-      html += '<div style="flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:0;">';
-      if(allSlots.length){
-        var showMax = Math.min(allSlots.length, 6);
-        for(var si=0;si<showMax;si++){
-          var slot = allSlots[si];
-          var slotH = slot.time ? parseInt(slot.time.split(':')[0]) : 0;
-          var dotColor;
-          if(slotH >= 5 && slotH < 10) dotColor = '#d4a574';
-          else if(slotH >= 10 && slotH < 14) dotColor = '#6b9e78';
-          else if(slotH >= 17 && slotH < 22) dotColor = '#c4878c';
-          else dotColor = '#7ba3c4';
-          var rowOpacity = slot.isDrink ? '0.45' : '1';
-          html += '<div style="display:flex;align-items:center;gap:7px;padding:5px 0;border-bottom:1px solid var(--cream);opacity:'+rowOpacity+';">';
-          html += '<div style="width:7px;height:7px;border-radius:50%;background:'+dotColor+';flex-shrink:0;"></div>';
-          html += '<span style="font-size:11px;color:var(--ink-light);flex-shrink:0;min-width:36px;">'+(slot.time||'')+'</span>';
-          html += '<span style="font-size:12px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+slot.food+'</span>';
-          html += '</div>';
-        }
-        if(allSlots.length > 6){
-          html += '<div style="font-size:10px;color:var(--ink-light);padding-top:4px;">他 '+(allSlots.length-6)+'件</div>';
-        }
-      } else if(mealCount > 0){
-        html += '<div style="font-size:12px;color:var(--ink-mid);">🍽 '+mealCount+'食 記録済み</div>';
-      } else {
-        html += '<div style="font-size:11px;color:var(--ink-light);">食事記録なし</div>';
-      }
-      html += '</div>';
-      html += '</div>';
-    })();
-    html += '</div></div>';
-  }
-
-  // ⑤ 疾患チェック（なし以外）
-  if(rec.diseaseCheck && Object.keys(rec.diseaseCheck).length){
-    var dcEntries = [];
-    var dc = rec.diseaseCheck;
-    var _fallbackDisease = (rec.diseases && rec.diseases[0]) || (state.myDiseases && state.myDiseases[0]) || '';
-    Object.keys(dc).forEach(function(key){
-      if(dc[key] === 'なし') return;
-      var parts = key.split('__');
-      var dKey = parts.length > 1 ? parts[0] : _fallbackDisease;
-      var qId = parts.length > 1 ? parts[1] : key;
-      var qCfg = typeof DISEASE_CONFIG !== 'undefined' ? DISEASE_CONFIG[dKey] : null;
-      var label = qId;
-      if(qCfg && qCfg.questions){
-        for(var qi=0;qi<qCfg.questions.length;qi++){
-          if(qCfg.questions[qi].id === qId){ label = qCfg.questions[qi].text.replace('？',''); break; }
-        }
-      }
-      dcEntries.push(label+': '+dc[key]);
-    });
-    if(dcEntries.length){
-      html += '<div style="margin-bottom:12px;">';
-      html += '<div style="font-size:11px;font-weight:700;color:var(--ink-light);letter-spacing:0.05em;margin-bottom:7px;">疾患チェック</div>';
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
-      dcEntries.forEach(function(e){
-        html += '<span style="font-size:11px;background:#f3f0fd;color:#6b5b8a;padding:4px 10px;border-radius:14px;">'+e+'</span>';
-      });
-      html += '</div></div>';
-    }
-  }
-
-  // ⑥ その他（服薬・お通じ・睡眠の質・要因）
-  var otherChips = [];
-  if(rec.medication && rec.medication.length) otherChips.push('💊 '+rec.medication.join('・'));
-  if(rec.sleepQuality) otherChips.push('💤 睡眠の質 '+rec.sleepQuality+'/5');
-  if(rec.bowel) otherChips.push('🫧 '+rec.bowel);
-  if(rec.factors && rec.factors.length) otherChips.push('📋 '+rec.factors.join('・'));
-  if(otherChips.length){
-    html += '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">';
-    otherChips.forEach(function(e){
-      html += '<span style="font-size:11px;background:#e8f4ec;color:#4a7c5c;padding:4px 10px;border-radius:14px;">'+e+'</span>';
-    });
-    html += '</div>';
-  }
-
-  // ⑦ ウェルネス・SMIスコア（横並びコンパクト）
-  var hasWS = rec.wellnessScore !== undefined;
-  var hasSMI = rec.smiScore !== undefined && rec.smiScore !== null;
-  if(hasWS || hasSMI){
-    html += '<div style="display:flex;gap:10px;margin-bottom:14px;">';
-    if(hasWS){
-      var ws = rec.wellnessScore;
-      var wsColor = ws >= 70 ? '#6b9e78' : ws >= 40 ? '#d4a574' : '#c4878c';
-      var wsLabel = ws >= 70 ? '良好' : ws >= 40 ? 'まずまず' : '注意';
-      html += '<div style="flex:1;background:linear-gradient(135deg,#faf6f2,#f0ebe6);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:10px;">';
-      html += '<div style="position:relative;width:44px;height:44px;flex-shrink:0;">';
-      html += '<svg width="44" height="44" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#e8ddd8" stroke-width="4"/>';
-      var pctWS = ws / 100;
-      var circWS = 2 * Math.PI * 18;
-      html += '<circle cx="22" cy="22" r="18" fill="none" stroke="'+wsColor+'" stroke-width="4" stroke-dasharray="'+Math.round(circWS*pctWS)+' '+Math.round(circWS*(1-pctWS))+'" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg>';
-      html += '<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;font-weight:700;color:'+wsColor+';">'+ws+'</div>';
-      html += '</div>';
-      html += '<div><div style="font-size:10px;color:var(--ink-light);">ウェルネス</div>';
-      html += '<div style="font-size:13px;font-weight:600;color:'+wsColor+';">'+wsLabel+'</div></div>';
-      html += '</div>';
-    }
-    if(hasSMI){
-      var smi = rec.smiScore;
-      var smiColor = smi <= 25 ? '#6b9e78' : smi <= 50 ? '#d4a574' : smi <= 75 ? '#c4878c' : '#c44848';
-      var smiLabel = smi <= 25 ? '問題なし' : smi <= 50 ? '注意' : smi <= 75 ? '受診推奨' : '治療必要';
-      html += '<div style="flex:1;background:linear-gradient(135deg,#fdf3f3,#f9edd8);border-radius:14px;padding:12px 14px;">';
-      html += '<div style="font-size:10px;color:var(--ink-light);margin-bottom:4px;">SMI指数</div>';
-      html += '<div style="display:flex;align-items:baseline;gap:4px;">';
-      html += '<span style="font-size:20px;font-weight:700;color:'+smiColor+';">'+smi+'</span>';
-      html += '<span style="font-size:10px;color:var(--ink-light);">/94</span>';
-      html += '</div>';
-      html += '<div style="margin:5px 0;height:5px;background:#e8ddd8;border-radius:3px;overflow:hidden;">';
-      html += '<div style="height:100%;width:'+Math.min(Math.round(smi/94*100),100)+'%;background:'+smiColor+';border-radius:3px;"></div>';
-      html += '</div>';
-      html += '<div style="font-size:10px;color:'+smiColor+';">'+smiLabel+'</div>';
-      html += '</div>';
-    }
-    html += '</div>';
-  }
-
-  // ⑧ フレアアップ通知（直近3日以内）
-  var recentFlares = detectFlareups(state.records).filter(function(f){
-    return (Date.now() - new Date(f.date).getTime()) < 3 * 86400000;
-  });
-  if(recentFlares.length > 0){
-    html += '<div onclick="openFlareupReport()" style="margin-bottom:10px;background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:14px;padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;">';
-    html += '<span style="font-size:20px;">🔥</span>';
-    html += '<div style="flex:1;"><div style="font-size:12px;font-weight:600;color:var(--rose);">フレアアップを検出</div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);margin-top:2px;">'+recentFlares[recentFlares.length-1].reasons[0]+'</div></div>';
-    html += '<span style="font-size:12px;color:var(--rose);">→</span>';
-    html += '</div>';
-  }
-
-  // ⑨ 体温パターンインサイト
-  var tempAnalysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-  if(tempAnalysis.status === 'ready'){
-    var hasAlerts = tempAnalysis.alerts.length > 0;
-    var alertColor = hasAlerts ? (tempAnalysis.alerts.some(function(a){return a.level==='emergency';}) ? '#c44848' : tempAnalysis.alerts.some(function(a){return a.level==='danger';}) ? '#c4878c' : '#d4a574') : '#6b9e78';
-    html += '<div style="background:linear-gradient(135deg,var(--white),#fdf8f6);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:16px;">🌡️</span><span style="font-size:13px;font-weight:600;color:var(--ink);">体温パターン分析</span></div>';
-    html += '<span style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'日分</span>';
-    html += '</div>';
-    html += '<div style="display:flex;gap:8px;margin-bottom:10px;">';
-    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">二相性</div><div style="font-size:11px;font-weight:600;color:'+alertColor+';">判定済み</div></div>';
-    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">温度差</div><div style="font-size:11px;font-weight:600;color:var(--ink);">'+tempAnalysis.tempDiff+'℃</div></div>';
-    html += '<div style="flex:1;background:var(--cream);border-radius:8px;padding:8px;text-align:center;"><div style="font-size:9px;color:var(--ink-light);margin-bottom:3px;">アラート</div><div style="font-size:11px;font-weight:600;color:'+alertColor+';">'+(hasAlerts ? tempAnalysis.alerts.length+'件' : 'なし')+'</div></div>';
-    html += '</div>';
-    if(hasAlerts){
-      html += '<div style="background:linear-gradient(135deg,#fde8e8,#fdf3f3);border-radius:8px;padding:8px 10px;margin-bottom:8px;font-size:11px;color:#c4878c;">⚠️ 気になるパターンが検出されました</div>';
-    }
-    html += '<div onclick="premiumGate(openTempReport)" style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--rose-pale);border-radius:8px;cursor:pointer;">';
-    html += '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:11px;font-weight:500;color:var(--rose);">詳細レポートを見る</span><span style="font-size:9px;background:var(--rose);color:white;padding:1px 6px;border-radius:4px;">PRO</span></div>';
-    html += '<span style="font-size:12px;color:var(--rose);">→</span>';
-    html += '</div></div>';
-
-  } else if(tempAnalysis.status === 'insufficient' && tempAnalysis.count > 0){
-    var progress = Math.round(tempAnalysis.count / 14 * 100);
-    var diseases2 = state.myDiseases || [];
-    var eduMsg = '14日以上の記録で、あなたの低温期と高温期のパターンが見えてきます。';
-    if(diseases2.indexOf('卵巣嚢腫') !== -1) eduMsg = '卵巣嚢腫では体温パターンの変化が炎症の指標になります。14日以上記録を続けましょう。';
-    else if(diseases2.indexOf('子宮内膜症') !== -1) eduMsg = '子宮内膜症では月経初日の体温が診断の手がかりになることが報告されています。';
-    else if(diseases2.indexOf('PCOS') !== -1) eduMsg = 'PCOSでは二相性の有無が排卵障害の重要な指標です。毎日の記録が大切です。';
-    else if(diseases2.indexOf('更年期障害') !== -1) eduMsg = '更年期では体温リズムの変化がホルモンバランスを反映します。記録を続けましょう。';
-    html += '<div style="background:var(--white);border-radius:14px;padding:14px;box-shadow:0 1px 6px var(--shadow);">';
-    html += '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;"><span style="font-size:16px;">🌡️</span><span style="font-size:13px;font-weight:600;color:var(--ink);">体温パターン分析</span></div>';
-    html += '<div style="font-size:11px;color:var(--ink-mid);margin-bottom:8px;">'+tempAnalysis.message+'</div>';
-    html += '<div style="height:6px;background:#e8ddd8;border-radius:3px;overflow:hidden;"><div style="height:100%;width:'+progress+'%;background:linear-gradient(90deg,var(--rose),#e8b4b8);border-radius:3px;"></div></div>';
-    html += '<div style="display:flex;justify-content:space-between;margin-top:5px;margin-bottom:10px;">';
-    html += '<span style="font-size:10px;color:var(--ink-light);">'+tempAnalysis.count+'/14日</span><span style="font-size:10px;color:var(--rose);">'+progress+'%</span></div>';
-    html += '<div style="padding:8px 10px;background:var(--cream);border-radius:8px;font-size:11px;color:var(--ink-mid);line-height:1.6;">💡 '+eduMsg+'</div>';
-    html += '</div>';
-  }
-
-  content.innerHTML = html;
-
-  // 診察レポートバナーの表示制御（7日以上記録で表示）
-  var banner = document.getElementById('doctor-report-banner');
-  if (banner) {
-    banner.style.display = (state.records && state.records.length >= 7) ? 'block' : 'none';
-  }
-}
-
-
+// PR-089D (Legacy Removal Batch-11分割③): updateHomeSummary は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 // PR-080E: editPastRecord は src/modules/record-screen.js へ物理移動済み（ファイル冒頭でimport）。
 
-  // ===== ホーム画面CTAボタン =====
-function updateHomeCTA(){
-  var title = document.getElementById('home-cta-title');
-  var sub = document.getElementById('home-cta-sub');
-  var card = document.getElementById('home-cta-card');
-  if(!title || !sub || !card) return;
-
-  var todayStr = new Date().toDateString();
-  var hasRecord = false;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ hasRecord = true; break; }
-  }
-
-  var nearPeriod = isPeriodExpected();
-
-  var cs = getComputedStyle(document.documentElement);
-  if(nearPeriod && !hasRecord){
-    title.textContent = '🌸 生理がきた？';
-    sub.textContent = 'タップして今日の状態を記録';
-    card.style.background = cs.getPropertyValue('--cta-period').trim();
-  } else if(hasRecord){
-    title.textContent = '✓ 今日の記録を見る';
-    sub.textContent = '記録済み・タップして確認';
-    card.style.background = cs.getPropertyValue('--cta-done').trim();
-  } else {
-    title.textContent = '今日を記録する';
-    sub.textContent = 'まだ今日の記録がありません';
-    card.style.background = cs.getPropertyValue('--cta-default').trim();
-  }
-}
-
-
-function handleHomeCTA(){
-  // daily check-in 完了フラグを確認 (2026-05-27):
-  // record.meta.uiFlow === 'daily-checkin' が立っていれば「ふり返り」画面へ。
-  // 未完了 or 他の入力経路からの保存のみの場合は3カードUIを開く。
-  var today = new Date().toISOString().slice(0, 10);
-  var s = (typeof getState === 'function') ? getState() : state;
-  var rec = s && (s.records || []).find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-  var isDailyCheckinDone = !!(rec && rec.meta && rec.meta.uiFlow === 'daily-checkin');
-
-  if (isDailyCheckinDone && typeof window.openTodayReflection === 'function') {
-    window.openTodayReflection();
-  } else if (typeof window.openRecordScreen === 'function') {
-    window.openRecordScreen();
-  } else {
-    openRecordModal(); // fallback: record-three-card.js 未ロード時のみ
-  }
-}
+// PR-089D (Legacy Removal Batch-11分割③): updateHomeCTA/handleHomeCTA は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 
 // ===== ホーム CTAカード 記録前後状態更新 =====
 // PR-086 (Legacy Removal Batch-8): updateTodayMessage は src/modules/home-renderer.js へ
@@ -2248,24 +1772,8 @@ function updateHomeCTAState() {
   }
 }
 
-// ===== 連続記録バッジ色変化 =====
-function updateStreakBadge() {
-  var badge = document.getElementById('streak-badge');
-  if (!badge) return;
-  var today = new Date().toISOString().slice(0, 10);
-  var recordedToday = (state.records || []).some(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-  if (recordedToday) {
-    badge.style.background = 'var(--sage-light)';
-    badge.style.color = 'var(--sage)';
-    var countEl = document.getElementById('streak-badge-count');
-    if (countEl) countEl.nextSibling && (countEl.parentNode.lastChild.textContent = '日連続 ✓');
-  } else {
-    badge.style.background = 'var(--rose-pale)';
-    badge.style.color = 'var(--rose)';
-  }
-}
+// PR-089D (Legacy Removal Batch-11分割③): updateStreakBadge は
+// src/modules/home-renderer.js へ物理移動済み（import参照）。
 
 // ===== 比較コメント生成 =====
 // PR-086 (Legacy Removal Batch-8): buildComparisonComment/buildDayComparison/
