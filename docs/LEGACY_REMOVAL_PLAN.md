@@ -154,11 +154,11 @@ Mode 判定: AI_EXECUTION.md 1章「Legacy Removal は必ず FULL」に従い、
 | **PR-080F** | Batch-2 Exit Audit（capstone） | Batch-2 Completion Program 監査のみ（新規実装禁止） | — | — | — | PR-080E |
 | **PR-081** | Batch-3 | Premium Gate & Lock | 約6 | 2〜3 | MEDIUM（app.html 8箇所置換） | なし（並行可） |
 | **PR-082A** | Batch-4 分割① | Doctor Summary / Doctor PDF（`openDoctorSummary`/`closeDoctorSummary`/`generateDoctorSummary`/`downloadDoctorPDF`/`_generateDoctorPDF`/`copyDoctorSummary`） | 6 | 2（app-legacy.js / doctor-summary.js） | MEDIUM（jsPDF依存確認） | PR-080, PR-081 |
-| **PR-082B** | Batch-4 分割② | AI Analysis Overlay（`openAIAnalysis`/`closeAIAnalysis`/`copyAIAnalysis`/`runAIAnalysis`/`callAIAPI`） | 5 | 未定 | LOW | PR-082A |
-| **PR-082C** | Batch-4 分割③ | Monthly Report（`openMonthlyReport`/`closeMonthlyReport`/`changeReportMonth`/`updateMonthLabel`/`generateMonthlyReport`/`downloadReportPDF`） | 6 | 未定 | MEDIUM（jsPDF依存） | PR-082B |
-| **PR-082D** | Batch-4 分割④ | Cycle Phase Report（`openCyclePhaseReport`/`renderPhaseMap`/`selectPhaseTab`/`_buildPhaseBarPreview`） | 4 | 未定 | LOW | PR-082C |
-| **PR-082E** | Batch-4 分割⑤ | Temperature Report（`calcTemperaturePhases`/`openTempReport`/`showTempEducation`） | 3 | 未定 | LOW | PR-082D |
-| **PR-082F** | Batch-4 分割⑥ | Flareup / Correlation Report（`detectFlareups`/`openFlareupReport`/`calcFactorCorrelations`/`renderComparisonChart`/`openCorrelationReport`/`setCGRange`/`toggleCGFactor`/`getMetricValue`/`getMetricLabel`/`getMetricMax`/`calcWellnessScore`） | 11 | 未定 | MEDIUM（renderComparisonChart系の一体化クラスタ） | PR-082E |
+| **PR-082B** | Batch-4 分割② | AI Analysis Overlay（`openAIAnalysis`/`closeAIAnalysis`/`copyAIAnalysis`/`runAIAnalysis`/`callAIAPI`） | 5 | 2（app-legacy.js / analysis-overlay.js） | LOW | PR-082A |
+| **PR-082C** | Batch-4 分割③ | Monthly Report（`openMonthlyReport`/`closeMonthlyReport`/`changeReportMonth`/`updateMonthLabel`/`generateMonthlyReport`/`downloadReportPDF`） | 6 | 2（app-legacy.js / monthly-report.js） | MEDIUM（jsPDF依存） | PR-082B |
+| **PR-082D** | Batch-4 分割④ | Cycle Phase Report（`openCyclePhaseReport`/`renderPhaseMap`/`selectPhaseTab`/`_buildPhaseBarPreview`） | 4 | 2（app-legacy.js / cycle-report.js） | LOW | PR-082C |
+| **PR-082E** | Batch-4 分割⑤ | Temperature Report（`calcTemperaturePhases`/`openTempReport`/`showTempEducation`） | 3 | 2（app-legacy.js / temp-report.js） | LOW | PR-082D |
+| **PR-082F** | Batch-4 分割⑥ | Flareup / Correlation Report（`detectFlareups`/`openFlareupReport`/`calcFactorCorrelations`/`renderComparisonChart`/`openCorrelationReport`/`setCGRange`/`toggleCGFactor`/`getMetricValue`/`getMetricLabel`/`getMetricMax`/`calcWellnessScore`） | 11 | 4（app-legacy.js / flareup-report.js / correlation-report.js / pro-metric-utils.js） | MEDIUM（renderComparisonChart系の一体化クラスタ） | PR-082E |
 | **PR-082G** | Batch-4 Exit Audit（capstone） | Pro Reports Exit Audit（監査のみ・新規実装禁止） | — | — | — | PR-082F |
 | **PR-083** | Batch-5 | Sync Modal & Auth UI | 約6 | 2 | LOW | なし（並行可） |
 | **PR-084** | Batch-6 | Settings & Data Management | 約18 | 3〜4 | LOW | なし |
@@ -482,6 +482,20 @@ PR-082A〜G（Batch-4分割①〜⑥＋Exit Audit）へ分割することが確�
 （Roadmap変更・Legacy Removal判断はDecision Log候補）に基づく。
 ```
 
+### 10-B 完了報告（2026-07-04・PR-082B〜G実装完了）
+
+```
+PR-082B〜Fは10-B章の計画通り、先行ドラフト（analysis-overlay.js/monthly-report.js/
+cycle-report.js/temp-report.js/flareup-report.js/correlation-report.js/
+pro-metric-utils.jsのcalcWellnessScore）をapp-legacy.js最新状態と再照合のうえ
+逐次配線（import追加）し、Business Logic変更ゼロで物理移動完了。新規の重複実装・
+未文書化ヘルパーの発見なし（10-B章時点の想定どおり）。PR-082G（Exit Audit）にて
+Architecture Guard（120件全PASS）・Regression（5,171件中5,132件PASS、失敗39件は
+既知5ファイルのみで増加なし）・Build（vite build PASS）・Browser Verification
+（6機能全てopen/render/close確認、console error 0件）を実施し、Batch-4完了を確認。
+本追補以降の新規Decision Log項目なし（10-B章の決定事項の範囲内で完了したため）。
+```
+
 ---
 
 ## Document Authority Record
@@ -489,7 +503,7 @@ PR-082A〜G（Batch-4分割①〜⑥＋Exit Audit）へ分割することが確�
 | 項目 | 内容 |
 |---|---|
 | **文書番号** | IPPO-LEGACY-001 |
-| **バージョン** | 1.1（2026-07-03、PR-080A挿入により4章・9-A章を更新。10章Decision Log追補を新設） |
+| **バージョン** | 1.2（2026-07-04、PR-082B〜G実装完了により4章ロードマップ表の移動先ファイルを確定・10-B章に完了報告を追記） |
 | **作成日** | 2026-07-02 |
 | **権威レベル** | LEVEL-1 GOVERNING DOCUMENT（Founder承認待ち） |
 | **前提文書** | RELEASE_READINESS_COUNCIL（IPPO-RELEASE-001）/ LEGACY_ASSET_INVENTORY（IPPO-GOV-001）/ WAVE2_ARCHITECTURE / ARCHITECTURE_V3 / phase4d-legacy-migration-audit.md / legacy-dependency-map.md |

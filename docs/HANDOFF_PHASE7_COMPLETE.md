@@ -677,12 +677,68 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   pro-metric-utils.js`（`calcWellnessScore`追加）。PR-082B以降の着手時は、これらドラフトの
   内容をapp-legacy.jsの最新状態と再照合してから正式に組み込むこと（本PR時点のapp-legacy.js
   からの抽出のため、後続PRでのapp-legacy.js変更と差分が生じていないか要確認）。
-  Next: PR-082B — AI Analysis Overlay（`openAIAnalysis`/`closeAIAnalysis`/
-  `copyAIAnalysis`/`runAIAnalysis`/`callAIAPI`）。移動先はaudit文書では
-  analysis-module.js（既存拡充）を示唆していたが、同ファイルは「Pure Read Only・
-  DOM操作禁止」契約を明記しているため新規兄弟ファイル
-  `src/modules/pro/analysis/analysis-overlay.js`への分離が必要（ドラフト作成済み、
-  上記参照）。
+  ✓ PR-082B  Batch-4 分割②: AI Analysis Overlay — 先行ドラフト
+  `src/modules/pro/analysis/analysis-overlay.js`をapp-legacy.js最新状態と再照合し
+  差分なしを確認、`openAIAnalysis`/`closeAIAnalysis`/`runAIAnalysis`/`copyAIAnalysis`を
+  import参照化。`callAIAPI`はwindow非公開の内部ヘルパーのため非export（元実装と同型）。
+  bare `state`→`window.state`置換のみ（Business Logic変更なし）。PR-082B単体では
+  Founder指示（実行プログラム）によりRegression/Build実施を保留し実装のみ完了。
+  ✓ PR-082C  Batch-4 分割③: Monthly Report — `src/modules/pro/monthly-report.js`
+  （ドラフト差分なし）を配線。`openMonthlyReport`/`closeMonthlyReport`/
+  `changeReportMonth`/`updateMonthLabel`/`downloadReportPDF`をimport参照化
+  （`generateMonthlyReport`は非export内部ヘルパー、元実装と同型）。本PRでRegression
+  実施時、PR-082Bが原因で`tests/analytics/phase4-c4-legacy-removal.test.js`が
+  4件FAILしていたことを検出（callAIAPI/runAIAnalysisの文字列一致アサーションが
+  app-legacy.jsの生テキストを直接参照していたため、物理移動後にFAILした）。
+  アサーション対象をanalysis-overlay.jsへ向け直す形でテスト側を修正し20件全PASSへ
+  回復（Business Logic変更なし、テストのアサーション対象ファイル訂正のみ）。
+  vitest run全件: 5,132件PASS、失敗39件は既知5ファイルのみで増加なし / vite build PASS。
+  ✓ PR-082D  Batch-4 分割④: Cycle Phase Report — `src/modules/pro/cycle-report.js`
+  （ドラフト差分なし）を配線。`openCyclePhaseReport`（385行付近）と
+  `renderPhaseMap`/`selectPhaseTab`/`_buildPhaseBarPreview`（3077行付近、app-legacy.js内
+  で不連続な2ブロックだった）をそれぞれimport参照化。premium-lock.jsの
+  `callback === window.openCyclePhaseReport`同一性比較はimport bindingがそのまま
+  window bridgeへ渡るため無改造で機能継続を確認。vitest run全件: 5,132件PASS、
+  失敗39件は既知5ファイルのみで増加なし / vite build PASS。
+  ✓ PR-082E  Batch-4 分割⑤: Temperature Report — `src/modules/pro/temp-report.js`
+  （ドラフト差分なし）を配線。`calcTemperaturePhases`/`openTempReport`/
+  `showTempEducation`をimport参照化。Scope外のPR-082F対象関数（line 3610/4992の
+  bare `calcTemperaturePhases(state.records)`呼び出し）およびapp-legacy.js内の
+  `_origOpenRecord`ラップ処理（showTempEducationをbareで呼ぶglue code、Scope外）が
+  import binding経由で無改造のまま解決されることを確認。vitest run全件: 5,132件PASS、
+  失敗39件は既知5ファイルのみで増加なし / vite build PASS。
+  ✓ PR-082F  Batch-4 分割⑥: Flareup Report / Correlation Report —
+  `src/modules/pro/flareup-report.js`/`src/modules/pro/correlation-report.js`/
+  `src/modules/pro/shared/pro-metric-utils.js`（`calcWellnessScore`、ドラフト差分なし）を
+  配線。`detectFlareups`/`openFlareupReport`/`calcFactorCorrelations`/`setCGRange`/
+  `toggleCGFactor`/`getMetricValue`/`getMetricLabel`/`getMetricMax`/
+  `renderComparisonChart`/`openCorrelationReport`/`calcWellnessScore`の11関数は
+  app-legacy.js内で完全に連続した1ブロックだったため一括物理移動。
+  saveRecordScreen()内のbare `calcWellnessScore(rec)`呼び出し（Scope外・Record Screen
+  保存フロー）はimport binding経由で解決継続を確認。vitest run全件: 5,132件PASS、
+  失敗39件は既知5ファイルのみで増加なし / vite build PASS。
+  ✓ PR-082G  Batch-4 Exit Audit（capstone）— Architecture Guard（tests/arch/
+  全13ファイル120件PASS、Forbidden Dependency違反ゼロ）/ Regression（vitest run全件
+  5,171件中5,132件PASS、失敗39件は既知5ファイル(build-draft-from-ui.test.js・
+  save-record-screen.test.js・disease-analyzer.test.js・domain-event-types.test.js・
+  event-menstrual.test.js)のみで増加なし）/ Build（vite build PASS、警告は既存の
+  チャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで本Batch無関係）/
+  Browser Verification（Vite dev server + app.htmlで6機能全て実機確認: AI Analysis
+  Overlay/Monthly Report/Cycle Phase Report/Temperature Report/Flareup Report/
+  Correlation Reportのopen→データ描画（月次統計・体温二相性解析・フレアアップ検出・
+  ファクター相関計算いずれも21日分の合成データで正しい数値を算出）→close一連の
+  動作を確認、insufficient-data分岐（体温14日未満）も正しくフォールバック表示、
+  Console Errorは既知のvite websocket接続失敗ノイズのみで新規エラーなし）/
+  SG-7更新（tests/arch/legacy-removal-pr079-line-count-guard.test.js
+  BASELINE_LINE_COUNTを7,071に更新、PR-082A→G累計でBatch-4のみ8,977→7,071行
+  ・1,906行削減）/ Decision Log確認（docs/LEGACY_REMOVAL_PLAN.md 10-B章に
+  完了報告を追記、10-B章の既存決定事項の範囲内で完了のため新規Decision Log項目なし）
+  / 4章ロードマップ表のPR-082B〜F「変更ファイル数」列を「未定」から実際の移動先
+  ファイル名で確定。app-legacy.js: 8,977行（PR-082A時点）→7,071行（Batch-4累計、
+  Doctor Summary/AI Analysis/Monthly Report/Cycle Phase Report/Temperature Report/
+  Flareup・Correlation Report・calcWellnessScoreの物理移動完了）。
+  ★ Legacy Removal Program Batch-4（PR-082A〜G、Pro Reports）完了。
+  Next: PR-083 — Batch-5: Sync Modal & Auth UI（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
 
 ---
 

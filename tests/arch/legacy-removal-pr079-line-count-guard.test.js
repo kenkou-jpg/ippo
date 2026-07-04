@@ -14,14 +14,15 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-082A時点のベースライン（openDoctorSummary/closeDoctorSummary/
-// generateDoctorSummary/downloadDoctorPDF/_generateDoctorPDF/copyDoctorSummaryの
-// src/modules/pro/doctor-summary/doctor-summary.jsへの物理移動によりapp-legacy.jsから
-// 約598行削除・importで6行追加後の実測値）。
-// PR-081時点は9,569行、PR-080G時点は9,680行、PR-080E時点は9,768行、
-// PR-080D時点は10,237行、PR-080時点は10,242行、PR-079時点は10,247行、
-// PR-078時点は10,804行だった（docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 8977;
+// PR-082F時点のベースライン（Batch-4 分割②〜⑥ — AI Analysis Overlay /
+// Monthly Report / Cycle Phase Report / Temperature Report /
+// Flareup Report・Correlation Report・calcWellnessScoreの物理移動後の実測値）。
+// PR-082E時点は7,664行、PR-082D時点は8,186行、PR-082C時点は8,441行、
+// PR-082B時点は8,806行、PR-082A時点は8,977行、PR-081時点は9,569行、
+// PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
+// PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
+// （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
+const BASELINE_LINE_COUNT = 7071;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {
