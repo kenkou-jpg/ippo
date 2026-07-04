@@ -166,8 +166,19 @@ Mode 判定: AI_EXECUTION.md 1章「Legacy Removal は必ず FULL」に従い、
 | **PR-086** | Batch-8 | Home Insight & Cycle UI | 約12 | 2〜3 | LOW | なし |
 | **PR-087** | Batch-9 | Utility & Misc（純粋関数） | 約18 | 5〜6 | LOW | なし（即時着手可） |
 | **PR-088** | Batch-10 | Community & Admin | 約9 | 2 | MEDIUM（Supabase直接呼び出し） | なし |
-| **PR-089** | Batch-11 | **app.html Cleanup & Legacy Removal**（`<script>`削除・shim20件削除・DeadCode4件削除） | 全残存 | app.html + app-legacy.js | **HIGH**（onclick全置換・全画面UI回帰） | PR-079〜088 **全完了後** |
-| **PR-090** | — | **Legacy Removal Exit Audit**（capstone） | — | — | — | PR-089 |
+| **PR-089A** | Batch-11監査 | Legacy Final Cutover Audit（完了） | — | docs のみ | — | PR-079〜088 全完了後 |
+| **PR-089B** | Batch-11分割① | Experiment Module Migration | 約9 | `modules/experiments.js`, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089C** | Batch-11分割② | Cloud Sync Migration | 約7 | `services/supabase.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089D** | Batch-11分割③ | Home Remaining Migration | 未確定 | `home-renderer.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089E** | Batch-11分割④ | Calendar Remaining Migration | 未確定 | `calendar.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089F** | Batch-11分割⑤ | Utility / Misc Remaining Migration | 未確定 | 各種, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089Z** | Batch-11本体 | **Final Cutover**（app.html最終切替・Legacy Adapter削除・window bridge最終整理・app-legacy.js削除・不要script/Import削除） | 残SAFE_DEAD分 | app.html + app-legacy.js | **HIGH**（onclick全置換・全画面UI回帰） | PR-089B〜F **全完了後** |
+| **PR-090** | — | **Legacy Removal Exit Audit**（capstone） | — | — | — | PR-089Z |
+
+> **2026-07-04追記（10-C章参照）:** 当初のPR-089（一括削除）はCategory単位の段階移植へ
+> 再編成された。各サブPRの対象関数数はPR-089B〜Fそれぞれの着手時監査で確定する
+> （Home/Calendar/Utility分の正確な件数はPR-089A時点で未算出）。9-E章条件2
+> （Founder個別承認要件）はPR-089Zに引き継ぐ。
 
 **実施順序（依存グラフ、phase4d監査 5章を継承）:**
 
@@ -502,6 +513,48 @@ Architecture Guard（120件全PASS）・Regression（5,171件中5,132件PASS、�
 既知5ファイルのみで増加なし）・Build（vite build PASS）・Browser Verification
 （6機能全てopen/render/close確認、console error 0件）を実施し、Batch-4完了を確認。
 本追補以降の新規Decision Log項目なし（10-B章の決定事項の範囲内で完了したため）。
+```
+
+## 10-C. Decision Log 追補（2026-07-04・PR-089再編成）
+
+```
+決定事項: PR-089（Batch-11: app.html Cleanup & Legacy Removal）着手前監査（PR-089A、
+docs/PR-089A-legacy-final-cutover-audit.md）の結果、本文書が前提としていた
+「Batch-1〜10完了後はshim約20件+確定Dead Code 4件のみ残存」は実測（101関数残存）と
+一致しないことが判明した。Founderは「Business Logic変更禁止・Architecture変更禁止・
+仕様変更禁止」の方針を優先し、PR-089を一括削除PRとして実施せず、Category単位で
+段階的に移植したのちFinal Cutoverを行う方針を確定した。
+
+  □ 既存PR-090の番号は変更しない
+  □ PR-089を以下のCategory別PRへ再編成する:
+      PR-089A  Legacy Final Cutover Audit（完了）
+      PR-089B  Experiment Module Migration
+      PR-089C  Cloud Sync Migration
+      PR-089D  Home Remaining Migration
+      PR-089E  Calendar Remaining Migration
+      PR-089F  Utility / Misc Remaining Migration
+      PR-089Z  Final Cutover（app.html最終切替・Legacy Adapter削除・window bridge最終整理・
+               app-legacy.js削除・不要script削除・不要Import削除）
+  □ PR-089A時点の4分類（SAFE_DEAD/ORPHAN/NO_OTHER_IMPL/AMBIGUOUS）を、以下6分類へ
+    再定義する:
+      SAFE_DEAD           削除して問題ない
+      ORPHAN              未接続コード
+      ALREADY_OVERRIDDEN  window export等により既に旧実装は実行されていない
+      NEEDS_IMPORT        Moduleは存在するがimport漏れ
+      REAL_IMPLEMENTATION 実際にapp-legacy.jsのみが動作している
+      AMBIGUOUS           追加調査が必要
+  □ 各PR（089B〜F）はCategory一つのみを対象とし、Scope外のRead/Search/Import/
+    Module生成/Bridge生成は行わない（Progressive Loading / Scope Guard厳守）
+  □ Business Logic変更・Architecture変更・UI変更・仕様変更・リファクタ・改善は
+    PR-089B〜Fでは一切行わない（最小差分の物理移動のみ）
+  □ Browser VerificationはPR-089Zのみ必須。PR-089B〜FはBuild/Regression/
+    Architecture Guard/Legacy Guardのみ実施する
+  □ 本追補・4章ロードマップ表の更新のみを行い、5章以降のDependency Map/Safety Gate/
+    Rollback/9-E判定は無変更（9-E条件2のFounder個別承認要件はPR-089Zに引き継がれる）
+
+根拠: Founder判断「PR-089Aの監査結果を採用し、Business Logic変更禁止・Architecture変更禁止・
+仕様変更禁止の方針を優先してCategory単位の段階移植へ再編成する」（2026-07-04）、および
+AI_EXECUTION.md 9章（Roadmap変更・Legacy Removal判断はDecision Log候補）に基づく。
 ```
 
 ---
