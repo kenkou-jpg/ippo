@@ -1006,6 +1006,45 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   Next: PR-088 — Batch-10: Community & Admin（docs/LEGACY_REMOVAL_PLAN.md 4章参照、
   MEDIUM リスク・Supabase直接呼び出しのためsupabase.js経由への整理を要確認）。
 
+  ✓ PR-088  Batch-10: Community & Admin — docs/LEGACY_REMOVAL_PLAN.md 4章 /
+  phase4d-legacy-migration-audit.md Batch-10節（約9関数）に基づき実装。audit記載9件
+  （loadCommunityTopic/loadCVArchive/toggleArchiveReplies/loadCommunityReplies/
+  postCommunityReply/likeCommunityReply/initAdminPanel/adminSetPremium/
+  adminLoadPremiumUsers）に加え、実装前調査で発見した未文書化ヘルパー4件
+  （switchCVTab/deleteCommunityReply/updateReplyLikeCount/checkMyLikes、Community Voice
+  クラスタ内でのみ相互参照）をPR-086/087と同型の「1 feature = 1 owner」判断で合わせて
+  物理移動:
+    - `src/modules/community.js`（新設、13関数）: Community Voice一式
+    - `src/modules/admin.js`（新設、3関数 + ADMIN_USER_ID）: Admin Panel一式
+  MEDIUM リスク対応（Supabase直接呼び出し整理）: 両ファイルとも bare `supabase`/
+  `SUPABASE_URL` を services/supabase.js から直接importする形に変更（旧
+  bare識別子フォールバック依存を解消）。SUPABASE_KEYはsupabase.js側の既存設計
+  （window.SUPABASE_KEYのみexport）に合わせwindow経由を維持 / bare `supabaseUserId`
+  （app-legacy.js側var、ログイン処理が更新）はwindow.__ippoGetSupabaseUserId()経由の
+  読み取りに変更（PR-080E window.__ippoGetBowelCountと同型パターン、新設）/
+  ADMIN_USER_ID はisAdminOrPremium()（app-legacy.js残置、Batch-10対象外）も参照する
+  ためadmin.jsからimport back（fasting.js FAST_PHASE_CONFIGと同型の既存idiom）/
+  全13関数はapp-legacy.js側で該当import経由で再取得し、既存のwindow bridge
+  （`if (typeof X === "function") window.X = X;`）は無変更で機能継続 / switchCVTab・
+  deleteCommunityReplyはapp.htmlに対応するonclick/DOM要素が見当たらず実質到達不能な
+  pre-existingの状態と判明（PR-080 window.saveRecord等と同型の既存事象）、Physical
+  Moveのみが責務のため挙動は変更せずwindow非公開のまま移動 / 新規単体テスト追加なし
+  （既存のDOM操作・fetch中心の構成のためBrowser Verificationで代替、Batch-9方針を踏襲）/
+  SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js BASELINE_LINE_COUNTを
+  5,408→5,084に更新 / app-legacy.js: 5,408行→5,083行 / vitest run全件: 5,193件、
+  失敗39件は既知5ファイル（build-draft-from-ui.test.js・save-record-screen.test.js・
+  disease-analyzer.test.js・domain-event-types.test.js・event-menstrual.test.js）のみで
+  増加なし / vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・
+  チャンクサイズ超過のみで本PR無関係）/ Browser Verification: Vite dev server +
+  app.html実機でloadCommunityTopic()/initAdminPanel()がstartup時（未認証状態）で
+  例外なく実行されることを確認 / window.loadCommunityTopic等13関数すべてが既存
+  window bridge経由で到達可能なことを確認 / __ippoGetSupabaseUserId()ブリッジが
+  正しくnullを返すことを確認 / Console Errorはvite websocket接続失敗ノイズと
+  Supabase未設定環境ノイズのみで新規エラーなし。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+  Next: PR-089 — Batch-11: app.html Cleanup & Legacy Removal（docs/LEGACY_REMOVAL_PLAN.md
+  4章参照、HIGH リスク・onclick全置換・全画面UI回帰・PR-079〜088全完了後）。
+
 ---
 
 ## 完了済みPhase
