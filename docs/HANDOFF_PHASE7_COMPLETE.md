@@ -1042,8 +1042,36 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   正しくnullを返すことを確認 / Console Errorはvite websocket接続失敗ノイズと
   Supabase未設定環境ノイズのみで新規エラーなし。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-089 — Batch-11: app.html Cleanup & Legacy Removal（docs/LEGACY_REMOVAL_PLAN.md
-  4章参照、HIGH リスク・onclick全置換・全画面UI回帰・PR-079〜088全完了後）。
+
+  ✓ Main Merge（2026-07-04、Founder: kenkou-jpg承認）— PR-079〜088（Legacy Removal Batch-1〜10）
+  および長期作業ブランチ `feat/phase4d-batch1-record-input` に蓄積していたWave1/Wave2/
+  Release Readiness Program全体を、GitHub PR #363（`feat/phase4d-batch1-record-input` → `main`）
+  経由でmainへ反映した。origin/mainはPR #362（Batch-1相当）以降更新が止まっており、本PRが
+  その後の全差分を運ぶ形となった（本PR着手前調査で判明、詳細はPR #363本文参照）。
+  実施内容: ① `git merge-tree` による事前コンフリクト検証（実質コンフリクト1ファイルのみ）
+  ② PR #363をDraft化しFounder確認待ちステータスに設定 ③ Founder承認受領後、
+  `docs/ARCHITECTURE_COMPLETION_CHECKLIST.md`（Progress Dashboard 1216-1222行付近、
+  2026-06-12時点で陳腐化していた「Legacy Removal」ステータス行）のコンフリクトを
+  HANDOFF記載の現状値に合わせて解消しマージコミット作成・push
+  ④ `gh pr merge 363 --merge` でmainへマージ（merge commit: c32765c）
+  ⑤ マージ後のmain（= 現HEAD）で `npx vitest run` 再実行:
+  5,154 PASS / 39 FAIL（既知5ファイル、増加なし、PR-079〜088時点のベースラインと完全一致）
+  ⑥ `npx vite build`: PASS（既存警告のみ、新規エラーなし）。
+  `src/services/recovery.js` は両側変更ありのため自動マージされたが、コンフリクトは
+  発生しなかったことを確認済み。
+
+  PR-089着手可否判定（2026-07-04時点）:
+  `docs/LEGACY_REMOVAL_PLAN.md` 9-B章の前提条件「PR-079〜088が全てmainにマージ済み」は
+  本マージにより **充足**。ただし同文書 9-E章 条件2は、PR-089（Batch-11: app.html全onclick
+  置換・app-legacy.js削除・4件のDead Code削除）の着手にあたり、PR-079〜088のマージ承認とは
+  **別に、Founderの個別・明示的な着手承認**を要求している（HIGH リスク・全画面UI回帰・
+  AI_EXECUTION.md Mode:FULL「Founder判断が必要な変更」に該当するため）。本セッションでは
+  PR-079〜088のマージ承認のみを受領しており、PR-089着手の個別承認は未取得。
+  → **判定: PR-089は着手不可（前提条件は成立、Founderの個別承認待ち）**。
+
+  Next: Founderより PR-089（Batch-11）着手の個別承認を得たのち着手。承認取得後は
+  SG-5（app.html全onclick置換後の主要画面手動スモークテスト）を追加ゲートとして実施する
+  （docs/LEGACY_REMOVAL_PLAN.md 6章・9-B章参照）。
 
 ---
 
