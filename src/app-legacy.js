@@ -37,6 +37,9 @@ import { calcTemperaturePhases, openTempReport, showTempEducation } from './modu
 import { detectFlareups, openFlareupReport } from './modules/pro/flareup-report.js';
 import { calcFactorCorrelations, setCGRange, toggleCGFactor, getMetricValue, getMetricLabel, getMetricMax, renderComparisonChart, openCorrelationReport } from './modules/pro/correlation-report.js';
 import { calcWellnessScore } from './modules/pro/shared/pro-metric-utils.js';
+// PR-083 (Legacy Removal Batch-5): Sync Modal & Auth UI は
+// src/modules/sync-modal.js へ物理移動済み。
+import { openSyncModal, closeSyncModal, showLoginForm, toggleSyncMode, showMessage, hideMessage } from './modules/sync-modal.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -6328,15 +6331,10 @@ function formatDiseaseCheck(dc){
 // src/modules/pro/analysis/analysis-overlay.js へ物理移動済み（import参照）。
 
   // ===== DEVICE SYNC (デバイス間同期) =====
-
-function openSyncModal() {
-  document.getElementById('syncOverlay').classList.add('active');
-  renderSyncUI();
-}
-
-function closeSyncModal() {
-  document.getElementById('syncOverlay').classList.remove('active');
-}
+// PR-083 (Legacy Removal Batch-5): openSyncModal/closeSyncModal/showLoginForm/
+// toggleSyncMode/showMessage/hideMessage は src/modules/sync-modal.js へ
+// 物理移動済み（import参照）。renderSyncUI/submitSync/syncNow/logoutSync/
+// migrateDataToUserはSync本体ロジックのため本PRのScope外、app-legacy.jsに残置。
 
 document.getElementById('syncOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSyncModal();
@@ -6375,59 +6373,15 @@ async function renderSyncUI() {
     showLoginForm();
   }
 }
-
-function showLoginForm() {
-  const body = document.getElementById('syncBody');
-  body.innerHTML = `
-    <div class="sync-status">
-      <div class="sync-status-icon">🔄</div>
-      <div class="sync-status-text">データを同期する</div>
-      <div class="sync-status-sub">メールアドレスでログインすると、<br>どの端末からでも同じ記録にアクセスできます</div>
-    </div>
-    <div style="background:#FBEAF0;border-radius:10px;padding:10px 14px;margin:12px 0 4px;font-size:11px;color:#72243E;line-height:1.7;">同期データはSupabaseで暗号化管理されます。パスワードは暗号化されており、ippoスタッフも閲覧できません。</div>
-    <div id="syncMessage" class="sync-message"></div>
-    <div class="sync-form" id="syncLoginForm">
-      <div class="sync-form-title" id="syncFormTitle">ログイン</div>
-      <input type="email" class="sync-input" id="syncEmail" placeholder="メールアドレス" autocomplete="email">
-      <input type="password" class="sync-input" id="syncPassword" placeholder="パスワード（6文字以上）" autocomplete="current-password">
-      <button class="sync-form-btn" id="syncSubmitBtn" onclick="submitSync()">ログイン</button>
-      <button class="sync-form-toggle" id="syncToggleBtn" onclick="toggleSyncMode()">アカウントをお持ちでない方 → 新規登録</button>
-    </div>
-  `;
-}
+// PR-083: openSyncModal（sync-modal.js側、物理移動済み）がrenderSyncUI（本ファイル残置）
+// をbare呼び出しするための専用ブリッジ（PR-080E window.__ippoGetBowelCountと同型パターン）。
+window.renderSyncUI = renderSyncUI;
 
 var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
-
-function toggleSyncMode() {
-  syncMode = syncMode === 'login' ? 'signup' : 'login';
-  const title = document.getElementById('syncFormTitle');
-  const btn = document.getElementById('syncSubmitBtn');
-  const toggle = document.getElementById('syncToggleBtn');
-  
-  if (syncMode === 'signup') {
-    title.textContent = '新規登録';
-    btn.textContent = '登録する';
-    toggle.textContent = 'すでにアカウントをお持ちの方 → ログイン';
-  } else {
-    title.textContent = 'ログイン';
-    btn.textContent = 'ログイン';
-    toggle.textContent = 'アカウントをお持ちでない方 → 新規登録';
-  }
-  
-  hideMessage();
-}
-
-function showMessage(text, type) {
-  const msg = document.getElementById('syncMessage');
-  if (!msg) return;
-  msg.className = 'sync-message ' + type;
-  msg.textContent = text;
-}
-
-function hideMessage() {
-  const msg = document.getElementById('syncMessage');
-  if (msg) msg.className = 'sync-message';
-}
+// PR-083: toggleSyncMode（sync-modal.js側、物理移動済み）がsyncMode（本ファイル残置、
+// submitSyncが参照）を読み書きするための専用ブリッジ（同型パターン）。
+window.__ippoGetSyncMode = function () { return syncMode; };
+window.__ippoSetSyncMode = function (v) { syncMode = v; };
 
 async function submitSync() {
   const email = document.getElementById('syncEmail').value.trim();

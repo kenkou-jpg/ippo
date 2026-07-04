@@ -738,7 +738,34 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   Doctor Summary/AI Analysis/Monthly Report/Cycle Phase Report/Temperature Report/
   Flareup・Correlation Report・calcWellnessScoreの物理移動完了）。
   ★ Legacy Removal Program Batch-4（PR-082A〜G、Pro Reports）完了。
-  Next: PR-083 — Batch-5: Sync Modal & Auth UI（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
+  ✓ PR-083  Batch-5: Sync Modal & Auth UI — docs/phase4d-legacy-migration-audit.md Batch-5節（約6関数）に基づき、
+  openSyncModal/closeSyncModal/showLoginForm/toggleSyncMode/showMessage/hideMessageの6関数を
+  src/modules/sync-modal.js（新設）へ物理移動 / renderSyncUI/submitSync/syncNow/logoutSync/
+  migrateDataToUserはSync本体ロジック（Supabase認証フロー）のため本PRのScope外、app-legacy.jsに残置 /
+  移動した openSyncModal 内の bare `renderSyncUI()`呼び出しは、renderSyncUI が app-legacy.js側に
+  残置されているため `window.renderSyncUI` 専用ブリッジ（PR-080E `__ippoGetBowelCount`と同型パターン）
+  経由に変更 / toggleSyncMode が読み書きする `syncMode`（app-legacy.js側の var、submitSyncが参照）は
+  `window.__ippoGetSyncMode()`/`__ippoSetSyncMode()` 経由の読み書きに変更（同型パターン）/
+  showLoginForm内の`onclick="submitSync()"`/`onclick="toggleSyncMode()"`は既存のwindow bridge
+  （app-legacy.js末尾のEXPOSE FUNCTIONS TO GLOBAL SCOPEブロック・alphabetical typeof-listブロック）が
+  import後の識別子をそのまま参照するため無改造で解決を確認 / 新規テスト追加なし（DOM操作中心のUI関数の
+  純粋物理移動のためBrowser Verificationで代替、PR-082A〜Fと同型判断）/ app-legacy.js: 7,071行→7,024行、
+  SG-7 BASELINE_LINE_COUNTを7,025（countLines=split('\n').length、実行数+1）に更新 / vitest run全件:
+  5,171件、失敗39件は既知5ファイル（build-draft-from-ui.test.js・save-record-screen.test.js・
+  disease-analyzer.test.js・domain-event-types.test.js・event-menstrual.test.js）のみで増加なし /
+  vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで
+  本PR無関係）/ Browser Verification: Vite dev server + app.html実機で `window.openSyncModal()` →
+  未ログイン状態のためrenderSyncUI→showLoginForm()が発火しログインフォーム表示を確認、
+  `toggleSyncMode()`（#syncToggleBtnクリック）でsignup/login表示切替とsyncModeブリッジの値同期を確認、
+  空欄で送信→`showMessage()`によるエラー表示を確認、モード再トグルで`hideMessage()`によるメッセージ
+  クリアを確認、`.sync-close-btn`クリックで`closeSyncModal()`によるoverlay解除を確認。Console Errorは
+  vite websocket接続失敗ノイズと、Supabase未設定環境（VITE_SUPABASE_ANON_KEY未設定のSAFE_BOOTSTRAP_MODE）
+  によるrenderSyncUI内`supabase.auth.getSession()`のTypeError（try/catchで正しくshowLoginForm()に
+  フォールバック済み、renderSyncUI自体は本PR無変更・環境要因）のみで新規エラーなし。なお初回ロード時に
+  Service Workerの古いキャッシュにより`window.renderSyncUI`/`window.__ippoGetSyncMode`が未定義に
+  見える事象を検出したが、SW cache clear + reloadで解消する検証専用の環境要因でありPR-081と同型
+  （PR起因ではない）。Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+  Next: PR-084 — Batch-6: Settings & Data Management（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
 
 ---
 
