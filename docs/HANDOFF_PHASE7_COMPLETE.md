@@ -1059,8 +1059,45 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   改訂予定）。PR-089B〜G＋PR-089Z（旧PR-089本体）への分割を提案。Architecture/Business Logic/
   UI/仕様/データ構造の変更ゼロ。
   Decision Log: 更新不要（本PRは調査のみ。Roadmap改訂そのものはFounder確認後に別途記録）。
-  Next: Founderが `docs/PR-089A-legacy-final-cutover-audit.md` 4章の分割案を確認・承認後、
-  PR-089B（ORPHAN 9件の配線有効化）以降に着手。
+
+  ✓ Founder Decision（2026-07-04）— PR-089A監査結果を採用し、PR-089を一括削除PRとして
+  実施せずCategory単位の段階移植へ再編成する決定。新ロードマップ: PR-089A(完了)→089B
+  (Experiment)→089C(Cloud Sync)→089D(Home Remaining)→089E(Calendar Remaining)→089F
+  (Utility/Misc)→089Z(Final Cutover)→090(Exit Audit)。分類スキームをSAFE_DEAD/ORPHAN/
+  ALREADY_OVERRIDDEN/NEEDS_IMPORT/REAL_IMPLEMENTATION/AMBIGUOUSの6分類へ再定義。
+  Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-C章に記録済み（4章ロードマップ表も改訂済み）。
+
+  ✓ PR-089B  Experiment Module Migration — Batch-11分割①。app-legacy.jsの
+  「ヘルスエクスペリメント」機能一式（`_DISEASE_COMPANION_RULES` / `_bleedingToNum`(呼び出し元の
+  み・実体はCalendar/Cycle系のため残置) / `_expMetric` / `_buildExperimentCompanion` /
+  `EXPERIMENT_PRESETS` / `openExperiments` / `startExperiment` / `startCustomExperiment` /
+  `cancelExperiment` / `completeExperiment` / `_buildAIResultReport` / `showExperimentReport`）を
+  `src/modules/experiments.js`へ物理移動。PR-089A時点でORPHAN分類だった`experiments.js`の
+  既存ドラフト（`_expMetric`/`_buildExperimentCompanion`）は app-legacy.js 最新版と再照合した
+  結果、`_DISEASE_COMPANION_RULES`（全10疾患ルール）が欠落し`_expMetric`も5ケースしか
+  実装されていない（app-legacy.js側は8ケース: sleep/mood/symptoms/pain/fatigue/temp/
+  bleeding/bloating）不完全な状態と判明したため、app-legacy.js側を正として全面差し替え。
+  `_bleedingToNum`はCalendar/Cycle系（`analyzeCyclePhases`が使用、PR-089E対象）と共有のため
+  app-legacy.js側を無変更で残置し、experiments.js側には`_expMetric`が必要とする最小限の
+  変換ロジックを一時的に複製（PR-089E完了後に一本化予定、コメントで明記）。状態アクセスは
+  既存ドラフトの`window.getState()`/`window.setState()`パターンに統一（bare `state`直接変更
+  → immutable update、`store/state.js`のsetState実装(_state全置換)と整合、外部観測される
+  最終結果は同一）。`saveState()`/`cloudBackupAll()`は`window.saveState()`/
+  `window.cloudBackupAll()`に、`showAlertModal`/`showConfirmModal`は`./ui-notifications.js`
+  からのimportに変更（app-legacy.js自身の既存import文と同一パターン）。app-legacy.js側は
+  該当6関数を`./modules/experiments.js`からnamed importし、既存のwindow bridge（末尾、
+  無変更）がそのまま機能継続。main.jsの変更は不要（app-legacy.js自身がexperiments.jsを
+  importするため、main.js:52のapp-legacy.js import解決時に連鎖的にロードされる）。
+  SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js BASELINE_LINE_COUNTを
+  5,084→4,450に更新 / app-legacy.js: 5,083行→4,449行 / vitest run全件: 5,193件、
+  失敗39件は既知5ファイルのみで増加なし / vite build PASS（既知警告のみ）/
+  Architecture Guard・Legacy Guard: 11ファイル104件全PASS / Browser Verification:
+  PR-089B〜Fでは未実施（Founder方針によりPR-089Zでまとめて実施）。
+  Business Logic/Architecture/UI/仕様/データ構造の変更ゼロ（純粋な物理移動+モジュール境界
+  越え時の機械的なAPI変換のみ）。
+  Decision Log: 更新不要（10-C章の決定範囲内で実施）。
+  Next: PR-089C — Cloud Sync Migration。Experiment/Home/Calendar/Utility/Final Cutoverは
+  読み込まない。
 
 ---
 
