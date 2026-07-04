@@ -40,6 +40,14 @@ import { calcWellnessScore } from './modules/pro/shared/pro-metric-utils.js';
 // PR-083 (Legacy Removal Batch-5): Sync Modal & Auth UI は
 // src/modules/sync-modal.js へ物理移動済み。
 import { openSyncModal, closeSyncModal, showLoginForm, toggleSyncMode, showMessage, hideMessage } from './modules/sync-modal.js';
+// PR-084 (Legacy Removal Batch-6): Symptom Settings は src/modules/symptom-settings.js へ物理移動済み。
+import { openSymptomSettings, closeSymptomSettings, saveSymptomSettings, getRecentSymptoms, saveSymptomSelection, updateSymptomSettingDisplay, buildSymptomChips, applySymptomChipPriority } from './modules/symptom-settings.js';
+// PR-084: reorderRecordSections は src/modules/record-section-order.js へ物理移動済み。
+import { reorderRecordSections } from './modules/record-section-order.js';
+// PR-084: exportJSON/exportCSV/csvSafe/formatDiseaseCheck/clearData は src/modules/data-export.js へ物理移動済み。
+import { exportJSON, exportCSV, csvSafe, formatDiseaseCheck, clearData } from './modules/data-export.js';
+// PR-084: showConfirmModal/showAlertModal/showPrivacyInfo/setDailyMessage は src/modules/ui-notifications.js へ物理移動済み。
+import { showConfirmModal, showAlertModal, showPrivacyInfo, setDailyMessage } from './modules/ui-notifications.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1775,102 +1783,8 @@ var _obReminderSelected = null;
 
 
 
-function reorderRecordSections() {
-  var diseases = state.myDiseases || [];
-  if (diseases.length === 0) return;
-
-  // 疾患カテゴリに基づく優先セクションID
-  var prioritySections = [];
-
-  var hasUterine = diseases.some(function(d) {
-    return ['子宮内膜症', '子宮筋腫', '子宮腺筋症'].indexOf(d) !== -1;
-  });
-  var hasOvarian = diseases.some(function(d) {
-    return ['卵巣嚢腫', 'PCOS'].indexOf(d) !== -1;
-  });
-  var hasHormonal = diseases.some(function(d) {
-    return ['PMS/PMDD', '更年期障害', '不妊症・排卵障害'].indexOf(d) !== -1;
-  });
-  var hasPelvic = diseases.some(function(d) {
-    return ['骨盤臓器脱', '慢性骨盤痛'].indexOf(d) !== -1;
-  });
-
-  // 疾患チェックセクションを常に上位に移動
-  var diseaseQ = document.getElementById('disease-questions');
-  if (diseaseQ && diseaseQ.parentNode) {
-    var recordScreen = diseaseQ.closest('.screen') || diseaseQ.parentNode;
-    var symptomsSection = document.getElementById('rs-symptoms');
-    if (symptomsSection) {
-      var symptomsCard = symptomsSection.closest('.section-card');
-      if (symptomsCard && symptomsCard.parentNode) {
-        symptomsCard.parentNode.insertBefore(diseaseQ, symptomsCard.nextSibling);
-      }
-    }
-  }
-
-  // 更年期障害選択時：睡眠セクションにハイライトを追加
-  if (hasHormonal && diseases.indexOf('更年期障害') !== -1) {
-    var sleepSection = document.getElementById('rs-sleep-bed');
-    if (sleepSection) {
-      var sleepCard = sleepSection.closest('.section-card');
-      if (sleepCard) {
-        sleepCard.style.borderLeft = '3px solid var(--rose)';
-        var hint = document.createElement('div');
-        hint.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint.textContent = '💡 更年期障害では睡眠の質の記録が重要です';
-        sleepCard.appendChild(hint);
-      }
-    }
-  }
-
-  // 子宮系疾患選択時：痛み記録にハイライト
-  if (hasUterine) {
-    var painSection = document.querySelector('[data-section="pain"]') || document.getElementById('rs-pain-level');
-    if (painSection) {
-      var painCard = painSection.closest('.section-card');
-      if (painCard) {
-        painCard.style.borderLeft = '3px solid var(--rose)';
-        var hint2 = document.createElement('div');
-        hint2.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint2.textContent = '💡 痛みの記録が症状の変化の把握に役立ちます';
-        painCard.appendChild(hint2);
-      }
-    }
-  }
-
-  // PCOS選択時：生活ファクターにハイライト
-  if (hasOvarian && diseases.indexOf('PCOS') !== -1) {
-    var factorsSection = document.getElementById('rs-factors');
-    if (factorsSection) {
-      var factorsCard = factorsSection.closest('.section-card');
-      if (factorsCard) {
-        factorsCard.style.borderLeft = '3px solid var(--rose)';
-        var hint3 = document.createElement('div');
-        hint3.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint3.textContent = '💡 食事・運動の記録がPCOS管理に重要です';
-        factorsCard.appendChild(hint3);
-      }
-    }
-  }
-
-  // 骨盤系選択時：排便にハイライト
-  if (hasPelvic) {
-    var bowelSection = document.getElementById('rs-bowel');
-    if (bowelSection) {
-      var bowelCard = bowelSection.closest('.section-card');
-      if (bowelCard) {
-        bowelCard.style.borderLeft = '3px solid var(--rose)';
-        var hint4 = document.createElement('div');
-        hint4.style.cssText = 'font-size:10px;color:var(--rose);margin-top:6px;padding:4px 8px;background:var(--rose-pale);border-radius:8px;display:inline-block;';
-        hint4.textContent = '💡 骨盤臓器脱では排便の記録が参考になります';
-        bowelCard.appendChild(hint4);
-      }
-    }
-  }
-
-  // 疾患チェックセクションを自動表示
-  updateDiseaseQuestions();
-}
+// PR-084 (Legacy Removal Batch-6): reorderRecordSections は
+// src/modules/record-section-order.js へ物理移動済み（import参照）。
 
 // Phase E (Step 3): home-renderer.js へ移植済み。
 // window.showMain は main.js ロード後にモジュール版で上書きされる。
@@ -1951,6 +1865,11 @@ function updateStats() {
   var apEl = document.getElementById('avg-pain-score');
   if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
 }
+// PR-084: clearData（data-export.js側、物理移動済み）がupdateStats（本ファイルの
+// ローカル実装、home-renderer.js版とは別、PR-080C重複整理と同型の「統合しない」
+// 判断を踏襲）をbare呼び出しするための専用ブリッジ（PR-081
+// window.__ippoLegacyUpdateSettingsHero と同型パターン）。
+window.__ippoLegacyUpdateStats = updateStats;
 
 // 今月の無痛み日数を計算して表示
 function calcPainFreeDays() {
@@ -2014,47 +1933,8 @@ function updateHistory(){
   // 最近の記録セクション削除済み
 }
 
-// ===== 疾患別症状チップ優先表示 =====
-function buildSymptomChips() {
-  var prioritized = [];
-  var diseases = state.myDiseases || [];
-
-  // 疾患別症状を優先的に追加
-  diseases.forEach(function(d) {
-    var cfg = DISEASE_CONFIG[d];
-    if (!cfg || !cfg.specificSymptoms) return;
-    cfg.specificSymptoms.forEach(function(s) {
-      if (prioritized.indexOf(s) === -1) prioritized.push(s);
-    });
-  });
-
-  // ユーザー設定の症状を次に追加
-  var userSymptoms = state.selectedSymptoms || [];
-  userSymptoms.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  // デフォルト症状をフォールバックとして追加
-  var defaults = ['下腹部痛','腰痛','頭痛','骨盤周りの痛み','だるさ','不正出血','吐き気','むくみ','気分の落ち込み','イライラ'];
-  defaults.forEach(function(s) {
-    if (prioritized.indexOf(s) === -1) prioritized.push(s);
-  });
-
-  return prioritized;
-}
-
-function applySymptomChipPriority() {
-  var prioritized = buildSymptomChips();
-  var container = document.getElementById('rs-symptoms');
-  if (!container) return;
-  // 疾患優先症状に一致するチップを先頭に移動
-  prioritized.forEach(function(sym) {
-    var chip = Array.prototype.find.call(container.querySelectorAll('.chip'), function(c) {
-      return c.textContent === sym;
-    });
-    if (chip) container.insertBefore(chip, container.firstChild);
-  });
-}
+// PR-084 (Legacy Removal Batch-6): buildSymptomChips/applySymptomChipPriority は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 function updateUnlock(){
   var days = state.totalDays || 0;
@@ -2319,6 +2199,15 @@ function showRecoveryGuide(){if(typeof window.showRecoveryGuide==='function')win
 
 // ===== FASTING TIMER =====
 let fastInterval = null;
+// PR-084: clearData（data-export.js側、物理移動済み）が fastInterval（本ファイル残置、
+// Fasting Timer機能のタイマーID、Batch-7未移植）をリセットするための専用ブリッジ
+// （PR-080E window.__ippoGetBowelCount と同型パターン）。
+window.__ippoStopFastInterval = function () {
+  if (fastInterval !== null) {
+    clearInterval(fastInterval);
+    fastInterval = null;
+  }
+};
 
 function setFastGoal(h, el) {
   state.fastGoal = h;
@@ -3291,45 +3180,9 @@ function setRating(n) {
   });
 }
 
-  // ===== 症状設定 =====
-var ALL_SYMPTOMS = ['頭痛','腰痛','肩こり','むくみ','冷え','便秘','下痢','肌荒れ','不眠','眠気','イライラ','不安感','食欲増加','食欲不振','胸の張り','下腹部痛','めまい','吐き気','倦怠感','関節痛'];
-
-function openSymptomSettings(){
-  var saved = state.mySymptoms || [];
-  var container = document.getElementById('symptomSettingsChips');
-  container.innerHTML = '';
-  for(var i = 0; i < ALL_SYMPTOMS.length; i++){
-    var s = ALL_SYMPTOMS[i];
-    var selected = saved.indexOf(s) !== -1;
-    var chip = document.createElement('span');
-    chip.className = 'chip' + (selected ? ' selected' : '');
-    chip.setAttribute('data-val', s);
-    chip.textContent = s;
-    chip.onclick = function(){ this.classList.toggle('selected'); };
-    container.appendChild(chip);
-  }
-  var overlay = document.getElementById('symptomSettingsOverlay');
-  overlay.style.display = 'flex';
-}
-
-function closeSymptomSettings(){
-  document.getElementById('symptomSettingsOverlay').style.display = 'none';
-}
-
-function saveSymptomSettings(){
-  var selected = [];
-  document.querySelectorAll('#symptomSettingsChips .chip.selected').forEach(function(c){
-    selected.push(c.getAttribute('data-val'));
-  });
-  state.mySymptoms = selected;
-  saveState();
-  var display = document.getElementById('symptom-setting-display');
-  if(display){
-    display.textContent = selected.length ? selected.join('・') : '設定する';
-  }
-  closeSymptomSettings();
-  updateRecordSymptoms();
-}
+// PR-084 (Legacy Removal Batch-6): 症状設定（ALL_SYMPTOMS/openSymptomSettings/
+// closeSymptomSettings/saveSymptomSettings）は src/modules/symptom-settings.js
+// へ物理移動済み（import参照）。
 
 // ===== ホーム画面サマリー =====
 function updateHomeSummary(){
@@ -4262,16 +4115,8 @@ function getTimeAgo(dateStr){
 
 
 function updateDiseaseSettingDisplay(){if(typeof window.updateDiseaseSettingDisplay==='function')window.updateDiseaseSettingDisplay();}
-function updateSymptomSettingDisplay(){
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('updateSymptomSettingDisplay', updateSymptomSettingDisplay);
-    return;
-  }
-  var display = document.getElementById('symptom-setting-display');
-  if(!display) return;
-  var saved = state.mySymptoms || [];
-  display.textContent = saved.length ? saved.join('・') : '設定する';
-}
+// PR-084 (Legacy Removal Batch-6): updateSymptomSettingDisplay は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 var SYMPTOM_CATEGORIES = {
   '頭痛':'body','腰痛':'body','下腹部痛':'body','むくみ':'body',
@@ -4286,31 +4131,8 @@ var SYMPTOM_CATEGORIES = {
 };
 var _sympTabCurrent = 'all';
 
-
-function getRecentSymptoms() {
-  try {
-    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
-    var cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-    return recent
-      .filter(function(s){ return s.timestamp > cutoff; })
-      .sort(function(a,b){ return b.count - a.count; })
-      .slice(0, 3)
-      .map(function(s){ return s.name; });
-  } catch(e){ return []; }
-}
-
-function saveSymptomSelection(symptoms) {
-  try {
-    var recent = JSON.parse(localStorage.getItem('ippo_recent_symptoms') || '[]');
-    symptoms.forEach(function(name){
-      var existing = null;
-      for(var i=0;i<recent.length;i++){ if(recent[i].name===name){ existing=recent[i]; break; } }
-      if(existing){ existing.count++; existing.timestamp = Date.now(); }
-      else { recent.push({ name: name, count: 1, timestamp: Date.now() }); }
-    });
-    localStorage.setItem('ippo_recent_symptoms', JSON.stringify(recent));
-  } catch(e){}
-}
+// PR-084 (Legacy Removal Batch-6): getRecentSymptoms/saveSymptomSelection は
+// src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
 function buildEffectiveLayer1() {
   var diseases = state.myDiseases || [];
@@ -4456,52 +4278,10 @@ function submitFeedback() {
   if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
 }
 
-function clearData() {
-  // P0-FIX-10: 意図的なリセットフラグをセット。
-  // cloudBackupAll の FIX-9 Guard が空 records の同期をブロックするため、
-  // ユーザー明示リセット時のみ Guard を通過させるためのフラグ。
-  // フラグは cloudBackupAll の Guard 内で消費される（delete）。
-  window.__ippoExplicitDataReset = true;
+// PR-084 (Legacy Removal Batch-6): clearData は src/modules/data-export.js へ、
+// setDailyMessage は src/modules/ui-notifications.js へ、それぞれ物理移動済み
+// （import参照）。
 
-  state.records    = [];
-  state.streak     = 0;
-  state.totalDays  = 0;
-  // バグ20: リペアタイマーも確実にリセット
-  state.fastingActive = false;
-  state.fastingStart  = null;
-  if (fastInterval !== null) {
-    clearInterval(fastInterval);
-    fastInterval = null;
-  }
-  // タイマーUIを初期状態に戻す
-  const timerEl  = document.getElementById('fast-timer');
-  const statusEl = document.getElementById('fast-status');
-  const startBtn = document.getElementById('fast-start-btn');
-  const stopBtn  = document.getElementById('fast-stop-btn');
-  if (timerEl)  timerEl.textContent  = '00:00:00';
-  if (statusEl) statusEl.textContent = 'ファスティングを始めましょう';
-  if (startBtn) startBtn.style.display = 'block';
-  if (stopBtn)  stopBtn.style.display  = 'none';
-  saveState();
-  updateStats();
-  updateUnlock();
-}
-
-// ===== DAILY MESSAGES =====
-const messages = [
-  'からだの小さな変化に\n気づくことが、最初の一歩。',
-  '今日の記録が、\n明日の自分を助けてくれる。',
-  '無理なく、ていねいに。\nあなたのペースでいい。',
-  '子宮は第二の心。\nからだの声に耳を傾けて。',
-  '感情もからだの一部。\n正直に記録することが癒しになる。',
-];
-
-function setDailyMessage() {
-  const idx = new Date().getDate() % messages.length;
-  const el = document.getElementById('today-message');
-  // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
-  if (el) el.innerHTML = messages[idx].replaceAll('\n', '<br>');
-}
 // ===== CALENDAR =====
 var calYear, calMonth;
 (function(){ var now = new Date(); calYear = now.getFullYear(); calMonth = now.getMonth(); })();
@@ -4904,45 +4684,8 @@ function createMealDonut(meals, fasting, fastingGoal){
   return html;
 }
 
-// ===== 独自モーダル（alert/confirm代替） =====
-function showConfirmModal(message, onConfirm, onCancel) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
-  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:17px;color:var(--ink);margin-bottom:16px;line-height:1.6;">' + message + '</div>'
-    + '<div style="display:flex;gap:10px;">'
-    + '<button id="_confirm_cancel" style="flex:1;padding:13px;border-radius:13px;border:1.5px solid #e8ddd8;background:var(--white);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:var(--ink-mid);cursor:pointer;">キャンセル</button>'
-    + '<button id="_confirm_ok" style="flex:1;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:13px;color:white;font-weight:500;cursor:pointer;">確認</button>'
-    + '</div>';
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  box.querySelector('#_confirm_ok').onclick = function() { overlay.remove(); if (onConfirm) onConfirm(); };
-  box.querySelector('#_confirm_cancel').onclick = function() { overlay.remove(); if (onCancel) onCancel(); };
-}
-
-function showPrivacyInfo() {
-  showAlertModal(
-    'あなたの記録について\n\n'
-    + '・症状・体調の記録はあなただけが見られます\n'
-    + '・広告配信への利用は行いません\n'
-    + '・第三者へのデータ販売は行いません\n'
-    + '・データはいつでも設定から削除できます\n'
-    + '・クラウド同期はSupabaseの暗号化通信で行われます'
-  );
-}
-
-function showAlertModal(message, onClose) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(44,36,32,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);';
-  var box = document.createElement('div');
-  box.style.cssText = 'background:var(--cream);border-radius:22px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 12px 40px rgba(44,36,32,0.15);';
-  box.innerHTML = '<div style="font-family:\'Shippori Mincho\',serif;font-size:16px;color:var(--ink);margin-bottom:20px;line-height:1.7;">' + message + '</div>'
-    + '<button style="width:100%;padding:13px;border-radius:13px;border:none;background:var(--rose);font-family:\'Noto Sans JP\',sans-serif;font-size:14px;color:white;font-weight:500;cursor:pointer;">閉じる</button>';
-  overlay.appendChild(box);
-  document.body.appendChild(overlay);
-  box.querySelector('button').onclick = function() { overlay.remove(); if (onClose) onClose(); };
-}
+// PR-084 (Legacy Removal Batch-6): showConfirmModal/showPrivacyInfo/showAlertModal は
+// src/modules/ui-notifications.js へ物理移動済み（import参照）。
 
 // ===== ファスティング機能のオプション化 =====
 function toggleFastingFeature() {
@@ -6199,126 +5942,8 @@ document.getElementById('doctorSummaryOverlay').addEventListener('click', functi
   overlay.addEventListener('click', function(e){ if(e.target===overlay) overlay.remove(); }, { once: true });
 }
 
-function exportJSON(){
-  var d = JSON.stringify(state, null, 2);
-  var b = new Blob([d], {type:'application/json'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(b);
-  a.download = 'ippo-backup-' + new Date().toISOString().slice(0,10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-}
-
-// ===== CSVエクスポート =====
-function exportCSV(){
-  if(!state.records || state.records.length === 0){
-    showAlertModal('エクスポートする記録がありません。');
-    return;
-  }
-
-  // ヘッダー定義
-  var headers = [
-    '日付',
-    '基礎体温',
-    'エネルギー',
-    '睡眠_就寝',
-    '睡眠_起床',
-    '睡眠時間',
-    '睡眠の質',
-    'ウェルネススコア',
-    'SMIスコア',
-    '生理周期',
-    '痛みレベル',
-    '痛み部位',
-    '痛みタイプ',
-    '症状',
-    '服薬',
-    '経血_塊',
-    '経血_色',
-    'お通じ',
-    '生活ファクター',
-    '食事メモ',
-    '食事回数',
-    '最初の食事',
-    '最後の食事',
-    'ファスティング時間',
-    '疾患チェック',
-    '疾患',
-    'メモ'
-  ];
-
-  var rows = [headers.join(',')];
-
-  // 日付順にソート
-  var sorted = state.records.slice().sort(function(a,b){
-    return new Date(a.date) - new Date(b.date);
-  });
-
-  sorted.forEach(function(r){
-    var row = [
-      r.date || '',
-      r.temperature || '',
-      r.energy || '',
-      r.sleepBed || '',
-      r.sleepWake || '',
-      r.sleepHours || '',
-      r.sleepQuality || '',
-      r.wellnessScore !== undefined ? r.wellnessScore : '',
-      r.smiScore !== undefined ? r.smiScore : '',
-      r.menstrualCycle || '',
-      r.painLevel || '',
-      csvSafe(Array.isArray(r.painLocation) ? r.painLocation.join('・') : (r.painLocation || '')),
-      csvSafe(Array.isArray(r.painType) ? r.painType.join('・') : (r.painType || '')),
-      csvSafe((r.symptoms || []).join('・')),
-      csvSafe((r.medication || []).join('・')),
-      csvSafe((r.bloodClot || []).join('・')),
-      csvSafe((r.bloodColor || []).join('・')),
-      r.bowel || '',
-      csvSafe((r.factors || []).join('・')),
-      csvSafe(r.mealFree || ''),
-      r.mealCount || '',
-      r.firstTime || '',
-      r.lastTime || '',
-      r.fastingHours || '',
-      csvSafe(formatDiseaseCheck(r.diseaseCheck)),
-      csvSafe((r.diseases || []).join('・')),
-      csvSafe(r.note || '')
-    ];
-    rows.push(row.join(','));
-  });
-
-  var csvContent = '\uFEFF' + rows.join('\n'); // BOM付きUTF-8
-  var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  var today = new Date();
-  a.download = 'ippo-records-' + today.getFullYear() + (today.getMonth()+1+'').padStart(2,'0') + (today.getDate()+'').padStart(2,'0') + '.csv';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-function csvSafe(str){
-  if(!str) return '';
-  str = String(str);
-  if(str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1){
-    return '"' + str.replace(/"/g, '""') + '"';
-  }
-  return str;
-}
-
-function formatDiseaseCheck(dc){
-  if(!dc || typeof dc !== 'object') return '';
-  var parts = [];
-  Object.keys(dc).forEach(function(key){
-    parts.push(key + ':' + dc[key]);
-  });
-  return parts.join('／');
-}
-
+// PR-084 (Legacy Removal Batch-6): exportJSON/exportCSV/csvSafe/formatDiseaseCheck は
+// src/modules/data-export.js へ物理移動済み（import参照）。
 
   // ===== MONTHLY REPORT (月次レポート) =====
 // PR-082C (Legacy Removal Batch-4 分割③): openMonthlyReport/closeMonthlyReport/

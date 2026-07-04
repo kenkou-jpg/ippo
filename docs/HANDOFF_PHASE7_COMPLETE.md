@@ -765,7 +765,61 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   Service Workerの古いキャッシュにより`window.renderSyncUI`/`window.__ippoGetSyncMode`が未定義に
   見える事象を検出したが、SW cache clear + reloadで解消する検証専用の環境要因でありPR-081と同型
   （PR起因ではない）。Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-084 — Batch-6: Settings & Data Management（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
+  ✓ PR-084  Batch-6: Settings & Data Management — docs/phase4d-legacy-migration-audit.md Batch-6節（約18関数）に基づき、
+  以下4ファイルへ物理移動 / 移植先はaudit文書の想定（settings-panel.js/disease-settings.js拡充）から
+  実装前調査の結果修正（後述）:
+    - `src/modules/symptom-settings.js`（新設）: openSymptomSettings/closeSymptomSettings/
+      saveSymptomSettings/getRecentSymptoms/saveSymptomSelection/updateSymptomSettingDisplay/
+      buildSymptomChips/applySymptomChipPriority + ALL_SYMPTOMS（症状設定は既存settings-panel.js
+      と無関係の別UI体系のため、audit想定の「settings-panel.js拡充」ではなく専用新設ファイルへ変更
+      — doctor-summary.js「1 feature = 1 screen owner」設計ルールを踏襲）
+    - `src/modules/record-section-order.js`（新設）: reorderRecordSections（audit想定の
+      「disease-settings.js拡充」から変更。理由: disease-settings.jsは実装前調査でsrc/内のどこからも
+      importされていない orphaned module と判明——app.html/settings.htmlの
+      `onclick="openDiseaseSettings()"`が現在window.openDiseaseSettings未定義で機能していない
+      既存バグ（本PR起因ではない、別タスクで追跡）。もしreorderRecordSectionsをdisease-settings.js
+      へ追加するとapp-legacy.jsからのimportが必要になり、副作用としてdisease-settings.js全体が
+      初めてバンドルされ`window.openDiseaseSettings`等が意図せず「直る」——Business Logic変更なし
+      原則に反するため回避し独立ファイルへ分離)
+    - `src/modules/data-export.js`（新設）: exportJSON/exportCSV/csvSafe/formatDiseaseCheck/clearData
+    - `src/modules/ui-notifications.js`（拡充）: showConfirmModal/showAlertModal/showPrivacyInfo/
+      setDailyMessage
+  bare `state`→`window.state`（_ippoStateHooks経由、全ファイル共通）/ saveSymptomSettings内の
+  `saveState()`/`updateRecordSymptoms()`は既存window bridge idiom経由の呼び出しに変更 / clearData内の
+  bare `updateStats()`はhome-renderer.js側の別実装と衝突するため（PR-080C重複整理と同型の
+  「統合しない」判断）専用ブリッジ`window.__ippoLegacyUpdateStats`を新設（PR-081
+  `__ippoLegacyUpdateSettingsHero`と同型）/ clearData内のbare `fastInterval`操作（Batch-7未移植の
+  Fasting Timer機能変数）は`window.__ippoStopFastInterval()`専用ブリッジ経由に変更（PR-080E
+  `__ippoGetBowelCount`と同型）/ openSyncModal→renderSyncUIと同型で、reorderRecordSections内の
+  bare `updateDiseaseQuestions()`はapp-legacy.js側ローカルラッパーと同一のguarded window呼び出しに
+  変更（disease-settings.js未import状態のため現状も実質no-op、挙動変更なし）/
+  buildSymptomChips内の bare `DISEASE_CONFIG[d]`（未import、dead code）はPR-082A方式で温存 /
+  【実装前調査での追加発見】openSymptomSettings/closeSymptomSettings/saveSymptomSettings/
+  updateSymptomSettingDisplayが操作するDOM（symptom-setting-display等）は現行app.html/settings.htmlに
+  存在せず、呼び出し元onclickも見つからない（openSymptomSettings系4関数は現行UIから到達不能。
+  buildSymptomChips/applySymptomChipPriorityと同型のdead code、本PR起因ではなく既存状態を保持）/
+  disease-settings.jsが未importで実質死んでいる件（`気になる疾患を選択`ボタンが本番で無反応）は
+  spawn_taskで別タスク化済み（本PRのScope外）/ 新規テスト追加なし（DOM操作中心のUI関数の純粋物理移動、
+  PR-082A〜Fと同型判断、Browser Verificationで代替）/ app-legacy.js: 7,025行→6,649行（wc -l）、
+  SG-7 BASELINE_LINE_COUNTを6,650（countLines=split('\n').length）に更新 / vitest run全件: 5,171件、
+  失敗39件は既知5ファイル（build-draft-from-ui.test.js・save-record-screen.test.js・
+  disease-analyzer.test.js・domain-event-types.test.js・event-menstrual.test.js）のみで増加なし /
+  vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで
+  本PR無関係）/ Browser Verification: Vite dev server + app.html実機（SW cache clear必須、PR-081/083と
+  同型の既知環境要因）で以下を確認 — `window.openSymptomSettings()`→症状チップ20件描画→2件選択→
+  `saveSymptomSettings()`→`window.state.mySymptoms`に正しく反映・overlay解除を確認（到達経路は
+  window直接呼び出しのみ、上記の通り現行UIからは到達不能）/ 設定画面「記録をCSVで書き出す」行の
+  実クリックで`exportCSV()`が正しいファイル名・BOM付きUTF-8（先頭バイト239,187,191を確認）でBlobを
+  生成しa.click()を実行することを確認 / 「データをリセット」行の実クリック→確認モーダル→確認ボタンで
+  `clearData()`が発火しrecords/streak/totalDaysが空になり2.5秒後も復元されないことを確認（手動で
+  window.state.recordsを直接上書きする形の検証手順ではsetState()フック外の書き込みにより一時的に
+  復元されて見える現象を確認したが、実際のUIクリック起点のフローでは問題なし、本PR起因ではない
+  テスト手法上のアーティファクトと判断）/ `showConfirmModal`→`showPrivacyInfo`→`showAlertModal`の
+  連鎖呼び出しを確認 / `reorderRecordSections()`はstate.myDiseases設定時・DOM未マウント時でも
+  エラーなく実行（既存のguard節により安全にno-op）/ Console Errorはvite websocket接続失敗ノイズと
+  Supabase未設定環境ノイズのみで新規エラーなし。Decision Log: 更新不要（Architecture/Roadmap/Business/
+  Founder Strategy変更なし）。
+  Next: PR-085 — Batch-7: Meal Tracker & Fasting（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
 
 ---
 

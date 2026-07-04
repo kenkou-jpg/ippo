@@ -14,14 +14,14 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-083時点のベースライン（Batch-5 — Sync Modal & Auth UIの物理移動後の実測値）。
-// PR-082G(Batch-4 Exit Audit)時点は7,071行、
+// PR-084時点のベースライン（Batch-6 — Settings & Data Managementの物理移動後の実測値）。
+// PR-083時点は7,025行、PR-082G(Batch-4 Exit Audit)時点は7,071行、
 // PR-082E時点は7,664行、PR-082D時点は8,186行、PR-082C時点は8,441行、
 // PR-082B時点は8,806行、PR-082A時点は8,977行、PR-081時点は9,569行、
 // PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
 // PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 7025;
+const BASELINE_LINE_COUNT = 6650;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {
