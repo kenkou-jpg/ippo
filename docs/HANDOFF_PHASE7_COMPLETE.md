@@ -893,7 +893,81 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   （`__ippoStopFastInterval`/`__ippoLegacySaveAndSync`ブリッジ経由の呼び出しを含む）を確認 /
   Console Errorはvite websocket接続失敗ノイズとSupabase未設定環境ノイズのみで新規エラーなし。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-086 — Batch-8: Home Insight & Cycle UI（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
+
+  ✓ PR-086  Batch-8: Home Insight & Cycle UI — docs/LEGACY_REMOVAL_PLAN.md 4章 /
+  phase4d-legacy-migration-audit.md Batch-8節（約12関数）に基づき実装。実装前調査の結果、
+  audit記載の12関数のうち getDailyHint / getDiseaseMorningQuestion の2件はPR-079
+  （Batch-1）で既に record-input.js へ物理移動済み（app-legacy.js側は
+  `const getDailyHint = RecordInput.getDailyHint;` 等のaliasのみ残置）と判明したため、
+  本PRの実対象は残り10関数
+  （renderInsightDiscoveries/_updateInsMainCard/switchInsTab/updateFoodBodyCorrelation/
+  updateCycleSymptomCorrelation/buildComparisonComment/isPeriodExpected/getPhaseForDate/
+  updateTodayMessage/updateDailyHintCard）+ 未文書化ヘルパー2件
+  （buildDayComparison/buildWeekComparison、buildComparisonCommentからのみ呼ばれる専用
+  ヘルパーのためクラスタごと同伴移動、PR-082分割クラスタと同型判断）:
+    - `src/modules/cycle-utils.js`（新設）: getPhaseForDate/isPeriodExpected/
+      buildComparisonComment/buildDayComparison/buildWeekComparison
+    - `src/modules/insights-tab-panel.js`（新設）: switchInsTab/renderInsightDiscoveries/
+      _updateInsMainCard/updateFoodBodyCorrelation/updateCycleSymptomCorrelation
+      （audit想定の「insights-dynamic-renderer.js拡充」から変更。理由: 実装前調査で
+      insights-dynamic-renderer.jsはsignal→resolver→templateパイプライン・comment
+      stabilization等の設計原則を持つ別世代の独立した動的インサイトレンダラーと判明し、
+      本PRが扱う旧5タブ切り替え体系（ins-pane-*/ins-tab-btn-*/discoveries-cards）とは
+      責務・DOM体系が異なるためsymptom-settings.js/disease-settings.js分離＝
+      「1 feature = 1 owner」判断を踏襲し専用新設ファイルへ）
+    - `src/modules/home-renderer.js`（拡充）: updateTodayMessage/updateDailyHintCard
+  bare `state`→`window.state`（既存idiomと同型）/ raw `isPremium`
+  （updateFoodBodyCorrelation/updateCycleSymptomCorrelationが参照）はapp-legacy.js側に
+  新設した専用ブリッジ `window.__ippoGetIsPremium()` 経由（isAdminOrPremium()は管理者
+  バイパスを含み意味が異なるため使用せず、PR-080E __ippoGetBowelCountと同型の新規ブリッジ）/
+  switchInsTab内のrenderMonthlySummaryText/renderComparisonChart/renderPhaseMap/
+  renderTimeline（いずれもBatch-8対象外・app-legacy.js等に残置）はwindow.*経由の
+  guarded呼び出しに変更（モジュール境界を越えるため、既存挙動は不変）/
+  updateTodayMessage内のgetCurrentCyclePhase（app-legacy.js残置、多数の他関数が使用中の
+  ため移動不可）はrecovery-journey.js/onboarding-runtime.jsと同型のwindow.getCurrentCyclePhase
+  guarded呼び出しに変更。
+  【実装前調査での重要な発見・3件】
+  1) `updateCycleSymptomCorrelation`内の`displayPhases[cycle]`は、app-legacy.js含め
+     リポジトリ全体のどこにも定義が存在しない未解決識別子（ReferenceErrorを起こす
+     潜在バグ）と判明。ただし対象コンテナ`#cycle-symptom-correlation`が現行app.htmlに
+     存在せず関数冒頭で必ず早期returnするため到達不能（pre-existing dead code、
+     本PR起因ではない）。挙動を変えないためbareのまま温存し修正せず。
+  2) `switchInsTab`/`renderInsightDiscoveries`/`updateFoodBodyCorrelation`/
+     `updateCycleSymptomCorrelation`が対象とするDOM（`ins-pane-*`/`ins-tab-btn-*`/
+     `ins-main-insight-*`/`discoveries-cards`/`food-body-correlation`/
+     `cycle-symptom-correlation`）は現行app.htmlに一切存在せず、旧5タブ切り替え体系
+     全体が現行UIから到達不能と確認（insights-dynamic-renderer.js/
+     insights-clinical-summary.js等の新世代UIに置き換わっている）。ファイル分離判断
+     （上記）の直接的根拠。
+  3) `updateTodayMessage`含む7関数（buildHomeWeekRow/updateHomeInsightCard/
+     updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/
+     updateHomePhaseBanner/updateTodayMessage）は、`home-next-shell.js`の
+     `initHomeNext()`がデフォルト有効（`isHomeNextEnabled()`は明示的に無効化
+     されない限りtrueを返す設計、ファイル冒頭コメント「フラグOFFの場合は既存homeに
+     影響しない」は実装と不一致の記述）でありapp起動時に無条件で`window.X = noOp`
+     上書きするため、通常起動では常にno-op（pre-existing、Batch-8対象外・
+     home-next側の設計判断）。物理移動後の実装自体はmodule importを直接介した
+     Browser Verificationで正しく動作することを確認済み。
+  新規テスト追加なし（DOM操作中心のUI関数の純粋物理移動、PR-082A〜PR-085と同型判断、
+  Browser Verificationで代替）/ SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js
+  BASELINE_LINE_COUNTを6,242→5,611に更新 / app-legacy.js: 6,242行→5,611行 / vitest run全件:
+  5,171件、失敗39件は既知5ファイル（build-draft-from-ui.test.js・save-record-screen.test.js・
+  disease-analyzer.test.js・domain-event-types.test.js・event-menstrual.test.js）のみで増加なし
+  / vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過の
+  みで本PR無関係）/ Browser Verification: Vite dev server + app.html実機（SW cache clear必須、
+  PR-081/083/084/085と同型の既知環境要因）で以下を確認 — getPhaseForDate/isPeriodExpected/
+  buildComparisonCommentを実データで実行し「卵胞期」判定・比較コメント生成が正しいことを確認 /
+  home-renderer.js経由のdynamic importでupdateTodayMessageを直接呼び出し
+  （home-next no-op上書きを回避）、streak表示テキストが正しく算出されることを確認 /
+  updateDailyHintCardはno-op対象外のためwindow経由の直接呼び出しでヒントカードHTML生成を確認 /
+  switchInsTab('recommended')実行でrenderInsightDiscoveries→_updateInsMainCardの連鎖が
+  正しく動作しインサイト文言・タブ表示切替を確認 / updateFoodBodyCorrelationで
+  `ippo:premium-updated`イベント経由のisPremium切替に応じロック/アンロック表示が
+  正しく切り替わることを確認（`__ippoGetIsPremium()`ブリッジの動作確認を兼ねる）/
+  Console Errorはvite websocket接続失敗ノイズとSupabase未設定環境ノイズのみで新規エラーなし。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+  Next: PR-087 — Batch-9: Utility & Misc（純粋関数）（docs/LEGACY_REMOVAL_PLAN.md 4章参照、
+  依存ゼロのため即時着手可）。
 
 ---
 
