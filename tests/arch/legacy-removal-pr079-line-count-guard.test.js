@@ -14,7 +14,8 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-089D時点のベースライン（Batch-11分割③ — Home Remaining Migrationの物理移動後の実測値）。
+// PR-089F-1時点のベースライン（Batch-11分割⑥-1 — Record Edit Cluster移植後の実測値）。
+// PR-089E時点は3,760行（調査のみ・変更なし）、PR-089D時点は3,760行、
 // PR-089C時点は4,252行、PR-089B時点は4,450行、PR-088時点は5,084行、PR-087時点は5,408行、
 // PR-086時点は5,611行、PR-085時点は6,242行、PR-084時点は6,650行、PR-083時点は7,025行、
 // PR-082G(Batch-4 Exit Audit)時点は7,071行、PR-082E時点は7,664行、PR-082D時点は8,186行、
@@ -22,7 +23,7 @@ const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf
 // PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
 // PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 3760;
+const BASELINE_LINE_COUNT = 3507;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {
