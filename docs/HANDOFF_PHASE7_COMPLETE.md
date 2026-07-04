@@ -1042,8 +1042,25 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   正しくnullを返すことを確認 / Console Errorはvite websocket接続失敗ノイズと
   Supabase未設定環境ノイズのみで新規エラーなし。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-089 — Batch-11: app.html Cleanup & Legacy Removal（docs/LEGACY_REMOVAL_PLAN.md
-  4章参照、HIGH リスク・onclick全置換・全画面UI回帰・PR-079〜088全完了後）。
+
+  ✓ PR-089A  Legacy Final Cutover 事前監査（2026-07-04、Founder個別承認によりPR-089着手）—
+  `docs/PR-089A-legacy-final-cutover-audit.md` 新設。コード変更ゼロ、調査のみ。
+  `src/app-legacy.js`（実測5,083行）の残存トップレベル関数101件を機械的に分類:
+  A. SAFE_DEAD 24件（Wave2モジュール側がmain.jsで後読みされwindowを上書き済み・削除候補）/
+  B. ORPHAN 9件（`experiments.js`/`cycle-engine.js`/`pain-scale.js`等、Wave2ファイルは存在するが
+  main.jsから未import・app-legacy.js側が実質稼働中）/ C. NO_OTHER_IMPL 65件（Wave2側に同名実装
+  なし、うち3件は既存Dead Code確定分、実質62件が未移植）/ D. AMBIGUOUS 3件（`mergeRecords`/
+  `getGreetingText`/`openDayDetail`、個別検証要）。`docs/LEGACY_REMOVAL_PLAN.md`が前提としていた
+  「Batch-11=shim約20件+確定DeadCode4件の削除のみ」は成立せず、Experiment機能一式・Cloud Sync
+  本体（`cloudBackupAll`/`cloudRestore`は既にsupabase.js側が勝っているが`renderSyncUI`/
+  `submitSync`/`migrateDataToUser`/`syncNow`/`logoutSync`等は未移植）・Record編集/Quick Log/
+  Meal入力等のUI操作系が未移植のまま残存していることが判明。`docs/LEGACY_REMOVAL_PLAN.md`
+  6-9章末尾にFounder審議中の追記を実施（4章ロードマップ表自体は未改訂、Founder確認後に別PRで
+  改訂予定）。PR-089B〜G＋PR-089Z（旧PR-089本体）への分割を提案。Architecture/Business Logic/
+  UI/仕様/データ構造の変更ゼロ。
+  Decision Log: 更新不要（本PRは調査のみ。Roadmap改訂そのものはFounder確認後に別途記録）。
+  Next: Founderが `docs/PR-089A-legacy-final-cutover-audit.md` 4章の分割案を確認・承認後、
+  PR-089B（ORPHAN 9件の配線有効化）以降に着手。
 
 ---
 

@@ -239,6 +239,14 @@ PR-089完了後、以下を機械的に検証し記録する:
 同一パターン（Founder確認台帳への記録）を踏襲する。
 ```
 
+> **【PR-089A追記・2026-07-04・Founder審議中】** PR-089着手前の実測監査（`docs/PR-089A-legacy-final-cutover-audit.md`）
+> により、上表の「Batch-11 = shim約20件+確定DeadCode4件の削除のみ」という前提は
+> 成立しないことが判明した。実際には app-legacy.js に101関数が残存し、うち24件のみが
+> shim相当（削除可能）で、残り77件（Experiment機能一式・Cloud Sync本体・Record編集/
+> Quick Log/Meal入力等のUI操作系）はBatch-1〜10で移植対象になっていなかった。
+> 詳細な分類とPR-089B〜G＋PR-089Zへの分割提案は監査文書の4章を参照。
+> **本表（4章）自体の改訂はFounder確認後に実施する（本追記は改訂ではなく状況記録）。**
+
 ---
 
 ## 5. Dependency Map
