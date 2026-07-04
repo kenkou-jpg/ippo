@@ -67,6 +67,25 @@ import { getPhaseForDate, isPeriodExpected, buildComparisonComment, buildDayComp
 import { switchInsTab, renderInsightDiscoveries, _updateInsMainCard, updateFoodBodyCorrelation, updateCycleSymptomCorrelation } from './modules/insights-tab-panel.js';
 // PR-086: updateTodayMessage/updateDailyHintCard は src/modules/home-renderer.js へ物理移動済み。
 import { updateTodayMessage, updateDailyHintCard } from './modules/home-renderer.js';
+// PR-087 (Legacy Removal Batch-9): escapeHtml/getTimeAgo/toLocalDateKey は
+// src/utils/string-utils.js へ新設・物理移動済み。
+import { escapeHtml, getTimeAgo, toLocalDateKey } from './utils/string-utils.js';
+// PR-087: calcPainFreeDaysThisMonth/calcAvgPainThisMonth/calcSMIScore は
+// src/utils/stats-utils.js へ新設・物理移動済み。
+import { calcPainFreeDaysThisMonth, calcAvgPainThisMonth, calcSMIScore } from './utils/stats-utils.js';
+// PR-087: shareApp/addToHome は src/modules/share.js へ新設・物理移動済み。
+import { shareApp, addToHome } from './modules/share.js';
+// PR-087: setRating/submitFeedback は src/modules/feedback.js へ新設・物理移動済み。
+import { setRating, submitFeedback } from './modules/feedback.js';
+// PR-087: checkSuddenTempRise/checkAndShowTempAlert/showTempAlertBanner は
+// src/modules/temp-alert.js へ新設・物理移動済み。
+import { checkSuddenTempRise, checkAndShowTempAlert, showTempAlertBanner } from './modules/temp-alert.js';
+// PR-087: addCustomFactor は src/modules/record-factors.js へ新設・物理移動済み
+// （audit文書は移植先未指定。toggleRsChip依存が無いため専用新設ファイルへ分離）。
+import { addCustomFactor } from './modules/record-factors.js';
+// PR-087: getSuccessMessage は src/modules/success-message.js へ新設・物理移動済み
+// （audit文書は移植先未指定。cycle-utils.js等と同型の専用新設ファイルへ分離）。
+import { getSuccessMessage } from './modules/success-message.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1639,39 +1658,8 @@ function calcPainFreeDays() {
   if (el) el.textContent = count > 0 ? count : '—';
 }
 
-// 今月の無痛み日数を返す（stats-grid用）
-function calcPainFreeDaysThisMonth() {
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var count = 0;
-  (state.records || []).forEach(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    if (d.getFullYear() !== year || d.getMonth() !== month) return;
-    var pain = r.painLevel;
-    if (pain === null || pain === undefined || pain === 0) count++;
-  });
-  return count;
-}
-
-// 今月の平均痛みスコアを返す（stats-grid用）
-function calcAvgPainThisMonth() {
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var total = 0;
-  var count = 0;
-  (state.records || []).forEach(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    if (d.getFullYear() !== year || d.getMonth() !== month) return;
-    if (r.painLevel !== null && r.painLevel !== undefined && r.painLevel > 0) {
-      total += r.painLevel;
-      count++;
-    }
-  });
-  if (count === 0) return null;
-  return Math.round(total / count * 10) / 10;
-}
+// PR-087 (Legacy Removal Batch-9): calcPainFreeDaysThisMonth/calcAvgPainThisMonth は
+// src/utils/stats-utils.js へ物理移動済み（import参照）。
 
 // PR-080B: 確定Dead Code。saveRecord()内の無条件bare呼び出し2箇所が残るため定義は維持（PR-080Eで対応）。
 function updateHistory(){
@@ -2405,26 +2393,8 @@ document.getElementById('success-overlay').classList.add('active');
   document.getElementById('success-overlay').classList.add('active');
 }
 
-// ===== パーソナライズされた記録完了メッセージ =====
-function getSuccessMessage(record) {
-  var streak = state.streak || 0;
-  var pain = record && record.painLevel !== undefined ? record.painLevel : -1;
-
-  var iconSvg = ICONS.check(32, 'var(--rose)');
-  var title = '記録できました';
-  var msg = '今日もからだの声を聴いてくれてありがとう。';
-
-  // 連続記録マイルストーン
-  if (streak === 7)  { iconSvg = ICONS.star(32, 'var(--gold)'); title = '7日連続達成！'; msg = '1週間、続けられました。パターンが見え始めてきます。'; }
-  else if (streak === 14) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '2週間連続！'; msg = 'この記録が、次の診察を変えてくれます。'; }
-  else if (streak === 30) { iconSvg = ICONS.star(32, 'var(--gold)'); title = '1ヶ月達成！'; msg = 'AIパターン解析でこの30日間を振り返りましょう。'; }
-
-  // 痛みがある日
-  else if (pain >= 3) { iconSvg = ICONS.heart(32, 'var(--rose)'); title = '記録できました'; msg = 'つらい日も記録してくれてありがとう。この積み重ねが大切です。'; }
-  else if (pain === 0) { iconSvg = ICONS.sun(32, 'var(--gold)'); title = '今日は楽な日ですね'; msg = 'こういう日のデータも、パターン発見に役立ちます。'; }
-
-  return { icon: iconSvg, title: title, msg: msg };
-}
+// PR-087 (Legacy Removal Batch-9): getSuccessMessage は
+// src/modules/success-message.js へ物理移動済み（import参照）。
 
 function closeSuccess() {
   if (window.__ippoSuccessOverlayTimer) {
@@ -2439,26 +2409,8 @@ function closeSuccess() {
 }
 
 // ===== MISC =====
-function shareApp() {
-  if (navigator.share) {
-    navigator.share({
-      title: 'ippo - 卵巣ケア記録アプリ',
-      text: '生理周期・卵巣ケアのセルフ記録アプリです。一緒に続けましょう！',
-      url: window.location.href
-    });
-  } else {
-    navigator.clipboard.writeText(window.location.href).then(() => {
-      showAlertModal('URLをコピーしました！友だちに送ってください。');
-    });
-  }
-}
-
-function addToHome() {
-  showAlertModal('ブラウザの「ホーム画面に追加」からアプリとして追加できます。<br>iOS: 共有ボタン → 「ホーム画面に追加」<br>Android: メニュー → 「ホーム画面に追加」');
-  // バグ18: フラグを保存してリロード後も非表示を維持
-  try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
-  document.getElementById('add-home-banner').style.display = 'none';
-}
+// PR-087 (Legacy Removal Batch-9): shareApp/addToHome は
+// src/modules/share.js へ物理移動済み（import参照）。
 
 function setGraphTab(tab, el) {
   document.querySelectorAll('.sg-tab').forEach(t => t.classList.remove('active'));
@@ -2481,12 +2433,8 @@ function setGraphTab(tab, el) {
   }
 }
 
-function setRating(n) {
-  state.rating = n;
-  document.querySelectorAll('.fb-star').forEach((s, i) => {
-    s.classList.toggle('active', i < n);
-  });
-}
+// PR-087 (Legacy Removal Batch-9): setRating は
+// src/modules/feedback.js へ物理移動済み（import参照）。
 
 // PR-084 (Legacy Removal Batch-6): 症状設定（ALL_SYMPTOMS/openSymptomSettings/
 // closeSymptomSettings/saveSymptomSettings）は src/modules/symptom-settings.js
@@ -3228,22 +3176,8 @@ function checkMyLikes(replies){
   });
 }
 
-function escapeHtml(text){
-  var div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function getTimeAgo(dateStr){
-  var now = new Date();
-  var d = new Date(dateStr);
-  var diff = Math.floor((now - d) / 1000);
-  if(diff < 60) return 'たった今';
-  if(diff < 3600) return Math.floor(diff / 60) + '分前';
-  if(diff < 86400) return Math.floor(diff / 3600) + '時間前';
-  if(diff < 604800) return Math.floor(diff / 86400) + '日前';
-  return (d.getMonth()+1) + '/' + d.getDate();
-}
+// PR-087 (Legacy Removal Batch-9): escapeHtml/getTimeAgo は
+// src/utils/string-utils.js へ物理移動済み（import参照）。
 
 
 function updateDiseaseSettingDisplay(){if(typeof window.updateDiseaseSettingDisplay==='function')window.updateDiseaseSettingDisplay();}
@@ -3398,17 +3332,8 @@ function updateRecordSymptoms(){
   switchSymptomTab(_sympTabCurrent, null);
 }
 
-function submitFeedback() {
-  if (!state.rating) { showAlertModal('評価を選んでください'); return; }
-  var comment = document.getElementById('fb-comment') ? document.getElementById('fb-comment').value.trim() : '';
-  var subject = encodeURIComponent('ippoフィードバック - ' + state.rating + '星');
-  var body = encodeURIComponent('評価: ' + state.rating + '/5\n\n感想:\n' + (comment || '（なし）') + '\n\nユーザー: ' + (state.name || '匿名') + '\n日時: ' + new Date().toLocaleString('ja-JP'));
-  window.location.href = 'mailto:YOUR_EMAIL@example.com?subject=' + subject + '&body=' + body;
-  showAlertModal('ありがとうございます！メーラーが開きます 🌸');
-  state.rating = 0;
-  document.querySelectorAll('.fb-star').forEach(function(s){ s.classList.remove('active'); });
-  if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
-}
+// PR-087 (Legacy Removal Batch-9): submitFeedback は
+// src/modules/feedback.js へ物理移動済み（import参照）。
 
 // PR-084 (Legacy Removal Batch-6): clearData は src/modules/data-export.js へ、
 // setDailyMessage は src/modules/ui-notifications.js へ、それぞれ物理移動済み
@@ -3824,87 +3749,8 @@ function createMealDonut(meals, fasting, fastingGoal){
 // src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back）。
 
 // ===== 体温アラート =====
-function checkSuddenTempRise(records, diseases) {
-  if (diseases.indexOf('卵巣嚢腫') === -1) return null;
-
-  var tempRecords = records
-    .filter(function(r) { return r.temperature; })
-    .sort(function(a, b) {
-      return new Date(a.date || a.record_date) - new Date(b.date || b.record_date);
-    });
-
-  if (tempRecords.length < 2) return null;
-
-  var latest = tempRecords[tempRecords.length - 1];
-  var prev   = tempRecords[tempRecords.length - 2];
-  var diff   = parseFloat(latest.temperature) - parseFloat(prev.temperature);
-
-  if (diff >= 0.8) {
-    return { level: 'caution', diff: diff.toFixed(1), latestTemp: latest.temperature };
-  }
-  if (parseFloat(latest.temperature) >= 38.0) {
-    return { level: 'warning', temp: latest.temperature };
-  }
-  return null;
-}
-
-function checkAndShowTempAlert() {
-  var diseases = state.myDiseases || [];
-  if (!state.records || state.records.length < 2) return;
-
-  // 既存 calcTemperaturePhases alerts チェック
-  var tempCount = state.records.filter(function(r) { return r.temperature; }).length;
-  if (tempCount >= 14) {
-    var analysis = (window.analyzeTemperatureLegacy || calcTemperaturePhases)(state.records);
-    if (analysis && analysis.alerts && analysis.alerts.length > 0) {
-      var hasEmergency = analysis.alerts.some(function(a) {
-        return a.level === 'emergency' || a.level === 'danger';
-      });
-      if (hasEmergency) {
-        showTempAlertBanner('体温に気になるパターンがあります。体温グラフで確認してください', 'warn');
-        return;
-      }
-    }
-  }
-
-  // 急激な体温上昇チェック（卵巣嚢腫ユーザーのみ）
-  var suddenRise = checkSuddenTempRise(state.records, diseases);
-  if (suddenRise) {
-    var msg = suddenRise.level === 'warning'
-      ? '体温が' + suddenRise.temp + '℃と高めです。腹痛や吐き気を伴う場合は医療機関にご相談ください'
-      : '前日より体温が' + suddenRise.diff + '℃上昇しています。腹痛や吐き気を伴う場合は医療機関にご相談ください';
-    showTempAlertBanner(msg, suddenRise.level === 'warning' ? 'danger' : 'caution');
-  }
-}
-
-function showTempAlertBanner(message, level) {
-  var existing = document.getElementById('temp-alert-banner');
-  if (existing) existing.remove();
-
-  var colors = {
-    'danger':  { bg: '#fde8e8', border: '#c4878c', text: '#8a4050', btn: '#c4878c' },
-    'caution': { bg: '#fdf3e8', border: '#d4a574', text: '#7a5020', btn: '#d4a574' },
-    'warn':    { bg: '#fdf8e8', border: '#d4c474', text: '#6a5820', btn: '#d4c474' }
-  };
-  var c = colors[level] || colors['warn'];
-
-  var banner = document.createElement('div');
-  banner.id = 'temp-alert-banner';
-  banner.style.cssText = 'margin:0 20px 12px;background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:14px;padding:12px 14px;';
-  banner.innerHTML =
-    '<div style="font-size:12px;color:' + c.text + ';line-height:1.6;margin-bottom:8px;">🌡️ ' + message + '</div>'
-    + '<div style="font-size:10px;color:' + c.text + ';opacity:0.75;margin-bottom:8px;">※ これは記録データに基づく参考情報です。医学的診断ではありません。</div>'
-    + '<div style="display:flex;gap:8px;">'
-    + '<button onclick="premiumGate(openTempReport)" style="flex:1;padding:8px;background:' + c.btn + ';color:white;border:none;border-radius:10px;font-size:11px;font-family:\'Noto Sans JP\',sans-serif;cursor:pointer;">体温グラフを確認する</button>'
-    + '<button onclick="document.getElementById(\'temp-alert-banner\').remove()" style="padding:8px 12px;background:transparent;border:1px solid ' + c.border + ';border-radius:10px;font-size:11px;color:' + c.text + ';cursor:pointer;">閉じる</button>'
-    + '</div>';
-
-  // CTAカード直後に挿入
-  var ctaCard = document.getElementById('home-record-cta');
-  if (ctaCard && ctaCard.parentNode) {
-    ctaCard.parentNode.insertBefore(banner, ctaCard.nextSibling);
-  }
-}
+// PR-087 (Legacy Removal Batch-9): checkSuddenTempRise/checkAndShowTempAlert/
+// showTempAlertBanner は src/modules/temp-alert.js へ物理移動済み（import参照）。
 
 // ===== クイック症状ログ（後方互換のため残す） =====
 var _quickPainLevel = -1;
@@ -4418,20 +4264,8 @@ function adjustBowelCount(delta){
   if(el) el.textContent = _bowelCount;
 }
 
-function addCustomFactor(){
-  var input = document.getElementById('rs-factor-custom');
-  if(!input) return;
-  var text = input.value.trim();
-  if(!text) return;
-  var container = document.getElementById('rs-factors');
-  if(!container) return;
-  var chip = document.createElement('div');
-  chip.className = 'chip selected';
-  chip.textContent = text;
-  chip.setAttribute('onclick', 'toggleRsChip(this)');
-  container.appendChild(chip);
-  input.value = '';
-}
+// PR-087 (Legacy Removal Batch-9): addCustomFactor は
+// src/modules/record-factors.js へ物理移動済み（import参照）。
 
 function gatherDiseaseData(){
   var container = document.getElementById('disease-questions');
@@ -4445,40 +4279,8 @@ function gatherDiseaseData(){
   return data;
 }
  // ===== 更年期SMI（簡略更年期指数）自動計算 =====
-function calcSMIScore(diseaseCheck){
-  // SMI配点：各症状ごとの重み × 選択肢の重度
-  var smiWeights = {
-    'hot_flash': 10,
-    'sweating': 10,
-    'insomnia': 14,
-    'irritable': 12,
-    'depression': 14,
-    'fatigue': 8,
-    'headache': 8,
-    'palpitation': 8,
-    'shoulder': 5,
-    'numbness': 5
-  };
-  var severityMap = {
-    'なし': 0,
-    '軽い': 0.33,
-    '中程度': 0.66,
-    '強い': 1
-  };
-  var total = 0;
-  var found = false;
-  var keys = Object.keys(smiWeights);
-  for(var i=0;i<keys.length;i++){
-    var qKey = '更年期障害__' + keys[i];
-    if(diseaseCheck[qKey]){
-      found = true;
-      var sev = severityMap[diseaseCheck[qKey]] || 0;
-      total += smiWeights[keys[i]] * sev;
-    }
-  }
-  if(!found) return null;
-  return Math.round(total);
-}
+// PR-087 (Legacy Removal Batch-9): calcSMIScore は
+// src/utils/stats-utils.js へ物理移動済み（import参照）。
 
   // ===== 体温フェーズ自動判定エンジン =====
 // PR-082E (Legacy Removal Batch-4 分割⑤): calcTemperaturePhases/openTempReport/
@@ -4621,13 +4423,8 @@ function draftRecordScreen(){
   if(di){ di.textContent='一時保存しました'; di.style.display='block'; di.style.color='var(--sage)'; setTimeout(function(){ di.style.display='none'; }, 2500); }
 }
 
-function toLocalDateKey(date) {
-  var d = date instanceof Date ? date : new Date(date);
-  var y = d.getFullYear();
-  var m = String(d.getMonth() + 1).padStart(2, '0');
-  var day = String(d.getDate()).padStart(2, '0');
-  return y + '-' + m + '-' + day;
-}
+// PR-087 (Legacy Removal Batch-9): toLocalDateKey は
+// src/utils/string-utils.js へ物理移動済み（import参照）。
 
 function saveRecordScreen(){
   try {

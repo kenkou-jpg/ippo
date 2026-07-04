@@ -966,8 +966,45 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   正しく切り替わることを確認（`__ippoGetIsPremium()`ブリッジの動作確認を兼ねる）/
   Console Errorはvite websocket接続失敗ノイズとSupabase未設定環境ノイズのみで新規エラーなし。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-087 — Batch-9: Utility & Misc（純粋関数）（docs/LEGACY_REMOVAL_PLAN.md 4章参照、
-  依存ゼロのため即時着手可）。
+
+  ✓ PR-087  Batch-9: Utility & Misc（純粋関数）— docs/LEGACY_REMOVAL_PLAN.md 4章 /
+  phase4d-legacy-migration-audit.md Batch-9節（約18関数）に基づき実装。実装前調査の結果、
+  audit記載18件のうち csvSafe / formatDiseaseCheck（PR-084 Batch-6で既にdata-export.jsへ）・
+  calcWellnessScore（PR-082F Batch-4分割⑥で既にpro-metric-utils.jsへ）の3件は既に物理移動済み
+  と判明したため、本PRの実対象は残り15関数:
+    - `src/utils/string-utils.js`（新設）: escapeHtml/getTimeAgo/toLocalDateKey
+    - `src/utils/stats-utils.js`（新設）: calcPainFreeDaysThisMonth/calcAvgPainThisMonth/calcSMIScore
+    - `src/modules/share.js`（新設）: shareApp/addToHome
+    - `src/modules/feedback.js`（新設）: setRating/submitFeedback
+    - `src/modules/temp-alert.js`（新設）: checkSuddenTempRise/checkAndShowTempAlert/showTempAlertBanner
+    - `src/modules/record-factors.js`（新設）: addCustomFactor
+    - `src/modules/success-message.js`（新設）: getSuccessMessage
+  addCustomFactor / getSuccessMessage はaudit文書が移植先を明示していなかったため実装前調査を実施:
+  addCustomFactorが操作する`#rs-factors`チップ群のtoggleRsChipはBatch-9対象外でapp-legacy.js残置
+  （Batch-2系のopenRecordScreen DIスキャフォールド待ち）と判明したが直接依存はないため、
+  disease-settings.js/symptom-settings.js分離と同型の「1 feature = 1 owner」判断で
+  record-factors.js/success-message.jsへそれぞれ専用新設分離（cycle-utils.js/temp-alert.js等の
+  既存前例踏襲）/ bare `state`→`window.state`、bare `ICONS`→`window.ICONS`（home-renderer.js等の
+  既存idiomと同型）/ 全15関数はapp-legacy.js側で該当import経由で再取得し、既存のwindow bridge
+  （`if (typeof X === "function") window.X = X;`）は無変更で機能継続を確認 / 新規単体テスト22件
+  追加: tests/utils/string-utils.test.js（10件）+ tests/utils/stats-utils.test.js（7件）+
+  tests/modules/temp-alert.test.js（5件、checkSuddenTempRiseのみ — 他2関数はDOM操作中心のため
+  Browser Verificationで代替、既存Batch方針を踏襲）/ SG-7:
+  tests/arch/legacy-removal-pr079-line-count-guard.test.js BASELINE_LINE_COUNTを5,611→5,408に更新 /
+  app-legacy.js: 5,611行→5,408行 / vitest run全件: 5,193件、失敗39件は既知5ファイル
+  （build-draft-from-ui.test.js・save-record-screen.test.js・disease-analyzer.test.js・
+  domain-event-types.test.js・event-menstrual.test.js）のみで増加なし（新規22件はすべてPASS）/
+  vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで
+  本PR無関係）/ Browser Verification: Vite dev server + app.html実機で以下を確認 —
+  escapeHtml/getTimeAgo/calcSMIScoreを実データで実行し既存挙動と一致することを確認 /
+  getSuccessMessage(streak=7)が★アイコン・「7日連続達成！」を正しく返すことを確認 /
+  checkSuddenTempRiseが前日比0.9℃上昇でcaution判定を返すことを確認 / setRating(4)実行で
+  .fb-star 4個がactiveクラスを持つことを確認 / addCustomFactor実行で#rs-factorsに新規chipが
+  追加されテキストが反映されることを確認（toggleRsChip依存なしの動作確認を兼ねる）/
+  Console Errorはvite websocket接続失敗ノイズのみで新規エラーなし。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+  Next: PR-088 — Batch-10: Community & Admin（docs/LEGACY_REMOVAL_PLAN.md 4章参照、
+  MEDIUM リスク・Supabase直接呼び出しのためsupabase.js経由への整理を要確認）。
 
 ---
 
