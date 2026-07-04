@@ -124,6 +124,10 @@ import { selectTempMethod, toggleRsChip, selectRsCycle, selectEnergy, selectSlee
 // toggleSympLayer/switchSymptomTab/updateRecordSymptoms は src/modules/symptom-layers.js へ
 // 物理移動済み（bare呼び出し継続のためimport back）。
 import { buildEffectiveLayer1, renderSymptomLayers, toggleSympLayer, switchSymptomTab, updateRecordSymptoms } from './modules/symptom-layers.js';
+// PR-089F-4 (Legacy Removal Batch-11分割⑥-4): initQuickLog/selectQuickPain/saveQuickLog/
+// showQuickLogDone は src/modules/quick-log.js へ物理移動済み（bare呼び出し継続のため
+// import back）。
+import { initQuickLog, selectQuickPain, saveQuickLog, showQuickLogDone } from './modules/quick-log.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -2090,120 +2094,9 @@ function createMealDonut(meals, fasting, fastingGoal){
 // PR-087 (Legacy Removal Batch-9): checkSuddenTempRise/checkAndShowTempAlert/
 // showTempAlertBanner は src/modules/temp-alert.js へ物理移動済み（import参照）。
 
-// ===== クイック症状ログ（後方互換のため残す） =====
-var _quickPainLevel = -1;
-var _quickSelectedSymptoms = [];
-
-function initQuickLog() {
-  // 疾患設定から症状チップを生成（最大6個）
-  var chips = [];
-  var diseases = state.myDiseases || [];
-  diseases.forEach(function(d) {
-    var cfg = DISEASE_CONFIG[d];
-    if (!cfg || !cfg.specificSymptoms) return;
-    cfg.specificSymptoms.forEach(function(s) {
-      if (chips.indexOf(s) === -1 && chips.length < 6) chips.push(s);
-    });
-  });
-  // 疾患設定がない場合のデフォルト
-  if (chips.length === 0) {
-    chips = ['下腹部痛', '腰痛', '頭痛', '骨盤周りの痛み', 'だるさ', '気分の落ち込み'];
-  }
-
-  var container = document.getElementById('quick-symptom-chips');
-  if (!container) return;
-  container.innerHTML = '';
-  _quickSelectedSymptoms = [];
-  chips.forEach(function(s) {
-    var btn = document.createElement('button');
-    btn.textContent = s;
-    btn.style.cssText = 'padding:6px 13px;border-radius:20px;border:1.5px solid #e8ddd8;background:var(--white);font-size:12px;font-family:\'Noto Sans JP\',sans-serif;color:var(--ink);cursor:pointer;transition:all 0.2s;';
-    btn.onclick = function() {
-      var idx = _quickSelectedSymptoms.indexOf(s);
-      if (idx !== -1) {
-        _quickSelectedSymptoms.splice(idx, 1);
-        btn.style.background = 'var(--white)';
-        btn.style.borderColor = '#e8ddd8';
-        btn.style.color = 'var(--ink)';
-      } else {
-        _quickSelectedSymptoms.push(s);
-        btn.style.background = 'var(--rose-pale)';
-        btn.style.borderColor = 'var(--rose)';
-        btn.style.color = 'var(--plum)';
-      }
-    };
-    container.appendChild(btn);
-  });
-
-  // 今日すでに記録済みかチェック
-  var today = new Date().toISOString().slice(0, 10);
-  var todayRecord = (state.records || []).find(function(r) {
-    return r.date && r.date.slice(0, 10) === today;
-  });
-  if (todayRecord) {
-    showQuickLogDone();
-  }
-}
-
-function selectQuickPain(level, btn) {
-  _quickPainLevel = level;
-  document.querySelectorAll('#quick-pain-scale button').forEach(function(b) {
-    b.style.background = 'var(--white)';
-    b.style.borderColor = '#e8ddd8';
-  });
-  btn.style.background = 'var(--rose-pale)';
-  btn.style.borderColor = 'var(--rose)';
-}
-
-function saveQuickLog() {
-  var today = new Date().toISOString().slice(0, 10);
-  // 既存の今日のレコードに追記、なければ新規作成
-  var existing = (state.records || []).find(function(r) {
-    return r.date && r.date.slice(0, 10) === today;
-  });
-  if (existing) {
-    if (_quickSelectedSymptoms.length > 0) {
-      existing.symptoms = existing.symptoms || [];
-      _quickSelectedSymptoms.forEach(function(s) {
-        if (existing.symptoms.indexOf(s) === -1) existing.symptoms.push(s);
-      });
-    }
-    if (_quickPainLevel >= 0) existing.painLevel = _quickPainLevel;
-    existing.updatedAt = new Date().toISOString();
-  } else {
-    var rec = {
-      id: (typeof window.generateRecordId === 'function' ? window.generateRecordId() : Date.now().toString(36) + Math.random().toString(36).substr(2,8)),
-      date: today,
-      record_date: today,
-      symptoms: _quickSelectedSymptoms.slice(),
-      painLevel: _quickPainLevel >= 0 ? _quickPainLevel : null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-    state.records = state.records || [];
-    state.records.push(rec);
-  }
-  saveAndSync();
-  showQuickLogDone();
-  _quickSelectedSymptoms = [];
-  _quickPainLevel = -1;
-  updateHomeSummary();
-  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
-}
-
-function showQuickLogDone() {
-  var btn = document.getElementById('quick-log-btn');
-  var status = document.getElementById('quick-log-status');
-  if (btn) {
-    btn.textContent = '✓ 今日の記録済み';
-    btn.style.background = 'var(--sage)';
-    btn.disabled = true;
-  }
-  if (status) {
-    status.textContent = '記録済み';
-    status.style.color = 'var(--sage)';
-  }
-}
+// PR-089F-4: initQuickLog/selectQuickPain/saveQuickLog/showQuickLogDone
+// （+_quickPainLevel・_quickSelectedSymptoms）は src/modules/quick-log.js へ
+// 物理移動済み（import back）。
 
 // PR-080G: buildCalendar/renderCalendarMonthlySummary/changeMonth を削除（確認済みDead Code）。
 // #calLabel/#calGrid/#cal-monthly-summary/#cal-screen-month-labelはapp.html/calendar.htmlに
