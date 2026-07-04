@@ -15,6 +15,11 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm';
 import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 import { safeMergeState } from '../utils/safe-merge-state.js';
+// PR-089C (Legacy Removal Batch-11分割②): renderSyncUI/submitSync/migrateDataToUser/
+// syncNow/logoutSync が参照する Sync Modal UI ヘルパー / 汎用モーダル / ADMIN_USER_ID。
+import { showLoginForm, showMessage, hideMessage } from '../modules/sync-modal.js';
+import { showConfirmModal } from '../modules/ui-notifications.js';
+import { ADMIN_USER_ID } from '../modules/admin.js';
 
 // import.meta.env.VITE_SUPABASE_ANON_KEY はビルド時に Vite が静的注入する。
 export const SUPABASE_URL =
@@ -448,6 +453,223 @@ window.cloudRestore          = cloudRestore;
 window.initialCloudSync      = initialCloudSync;
 window.syncRecordImmediately = syncRecordImmediately;
 window.retrySyncPending      = retrySyncPending;
+
+// ── PR-089C (Legacy Removal Batch-11分割②): Cloud Sync UI 本体ロジック ──────
+// renderSyncUI/submitSync/migrateDataToUser/syncNow/logoutSync を
+// app-legacy.js（DEVICE SYNC ブロック）から物理移動。Business Logic変更なし。
+// syncMode/supabaseUserId/isPremium/_notifyAuthReadyはapp-legacy.js側に残置のため
+// window.__ippoGetSyncMode()等の専用ブリッジ（app-legacy.js側で新設）経由でアクセスする。
+
+export async function renderSyncUI() {
+  const body = document.getElementById('syncBody');
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (session && session.user) {
+      // ログイン済み
+      const email = session.user.email;
+      document.getElementById('syncStatusBrief').textContent = email;
+
+      body.innerHTML = `
+        <div class="sync-status">
+          <div class="sync-status-icon">✅</div>
+          <div class="sync-status-text">同期が有効です</div>
+          <div class="sync-status-sub">このアカウントでログインした端末間でデータが共有されます</div>
+          <div class="sync-email-display">${email}</div>
+        </div>
+        <div class="sync-actions">
+          <button class="sync-action-btn primary" onclick="syncNow()">今すぐ同期</button>
+          <button class="sync-action-btn danger" onclick="logoutSync()">ログアウト</button>
+        </div>
+      `;
+    } else {
+      // 未ログイン
+      document.getElementById('syncStatusBrief').textContent = '未ログイン';
+      showLoginForm();
+    }
+  } catch (err) {
+    console.error('Sync UI error:', err);
+    showLoginForm();
+  }
+}
+
+export async function submitSync() {
+  const email = document.getElementById('syncEmail').value.trim();
+  const password = document.getElementById('syncPassword').value;
+  const btn = document.getElementById('syncSubmitBtn');
+
+  if (!email || !password) {
+    showMessage('メールアドレスとパスワードを入力してください', 'error');
+    return;
+  }
+  if (password.length < 6) {
+    showMessage('パスワードは6文字以上で入力してください', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '処理中...';
+  hideMessage();
+
+  try {
+    let result;
+
+    if (window.__ippoGetSyncMode() === 'signup') {
+      // 新規登録
+      result = await supabase.auth.signUp({ email, password });
+
+      if (result.error) throw result.error;
+
+      if (result.data.user && !result.data.session) {
+        // メール確認が必要
+        showMessage('確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。', 'info');
+        btn.disabled = false;
+        btn.textContent = '登録する';
+        return;
+      }
+    } else {
+      // ログイン
+      result = await supabase.auth.signInWithPassword({ email, password });
+      if (result.error) throw result.error;
+    }
+
+    // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
+    if (result.data.session) {
+      window.__ippoSetSupabaseUserId(result.data.session.user.id);
+      localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
+      window.__ippoNotifyAuthReady();
+      if (result.data.session.user.id === ADMIN_USER_ID) {
+        window.__ippoSetIsPremium(true);
+      }
+      if (typeof window.updatePremiumBadges === 'function') window.updatePremiumBadges();
+
+      await migrateDataToUser(result.data.session.user.id);
+      showMessage('ログインしました。データを同期中...', 'success');
+
+      // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
+      cloudRestore().then(function(restored) {
+        if (restored) {
+          // setState 経由で _state を更新しフックで bare state も同期する
+          if (typeof window.setState === 'function') {
+            window.setState(JSON.parse(localStorage.getItem('ippo_state') || '{}'));
+          }
+          if (typeof window.updateStats === 'function') window.updateStats();
+          if (typeof window.buildCalendar === 'function') window.buildCalendar();
+          if (typeof window.updateDiseaseSettingDisplay === 'function') window.updateDiseaseSettingDisplay();
+          if (typeof window.updateDiseaseQuestions === 'function') window.updateDiseaseQuestions();
+          if (typeof window.reorderRecordSections === 'function') window.reorderRecordSections();
+          if (typeof window.updateFastingWidgetPhase === 'function') window.updateFastingWidgetPhase();
+          showMessage('同期完了！過去のデータを復元しました ✓', 'success');
+        } else {
+          showMessage('ログインしました。データの同期が有効になりました。', 'success');
+        }
+      }).catch(function(e) {
+        console.warn('ログイン後復元エラー:', e);
+        showMessage('ログインしました。データの同期が有効になりました。', 'success');
+      });
+
+      setTimeout(() => {
+        renderSyncUI();
+      }, 2000);
+    }
+
+  } catch (err) {
+    console.error('Auth error:', err);
+    let errorMsg = 'エラーが発生しました。';
+    if (err.message.includes('Invalid login')) errorMsg = 'メールアドレスまたはパスワードが正しくありません。';
+    else if (err.message.includes('already registered')) errorMsg = 'このメールアドレスはすでに登録されています。ログインしてください。';
+    else if (err.message.includes('Email not confirmed')) errorMsg = 'メールアドレスの確認が完了していません。確認メールを確認してください。';
+    else errorMsg = err.message;
+
+    showMessage(errorMsg, 'error');
+    btn.disabled = false;
+    btn.textContent = window.__ippoGetSyncMode() === 'signup' ? '登録する' : 'ログイン';
+  }
+}
+
+export async function migrateDataToUser(userId) {
+  try {
+    const deviceId = localStorage.getItem('ippo_device_id');
+    if (!deviceId) return;
+
+    // records テーブルの device_id のデータに user_id を設定
+    await supabase
+      .from('records')
+      .update({ user_id: userId })
+      .eq('device_id', deviceId)
+      .is('user_id', null);
+
+    // profiles テーブルも同様
+    await supabase
+      .from('profiles')
+      .update({ user_id: userId })
+      .eq('device_id', deviceId)
+      .is('user_id', null);
+
+  } catch (err) {
+    console.error('Migration error:', err);
+  }
+}
+
+export async function syncNow() {
+  const btn = document.querySelector('.sync-action-btn.primary');
+  const original = btn.textContent;
+  btn.textContent = '同期中...';
+  btn.disabled = true;
+
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Not logged in');
+
+    const userId = session.user.id;
+    const deviceId = localStorage.getItem('ippo_device_id');
+
+    // 現在の端末のデータをuser_idに紐付け
+    if (deviceId) {
+      await supabase
+        .from('records')
+        .update({ user_id: userId })
+        .eq('device_id', deviceId)
+        .is('user_id', null);
+    }
+
+    btn.textContent = '同期完了 ✓';
+    btn.style.background = '#8aab96';
+    if (typeof cloudRestore === 'function') { cloudRestore().catch(function(){}); }
+
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+
+  } catch (err) {
+    console.error('Sync error:', err);
+    btn.textContent = '同期に失敗しました';
+    setTimeout(() => {
+      btn.textContent = original;
+      btn.disabled = false;
+    }, 2000);
+  }
+}
+
+export async function logoutSync() {
+  showConfirmModal('ログアウトしますか？<br>この端末のデータは残りますが、他の端末との同期が無効になります。', async function() {
+    try {
+      await supabase.auth.signOut();
+      document.getElementById('syncStatusBrief').textContent = '未ログイン';
+      renderSyncUI();
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  });
+}
+
+window.renderSyncUI = renderSyncUI;
+window.submitSync   = submitSync;
+window.syncNow      = syncNow;
+window.logoutSync   = logoutSync;
 
 // ─── Single-access-point API ─────────────────────────────────
 // All code that needs the Supabase client should call getSupabaseClient()

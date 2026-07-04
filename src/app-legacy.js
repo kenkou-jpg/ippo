@@ -100,6 +100,9 @@ import { initAdminPanel, adminSetPremium, adminLoadPremiumUsers, ADMIN_USER_ID }
 // PR-089B (Legacy Removal Batch-11分割①): openExperiments/startExperiment/startCustomExperiment/
 // cancelExperiment/completeExperiment/showExperimentReport は src/modules/experiments.js へ物理移動済み。
 import { openExperiments, startExperiment, startCustomExperiment, cancelExperiment, completeExperiment, showExperimentReport } from './modules/experiments.js';
+// PR-089C (Legacy Removal Batch-11分割②): renderSyncUI/submitSync/migrateDataToUser/
+// syncNow/logoutSync は src/services/supabase.js へ物理移動済み。
+import { renderSyncUI, submitSync, migrateDataToUser, syncNow, logoutSync } from './services/supabase.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -124,6 +127,9 @@ var supabaseUserId = null;
 // PR-088: community.js/admin.js（物理移動先）がログイン中ユーザーIDを取得するための
 // 専用ブリッジ（PR-080E window.__ippoGetBowelCount と同型パターン）。
 window.__ippoGetSupabaseUserId = function () { return supabaseUserId; };
+// PR-089C: submitSync（services/supabase.js、物理移動済み）がログイン成功時に
+// supabaseUserId（本ファイル残置 var）を更新するための専用ブリッジ（同型パターン）。
+window.__ippoSetSupabaseUserId = function (v) { supabaseUserId = v; };
 
 // ─── Deferred Cloud Restore Queue ────────────────────────────────
 // auth 復元前に cloudRestore が呼ばれた場合、auth ready 後にリトライする
@@ -145,6 +151,9 @@ function _notifyAuthReady() {
   }
   _flushCloudRestoreQueue();
 }
+// PR-089C: submitSync（services/supabase.js、物理移動済み）が_notifyAuthReady（本ファイル
+// 残置）をbare呼び出しするための専用ブリッジ（PR-085 __ippoLegacySaveAndSyncと同型パターン）。
+window.__ippoNotifyAuthReady = _notifyAuthReady;
 
 // ===== 食事クイック入力 =====
 var _mealPendingType = '';
@@ -3804,229 +3813,19 @@ document.getElementById('doctorSummaryOverlay').addEventListener('click', functi
   // ===== DEVICE SYNC (デバイス間同期) =====
 // PR-083 (Legacy Removal Batch-5): openSyncModal/closeSyncModal/showLoginForm/
 // toggleSyncMode/showMessage/hideMessage は src/modules/sync-modal.js へ
-// 物理移動済み（import参照）。renderSyncUI/submitSync/syncNow/logoutSync/
-// migrateDataToUserはSync本体ロジックのため本PRのScope外、app-legacy.jsに残置。
+// 物理移動済み（import参照）。PR-089C: renderSyncUI/submitSync/syncNow/
+// logoutSync/migrateDataToUserはsrc/services/supabase.jsへ物理移動済み（import参照）。
 
 document.getElementById('syncOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSyncModal();
 });
 
-async function renderSyncUI() {
-  const body = document.getElementById('syncBody');
-  
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-
-    if (session && session.user) {
-      // ログイン済み
-      const email = session.user.email;
-      document.getElementById('syncStatusBrief').textContent = email;
-      
-      body.innerHTML = `
-        <div class="sync-status">
-          <div class="sync-status-icon">✅</div>
-          <div class="sync-status-text">同期が有効です</div>
-          <div class="sync-status-sub">このアカウントでログインした端末間でデータが共有されます</div>
-          <div class="sync-email-display">${email}</div>
-        </div>
-        <div class="sync-actions">
-          <button class="sync-action-btn primary" onclick="syncNow()">今すぐ同期</button>
-          <button class="sync-action-btn danger" onclick="logoutSync()">ログアウト</button>
-        </div>
-      `;
-    } else {
-      // 未ログイン
-      document.getElementById('syncStatusBrief').textContent = '未ログイン';
-      showLoginForm();
-    }
-  } catch (err) {
-    console.error('Sync UI error:', err);
-    showLoginForm();
-  }
-}
-// PR-083: openSyncModal（sync-modal.js側、物理移動済み）がrenderSyncUI（本ファイル残置）
-// をbare呼び出しするための専用ブリッジ（PR-080E window.__ippoGetBowelCountと同型パターン）。
-window.renderSyncUI = renderSyncUI;
-
 var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
-// PR-083: toggleSyncMode（sync-modal.js側、物理移動済み）がsyncMode（本ファイル残置、
-// submitSyncが参照）を読み書きするための専用ブリッジ（同型パターン）。
+// PR-083: toggleSyncMode（sync-modal.js側、物理移動済み）/ PR-089C: submitSync
+// （services/supabase.js側、物理移動済み）がsyncMode（本ファイル残置）を読み書きする
+// ための専用ブリッジ（同型パターン）。
 window.__ippoGetSyncMode = function () { return syncMode; };
 window.__ippoSetSyncMode = function (v) { syncMode = v; };
-
-async function submitSync() {
-  const email = document.getElementById('syncEmail').value.trim();
-  const password = document.getElementById('syncPassword').value;
-  const btn = document.getElementById('syncSubmitBtn');
-  
-  if (!email || !password) {
-    showMessage('メールアドレスとパスワードを入力してください', 'error');
-    return;
-  }
-  if (password.length < 6) {
-    showMessage('パスワードは6文字以上で入力してください', 'error');
-    return;
-  }
-
-  btn.disabled = true;
-  btn.textContent = '処理中...';
-  hideMessage();
-
-  try {
-    let result;
-    
-    if (syncMode === 'signup') {
-      // 新規登録
-      result = await supabase.auth.signUp({ email, password });
-      
-      if (result.error) throw result.error;
-      
-      if (result.data.user && !result.data.session) {
-        // メール確認が必要
-        showMessage('確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。', 'info');
-        btn.disabled = false;
-        btn.textContent = '登録する';
-        return;
-      }
-    } else {
-      // ログイン
-      result = await supabase.auth.signInWithPassword({ email, password });
-      if (result.error) throw result.error;
-    }
-
-    // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
-    if (result.data.session) {
-      supabaseUserId = result.data.session.user.id;
-      localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
-      _notifyAuthReady();
-      if (result.data.session.user.id === ADMIN_USER_ID) {
-        isPremium = true;
-      }
-      if (typeof updatePremiumBadges === 'function') updatePremiumBadges();
-
-      await migrateDataToUser(result.data.session.user.id);
-      showMessage('ログインしました。データを同期中...', 'success');
-
-      // ★ モーダルを経由したログイン後は明示的にクラウド復元（onAuthStateChangeのガードを回避）
-      cloudRestore().then(function(restored) {
-        if (restored) {
-          // setState 経由で _state を更新しフックで bare state も同期する
-          if (typeof window.setState === 'function') {
-            window.setState(JSON.parse(localStorage.getItem('ippo_state') || '{}'));
-          } else {
-            state = JSON.parse(localStorage.getItem('ippo_state') || '{}');
-          }
-          if (typeof updateStats === 'function') updateStats();
-          if (typeof buildCalendar === 'function') buildCalendar();
-          if (typeof updateDiseaseSettingDisplay === 'function') updateDiseaseSettingDisplay();
-          if (typeof updateDiseaseQuestions === 'function') updateDiseaseQuestions();
-          if (typeof reorderRecordSections === 'function') reorderRecordSections();
-          if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
-          showMessage('同期完了！過去のデータを復元しました ✓', 'success');
-        } else {
-          showMessage('ログインしました。データの同期が有効になりました。', 'success');
-        }
-      }).catch(function(e) {
-        console.warn('ログイン後復元エラー:', e);
-        showMessage('ログインしました。データの同期が有効になりました。', 'success');
-      });
-
-      setTimeout(() => {
-        renderSyncUI();
-      }, 2000);
-    }
-
-  } catch (err) {
-    console.error('Auth error:', err);
-    let errorMsg = 'エラーが発生しました。';
-    if (err.message.includes('Invalid login')) errorMsg = 'メールアドレスまたはパスワードが正しくありません。';
-    else if (err.message.includes('already registered')) errorMsg = 'このメールアドレスはすでに登録されています。ログインしてください。';
-    else if (err.message.includes('Email not confirmed')) errorMsg = 'メールアドレスの確認が完了していません。確認メールを確認してください。';
-    else errorMsg = err.message;
-    
-    showMessage(errorMsg, 'error');
-    btn.disabled = false;
-    btn.textContent = syncMode === 'signup' ? '登録する' : 'ログイン';
-  }
-}
-
-async function migrateDataToUser(userId) {
-  try {
-    const deviceId = localStorage.getItem('ippo_device_id');
-    if (!deviceId) return;
-
-    // records テーブルの device_id のデータに user_id を設定
-    await supabase
-      .from('records')
-      .update({ user_id: userId })
-      .eq('device_id', deviceId)
-      .is('user_id', null);
-
-    // profiles テーブルも同様
-    await supabase
-      .from('profiles')
-      .update({ user_id: userId })
-      .eq('device_id', deviceId)
-      .is('user_id', null);
-
-  } catch (err) {
-    console.error('Migration error:', err);
-  }
-}
-
-async function syncNow() {
-  const btn = document.querySelector('.sync-action-btn.primary');
-  const original = btn.textContent;
-  btn.textContent = '同期中...';
-  btn.disabled = true;
-
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Not logged in');
-
-    const userId = session.user.id;
-    const deviceId = localStorage.getItem('ippo_device_id');
-
-    // 現在の端末のデータをuser_idに紐付け
-    if (deviceId) {
-      await supabase
-        .from('records')
-        .update({ user_id: userId })
-        .eq('device_id', deviceId)
-        .is('user_id', null);
-    }
-
-    btn.textContent = '同期完了 ✓';
-    btn.style.background = '#8aab96';
-    if (typeof cloudRestore === 'function') { cloudRestore().catch(function(){}); }
-
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-      btn.disabled = false;
-    }, 2000);
-
-  } catch (err) {
-    console.error('Sync error:', err);
-    btn.textContent = '同期に失敗しました';
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.disabled = false;
-    }, 2000);
-  }
-}
-
-async function logoutSync() {
-  showConfirmModal('ログアウトしますか？<br>この端末のデータは残りますが、他の端末との同期が無効になります。', async function() {
-    try {
-      await supabase.auth.signOut();
-      document.getElementById('syncStatusBrief').textContent = '未ログイン';
-      renderSyncUI();
-    } catch (err) {
-      console.error('Logout error:', err);
-    }
-  });
-}
 
 // ページ読み込み時に同期状態を確認
 (async function checkSyncStatus() {
@@ -4096,6 +3895,9 @@ var isPremium = false;
 // 意味が異なり管理者バイパスを含まないため、既存挙動を変えないよう別名で新設。
 // PR-080E __ippoGetBowelCount と同型パターン）。
 window.__ippoGetIsPremium = function () { return isPremium; };
+// PR-089C: submitSync（services/supabase.js、物理移動済み）が管理者自動Premium付与時に
+// isPremium（本ファイル残置 var）を更新するための専用ブリッジ（同型パターン）。
+window.__ippoSetIsPremium = function (v) { isPremium = v; };
 
 window.addEventListener('ippo:premium-updated', function (e) {
   if (e.detail && typeof e.detail.isPremium === 'boolean') {
