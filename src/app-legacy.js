@@ -48,6 +48,14 @@ import { reorderRecordSections } from './modules/record-section-order.js';
 import { exportJSON, exportCSV, csvSafe, formatDiseaseCheck, clearData } from './modules/data-export.js';
 // PR-084: showConfirmModal/showAlertModal/showPrivacyInfo/setDailyMessage は src/modules/ui-notifications.js へ物理移動済み。
 import { showConfirmModal, showAlertModal, showPrivacyInfo, setDailyMessage } from './modules/ui-notifications.js';
+// PR-085 (Legacy Removal Batch-7): Meal Tracker は src/modules/meal-tracker.js へ物理移動済み
+// （同ファイルはPhase 4-C由来のopenMealTimePicker/addMealTime以来 未importのorphaned moduleだったが、
+// 本importにより初めてバンドル対象になる — PR-084A disease-settings.jsと同型のギャップ解消）。
+import { parseMealMemo, _updateMealParseFreetextLegacy, saveMealDraft, toggleMealSection, renderMealSections, updateMealParse } from './modules/meal-tracker.js';
+// PR-085 (Legacy Removal Batch-7): Fasting Timer は src/modules/fasting.js へ新設・物理移動済み。
+// FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDEはtoggleFast()（本ファイル残置、Batch-7対象外）も
+// 参照するためfasting.jsをsource of truthとしimport backしている。
+import { FAST_PHASE_CONFIG, FAST_DISEASE_OVERRIDE, setFastGoal, endFast, startFastTimer, resumeFasting, updateFastingWidgetPhase, toggleFastingFeature, applyFastingVisibility } from './modules/fasting.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -1297,6 +1305,10 @@ function saveAndSync(){
     });
   }
 }
+// PR-085: fasting.js（endFast、物理移動済み）が saveAndSync をbare呼び出しするための
+// 専用ブリッジ（window.saveAndSync は record-modal-controller.js が Phase D-1 パターンで
+// 別用途に先取り済み・現状no-opのため衝突を回避、PR-084 __ippoLegacyUpdateStats と同型）。
+window.__ippoLegacySaveAndSync = saveAndSync;
 
 // softDeleteRecord: UI コードから呼ばれる
 function softDeleteRecord(recordId){
@@ -1962,110 +1974,8 @@ function updateUnlock(){
 
 
 // ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
-
-var FAST_PHASE_CONFIG = {
-  '月経期': {
-    icon: '🔴',
-    rec: '12〜13h',
-    goalMin: 12, goalMax: 13,
-    tip: '月経中は無理をせず。鉄分が失われる時期なので短めが安心です。',
-    safeMax: 14,
-    bedRisk: false
-  },
-  '卵胞期': {
-    icon: '🌱',
-    rec: '14〜16h',
-    goalMin: 14, goalMax: 16,
-    tip: 'エストロゲンが上昇し代謝が活発に。断食に取り組みやすい時期です。',
-    safeMax: 18,
-    bedRisk: false
-  },
-  '排卵期': {
-    icon: '🥚',
-    rec: '14〜16h',
-    goalMin: 14, goalMax: 16,
-    tip: 'エネルギー需要が高まる時期。16h以内を目安にしましょう。',
-    safeMax: 16,
-    bedRisk: false
-  },
-  '黄体期': {
-    icon: '🌙',
-    rec: '12〜14h',
-    goalMin: 12, goalMax: 14,
-    // 研究根拠: 黄体期はエストロゲン低下・プロゲステロン上昇により Hedonic Hunger（糖質・高カロリー食への渇望）が増大
-    tip: '今は食欲が増しやすいホルモン状態です。糖質・甘いものへの渇望を感じても、それはあなたの意志の問題ではなくホルモンの働きです。',
-    safeMax: 14,
-    bedRisk: true  // Hedonic Hunger リスク高
-  },
-  '黄体期後期': {
-    icon: '🌑',
-    rec: '12〜13h',
-    goalMin: 12, goalMax: 13,
-    // 研究根拠: PMDD患者では黄体期に卵胞期比で有意にカロリー摂取増加・過食エピソード増加
-    tip: 'PMS/PMDDの影響で食欲コントロールが難しくなる時期です。過食衝動を感じても自分を責めないで。12hの軽めなファスティングがベストです。',
-    safeMax: 13,
-    bedRisk: true  // PMS/PMDD 過食エピソードリスク最大
-  }
-};
-
-// 疾患別推奨値オーバーライド（研究エビデンスに基づく）
-var FAST_DISEASE_OVERRIDE = {
-  // PCOS: インスリン抵抗性改善が治療の鍵（16hファスティングのエビデンスあり）
-  // ただしBEDリスクOR 1.53（2024メタアナリシス N=287,000）に注意
-  'PCOS': {
-    rec: '14〜16h（インスリン感受性向上）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: 'PCOSは過食性障害のリスクが約1.5倍高いというデータがあります。食欲の波は意志の問題ではなくインスリン・アンドロゲンの影響です。'
-  },
-  // 更年期: ペリメノポーズ期のBED有病率3.6%（閉経前0.5%の7倍）
-  '更年期障害': {
-    rec: '13〜15h（代謝サポート）',
-    goalMin: 13, goalMax: 15,
-    bedRisk: true,
-    bedNote: '更年期移行期はホルモン変動により食欲が不安定になりやすい時期です。無理な断食より、規則正しい食事リズムを優先しましょう。'
-  },
-  // PMS/PMDDは黄体期と重複するが疾患として選択している場合は明示
-  'PMS/PMDD': {
-    rec: '12〜14h（黄体期に合わせた柔軟な設定）',
-    goalMin: 12, goalMax: 14,
-    bedRisk: true,
-    bedNote: '黄体期には糖質・高カロリー食への渇望（Hedonic Hunger）が増大します。過食衝動は病気の症状であり、あなたのせいではありません。'
-  },
-  // 子宮内膜症: 抗炎症ファスティングに有効性あり
-  // ただし摂食障害リスクOR 2.94（遺伝的相関rg=0.61, 2026年最新レビュー）に注意
-  // 慢性疼痛による感情的過食・エンドベリーによるボディイメージ低下が引き金
-  '子宮内膜症': {
-    rec: '14〜16h（抗炎症・ケトーシス効果）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: '子宮内膜症のある方は摂食障害のリスクが約3倍高いという最新研究があります。慢性的な痛みやお腹の張り（エンドベリー）が感情的な過食の引き金になりやすいのは自然な反応です。'
-  },
-  // 子宮筋腫: 過食→肥満→エストロゲン過剰→筋腫増大の悪循環を断つ
-  // 体重管理が治療の鍵だが、過度な制限はリバウンドリスクあり
-  '子宮筋腫': {
-    rec: '12〜14h（体重・エストロゲン管理）',
-    goalMin: 12, goalMax: 14,
-    bedRisk: true,
-    bedNote: '過食→体重増加→脂肪組織でのエストロゲン産生増加→筋腫の成長促進という悪循環が研究で示されています。無理な制限よりも、安定したリズムが大切です。'
-  },
-  // 子宮腺筋症: 子宮内膜症に準じた抗炎症アプローチ
-  '子宮腺筋症': {
-    rec: '14〜16h（抗炎症サポート）',
-    goalMin: 14, goalMax: 16,
-    bedRisk: true,
-    bedNote: '慢性的な痛みやストレスが感情的過食につながりやすい傾向があります。断食より、まず痛みの管理を優先してください。'
-  },
-  // 卵巣嚢腫: オートファジー活性化・酸化ストレス軽減・HPO軸修復
-  // [根拠] Yin et al. 2018: 30%カロリー制限でマウスの子宮内膜症性嚢腫が最大93%縮小（オートファジー促進・VEGF抑制）
-  // [根拠] Ryu et al. 2023 (Scientific Reports): 20h断食TRFでPCOS性嚢胞が正常形態に回復、テストステロン・LH正常化
-  '卵巣嚢腫': {
-    rec: '13〜15h（オートファジー促進・酸化ストレス軽減）',
-    goalMin: 13, goalMax: 15,
-    bedRisk: false,
-    bedNote: '食事リズムを整えることで、インスリンバランスとホルモン環境を安定させるサポートができます。規則的な断食パターンと卵巣の健康との関連は動物実験で研究されており、オートファジー（細胞の自食作用）の活性化や酸化ストレスの軽減が注目されています。※本アプリはセルフケアのサポートを目的としており、医療行為ではありません。'
-  }
-};
+// PR-085 (Legacy Removal Batch-7): FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDE は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
 
 // 過食衝動サポート: フェーズ・疾患別の検証メッセージと対処法
 var BINGE_URGE_SUPPORT = {
@@ -2147,74 +2057,13 @@ var FAST_RECOVERY_FOODS = {
 
 function getCurrentCyclePhase(){return typeof window.getCurrentCyclePhase==='function'?window.getCurrentCyclePhase():null;}
 
-function updateFastingWidgetPhase() {
-  var infoEl = document.getElementById('fast-phase-info');
-  if (!infoEl) return;
-
-  var phase = getCurrentCyclePhase();
-  var diseases = state.myDiseases || [];
-
-  // 疾患オーバーライド（優先順位: PCOS > 子宮内膜症 > PMS/PMDD > 子宮腺筋症 > 子宮筋腫 > 更年期 > 卵巣嚢腫）
-  var diseaseOverride = null;
-  var activeDiseaseName = null;
-  ['PCOS', '子宮内膜症', 'PMS/PMDD', '子宮腺筋症', '子宮筋腫', '更年期障害', '卵巣嚢腫'].forEach(function(dk) {
-    if (!diseaseOverride && diseases.indexOf(dk) !== -1 && FAST_DISEASE_OVERRIDE[dk]) {
-      diseaseOverride = FAST_DISEASE_OVERRIDE[dk];
-      activeDiseaseName = dk;
-    }
-  });
-
-  if (!phase && !diseaseOverride) { infoEl.style.display = 'none'; return; }
-
-  infoEl.style.display = 'block';
-  var cfg = (phase && FAST_PHASE_CONFIG[phase]) || {};
-
-  var iconEl  = document.getElementById('fast-phase-icon');
-  var nameEl  = document.getElementById('fast-phase-name');
-  var recEl   = document.getElementById('fast-phase-rec');
-  var tipEl   = document.getElementById('fast-phase-tip');
-
-  if (phase && cfg.icon) {
-    if (iconEl) iconEl.textContent = cfg.icon;
-    if (nameEl) nameEl.textContent = phase + (activeDiseaseName ? ' · ' + activeDiseaseName : '');
-    var recText = diseaseOverride ? diseaseOverride.rec : cfg.rec;
-    if (recEl)  recEl.textContent  = recText;
-    if (tipEl)  tipEl.textContent  = cfg.tip || '';
-  } else if (diseaseOverride) {
-    if (iconEl) iconEl.textContent = '💊';
-    if (nameEl) nameEl.textContent = activeDiseaseName + 'モード';
-    if (recEl)  recEl.textContent  = diseaseOverride.rec;
-    if (tipEl)  tipEl.textContent  = diseaseOverride.bedNote || '';
-  }
-
-  // 過食衝動サポートボタン: BEDリスク高のフェーズ or 疾患の場合に表示
-  var showBingeBtn = (cfg.bedRisk) || (diseaseOverride && diseaseOverride.bedRisk);
-  var bingeBtnWrap = document.getElementById('fast-binge-btn-wrap');
-  if (bingeBtnWrap) bingeBtnWrap.style.display = showBingeBtn ? 'block' : 'none';
-}
-
-function showRecoveryGuide(){if(typeof window.showRecoveryGuide==='function')window.showRecoveryGuide();}
+// PR-085 (Legacy Removal Batch-7): updateFastingWidgetPhase/showRecoveryGuide(local wrapper)/
+// fastInterval/window.__ippoStopFastInterval/setFastGoal は src/modules/fasting.js へ物理移動済み
+// （本ファイル冒頭で import back）。
 
 // 過食衝動サポートモーダル（研究エビデンスに基づく）
 
 // ===== FASTING TIMER =====
-let fastInterval = null;
-// PR-084: clearData（data-export.js側、物理移動済み）が fastInterval（本ファイル残置、
-// Fasting Timer機能のタイマーID、Batch-7未移植）をリセットするための専用ブリッジ
-// （PR-080E window.__ippoGetBowelCount と同型パターン）。
-window.__ippoStopFastInterval = function () {
-  if (fastInterval !== null) {
-    clearInterval(fastInterval);
-    fastInterval = null;
-  }
-};
-
-function setFastGoal(h, el) {
-  state.fastGoal = h;
-  saveState();
-  document.querySelectorAll('.fw-pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-}
 
 function toggleFast() {
   // fastingActiveがtrueでもfastingStartが欠落している不整合状態をリセット
@@ -2277,89 +2126,8 @@ function toggleFast() {
 }
 
 
-function endFast() {
-  if (!state.fastingActive) return;
-  const elapsed = (Date.now() - state.fastingStart) / 1000 / 3600;
-  state.fastingActive = false;
-  state.fastingStart = null;
-  state.fastingEnded = Date.now();
-  clearInterval(fastInterval);
-
-  // タイマー結果を今日の記録に保存
-  var todayStr = new Date().toDateString();
-  var rec = null;
-  for(var i=0; i<state.records.length; i++){
-    if(new Date(state.records[i].date).toDateString() === todayStr){ rec = state.records[i]; break; }
-  }
-  if(!rec){
-    var _now = new Date();
-    rec = { date: _now.toISOString(), record_date: _now.toISOString().slice(0, 10) };
-    state.records.push(rec);
-  }
-  rec.fastingTimer = Math.round(elapsed * 10) / 10;
-  rec.fastingGoal = state.fastGoal || 16;
-
-  saveState();
-  saveAndSync()
-  document.getElementById('fast-start-btn').style.display = 'block';
-  document.getElementById('fast-stop-btn').style.display = 'none';
-  document.getElementById('fast-timer').textContent = '00:00:00';
-  document.getElementById('fast-status').textContent = `終了: ${elapsed.toFixed(1)}h 達成！`;
-
-  // 回復食ガイドを表示
-  showRecoveryGuide();
-}
-
-function resumeFasting() {
-  // Restore pill active state from saved goal
-  document.querySelectorAll('.fw-pill').forEach(p => {
-    p.classList.toggle('active', parseInt(p.textContent) === state.fastGoal);
-  });
-  document.getElementById('fast-start-btn').style.display = 'none';
-  document.getElementById('fast-stop-btn').style.display = 'block';
-  document.getElementById('fast-status').textContent = `目標：${state.fastGoal}時間`;
-  startFastTimer();
-}
-
-function startFastTimer() {
-  // Always clear before starting — prevents double-run on re-render
-  if (fastInterval !== null) {
-    clearInterval(fastInterval);
-    fastInterval = null;
-  }
-  fastInterval = setInterval(() => {
-    if (!state.fastingStart) return;
-    const elapsed = Date.now() - state.fastingStart;
-    const h = Math.floor(elapsed / 3600000);
-    const m = Math.floor((elapsed % 3600000) / 60000);
-    const s = Math.floor((elapsed % 60000) / 1000);
-    const fmt = v => String(v).padStart(2, '0');
-    const timerEl = document.getElementById('fast-timer');
-    const statusEl = document.getElementById('fast-status');
-    if (!timerEl || !statusEl) { clearInterval(fastInterval); fastInterval = null; return; }
-    timerEl.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
-    const goalMs = state.fastGoal * 3600000;
-      if (elapsed >= goalMs) {
-      statusEl.textContent = '🎉 ' + state.fastGoal + 'h 達成！';
-      if (!state.fastingNotified) {
-        state.fastingNotified = true;
-        saveState();
-        if ('Notification' in window && Notification.permission === 'granted') {
-          new Notification('ippo 🌸ファスティング達成！', {
-            body: state.fastGoal + '時間のファスティングを達成しました！おつかれさまです。',
-            icon: 'images/icon-192.png'
-          });
-        }
-      }
-    } else {
-      const remaining = goalMs - elapsed;
-      const rh = Math.floor(remaining / 3600000);
-      const rm = Math.floor((remaining % 3600000) / 60000);
-      statusEl.textContent = '目標まであと ' + rh + 'h' + rm + 'm';
-    }
-  }, 1000);
-}
-
+// PR-085 (Legacy Removal Batch-7): endFast/resumeFasting/startFastTimer は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
 
 // ===== ホーム周期フェーズバナー =====
 var PHASE_BANNER_CONFIG = {
@@ -4688,26 +4456,8 @@ function createMealDonut(meals, fasting, fastingGoal){
 // src/modules/ui-notifications.js へ物理移動済み（import参照）。
 
 // ===== ファスティング機能のオプション化 =====
-function toggleFastingFeature() {
-  state.fastingEnabled = !state.fastingEnabled;
-  saveState();
-  applyFastingVisibility();
-  var label = document.getElementById('fasting-toggle-label');
-  if (label) label.textContent = state.fastingEnabled ? 'オン' : 'オフ';
-}
-
-function applyFastingVisibility() {
-  var widget = document.getElementById('home-fasting-widget');
-  var recoveryCard = document.getElementById('fast-recovery-card');
-  var show = !!state.fastingEnabled;
-  if (widget) widget.style.display = show ? 'block' : 'none';
-  if (recoveryCard) recoveryCard.style.display = 'none'; // 終了時のみ表示
-  // ファスティング中なら強制表示
-  if (state.fastingActive && widget) widget.style.display = 'block';
-  // ラベル更新
-  var label = document.getElementById('fasting-toggle-label');
-  if (label) label.textContent = show ? 'オン' : 'オフ';
-}
+// PR-085 (Legacy Removal Batch-7): toggleFastingFeature/applyFastingVisibility は
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back）。
 
 // ===== 体温アラート =====
 function checkSuddenTempRise(records, diseases) {
@@ -5205,76 +4955,9 @@ function selectRsCycle(el, val){
   }
 }
 // ===== フリーメモ自動解析 =====
-function parseMealMemo(text){
-  if(!text) return null;
-  var lines = text.split('\n');
-  var allTimes = [];
-  var foodTimes = [];
-  var drinkPattern = /飲み物|飲料|お水|水分|コーヒー|カフェラテ|カプチーノ|エスプレッソ|お茶|緑茶|麦茶|ほうじ茶|煎茶|玄米茶|番茶|紅茶|ハーブティー|ルイボス|ジュース|スムージー|牛乳|豆乳|ヨーグルト飲料|ラッシー|スポーツドリンク|ポカリ|アクエリ|アミノ酸|コーラ|サイダー|炭酸水|ソーダ|トニック|レモネード|甘酒|昆布水/;
-  lines.forEach(function(line){
-    line = line.trim();
-    if(!line) return;
-    var m = line.match(/(\d{1,2}):?(\d{2})/);
-    if(m){
-      var h = parseInt(m[1]);
-      var min = parseInt(m[2]);
-      if(h >= 0 && h <= 23 && min >= 0 && min <= 59){
-        var totalMin = h * 60 + min;
-        allTimes.push(totalMin);
-        // 飲み物判定
-        var label = line.replace(/\d{1,2}:?\d{2}\s*/, '').trim();
-        if(!label) return; // 食品名のない行はスキップ
-        var items = label.split(/[、,\/\s]+/).filter(function(s){ return s; });
-        var drinkItems = items.filter(function(s){ return drinkPattern.test(s); });
-        var isDrinkOnly = drinkItems.length > 0 && drinkItems.length >= items.length;
-        if(!isDrinkOnly){
-          foodTimes.push(totalMin);
-        }
-      }
-    }
-  });
-  if(allTimes.length === 0) return null;
-  // 食事がない場合（飲み物のみ）はファスティングなし
-  if(foodTimes.length === 0){
-    var toTime2 = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-    return { mealCount: 0, firstTime: '', lastTime: '', fastingHours: 0 };
-  }
-  var countTimes = foodTimes;
-  countTimes.sort(function(a,b){ return a-b; });
-  var firstMin = countTimes[0];
-  var lastMin = countTimes[countTimes.length - 1];
-  var fastHours = 0;
-  if(foodTimes.length >= 2){
-    var eatWindow = lastMin - firstMin;
-    fastHours = Math.round((1440 - eatWindow) / 60 * 10) / 10;
-    if(fastHours < 12) fastHours = 0;
-  }
-  var toTime = function(m){ return ('0'+Math.floor(m/60)).slice(-2)+':'+('0'+(m%60)).slice(-2); };
-  return { mealCount: foodTimes.length, firstTime: toTime(firstMin), lastTime: toTime(lastMin), fastingHours: fastHours };
-}
-
-function _updateMealParseFreetextLegacy(){
-  var ta = document.getElementById('rs-meal-free');
-  var box = document.getElementById('meal-auto-parse');
-  if(!ta || !box) return;
-  var result = parseMealMemo(ta.value);
-  if(result && result.mealCount > 0){
-    box.style.display = 'block';
-    document.getElementById('parse-meal-count').textContent = result.mealCount;
-    document.getElementById('parse-first-time').textContent = result.firstTime;
-    document.getElementById('parse-last-time').textContent = result.lastTime;
-    var _fastEl = document.getElementById('parse-fasting'); if(_fastEl) _fastEl.textContent = result.fastingHours;
-  } else {
-    box.style.display = 'none';
-  }
-}
-
-if(!window._ippoInputListenerAdded){
-  window._ippoInputListenerAdded = true;
-  document.addEventListener('input', function(e){
-    if(e.target.id === 'rs-meal-free') _updateMealParseFreetextLegacy();
-  });
-}
+// PR-085 (Legacy Removal Batch-7): parseMealMemo/_updateMealParseFreetextLegacy
+// （及び付随する input リスナー登録）は src/modules/meal-tracker.js へ物理移動済み
+// （本ファイル冒頭で import back）。
 
   function insertMealTemplate(type) {
   var ta = document.getElementById('rs-meal-free');
@@ -5299,100 +4982,9 @@ if(!window._ippoInputListenerAdded){
   else if (typeof _updateMealParseFreetextLegacy === 'function') _updateMealParseFreetextLegacy();
 }
 
-function saveMealDraft(){
-  var ta = document.getElementById('rs-meal-free');
-  if(!ta) return;
-  localStorage.setItem('ippo_meal_draft', JSON.stringify({ mealFree: ta.value, _draftDate: new Date().toISOString() }));
-  var msg = document.getElementById('draft-saved-msg');
-  if(msg){ msg.style.display = 'inline'; setTimeout(function(){ msg.style.display = 'none'; }, 2000); }
-}
-
-
-  // ===== 食事セクション管理 =====
-var mealSectionConfig = {
-  morning: { icon: '🌅', label: '朝食', defaultTime: '07:00' },
-  lunch:   { icon: '☀️', label: '昼食', defaultTime: '12:00' },
-  dinner:  { icon: '🌙', label: '夕食', defaultTime: '19:00' },
-  snack:   { icon: '🍪', label: '間食', defaultTime: '15:00' }
-};
-var openMealSections = [];
-
-function toggleMealSection(key) {
-  var idx = openMealSections.indexOf(key);
-  if (idx !== -1) {
-    openMealSections.splice(idx, 1);
-  } else {
-    openMealSections.push(key);
-  }
-  renderMealSections();
-}
-
-function renderMealSections() {
-  var container = document.getElementById('meal-sections');
-  var html = '';
-  var keys = ['morning', 'lunch', 'dinner', 'snack'];
-  
-  keys.forEach(function(key) {
-    var btn = document.getElementById('meal-btn-' + key);
-    if (openMealSections.indexOf(key) !== -1) {
-      btn.classList.add('selected');
-      var cfg = mealSectionConfig[key];
-      var timeVal = document.getElementById('meal-time-' + key);
-      var textVal = document.getElementById('meal-text-' + key);
-      var currentTime = timeVal ? timeVal.value : cfg.defaultTime;
-      var currentText = textVal ? textVal.value : '';
-      
-      html += '<div style="background:var(--white);border-radius:14px;padding:14px;margin-bottom:10px;box-shadow:0 1px 6px var(--shadow);">';
-      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">';
-      html += '<span style="font-size:18px;">' + cfg.icon + '</span>';
-      html += '<span style="font-size:14px;font-weight:500;color:var(--ink);">' + cfg.label + '</span>';
-      html += '<input type="time" id="meal-time-' + key + '" class="meal-time-input" value="' + currentTime + '" onchange="updateMealParse()" style="margin-left:auto;width:auto;">';
-      html += '</div>';
-      html += '<textarea id="meal-text-' + key + '" class="modal-textarea" placeholder="食べたものを入力..." oninput="updateMealParse()" style="min-height:60px;margin-bottom:0;">' + currentText + '</textarea>';
-      html += '</div>';
-    } else {
-      btn.classList.remove('selected');
-    }
-  });
-  
-  container.innerHTML = html;
-  updateMealParse();
-}
-
-function updateMealParse() {
-  var count = 0;
-  var times = [];
-  var keys = ['morning', 'lunch', 'dinner', 'snack'];
-  
-  keys.forEach(function(key) {
-    if (openMealSections.indexOf(key) === -1) return;
-    var textEl = document.getElementById('meal-text-' + key);
-    var timeEl = document.getElementById('meal-time-' + key);
-    if (textEl && textEl.value.trim()) {
-      count++;
-      if (timeEl && timeEl.value) times.push(timeEl.value);
-    }
-  });
-  
-  times.sort();
-  var countEl = document.getElementById('parse-meal-count');
-  var firstEl = document.getElementById('parse-first-time');
-  var lastEl = document.getElementById('parse-last-time');
-  var fastEl = document.getElementById('parse-fasting');
-  if(countEl) countEl.textContent = count;
-  if(firstEl) firstEl.textContent = times.length > 0 ? times[0] : '--:--';
-  if(lastEl) lastEl.textContent = times.length > 0 ? times[times.length - 1] : '--:--';
-  
-  if (times.length >= 2) {
-    var first = times[0].split(':');
-    var last = times[times.length - 1].split(':');
-    var eating = (parseInt(last[0]) + parseInt(last[1]) / 60) - (parseInt(first[0]) + parseInt(first[1]) / 60);
-    var fasting = Math.round((24 - eating) * 10) / 10;
-    if(fastEl) fastEl.textContent = fasting;
-  } else {
-    if(fastEl) fastEl.textContent = '0';
-  }
-}
+// PR-085 (Legacy Removal Batch-7): saveMealDraft/mealSectionConfig/openMealSections/
+// toggleMealSection/renderMealSections/updateMealParse は src/modules/meal-tracker.js へ
+// 物理移動済み（本ファイル冒頭で import back）。
 
   // ===== 新規記録セクション用関数 =====
 function selectEnergy(btn, val){

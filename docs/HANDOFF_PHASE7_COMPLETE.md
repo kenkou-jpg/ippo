@@ -843,7 +843,57 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   domain-event-types.test.js・event-menstrual.test.js）のみで増加なし / vite build PASS
   （警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで本PR無関係）。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-085 — Batch-7: Meal Tracker & Fasting（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
+
+  ✓ PR-085  Batch-7: Meal Tracker & Fasting — docs/LEGACY_REMOVAL_PLAN.md 4章 / phase4d-legacy-migration-audit.md
+  Batch-7節（約13関数）に基づき、以下2ファイルへ物理移動:
+    - `src/modules/meal-tracker.js`（拡充）: parseMealMemo/_updateMealParseFreetextLegacy/
+      saveMealDraft/toggleMealSection/renderMealSections/updateMealParse + 付随するmodule-scope
+      `mealSectionConfig`/`openMealSections`（toggleMealSection/renderMealSections/updateMealParse
+      間でのみ共有のため非export）+ `rs-meal-free` input リスナー登録（`_ippoInputListenerAdded`
+      ガード込み）
+    - `src/modules/fasting.js`（新設）: setFastGoal/endFast/startFastTimer/resumeFasting/
+      updateFastingWidgetPhase/toggleFastingFeature/applyFastingVisibility
+  【実装前調査での重要な発見】meal-tracker.jsはPhase 4-C（openMealTimePicker/addMealTime新設）
+  以来 main.js/app-legacy.jsのどこからもimportされていないorphaned moduleだったと判明
+  （disease-settings.js・PR-084Aと同型のギャップ）。本PRでapp-legacy.js冒頭に
+  `import { ... } from './modules/meal-tracker.js';` を追加したことで、追加の復旧PRなしに
+  初めてバンドル対象になり解消（PR-084A同様の個別バグ修正PRは不要だった）/
+  FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDE（疾患別ファスティング推奨値データ）はtoggleFast()
+  （app-legacy.js残置、Batch-7対象外）も参照するためfasting.jsをsource of truthとしexport、
+  app-legacy.js側でimport back（既存の物理移動→import-back idiomをデータ定数にも適用）/
+  fastInterval（module-scopeタイマーID）とwindow.__ippoStopFastInterval ブリッジ
+  （PR-084 clearData()が呼ぶ）もfasting.jsへ完全移動 / endFast内のbare `saveAndSync()`は、
+  window.saveAndSyncがrecord-modal-controller.jsのPhase D-1パターンに既に先取りされ現状no-op
+  のため、専用ブリッジ`window.__ippoLegacySaveAndSync`経由に変更（PR-084
+  `__ippoLegacyUpdateStats`と同型パターン、実体のsaveAndSync呼び出しは維持）/
+  getCurrentCyclePhase()/showRecoveryGuide()はapp-legacy.js側にも同名の薄いwindowブリッジ
+  委譲ラッパーが残る（toggleFast等Batch-7対象外関数が使用）ため、fasting.js側にも同一実装を
+  ローカル複製（真の実装はcycle側/recovery-journey.js側にあり単なる委譲ラッパーの複製）/
+  【実装前調査でのもう一つの発見】toggleMealSection/renderMealSections/updateMealParse/
+  saveMealDraftが対象とするDOM（`meal-sections`コンテナ・`meal-btn-*`ボタン・
+  `draft-saved-msg`）およびfasting.jsの7関数が対象とするDOM
+  （`fast-start-btn`/`fast-stop-btn`/`fast-timer`/`fast-status`/`.fw-pill`/
+  `fasting-toggle-label`等）は現行app.htmlに一切存在せず（`home-fasting-widget`は常に空div）、
+  呼び出し元onclickも見つからない — 現行UIから到達不能な既存のdead code
+  （PR-084 symptom-settings.js系4関数と同型判断、本PR起因ではなく現状維持）。一方
+  parseMealMemo/_updateMealParseFreetextLegacy（`rs-meal-free`自由記述メモ欄の自動解析）は
+  現行UIから到達可能でactiveなことをBrowser Verificationで確認 / 新規テスト追加なし
+  （DOM操作中心のUI関数の純粋物理移動、PR-082A〜PR-084と同型判断、Browser Verificationで代替）/
+  SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js BASELINE_LINE_COUNTを
+  6,650→6,242に更新 / app-legacy.js: 6,650行→6,242行 / vitest run全件: 5,171件、失敗39件は
+  既知5ファイル（build-draft-from-ui.test.js・save-record-screen.test.js・
+  disease-analyzer.test.js・domain-event-types.test.js・event-menstrual.test.js）のみで増加なし
+  / vite build PASS（警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過の
+  みで本PR無関係）/ Browser Verification: Vite dev server + app.html実機で以下を確認 —
+  record画面`rs-meal-free`に食事メモ3件を入力→input イベント発火→`meal-auto-parse`ボックスが
+  表示され食事回数3・最初07:00・最後19:00を正しく算出することを確認 / settings画面
+  `toggleFastingFeature()`のonclick経由でstate.fastingEnabled切替・`home-fasting-widget`表示
+  切替・localStorage永続化（`window.saveState()`経由）を確認 / setFastGoal/startFastTimer/
+  endFast/resumeFasting/updateFastingWidgetPhaseを直接呼び出しエラーなく実行されること
+  （`__ippoStopFastInterval`/`__ippoLegacySaveAndSync`ブリッジ経由の呼び出しを含む）を確認 /
+  Console Errorはvite websocket接続失敗ノイズとSupabase未設定環境ノイズのみで新規エラーなし。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
+  Next: PR-086 — Batch-8: Home Insight & Cycle UI（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
 
 ---
 
