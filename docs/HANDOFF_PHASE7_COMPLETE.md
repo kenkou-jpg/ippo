@@ -819,6 +819,30 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   エラーなく実行（既存のguard節により安全にno-op）/ Console Errorはvite websocket接続失敗ノイズと
   Supabase未設定環境ノイズのみで新規エラーなし。Decision Log: 更新不要（Architecture/Roadmap/Business/
   Founder Strategy変更なし）。
+
+  ✓ PR-084A  disease-settings.js復旧（Bugfix, FASTモード）— PR-084で発見・spawn_task化された
+  「disease-settings.jsが未importで実質死んでいる」件を修正 / 原因調査（git log -S）の結果、
+  491d0fd（Phase 4-C: 10モジュール新設）でapp-legacy.jsからDisease Settings UI 7関数を
+  disease-settings.jsへ抽出した際、import wiring自体が一度も追加されていなかったと判明
+  （「外れた」のではなく「最初から未接続」）/ 同一コミットで新設されたtimeline.js/experiments.js/
+  vision.js/meal-tracker.js/pain-scale.jsも同様に未importと確認したが、本PRはdisease-settings.js
+  のみがScope（他ファイルは別タスク）/ disease-settings.jsは末尾でwindow.openDiseaseSettings等を
+  自己登録する設計（settings-panel.jsと同型、symptom-settings.js等のapp-legacy.js内named-import+
+  window bridge方式とは異なる）と判明したため、src/main.jsのsettings-panel.js import直後
+  （app-legacy.js importより後、Settings系importのまとまりに追加）に
+  `import './modules/disease-settings.js';` を1行追加 / disease-settings.js本体・app-legacy.js・
+  app.html・settings.htmlは無変更（Business Logic変更ゼロ、UI変更ゼロ）/ Browser Verification
+  （Vite dev server + app.html実機、SW cache clear必須・PR-081/083/084と同型の既知環境要因）:
+  window.openDiseaseSettings()→「気になる疾患を選択」overlay表示→子宮内膜症チップ選択→
+  saveDiseaseSettings()→state.myDiseases=["子宮内膜症"]反映・disease-setting-display表示更新・
+  overlay解除を確認 / Record画面へ遷移しSTEP 4「疾患セルフチェック」に子宮内膜症の質問
+  （生理痛の強さ/性交痛/排便時の痛み/生理以外の骨盤痛）が表示されることを確認 / Console Errorは
+  vite websocket接続失敗ノイズのみで新規エラーなし / 新規テスト追加なし（1行importのみ、
+  Browser Verificationで代替）/ vitest run全件: 5,171件、失敗39件は既知5ファイル
+  （build-draft-from-ui.test.js・save-record-screen.test.js・disease-analyzer.test.js・
+  domain-event-types.test.js・event-menstrual.test.js）のみで増加なし / vite build PASS
+  （警告は既存のチャンク循環参照・動的/静的import混在・チャンクサイズ超過のみで本PR無関係）。
+  Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
   Next: PR-085 — Batch-7: Meal Tracker & Fasting（docs/LEGACY_REMOVAL_PLAN.md 4章参照）。
 
 ---
