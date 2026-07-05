@@ -1525,7 +1525,18 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**Release Readiness Council**（Wave2正式完了後の次ステップ）
+**PR-090 Legacy Exit Audit**（Legacy Removal Program — PR-089Z Final Cutover判定後の次ステップ）
+- PR-089Z（2026-07-05完了）で`app-legacy.js`は「削除不可」と判定され、Remaining Legacy 7項目
+  （home cluster / saveRecord / closeModal系no-op / window.state所有権 / window exportハブ機能 /
+  updateSettingsHero・closeSuccess / 未精査window export残存分）が確定した。詳細は
+  `docs/PR-089Z-final-cutover-decision.md`参照。
+- PR-090では、これらRemaining Legacy項目それぞれについてFounderが個別に
+  (a)製品判断（home cluster等の重複解消）、(b)Architecture変更承認（window.state所有権移管）、
+  (c)バグ修正優先度（no-op問題）を判断した後、次PRのスコープを設定する。
+- Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
+  10,804行から2,765行（約74%削減）まで縮小した時点で、一旦の区切りとする。
+
+**Release Readiness Council**（Wave2正式完了後の次ステップ、Legacy Removal Programとは別系統）
 - Wave2（PR-041〜075）は2026-07-02にFounder承認（kenkou-jpg）を得て正式完了。
 - Wave3 MASTER DESIGN入力・Wave3 Roadmap起点はRelease Readiness Council開催後に着手する。
 - 本HANDOFFはPR実行ルールのエントリポイントであり、Release Readiness Council / Legacy Removal / Operations Council開始の要否・進行はFounderが別途判断する。
@@ -1533,6 +1544,28 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 ---
 
 ## 直前PR完了メモ
+
+**PR-089Z: Legacy Removal Final Cutover判定**（Legacy Removal Program最終PR、コード変更ゼロ）
+- 目的: PR-089A〜PR-089F-7GまでのLegacy Removal監査・移植結果をもとに、`app-legacy.js`の
+  最終削除可否を判定する。
+- **判定: `app-legacy.js`は削除不可。** 静的解析（grep全件確認）+ ビルドレベル実地検証
+  （`import './app-legacy.js';`を一時除外して`npx vite build`実行 → ビルド自体は成功、
+  検証後に復元）+ Node.js/jsdomによるモジュール単体実行時検証、の3手法で確認した。
+- 削除不可の主因: (1) `window.state`の唯一の提供元であり`src/store/state.js`側の設計もこれに
+  依存、(2) PR-079〜088で物理移動済みの多数のモジュールにとって、app-legacy.js末尾の
+  window exportブロックが唯一の`window.*`公開経路になっている（移動先モジュール自身は
+  window exportしていないケースを確認）、(3) `initNavIcons`/`initSettingsIcons`等、
+  他に委譲先のない実働コードを内包。
+- `closeModal`/`openRecordModal`/`saveAndSync`のno-op疑惑（`record-modal-controller.js`の
+  `_inline*`委譲パターン）をjsdom実行時検証で確定。設計コメントが前提とする「inline
+  `<script>`実行後にロード」という条件が、現行コード（`<script type="module">`1本のみ）では
+  満たされないため。ユーザー影響のある潜在バグだが、到達経路が2026-05-27付けsoft-isolated済み
+  の`#record-modal`に限定されるため、Release Riskは低〜中と判定。修正は別途Founderが優先度判断。
+- Chrome拡張機能（claude-in-chrome）が本PR実施中終始接続不可のため、実ブラウザでの
+  クリック検証は未実施。代替としてNode.js/jsdomのモジュール単体実行時検証を採用。
+- Build PASS / `tests/arch/`(Legacy Guard含む) 104件PASS / `vitest run` 5,193件中失敗39件
+  （既知5ファイルのみ、増加なし）。
+- 詳細・Remaining Legacy一覧・Decision Log候補は`docs/PR-089Z-final-cutover-decision.md`参照。
 
 **Wave2 Official Completion — Founder Approval**（Wave2正式完了、Phase G capstone後続）
 - 2026-07-02、Founder（kenkou-jpg）が `generateWave2ExitReport()` の結果を確認し「APPROVE WAVE2 EXIT」を明示。
