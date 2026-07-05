@@ -53,9 +53,9 @@ import { showConfirmModal, showAlertModal, showPrivacyInfo, setDailyMessage } fr
 // 本importにより初めてバンドル対象になる — PR-084A disease-settings.jsと同型のギャップ解消）。
 import { parseMealMemo, _updateMealParseFreetextLegacy, saveMealDraft, toggleMealSection, renderMealSections, updateMealParse } from './modules/meal-tracker.js';
 // PR-085 (Legacy Removal Batch-7): Fasting Timer は src/modules/fasting.js へ新設・物理移動済み。
-// FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDEはtoggleFast()（本ファイル残置、Batch-7対象外）も
-// 参照するためfasting.jsをsource of truthとしimport backしている。
-import { FAST_PHASE_CONFIG, FAST_DISEASE_OVERRIDE, setFastGoal, endFast, startFastTimer, resumeFasting, updateFastingWidgetPhase, toggleFastingFeature, applyFastingVisibility } from './modules/fasting.js';
+// PR-089F-7F: toggleFast()（本ファイル残置分）を確認済みDead Codeとして削除したため、
+// toggleFast()専用だったFAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDEのimportも合わせて削除。
+import { setFastGoal, endFast, startFastTimer, resumeFasting, updateFastingWidgetPhase, toggleFastingFeature, applyFastingVisibility } from './modules/fasting.js';
 // PR-086 (Legacy Removal Batch-8): getPhaseForDate/isPeriodExpected/buildComparisonComment
 // （+ 未文書化ヘルパー buildDayComparison/buildWeekComparison）は
 // src/modules/cycle-utils.js へ新設・物理移動済み。
@@ -224,10 +224,9 @@ var VISION_PRESETS = [
 
   
 
-function icon(name, size, color) {
-  if (!ICONS[name]) return '';
-  return ICONS[name](size, color);
-}
+// PR-089F-7F (Legacy Removal Batch-11分割⑦-F): icon(name, size, color) を削除（確認済みDead Code）。
+// 呼び出し元ゼロ（bare呼び出し・window export・HTML onclick・テストいずれも存在せず）を確認済み。
+// アイコン注入は initNavIcons/initSettingsIcons が ICONS[name](size, color) を直接呼ぶため本関数は不要。
 
 // ===== ナビアイコン注入 =====
 function initNavIcons() {
@@ -935,7 +934,8 @@ function updateHistory(){
 
 // ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
 // PR-085 (Legacy Removal Batch-7): FAST_PHASE_CONFIG/FAST_DISEASE_OVERRIDE は
-// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
+// src/modules/fasting.js へ物理移動済み。PR-089F-7F: 唯一の参照元だったtoggleFast()を
+// 確認済みDead Codeとして削除したため、本ファイルでのimportも削除済み。
 
 // 過食衝動サポート: フェーズ・疾患別の検証メッセージと対処法
 var BINGE_URGE_SUPPORT = {
@@ -1026,69 +1026,15 @@ var FAST_RECOVERY_FOODS = {
 
 // ===== FASTING TIMER =====
 
-function toggleFast() {
-  // fastingActiveがtrueでもfastingStartが欠落している不整合状態をリセット
-  if (state.fastingActive && !state.fastingStart) {
-    state.fastingActive = false;
-    state.fastingStart = null;
-    saveState();
-    var sb = document.getElementById('fast-start-btn');
-    var eb = document.getElementById('fast-stop-btn');
-    if (sb) sb.style.display = 'block';
-    if (eb) eb.style.display = 'none';
-  }
-  if (state.fastingActive) return;
-
-  // 安全チェック①：月経期・黄体期で推奨safeMaxを超えた場合
-  // ※ confirm()はモバイルPWAでブロックされることがあるためトーストに変更
-  var phase = getCurrentCyclePhase();
-  var cfg = phase ? FAST_PHASE_CONFIG[phase] : null;
-  if (cfg && state.fastGoal > cfg.safeMax) {
-    if(typeof showToast === 'function'){
-      showToast('⚠️ ' + phase + '中は ' + cfg.rec + ' が推奨です。体調を最優先にしてください。', 'warn');
-    }
-    // 注意を促した上で続行（強制ブロックではなく自己判断を尊重）
-  }
-
-  // 安全チェック②：BEDリスクの高い疾患ユーザーへの配慮メッセージ
-  var diseases = state.myDiseases || [];
-  var bedDisease = null;
-  // 子宮内膜症 OR 2.94 → 最優先で警告
-  ['子宮内膜症', '子宮腺筋症', 'PCOS', '子宮筋腫', 'PMS/PMDD', '更年期障害'].forEach(function(dk) {
-    if (!bedDisease && diseases.indexOf(dk) !== -1 && FAST_DISEASE_OVERRIDE[dk] && FAST_DISEASE_OVERRIDE[dk].bedRisk) {
-      bedDisease = dk;
-    }
-  });
-  if (bedDisease && state.fastGoal >= 16 && !state._fastBedWarningShown) {
-    state._fastBedWarningShown = true;
-    var dOverride = FAST_DISEASE_OVERRIDE[bedDisease];
-    showAlertModal(
-      '🫶 ' + bedDisease + 'をお持ちの方へ<br><br>' +
-      dOverride.bedNote + '<br><br>' +
-      '推奨: ' + dOverride.rec + '<br><br>' +
-      '断食に過食衝動を感じたら、ウィジェット内の「食欲が止まらない」ボタンでサポートを呼び出せます。'
-    );
-  }
-
-  // 通知許可をリクエスト
-  if ('Notification' in window && Notification.permission === 'default') {
-    Notification.requestPermission();
-  }
-  state.fastingActive = true;
-  state.fastingStart = Date.now();
-  saveState();
-  document.getElementById('fast-start-btn').style.display = 'none';
-  document.getElementById('fast-stop-btn').style.display = 'block';
-  // 達成予定時刻を表示
-  var goalTime = new Date(Date.now() + state.fastGoal * 3600000);
-  var goalStr = ('0' + goalTime.getHours()).slice(-2) + ':' + ('0' + goalTime.getMinutes()).slice(-2);
-  document.getElementById('fast-status').textContent = state.fastGoal + 'h目標 → ' + goalStr + ' に達成予定';
-  startFastTimer();
-}
-
+// PR-089F-7F (Legacy Removal Batch-11分割⑦-F): toggleFast() を削除（確認済みDead Code）。
+// 呼び出し元ゼロ（bare呼び出し・window export・HTML onclickいずれも存在せず）に加え、
+// 参照先DOM要素 #fast-start-btn/#fast-stop-btn/#fast-status がapp.html/screens配下の
+// どのHTMLにも存在しないことを確認済み（PR-080G buildCalendar削除時と同型の判定）。
+// 現行の断食UIは #home-fasting-widget（動的レンダリング、fasting.js側）に置き換え済みで、
+// toggleFastingFeature()（現存・使用中）とは別物。
 
 // PR-085 (Legacy Removal Batch-7): endFast/resumeFasting/startFastTimer は
-// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back、toggleFast()が参照）。
+// src/modules/fasting.js へ物理移動済み（本ファイル冒頭で import back）。
 
 // ===== ホーム周期フェーズバナー =====
 var PHASE_BANNER_CONFIG = {
