@@ -1525,16 +1525,24 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-090 Legacy Exit Audit**（Legacy Removal Program — PR-089Z Final Cutover判定後の次ステップ）
-- PR-089Z（2026-07-05完了）で`app-legacy.js`は「削除不可」と判定され、Remaining Legacy 7項目
-  （home cluster / saveRecord / closeModal系no-op / window.state所有権 / window exportハブ機能 /
-  updateSettingsHero・closeSuccess / 未精査window export残存分）が確定した。詳細は
-  `docs/PR-089Z-final-cutover-decision.md`参照。
-- PR-090では、これらRemaining Legacy項目それぞれについてFounderが個別に
-  (a)製品判断（home cluster等の重複解消）、(b)Architecture変更承認（window.state所有権移管）、
-  (c)バグ修正優先度（no-op問題）を判断した後、次PRのスコープを設定する。
-- Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
-  10,804行から2,765行（約74%削減）まで縮小した時点で、一旦の区切りとする。
+**PR-090-E1**（Legacy Completion Recovery Plan Step1、Founder判断不要・実装のみ）
+- PR-090-P3（`docs/PR-090-P3-window-export-inventory.md`）で確定したE分類（DEAD_EXPORT）
+  6件（`icon`/`generateLocalAnalysis`/`_generateDoctorPDF`/`openIDB`/`parseMealFree`/
+  `updateHomeVision`）のexport行を`app-legacy.js`から削除する。呼び出し元ゼロを確認済み。
+
+**Founder判断待ち（並行リクエスト中）**: Decision-1〜4（`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
+Step 0参照）
+1. window.state所有権をstate.jsへ移管する（Architecture変更）ことの承認可否
+2. window export hub問題の自己export方式統一（Architecture変更）の承認可否
+3. home cluster5関数、それぞれどちらの実装を正とするか（製品判断）
+4. `saveRecord`/record-modal系を「修復」するか「正式廃止」するか
+
+Decision-1/2承認後: PR-090-S1（window.state所有権移管）、PR-090-E2〜E(N)（B分類172件の
+自己export化、モジュール単位でクラスタ分割）。Decision-3承認後: PR-090-H1〜H5（home
+cluster統合）。**PR-091 Legacy Exit Auditへは進まない**（Decision-1〜4未確定のため）。
+
+Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
+10,804行から2,733行（約75%削減、PR-090-P2時点）まで縮小した時点で、一旦の区切りとする。
 
 **Release Readiness Council**（Wave2正式完了後の次ステップ、Legacy Removal Programとは別系統）
 - Wave2（PR-041〜075）は2026-07-02にFounder承認（kenkou-jpg）を得て正式完了。
@@ -1544,6 +1552,21 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-P3: Window Export Inventory Audit**（Legacy Completion Recovery Plan Step1、監査のみ・コード変更ゼロ）
+- `src/app-legacy.js`のwindow export行**220件全件**を機械的に抽出・分類。
+  A.SELF_EXPORTED_BY_MODULE 18件 / B.APP_LEGACY_EXPORT_HUB 172件（78%）/
+  C.STATE_PROVIDER 6件 / D.LIVE_LEGACY_IMPLEMENTATION 18件 / E.DEAD_EXPORT 6件 /
+  F.AMBIGUOUS 0件。詳細は`docs/PR-090-P3-window-export-inventory.md`参照。
+- **最重要の発見**: PR-089Zの定性的判断（「移動先モジュール自身はwindow exportしていない
+  ケースを確認」）が、B分類172件（全体の78%）に該当すると定量的に確定。これが
+  `app-legacy.js`削除の最大の障壁であることを数値で裏付けた。
+- E分類6件のうち`updateHomeVision`は本PRで新規発見（`src/modules/app-bootstrap.js`の
+  起動時呼び出しがtypeof guardにより常にno-opになっている、home cluster5関数とは別枠）。
+- 補助検証として`app.html`のonclick参照全件を突合、孤立参照（呼び出し先不在）はゼロを確認。
+- コード変更ゼロ（監査文書1件のみ追加）。Build PASS / Architecture Guard 120件PASS。
+- 次: PR-090-E1（E分類6件の削除、Founder判断不要）。Decision-1〜4はFounder確認待ちで
+  本Recovery Programを一旦停止。
 
 **PR-090-P2: updateSettingsHero Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
 - `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
