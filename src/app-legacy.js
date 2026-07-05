@@ -93,9 +93,11 @@ import { getSuccessMessage } from './modules/success-message.js';
 // 含む、「1 feature = 1 owner」判断はPR-086と同型）。
 import { loadCommunityTopic, switchCVTab, loadCVArchive, toggleArchiveReplies, loadCommunityReplies, postCommunityReply, likeCommunityReply, deleteCommunityReply, updateReplyLikeCount, checkMyLikes } from './modules/community.js';
 // PR-088: Admin Panel（initAdminPanel/adminSetPremium/adminLoadPremiumUsers）は
-// src/modules/admin.js へ新設・物理移動済み。ADMIN_USER_ID は isAdminOrPremium()
-// （本ファイル残置、Batch-10対象外）も参照するため import back（fasting.js
-// FAST_PHASE_CONFIGと同型パターン）。
+// src/modules/admin.js へ新設・物理移動済み。ADMIN_USER_ID は本ファイル残置の
+// admin session表示ロジック（2493/2499行目付近）が参照するため import back
+// （fasting.js FAST_PHASE_CONFIGと同型パターン）。isAdminOrPremium自体はPR-089F-7Bで
+// src/modules/legacy-misc-stats.js へ物理移動済み（同モジュールが別途ADMIN_USER_ID
+// をadmin.jsから直接import）。
 import { initAdminPanel, adminSetPremium, adminLoadPremiumUsers, ADMIN_USER_ID } from './modules/admin.js';
 // PR-089B (Legacy Removal Batch-11分割①): openExperiments/startExperiment/startCustomExperiment/
 // cancelExperiment/completeExperiment/showExperimentReport は src/modules/experiments.js へ物理移動済み。
@@ -137,6 +139,19 @@ import { toggleMealEntry, confirmMealTime, closeMealTimePicker, createMealDonut 
 // manualCloudRestoreはsrc/services配下へ移行済みのorphanと判明したため対象外・本ファイル残置
 // （調査結果はPRコメント参照、削除可否はPR-089Zで一括判断）。
 import { saveAndSync } from './modules/save-and-sync.js';
+// PR-089F-7B (Legacy Removal Batch-11分割⑦-B): isAdminOrPremium/analyzeCyclePhases/
+// _bleedingToNum/calcPainFreeDays/updateUnlock は src/modules/legacy-misc-stats.js へ
+// 物理移動済み（bare呼び出し継続のためimport back）。
+import { isAdminOrPremium, analyzeCyclePhases, _bleedingToNum, calcPainFreeDays, updateUnlock } from './modules/legacy-misc-stats.js';
+// PR-089F-7C (Legacy Removal Batch-11分割⑦-C): calcCycleDay/getCyclePhase/
+// getCurrentCyclePhaseは1行delegation shim（window.xxxへの委譲のみ）であり、実体は
+// src/analytics/cycle-engine.js（window.calcCycleDay等を設定）。shimを撤去し実体を
+// 直接importへ変更（挙動変更なし、PR-089F-7A監査で確認済み）。
+import { calcCycleDay, getCyclePhase, getCurrentCyclePhase } from './analytics/cycle-engine.js';
+// PR-089F-7C: updateDiseaseQuestions/updateDiseaseSettingDisplayも同型の1行delegation shim
+// であり、実体はsrc/modules/disease-settings.js（window.updateDiseaseQuestions等を設定）。
+// shimを撤去し実体を直接importへ変更（挙動変更なし）。
+import { updateDiseaseQuestions, updateDiseaseSettingDisplay } from './modules/disease-settings.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -370,59 +385,10 @@ var SYMPTOM_DETAIL_CONFIG = {
 };
 
 // ===== 周期フェーズ連動分析 =====
-function calcCycleDay(d,r){return typeof window.calcCycleDay==='function'?window.calcCycleDay(d,r):null;}
+// PR-089F-7C: calcCycleDay/getCyclePhase の1行delegation shimを撤去し、
+// src/analytics/cycle-engine.js から直接importへ変更済み（本ファイル冒頭）。
 
-function getCyclePhase(cd){return typeof window.getCyclePhase==='function'?window.getCyclePhase(cd):null;}
-
-function analyzeCyclePhases(records){
-  var phases = {
-    '月経期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
-    '卵胞期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
-    '排卵期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} },
-    '黄体期': { days:0, pain:[], energy:[], sleep:[], wellness:[], symptoms:{}, factors:{} }
-  };
-
-  records.forEach(function(r){
-    var cd = calcCycleDay(r.record_date || r.date, records);
-    var phase = getCyclePhase(cd);
-    if(!phase || !phases[phase]) return;
-
-    var p = phases[phase];
-    p.days++;
-    if(r.painLevel) p.pain.push(r.painLevel);
-    if(r.energy) p.energy.push(r.energy);
-    if(r.sleepQuality) p.sleep.push(r.sleepQuality);
-    if(r.wellnessScore !== undefined) p.wellness.push(r.wellnessScore);
-    if(r.symptoms){
-      r.symptoms.forEach(function(s){ p.symptoms[s] = (p.symptoms[s]||0) + 1; });
-    }
-    if(r.factors){
-      r.factors.forEach(function(f){ p.factors[f] = (p.factors[f]||0) + 1; });
-    }
-  });
-
-  // 平均計算
-  var result = {};
-  Object.keys(phases).forEach(function(name){
-    var p = phases[name];
-    if(p.days === 0) return;
-    var avg = function(arr){ return arr.length ? (arr.reduce(function(a,b){return a+b;},0)/arr.length) : null; };
-    var topItems = function(obj, n){
-      return Object.entries(obj).sort(function(a,b){return b[1]-a[1];}).slice(0,n);
-    };
-    result[name] = {
-      days: p.days,
-      avgPain: avg(p.pain) !== null ? avg(p.pain).toFixed(1) : '-',
-      avgEnergy: avg(p.energy) !== null ? avg(p.energy).toFixed(1) : '-',
-      avgSleep: avg(p.sleep) !== null ? avg(p.sleep).toFixed(1) : '-',
-      avgWellness: avg(p.wellness) !== null ? Math.round(avg(p.wellness)) : '-',
-      topSymptoms: topItems(p.symptoms, 3),
-      topFactors: topItems(p.factors, 3)
-    };
-  });
-
-  return result;
-}
+// PR-089F-7B: analyzeCyclePhases は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
 // ─── PRO分析画面 共有SVG (P29-B1: PRO HUBと同一アセット流用) ──────────
 var _SVG_UNDERSTAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><line x1="12" y1="3" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="21"/><line x1="3" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="21" y2="12"/></svg>';
@@ -440,12 +406,7 @@ var _SVG_SHARE      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor
   // _buildExperimentCompanion/_expMetric/_DISEASE_COMPANION_RULES/EXPERIMENT_PRESETS は
   // src/modules/experiments.js へ物理移動済み（import参照）。
 
-/** 出血強度文字列 → 数値変換 */
-function _bleedingToNum(val) {
-  var MAP = { none:0, trace:1, light:2, moderate:3, heavy:4, very_heavy:5,
-              'なし':0, '少量':1, '軽い':2, '普通':3, '多い':4, '非常に多い':5 };
-  return MAP[val] != null ? MAP[val] : null;
-}
+// PR-089F-7B: _bleedingToNum は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
 // ===== タイムライン =====
 var _tlPage = 1;
@@ -458,7 +419,8 @@ var _tlPerPage = 15;
 
 
 
-function updateDiseaseQuestions(){if(typeof window.updateDiseaseQuestions==='function')window.updateDiseaseQuestions();}
+// PR-089F-7C: updateDiseaseQuestions の1行delegation shimを撤去し、
+// src/modules/disease-settings.js から直接importへ変更済み（本ファイル冒頭）。
 
 
 
@@ -955,28 +917,7 @@ function updateStats() {
 // window.__ippoLegacyUpdateSettingsHero と同型パターン）。
 window.__ippoLegacyUpdateStats = updateStats;
 
-// 今月の無痛み日数を計算して表示
-function calcPainFreeDays() {
-  if (!window.__ippoStateReady) {
-    if (typeof window.enqueueDeferredRender === 'function') window.enqueueDeferredRender('calcPainFreeDays', calcPainFreeDays);
-    return;
-  }
-  var now = new Date();
-  var year = now.getFullYear();
-  var month = now.getMonth();
-  var count = 0;
-  (state.records || []).forEach(function(r) {
-    var recordDate = r.record_date || r.date;
-    if (!recordDate) return;
-    var d = new Date(recordDate);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      var pain = r.painLevel;
-      if (pain === null || pain === undefined || pain === 0) count++;
-    }
-  });
-  var el = document.getElementById('pain-free-count');
-  if (el) el.textContent = count > 0 ? count : '—';
-}
+// PR-089F-7B: calcPainFreeDays は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
 // PR-087 (Legacy Removal Batch-9): calcPainFreeDaysThisMonth/calcAvgPainThisMonth は
 // src/utils/stats-utils.js へ物理移動済み（import参照）。
@@ -989,29 +930,7 @@ function updateHistory(){
 // PR-084 (Legacy Removal Batch-6): buildSymptomChips/applySymptomChipPriority は
 // src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
-function updateUnlock(){
-  var days = state.totalDays || 0;
-  var milestones = [
-    {day:3, icon:'📊', title:'グラフ機能', sub:'体温・症状の推移を可視化'},
-    {day:7, icon:'🔍', title:'パターン分析', sub:'週間のからだの傾向'},
-    {day:14, icon:'🌡️', title:'体温フェーズ判定', sub:'低温期・高温期の自動判定'},
-    {day:30, icon:'🤖', title:'AIパターン解析', sub:'あなた専用の分析レポート'}
-  ];
-  var el = document.getElementById('unlock-section');
-  if(!el) return;
-  var html = '<div class="unlock-header"><div class="unlock-title">記録で解放される機能</div><div class="unlock-days">'+days+'日目</div></div>';
-  html += '<div class="unlock-items">';
-  milestones.forEach(function(m){
-    var unlocked = days >= m.day;
-    html += '<div class="unlock-item">';
-    html += '<div class="unlock-icon '+(unlocked?'unlocked':'locked')+'">'+m.icon+'</div>';
-    html += '<div class="unlock-text"><div class="unlock-text-title">'+m.title+'</div><div class="unlock-text-sub">'+m.sub+'</div></div>';
-    html += '<div class="unlock-badge '+(unlocked?'unlocked':'locked')+'">'+(unlocked?'解放済':'あと'+(m.day-days)+'日')+'</div>';
-    html += '</div>';
-  });
-  html += '</div>';
-  el.innerHTML = html;
-}
+// PR-089F-7B: updateUnlock は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
 
 // ===== FASTING TIMER — CYCLE-AWARE HELPERS =====
@@ -1096,7 +1015,8 @@ var FAST_RECOVERY_FOODS = {
   '卵巣嚢腫':  { color: '#7a9eb0', icon: '🩵', foods: [['ベリー類・ブルーベリー','アントシアニンで活性酸素（ROS）を中和'],['ブロッコリー・芽キャベツ','DIM・アブラナ科でエストロゲン代謝サポート'],['サーモン・えごまオイル','オメガ3・EPA/DHAで嚢腫周囲の炎症を抑制'],['玄米・さつまいも（少量）','低GIでインスリン安定・ホルモンバランス改善']] }
 };
 
-function getCurrentCyclePhase(){return typeof window.getCurrentCyclePhase==='function'?window.getCurrentCyclePhase():null;}
+// PR-089F-7C: getCurrentCyclePhase の1行delegation shimを撤去し、
+// src/analytics/cycle-engine.js から直接importへ変更済み（本ファイル冒頭）。
 
 // PR-085 (Legacy Removal Batch-7): updateFastingWidgetPhase/showRecoveryGuide(local wrapper)/
 // fastInterval/window.__ippoStopFastInterval/setFastGoal は src/modules/fasting.js へ物理移動済み
@@ -1715,7 +1635,8 @@ function updateHomeCTAState() {
 // src/utils/string-utils.js へ物理移動済み（import参照）。
 
 
-function updateDiseaseSettingDisplay(){if(typeof window.updateDiseaseSettingDisplay==='function')window.updateDiseaseSettingDisplay();}
+// PR-089F-7C: updateDiseaseSettingDisplay の1行delegation shimを撤去し、
+// src/modules/disease-settings.js から直接importへ変更済み（本ファイル冒頭）。
 // PR-084 (Legacy Removal Batch-6): updateSymptomSettingDisplay は
 // src/modules/symptom-settings.js へ物理移動済み（import参照）。
 
@@ -2525,8 +2446,9 @@ window.logoutSync = logoutSync;
 // ===== ADMIN PANEL =====
 // PR-088 (Legacy Removal Batch-10): ADMIN_USER_ID/initAdminPanel/adminSetPremium/
 // adminLoadPremiumUsers は src/modules/admin.js へ新設・物理移動済み
-// （ADMIN_USER_ID は isAdminOrPremium() が本ファイル残置で参照するため import back、
-// 本ファイル冒頭で import）。
+// （ADMIN_USER_ID は本ファイル残置のadmin session表示ロジックが参照するため
+// import back、本ファイル冒頭で import）。isAdminOrPremium自体はPR-089F-7Bで
+// src/modules/legacy-misc-stats.js へ物理移動済み。
 
 // EL-2: 匿名/オフライン時の無限稼働を防ぐため最大30秒で打ち切り
 // removal condition: auth 確定後に adminCheckInterval が不要になったら削除可。
@@ -2644,9 +2566,7 @@ function updateSettingsHero() {
   }
 }
 
-function isAdminOrPremium() {
-  return isPremium || (typeof ADMIN_USER_ID !== 'undefined' && supabaseUserId && supabaseUserId === ADMIN_USER_ID);
-}
+// PR-089F-7B: isAdminOrPremium は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 // PR-081: settings-display-runtime.js に同名の別実装（window.updateSettingsHero、
 // initSettingsPanels()呼び出しを追加で行う）が既に存在し、load順（後着ロード）で
 // window.updateSettingsHero は常にそちらに上書きされる。premium-lock.js へ移動した
