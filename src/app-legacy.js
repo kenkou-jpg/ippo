@@ -132,6 +132,11 @@ import { initQuickLog, selectQuickPain, saveQuickLog, showQuickLogDone } from '.
 // closeMealTimePicker/createMealDonut は src/modules/meal-quick-input.js へ
 // 物理移動済み（bare呼び出し継続のためimport back）。
 import { toggleMealEntry, confirmMealTime, closeMealTimePicker, createMealDonut } from './modules/meal-quick-input.js';
+// PR-089F-6 (Legacy Removal Batch-11分割⑥-6): saveAndSync は src/modules/save-and-sync.js へ
+// 物理移動済み（bare呼び出し継続のためimport back）。cloudBackupAll/cloudRestore/
+// manualCloudRestoreはsrc/services配下へ移行済みのorphanと判明したため対象外・本ファイル残置
+// （調査結果はPRコメント参照、削除可否はPR-089Zで一括判断）。
+import { saveAndSync } from './modules/save-and-sync.js';
 
 // ─── bare `state` lexical variable ───────────────────────────────
 // ES module strict mode では bare `state` は window.getState() に自動解決されない。
@@ -668,18 +673,7 @@ function mergeRecords(localRecords, cloudRecords){
   return result.sort(function(a,b){ return new Date(a.date)-new Date(b.date); });
 }
 
-// saveAndSync: UI コードから呼ばれる。IDB/sync は window.* ブリッジ経由
-function saveAndSync(){
-  if(typeof window.ensureRecordIds === 'function') window.ensureRecordIds();
-  if(typeof window.saveState === 'function') window.saveState();
-  else if(typeof saveState === 'function') saveState();
-  var latest = state.records[state.records.length - 1];
-  if(latest && typeof window.syncRecordImmediately === 'function'){
-    window.syncRecordImmediately(latest).catch(function(e){
-      console.warn('[legacy] saveAndSync: syncRecordImmediately 失敗', e);
-    });
-  }
-}
+// PR-089F-6: saveAndSync は src/modules/save-and-sync.js へ物理移動済み（import back）。
 // PR-085: fasting.js（endFast、物理移動済み）が saveAndSync をbare呼び出しするための
 // 専用ブリッジ（window.saveAndSync は record-modal-controller.js が Phase D-1 パターンで
 // 別用途に先取り済み・現状no-opのため衝突を回避、PR-084 __ippoLegacyUpdateStats と同型）。
