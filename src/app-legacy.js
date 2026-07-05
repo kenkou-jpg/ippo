@@ -270,8 +270,11 @@ function initSettingsIcons() {
   });
 }
 
-// ===== 痛みスケールボタン =====
-function renderPainScale(v,f){return typeof window.renderPainScale==='function'?window.renderPainScale(v,f):''; }
+// PR-089F-7G (Legacy Removal Batch-11分割⑦-G): renderPainScale(v,f) を削除（確認済みDead Code）。
+// window.renderPainScale へ委譲するだけの薄いshimだったが、本関数自身をbareで呼ぶ箇所が
+// 同ファイル内に一切なく（window export も本ファイルには存在しない）、呼び出し元ゼロを確認済み。
+// 実体は src/modules/pain-scale.js の renderPainScale が window.renderPainScale として提供し、
+// record-input.js 側の _renderPainScale() がそちらを直接参照している。
 
 
 // ===== 症状詳細マスターデータ =====
@@ -1498,26 +1501,11 @@ function closeSuccess() {
 // PR-087 (Legacy Removal Batch-9): shareApp/addToHome は
 // src/modules/share.js へ物理移動済み（import参照）。
 
-function setGraphTab(tab, el) {
-  document.querySelectorAll('.sg-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  // バグ12: タブ切替に応じてオーバーレイとグラフタイトルを更新
-  const labelMap = { '7d': '7日間', '30d': '30日間', '90d': '90日間' };
-  const needDays = { '7d': 7, '30d': 30, '90d': 90 };
-  const required = needDays[tab] || 7;
-  const overlay = document.getElementById('graph-overlay');
-  const titleEl = document.querySelector('.sg-title');
-  if (titleEl) titleEl.textContent = `からだのリズム（${labelMap[tab]}）`;
-  if (overlay) {
-    if (state.totalDays >= required) {
-      overlay.style.display = 'none';
-    } else {
-      overlay.style.display = 'flex';
-      const sub = overlay.querySelector('.demo-overlay-sub');
-      if (sub) sub.textContent = `${required}日間記録すると表示されます（現在${state.totalDays}日）`;
-    }
-  }
-}
+// PR-089F-7G (Legacy Removal Batch-11分割⑦-G): setGraphTab(tab, el) を削除（確認済みDead Code）。
+// 呼び出し元ゼロ（bare呼び出し・HTML onclickいずれも存在せず）に加え、参照先DOM要素
+// （.sg-tab / #graph-overlay / .sg-title / .demo-overlay-sub）が現行のapp.html・
+// src/screens配下のどのHTMLにも存在しないことを確認済み（PR-080G buildCalendar / 本PR
+// toggleFast削除時と同型の「呼び出し元ゼロ + 参照先DOM要素も消滅」パターン）。
 
 // PR-087 (Legacy Removal Batch-9): setRating は
 // src/modules/feedback.js へ物理移動済み（import参照）。
@@ -2720,7 +2708,6 @@ if (typeof selectWellness === "function") window.selectWellness = selectWellness
 if (typeof setCGRange === "function") window.setCGRange = setCGRange;
 if (typeof setDailyMessage === "function") window.setDailyMessage = setDailyMessage;
 if (typeof setFastGoal === "function") window.setFastGoal = setFastGoal;
-if (typeof setGraphTab === "function") window.setGraphTab = setGraphTab;
 if (typeof setRating === "function") window.setRating = setRating;
 if (typeof shareApp === "function") window.shareApp = shareApp;
 if (typeof showAlertModal === "function") window.showAlertModal = showAlertModal;
