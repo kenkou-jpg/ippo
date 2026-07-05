@@ -89,6 +89,9 @@ import { getSuccessMessage } from './modules/success-message.js';
 // PR-090-P1 (Legacy Completion Recovery): closeSuccess は
 // src/modules/success-overlay.js へ新設・物理移動済み。
 import { closeSuccess } from './modules/success-overlay.js';
+// PR-090-P2 (Legacy Completion Recovery): updateSettingsHero（本ファイルのローカル実装）は
+// src/modules/legacy-settings-hero.js へ新設・物理移動済み。
+import { updateSettingsHero } from './modules/legacy-settings-hero.js';
 // PR-088 (Legacy Removal Batch-10): Community Voice（loadCommunityTopic/switchCVTab/
 // loadCVArchive/toggleArchiveReplies/loadCommunityReplies/postCommunityReply/
 // likeCommunityReply/deleteCommunityReply/updateReplyLikeCount/checkMyLikes）は
@@ -2463,38 +2466,9 @@ async function checkPremiumStatus() {
   if (typeof checkUpsellNotification === 'function') checkUpsellNotification();
 }
 
-function updateSettingsHero() {
-  var nameEl = document.getElementById('settings-name-display');
-  if (nameEl) nameEl.textContent = state.name || 'ゲスト';
-
-  var badgeEl = document.getElementById('settings-premium-badge-text');
-  if (badgeEl) badgeEl.textContent = isAdminOrPremium() ? 'プレミアム会員 ✨' : '無料プラン';
-
-  var upgradeBtn = document.getElementById('settings-upgrade-btn');
-  if (upgradeBtn) upgradeBtn.style.display = isAdminOrPremium() ? 'none' : '';
-
-  var countEl = document.getElementById('settings-record-count');
-  if (countEl) countEl.textContent = (state.records || []).length;
-
-  var streakEl = document.getElementById('settings-streak');
-  if (streakEl) {
-    var streak = 0;
-    var today = new Date();
-    for (var i = 0; i < 365; i++) {
-      var d = new Date(today);
-      d.setDate(d.getDate() - i);
-      var ds = d.toISOString().slice(0, 10);
-      var found = (state.records || []).some(function(r) {
-        return (r.record_date || (r.date && r.date.slice(0, 10))) === ds;
-      });
-      if (found) streak++;
-      else if (i > 0) break;
-    }
-    streakEl.textContent = streak;
-  }
-}
-
 // PR-089F-7B: isAdminOrPremium は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
+// PR-090-P2 (Legacy Completion Recovery): updateSettingsHero（本ファイルのローカル実装）は
+// src/modules/legacy-settings-hero.js へ物理移動済み（import参照）。
 // PR-081: settings-display-runtime.js に同名の別実装（window.updateSettingsHero、
 // initSettingsPanels()呼び出しを追加で行う）が既に存在し、load順（後着ロード）で
 // window.updateSettingsHero は常にそちらに上書きされる。premium-lock.js へ移動した

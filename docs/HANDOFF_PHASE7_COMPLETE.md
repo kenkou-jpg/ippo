@@ -1545,6 +1545,22 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 直前PR完了メモ
 
+**PR-090-P2: updateSettingsHero Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
+- `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
+  なしの純粋な物理移動として実施。settings-display-runtime.js版との統合はPR-081時点で
+  「製品判断が必要、Scope外」と確定済みのため再確認せず、現状（重複維持）のまま実施。
+- `updateSettingsHero()`（app-legacy.js側のローカル実装）を`src/modules/legacy-settings-hero.js`
+  （新設）へ物理移動。挙動変更なし。bare `state`→`window.state`、`isAdminOrPremium`は
+  `src/modules/legacy-misc-stats.js`から直接import。
+- `window.__ippoLegacyUpdateSettingsHero`ブリッジ（premium-lock.jsのupdatePremiumBadges()が
+  本ローカル実装を明示的に呼び出すための専用経路）はimport経由の関数を指すよう自動的に解決、
+  挙動変更なし。`window.updateSettingsHero`エクスポートも同様に維持（実際にはload順で
+  settings-display-runtime.js版に上書きされる、PR-081時点と同じ挙動）。
+- `app-legacy.js`: 2,759行 → 2,733行。`tests/arch/legacy-removal-pr079-line-count-guard.test.js`の
+  `BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
+- 次: PR-090-P3（window exportブロック全件棚卸し監査）。
+
 **PR-090-P1: closeSuccess Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
 - `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
   なしの純粋な物理移動として実施。
