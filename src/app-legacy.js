@@ -86,6 +86,9 @@ import { addCustomFactor } from './modules/record-factors.js';
 // PR-087: getSuccessMessage は src/modules/success-message.js へ新設・物理移動済み
 // （audit文書は移植先未指定。cycle-utils.js等と同型の専用新設ファイルへ分離）。
 import { getSuccessMessage } from './modules/success-message.js';
+// PR-090-P1 (Legacy Completion Recovery): closeSuccess は
+// src/modules/success-overlay.js へ新設・物理移動済み。
+import { closeSuccess } from './modules/success-overlay.js';
 // PR-088 (Legacy Removal Batch-10): Community Voice（loadCommunityTopic/switchCVTab/
 // loadCVArchive/toggleArchiveReplies/loadCommunityReplies/postCommunityReply/
 // likeCommunityReply/deleteCommunityReply/updateReplyLikeCount/checkMyLikes）は
@@ -1485,17 +1488,8 @@ document.getElementById('success-overlay').classList.add('active');
 // PR-087 (Legacy Removal Batch-9): getSuccessMessage は
 // src/modules/success-message.js へ物理移動済み（import参照）。
 
-function closeSuccess() {
-  if (window.__ippoSuccessOverlayTimer) {
-    clearTimeout(window.__ippoSuccessOverlayTimer);
-    window.__ippoSuccessOverlayTimer = null;
-  }
-  var overlay = document.getElementById('success-overlay');
-  if (overlay) {
-    overlay.classList.remove('active');
-    overlay.style.opacity = '';
-  }
-}
+// PR-090-P1 (Legacy Completion Recovery): closeSuccess は
+// src/modules/success-overlay.js へ物理移動済み（import参照）。
 
 // ===== MISC =====
 // PR-087 (Legacy Removal Batch-9): shareApp/addToHome は

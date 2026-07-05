@@ -1545,6 +1545,17 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 直前PR完了メモ
 
+**PR-090-P1: closeSuccess Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
+- `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
+  なしの純粋な物理移動として実施。
+- `closeSuccess()`（成功オーバーレイのクローズ処理）を`src/app-legacy.js`から
+  `src/modules/success-overlay.js`（新設）へ物理移動。挙動変更なし。
+  `window.closeSuccess`ブリッジはapp-legacy.js側のexportブロックをそのまま維持（import経由で解決）。
+- `app-legacy.js`: 2,765行 → 2,759行。`tests/arch/legacy-removal-pr079-line-count-guard.test.js`の
+  `BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
+- 次: PR-090-P2（updateSettingsHeroの物理移動）。
+
 **PR-089Z: Legacy Removal Final Cutover判定**（Legacy Removal Program最終PR、コード変更ゼロ）
 - 目的: PR-089A〜PR-089F-7GまでのLegacy Removal監査・移植結果をもとに、`app-legacy.js`の
   最終削除可否を判定する。
