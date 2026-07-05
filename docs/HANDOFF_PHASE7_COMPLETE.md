@@ -1525,21 +1525,26 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**PR-090-E1**（Legacy Completion Recovery Plan Step1、Founder判断不要・実装のみ）
-- PR-090-P3（`docs/PR-090-P3-window-export-inventory.md`）で確定したE分類（DEAD_EXPORT）
-  6件（`icon`/`generateLocalAnalysis`/`_generateDoctorPDF`/`openIDB`/`parseMealFree`/
-  `updateHomeVision`）のexport行を`app-legacy.js`から削除する。呼び出し元ゼロを確認済み。
+**Recovery Programは一旦停止中。** PR-090-P3の監査結果を受け、Founder指示により
+EXPORT_HUB_REFACTOR_COUNCIL（`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`）を実施し、
+APP_LEGACY_EXPORT_HUB 172件の設計提案・判定を完了した（コード変更ゼロ）。
+Founder確認待ちで停止中。
 
-**Founder判断待ち（並行リクエスト中）**: Decision-1〜4（`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
-Step 0参照）
-1. window.state所有権をstate.jsへ移管する（Architecture変更）ことの承認可否
-2. window export hub問題の自己export方式統一（Architecture変更）の承認可否
-3. home cluster5関数、それぞれどちらの実装を正とするか（製品判断）
-4. `saveRecord`/record-modal系を「修復」するか「正式廃止」するか
+**Founder判断待ち（並行リクエスト中）**: Decision-1〜4
+1. **Decision-1（拡張版）**: `window.state`の同期経路を`src/store/state.js`の
+   `setState()`/`_postHooks`内で直接更新する方式へ変更する承認可否
+   （影響ファイルは`state.js`1つのみ、window.state依存70件を解放）
+2. **Decision-2**: 172件の物理移動済み関数の自己export方式統一の承認可否
+3. **Legacy依存55件の解消順序の承認**: `isPremium`のimport元差し替え（既存の
+   `premium-service.js`へ）/ `supabaseUserId`・`syncMode`の物理移動 /
+   `updateStats`の物理移動 / `SYMPTOM_DETAIL_CONFIG`の`src/constants/`切り出し /
+   `saveRecordScreen`の物理移動、をRecovery Programの新規タスクとして起票してよいか
+4. home cluster5関数・saveRecord/record-modal系（従来のDecision-3/4）
 
-Decision-1/2承認後: PR-090-S1（window.state所有権移管）、PR-090-E2〜E(N)（B分類172件の
-自己export化、モジュール単位でクラスタ分割）。Decision-3承認後: PR-090-H1〜H5（home
-cluster統合）。**PR-091 Legacy Exit Auditへは進まない**（Decision-1〜4未確定のため）。
+Council結論: **Recovery Programの完全停止は不要**（Legacy依存55件の解消とE分類
+削除はArchitecture変更なしで進められる）。ただし`app-legacy.js`の最終削除には
+Decision-1（限定範囲）・Decision-2の承認が必須。詳細は
+`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`参照。**PR-091 Legacy Exit Auditへは進まない**。
 
 Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
 10,804行から2,733行（約75%削減、PR-090-P2時点）まで縮小した時点で、一旦の区切りとする。
@@ -1552,6 +1557,26 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**EXPORT_HUB_REFACTOR_COUNCIL**（Recovery Program一時停止中の設計提案、コード変更ゼロ）
+- Founder指示により、PR-090-E1着手前にAPP_LEGACY_EXPORT_HUB 172件（PR-090-P3で判明、
+  全exportの78%）を依存関係レベルで再調査し、`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`を作成。
+- 172件を38モジュールに集約し、自己export可能12モジュール/47件（27%）・window.state依存
+  18モジュール/70件（41%）・Legacy依存8モジュール/55件（32%）に分類。
+- **新規発見**: `src/store/state.js`の設計コメントが想定する「window.stateの
+  Object.definePropertyゲッター」は実装に存在せず、実際は`app-legacy.js`の
+  `_ippoStateHooks`フックのみが`window.state`を同期している（app-legacy.js削除で
+  即stale化する）。対処は`state.js`1ファイル内で完結する見積もり。
+- **新規発見**: Legacy依存55件のうち17件（`__ippoGetIsPremium`系）は、実は既に
+  独立した正式なSource of Truth（`src/modules/premium/premium-service.js`、
+  Supabase subscriptions realtime購読）が存在し、importを差し替えるだけで
+  Architecture変更なしに解決できる。
+- 判定: Legacy依存55件はArchitecture変更不要（個別の物理移動PRで解決可能、
+  Recovery Programの延長として続行可）。window.state依存70件は`state.js`への
+  限定的な変更（Decision-1拡張版）が前提。自己export可能47件はDecision-2承認のみ。
+- コード変更ゼロ。Build PASS / Architecture Guard 120件PASS（1件は無関係なflaky
+  timeoutで単体実行では合格を再確認済み）。
+- Founder確認待ちで停止。詳細は`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`参照。
 
 **PR-090-P3: Window Export Inventory Audit**（Legacy Completion Recovery Plan Step1、監査のみ・コード変更ゼロ）
 - `src/app-legacy.js`のwindow export行**220件全件**を機械的に抽出・分類。
