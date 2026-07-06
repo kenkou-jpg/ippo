@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - ippo-dev
+  # 手動実行用（Rollback Runbook: 任意のコミット/タグから再デプロイする場合に使用）
+  workflow_dispatch: {}
 
 # Grant the GITHUB_TOKEN permissions required for Pages deployment
 permissions:

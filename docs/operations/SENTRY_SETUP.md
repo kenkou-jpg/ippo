@@ -37,7 +37,7 @@ Repository → Settings → Secrets and variables → Actions に以下を追加
 
 | Secret名 | 用途 | 参照元 |
 |---|---|---|
-| `VITE_SENTRY_DSN` | Client DSN。PRビルドチェック時に注入 | [.github/workflows/ci.yml](../../.github/workflows/ci.yml) |
+| `VITE_SENTRY_DSN` | Client DSN。**本番デプロイ**（[.github/workflows/build.yml](../../.github/workflows/build.yml)、GitHub Pages）とPRビルドチェック（[.github/workflows/ci.yml](../../.github/workflows/ci.yml)）の両方に注入 | build.yml / ci.yml |
 | `SENTRY_DSN` | Edge Function DSN。`supabase secrets set` で同期 | [.github/workflows/deploy-supabase.yml](../../.github/workflows/deploy-supabase.yml) |
 
 いずれも未設定のままでもCI/デプロイは失敗しない（空文字が渡り、no-opになるだけ）。
