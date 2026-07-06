@@ -769,18 +769,75 @@ Decision Log（Binding Decisions / BD一覧）は Architecture・Business・Road
 
 ---
 
+## 20. Operations Recovery Program 完了確認（PR-OPS-01〜05、2026-07-07）
+
+Operations Council Report（運用面のみの監査、実装・Architecture変更・UI変更は対象外）を受け、
+以下5件のPRを実施した。Business Logic / Architecture / UI 変更は一切含まれない。
+
+### 20-A. 実施内容
+
+| PR | 内容 | 状態 |
+|---|---|---|
+| PR-OPS-01 | Sentry導入（Client + Edge Functions） | コード実装完了。DSN未設定のため現状no-op（[docs/operations/SENTRY_SETUP.md](operations/SENTRY_SETUP.md)にFounder設定手順） |
+| PR-OPS-02 | Supabase Backup / Restore Runbook | 文書化完了。プランTier確認・初回リストアドリルはFounder実施待ち（[docs/operations/BACKUP_RESTORE_RUNBOOK.md](operations/BACKUP_RESTORE_RUNBOOK.md)） |
+| PR-OPS-03 | cluster-batch自動実行 | GitHub Actions scheduled workflow実装完了・稼働可能状態（[.github/workflows/cluster-batch-schedule.yml](../.github/workflows/cluster-batch-schedule.yml)） |
+| PR-OPS-04 | Runbook（障害対応・デプロイ・ロールバック） | 文書化完了（[docs/operations/OPERATIONS_RUNBOOK.md](operations/OPERATIONS_RUNBOOK.md)） |
+| PR-OPS-05 | Release Readiness Critical 5件 再確認（本節） | 19-B章の判定を再確認。変化なし |
+
+各PRで `npm run build` PASS・`npx vitest run` 5,193件中5,154 PASS（既知39件failで不変）・
+Architecture Guard 13ファイル120件 全PASS を確認済み。
+
+### 20-B. Critical 5件の状態（再確認）
+
+`docs/release-readiness/` 配下5ファイルを直接確認した結果、いずれも選択肢チェックボックスは
+未記入（`☐ 未着手`）のままで、Founderによる決定は本Program実施時点で記録されていない。
+
+```
+C-1 / C-2 / C-3 / C-4 / BD-034 — 状態変化なし（19-B章のImplementation判定ゼロ件を維持）
+confirmed:true:  28件（変化なし）
+confirmed:false: 6件（C-1/C-2/C-3/C-4/BD-034/BD-042、変化なし）
+未レビュー:      5件（BD-003/BD-015/BD-029/BD-033/C-5、変化なし）
+checkBetaReadinessGate().ready = false（変化なし）
+```
+
+本Programは`ReleaseReadinessService.confirmItem()`を一切呼び出していない
+（Founderの明示指示なしにconfirmed:trueを記録しない既存運用を継続）。
+
+### 20-C. Release Readiness Score と Operations Readiness Score の区別
+
+本文書のScore（93/100）は Architecture / Domain / Regulatory 等の**設計・実装完成度**を測る軸であり、
+Operations Council Reportの Score（56/100、可観測性・バックアップ・Runbook等の**運用体制**を測る軸）
+とは別軸である。PR-OPS-01〜04はOperations Readiness軸のみを改善するものであり、
+Release Readiness Score（本文書93/100）はCritical 5件が未解消のため据え置く。
+
+Operations Readiness軸の再評価は別途Operations Council Reportとして提示する。
+
+### 20-D. 判定
+
+```
+CONDITIONAL GO 継続（Release Readiness Score: 93/100、変化なし）
+
+Critical 5件はコードでは解消不可であることが本Programでも再確認された。
+Operations Recovery Program（PR-OPS-01〜04）により運用体制は着実に改善したが、
+これはRelease Readiness（本文書の軸）ではなくOperations Readiness（別軸）の改善であり、
+Release Readiness GOの判定条件（Critical 5件のconfirmed:true化）には影響しない。
+```
+
+---
+
 ## Document Authority Record
 
 | 項目 | 内容 |
 |---|---|
 | **文書番号** | IPPO-RELEASE-001 |
-| **バージョン** | 1.6（19章 Critical Recovery Program 再監査 追記） |
+| **バージョン** | 1.7（20章 Operations Recovery Program 完了確認 追記） |
 | **作成日** | 2026-07-02 |
 | **権威レベル** | LEVEL-1 GOVERNING DOCUMENT（Founder確認継続中） |
 | **前提文書** | WAVE2_MASTER_DESIGN / WAVE2_ARCHITECTURE / WAVE2_ROADMAP / WAVE2_IMPLEMENTATION_GOVERNANCE / BUSINESS_STRATEGY / GROWTH_STRATEGY / REGULATORY_MEDICAL_COUNCIL / GTM_COUNCIL / FOUNDER_STRATEGIC_REVIEW_WAVE2 / HANDOFF_PHASE7_COMPLETE |
-| **検証方法** | 文書読解 + 実装コード直接確認（grep/read）+ `npx vitest run` 実測（初回: 5,061件中5,022件PASS／Recovery後: 5,114件中5,075件PASS／Completion Program後: 5,149件中5,110件PASS、既知失敗39件で不変）+ `npx vite build` PASS + ReleaseReadinessService実行ログ |
+| **検証方法** | 文書読解 + 実装コード直接確認（grep/read）+ `npx vitest run` 実測（初回: 5,061件中5,022件PASS／Recovery後: 5,114件中5,075件PASS／Completion Program後: 5,149件中5,110件PASS／Operations Recovery Program後: 5,193件中5,154件PASS、既知失敗39件で不変）+ `npx vite build` PASS + ReleaseReadinessService実行ログ |
 | **判定（初回）** | CONDITIONAL GO（Release Readiness Score: 79/100、2026-07-02） |
 | **判定（Recovery後）** | CONDITIONAL GO（Release Readiness Score: 90/100、2026-07-02） |
 | **判定（Completion Program後）** | CONDITIONAL GO 継続（Release Readiness Score: 93/100、39項目中confirmed:true 28件・confirmed:false 6件・未レビュー5件） |
 | **判定（Critical Recovery Program後）** | CONDITIONAL GO 継続（Release Readiness Score: 93/100、変化なし。Critical 5件全件がImplementation不可と再確認、Founder Action 3件・External Evidence 2件に整理） |
+| **判定（Operations Recovery Program後）** | CONDITIONAL GO 継続（Release Readiness Score: 93/100、変化なし。Operations Readiness軸はPR-OPS-01〜04で別途改善、20章参照） |
 | **次のアクション** | Founder Action 3件（C-2医師アドバイザー招聘／C-4 Signal Consent判断／BD-034適用範囲の再解釈 or 新Roadmap起票判断）と External Evidence 2件（C-1弁護士レビュー／C-3 SaMD書面見解）が必須ブロッカー。Major 3件（BD-003/BD-015/BD-029）はLegacy Removal・Operations Council前に確認、Minor 3件（C-5/BD-033/BD-042）は当面保留可 |
