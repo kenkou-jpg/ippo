@@ -1544,7 +1544,9 @@ PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
   ↓
 PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [完了、Founder Decision確定]
   ↓
-PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferred Items除外） [次]
+PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferred Items除外） [完了]
+  ↓
+PR-090-R6（提案） — Step D: 自己export追加+app-legacy.js側dedup（約169行） [次、Founder判断不要]
 ```
 
 **Founder Decision（2026-07-06）**: PR-090-R5の選択肢はDを採用。saveRecordScreenおよび
@@ -1557,10 +1559,28 @@ Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-D節に記録。Recovery Plan更�
 `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節・Step 3（Decision-3を「確定済み・
 対象外」に変更）。
 
-**次PR: PR-091 Legacy Exit Audit**。監査スコープは「現行Recovery Program
+**PR-091 Legacy Exit Audit**（完了）: 監査スコープを「現行Recovery Program
 （EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）の対象範囲」のみに限定し、
 saveRecordScreen/buildHomeWeekRow/updateHomeCTAState/Home ClusterはKnown Deferred
-Itemsとして監査対象から除外する。Business Logic変更は禁止（監査のみ、実装なし）。
+Itemsとして監査対象から除外して実施した（`docs/PR-091-legacy-exit-audit.md`）。
+
+要点:
+- Step A（自己export可能47件）: 完了（PR-090-R2）。
+- Step B（window.state依存70件・Decision-1）/ Step C（Legacy依存55件のうち
+  Known Deferred Item 1件を除く7モジュール）: **依存関係の解消は完了**
+  （PR-090-R1/R3/R4）だが、**自己export行の追加とapp-legacy.js側の重複export行
+  削除（Step D）は未実施**であることを新規発見（`grep`で現在も172行の
+  window exportブロックが手つかずのまま残存していることを確認）。
+- 【副次的発見】`window.openSyncModal`/`closeSyncModal`/`toggleSyncMode`の
+  3行が、DEVICE SYNC節の手動exportとアルファベット順自動生成節の両方に
+  重複して存在（実害なしだが冗長、SAFE_DEAD）。
+- Build PASS / `vitest run` 5,193件中40件失敗（既知39件+
+  research-query-api.test.jsの1件が並列実行時タイムアウト、単体実行では
+  1.5秒でPASSする環境依存フレーキーと確認、実質増加なし）。
+- 判定: app-legacy.js削除は不可（Known Deferred Items・Decision-4未決・
+  Step D未実施のため）。ただしStep D自体はBusiness Logic変更を伴わない機械的
+  作業（Step Aと同型）のため、Founder判断を待たずに次PRとして実施可能と判定。
+- 次のアクション提案: PR-090-R6（Step D実施、約169行のexport行整理+重複3行削除）。
 
 **PR-090-R5**（完了）: `saveRecordScreen()`が呼ぶ
 `buildHomeWeekRow`/`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`/
@@ -1600,6 +1620,33 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-091: Legacy Exit Audit（監査のみ、コード変更ゼロ）**（Founder Decision後1本目、
+FULL Mode相当——Legacy Removal判断を伴うため）
+- Founder Decision（saveRecordScreen/Home ClusterのProgram除外、選択肢D採用）を受け、
+  `docs/LEGACY_REMOVAL_PLAN.md` 10-D節・`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
+  2-3節/Step 3・`docs/PR-090-R5-saveRecordScreen-migration-decision.md`を確定版に更新。
+- 続けて、現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）が
+  自ら定義した対象範囲を完了しているか監査し、`docs/PR-091-legacy-exit-audit.md`に
+  まとめた。Known Deferred Items（saveRecordScreen/buildHomeWeekRow/
+  updateHomeCTAState/Home Cluster）は監査対象から除外。
+- **新規発見**: Step A（自己export可能47件、PR-090-R2）は自己export追加+
+  app-legacy.js側dedupの両方が完了済みだが、Step B（window.state依存70件）・
+  Step C（Legacy依存55件のうちKnown Deferred Item除く7モジュール）は
+  「依存関係の解消」（PR-090-R1/R3/R4）のみが完了しており、**自己export行の追加と
+  app-legacy.js側の重複export行削除（Step D）が未実施**のまま残っていることを
+  実コードで確認（`window.X = X`パターンが現在も172行、うち3行
+  ——openSyncModal/closeSyncModal/toggleSyncMode——は二重定義）。
+- Build PASS / `vitest run` 5,193件中40件失敗（既知39件 +
+  `research-query-api.test.js`の1件が並列実行時タイムアウト、単体実行で
+  1.5秒PASSを確認した環境依存フレーキー。実質増加なし）。Architecture Guard PASS
+  （フル実行内、単体実行時の同型フレーキー1件は既知）。
+- 判定: app-legacy.js削除は不可（Known Deferred Items・Decision-4未決・Step D未実施）。
+  Step D自体はBusiness Logic変更を伴わない機械的作業のためFounder判断不要と判定し、
+  PR-090-R6として次PRに提案。
+- Decision Log: 更新不要（本PRは監査のみ、新たなFounder判断を要する事項なし。
+  Founder Decision自体の記録はPR-090-R5完了時点で10-D節に反映済み）。
+- 次: PR-090-R6（Step D実施）。実施可否・優先順位はFounderの通常のPR着手指示を待つ。
 
 **PR-090-R5: saveRecordScreen Migration Decision（調査・判定のみ、コード変更ゼロ）**
 （Recovery Program再開後5本目、FULL Mode相当——Founder判断が必要な変更のため）
