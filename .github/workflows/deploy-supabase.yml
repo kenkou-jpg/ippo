@@ -90,6 +90,12 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+      - name: Deploy cluster-batch
+        run: |
+          supabase functions deploy cluster-batch --no-verify-jwt
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       # ─── Edge Function Secrets の同期 ───────────────────────────────────
       # Stripe・Anthropic のシークレットを Edge Function 環境変数に設定する。
       # すでに設定済みの場合は上書きされる（冪等）。

@@ -12,9 +12,12 @@
 // cluster_meta には匿名統計のみ格納（個人情報なし）。
 // records 生データは読み込まない。
 //
-// Cron 設定方法（実装対象外 — 運用タスク）:
-//   Supabase Dashboard → Edge Functions → cluster-batch → Schedule
-//   または pg_cron:
+// Cron 設定: Operations Recovery Program PR-OPS-03 で自動化済み。
+//   .github/workflows/cluster-batch-schedule.yml が毎週日曜 02:00 UTC に
+//   GitHub Actions scheduled workflow 経由でこの関数を呼び出す
+//   （pg_cron拡張の有効化に依存しない構成）。
+//
+// 代替手段（未使用・参考): pg_cron が有効な場合は以下でも同等の実行が可能:
 //   SELECT cron.schedule(
 //     'cluster-batch-weekly',
 //     '0 2 * * 0',  -- 毎週日曜 02:00 UTC

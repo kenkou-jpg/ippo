@@ -1,0 +1,30 @@
+name: Cluster Batch (Scheduled)
+
+# Operations Recovery Program PR-OPS-03。
+# supabase/functions/cluster-batch/index.ts のコメントで「実装対象外 — 運用タスク」
+# とされていた週次Cronを、pg_cron拡張の有効化に依存しない形（GitHub Actions）で実装する。
+# cluster_meta には匿名統計のみが書き込まれる（cluster-batch/index.ts参照、個人情報なし）。
+
+on:
+  schedule:
+    - cron: "0 2 * * 0" # 毎週日曜 02:00 UTC（cluster-batch/index.ts記載のスケジュールと同一）
+  workflow_dispatch: {} # 手動実行用
+
+jobs:
+  trigger:
+    name: Invoke cluster-batch Edge Function
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call cluster-batch
+        run: |
+          http_status=$(curl -s -o response.json -w "%{http_code}" -X POST \
+            "${{ secrets.VITE_SUPABASE_URL }}/functions/v1/cluster-batch" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP status: $http_status"
+          cat response.json
+          if [ "$http_status" -lt 200 ] || [ "$http_status" -ge 300 ]; then
+            echo "::error::cluster-batch invocation failed with status $http_status"
+            exit 1
+          fi
