@@ -2,7 +2,15 @@
 
 ## プロジェクト概要
 
-ippo（女性疾患症例プラットフォーム）の設計・実装を進めている。
+ippoの設計・実装を進めている。
+
+> **製品定義（2026-07-07 Release Readiness Council Review v2 で正式確認、BD-061/BD-062）**:
+> IPPOは「自己実験プラットフォーム」である。ユーザー自身が食事・睡眠・運動・断食・サプリ・
+> 生活習慣などを組み合わせて自分自身の身体で実験し、結果を記録・比較・分析するためのアプリ。
+> 診断・治療・医療判断・医師への指示・症状改善の保証は一切行わない。AIの役割は記録整理・
+> 要約・傾向分析・自己実験結果の可視化・類似パターン表示に限定される。
+> 詳細: docs/RELEASE_READINESS_COUNCIL.md 21章。以下の本文書内の記述（「女性疾患」「疾患プラットフォーム」等）は
+> Wave1〜Wave2設計当時の呼称であり、歴史的記録として保持する（Append-Only方針により本文は書き換えない）。
 
 作業ブランチ: feat/phase4d-batch1-record-input
 
@@ -31,6 +39,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | REGULATORY & MEDICAL COUNCIL | docs/REGULATORY_MEDICAL_COUNCIL.md | 規制・医療・倫理・BD-044〜052 |
 | GO-TO-MARKET COUNCIL | docs/GTM_COUNCIL.md | 市場投入戦略・BD-053〜060 |
 | FOUNDER STRATEGIC REVIEW | docs/FOUNDER_STRATEGIC_REVIEW_WAVE2.md | Wave2 Go/No-Go 監査（CONDITIONAL GO） |
+| RELEASE READINESS COUNCIL | docs/RELEASE_READINESS_COUNCIL.md | β公開可否監査・製品定義（自己実験プラットフォーム）・BD-061〜062 |
 
 ### LEVEL-2 — Architecture Authority（変更にはアーキテクチャレビューが必要）
 
@@ -72,6 +81,18 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | C-3 | SaMD非該当の書面見解取得（BD-051）| Wave2 Phase D 前 |
 | C-4 | Research Consent追加（BD-049）| Wave2 Phase B 前 |
 | C-5 | Research Dataset提供契約書雛形作成 | Wave2 Phase F 前 |
+
+> **2026-07-07 更新**: 上記5条件はRelease Readiness Council Review v2（docs/RELEASE_READINESS_COUNCIL.md 21章）
+> により再監査済み。C-2（医師アドバイザー招聘）・C-3（SaMD書面見解）は現行の製品定義（自己実験プラットフォーム、
+> BD-061/BD-062）では非適用。C-1は推奨へ格下げ。C-4はデータ利用同意として縮小再定義。表自体は当時の記録として保持する。
+
+**PR-OPS-06: Release Readiness Council Review v2 の正式反映**（2026-07-07・文書のみ、コード変更ゼロ）
+- docs/RELEASE_READINESS_COUNCIL.md 21章追加（製品定義再監査、Critical 5件→2件、BD-061/062新設、Score 93→95/100）
+- docs/release-readiness/FOUNDER_ACTION_CHECKLIST.md 更新（対象2件へ圧縮、対象外4件を記録）
+- docs/release-readiness/MEDICAL_ADVISOR_REQUEST.md・SAMD_OPINION_REQUEST.md に非適用注記追加（confirmed:falseは維持）
+- 本HANDOFFの製品概要・戦略上の条件表・Governing Document Hierarchy・BD registryを更新
+- Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
+- 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
 ---
 
@@ -1260,6 +1281,13 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
 | BD-058 | 海外展開順序は台湾→韓国→オーストラリア→EU→米国を厳守 | GTM COUNCIL |
 | BD-059 | Founder週間GTM稼働時間は3時間以内（通常期）| GTM COUNCIL |
 | BD-060 | IPPO Dataset使用論文にはAcknowledgment記載を提供条件とする | GTM COUNCIL |
+
+### BD-061〜BD-062（Release Readiness Council Review v2 / 製品定義再確認）
+
+| BD | 内容 | 出典 |
+|---|---|---|
+| BD-061 | IPPOは自己実験プラットフォームであり、診断・治療・医療判断・医師への指示・症状改善の保証を一切行わない。この定義に反する機能・AI出力・マーケティング表現は禁止する | RELEASE READINESS COUNCIL（21章） |
+| BD-062 | AIの役割は記録整理・要約・傾向分析・自己実験結果の可視化・類似パターン表示に限定する。診断的・治療的・因果断定的なAI出力は設計上禁止する（BD-031/BD-038/BD-050は継続適用） | RELEASE READINESS COUNCIL（21章） |
 
 ### BBS-001〜006（Business Strategy）/ BGS-001〜005（Growth Strategy）
 
