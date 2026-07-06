@@ -1536,18 +1536,18 @@ PR-090-R1 — isPremium依存解消（import差し替え）        [完了]
   ↓
 PR-090-R2 — 自己export可能47件の自己export化            [完了]
   ↓
-PR-090-R3 — window.state依存70件（Decision-1実装含む）  [次]
+PR-090-R3 — window.state依存70件（Decision-1実装含む）  [完了]
   ↓
 PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
-            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen）
+            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [次]
   ↓
 PR-091 — Legacy Exit Audit
 ```
 
-**PR-090-R3**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節のDecision-1実装
-（`src/store/state.js`の`setState()`/`_postHooks`内で`window.state`を直接更新する
-よう変更）を行い、window.state依存70件（一部はLegacy依存と複合、6-3節参照）を
-解放する。
+**PR-090-R4**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 6-2/6-4節のLegacy依存
+残件（`supabaseUserId`/`syncMode`の物理移動、`updateStats`の物理移動、
+`SYMPTOM_DETAIL_CONFIG`の`src/constants/`切り出し、`saveRecordScreen()`連動）を
+個別の物理移動PRとして整理する。Founder判断不要（Step C、Council 7節参照）。
 
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
@@ -1563,6 +1563,23 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-R3: window.state依存70件の解放（Decision-1実装）**（Recovery Program再開後3本目、STANDARD Mode）
+- `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節・7節Step Bの実装。`src/store/state.js`の
+  `setState()`内、`_state = newState;`の直後に`try { window.state = _state; } catch (_) {}`
+  を追加し、`window.state`を`state.js`自身が直接同期するよう変更（Decision-1承認範囲）。
+- 冒頭の設計方針コメントも実態に合わせて修正（存在しない
+  `Object.defineProperty`ゲッターの記述を削除し、実装済みの直接同期方式を記載）。
+- 変更は`src/store/state.js`1ファイルのみ。`app-legacy.js`側の既存`_ippoStateHooks`
+  ブリッジ（`window.state`への同型の同期）はそのまま維持しており、二重同期になるが
+  同一値の再代入のため副作用なし。
+- これによりCouncil 4節の「window.state依存」18モジュール・70件（一部は
+  Legacy依存と複合、6-3節参照）が、`app-legacy.js`の実行有無に関わらず
+  `window.state`の値が保証される状態になった。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Browser Verification: Vite dev server + app.html実機で`setState()`呼び出し後に
+  `window.state === getState()`（同一参照）であることを確認、新規Console Errorなし。
+- 次: PR-090-R4（Legacy依存残件の物理移動、Founder判断不要）。
 
 **PR-090-R2: 自己export可能47件の自己export化**（Recovery Program再開後2本目、STANDARD Mode）
 - `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 4節「自己export可能」12モジュール・47件

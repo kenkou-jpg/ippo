@@ -5,8 +5,8 @@
 //  【設計方針】
 //  - _state: module-local の単一正本（唯一の source of truth）。
 //  - getState() : _state 未初期化時は INITIAL_STATE で初期化。
-//  - setState()  : _state のみを更新。window.state は app-legacy.js の
-//                 Object.defineProperty getter 経由で _state を参照する。
+//  - setState()  : _state を更新し、window.state へ直接同期する
+//                 （app-legacy.js の _ippoStateHooks 経由の同期に依存しない）。
 //  - saveState() : getState() 経由で localStorage に保存。
 //  - loadState() : localStorage → setState() で正本を初期化。
 // ============================================================
@@ -138,6 +138,7 @@ export function setState(newState) {
     } catch (_) {}
   }
   _state = newState;
+  try { window.state = _state; } catch (_) {}
   for (var _i = 0; _i < _postHooks.length; _i++) {
     try { _postHooks[_i](newState); } catch(e) { console.warn('ippo: setState post-hook error', e); }
   }
