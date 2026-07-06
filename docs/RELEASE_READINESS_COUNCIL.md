@@ -676,12 +676,105 @@ checkBetaReadinessGate().ready = false
 
 ---
 
+## 19. Release Readiness Critical Recovery Program（再監査、2026-07-02）
+
+Founder指示により、残存Critical 5件（C-1/C-2/C-3/C-4/BD-034）を対象に再分類・再監査を実施した。
+新規実装・Architecture変更・Roadmap変更・Business変更は禁止スコープとして実施。
+
+### 19-A. Critical 5件の再分類結果
+
+| ID | 内容 | 分類 | 詳細文書 |
+|---|---|---|---|
+| C-1 | プライバシーポリシー弁護士レビュー | **External Evidence** | `docs/release-readiness/PRIVACY_LAWYER_REVIEW_REQUEST.md` |
+| C-2 | 医師アドバイザー1名の招聘 | **Founder Action** | `docs/release-readiness/MEDICAL_ADVISOR_REQUEST.md` |
+| C-3 | SaMD非該当の書面見解取得 | **External Evidence** | `docs/release-readiness/SAMD_OPINION_REQUEST.md` |
+| C-4 | Signal Consent検証方式の決定 | **Founder Action** | `docs/release-readiness/SIGNAL_CONSENT_DECISION_MEMO.md` |
+| BD-034 | Supabase永続化の適用範囲決定 | **Founder Action** | `docs/release-readiness/BD034_PERSISTENCE_DECISION_MEMO.md` |
+
+索引: `docs/release-readiness/FOUNDER_ACTION_CHECKLIST.md`
+
+### 19-B. Implementation判定
+
+```
+Critical 5件を実コード再確認した結果、Implementation（AIが実装可能）に分類できる項目はゼロ件。
+
+根拠:
+  C-1 / C-3 — 外部弁護士・規制当局の書面が必須。AIによる代行・偽装は禁止事項に抵触するため
+              対象外（docs/release-readiness/ の該当メモに検証済み）。
+  C-2       — 医師アドバイザーとの契約締結はFounderの採用行為そのもの。実装で代替不可。
+  C-4       — PR-076でCase経路のConsent Gateは実装済み（consent-gate-service.js確認）。
+              残る論点はSignal経路の自己申告モデルの是非という設計判断であり、
+              追加実装（NetworkSignal entityへのuserId/consentLevel付与）はArchitecture変更に
+              該当するため本Programのスコープ外（Founderの選択肢B採用時のみ別途着手）。
+  BD-034    — persistence-config.js を実測確認: PERSISTENCE_CONFIG は networkSignal 1件のみで
+              変化なし。15+ドメインのSupabase化は新規Roadmap起票を要する規模であり、
+              Roadmap変更禁止の制約下では実装不可（Founderが適用範囲の再解釈 or 新Roadmap起票を
+              判断するまで着手できない）。
+
+PR-079以降の新規PRは起票していない。コード変更ゼロ。
+```
+
+### 19-C. Founder Action一覧（実装禁止・confirmed:true記録禁止で維持）
+
+- C-2: 医師アドバイザー1名の招聘（契約締結まで）
+- C-4: Signal Consent検証方式の選択（選択肢A/B/C、`SIGNAL_CONSENT_DECISION_MEMO.md`）
+- BD-034: Supabase永続化の適用範囲の再解釈 or 新Roadmap起票の判断（選択肢A/B/C、`BD034_PERSISTENCE_DECISION_MEMO.md`）
+
+### 19-D. External Evidence一覧（実装禁止・証跡生成禁止で維持）
+
+- C-1: 外部弁護士によるプライバシーポリシーレビュー報告書
+- C-3: 外部弁護士または規制当局によるSaMD非該当の書面見解
+
+### 19-E. 再監査結果（コード変更なしのため既存値を再確認・据え置き）
+
+```
+confirmed:true累計:  28件（変化なし）
+confirmed:false累計: 6件（C-1 / C-2 / C-3 / C-4 / BD-034 / BD-042、変化なし）
+未レビュー累計:      5件（BD-003 / BD-015 / BD-029 / BD-033 / C-5、変化なし）
+checkBetaReadinessGate().ready = false（変化なし）
+
+npx vitest run: 本Programはコード変更ゼロのため未実施。直近実測値（18-F、5,149件中5,110件PASS、
+既知失敗39件）を有効な baseline として継続採用する。
+```
+
+| カテゴリ | 配点 | 前回（18章） | 今回 | 差分理由 |
+|---|---|---|---|---|
+| Architecture | 20 | 20 | 20 | 変更なし |
+| Domain | 15 | 15 | 15 | 変更なし |
+| Similarity / Knowledge Graph | 15 | 13 | 13 | 変更なし |
+| Research Platform | 15 | 14 | 14 | 変更なし（C-4はFounder判断待ちのまま） |
+| Quality（Test実測） | 15 | 14 | 14 | 変更なし（再実測なし、baseline継続） |
+| Security / Regulatory | 20 | 14 | 14 | 変更なし（C-1〜C-3・BD-034 未解消） |
+| **合計** | **100** | **93** | **93** | コード変更なしのため不変 |
+
+**Current Score: 93/100（変化なし）**
+**Critical（5件、変化なし）:** C-1 / C-2 / C-3 / C-4 / BD-034
+**Major（3件、変化なし）:** BD-003 / BD-015 / BD-029
+**Minor（3件、変化なし）:** C-5 / BD-033 / BD-042
+**Release Risk: Medium（変化なし）** — 残るCriticalはすべて外部専門家の関与またはFounderの意思決定に依存し、コードでは解消不可。
+
+### 19-F. 判定
+
+```
+CONDITIONAL GO 継続（GOには未達）
+
+本Programは新たなconfirmed:true記録を一切行っていない（Founder Action / External Evidence を
+実装・証跡生成することは禁止事項のため）。Critical 5件はすべて「AIが実装で解消できない」ことが
+再確認された状態であり、これはGOへの後退ではなく、正しくFounder/外部専門家へのボールの受け渡しが
+完了したことを意味する。
+
+Decision Log（Binding Decisions / BD一覧）は Architecture・Business・Roadmap・Founder Philosophy
+のいずれにも変更がないため更新していない。
+```
+
+---
+
 ## Document Authority Record
 
 | 項目 | 内容 |
 |---|---|
 | **文書番号** | IPPO-RELEASE-001 |
-| **バージョン** | 1.5（18章 Release Readiness Completion Program 追記） |
+| **バージョン** | 1.6（19章 Critical Recovery Program 再監査 追記） |
 | **作成日** | 2026-07-02 |
 | **権威レベル** | LEVEL-1 GOVERNING DOCUMENT（Founder確認継続中） |
 | **前提文書** | WAVE2_MASTER_DESIGN / WAVE2_ARCHITECTURE / WAVE2_ROADMAP / WAVE2_IMPLEMENTATION_GOVERNANCE / BUSINESS_STRATEGY / GROWTH_STRATEGY / REGULATORY_MEDICAL_COUNCIL / GTM_COUNCIL / FOUNDER_STRATEGIC_REVIEW_WAVE2 / HANDOFF_PHASE7_COMPLETE |
@@ -689,4 +782,5 @@ checkBetaReadinessGate().ready = false
 | **判定（初回）** | CONDITIONAL GO（Release Readiness Score: 79/100、2026-07-02） |
 | **判定（Recovery後）** | CONDITIONAL GO（Release Readiness Score: 90/100、2026-07-02） |
 | **判定（Completion Program後）** | CONDITIONAL GO 継続（Release Readiness Score: 93/100、39項目中confirmed:true 28件・confirmed:false 6件・未レビュー5件） |
+| **判定（Critical Recovery Program後）** | CONDITIONAL GO 継続（Release Readiness Score: 93/100、変化なし。Critical 5件全件がImplementation不可と再確認、Founder Action 3件・External Evidence 2件に整理） |
 | **次のアクション** | Founder Action 3件（C-2医師アドバイザー招聘／C-4 Signal Consent判断／BD-034適用範囲の再解釈 or 新Roadmap起票判断）と External Evidence 2件（C-1弁護士レビュー／C-3 SaMD書面見解）が必須ブロッカー。Major 3件（BD-003/BD-015/BD-029）はLegacy Removal・Operations Council前に確認、Minor 3件（C-5/BD-033/BD-042）は当面保留可 |
