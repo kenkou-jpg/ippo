@@ -595,6 +595,41 @@ Founder: kenkou-jpg（2026-07-06）。
 
 ---
 
+## 10-E. Decision Log 追補（2026-07-06・Decision-4 saveRecord/record-modal系除外）
+
+```
+決定事項: Decision-4（docs/DECISION_4_RECORD_MODAL_REVIEW.md）で提示した選択肢の
+うちD+Cを採用する。saveRecord/record-modal/openRecordModal/closeModal/saveAndSync
+（record-modal-controller.js側）/nextStep/prevStep/renderStep/buildSteps
+（app-legacy.js版）/#record-modalはLegacy Exit Audit対象から除外し、β後のUI/UX
+Final Councilへ正式移管する。
+
+根拠:
+  ・修復(A)・削除(B)いずれもBusiness Logic変更を伴う
+    （saveRecordの`window.saveRecord`ブリッジ修復は現在no-opの挙動を実働化させる、
+    削除は#record-modal・saveAndSyncの実体分離を伴う）
+  ・修復(A)・削除(B)いずれもUI変更を伴う（#record-modalのHTML変更を含む）
+  ・「record-three-card.jsロード失敗時のフォールバック設計をどう扱うか」という
+    製品判断が必要なため
+  ・Legacy Removalの目的（同一実装の物理移動・整理）ではないため
+  ・判断はβ後のUI/UX Final Councilに委ねる
+
+  □ docs/LEGACY_COMPLETION_RECOVERY_PLAN.md 2-4節・2-5節・Step 4を更新
+    （Decision-4を「確定済み・対象外」に変更）
+  □ Recovery Program（PR-090-P1〜R6）はこれをもって完了とする
+  □ 次: Legacy Exit Audit Final（docs/LEGACY_EXIT_AUDIT_FINAL.md）を実施する。
+    Known Deferred Items（saveRecordScreen/Home Cluster、10-D節）とDecision-4対象
+    （本節）はいずれもApproved Deferred Items（Founder承認済みの延期項目）として
+    監査対象から除外し、現行Recovery Programの成果のみを監査する
+  □ Business Logic変更は引き続き禁止。本決定はコード変更を伴わない
+
+根拠文書: docs/DECISION_4_RECORD_MODAL_REVIEW.md（差分表・選択肢評価・
+Release Risk・saveAndSync実体分離の整理）、AI_EXECUTION.md 9章（Legacy Removal判断は
+Decision Log候補）に基づく。Founder: kenkou-jpg（2026-07-06）。
+```
+
+---
+
 ## Document Authority Record
 
 | 項目 | 内容 |

@@ -26,8 +26,8 @@ PR-089Zで`app-legacy.js`は「削除不可」と判定され、7項目のRemain
 | 1 | window.state所有権 | ✗ | ✓（Architecture変更承認） | ✓（承認後） | 挙動は変えない、置き場所の変更のみ |
 | 2 | window export hub問題 | ✗ | ✓（Architecture変更承認） | ✓（承認後、規模大） | 150件超、クラスタ分割必須 |
 | 3 | home cluster 6関数 | ✓ | **確定済み（D採用）** | **対象外** | Founder Decision 2026-07-06: Legacy Removal Program除外、β後UI/UX Final Councilへ |
-| 4 | saveRecord / record-modal系 | ✓（可能性） | ✓（方針決定） | △（決定後のみ） | 「修復」か「正式廃止」かで手段が変わる |
-| 5 | closeModal等no-op | ✓（バグ修正） | ✓（優先度・4と連動） | △（4の決定に依存） | 4の結論次第で不要になる場合あり |
+| 4 | saveRecord / record-modal系 | ✓ | **確定済み（D+C採用）** | **対象外** | Founder Decision 2026-07-06: Legacy Removal Program除外、β後UI/UX Final Councilへ |
+| 5 | closeModal等no-op | ✓ | **確定済み（項目4に統合）** | **対象外** | Decision-4と同時にD+C確定。saveAndSyncは実体2つある点に要注意 |
 | 6 | updateSettingsHero/closeSuccess | ✗ | ✗（既に確定済み） | ✓ | 純粋な物理移動のみ |
 | 7 | 未精査window export残存分 | 不明（要監査） | 不明（監査後に判明） | △（監査が先） | まず7A型の調査PRが必要 |
 
@@ -119,43 +119,55 @@ Legacy Removal Programの対象から除外する。
 
 ---
 
-### 2-4. saveRecord / record-modal系（項目4）
+### 2-4. saveRecord / record-modal系（項目4）— **Founder Decision確定済み（2026-07-06）**
 
 **現状:** `saveRecord()`・`nextStep`/`prevStep`/`renderStep`/`buildSteps`・
 `#record-modal`（app.html、2026-05-27付けsoft-isolated）は一体のサブシステムであり、
 `window.saveRecord`ブリッジ欠落により実質到達不能。
 
-**分解:**
-- **Decision-4（Founder判断・方針決定）**: 二択。
-  - **(A) 修復**: `window.saveRecord`を正しくapp-legacy.js側の実装へ結線し、
-    旧5ステップwizardを正式なfallback経路として復活させる。
-  - **(B) 正式廃止**: 到達不能な状態を追認し、`#record-modal`のHTML・
-    `saveRecord`/`nextStep`/`prevStep`/`renderStep`/`buildSteps`/
-    `openRecordModal`一式を正式に削除する（UI変更として別途承認が必要）。
-- **PR-090-R1**（Decision-4が(A)の場合）: `window.saveRecord`ブリッジの結線修正
-  （Business Logic変更＝現在no-opの挙動が「実際に保存される」に変わるため、
-  挙動変更を伴うFULL Mode PRとして実施）。
-- **PR-090-R1'**（Decision-4が(B)の場合）: `#record-modal`関連コード・HTML一式の削除
-  （UI変更として別途Founder承認、`app.html`変更を伴う）。
+**Decision-4 確定（Founder判断、2026-07-06、Decision-4 Founder Review結果を受けて）:**
+
+```
+採用: D + C（Legacy Exit Audit対象から除外し、β後のUI/UX Final Councilへ正式移管）
+
+saveRecord/record-modal/openRecordModal/closeModal/saveAndSync（record-modal-
+controller.js側）/nextStep/prevStep/renderStep/buildSteps（app-legacy.js版）/
+#record-modalは、Legacy Removal Programの対象から除外する。
+
+理由:
+  ・修復(A)・削除(B)いずれもBusiness Logic変更を伴う
+  ・修復(A)・削除(B)いずれもUI変更を伴う
+  ・「record-three-card.jsロード失敗時のフォールバックをどう扱うか」という
+    設計判断が必要なため
+  ・Legacy Removalの目的（同一実装の物理移動・整理）ではないため
+  ・判断はβ後のUI/UX Final Councilで行う
+```
+
+詳細な差分表・選択肢比較・`saveAndSync`実体分離の整理は
+`docs/DECISION_4_RECORD_MODAL_REVIEW.md`参照。
+
+**分解（確定後の扱い）:**
+- ~~Decision-4（Founder判断・方針決定）~~ → 上記の通り確定済み（D+C採用・Legacy Removal
+  Program対象外）。
+- ~~PR-090-R1/R1'~~ → **実施しない**。`window.saveRecord`ブリッジの修復・
+  `#record-modal`関連の削除いずれも行わない（β後のUI/UX Final Council開催まで凍結）。
 
 ---
 
-### 2-5. closeModal / openRecordModal / saveAndSync no-op（項目5）
+### 2-5. closeModal / openRecordModal / saveAndSync no-op（項目5）— **Decision-4に統合済み**
 
 **現状:** `record-modal-controller.js`の`_inline*`委譲パターンが、想定していた
 「inline `<script>`実行後にロード」という前提を満たせず、3関数ともno-op。
 
-**分解:**
-- 本項目はDecision-4と強く連動する。
-  - Decision-4が **(B) 正式廃止** の場合: `#record-modal`ごと削除されるため、
-    このno-opは自然消滅する。個別の修正PRは不要。
-  - Decision-4が **(A) 修復** の場合: `closeModal`/`openRecordModal`/`saveAndSync`の
-    no-opも合わせて修正しないと、モーダルを開けても保存・キャンセルいずれも
-    機能しない状態が残る。
-- **PR-090-R2**（Decision-4が(A)の場合のみ、PR-090-R1と同時 or 直後）:
-  `record-modal-controller.js`の`_inline*`キャプチャロジックを、
-  「app-legacy.js側の実装を明示的にimportして委譲する」方式へ修正する
-  （Business Logic変更＝no-opから実働への変更のため、挙動変更を伴うFULL Mode PR）。
+**分解（確定後の扱い）:**
+- 本項目はDecision-4に統合され、同じくD+Cで確定済み（2-4節参照）。
+  ~~PR-090-R2~~ → **実施しない**。
+- **新規発見（Decision-4 Founder Review、2026-07-06）**: `saveAndSync`は同名で実体が2つ
+  存在する。`src/modules/save-and-sync.js`側の実装は`saveRecordScreen()`
+  （現行の記録保存フロー、カレンダー編集分岐）でも使われる**現役コード**であり、
+  no-opなのは`record-modal-controller.js`側の`window.saveAndSync`ラッパーのみ。
+  将来この一帯に手を入れる際は、誤って`save-and-sync.js`本体を壊さないよう要注意
+  （`docs/DECISION_4_RECORD_MODAL_REVIEW.md` 3-4節参照）。
 
 ---
 
@@ -229,30 +241,39 @@ Founder Decision（2026-07-06、2-3節参照）により、saveRecordScreen・ho
 5関数の統合はLegacy Removal Programの対象から除外された。以降のStepはこのStepの
 完了を待たずに進行する（= 恒久的にKnown Deferred Itemsとして扱う）。
 
-### Step 4（Decision-4承認後）
+### Step 4（Decision-4承認後）— **除外確定（2026-07-06）**
 
-7. **PR-090-R1 または R1'**: saveRecord/record-modal系の修復 or 正式廃止
-8. **PR-090-R2**（(A)修復の場合のみ）: closeModal等no-opの修正
+~~7. PR-090-R1 または R1': saveRecord/record-modal系の修復 or 正式廃止~~
+~~8. PR-090-R2（(A)修復の場合のみ）: closeModal等no-opの修正~~
+
+Founder Decision（2026-07-06、`docs/DECISION_4_RECORD_MODAL_REVIEW.md`・2-4/2-5節参照）
+により、saveRecord/record-modal系（saveRecord/openRecordModal/closeModal/
+saveAndSync（record-modal-controller.js側）/nextStep/prevStep/renderStep/buildSteps/
+#record-modal）はLegacy Removal Programの対象から除外された（D+C採用、β後UI/UX
+Final Councilへ正式移管）。
 
 （注: この項目4/5の`saveRecord`/`#record-modal`系は、Step 3で除外された
 `saveRecordScreen`とは別物——`saveRecord()`は2026-05-27付けでsoft-isolated済みの
-`#record-modal`（旧3-card入力モーダル）用ハンドラであり、`saveRecordScreen()`は
-現行の記録画面保存ハンドラ。Decision-4は本書作成時点（2026-07-05）から未着手のまま
-据え置かれている。PR-091 Legacy Exit Auditでは、この項目4/5は現行Recovery Program
-（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-R1〜R5系）の実施対象外だったため
-監査スコープに含めない。）
+`#record-modal`（旧5ステップwizard）用ハンドラであり、`saveRecordScreen()`は
+現行の記録画面保存ハンドラ。両者とも今やLegacy Removal Program対象外だが、
+除外の理由・除外先の会議体は共通（β後UI/UX Final Council）。）
 
-### Step 5（Step 1〜2完了後、Step 3は除外・Step 4は現行Programの対象外）
+### Step 5（Step 1〜4すべて完了・確定、2026-07-06）
 
-9. **PR-091 Legacy Exit Audit**: **現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・
-   PR-090-P1〜R5）の対象範囲内**でRemaining Legacy解消済みであることを再監査する。
-   saveRecordScreen・buildHomeWeekRow・updateHomeCTAState・home clusterはKnown
-   Deferred Itemsとして監査対象から除外し、`app-legacy.js`の完全削除可否ではなく
-   「現行Programの範囲で削除できるものは削除しきったか」を判定する。
-10. **PR-092 Final Cutover**: 本Recovery Planが対象とした7項目（home cluster/
+9. **PR-091 Legacy Exit Audit**（完了）: 現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・
+   PR-090-P1〜R4）の対象範囲内でRemaining Legacy解消済みであることを監査。
+   Step D未実施（自己export化）を発見し、PR-090-R6で解消。
+10. **Decision-4 Founder Review**（完了）: saveRecord/record-modal系の分類判定資料を
+    作成。Founder DecisionでD+C採用（β後UI/UX Final Councilへ正式移管）確定。
+11. **Legacy Exit Audit Final**（`docs/LEGACY_EXIT_AUDIT_FINAL.md`）: Recovery Program
+    （PR-090-P1〜R6）の成果を最終監査する。Known Deferred Items（saveRecordScreen/
+    Home Cluster）とDecision-4対象（saveRecord/record-modal系）は
+    **Approved Deferred Items**（Founder承認済みの延期項目）として監査対象から除外し、
+    現行Recovery Programの成果のみを対象とする。
+12. **PR-092 Final Cutover**: 本Recovery Planが対象とした7項目（home cluster/
     saveRecord・record-modal系を含む）がすべて解消されない限り着手しない
-    （Known Deferred Items・Decision-4未決を理由にPR-091では「削除可能」の判定は
-    出ない見込み）。
+    （Approved Deferred Items 2件はβ後UI/UX Final Councilの判断が出るまで解消されない
+    ため、当面PR-092は着手見込みなし）。
 
 ---
 

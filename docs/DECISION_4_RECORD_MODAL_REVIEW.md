@@ -1,5 +1,13 @@
 # Decision-4 Founder Review — saveRecord / record-modal系
 
+> **Founder Decision確定（2026-07-06）: 選択肢D+C採用。** `saveRecord`/`record-modal`/
+> `openRecordModal`/`closeModal`/`saveAndSync`（record-modal-controller.js側）/
+> `nextStep`/`prevStep`/`renderStep`/`buildSteps`（app-legacy.js版）/`#record-modal`は
+> Legacy Exit Audit対象から除外し、β後のUI/UX Final Councilへ正式移管する。
+> Decision Logは`docs/LEGACY_REMOVAL_PLAN.md` 10-E節参照。
+> Recovery Program（PR-090-P1〜R6）はこれをもって完了。次は「Legacy Exit Audit Final」
+> （`docs/LEGACY_EXIT_AUDIT_FINAL.md`）を参照。
+>
 > 目的: `saveRecord`/`#record-modal`/`openRecordModal`/`closeModal`/`saveAndSync`/
 > `nextStep`/`prevStep`/`renderStep`/`buildSteps`を、削除・修復・β後延期のいずれに
 > 分類するかFounderが判断するための資料。
@@ -225,11 +233,22 @@ saveRecord / record-modal / openRecordModal / closeModal / saveAndSync（record-
 controller.js側）/ nextStep・prevStep・renderStep・buildSteps（app-legacy.js版）/
 #record-modal:
 
-分類: D + C（Legacy Exit Auditから除外し、β後UI/UX Final Councilで判断）
+分類: D + C 確定（Founder Decision、2026-07-06）
+
+Legacy Exit Audit対象から除外し、β後のUI/UX Final Councilへ正式移管する。
+Approved Deferred Item（Founder承認済みの延期項目）として今後の監査対象から除外する。
+
+理由（Founder確認）:
+・Business Logic変更を伴う
+・UI変更を伴う
+・フォールバック設計（record-three-card.jsロード失敗時の代替経路をどう扱うか）の
+  判断が必要
+・Legacy Removal Programの目的（同一実装の物理移動・整理）ではない
 
 Business Logic変更: なし（本レビューはコード変更ゼロ）
 UI変更: なし
-Founder判断待ち。
+Decision Log: docs/LEGACY_REMOVAL_PLAN.md 10-E節に記録済み。
+次のアクション: docs/LEGACY_EXIT_AUDIT_FINAL.md（Recovery Program最終監査）。
 ```
 
 ---
@@ -240,9 +259,9 @@ Founder判断待ち。
 |---|---|
 | **文書番号** | IPPO-LEGACY-DECISION-4 |
 | **作成日** | 2026-07-06 |
-| **権威レベル** | 監査報告書（Founder確認待ち） |
+| **権威レベル** | 監査報告書（Founder確認済み、2026-07-06） |
 | **実装状況** | コード変更ゼロ。本書は調査結果の記録のみ |
 | **前提文書** | docs/LEGACY_COMPLETION_RECOVERY_PLAN.md 2-4節・2-5節 / docs/PR-089F-7F-safe-dead-candidates-investigation.md / docs/PR-089F-7G-ambiguous-shims-final-classification.md / docs/PR-089Z-final-cutover-decision.md |
 | **検証方法** | 実コード全文確認（grep全件+関数本体読解）。2026-07-06時点で再検証、PR-089Z（2026-07-05）時点の結論を再確認し、`saveAndSync`実体分離・`openRecordModal`fallback生存の2点を新規に明確化 |
-| **判定** | D+C（Legacy Exit Audit除外、β後UI/UX Final Councilへ） を推奨。Founder最終判断待ち |
-| **次のアクション** | Founder判断確定後、対応するPR（A/B選択時は個別実装PR、C/D選択時はβ後Councilまで凍結）を起票する |
+| **判定** | D+C確定（Legacy Exit Audit除外、β後UI/UX Final Councilへ正式移管。Founder Decision 2026-07-06、docs/LEGACY_REMOVAL_PLAN.md 10-E節） |
+| **次のアクション** | docs/LEGACY_EXIT_AUDIT_FINAL.md（Recovery Program最終監査）を実施する |

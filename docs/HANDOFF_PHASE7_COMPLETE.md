@@ -1548,18 +1548,44 @@ PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferr
   ↓
 PR-090-R6 — Step D: 自己export追加+app-legacy.js側dedup（107行） [完了]
   ↓
-（Founder確認: 現行Recovery Programはここで完了、2026-07-06）
+Decision-4 Founder Review — saveRecord/record-modal系（調査のみ） [完了、Founder Decision確定]
   ↓
-Decision-4 Founder Review — saveRecord/record-modal系（調査のみ） [完了、Founder判断待ち]
+Legacy Exit Audit Final — Recovery Program完了監査 [完了]
+
+Recovery Program（PR-090-P1〜R6）: Founder確認により完了確定（2026-07-06）
 ```
 
-**Decision-4 Founder Review**（完了、次アクションはFounder判断待ち）: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
+**Founder Decision（2026-07-06・Decision-4）**: Decision-4の選択肢はD+Cを採用。
+`saveRecord`/`record-modal`/`openRecordModal`/`closeModal`/`saveAndSync`
+（record-modal-controller.js側）/`nextStep`/`prevStep`/`renderStep`/`buildSteps`
+（app-legacy.js版）/`#record-modal`はLegacy Exit Audit対象から除外し、β後のUI/UX
+Final Councilへ正式移管する。Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-E節。
+Recovery Plan更新: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-4節・2-5節・Step 4。
+
+**Recovery Program（PR-090-P1〜R6）完了確定**: Founder確認により、現行Recovery
+Programはこれで区切りとする。Known Deferred Items（saveRecordScreen/Home Cluster、
+10-D節）とDecision-4対象（10-E節）は合わせて**Approved Deferred Items**として、
+以後のLegacy Exit Audit対象から除外する。
+
+**Legacy Exit Audit Final**（完了）: Recovery Program（PR-090-P1〜R6）の成果を最終監査。
+詳細は`docs/LEGACY_EXIT_AUDIT_FINAL.md`参照。
+
+- Step A（自己export可能47件）〜Step D（自己export化+dedup）はApproved Deferred
+  Items（success-overlay.js 1件・record-input.js 26件の暫定保留を除く）を除き完了確認。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知のみ、Program全体を通じて増加なし）/
+  Architecture Guard 104件PASS。
+- app-legacy.js: 10,804行（Batch-1開始時）→ 2,447行（現在、約77%削減）。
+- app-legacy.js削除は引き続き不可（Approved Deferred Itemsが存在する限り、意図的な
+  現状）。PR-092 Final Cutoverはβ後UI/UX Final Councilの判断確定まで着手しない。
+- 次のLegacy Removal関連アクションは、β後UI/UX Final Councilの開催・判断確定を待つ。
+
+**Decision-4 Founder Review**（完了、Founder DecisionでD+C確定）: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
 2-4節・2-5節で2026-07-05時点から未決だったDecision-4（`saveRecord`/`#record-modal`/
 `openRecordModal`/`closeModal`/`saveAndSync`/`nextStep`/`prevStep`/`renderStep`/
 `buildSteps`）を実コードで再調査し、分類判定資料を作成した。
 詳細は`docs/DECISION_4_RECORD_MODAL_REVIEW.md`参照。
 
-要点:
+調査で判明した要点（Founder Decision確定後も記録として残す）:
 - `saveRecord()`は到達経路ゼロ（`window.saveRecord`ブリッジは自己参照no-op）で
   実質的にdeadだが、`openRecordModal()`は`handleHomeCTA()`の
   「record-three-card.js未ロード時のみ」のフォールバックとして**現に生存**している。
@@ -1571,13 +1597,8 @@ Decision-4 Founder Review — saveRecord/record-modal系（調査のみ） [完�
   Dead/no-opなのは`record-modal-controller.js`側の`window.saveAndSync`ラッパーのみ。
   将来の削除PRでは誤って`save-and-sync.js`本体を壊さないよう要注意。
 - 選択肢A(修復)/B(削除)はいずれもBusiness Logic変更・UI変更（app.html変更含む）を
-  伴うため、Home Cluster（Decision-3）と同型の理由で採用不可と判定。
-- 推奨: **D+C**（Legacy Exit Audit除外 + β後UI/UX Final Councilで判断、
-  Home Clusterと同じ扱い）。
-- PR-091/PR-090-R1〜R6で構成された現行Recovery Programは、本レビューをもって
-  区切りとする（Founder確認2026-07-06）。次のLegacy Removal関連PRは、
-  Decision-4またはKnown Deferred Items（saveRecordScreen/Home Cluster）いずれかの
-  Founder判断が確定してから着手する。
+  伴うため、Home Cluster（Decision-3）と同型の理由で採用不可と判定し、
+  Founderも同じ理由でD+Cを確定採用した（2026-07-06）。
 
 **PR-090-R6**（完了、STANDARD Mode）: PR-091で発見されたStep D未実施分を解消。
 window.state依存18モジュール + Legacy依存解消済み6モジュール（admin.js/community.js/
