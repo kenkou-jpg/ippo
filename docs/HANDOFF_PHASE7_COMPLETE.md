@@ -1542,21 +1542,37 @@ PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
             updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [完了、
             saveRecordScreenのみ既知の理由により未着手・据え置き]
   ↓
-PR-090-R5（仮） — saveRecordScreen()物理移動の前提条件（5関数重複問題）解消 [次、要Founder判断]
+PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [完了、Founder判断待ちで停止]
   ↓
-PR-091 — Legacy Exit Audit
+PR-091 — Legacy Exit Audit（PR-090-R5のFounder判断確定後に着手）
 ```
 
-**PR-090-R5（仮）**（次）: `saveRecordScreen()`は`buildHomeWeekRow`/`updateHomeCTAState`/
-`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`の5関数（PR-080Eで
-新規発見・Founder判断により据え置き済み、app-legacy.jsローカル実装 vs home-renderer.js
-export版の重複、docs/HANDOFF_PHASE7_COMPLETE.md PR-080E節参照）を呼ぶ。この重複が
-未解消のまま`saveRecordScreen`を物理移動すると、移動先モジュールが5関数をどこから
-importするか（app-legacy.js側ローカル実装 or home-renderer.js側export版）の選択自体が
-Business Logic変更のリスクを伴うため、Founderが既に一度「重複のない部分のみ限定的に
-移動」と判断済み（PR-080E）。本Programでも同じ理由で見送りが妥当と判断し、
-PR-090-R4では着手していない。次PRでは重複解消方針（統合 or 明示的な別名管理）自体を
-Founderに確認してから着手する。
+**PR-090-R5**（完了、次アクションはFounder判断待ち）: `saveRecordScreen()`が呼ぶ
+`buildHomeWeekRow`/`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`/
+`updateHomeCTAState`の5関数（app-legacy.jsローカル実装 vs home-renderer.js export版の
+重複、PR-080Eで新規発見・据え置き済み）を実コード全文比較し、移動可否を判定した。
+詳細は`docs/PR-090-R5-saveRecordScreen-migration-decision.md`参照。
+
+要点:
+- 5関数はいずれも**現在も両実装が同時に生存**しており、トリガー（起動時/タブ切替 vs
+  保存直後/編集直後）によって描画される実装が異なる、pre-existingの実挙動不整合を
+  新規発見。
+- `buildHomeWeekRow`は正方形（痛みレベル色分け+周期フェーズ色+buildPhaseBar副作用、
+  app-legacy.js版）vs 円形（✓/+のみ、home-renderer.js版）という**デザインそのものが
+  別物**。
+- `updateHomeCTAState`は完了判定基準が異なる（app-legacy.js版:「今日の記録が1件でも
+  あれば完了」/ home-renderer.js版:「`record.meta.uiFlow === 'daily-checkin'`のみ完了」
+  ——後者は`daily-record-card-guard.js`Hotfixが正としている現行基準で、app-legacy.js版は
+  Hotfix以前の旧基準）。**これは重複整理ではなくプロダクト判断（どちらの完了基準を
+  正式採用するか）に該当**。
+- 選択肢A（app-legacy.js版へ統一）/B（home-renderer.js版へ統一）はいずれも
+  Business Logic変更・UI変更を伴うため、本Program（Business Logic/UI変更禁止）の
+  制約下では選択不可。C（現状維持）/D（β後UI/UX Final Councilで決定）のみ制約を満たす。
+- 推奨: **D**（Cと同一の措置＝現状維持を取りつつ、判断主体をエンジニアリングから
+  プロダクト/UXへ明示的に移管）。
+
+PR-091（Legacy Exit Audit）は本件のFounder判断（A/B/C/Dどれを採るか、Dの場合は
+UI/UX Final Councilの開催時期）が確定するまで着手しない。
 
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
@@ -1572,6 +1588,39 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-R5: saveRecordScreen Migration Decision（調査・判定のみ、コード変更ゼロ）**
+（Recovery Program再開後5本目、FULL Mode相当——Founder判断が必要な変更のため）
+- `saveRecordScreen()`が呼ぶ5関数（buildHomeWeekRow/updateHomeInsightCard/
+  updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState）の
+  app-legacy.js実装とhome-renderer.js実装を全文比較し、あわせて実際の呼び出し経路
+  （app.html onclick解決先・window export・ES module bare識別子解決）を追跡した。
+- 全文比較の結果を`docs/PR-090-R5-saveRecordScreen-migration-decision.md`にまとめた。
+  詳細な差分表・選択肢評価・Release Riskは同文書参照。
+- 【新規発見の要旨】
+  1. 5関数はいずれも両実装が現在も同時に生存しており、起動時/タブ切替では
+     home-renderer.js版、`saveRecordScreen`/`saveEditRecord`直後はapp-legacy.js版が
+     描画される、pre-existingの実挙動不整合（本文書作成による調査でのみ判明、
+     PR-090-R1〜R4のいずれの変更にも起因しない）。
+  2. `switchTab`自体も同型の2実装並存状態（app.htmlのonclickは`tab-navigation.js`版
+     `window.switchTab`に解決され、app-legacy.js版switchTabはbottom-nav経由では
+     到達しないが、`closeModal()`内のbare呼び出しでは生存）。PR-091 Legacy Exit Audit
+     で考慮すべき別課題として記録。
+  3. `updateHomeCTAState`の完了判定基準の相違は「重複」ではなく
+     「`daily-record-card-guard.js`Hotfixによる基準変更が片方の実装にしか反映
+     されていない」状態——エンジニアリングの物理移動判断ではなくプロダクト判断が必要。
+- 選択肢A（app-legacy.js版に統一）/B（home-renderer.js版に統一）はいずれも
+  Business Logic変更・UI変更を伴うため本Programの制約下では採用不可と判定。
+  C（現状維持）/D（β後UI/UX Final Councilで決定）のみ制約を満たす。
+- **推奨: D**。Cと同一の措置（現状維持）を取りつつ、判断主体をエンジニアリングから
+  プロダクト/UXへ明示的に移管する。
+- Build/Test: 未実施（コード変更ゼロのため対象外）。
+- Decision Log: 本件はDecision候補（saveRecordScreen統合方針の最終決定）として
+  Founder確認待ち。A/B/C/Dのいずれを採用するか、Dの場合UI/UX Final Councilの
+  開催時期、updateHomeCTAStateの完了基準がHotfix導入時に正式決定済みかの3点を
+  9節にまとめた。
+- 次: Founderの判断（A/B/C/D選択）を待つ。判断確定までPR-091 Legacy Exit Auditは
+  着手しない。
 
 **PR-090-R4: Legacy依存残件の物理移動（supabaseUserId/syncMode/updateStats/SYMPTOM_DETAIL_CONFIG）**
 （Recovery Program再開後4本目、STANDARD Mode。指示範囲は5項目だったが、うち
@@ -1627,8 +1676,8 @@ saveRecordScreenは下記理由により本PRでは未着手）
 - Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
   SYMPTOM_DETAIL_CONFIGのwindow bridge新設判断とsaveRecordScreenの5関数重複解消方針は
   Founder確認が必要な別課題として切り出し済み）。
-- 次: saveRecordScreen物理移動の前提条件（5関数重複）解消方針をFounderに確認後、
-  PR-090-R5（仮）として着手。
+- 次: saveRecordScreen物理移動の前提条件（5関数重複）を実コードで比較・判定する
+  PR-090-R5（調査PR）を実施。
 
 **PR-090-R3: window.state依存70件の解放（Decision-1実装）**（Recovery Program再開後3本目、STANDARD Mode）
 - `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節・7節Step Bの実装。`src/store/state.js`の
