@@ -121,3 +121,16 @@ export {
   toggleRecordDetails,
   adjustBowelCount
 };
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.selectTempMethod = selectTempMethod;
+window.toggleRsChip = toggleRsChip;
+window.selectRsCycle = selectRsCycle;
+window.selectEnergy = selectEnergy;
+window.selectSleepQuality = selectSleepQuality;
+window.selectBowel = selectBowel;
+window.selectMood = selectMood;
+window.updateRecProgressDots = updateRecProgressDots;
+window.toggleRecordDetails = toggleRecordDetails;
+window.adjustBowelCount = adjustBowelCount;

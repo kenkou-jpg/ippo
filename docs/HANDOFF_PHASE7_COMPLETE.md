@@ -1534,9 +1534,9 @@ Decision-1 承認済み / Decision-2 承認済み
   ↓
 PR-090-R1 — isPremium依存解消（import差し替え）        [完了]
   ↓
-PR-090-R2 — 自己export可能47件の自己export化            [次]
+PR-090-R2 — 自己export可能47件の自己export化            [完了]
   ↓
-PR-090-R3 — window.state依存70件（Decision-1実装含む）
+PR-090-R3 — window.state依存70件（Decision-1実装含む）  [次]
   ↓
 PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
             updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen）
@@ -1544,10 +1544,10 @@ PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
 PR-091 — Legacy Exit Audit
 ```
 
-**PR-090-R2**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 4節「自己export可能」
-12モジュール・47件（PR-090-R1完了時点、insights-tab-panel.js/legacy-misc-stats.js
-は依然window.state/supabaseUserId依存が残るため対象外）へ`window.X = X;`の
-自己export行を追加し、`app-legacy.js`側の重複export行を削除する。
+**PR-090-R3**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節のDecision-1実装
+（`src/store/state.js`の`setState()`/`_postHooks`内で`window.state`を直接更新する
+よう変更）を行い、window.state依存70件（一部はLegacy依存と複合、6-3節参照）を
+解放する。
 
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
@@ -1563,6 +1563,26 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-R2: 自己export可能47件の自己export化**（Recovery Program再開後2本目、STANDARD Mode）
+- `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 4節「自己export可能」12モジュール・47件
+  （meal-quick-input.js/meal-tracker.js/pro/shared/pro-metric-utils.js/quick-log.js/
+  record-edit.js/record-factors.js/record-screen-widgets.js/save-and-sync.js/
+  share.js/symptom-layers.js/ui-notifications.js/utils/string-utils.js）へ
+  `window.X = X;`の自己export行を追加。
+- `save-and-sync.js`は`window.saveAndSync`（record-modal-controller.jsの別実装が
+  既に使用中）ではなく、fasting.js/quick-log.jsが明示的に呼ぶための専用ブリッジ
+  `window.__ippoLegacySaveAndSync`のみを自己export（bridge維持タグ対象、
+  Council 3-1節の設計通り）。
+- `app-legacy.js`側の重複export行47件を削除（末尾のexportブロックから、
+  `if (typeof X === "function") window.X = X;`形式46件 + `window.__ippoLegacySaveAndSync
+  = saveAndSync;`1件）。importと内部bare呼び出しは維持（app-legacy.js自身が
+  これらの関数を直接呼ぶ箇所が残っているため）。
+- `app-legacy.js`: 2,733行 → 2,686行。line-count-guardの`BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 120件PASS（`tests/arch`単体実行時に1件flaky timeout発生も、
+  フル`vitest run`内では該当テストは正常PASSしていることを確認済み）。
+- 次: PR-090-R3（Decision-1実装、`state.js`でのwindow.state直接同期）。
 
 **PR-090-R1: isPremium依存解消（import差し替え）**（Recovery Program再開後1本目、FAST Mode）
 - Founder承認（Decision-1/2 + EXPORT_HUB_REFACTOR_COUNCIL結果）後の最初のPR。

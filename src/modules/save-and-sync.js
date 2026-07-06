@@ -33,3 +33,10 @@ function saveAndSync(){
 export {
   saveAndSync
 };
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// window.saveAndSyncはrecord-modal-controller.jsが別実装で使用中のため設定しない
+// （PR-085由来の既存設計、bridge維持タグ対象）。fasting.js/quick-log.jsが本実装を
+// 明示的に呼ぶための専用ブリッジ__ippoLegacySaveAndSyncのみ自己export。
+// app-legacy.js側の重複export行は削除済み。
+window.__ippoLegacySaveAndSync = saveAndSync;

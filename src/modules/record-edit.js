@@ -305,3 +305,14 @@ export {
   gatherRecordData,
   draftRecordScreen
 };
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.openEditRecord = openEditRecord;
+window.closeEditRecord = closeEditRecord;
+window.toggleEditChip = toggleEditChip;
+window.selectEditCycle = selectEditCycle;
+window.deleteEditRecord = deleteEditRecord;
+window.gatherDiseaseData = gatherDiseaseData;
+window.gatherRecordData = gatherRecordData;
+window.draftRecordScreen = draftRecordScreen;

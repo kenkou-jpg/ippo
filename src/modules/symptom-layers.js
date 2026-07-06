@@ -172,3 +172,11 @@ export {
   switchSymptomTab,
   updateRecordSymptoms
 };
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.buildEffectiveLayer1 = buildEffectiveLayer1;
+window.renderSymptomLayers = renderSymptomLayers;
+window.toggleSympLayer = toggleSympLayer;
+window.switchSymptomTab = switchSymptomTab;
+window.updateRecordSymptoms = updateRecordSymptoms;

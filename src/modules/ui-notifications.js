@@ -128,3 +128,10 @@ export function setDailyMessage() {
   // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
   if (el) el.innerHTML = _dailyMessages[idx].replaceAll('\n', '<br>');
 }
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.showConfirmModal = showConfirmModal;
+window.showAlertModal = showAlertModal;
+window.showPrivacyInfo = showPrivacyInfo;
+window.setDailyMessage = setDailyMessage;

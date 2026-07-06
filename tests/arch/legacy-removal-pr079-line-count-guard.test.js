@@ -14,8 +14,9 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-090-P2時点のベースライン（updateSettingsHero を src/modules/legacy-settings-hero.js へ
-// 物理移動後の実測値、2,733行）。
+// PR-090-R2時点のベースライン（自己export可能47件のexport行をapp-legacy.jsから削除後の
+// 実測値、2,686行）。
+// PR-090-P2時点は2,733行、
 // PR-090-P1時点は2,759行、
 // PR-089F-7G時点は2,765行、
 // PR-089F-7F時点は2,778行、PR-089F-7B+7C時点は2,832行、PR-089F-6時点は2,912行、PR-089F-5時点は2,918行、PR-089F-4時点は3,176行、PR-089F-3時点は3,283行、PR-089F-2時点は3,423行、PR-089F-1時点は3,507行、PR-089E時点は3,760行（調査のみ・変更なし）、PR-089D時点は3,760行、
@@ -26,7 +27,7 @@ const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf
 // PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
 // PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 2733;
+const BASELINE_LINE_COUNT = 2686;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {
