@@ -559,6 +559,42 @@ AI_EXECUTION.md 9章（Roadmap変更・Legacy Removal判断はDecision Log候補
 
 ---
 
+## 10-D. Decision Log 追補（2026-07-06・PR-090-R5 saveRecordScreen/Home Cluster除外）
+
+```
+決定事項: PR-090-R5（docs/PR-090-R5-saveRecordScreen-migration-decision.md）で
+提示した選択肢A/B/C/DのうちDを採用する。saveRecordScreenおよびHome Cluster
+（buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/
+updateHomeCTAState）はLegacy Removal Programの対象から除外し、β後のUI/UX Final
+Councilで統合方針を判断する。
+
+根拠:
+  ・app-legacy.js版⇄home-renderer.js版のどちらに統一してもBusiness Logic変更になる
+    （updateHomeCTAStateの完了判定基準がdaily-record-card-guard.js Hotfix導入前後で
+    異なる、buildHomeWeekRowの意匠が別デザイン）
+  ・どちらに統一してもUI変更になる
+  ・Legacy Removalの目的（同一実装の置き場所整理＝物理移動）ではなく、
+    機能統合そのものの製品判断が必要なため
+  ・判断はβ後のUI/UX Final Councilに委ねる
+
+  □ docs/LEGACY_COMPLETION_RECOVERY_PLAN.md 2-3節・Step 3を更新
+    （Decision-3を「確定済み・対象外」に変更）
+  □ 次PR: PR-091 Legacy Exit Auditを実施する。ただし監査スコープは
+    「現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）の対象範囲」
+    に限定し、saveRecordScreen/buildHomeWeekRow/updateHomeCTAState/Home Clusterは
+    Known Deferred Itemsとして監査対象から除外する
+  □ saveRecord/record-modal系（Decision-4、LEGACY_COMPLETION_RECOVERY_PLAN.md 2-4節）は
+    本決定とは別の未決事項として残る（今回のFounder指示には含まれず、現行Programの
+    実施対象でもなかったためPR-091でも監査対象外）
+  □ Business Logic変更は引き続き禁止。本決定はコード変更を伴わない
+
+根拠文書: docs/PR-090-R5-saveRecordScreen-migration-decision.md（差分表・選択肢評価・
+Release Risk）、AI_EXECUTION.md 9章（Legacy Removal判断はDecision Log候補）に基づく。
+Founder: kenkou-jpg（2026-07-06）。
+```
+
+---
+
 ## Document Authority Record
 
 | 項目 | 内容 |

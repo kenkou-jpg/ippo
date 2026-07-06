@@ -25,7 +25,7 @@ PR-089Zで`app-legacy.js`は「削除不可」と判定され、7項目のRemain
 |---|---|:---:|:---:|:---:|---|
 | 1 | window.state所有権 | ✗ | ✓（Architecture変更承認） | ✓（承認後） | 挙動は変えない、置き場所の変更のみ |
 | 2 | window export hub問題 | ✗ | ✓（Architecture変更承認） | ✓（承認後、規模大） | 150件超、クラスタ分割必須 |
-| 3 | home cluster 6関数 | ✓ | ✓（製品判断） | △（決定後のみ） | UI/機能差分の統合方針が先に必要 |
+| 3 | home cluster 6関数 | ✓ | **確定済み（D採用）** | **対象外** | Founder Decision 2026-07-06: Legacy Removal Program除外、β後UI/UX Final Councilへ |
 | 4 | saveRecord / record-modal系 | ✓（可能性） | ✓（方針決定） | △（決定後のみ） | 「修復」か「正式廃止」かで手段が変わる |
 | 5 | closeModal等no-op | ✓（バグ修正） | ✓（優先度・4と連動） | △（4の決定に依存） | 4の結論次第で不要になる場合あり |
 | 6 | updateSettingsHero/closeSuccess | ✗ | ✗（既に確定済み） | ✓ | 純粋な物理移動のみ |
@@ -80,24 +80,42 @@ PR-089Zで`app-legacy.js`は「削除不可」と判定され、7項目のRemain
 
 ---
 
-### 2-3. home cluster 6関数（項目3）
+### 2-3. home cluster 6関数（項目3）— **Founder Decision確定済み（2026-07-06）**
 
 **現状:** `buildHomeWeekRow`/`updateHomeInsightCard`/`updateHomeNumbers`/
 `updateHomeDiseaseAdvice`/`updateHomeCTAState`の5件はhome-renderer.js版とUI意匠・
 機能セット・完了判定基準が明確に異なる。`updateStats`のみPR-080C時点で
-「統合しない」の方針が既に確定済み。
+「統合しない」の方針が既に確定済み、PR-090-R4で物理移動完了
+（重複は維持したまま`src/modules/legacy-misc-stats.js`へ移動、Business Logic変更なし）。
 
-**分解:**
-- **Decision-3（Founder判断・製品判断）**: 5件それぞれについて、
-  「app-legacy.js版を正とする」「home-renderer.js版を正とする」
-  「両機能をマージした新実装を作る」のいずれを取るか。
-  （`updateHomeCTAState`は特に、完了判定基準そのものが異なる=ユーザー体験に直結する
-  判断のため、最優先でFounderに確認することを推奨）
-- **PR-090-H1〜H5**（Decision-3の決定後、関数ごとに1PR）: 決定に基づき、
-  採用しない側の実装を削除し、`app-legacy.js`側のbare呼び出し
-  （`switchTab`の`if (tab === 'home') { ... }`ブロック）をimport経由の呼び出しへ置換する。
-- `updateStats`は決定不要のため、closeSuccess等と同様に「2-6節」の物理移動グループへ
-  合流できる（重複維持のまま`app-legacy.js`外へ移すだけでよい）。
+**Decision-3 確定（Founder判断、2026-07-06、PR-090-R5結果を受けて）:**
+
+```
+採用: D（β後のUI/UX Final Councilで判断する）
+
+saveRecordScreen および Home Cluster（buildHomeWeekRow/updateHomeInsightCard/
+updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAStateを含む家系全体）は
+Legacy Removal Programの対象から除外する。
+
+理由:
+  ・（app-legacy.js版⇄home-renderer.js版の）どちらに統一してもBusiness Logic変更になる
+  ・どちらに統一してもUI変更になる（buildHomeWeekRowの意匠差・updateHomeCTAStateの
+    完了基準差はプロダクト判断であり、Legacy Removalの物理移動作業の範疇を超える）
+  ・Legacy Removalの目的（同一実装の置き場所整理）ではなく、機能統合そのものの判断が
+    必要なため、Legacy Removal Programの手続きにはなじまない
+  ・判断はβ後のUI/UX Final Councilで行う
+```
+
+詳細な差分表・選択肢比較は`docs/PR-090-R5-saveRecordScreen-migration-decision.md`参照。
+
+**分解（確定後の扱い）:**
+- ~~Decision-3（Founder判断・製品判断）~~ → 上記の通り確定済み（D採用・Legacy Removal
+  Program対象外）。
+- ~~PR-090-H1〜H5~~ → **実施しない**。saveRecordScreen・home cluster5関数は
+  `app-legacy.js`に現状のまま残置し、Legacy Removal Programとしてはこれ以上
+  手を入れない（β後のUI/UX Final Council開催まで凍結）。
+- `updateStats`はPR-090-R4で既に物理移動完了しているため本除外の対象外
+  （home clusterの一部だが決定不要・実装済み）。
 
 ---
 
@@ -203,21 +221,38 @@ Founder判断が必要な4件は、実装の着手待ちにせず**今すぐま�
 4. **PR-090-S1**: window.state所有権をstate.jsへ移管
 5. **PR-090-E2〜E(N)**: window exportの自己export化（PR-090-E1の分類結果に基づきクラスタ分割）
 
-### Step 3（Decision-3承認後、Step 1〜2と並行実施可）
+### Step 3（Decision-3承認後、Step 1〜2と並行実施可）— **除外確定（2026-07-06）**
 
-6. **PR-090-H1〜H5**: home cluster 5関数の統合実装（決定内容に基づく）
+~~6. PR-090-H1〜H5: home cluster 5関数の統合実装（決定内容に基づく）~~
+
+Founder Decision（2026-07-06、2-3節参照）により、saveRecordScreen・home cluster
+5関数の統合はLegacy Removal Programの対象から除外された。以降のStepはこのStepの
+完了を待たずに進行する（= 恒久的にKnown Deferred Itemsとして扱う）。
 
 ### Step 4（Decision-4承認後）
 
 7. **PR-090-R1 または R1'**: saveRecord/record-modal系の修復 or 正式廃止
 8. **PR-090-R2**（(A)修復の場合のみ）: closeModal等no-opの修正
 
-### Step 5（Step 1〜4すべて完了後）
+（注: この項目4/5の`saveRecord`/`#record-modal`系は、Step 3で除外された
+`saveRecordScreen`とは別物——`saveRecord()`は2026-05-27付けでsoft-isolated済みの
+`#record-modal`（旧3-card入力モーダル）用ハンドラであり、`saveRecordScreen()`は
+現行の記録画面保存ハンドラ。Decision-4は本書作成時点（2026-07-05）から未着手のまま
+据え置かれている。PR-091 Legacy Exit Auditでは、この項目4/5は現行Recovery Program
+（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-R1〜R5系）の実施対象外だったため
+監査スコープに含めない。）
 
-9. **PR-091 Legacy Exit Audit**: 全Remaining Legacy解消済みであることを再監査し、
-   `app-legacy.js`の残存行数・責務がゼロになっていることを確認する。
-10. **PR-092 Final Cutover**（PR-091で削除可能と確認された場合のみ）:
-    `app-legacy.js`削除・`main.js`のimport除去・`app.html`最終切替。
+### Step 5（Step 1〜2完了後、Step 3は除外・Step 4は現行Programの対象外）
+
+9. **PR-091 Legacy Exit Audit**: **現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・
+   PR-090-P1〜R5）の対象範囲内**でRemaining Legacy解消済みであることを再監査する。
+   saveRecordScreen・buildHomeWeekRow・updateHomeCTAState・home clusterはKnown
+   Deferred Itemsとして監査対象から除外し、`app-legacy.js`の完全削除可否ではなく
+   「現行Programの範囲で削除できるものは削除しきったか」を判定する。
+10. **PR-092 Final Cutover**: 本Recovery Planが対象とした7項目（home cluster/
+    saveRecord・record-modal系を含む）がすべて解消されない限り着手しない
+    （Known Deferred Items・Decision-4未決を理由にPR-091では「削除可能」の判定は
+    出ない見込み）。
 
 ---
 

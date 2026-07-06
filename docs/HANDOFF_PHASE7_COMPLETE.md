@@ -1542,12 +1542,27 @@ PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
             updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [完了、
             saveRecordScreenのみ既知の理由により未着手・据え置き]
   ↓
-PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [完了、Founder判断待ちで停止]
+PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [完了、Founder Decision確定]
   ↓
-PR-091 — Legacy Exit Audit（PR-090-R5のFounder判断確定後に着手）
+PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferred Items除外） [次]
 ```
 
-**PR-090-R5**（完了、次アクションはFounder判断待ち）: `saveRecordScreen()`が呼ぶ
+**Founder Decision（2026-07-06）**: PR-090-R5の選択肢はDを採用。saveRecordScreenおよび
+Home Cluster（buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/
+updateHomeDiseaseAdvice/updateHomeCTAState）はLegacy Removal Programから除外し、
+β後のUI/UX Final Councilで判断する。理由: (1)どちらの実装に統一してもBusiness Logic
+変更になる (2)どちらに統一してもUI変更になる (3)Legacy Removalの目的（物理移動）では
+なく機能統合の製品判断が必要なため (4)判断はβ後のUI/UX Final Councilに委ねる。
+Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-D節に記録。Recovery Plan更新:
+`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節・Step 3（Decision-3を「確定済み・
+対象外」に変更）。
+
+**次PR: PR-091 Legacy Exit Audit**。監査スコープは「現行Recovery Program
+（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）の対象範囲」のみに限定し、
+saveRecordScreen/buildHomeWeekRow/updateHomeCTAState/Home ClusterはKnown Deferred
+Itemsとして監査対象から除外する。Business Logic変更は禁止（監査のみ、実装なし）。
+
+**PR-090-R5**（完了）: `saveRecordScreen()`が呼ぶ
 `buildHomeWeekRow`/`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`/
 `updateHomeCTAState`の5関数（app-legacy.jsローカル実装 vs home-renderer.js export版の
 重複、PR-080Eで新規発見・据え置き済み）を実コード全文比較し、移動可否を判定した。
@@ -1570,9 +1585,6 @@ PR-091 — Legacy Exit Audit（PR-090-R5のFounder判断確定後に着手）
   制約下では選択不可。C（現状維持）/D（β後UI/UX Final Councilで決定）のみ制約を満たす。
 - 推奨: **D**（Cと同一の措置＝現状維持を取りつつ、判断主体をエンジニアリングから
   プロダクト/UXへ明示的に移管）。
-
-PR-091（Legacy Exit Audit）は本件のFounder判断（A/B/C/Dどれを採るか、Dの場合は
-UI/UX Final Councilの開催時期）が確定するまで着手しない。
 
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。

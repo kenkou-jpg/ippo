@@ -1,5 +1,12 @@
 # PR-090-R5 — saveRecordScreen Migration Decision
 
+> **Founder Decision確定（2026-07-06）: 選択肢D採用。saveRecordScreenおよびHome
+> Clusterは Legacy Removal Programから除外し、β後のUI/UX Final Councilで判断する。**
+> Decision Logは`docs/LEGACY_REMOVAL_PLAN.md` 10-D節、Recovery Plan更新は
+> `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節参照。次のアクションはPR-091
+> Legacy Exit Audit（現行Recovery Program範囲のみ、本件はKnown Deferred Itemsとして
+> 監査対象から除外）。
+>
 > 目的: `saveRecordScreen()`を`app-legacy.js`から物理移動できるか判定する。
 > 本文書はコード変更を伴わない調査・判定のみ（Founder確認事項の整理）。
 > 前提: PR-090-R4（[EXPORT_HUB_REFACTOR_COUNCIL.md](EXPORT_HUB_REFACTOR_COUNCIL.md) 6-4節）で
@@ -163,13 +170,17 @@ ES module内のbare識別子解決の3種を区別）。
 ## 判定
 
 ```
-saveRecordScreenの物理移動: 見送り（選択肢C/Dのいずれかを採用するまで、
-Legacy Removal Programとしてはこれ以上進めない）。
+saveRecordScreenの物理移動: 見送り確定（選択肢D採用、Founder確認2026-07-06）。
 
 Business Logic変更: なし（本PRはコード変更ゼロ）
 UI変更: なし
 saveRecordScreenの即時移動: 実施せず
 app-legacy.js削除: 実施せず
 
-Founder判断待ち。
+Founder Decision: D採用。saveRecordScreen・Home Cluster（buildHomeWeekRow/
+updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState）を
+Legacy Removal Programから除外し、β後のUI/UX Final Councilで判断する。
+Decision Log: docs/LEGACY_REMOVAL_PLAN.md 10-D節に記録済み。
+次のアクション: PR-091 Legacy Exit Audit（現行Recovery Program範囲のみ、
+本件はKnown Deferred Itemsとして監査対象から除外）。
 ```
