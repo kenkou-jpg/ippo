@@ -5,9 +5,12 @@
 //
 //  isAdminOrPremium / analyzeCyclePhases / _bleedingToNum / calcPainFreeDays / updateUnlock
 //
-//  - isAdminOrPremium: bare `isPremium`/`supabaseUserId` は app-legacy.js側の既存専用
-//    ブリッジ window.__ippoGetIsPremium() / window.__ippoGetSupabaseUserId() 経由に変更
-//    （挙動変更なし、insights-tab-panel.jsの既存パターンと同型）。ADMIN_USER_ID は
+//  - isAdminOrPremium: bare `isPremium`は PR-090-R1 (EXPORT_HUB_REFACTOR_COUNCIL
+//    Legacy依存解消) で src/modules/premium/premium-service.js の isPremium() 直接
+//    importへ変更（挙動変更なし、同一のPremium Source of Truthを参照）。
+//    `supabaseUserId`は引き続き app-legacy.js側の専用ブリッジ
+//    window.__ippoGetSupabaseUserId() 経由（同等の独立モジュールが未整備のため
+//    Scope外、PR-090-R4で対応予定）。ADMIN_USER_ID は
 //    admin.js から直接import（app-legacy.js側と同一値）。
 //  - analyzeCyclePhases: bare `calcCycleDay`/`getCyclePhase` 呼び出しは、実体である
 //    src/analytics/cycle-engine.js から直接importへ変更（app-legacy.js側の同名関数は
@@ -22,6 +25,7 @@
 import { getState } from '../store/state.js';
 import { calcCycleDay, getCyclePhase } from '../analytics/cycle-engine.js';
 import { ADMIN_USER_ID } from './admin.js';
+import { isPremium } from './premium/premium-service.js';
 
 // ===== 周期フェーズ連動分析 =====
 function analyzeCyclePhases(records){
@@ -131,9 +135,8 @@ function updateUnlock(){
 }
 
 function isAdminOrPremium() {
-  var isPremium = window.__ippoGetIsPremium ? window.__ippoGetIsPremium() : false;
   var supabaseUserId = window.__ippoGetSupabaseUserId ? window.__ippoGetSupabaseUserId() : null;
-  return isPremium || (supabaseUserId && supabaseUserId === ADMIN_USER_ID);
+  return isPremium() || (supabaseUserId && supabaseUserId === ADMIN_USER_ID);
 }
 
 export {

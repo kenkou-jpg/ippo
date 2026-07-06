@@ -1525,26 +1525,32 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**Recovery Programは一旦停止中。** PR-090-P3の監査結果を受け、Founder指示により
-EXPORT_HUB_REFACTOR_COUNCIL（`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`）を実施し、
-APP_LEGACY_EXPORT_HUB 172件の設計提案・判定を完了した（コード変更ゼロ）。
-Founder確認待ちで停止中。
+**Founder承認済み（2026-07-06）**: EXPORT_HUB_REFACTOR_COUNCILの結果、および
+Decision-1（限定範囲: `window.state`同期経路を`state.js`へ移管）・Decision-2
+（172件の自己export方式統一）を承認。Recovery Programを以下の順序で再開する。
 
-**Founder判断待ち（並行リクエスト中）**: Decision-1〜4
-1. **Decision-1（拡張版）**: `window.state`の同期経路を`src/store/state.js`の
-   `setState()`/`_postHooks`内で直接更新する方式へ変更する承認可否
-   （影響ファイルは`state.js`1つのみ、window.state依存70件を解放）
-2. **Decision-2**: 172件の物理移動済み関数の自己export方式統一の承認可否
-3. **Legacy依存55件の解消順序の承認**: `isPremium`のimport元差し替え（既存の
-   `premium-service.js`へ）/ `supabaseUserId`・`syncMode`の物理移動 /
-   `updateStats`の物理移動 / `SYMPTOM_DETAIL_CONFIG`の`src/constants/`切り出し /
-   `saveRecordScreen`の物理移動、をRecovery Programの新規タスクとして起票してよいか
-4. home cluster5関数・saveRecord/record-modal系（従来のDecision-3/4）
+```
+Decision-1 承認済み / Decision-2 承認済み
+  ↓
+PR-090-R1 — isPremium依存解消（import差し替え）        [完了]
+  ↓
+PR-090-R2 — 自己export可能47件の自己export化            [次]
+  ↓
+PR-090-R3 — window.state依存70件（Decision-1実装含む）
+  ↓
+PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
+            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen）
+  ↓
+PR-091 — Legacy Exit Audit
+```
 
-Council結論: **Recovery Programの完全停止は不要**（Legacy依存55件の解消とE分類
-削除はArchitecture変更なしで進められる）。ただし`app-legacy.js`の最終削除には
-Decision-1（限定範囲）・Decision-2の承認が必須。詳細は
-`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`参照。**PR-091 Legacy Exit Auditへは進まない**。
+**PR-090-R2**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 4節「自己export可能」
+12モジュール・47件（PR-090-R1完了時点、insights-tab-panel.js/legacy-misc-stats.js
+は依然window.state/supabaseUserId依存が残るため対象外）へ`window.X = X;`の
+自己export行を追加し、`app-legacy.js`側の重複export行を削除する。
+
+各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
+UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
 
 Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
 10,804行から2,733行（約75%削減、PR-090-P2時点）まで縮小した時点で、一旦の区切りとする。
@@ -1557,6 +1563,30 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-R1: isPremium依存解消（import差し替え）**（Recovery Program再開後1本目、FAST Mode）
+- Founder承認（Decision-1/2 + EXPORT_HUB_REFACTOR_COUNCIL結果）後の最初のPR。
+- `src/modules/insights-tab-panel.js`（`updateFoodBodyCorrelation`/
+  `updateCycleSymptomCorrelation`内、2箇所）と`src/modules/legacy-misc-stats.js`
+  （`isAdminOrPremium`内、1箇所）の`window.__ippoGetIsPremium()`呼び出しを、
+  既存の正式なPremium Source of Truthである`src/modules/premium/premium-service.js`の
+  `isPremium()`直接importへ差し替え。挙動変更なし（同一の値を参照）。
+  `app-legacy.js`は未変更（`window.__ippoGetIsPremium`ブリッジ自体は
+  `__ippoSetIsPremium`との対で残置、呼び出し元ゼロになったが削除はScope外）。
+- **実装中に発見・訂正した誤り**: Council報告書6-1節は「isPremium依存17件、
+  import差し替えのみで解決可能」としていたが、実際に呼び出し元を再検証したところ
+  `admin.js`/`community.js`は`__ippoGetSupabaseUserId`のみに依存しており
+  `__ippoGetIsPremium`とは無関係（真の対象は`insights-tab-panel.js`+
+  `legacy-misc-stats.js`の計6件のみ）。さらに`community.js`/
+  `insights-tab-panel.js`の一部関数（`renderInsightDiscoveries`、
+  `switchInsTab`が呼ぶ`updateFoodBodyCorrelation`/`updateCycleSymptomCorrelation`）
+  は`window.state`にも依存する**複合ブロッカー**であることが判明し、
+  本PRの範囲では完全な自己export可能化には至っていない（PR-090-R3のDecision-1
+  実装待ち）。詳細・訂正は`docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 6節参照。
+- 本PRでは自己export追加・app-legacy.js側export行削除は行っていない
+  （対象exportの一部が依然window.state/supabaseUserId依存のため、PR-090-R2以降
+  「全ブロッカー解消済み」の単位でまとめて実施する）。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
 
 **EXPORT_HUB_REFACTOR_COUNCIL**（Recovery Program一時停止中の設計提案、コード変更ゼロ）
 - Founder指示により、PR-090-E1着手前にAPP_LEGACY_EXPORT_HUB 172件（PR-090-P3で判明、

@@ -164,9 +164,19 @@ exportには一切手を入れる必要がない。ただし、
 
 ## 6. Legacy依存（55件、32%）の内訳と個別の解消パス
 
-Legacy依存はさらに性質が異なる3つのサブグループに分かれる。
+> **訂正（PR-090-R1実施時に判明）**: 初版の本節には誤りがあった。
+> `admin.js`/`community.js`は`__ippoGetSupabaseUserId`のみに依存しており
+> `__ippoGetIsPremium`とは無関係だったが、初版では両者を「計17件」として
+> 誤って合算していた。加えて、`community.js`/`insights-tab-panel.js`は
+> Legacy依存に**加えて**`window.state`依存も併せ持つ「複合ブロッカー」
+> モジュールであることが判明した（4節の分類はモジュール単位で「最も強い
+> 制約」を優先表示しているため、この複合状態は表からは見えていなかった）。
+> 以下は訂正版。
 
-### 6-1. `__ippoGetIsPremium` 依存（admin.js / community.js / insights-tab-panel.js / legacy-misc-stats.js、計17件）
+Legacy依存はさらに性質が異なる3つのサブグループに分かれ、さらに一部は
+window.state依存と複合している。
+
+### 6-1. `__ippoGetIsPremium` 依存（insights-tab-panel.js / legacy-misc-stats.js、計6件）
 
 `__ippoGetIsPremium`が返す`isPremium`変数（`app-legacy.js`内のbare var）自体が、
 実は`ippo:premium-updated`カスタムイベントを受信して更新される**受動的ミラー**である
@@ -177,35 +187,78 @@ Legacy依存はさらに性質が異なる3つのサブグループに分かれ�
 `premium-service.js`から直接`isPremium`をimportしており、`app-legacy.js`の
 ブリッジを経由していない。
 
-**つまりこれは新しい設計を作る必要がなく、既存の、より正しい情報源へ
-importを差し替えるだけで解決する。** Architecture変更ではなく、単純な
-依存先の付け替え（バグ修正に近い性質）。
+**→ PR-090-R1で実施済み。** `insights-tab-panel.js`（`updateFoodBodyCorrelation`/
+`updateCycleSymptomCorrelation`内、2箇所）と`legacy-misc-stats.js`
+（`isAdminOrPremium`内、1箇所）の`window.__ippoGetIsPremium()`呼び出しを
+`premium-service.js`の`isPremium()`直接importへ差し替え。挙動変更なし
+（同一のSource of Truthを参照する値のため）。
+
+ただし**これだけでは`switchInsTab`/`renderInsightDiscoveries`/
+`isAdminOrPremium`等の対象exportが完全に自己export可能になるわけではない**
+（6-3節参照）。`__ippoGetIsPremium`という依存エッジを1本消しただけであり、
+`legacy-misc-stats.js`は依然`__ippoGetSupabaseUserId`に、
+`insights-tab-panel.js`は依然`window.state`に依存が残る。
 
 ### 6-2. `__ippoGetSupabaseUserId` 依存（admin.js / community.js / legacy-misc-stats.js、計15件）
 
-こちらは6-1と異なり、`src/services/supabase.js`側に同等の同期的キャッシュgetterが
-**存在しない**（`supabase.auth.getSession()`は非同期のため単純な代替にならない）。
+`src/services/supabase.js`側に同等の同期的キャッシュgetterが**存在しない**
+（`supabase.auth.getSession()`は非同期のため単純な代替にならない）。
 `app-legacy.js`内の`supabaseUserId`変数と`window.__ippoGetSupabaseUserId`/
 `window.__ippoSetSupabaseUserId`ブリッジを、`src/services/supabase.js`または
 専用の小さい新設モジュールへ物理移動する必要がある（PR-079〜090と同型の
 「1関数=1オーナー」物理移動PRで対応可能、Architecture変更ではない）。
+**未着手（PR-090-R4予定）。**
 
-### 6-3. `__ippoGetSyncMode`/`__ippoSetSyncMode`・`__ippoLegacyUpdateStats`・SYMPTOM_DETAIL_CONFIG・saveRecordScreen()連動（sync-modal.js / data-export.js / record-input.js / success-overlay.js、計38件）
+`community.js`（8件）は本依存に加えて`window.state`にも依存しており（下記6-3）、
+両方の解消が完了するまで自己export不可。
 
-- `__ippoGetSyncMode`/`__ippoSetSyncMode`（sync-modal.js、6件）: syncMode変数の
-  物理移動が必要（6-2と同型、小さい物理移動PRで解決可能）。
-- `__ippoLegacyUpdateStats`（data-export.js、5件）: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
-  2-3節で「`updateStats`は決定不要のため物理移動グループへ合流できる」と既に
-  結論が出ている。`updateStats`自体の物理移動（Founder判断不要）で解決する。
-- `SYMPTOM_DETAIL_CONFIG`（record-input.js、26件）: `ICONS`/`DISEASE_CONFIG`と
-  同様に`src/constants/symptom-detail.js`（新設）へ切り出せば解決する
-  （`ICONS`/`DISEASE_CONFIG`と同型の物理移動PR、Architecture変更ではない）。
-- `saveRecordScreen()`連動（success-overlay.js、1件）: D分類18件のうち
-  `saveRecordScreen`自体を物理移動すれば`__ippoSuccessOverlayTimer`共有の問題も
-  合わせて解消する。
+### 6-3. window.stateとの複合ブロッカー（community.js / insights-tab-panel.js / data-export.js）
 
-**結論: Legacy依存55件のうち、Architecture Council判断が必要なものはゼロ。
-全て個別の物理移動PR（PR-079〜090と同型の作業）で解決可能。**
+依存関係を関数単位で再検証した結果、以下は**Legacy依存とwindow.state依存の
+両方を持つ複合ブロッカー**であることが判明した（PR-090-R1実施時に発見）。
+
+- `insights-tab-panel.js`の`renderInsightDiscoveries`: `window.state`のみに依存
+  （`__ippoGetIsPremium`には依存しない）。**6-1のPR-090-R1では解消されない
+  純粋なwindow.state依存**であり、実質的には4節の表よりも「window.state依存」
+  分類が正確。
+- `insights-tab-panel.js`の`switchInsTab`: `cycle`タブ選択時に呼ぶ
+  `updateFoodBodyCorrelation`/`updateCycleSymptomCorrelation`が
+  `__ippoGetIsPremium`（PR-090-R1で解消済み）と`window.state.records`の
+  **両方**に依存。Decision-1（window.state同期経路修正）が完了するまで
+  自己export不可。
+- `community.js`: `__ippoGetSupabaseUserId`（6-2、未解消）と`window.state`の
+  両方に依存。両方の解消が必要。
+- `data-export.js`: `__ippoLegacyUpdateStats`（6-4）と`window.state`の
+  両方に依存。両方の解消が必要。
+
+**教訓**: 4節の分類表は「モジュール単位で最も強い制約1つ」を代表値として
+示しているため、複数ブロッカーを持つモジュールの完全解消には、表示されている
+分類だけでなく実際の関数本体を都度再確認する必要がある。単純な合算カウント
+（「Legacy依存55件はこれだけ直せば良い」）は誤りであり、実際の解消順序は
+Step A〜Dの機械的な順送りではなく、**モジュールごとに全ブロッカーを潰し切って
+初めて自己export可能になる**ことに注意。
+
+### 6-4. `__ippoGetSyncMode`/`__ippoSetSyncMode`・`__ippoLegacyUpdateStats`・SYMPTOM_DETAIL_CONFIG・saveRecordScreen()連動
+
+- `__ippoGetSyncMode`/`__ippoSetSyncMode`（sync-modal.js、6件、window.state依存なし）:
+  syncMode変数の物理移動が必要（6-2と同型、小さい物理移動PRで解決可能。
+  他の複合ブロッカーがないため、解消完了後は即座に自己export可能）。
+- `__ippoLegacyUpdateStats`（data-export.js、5件、window.state依存あり — 6-3参照）:
+  `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節で「`updateStats`は決定不要のため
+  物理移動グループへ合流できる」と既に結論が出ている。`updateStats`自体の物理移動
+  （Founder判断不要）に加え、window.state解消（Decision-1）も必要。
+- `SYMPTOM_DETAIL_CONFIG`（record-input.js、26件、window.state依存なし）:
+  `ICONS`/`DISEASE_CONFIG`と同様に`src/constants/symptom-detail.js`（新設）へ
+  切り出せば解決する（`ICONS`/`DISEASE_CONFIG`と同型の物理移動PR、Architecture
+  変更ではない。他の複合ブロッカーがないため解消完了後は即座に自己export可能）。
+- `saveRecordScreen()`連動（success-overlay.js、1件、window.state依存なし）:
+  D分類18件のうち`saveRecordScreen`自体を物理移動すれば`__ippoSuccessOverlayTimer`
+  共有の問題も合わせて解消する（他の複合ブロッカーなし）。
+
+**結論（訂正版）: Legacy依存55件のうち、Architecture Council判断が必要なものは
+ゼロ。ただし`community.js`・`insights-tab-panel.js`（一部）・`data-export.js`は
+window.state依存とも複合しているため、Decision-1の解消（PR-090-R3）を待たないと
+完全には自己export可能にならない。**
 
 ## 7. 最小変更設計案
 
