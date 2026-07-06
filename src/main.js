@@ -25,6 +25,7 @@ import './runtime/rollback-manager.js';
 import './runtime/startup-validator.js';
 import './runtime/render-boundary.js';
 import './runtime/error-reporter.js';
+import './runtime/sentry-reporter.js';
 
 // ─── Ownership / Render Authority / Timer Registry ───────────
 // 必ず app-legacy.js より前にロード。

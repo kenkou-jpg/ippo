@@ -101,6 +101,7 @@ jobs:
             STRIPE_WEBHOOK_SECRET="${{ secrets.STRIPE_WEBHOOK_SECRET }}" \
             STRIPE_PRICE_MONTHLY="${{ secrets.STRIPE_PRICE_MONTHLY }}" \
             STRIPE_PRICE_ANNUAL="${{ secrets.STRIPE_PRICE_ANNUAL }}" \
-            SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}"
+            SUPABASE_SERVICE_ROLE_KEY="${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            SENTRY_DSN="${{ secrets.SENTRY_DSN }}"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

@@ -51,6 +51,14 @@ var _isDev = (function () {
   return false;
 })();
 
+var _sentryDsn = (function () {
+  try {
+    var v = import.meta.env.VITE_SENTRY_DSN;
+    if (v && v !== 'undefined') return v;
+  } catch (_) {}
+  return null;
+})();
+
 // ─── Validation ──────────────────────────────────────────────
 var _issues = [];
 if (!_key) _issues.push('missing-supabase-key');
@@ -92,6 +100,7 @@ export function isDev()        { return _isDev; }
 export function getAppVersion()   { return _appVersion; }
 export function getBuildVersion() { return _buildVersion; }
 export function isSafeBootstrapMode() { return SAFE_BOOTSTRAP_MODE; }
+export function getSentryDsn() { return _sentryDsn; }
 
 export function getEnvironmentHealth() {
   return {
