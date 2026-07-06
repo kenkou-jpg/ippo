@@ -212,6 +212,43 @@ UI変更: なし
 
 ---
 
+## 11. 追補（2026-07-06・PR-090-R6実施後）
+
+PR-090-R6を実施し、上記10節1〜2の提案を実行した。
+
+- window.state依存18モジュール + Legacy依存解消済み6モジュール
+  （admin.js/community.js/data-export.js/insights-tab-panel.js/
+  legacy-misc-stats.js/sync-modal.js）、計24モジュールへ自己export行を追加。
+  （record-input.jsはSYMPTOM_DETAIL_CONFIGのwindow bridge未設置判断との一貫性を
+  保つため、本PRでも対象外のまま維持——6節の状態は変化なし）
+- app-legacy.js側の重複export行107行を削除
+  （アルファベット順hub 93行 + DEVICE SYNC節の旧手動exportブロック14行——実測の結果、
+  当初提案の「約169行」より少ない107行だったのは、記録漏れの重複が3件ではなく
+  実際にはより広範囲＝DEVICE SYNC節全体で11関数が重複していたため、想定より
+  1関数あたりの平均行数が少なかったことによる）。
+- `openSyncModal`/`closeSyncModal`/`toggleSyncMode`の二重定義は解消済み。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知のみ、増加なし）/
+  Architecture Guard 104件PASS。
+- app-legacy.js: 2,554行→2,447行。
+
+### 12. 再監査の要否判定
+
+**PR-091の再監査は不要と判定する。**
+
+理由:
+- PR-091の核心的な判定（Known Deferred Items除外、Decision-4は現行Program対象外、
+  app-legacy.js削除不可）はStep Dの実施によって変化しない。Step D自体が
+  PR-091自身の提案（10節）であり、その実施結果を確認すること自体が
+  「監査の完了」を意味する。
+- Build/Regression/Architecture Guardは本追補（11節）で再確認済みで、
+  新規リグレッションはない。
+- 次に監査が必要になるタイミングは、Known Deferred Items（saveRecordScreen/
+  Home Cluster）またはDecision-4（saveRecord/record-modal系）のいずれかで
+  Founder判断が確定し、実装が行われた後（そのPR自身の中で監査すれば足り、
+  独立した再監査PRは不要）。
+
+---
+
 ## Document Authority Record
 
 | 項目 | 内容 |
@@ -219,7 +256,7 @@ UI変更: なし
 | **文書番号** | IPPO-LEGACY-091-AUDIT |
 | **作成日** | 2026-07-06 |
 | **権威レベル** | 監査報告書（`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`の後継、Founder確認待ち） |
-| **実装状況** | コード変更ゼロ。本書は監査結果の記録のみ |
+| **実装状況** | 本文書自体はコード変更ゼロ（監査結果の記録のみ）。11節に記載のPR-090-R6でStep Dを実施済み |
 | **前提文書** | docs/EXPORT_HUB_REFACTOR_COUNCIL.md / docs/PR-090-R5-saveRecordScreen-migration-decision.md / docs/LEGACY_COMPLETION_RECOVERY_PLAN.md / docs/LEGACY_REMOVAL_PLAN.md 10-D節 |
-| **判定** | 現行Program範囲内のStep A〜C依存解消は完了。Step D（自己export化）は未実施のため次PRへ引き継ぎ。app-legacy.js削除は不可（Known Deferred Items・Decision-4未決・Step D未実施のため） |
-| **次のアクション** | PR-090-R6（提案、Step D実施）。PR-092 Final Cutoverは着手しない |
+| **判定** | 現行Program範囲内のStep A〜Dはすべて完了（PR-090-R6、11節）。app-legacy.js削除は引き続き不可（Known Deferred Items・Decision-4未決のため）。再監査は不要（12節） |
+| **次のアクション** | Known Deferred Items（saveRecordScreen/Home Cluster）はβ後UI/UX Final Council待ち。Decision-4（saveRecord/record-modal系）はFounder判断待ち。PR-092 Final Cutoverは着手しない |

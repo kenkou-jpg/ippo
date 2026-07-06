@@ -325,3 +325,16 @@ export function checkMyLikes(replies){
     });
   });
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+// switchCVTab/deleteCommunityReplyは元々window非公開（onclick/DOM要素が存在せず
+// 到達不能、ファイル冒頭コメント参照）のため引き続き自己exportしない。
+window.checkMyLikes         = checkMyLikes;
+window.likeCommunityReply   = likeCommunityReply;
+window.loadCommunityReplies = loadCommunityReplies;
+window.loadCommunityTopic   = loadCommunityTopic;
+window.loadCVArchive        = loadCVArchive;
+window.postCommunityReply   = postCommunityReply;
+window.toggleArchiveReplies = toggleArchiveReplies;
+window.updateReplyLikeCount = updateReplyLikeCount;

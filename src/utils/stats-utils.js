@@ -78,3 +78,9 @@ export function calcSMIScore(diseaseCheck){
   if(!found) return null;
   return Math.round(total);
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+window.calcAvgPainThisMonth      = calcAvgPainThisMonth;
+window.calcPainFreeDaysThisMonth = calcPainFreeDaysThisMonth;
+window.calcSMIScore              = calcSMIScore;

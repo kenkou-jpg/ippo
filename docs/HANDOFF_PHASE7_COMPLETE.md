@@ -1546,8 +1546,43 @@ PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [�
   ↓
 PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferred Items除外） [完了]
   ↓
-PR-090-R6（提案） — Step D: 自己export追加+app-legacy.js側dedup（約169行） [次、Founder判断不要]
+PR-090-R6 — Step D: 自己export追加+app-legacy.js側dedup（107行） [完了]
 ```
+
+**PR-090-R6**（完了、STANDARD Mode）: PR-091で発見されたStep D未実施分を解消。
+window.state依存18モジュール + Legacy依存解消済み6モジュール（admin.js/community.js/
+data-export.js/insights-tab-panel.js/legacy-misc-stats.js/sync-modal.js）、計24モジュールへ
+自己export行を追加し、app-legacy.js側の重複export行107行を削除した
+（アルファベット順hub 93行 + DEVICE SYNC節の旧手動exportブロック14行）。
+
+- `openSyncModal`/`closeSyncModal`/`toggleSyncMode`の二重定義（DEVICE SYNC節の
+  手動exportブロック+アルファベット順自動生成節）は両方とも削除し、
+  `sync-modal.js`側の自己exportに一本化。
+- `openRecordScreen`（record-three-card.jsとのload順依存ガードあり）・
+  `updateSettingsHero`（settings-display-runtime.jsとの重複、製品判断待ち）は
+  引き続き対象外（app-legacy.js側の実装のまま無改造）。
+- `record-input.js`（SYMPTOM_DETAIL_CONFIG関連26件）は、PR-090-R4での意図的な
+  window bridge未設置判断と一貫させるため、本PRでも自己export対象から除外
+  （別途Founder確認が必要な課題として維持）。
+- `success-overlay.js`（closeSuccess、Known Deferred Item）・Home Cluster関連は
+  一切変更していない。
+- SG-7 line-count-guard: `app-legacy.js`: 2,554行→2,447行（107行削減）。
+  BASELINE_LINE_COUNTを2,447に更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 104件PASS。
+- Browser Verification: Vite dev server + app.html実機で①自己export対象95関数すべてが
+  `typeof window.X === 'function'`で解決可能なことを確認 ②`toggleSyncMode()`実行後の
+  タイトル/ボタン文言切替、`openSyncModal()`/`closeSyncModal()`のoverlay開閉が
+  正しく機能することを確認 ③`initAdminPanel()`/`openSymptomSettings()`/
+  `isAdminOrPremium()`/`updateUnlock()`/`calcPainFreeDaysThisMonth()`/
+  `loadCommunityTopic()`が例外なく実行されることを確認 ④`openRecordScreen`/
+  `openLegacyRecordScreen`/`updateSettingsHero`/`submitSync`/`syncNow`/`logoutSync`の
+  特殊ケースが引き続き解決可能なことを確認。Console ErrorはSupabase未設定環境ノイズ
+  （既知）のみで新規エラーなし。
+- Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
+  純粋な自己export化+重複削除のみ）。
+- **PR-091再監査は不要と判定**（12節参照）。Step Dは本PRで完了し、PR-091の判定内容
+  （Known Deferred Items・Decision-4の扱い）自体には変更がないため。
 
 **Founder Decision（2026-07-06）**: PR-090-R5の選択肢はDを採用。saveRecordScreenおよび
 Home Cluster（buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/
@@ -1609,8 +1644,12 @@ Itemsとして監査対象から除外して実施した（`docs/PR-091-legacy-e
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
 
-Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch-1開始時
-10,804行から2,733行（約75%削減、PR-090-P2時点）まで縮小した時点で、一旦の区切りとする。
+Legacy Removal Program（PR-079〜PR-090-R6）としては、app-legacy.jsをBatch-1開始時
+10,804行から2,447行（約77%削減、PR-090-R6時点）まで縮小し、現行Recovery Program
+（EXPORT_HUB_REFACTOR_COUNCIL Step A〜D）が定義した範囲をすべて完了した時点で、
+一旦の区切りとする。残るKnown Deferred Items（saveRecordScreen/Home Cluster）と
+Decision-4（saveRecord/record-modal系）はいずれもFounder判断待ちであり、
+これらが確定するまでPR-092 Final Cutoverには進まない。
 
 **Release Readiness Council**（Wave2正式完了後の次ステップ、Legacy Removal Programとは別系統）
 - Wave2（PR-041〜075）は2026-07-02にFounder承認（kenkou-jpg）を得て正式完了。

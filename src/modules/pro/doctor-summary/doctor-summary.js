@@ -905,3 +905,12 @@ export function copyDoctorSummary() {
     document.body.removeChild(ta);
   });
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+// openDoctorVisitSummary/closeDoctorVisitSummaryはEXPORT_HUB_REFACTOR_COUNCILの
+// 対象外（app-legacy.js側にwindow export自体が存在しないため対象外のまま）。
+window.closeDoctorSummary = closeDoctorSummary;
+window.copyDoctorSummary  = copyDoctorSummary;
+window.downloadDoctorPDF  = downloadDoctorPDF;
+window.openDoctorSummary  = openDoctorSummary;

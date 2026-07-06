@@ -48,3 +48,10 @@ export function updateSettingsHero() {
     streakEl.textContent = streak;
   }
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// window.updateSettingsHero自体は settings-display-runtime.js が上書きするため
+// 意図的に設定しない（本ファイル冒頭コメント参照、製品判断が必要でScope外）。
+// premium-lock.js が明示的に参照する専用ブリッジのみ自己export する
+// （app-legacy.js側の重複行は削除済み）。
+window.__ippoLegacyUpdateSettingsHero = updateSettingsHero;

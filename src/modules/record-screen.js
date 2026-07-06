@@ -503,3 +503,9 @@ export function editPastRecord(dateStr) {
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('record-screen-module-loaded');
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// openRecordScreen/openLegacyRecordScreenはrecord-three-card.jsとのload順依存の
+// 上書きガードがあるため対象外・app-legacy.js側の実装のまま維持（触らない）。
+// editPastRecordのみ単純な自己exportが可能（app-legacy.js側の重複export行は削除済み）。
+window.editPastRecord = editPastRecord;

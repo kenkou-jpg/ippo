@@ -179,3 +179,13 @@ export {
   isAdminOrPremium,
   updateStats
 };
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+// _bleedingToNum/updateStatsは元々window非公開（updateStatsはhome-renderer.js側の
+// 別実装が window.updateStats を占有するため意図的に未設定、PR-090-R4参照）のため
+// 引き続き自己exportしない。
+window.analyzeCyclePhases = analyzeCyclePhases;
+window.calcPainFreeDays   = calcPainFreeDays;
+window.isAdminOrPremium   = isAdminOrPremium;
+window.updateUnlock       = updateUnlock;

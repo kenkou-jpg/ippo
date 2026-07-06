@@ -83,3 +83,13 @@ export function hideMessage() {
   const msg = document.getElementById('syncMessage');
   if (msg) msg.className = 'sync-message';
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（DEVICE SYNC節の手動exportブロック +
+// アルファベット順自動生成節の二重定義、計2箇所×3関数）はいずれも削除済み。
+window.closeSyncModal = closeSyncModal;
+window.hideMessage    = hideMessage;
+window.openSyncModal  = openSyncModal;
+window.showLoginForm  = showLoginForm;
+window.showMessage    = showMessage;
+window.toggleSyncMode = toggleSyncMode;

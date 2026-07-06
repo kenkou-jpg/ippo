@@ -2224,21 +2224,7 @@ document.getElementById('syncOverlay').addEventListener('click', function(e) {
 
 
   // ===== EXPOSE FUNCTIONS TO GLOBAL SCOPE =====
-window.openDoctorSummary = openDoctorSummary;
-window.closeDoctorSummary = closeDoctorSummary;
-window.copyDoctorSummary = copyDoctorSummary;
-window.openMonthlyReport = openMonthlyReport;
-window.closeMonthlyReport = closeMonthlyReport;
-window.changeReportMonth = changeReportMonth;
-window.downloadReportPDF = downloadReportPDF;
-window.openAIAnalysis = openAIAnalysis;
-window.closeAIAnalysis = closeAIAnalysis;
-window.runAIAnalysis = runAIAnalysis;
-window.copyAIAnalysis = copyAIAnalysis;
-window.openSyncModal = openSyncModal;
-window.closeSyncModal = closeSyncModal;
 window.submitSync = submitSync;
-window.toggleSyncMode = toggleSyncMode;
 window.syncNow = syncNow;
 window.logoutSync = logoutSync;
 // ===== ADMIN PANEL =====
@@ -2343,7 +2329,6 @@ async function checkPremiumStatus() {
 // 維持する必要があるため、専用ブリッジを設ける（挙動変更なし、PR-080E
 // window.__ippoGetBowelCount と同型パターン）。updateSettingsHero 自体の重複解消は
 // 製品判断が必要なため本PRのScope外（PR-080C/PR-080G と同型の判断）。
-window.__ippoLegacyUpdateSettingsHero = updateSettingsHero;
 // PR-081: updatePremiumBadges/renderProHero/premiumGate/closePremiumLock は
 // src/modules/premium/premium-lock.js へ物理移動済み（import参照）
 
@@ -2385,86 +2370,29 @@ window.addEventListener('ippo:vite-ready', function() {
 
 // manualCloudRestore の実装は line 1870 の enhanced merge 版を使用。
 // ─── window 互換エクスポート ─────────────────────────────────
-if (typeof _buildPhaseBarPreview === "function") window._buildPhaseBarPreview = _buildPhaseBarPreview;
 if (typeof _generateDoctorPDF === "function") window._generateDoctorPDF = _generateDoctorPDF;
-if (typeof adminLoadPremiumUsers === "function") window.adminLoadPremiumUsers = adminLoadPremiumUsers;
-if (typeof adminSetPremium === "function") window.adminSetPremium = adminSetPremium;
-if (typeof analyzeCyclePhases === "function") window.analyzeCyclePhases = analyzeCyclePhases;
 if (typeof appendSymptomDetail === "function") window.appendSymptomDetail = appendSymptomDetail;
-if (typeof applyFastingVisibility === "function") window.applyFastingVisibility = applyFastingVisibility;
-if (typeof applySymptomChipPriority === "function") window.applySymptomChipPriority = applySymptomChipPriority;
-if (typeof buildComparisonComment === "function") window.buildComparisonComment = buildComparisonComment;
-if (typeof buildDayComparison === "function") window.buildDayComparison = buildDayComparison;
 if (typeof buildPhaseBar === "function") window.buildPhaseBar = buildPhaseBar;
 if (typeof buildSteps === "function") window.buildSteps = buildSteps;
-if (typeof buildSymptomChips === "function") window.buildSymptomChips = buildSymptomChips;
-if (typeof buildWeekComparison === "function") window.buildWeekComparison = buildWeekComparison;
-if (typeof calcAvgPainThisMonth === "function") window.calcAvgPainThisMonth = calcAvgPainThisMonth;
-if (typeof calcFactorCorrelations === "function") window.calcFactorCorrelations = calcFactorCorrelations;
-if (typeof calcPainFreeDays === "function") window.calcPainFreeDays = calcPainFreeDays;
-if (typeof calcPainFreeDaysThisMonth === "function") window.calcPainFreeDaysThisMonth = calcPainFreeDaysThisMonth;
-if (typeof calcSMIScore === "function") window.calcSMIScore = calcSMIScore;
-if (typeof calcTemperaturePhases === "function") window.calcTemperaturePhases = calcTemperaturePhases;
 if (typeof cancelExperiment === "function") window.cancelExperiment = cancelExperiment;
-if (typeof changeReportMonth === "function") window.changeReportMonth = changeReportMonth;
-if (typeof checkAndShowTempAlert === "function") window.checkAndShowTempAlert = checkAndShowTempAlert;
-if (typeof checkMyLikes === "function") window.checkMyLikes = checkMyLikes;
-if (typeof checkSuddenTempRise === "function") window.checkSuddenTempRise = checkSuddenTempRise;
-if (typeof clearData === "function") window.clearData = clearData;
-if (typeof closeAIAnalysis === "function") window.closeAIAnalysis = closeAIAnalysis;
-if (typeof closeDoctorSummary === "function") window.closeDoctorSummary = closeDoctorSummary;
-if (typeof closeMonthlyReport === "function") window.closeMonthlyReport = closeMonthlyReport;
-if (typeof closePremiumLock === "function") window.closePremiumLock = closePremiumLock;
 if (typeof closeSuccess === "function") window.closeSuccess = closeSuccess;
-if (typeof closeSymptomSettings === "function") window.closeSymptomSettings = closeSymptomSettings;
-if (typeof closeSyncModal === "function") window.closeSyncModal = closeSyncModal;
 if (typeof completeExperiment === "function") window.completeExperiment = completeExperiment;
-if (typeof copyAIAnalysis === "function") window.copyAIAnalysis = copyAIAnalysis;
-if (typeof copyDoctorSummary === "function") window.copyDoctorSummary = copyDoctorSummary;
-if (typeof csvSafe === "function") window.csvSafe = csvSafe;
-if (typeof detectFlareups === "function") window.detectFlareups = detectFlareups;
-if (typeof downloadDoctorPDF === "function") window.downloadDoctorPDF = downloadDoctorPDF;
-if (typeof editPastRecord === "function") window.editPastRecord = editPastRecord;
-if (typeof endFast === "function") window.endFast = endFast;
-if (typeof exportCSV === "function") window.exportCSV = exportCSV;
-if (typeof exportJSON === "function") window.exportJSON = exportJSON;
-if (typeof formatDiseaseCheck === "function") window.formatDiseaseCheck = formatDiseaseCheck;
 if (typeof generateLocalAnalysis === "function") window.generateLocalAnalysis = generateLocalAnalysis;
 if (typeof getBodyCheckTitle === "function") window.getBodyCheckTitle = getBodyCheckTitle;
 if (typeof getDailyHint === "function") window.getDailyHint = getDailyHint;
 if (typeof getDiseaseMorningQuestion === "function") window.getDiseaseMorningQuestion = getDiseaseMorningQuestion;
 if (typeof getGreetingText === "function") window.getGreetingText = getGreetingText;
-if (typeof getMetricLabel === "function") window.getMetricLabel = getMetricLabel;
-if (typeof getMetricMax === "function") window.getMetricMax = getMetricMax;
-if (typeof getMetricValue === "function") window.getMetricValue = getMetricValue;
-if (typeof getPhaseForDate === "function") window.getPhaseForDate = getPhaseForDate;
-if (typeof getRecentSymptoms === "function") window.getRecentSymptoms = getRecentSymptoms;
-if (typeof getSuccessMessage === "function") window.getSuccessMessage = getSuccessMessage;
 if (typeof handleHomeCTA === "function") window.handleHomeCTA = handleHomeCTA;
-if (typeof hideMessage === "function") window.hideMessage = hideMessage;
 if (typeof icon === "function") window.icon = icon;
-if (typeof initAdminPanel === "function") window.initAdminPanel = initAdminPanel;
 if (typeof initNavIcons === "function") window.initNavIcons = initNavIcons;
 if (typeof initSettingsIcons === "function") window.initSettingsIcons = initSettingsIcons;
-if (typeof isAdminOrPremium === "function") window.isAdminOrPremium = isAdminOrPremium;
-if (typeof isPeriodExpected === "function") window.isPeriodExpected = isPeriodExpected;
-if (typeof likeCommunityReply === "function") window.likeCommunityReply = likeCommunityReply;
-if (typeof loadCVArchive === "function") window.loadCVArchive = loadCVArchive;
-if (typeof loadCommunityReplies === "function") window.loadCommunityReplies = loadCommunityReplies;
-if (typeof loadCommunityTopic === "function") window.loadCommunityTopic = loadCommunityTopic;
 // PR-2A: manualCloudRestore は src/services/recovery.js に移植済み。window 公開は recovery.js が担う。
 // if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
 if (typeof nextStep === "function") window.nextStep = nextStep;
-if (typeof openAIAnalysis === "function") window.openAIAnalysis = openAIAnalysis;
-if (typeof openCorrelationReport === "function") window.openCorrelationReport = openCorrelationReport;
-if (typeof openCyclePhaseReport === "function") window.openCyclePhaseReport = openCyclePhaseReport;
 if (typeof openDayDetailByDate === "function") window.openDayDetailByDate = openDayDetailByDate;
-if (typeof openDoctorSummary === "function") window.openDoctorSummary = openDoctorSummary;
 if (typeof openExperiments === "function") window.openExperiments = openExperiments;
 if (typeof showExperimentReport === "function") window.showExperimentReport = showExperimentReport;
-if (typeof openFlareupReport === "function") window.openFlareupReport = openFlareupReport;
 if (typeof openIDB === "function") window.openIDB = openIDB;
-if (typeof openMonthlyReport === "function") window.openMonthlyReport = openMonthlyReport;
 // FIX (2026-05-28): Vite bundles record-modules (containing record-three-card.js) as a
 // static import dependency of the main chunk, so record-three-card.js evaluates BEFORE
 // this file and sets window.openRecordScreen = openThreeCardRecord. Unconditionally
@@ -2476,76 +2404,41 @@ if (typeof openRecordScreen === "function" && typeof window.openRecordScreen !==
 // Always export legacy function separately so the ➕ nav button can explicitly open
 // the legacy STEP1/2/3 screen (vs home CTA which uses openRecordScreen → three-card).
 if (typeof openRecordScreen === "function") window.openLegacyRecordScreen = openRecordScreen;
-if (typeof openSymptomSettings === "function") window.openSymptomSettings = openSymptomSettings;
-if (typeof openSyncModal === "function") window.openSyncModal = openSyncModal;
-if (typeof openTempReport === "function") window.openTempReport = openTempReport;
 if (typeof parseMealFree === "function") window.parseMealFree = parseMealFree;
-if (typeof postCommunityReply === "function") window.postCommunityReply = postCommunityReply;
-if (typeof premiumGate === "function") window.premiumGate = premiumGate;
 if (typeof prevStep === "function") window.prevStep = prevStep;
 if (typeof renderBodyCheck === "function") window.renderBodyCheck = renderBodyCheck;
-if (typeof renderComparisonChart === "function") window.renderComparisonChart = renderComparisonChart;
 if (typeof renderEmotion === "function") window.renderEmotion = renderEmotion;
 if (typeof renderFasting === "function") window.renderFasting = renderFasting;
 if (typeof renderFood === "function") window.renderFood = renderFood;
-if (typeof renderInsightDiscoveries === "function") window.renderInsightDiscoveries = renderInsightDiscoveries;
 if (typeof renderMonthlySummaryText === "function") window.renderMonthlySummaryText = renderMonthlySummaryText;
-if (typeof renderPhaseMap === "function") window.renderPhaseMap = renderPhaseMap;
-if (typeof renderProHero === "function") window.renderProHero = renderProHero;
 if (typeof renderStep === "function") window.renderStep = renderStep;
 if (typeof renderSymptomDetail === "function") window.renderSymptomDetail = renderSymptomDetail;
 if (typeof renderWellness === "function") window.renderWellness = renderWellness;
-if (typeof reorderRecordSections === "function") window.reorderRecordSections = reorderRecordSections;
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;
-if (typeof resumeFasting === "function") window.resumeFasting = resumeFasting;
 if (typeof saveEditRecord === "function") window.saveEditRecord = saveEditRecord;
 if (typeof saveRecordScreen === "function") window.saveRecordScreen = saveRecordScreen;
-if (typeof saveSymptomSelection === "function") window.saveSymptomSelection = saveSymptomSelection;
-if (typeof saveSymptomSettings === "function") window.saveSymptomSettings = saveSymptomSettings;
 if (typeof selectBodyCheckExtra === "function") window.selectBodyCheckExtra = selectBodyCheckExtra;
 if (typeof selectBodyCheckItem === "function") window.selectBodyCheckItem = selectBodyCheckItem;
 if (typeof selectBowelCount === "function") window.selectBowelCount = selectBowelCount;
 if (typeof selectEmotion === "function") window.selectEmotion = selectEmotion;
 if (typeof selectFasting === "function") window.selectFasting = selectFasting;
 if (typeof selectFood === "function") window.selectFood = selectFood;
-if (typeof selectPhaseTab === "function") window.selectPhaseTab = selectPhaseTab;
 if (typeof selectWellness === "function") window.selectWellness = selectWellness;
-if (typeof setCGRange === "function") window.setCGRange = setCGRange;
-if (typeof setFastGoal === "function") window.setFastGoal = setFastGoal;
-if (typeof setRating === "function") window.setRating = setRating;
-if (typeof showLoginForm === "function") window.showLoginForm = showLoginForm;
-if (typeof showMessage === "function") window.showMessage = showMessage;
 if (typeof showRecoveryBanner === "function") window.showRecoveryBanner = showRecoveryBanner;
-if (typeof showTempAlertBanner === "function") window.showTempAlertBanner = showTempAlertBanner;
-if (typeof showTempEducation === "function") window.showTempEducation = showTempEducation;
 if (typeof startCustomExperiment === "function") window.startCustomExperiment = startCustomExperiment;
 if (typeof startExperiment === "function") window.startExperiment = startExperiment;
-if (typeof startFastTimer === "function") window.startFastTimer = startFastTimer;
-if (typeof submitFeedback === "function") window.submitFeedback = submitFeedback;
-if (typeof submitPremiumWaitlist === "function") window.submitPremiumWaitlist = submitPremiumWaitlist;
-if (typeof switchInsTab === "function") window.switchInsTab = switchInsTab;
-if (typeof toggleArchiveReplies === "function") window.toggleArchiveReplies = toggleArchiveReplies;
-if (typeof toggleCGFactor === "function") window.toggleCGFactor = toggleCGFactor;
 if (typeof toggleDetailItem === "function") window.toggleDetailItem = toggleDetailItem;
-if (typeof toggleFastingFeature === "function") window.toggleFastingFeature = toggleFastingFeature;
 if (typeof toggleFoodItem === "function") window.toggleFoodItem = toggleFoodItem;
 if (typeof toggleSymptomChip === "function") window.toggleSymptomChip = toggleSymptomChip;
-if (typeof toggleSyncMode === "function") window.toggleSyncMode = toggleSyncMode;
 if (typeof updateDailyHintCard === "function") window.updateDailyHintCard = updateDailyHintCard;
-if (typeof updateFastingWidgetPhase === "function") window.updateFastingWidgetPhase = updateFastingWidgetPhase;
 if (typeof updateHomeCTA === "function") window.updateHomeCTA = updateHomeCTA;
 if (typeof updateHomePhaseBanner === "function") window.updateHomePhaseBanner = updateHomePhaseBanner;
 if (typeof updateHomeSummary === "function") window.updateHomeSummary = updateHomeSummary;
 if (typeof updateHomeVision === "function") window.updateHomeVision = updateHomeVision;
-if (typeof updateMonthLabel === "function") window.updateMonthLabel = updateMonthLabel;
-if (typeof updatePremiumBadges === "function") window.updatePremiumBadges = updatePremiumBadges;
-if (typeof updateReplyLikeCount === "function") window.updateReplyLikeCount = updateReplyLikeCount;
 if (typeof updateSettingsHero === "function") window.updateSettingsHero = updateSettingsHero;
 if (typeof updateSliderDetail === "function") window.updateSliderDetail = updateSliderDetail;
 if (typeof updateStreakBadge === "function") window.updateStreakBadge = updateStreakBadge;
-if (typeof updateSymptomSettingDisplay === "function") window.updateSymptomSettingDisplay = updateSymptomSettingDisplay;
 if (typeof updateTodayMessage === "function") window.updateTodayMessage = updateTodayMessage;
-if (typeof updateUnlock === "function") window.updateUnlock = updateUnlock;
 // ─── グローバル変数エクスポート ───────────────────────────────
 // PR-079: currentRecord/currentStep/STEPS は src/modules/record-input.js へ移行済み。
 // window.currentRecord への同期エクスポートは禁止（SG-4）。ライブ参照が必要な場合は
