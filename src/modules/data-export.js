@@ -10,9 +10,9 @@
 //    window.saveState() 経由の guarded 呼び出しに変更（既存idiomと同型）。
 //  ・clearData内の bare `updateStats()` は、home-renderer.js に同名の別実装が
 //    並存し window.updateStats はそちら側が上書きする（PR-080C重複整理と同型、
-//    「重複実装は統合しない」判断を踏襲）ため、app-legacy.js側ローカル実装を
-//    確実に呼ぶための専用ブリッジ window.__ippoLegacyUpdateStats() 経由に変更
-//    （PR-081 window.__ippoLegacyUpdateSettingsHero と同型パターン）。
+//    「重複実装は統合しない」判断を踏襲）。PR-090-R4でapp-legacy.js側ローカル実装が
+//    src/modules/legacy-misc-stats.js へ物理移動したため、window.__ippoLegacyUpdateStats()
+//    経由を廃止し、同モジュールからの直接importに変更。
 //  ・clearData内の bare `updateUnlock()` は window.updateUnlock() 経由に変更
 //    （既存の window bridge で解決、挙動変更なし）。
 //  ・clearData内の bare `fastInterval` 操作（Fasting Timer機能、Batch-7未移植の
@@ -23,6 +23,7 @@
 // ================================================================
 
 import { showAlertModal } from './ui-notifications.js';
+import { updateStats } from './legacy-misc-stats.js';
 
 export function exportJSON(){
   var d = JSON.stringify(window.state, null, 2);
@@ -168,6 +169,6 @@ export function clearData() {
   if (startBtn) startBtn.style.display = 'block';
   if (stopBtn)  stopBtn.style.display  = 'none';
   if (typeof window.saveState === 'function') window.saveState();
-  window.__ippoLegacyUpdateStats();
+  updateStats();
   if (typeof window.updateUnlock === 'function') window.updateUnlock();
 }

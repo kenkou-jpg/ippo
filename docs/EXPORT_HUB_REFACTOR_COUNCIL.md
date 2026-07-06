@@ -207,7 +207,9 @@ window.state依存と複合している。
 `window.__ippoSetSupabaseUserId`ブリッジを、`src/services/supabase.js`または
 専用の小さい新設モジュールへ物理移動する必要がある（PR-079〜090と同型の
 「1関数=1オーナー」物理移動PRで対応可能、Architecture変更ではない）。
-**未着手（PR-090-R4予定）。**
+**PR-090-R4で完了。** `src/services/supabase.js`へ物理移動し
+`getSupabaseUserId()`/`setSupabaseUserId()`をexport。admin.js/community.js/
+legacy-misc-stats.jsはいずれも直接importに変更、window bridgeは廃止。
 
 `community.js`（8件）は本依存に加えて`window.state`にも依存しており（下記6-3）、
 両方の解消が完了するまで自己export不可。
@@ -243,22 +245,49 @@ Step A〜Dの機械的な順送りではなく、**モジュールごとに全�
 - `__ippoGetSyncMode`/`__ippoSetSyncMode`（sync-modal.js、6件、window.state依存なし）:
   syncMode変数の物理移動が必要（6-2と同型、小さい物理移動PRで解決可能。
   他の複合ブロッカーがないため、解消完了後は即座に自己export可能）。
+  **PR-090-R4で完了。** `src/modules/sync-modal.js`へ物理移動
+  （`toggleSyncMode`が唯一のmutatorのため同ファイルが自然な所有者）。
+  `getSyncMode()`/`setSyncMode()`をexportし、supabase.js（submitSync）が直接import。
 - `__ippoLegacyUpdateStats`（data-export.js、5件、window.state依存あり — 6-3参照）:
   `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節で「`updateStats`は決定不要のため
   物理移動グループへ合流できる」と既に結論が出ている。`updateStats`自体の物理移動
   （Founder判断不要）に加え、window.state解消（Decision-1）も必要。
+  **PR-090-R4で完了。** `src/modules/legacy-misc-stats.js`
+  （calcPainFreeDays/updateUnlockと同型のDOM更新系ヘルパー集約先）へ物理移動。
+  data-export.jsは直接importに変更、window bridgeは廃止。window.state依存は
+  PR-090-R3で解消済みのため、両ブロッカーとも解消。
 - `SYMPTOM_DETAIL_CONFIG`（record-input.js、26件、window.state依存なし）:
   `ICONS`/`DISEASE_CONFIG`と同様に`src/constants/symptom-detail.js`（新設）へ
   切り出せば解決する（`ICONS`/`DISEASE_CONFIG`と同型の物理移動PR、Architecture
   変更ではない。他の複合ブロッカーがないため解消完了後は即座に自己export可能）。
+  **PR-090-R4で一部完了（データ移動のみ）。** 実装前調査で、`window.SYMPTOM_DETAIL_CONFIG`
+  を設定するコードがリポジトリ中に一切存在しないと判明（`window.DISEASE_CONFIG`は
+  constants/disease.js側window bridgeにより実際に機能しているのと対照的）。
+  record-input.js側は常時`{}`フォールバックが発火しており、症状詳細サブUIは
+  移動前から機能していなかった（pre-existing、本Councilの想定より深刻な発見）。
+  ICONS/DISEASE_CONFIGと同型のwindow bridgeを新設すると症状詳細UIが初めて
+  表示されるようになり実質的な機能有効化＝Business Logic/UI変更に該当するため、
+  PR-090-R4ではデータのみ移動しwindow bridgeは追加していない。record-input.js側の
+  配線見直し（＝機能有効化の是非）は別途Founder判断が必要な別課題。
 - `saveRecordScreen()`連動（success-overlay.js、1件、window.state依存なし）:
   D分類18件のうち`saveRecordScreen`自体を物理移動すれば`__ippoSuccessOverlayTimer`
   共有の問題も合わせて解消する（他の複合ブロッカーなし）。
+  **PR-090-R4では未着手。** 実装前調査で、`saveRecordScreen`が呼ぶ
+  `buildHomeWeekRow`/`updateHomeCTAState`/`updateHomeInsightCard`/`updateHomeNumbers`/
+  `updateHomeDiseaseAdvice`の5関数がPR-080Eで新規発見済みの「app-legacy.jsローカル実装
+  vs home-renderer.js側export版」重複問題（未解消、Founder判断により据え置き中）を
+  持つと判明。本Council 6-4節は当初この複雑さを想定していなかった。重複未解消のまま
+  `saveRecordScreen`を移動すると、移動先が5関数のどちらの実装をimportするか次第で
+  Business Logic変更のリスクを伴うため、PR-080E時点でのFounder判断（「重複のない
+  部分のみ限定的に移動」）と同じ理由でPR-090-R4スコープからは除外し、次PR
+  （重複解消方針のFounder確認後）へ据え置いた。
 
-**結論（訂正版）: Legacy依存55件のうち、Architecture Council判断が必要なものは
-ゼロ。ただし`community.js`・`insights-tab-panel.js`（一部）・`data-export.js`は
-window.state依存とも複合しているため、Decision-1の解消（PR-090-R3）を待たないと
-完全には自己export可能にならない。**
+**結論（訂正版・PR-090-R4時点で再訂正）: Legacy依存55件のうち、Architecture Council
+判断が必要なものはゼロという当初結論は維持。ただしsaveRecordScreen()の物理移動は
+PR-080Eで発見済みの5関数重複問題により、Founderが既に一度「限定的移動」の判断を
+下している既存の未解決課題と地続きであり、本Council 7節Step Cが想定した「Founder
+判断不要」は誤り。supabaseUserId/syncMode/updateStats/SYMPTOM_DETAIL_CONFIG
+（データ移動のみ）はPR-090-R4で解消済み。**
 
 ## 7. 最小変更設計案
 

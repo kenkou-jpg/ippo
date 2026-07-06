@@ -17,7 +17,7 @@ import { STATE_KEY, getState, setState, saveState } from '../store/state.js';
 import { safeMergeState } from '../utils/safe-merge-state.js';
 // PR-089C (Legacy Removal Batch-11分割②): renderSyncUI/submitSync/migrateDataToUser/
 // syncNow/logoutSync が参照する Sync Modal UI ヘルパー / 汎用モーダル / ADMIN_USER_ID。
-import { showLoginForm, showMessage, hideMessage } from '../modules/sync-modal.js';
+import { showLoginForm, showMessage, hideMessage, getSyncMode } from '../modules/sync-modal.js';
 import { showConfirmModal } from '../modules/ui-notifications.js';
 import { ADMIN_USER_ID } from '../modules/admin.js';
 
@@ -81,6 +81,14 @@ window.__ippoSupabaseStatus = {
 if (typeof window.ippoMarkServiceReady === 'function') {
   window.ippoMarkServiceReady('supabase', window.__ippoSupabaseStatus);
 }
+
+// PR-090-R4 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL 6-2): app-legacy.js側にあった
+// bare `supabaseUserId` var + window.__ippoGetSupabaseUserId/__ippoSetSupabaseUserId
+// ブリッジを物理移動。admin.js/community.js/legacy-misc-stats.js・app-legacy.js（import back）
+// はいずれもgetSupabaseUserId()/setSupabaseUserId()を直接importして参照する。
+var _supabaseUserId = null;
+export function getSupabaseUserId() { return _supabaseUserId; }
+export function setSupabaseUserId(v) { _supabaseUserId = v; }
 
 // ── Phase E (Step 4): クラウド同期関数 ──────────────────────
 // cloudBackupAll / cloudRestore / initialCloudSync を app.html から移植。
@@ -457,8 +465,9 @@ window.retrySyncPending      = retrySyncPending;
 // ── PR-089C (Legacy Removal Batch-11分割②): Cloud Sync UI 本体ロジック ──────
 // renderSyncUI/submitSync/migrateDataToUser/syncNow/logoutSync を
 // app-legacy.js（DEVICE SYNC ブロック）から物理移動。Business Logic変更なし。
-// syncMode/supabaseUserId/isPremium/_notifyAuthReadyはapp-legacy.js側に残置のため
-// window.__ippoGetSyncMode()等の専用ブリッジ（app-legacy.js側で新設）経由でアクセスする。
+// isPremium/_notifyAuthReadyはapp-legacy.js側に残置のため引き続きwindow bridge経由。
+// syncMode（PR-090-R4でsync-modal.jsへ物理移動）はgetSyncMode()直接importに変更、
+// supabaseUserId（PR-090-R4で本ファイルへ物理移動）は同ファイル内のためbare呼び出し。
 
 export async function renderSyncUI() {
   const body = document.getElementById('syncBody');
@@ -515,7 +524,7 @@ export async function submitSync() {
   try {
     let result;
 
-    if (window.__ippoGetSyncMode() === 'signup') {
+    if (getSyncMode() === 'signup') {
       // 新規登録
       result = await supabase.auth.signUp({ email, password });
 
@@ -536,7 +545,7 @@ export async function submitSync() {
 
     // ログイン成功 → 既存データをuser_idに紐付け + クラウドからデータ復元
     if (result.data.session) {
-      window.__ippoSetSupabaseUserId(result.data.session.user.id);
+      setSupabaseUserId(result.data.session.user.id);
       localStorage.setItem('ippo_sb_user_id', result.data.session.user.id);
       window.__ippoNotifyAuthReady();
       if (result.data.session.user.id === ADMIN_USER_ID) {
@@ -584,7 +593,7 @@ export async function submitSync() {
 
     showMessage(errorMsg, 'error');
     btn.disabled = false;
-    btn.textContent = window.__ippoGetSyncMode() === 'signup' ? '登録する' : 'ログイン';
+    btn.textContent = getSyncMode() === 'signup' ? '登録する' : 'ログイン';
   }
 }
 

@@ -1539,15 +1539,24 @@ PR-090-R2 — 自己export可能47件の自己export化            [完了]
 PR-090-R3 — window.state依存70件（Decision-1実装含む）  [完了]
   ↓
 PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
-            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [次]
+            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [完了、
+            saveRecordScreenのみ既知の理由により未着手・据え置き]
+  ↓
+PR-090-R5（仮） — saveRecordScreen()物理移動の前提条件（5関数重複問題）解消 [次、要Founder判断]
   ↓
 PR-091 — Legacy Exit Audit
 ```
 
-**PR-090-R4**（次）: `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 6-2/6-4節のLegacy依存
-残件（`supabaseUserId`/`syncMode`の物理移動、`updateStats`の物理移動、
-`SYMPTOM_DETAIL_CONFIG`の`src/constants/`切り出し、`saveRecordScreen()`連動）を
-個別の物理移動PRとして整理する。Founder判断不要（Step C、Council 7節参照）。
+**PR-090-R5（仮）**（次）: `saveRecordScreen()`は`buildHomeWeekRow`/`updateHomeCTAState`/
+`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`の5関数（PR-080Eで
+新規発見・Founder判断により据え置き済み、app-legacy.jsローカル実装 vs home-renderer.js
+export版の重複、docs/HANDOFF_PHASE7_COMPLETE.md PR-080E節参照）を呼ぶ。この重複が
+未解消のまま`saveRecordScreen`を物理移動すると、移動先モジュールが5関数をどこから
+importするか（app-legacy.js側ローカル実装 or home-renderer.js側export版）の選択自体が
+Business Logic変更のリスクを伴うため、Founderが既に一度「重複のない部分のみ限定的に
+移動」と判断済み（PR-080E）。本Programでも同じ理由で見送りが妥当と判断し、
+PR-090-R4では着手していない。次PRでは重複解消方針（統合 or 明示的な別名管理）自体を
+Founderに確認してから着手する。
 
 各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
 UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
@@ -1563,6 +1572,63 @@ Legacy Removal Program（PR-079〜PR-089Z）としては、app-legacy.jsをBatch
 ---
 
 ## 直前PR完了メモ
+
+**PR-090-R4: Legacy依存残件の物理移動（supabaseUserId/syncMode/updateStats/SYMPTOM_DETAIL_CONFIG）**
+（Recovery Program再開後4本目、STANDARD Mode。指示範囲は5項目だったが、うち
+saveRecordScreenは下記理由により本PRでは未着手）
+- **supabaseUserId**（Council 6-2）: `src/services/supabase.js`へ物理移動。
+  `getSupabaseUserId()`/`setSupabaseUserId()`をexportし、admin.js/community.js/
+  legacy-misc-stats.js（isAdminOrPremium）・app-legacy.js（import back、4箇所の
+  bare参照を置換）はいずれも直接importに変更。`window.__ippoGetSupabaseUserId`/
+  `__ippoSetSupabaseUserId`ブリッジは廃止。
+- **syncMode**（Council 6-4）: `src/modules/sync-modal.js`へ物理移動（`toggleSyncMode`が
+  唯一のmutatorであるため同ファイルが自然な所有者と判断）。`getSyncMode()`/
+  `setSyncMode()`をexportし、`src/services/supabase.js`（submitSync、2箇所）が
+  直接import。`window.__ippoGetSyncMode`/`__ippoSetSyncMode`ブリッジは廃止。
+- **updateStats**（Council 6-4）: app-legacy.jsローカル実装（home-renderer.js版とは
+  別実装、PR-080C重複整理と同型の「統合しない」判断を踏襲）を
+  `src/modules/legacy-misc-stats.js`（calcPainFreeDays/updateUnlockと同型のDOM更新系
+  ヘルパーが既に集約されている場所）へ物理移動。data-export.js（clearData）は
+  `window.__ippoLegacyUpdateStats()`ブリッジ経由を廃止し同モジュールから直接import。
+  app-legacy.js側はimport backし、bare呼び出し4箇所（オブジェクト定義部除く）は無改造。
+- **SYMPTOM_DETAIL_CONFIG**（Council 6-4）: `src/constants/symptom-detail.js`（新設、
+  ICONS/DISEASE_CONFIGと同型）へデータのみ物理移動。
+  **【新規発見】** 移動前調査で、`window.SYMPTOM_DETAIL_CONFIG`を設定するコードが
+  リポジトリ中に一切存在しないと判明（`window.DISEASE_CONFIG`はconstants/disease.js側
+  window bridgeにより実際に機能しているのと対照的）。つまりrecord-input.jsの
+  `appendSymptomDetail`/`renderSymptomDetail`は常時`{}`フォールバックが発火しており、
+  症状詳細サブUI（部位/タイプ/スライダー）は移動前から機能していなかった
+  （pre-existing、本PR起因ではない）。ICONS/DISEASE_CONFIGと同様に`window.X = X;`
+  ブリッジを新設すると、この症状詳細UIが初めて表示されるようになり実質的な機能有効化
+  ＝Business Logic/UI変更に該当するため、本PRでは意図的にwindow bridgeを追加せず
+  data-onlyの物理移動に留めた。record-input.js側の配線見直しは別途Founder判断が
+  必要な別課題として扱う（詳細はsrc/constants/symptom-detail.jsのコメント参照）。
+- **saveRecordScreen**（Council 6-4）: **未着手**。実装前調査で、
+  `saveRecordScreen()`が呼ぶ`buildHomeWeekRow`/`updateHomeCTAState`/
+  `updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`の5関数は
+  PR-080Eで新規発見済みの「app-legacy.jsローカル実装 vs home-renderer.js側export版」
+  重複問題（未解消のままFounder判断により据え置き中）を持つと判明。この重複を
+  解消せずに`saveRecordScreen`を物理移動すると、移動先が5関数のどちらの実装を
+  importするか次第でBusiness Logic変更のリスクを伴う（PR-080E時点でFounderが
+  同じ理由で「重複のない部分のみ限定的に移動」と判断済み）。本PRの「Business Logic
+  変更なし」の制約と矛盾するため、他4項目とは切り離し次PR（重複解消方針の
+  Founder確認後）へ据え置いた。
+- SG-7 line-count-guard: `app-legacy.js`: 2,686行→2,554行（132行削減）。
+  BASELINE_LINE_COUNTを2,554に更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 113件PASS。
+- Browser Verification: Vite dev server + app.html実機で①`toggleSyncMode()`実行後
+  タイトル/ボタン文言が「新規登録」⇔「ログイン」に正しく切り替わることを確認
+  ②`window.__ippoGetSupabaseUserId`等の旧ブリッジが未定義になったことを確認
+  ③`clearData()`実行後、物理移動後の`updateStats()`が例外なく実行され
+  `state.totalDays`が0にリセットされることを確認。Console Errorは
+  vite websocket接続失敗・Supabase未設定環境ノイズ（`renderSyncUI`の
+  `supabase.auth.getSession()`呼び出し、既知）のみで新規エラーなし。
+- Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
+  SYMPTOM_DETAIL_CONFIGのwindow bridge新設判断とsaveRecordScreenの5関数重複解消方針は
+  Founder確認が必要な別課題として切り出し済み）。
+- 次: saveRecordScreen物理移動の前提条件（5関数重複）解消方針をFounderに確認後、
+  PR-090-R5（仮）として着手。
 
 **PR-090-R3: window.state依存70件の解放（Decision-1実装）**（Recovery Program再開後3本目、STANDARD Mode）
 - `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節・7節Step Bの実装。`src/store/state.js`の

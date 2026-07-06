@@ -10,17 +10,18 @@
 //    import back（fasting.js FAST_PHASE_CONFIGと同型の既存idiom）。
 //  ・bare `supabase` は services/supabase.js から直接 import
 //    （audit記載の「supabase.js 経由に整理」に対応）。
-//  ・bare `supabaseUserId`（app-legacy.js側 var、ログイン処理が更新）は
-//    window.__ippoGetSupabaseUserId() 経由の読み取りに変更
-//    （PR-080E window.__ippoGetBowelCount と同型パターン。community.jsと共通）。
+//  ・bare `supabaseUserId`（旧: app-legacy.js側 var）は PR-090-R4
+//    (EXPORT_HUB_REFACTOR_COUNCIL 6-2) でsrc/services/supabase.jsへ物理移動済みのため、
+//    getSupabaseUserId() 直接importに変更（window.__ippoGetSupabaseUserId()経由を廃止、
+//    community.jsと共通）。
 // ================================================================
 
-import { supabase } from '../services/supabase.js';
+import { supabase, getSupabaseUserId } from '../services/supabase.js';
 
 export var ADMIN_USER_ID = '723dba96-caf3-48d6-9fdc-4151071bbc89';
 
 export function initAdminPanel(){
-  if(window.__ippoGetSupabaseUserId() === ADMIN_USER_ID){
+  if(getSupabaseUserId() === ADMIN_USER_ID){
     var panel = document.getElementById('admin-panel');
     if(panel) panel.style.display = 'block';
   }

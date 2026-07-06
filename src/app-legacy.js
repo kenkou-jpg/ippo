@@ -110,7 +110,7 @@ import { initAdminPanel, adminSetPremium, adminLoadPremiumUsers, ADMIN_USER_ID }
 import { openExperiments, startExperiment, startCustomExperiment, cancelExperiment, completeExperiment, showExperimentReport } from './modules/experiments.js';
 // PR-089C (Legacy Removal Batch-11分割②): renderSyncUI/submitSync/migrateDataToUser/
 // syncNow/logoutSync は src/services/supabase.js へ物理移動済み。
-import { renderSyncUI, submitSync, migrateDataToUser, syncNow, logoutSync } from './services/supabase.js';
+import { renderSyncUI, submitSync, migrateDataToUser, syncNow, logoutSync, getSupabaseUserId, setSupabaseUserId } from './services/supabase.js';
 // PR-089D (Legacy Removal Batch-11分割③): updateHomePhaseBanner/buildPhaseBar/
 // renderMonthlySummaryText/updateHomeSummary/updateHomeCTA/handleHomeCTA/updateStreakBadge は
 // src/modules/home-renderer.js へ物理移動済み（bare呼び出し継続のためimport back。
@@ -148,7 +148,7 @@ import { saveAndSync } from './modules/save-and-sync.js';
 // PR-089F-7B (Legacy Removal Batch-11分割⑦-B): isAdminOrPremium/analyzeCyclePhases/
 // _bleedingToNum/calcPainFreeDays/updateUnlock は src/modules/legacy-misc-stats.js へ
 // 物理移動済み（bare呼び出し継続のためimport back）。
-import { isAdminOrPremium, analyzeCyclePhases, _bleedingToNum, calcPainFreeDays, updateUnlock } from './modules/legacy-misc-stats.js';
+import { isAdminOrPremium, analyzeCyclePhases, _bleedingToNum, calcPainFreeDays, updateUnlock, updateStats } from './modules/legacy-misc-stats.js';
 // PR-089F-7C (Legacy Removal Batch-11分割⑦-C): calcCycleDay/getCyclePhase/
 // getCurrentCyclePhaseは1行delegation shim（window.xxxへの委譲のみ）であり、実体は
 // src/analytics/cycle-engine.js（window.calcCycleDay等を設定）。shimを撤去し実体を
@@ -178,13 +178,9 @@ window._ippoStateHooks.push(function(nextState) {
 // ★ Supabase runtime bridge: bare identifier が module 化後も必ず存在するよう宣言
 // (SDK 管理の実値は checkPremiumStatus / auth callback で同期される)
 var supabaseToken = null;
-var supabaseUserId = null;
-// PR-088: community.js/admin.js（物理移動先）がログイン中ユーザーIDを取得するための
-// 専用ブリッジ（PR-080E window.__ippoGetBowelCount と同型パターン）。
-window.__ippoGetSupabaseUserId = function () { return supabaseUserId; };
-// PR-089C: submitSync（services/supabase.js、物理移動済み）がログイン成功時に
-// supabaseUserId（本ファイル残置 var）を更新するための専用ブリッジ（同型パターン）。
-window.__ippoSetSupabaseUserId = function (v) { supabaseUserId = v; };
+// PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-2): supabaseUserId var + 専用ブリッジは
+// src/services/supabase.js へ物理移動済み。本ファイルはgetSupabaseUserId()/
+// setSupabaseUserId()をimport backして参照する（下記import参照）。
 
 // ─── Deferred Cloud Restore Queue ────────────────────────────────
 // auth 復元前に cloudRestore が呼ばれた場合、auth ready 後にリトライする
@@ -202,7 +198,7 @@ function _notifyAuthReady() {
   }
   // Phase 2: auth-service ownership へ通知
   if (window.ippoAuthService && typeof window.ippoAuthService.markAuthReady === 'function') {
-    window.ippoAuthService.markAuthReady(supabaseUserId, supabaseToken);
+    window.ippoAuthService.markAuthReady(getSupabaseUserId(), supabaseToken);
   }
   _flushCloudRestoreQueue();
 }
@@ -283,114 +279,13 @@ function initSettingsIcons() {
 // record-input.js 側の _renderPainScale() がそちらを直接参照している。
 
 
-// ===== 症状詳細マスターデータ =====
-var SYMPTOM_DETAIL_CONFIG = {
-  '下腹部痛': {
-    positions: ['左下腹部', '右下腹部', '下腹部全体', '腰', '骨盤周り'],
-    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感', '張り'],
-    hasSlider: true
-  },
-  '骨盤痛': {
-    positions: ['左側', '右側', '両側', '仙骨周り', '全体'],
-    types:     ['鈍痛', '鋭痛', '圧迫感', '張り', '重い'],
-    hasSlider: true
-  },
-  '月経外の骨盤痛': {
-    positions: ['左側', '右側', '両側', '仙骨周り'],
-    types:     ['鈍痛', '鋭痛', '圧迫感', '張り'],
-    hasSlider: true
-  },
-  '排卵痛': {
-    positions: ['左下腹部', '右下腹部', '下腹部全体'],
-    types:     ['鋭痛', '鈍痛', '差し込み', '張り'],
-    hasSlider: true
-  },
-  '片側の下腹部痛': {
-    positions: ['左側', '右側'],
-    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感'],
-    hasSlider: true
-  },
-  '腰痛': {
-    positions: ['腰全体', '左側', '右側', '仙骨'],
-    types:     ['鈍痛', '鋭痛', '張り', '重い'],
-    hasSlider: true
-  },
-  '性交痛': {
-    positions: ['入口付近', '奥（深部）', '全体'],
-    types:     ['鈍痛', '鋭痛', '圧迫感', '灼熱感'],
-    hasSlider: true
-  },
-  '排便痛': {
-    positions: ['肛門周り', '腸全体', '左側', '右側'],
-    types:     ['鈍痛', '鋭痛', '差し込み', '圧迫感'],
-    hasSlider: true
-  },
-  '頭痛': {
-    positions: ['前頭部', '側頭部（左）', '側頭部（右）', '後頭部', '全体'],
-    types:     ['ズキズキ', '締め付け', '重い', '刺すような'],
-    hasSlider: true
-  },
-  '慢性疲労': { hasSlider: true, sliderLabel: '疲れの強さ' },
-  'だるさ':   { hasSlider: true, sliderLabel: '重さの程度' },
-  '倦怠感':   { hasSlider: true, sliderLabel: '倦怠の程度' },
-  'むくみ': {
-    positions: ['顔', '手', '足（全体）', '足首', 'ふくらはぎ'],
-    hasSlider: true,
-    sliderLabel: 'むくみの程度'
-  },
-  '気分の落ち込み': {
-    types:     ['ゆううつ', '虚無感', '涙が出る', '何もしたくない'],
-    hasSlider: true,
-    sliderLabel: '気分の重さ'
-  },
-  'イライラ': {
-    types:     ['軽いイライラ', 'かなり強い', '怒りが抑えられない'],
-    hasSlider: true,
-    sliderLabel: 'イライラの強さ'
-  },
-  '不安感': {
-    types:     ['漠然とした不安', '動悸を伴う', '眠れない'],
-    hasSlider: true,
-    sliderLabel: '不安の強さ'
-  },
-  '吐き気': {
-    types:     ['軽い吐き気', '食欲がない', '嘔吐あり'],
-    timing:    ['空腹時', '食後', '常時', '動いたとき'],
-    hasSlider: true,
-    sliderLabel: '吐き気の強さ'
-  },
-  '胸の張り': {
-    positions: ['両側', '左側', '右側'],
-    hasSlider: true,
-    sliderLabel: '張りの強さ'
-  },
-  '不正出血': {
-    types:     ['茶色のおりもの', '鮮血', '少量', '中等量'],
-    timing:    ['排卵期', '生理前', '生理後', '性交後', '不定期'],
-    hasSlider: false
-  },
-  '頻尿': {
-    types:     ['少し多い', 'かなり多い', '夜間も起きる'],
-    hasSlider: false
-  },
-  '便秘': {
-    types:     ['数日出ない', '硬くて出にくい', '残便感'],
-    hasSlider: false,
-    bowelCount: true
-  },
-  '腹部膨満感': {
-    types:     ['食後に張る', '一日中張っている', 'ガスが多い'],
-    hasSlider: true,
-    sliderLabel: '張りの程度'
-  },
-  'おりもの': {
-    types:     ['透明・サラサラ', '白・とろみあり', '黄色みがかった', '茶色', 'ピンク・血混じり'],
-    positions: ['量：少ない', '量：普通', '量：多い'],
-    timing:    ['においの変化あり', 'かゆみあり', '膣の乾燥あり'],
-    hasSlider: false,
-    note: '膣の乾燥・においの変化は婦人科受診の参考になります'
-  }
-};
+// PR-090-R4 (Legacy Removal Batch-11分割, EXPORT_HUB_REFACTOR_COUNCIL 6-4):
+// 症状詳細マスターデータ（旧 SYMPTOM_DETAIL_CONFIG）は本ファイル内に他の参照がない
+// 純粋な静的データと確認済みのため src/constants/symptom-detail.js へ物理移動。
+// window.SYMPTOM_DETAIL_CONFIGは移動前から一度も設定されておらず
+// （record-input.js側は常時`{}`フォールバック、機能的に無効化済みだった）、
+// 新ファイル側でもwindow bridgeを追加していないため挙動は変化しない
+// （詳細はsrc/constants/symptom-detail.jsのコメント参照）。
 
 // ===== 周期フェーズ連動分析 =====
 // PR-089F-7C: calcCycleDay/getCyclePhase の1行delegation shimを撤去し、
@@ -528,7 +423,7 @@ function cloudBackupAll(){
 function cloudRestore(){
   if (typeof window.supabase === 'undefined' || !window.supabase) return Promise.resolve(false);
   // auth が未完了の場合: localStorage に token があれば queue（auth 復元中）、なければ safe skip
-  if (!supabaseUserId) {
+  if (!getSupabaseUserId()) {
     var hasSavedToken = !!localStorage.getItem('ippo_sb_token');
     if (hasSavedToken) {
       // token は存在する → auth 復元中の可能性が高い。auth ready 後にリトライ
@@ -894,35 +789,11 @@ function updateGreeting() {
 }
 
 // ===== STATS =====
-function updateStats() {
-  var streakEl = document.getElementById('streak-count');
-  if (streakEl) streakEl.textContent = state.streak || 0;
-  var totalEl = document.getElementById('total-count');
-  if (totalEl) totalEl.textContent = state.totalDays || 0;
-  var itEl = document.getElementById('insight-total');
-  if (itEl) itEl.textContent = state.totalDays || 0;
-  var isEl = document.getElementById('insight-streak');
-  if (isEl) isEl.textContent = state.streak || 0;
-  // 空状態バナー
-  var emptyEl = document.getElementById('insights-empty-state');
-  if(emptyEl) emptyEl.style.display = (state.records.length === 0) ? 'block' : 'none';
-
-  // 今月の無痛み日数
-  calcPainFreeDays();
-  var pfDays = calcPainFreeDaysThisMonth();
-  var pfEl = document.getElementById('pain-free-days');
-  if (pfEl) pfEl.textContent = pfDays > 0 ? pfDays : '—';
-
-  // 今月の平均痛みスコア
-  var avgPain = calcAvgPainThisMonth();
-  var apEl = document.getElementById('avg-pain-score');
-  if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
-}
-// PR-084: clearData（data-export.js側、物理移動済み）がupdateStats（本ファイルの
-// ローカル実装、home-renderer.js版とは別、PR-080C重複整理と同型の「統合しない」
-// 判断を踏襲）をbare呼び出しするための専用ブリッジ（PR-081
-// window.__ippoLegacyUpdateSettingsHero と同型パターン）。
-window.__ippoLegacyUpdateStats = updateStats;
+// PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-4): updateStats（本ファイルのローカル実装、
+// home-renderer.js版とは別、PR-080C重複整理と同型の「統合しない」判断を踏襲）は
+// src/modules/legacy-misc-stats.js へ物理移動済み（import back、下記のbare呼び出しは
+// importされた実体をそのまま参照）。data-export.js（clearData）はwindow経由の旧
+// __ippoLegacyUpdateStats ブリッジを廃止し、同モジュールから直接importする。
 
 // PR-089F-7B: calcPainFreeDays は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
@@ -2331,12 +2202,9 @@ document.getElementById('syncOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeSyncModal();
 });
 
-var syncMode = 'login'; // 'login' or 'signup'  ※ TDZ回避のためvarを使用
-// PR-083: toggleSyncMode（sync-modal.js側、物理移動済み）/ PR-089C: submitSync
-// （services/supabase.js側、物理移動済み）がsyncMode（本ファイル残置）を読み書きする
-// ための専用ブリッジ（同型パターン）。
-window.__ippoGetSyncMode = function () { return syncMode; };
-window.__ippoSetSyncMode = function (v) { syncMode = v; };
+// PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-4): syncMode var + 専用ブリッジは
+// src/modules/sync-modal.js へ物理移動済み（getSyncMode()/setSyncMode()経由）。
+// 本ファイル側はsyncModeを直接参照しないため import back不要。
 
 // ページ読み込み時に同期状態を確認
 (async function checkSyncStatus() {
@@ -2385,7 +2253,7 @@ window.logoutSync = logoutSync;
 var _adminCheckCount = 0;
 var adminCheckInterval = setInterval(function(){
   _adminCheckCount++;
-  if(supabaseUserId){
+  if(getSupabaseUserId()){
     clearInterval(adminCheckInterval);
     initAdminPanel();
     // 管理者ログイン確定後にPROバッジを即時更新
@@ -2429,7 +2297,7 @@ async function checkPremiumStatus() {
         console.warn('[ippo auth] user-id mismatch: inline=' + prevInlineId + ' sdk=' + session.user.id);
         window.__ippoAuthMismatch = { inlineId: prevInlineId, sdkId: session.user.id, ts: new Date().toISOString() };
       }
-      supabaseUserId = session.user.id;
+      setSupabaseUserId(session.user.id);
       supabaseToken = session.access_token;
       localStorage.setItem('ippo_sb_user_id', session.user.id);
       _notifyAuthReady();
