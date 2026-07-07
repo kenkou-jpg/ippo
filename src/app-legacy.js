@@ -33,15 +33,17 @@ import { openCyclePhaseReport, renderPhaseMap, selectPhaseTab, _buildPhaseBarPre
 import { calcTemperaturePhases, openTempReport, showTempEducation } from './modules/pro/temp-report.js';
 // PR-082F (Legacy Removal Batch-4 分割⑥): Flareup Report / Correlation Report は
 // src/modules/pro/flareup-report.js / src/modules/pro/correlation-report.js へ物理移動済み。
-// calcWellnessScore は src/modules/pro/shared/pro-metric-utils.js へ物理移動済み。
+// calcWellnessScore（旧saveRecordScreen用）はPR-092Bでsrc/modules/record-screen.jsへ
+// 移管したためimport削除（record-screen.js側で直接import）。
 import { detectFlareups, openFlareupReport } from './modules/pro/flareup-report.js';
 import { calcFactorCorrelations, setCGRange, toggleCGFactor, getMetricValue, getMetricLabel, getMetricMax, renderComparisonChart, openCorrelationReport } from './modules/pro/correlation-report.js';
-import { calcWellnessScore } from './modules/pro/shared/pro-metric-utils.js';
 // PR-083 (Legacy Removal Batch-5): Sync Modal & Auth UI は
 // src/modules/sync-modal.js へ物理移動済み。
 import { openSyncModal, closeSyncModal, showLoginForm, toggleSyncMode, showMessage, hideMessage } from './modules/sync-modal.js';
 // PR-084 (Legacy Removal Batch-6): Symptom Settings は src/modules/symptom-settings.js へ物理移動済み。
-import { openSymptomSettings, closeSymptomSettings, saveSymptomSettings, getRecentSymptoms, saveSymptomSelection, updateSymptomSettingDisplay, buildSymptomChips, applySymptomChipPriority } from './modules/symptom-settings.js';
+// saveSymptomSelection（旧saveRecordScreen用）はPR-092Bでsrc/modules/record-screen.jsへ
+// 移管したためimport削除（record-screen.js側で直接import）。
+import { openSymptomSettings, closeSymptomSettings, saveSymptomSettings, getRecentSymptoms, updateSymptomSettingDisplay, buildSymptomChips, applySymptomChipPriority } from './modules/symptom-settings.js';
 // PR-084: reorderRecordSections は src/modules/record-section-order.js へ物理移動済み。
 import { reorderRecordSections } from './modules/record-section-order.js';
 // PR-084: exportJSON/exportCSV/csvSafe/formatDiseaseCheck/clearData は src/modules/data-export.js へ物理移動済み。
@@ -72,10 +74,14 @@ import { switchInsTab, renderInsightDiscoveries, _updateInsMainCard, updateFoodB
 import { updateTodayMessage, updateDailyHintCard } from './modules/home-renderer.js';
 // PR-087 (Legacy Removal Batch-9): escapeHtml/getTimeAgo/toLocalDateKey は
 // src/utils/string-utils.js へ新設・物理移動済み。
-import { escapeHtml, getTimeAgo, toLocalDateKey } from './utils/string-utils.js';
+// toLocalDateKey（旧saveRecordScreen用）はPR-092Bでsrc/modules/record-screen.jsへ
+// 移管したためimport削除（record-screen.js側で直接import）。
+import { escapeHtml, getTimeAgo } from './utils/string-utils.js';
 // PR-087: calcPainFreeDaysThisMonth/calcAvgPainThisMonth/calcSMIScore は
 // src/utils/stats-utils.js へ新設・物理移動済み。
-import { calcPainFreeDaysThisMonth, calcAvgPainThisMonth, calcSMIScore } from './utils/stats-utils.js';
+// calcSMIScore（旧saveRecordScreen用）はPR-092Bでsrc/modules/record-screen.jsへ
+// 移管したためimport削除（record-screen.js側で直接import）。
+import { calcPainFreeDaysThisMonth, calcAvgPainThisMonth } from './utils/stats-utils.js';
 // PR-087: shareApp/addToHome は src/modules/share.js へ新設・物理移動済み。
 import { shareApp, addToHome } from './modules/share.js';
 // PR-087: setRating/submitFeedback は src/modules/feedback.js へ新設・物理移動済み。
@@ -125,7 +131,9 @@ import { updateHomePhaseBanner, buildPhaseBar, renderMonthlySummaryText, updateH
 // draftRecordScreen は src/modules/record-edit.js へ物理移動済み（bare呼び出し継続のため
 // import back）。saveEditRecordはopenDayDetailのAMBIGUOUS依存のため対象外・本ファイル残置
 // （docs/PR-089E-calendar-remaining-investigation.md参照、統合はPR-089Z）。
-import { openEditRecord, closeEditRecord, toggleEditChip, selectEditCycle, deleteEditRecord, softDeleteRecord, gatherRecordData, gatherDiseaseData, draftRecordScreen } from './modules/record-edit.js';
+// gatherRecordData/gatherDiseaseData（旧saveRecordScreen用）はPR-092Bで
+// src/modules/record-screen.jsへ移管したためimport削除（record-screen.js側で直接import）。
+import { openEditRecord, closeEditRecord, toggleEditChip, selectEditCycle, deleteEditRecord, softDeleteRecord, draftRecordScreen } from './modules/record-edit.js';
 // PR-089F-2 (Legacy Removal Batch-11分割⑥-2): selectTempMethod/toggleRsChip/selectRsCycle/
 // selectEnergy/selectSleepQuality/selectBowel/selectMood/updateRecProgressDots/
 // toggleRecordDetails/adjustBowelCount は src/modules/record-screen-widgets.js へ
@@ -160,7 +168,9 @@ import { buildHomeWeekRow, updateHomeInsightCard, updateHomeNumbers, updateHomeD
 // getCurrentCyclePhaseは1行delegation shim（window.xxxへの委譲のみ）であり、実体は
 // src/analytics/cycle-engine.js（window.calcCycleDay等を設定）。shimを撤去し実体を
 // 直接importへ変更（挙動変更なし、PR-089F-7A監査で確認済み）。
-import { calcCycleDay, getCyclePhase, getCurrentCyclePhase } from './analytics/cycle-engine.js';
+// getCurrentCyclePhase（旧saveRecordScreen用）はPR-092Bでsrc/modules/record-screen.jsへ
+// 移管したためimport削除（record-screen.js側で直接import）。
+import { calcCycleDay, getCyclePhase } from './analytics/cycle-engine.js';
 // PR-089F-7C: updateDiseaseQuestions/updateDiseaseSettingDisplayも同型の1行delegation shim
 // であり、実体はsrc/modules/disease-settings.js（window.updateDiseaseQuestions等を設定）。
 // shimを撤去し実体を直接importへ変更（挙動変更なし）。
@@ -424,6 +434,11 @@ function cloudBackupAll(){
     throw e;
   });
 }
+// PR-092B (UI/UX Final Council採用): saveRecordScreenの物理移動先
+// （src/modules/record-screen.js）から、window.cloudBackupAllが未設定の場合の
+// フォールバックとして参照するためのブリッジ。既存のフォールバック挙動を保持するのみで
+// Business Logic変更なし。
+window.__ippoLegacyCloudBackupAll = cloudBackupAll;
 
 
 
@@ -677,6 +692,11 @@ function saveState() {
     console.warn('ippo: saveState failed', e);
   }
 }
+// PR-092B (UI/UX Final Council採用): saveRecordScreenの物理移動先
+// （src/modules/record-screen.js）から、window.saveStateが未設定の場合の
+// フォールバックとして参照するためのブリッジ。既存のフォールバック挙動を保持するのみで
+// Business Logic変更なし。
+window.__ippoLegacySaveState = saveState;
 
 // ===== 同期インジケーター =====
 var _syncIndicatorTimer = null;
@@ -1741,229 +1761,8 @@ document.addEventListener('DOMContentLoaded', function(){
 // PR-087 (Legacy Removal Batch-9): toLocalDateKey は
 // src/utils/string-utils.js へ物理移動済み（import参照）。
 
-function saveRecordScreen(){
-  try {
-    var data = gatherRecordData();
-   var targetDate = state.editingDate ? new Date(state.editingDate) : new Date();
-var todayStr = targetDate.toDateString();
-    var targetDateSlice = toLocalDateKey(targetDate);
-    var rec = null;
-    for(var i=0; i<state.records.length; i++){
-      var _r = state.records[i];
-      if((_r.date && new Date(_r.date).toDateString() === todayStr) ||
-         (_r.record_date && _r.record_date.slice(0, 10) === targetDateSlice)){
-        rec = _r; break;
-      }
-    }
-    var isNew = false;
-    if(!rec){
-      rec = { date: targetDate.toISOString(), record_date: targetDate.toISOString().slice(0, 10) };
-      isNew = true;
-    } else if(!rec.date) {
-      rec.date = targetDate.toISOString();
-      if(!rec.record_date) rec.record_date = targetDate.toISOString().slice(0, 10);
-    }
-    var mealFreeEl = document.getElementById('rs-meal-free');
-    var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
-    var parsed = parseMealMemo(mealFreeText);
-    rec.mealFree = mealFreeText;
-    rec.meals = { free: mealFreeText };
-    rec.firstMealTime = parsed ? parsed.firstTime : '';
-    rec.lastMealTime = parsed ? parsed.lastTime : '';
-    rec.mealCount = parsed ? parsed.mealCount : 0;
-    rec.fasting = parsed ? parsed.fastingHours : 0;
-    var _newDiseaseCheck = gatherDiseaseData();
-    if (Object.keys(_newDiseaseCheck).length > 0) {
-      rec.diseaseCheck = _newDiseaseCheck;
-    }
-    localStorage.removeItem('ippo_meal_draft');
-    rec.temperature = data.temp;
-    rec.tempMethod = data.tempMethod || 'sublingual';
-    rec.symptoms = data.symptoms;
-    rec.menstrualCycle = data.cycle;
-    var bodyChoices = {};
-    document.querySelectorAll('#rs-body-choices .chips').forEach(function(group){
-      var cat = group.getAttribute('data-category');
-      var selected = [];
-      group.querySelectorAll('.chip.selected').forEach(function(c){
-        selected.push(c.getAttribute('data-val'));
-      });
-      if(selected.length) bodyChoices[cat] = selected;
-    });
-    if (Object.keys(bodyChoices).length > 0) {
-      rec.bodyChoices = bodyChoices;
-    }
-    if(data.note) rec.note = data.note;
-    // 痛みの詳細
-    rec.painLocation = data.painLocation;
-    rec.painType = data.painType;
-    rec.painLevel = data.painLevel;
-    // 服薬
-    rec.medication = data.medication;
-    rec.bloodClot = data.bloodClot;
-    rec.bloodColor = data.bloodColor;
-    // エネルギー・睡眠・ファクター・お通じ
-    rec.energy = data.energy;
-    rec.sleepBed = data.sleepBed;
-    rec.sleepWake = data.sleepWake;
-    rec.sleepQuality = data.sleepQuality;
-    rec.sleepHours = data.sleepHours;
-    rec.factors = data.factors;
-    rec.bowel = data.bowel;
-    rec.bowelCount = data.bowelCount || 0;
-    rec.mood = data.mood;
-    rec.dischargeAmount = data.dischargeAmount;
-    rec.dischargeType = data.dischargeType;
-    rec.diseases = data.diseases;
-    rec.wellnessScore = calcWellnessScore(rec);
-        // 更年期SMIスコア
-    var smi = calcSMIScore(rec.diseaseCheck || {});
-    if(smi !== null) rec.smiScore = smi;
-
-
-
-    // 新規の場合のみ配列に追加
-    if(isNew){
-      state.records.push(rec);
-      state.totalDays++;
-      // streak計算
-      var yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      var yStr = yesterday.toDateString();
-      var hadYesterday = state.records.some(function(r){ return new Date(r.date).toDateString() === yStr; });
-      state.streak = state.streak || 0;
-      if(hadYesterday || state.streak === 0) state.streak++;
-      else state.streak = 1;
-    }
-
-    // 保存を即座に実行
-    try {
-      if (typeof window.saveState === 'function') {
-        window.saveState();
-      } else if (typeof saveState === 'function') {
-        saveState();
-      } else {
-        localStorage.setItem('ippo_state', JSON.stringify(state));
-      }
-    } catch(storageErr) {
-      showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
-      console.error('Storage error:', storageErr);
-      return;
-    }
-
-    // 保存成功を検証
-    var verify = JSON.parse(localStorage.getItem('ippo_state'));
-    var saved = verify.records.some(function(r){
-      return (r.date && new Date(r.date).toDateString() === todayStr) ||
-             (r.record_date && r.record_date.slice(0, 10) === targetDateSlice);
-    });
-    if(!saved){
-      showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
-      return;
-    }
-
-    // P0-A: 保存成功後 draft を即削除し dirtyFlag をリセット
-    localStorage.removeItem('ippo_record_draft');
-    if (window.ippoRecordDraftGuard && typeof window.ippoRecordDraftGuard.markClean === 'function') {
-      window.ippoRecordDraftGuard.markClean();
-    }
-
-    // 最近使った症状を記録（自動昇格ロジック用）
-    if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
-
-    // UI更新（保存成功後のみ）
-    updateHomeSummary();
-    if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
-    updateHomeCTA();
-    updateHomeCTAState();
-    if (typeof updateTodayMessage === 'function') updateTodayMessage();
-    updateStreakBadge();
-    buildHomeWeekRow();
-    updateHomeInsightCard();
-    updateHomeNumbers();
-    updateHomeDiseaseAdvice();
-    checkAndShowTempAlert();
-    if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
-    updateStats();
-    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
-    if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
-    localStorage.removeItem('ippo_draft');
-    var _cloudBackupFn = (typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : cloudBackupAll);
-    if(typeof _cloudBackupFn === 'function'){
-  _cloudBackupFn().catch(function(e){
-    console.warn('クラウドバックアップ失敗、リトライ中...', e);
-    setTimeout(function(){
-      _cloudBackupFn().catch(function(){
-        showToast('クラウド同期に失敗しました。Wi-Fiを確認してください。', 'warn');
-      });
-    }, 3000);
-  });
-}
-
-    var so = document.getElementById('success-overlay');
-    if(so){
-      document.getElementById('success-emoji').textContent = '🌿';
-      document.getElementById('success-title').textContent = '記録を保存しました';
-      // フィードバックカード生成
-      var streak = state.streak || 0;
-      var feedbackHtml = '';
-      // 1. 連続記録日数
-      feedbackHtml += '<div style="background:#FBEAF0;border-radius:14px;padding:14px 16px;margin:12px 0 4px;text-align:left;">';
-      feedbackHtml += '<div style="font-weight:500;color:#72243E;margin-bottom:4px;">今日で' + streak + '日連続記録中</div>';
-      // 2. 先週との比較
-      var now = new Date();
-      var last7 = state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=0&&diff<7; });
-      var prev7 = state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=7&&diff<14; });
-      if(last7.length>0 && prev7.length>0){
-        var lastPain = last7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/last7.length;
-        var prevPain = prev7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/prev7.length;
-        var diff = Math.round((prevPain - lastPain)*10)/10;
-        if(diff > 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週より痛みの記録が'+diff.toFixed(1)+'ポイント改善の傾向です</div>';
-        else if(diff < 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">記録を続けてパターンを見つけましょう</div>';
-        else feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週と同じペースで記録中です</div>';
-      }
-      // 3. フェーズメッセージ
-      var phaseMsg = '';
-      if(typeof getCurrentCyclePhase === 'function'){
-        var ph = getCurrentCyclePhase();
-        if(ph === '生理期') phaseMsg = '生理期です。無理せず、水分補給を大切に。';
-        else if(ph === '卵胞期') phaseMsg = '卵胞期です。体が軽く動きやすい時期です。';
-        else if(ph === '排卵期') phaseMsg = '排卵期です。体温の変化を確認しましょう。';
-        else if(ph === '黄体期') phaseMsg = '黄体期です。水分補給と早めの睡眠を意識しましょう。';
-        if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
-      }
-      feedbackHtml += '</div>';
-      document.getElementById('success-message').innerHTML = feedbackHtml;
-      so.classList.add('active');
-      // P0-3: 前のタイマーをクリアしてから新タイマーをセット
-      if (window.__ippoSuccessOverlayTimer) {
-        clearTimeout(window.__ippoSuccessOverlayTimer);
-        window.__ippoSuccessOverlayTimer = null;
-      }
-      window.__ippoSuccessOverlayTimer = setTimeout(function() {
-        var overlay = document.getElementById('success-overlay');
-        if (overlay && overlay.classList.contains('active')) {
-          overlay.style.transition = 'opacity 0.5s ease';
-          overlay.style.opacity = '0';
-          setTimeout(function() {
-            overlay.classList.remove('active');
-            overlay.style.opacity = '';
-            overlay.style.transition = '';
-            window.__ippoSuccessOverlayTimer = null;
-            // P0-1: ホーム強制遷移を削除
-          }, 500);
-        }
-      }, 2000);
-    }
-    if(state.editingDate){
-      state.editingDate = null;
-     saveAndSync();
-    }
-  } catch(e) {
-    console.error('saveRecordScreen error:', e);
-    showAlertModal('記録の保存中にエラーが発生しました。<br>もう一度お試しください。<br><br>エラー: ' + e.message);
-  }
-}
+// PR-092B (UI/UX Final Council採用): saveRecordScreen は src/modules/record-screen.js
+// の統合版へ物理移動済み（Business Logic変更なし、既存保存ロジックを完全維持）。
 
 
 // ===== START =====
@@ -2247,7 +2046,7 @@ if (typeof renderSymptomDetail === "function") window.renderSymptomDetail = rend
 if (typeof renderWellness === "function") window.renderWellness = renderWellness;
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;
 if (typeof saveEditRecord === "function") window.saveEditRecord = saveEditRecord;
-if (typeof saveRecordScreen === "function") window.saveRecordScreen = saveRecordScreen;
+// PR-092B: saveRecordScreenはsrc/modules/record-screen.jsが自己exportするため本行は削除。
 if (typeof selectBodyCheckExtra === "function") window.selectBodyCheckExtra = selectBodyCheckExtra;
 if (typeof selectBodyCheckItem === "function") window.selectBodyCheckItem = selectBodyCheckItem;
 if (typeof selectBowelCount === "function") window.selectBowelCount = selectBowelCount;

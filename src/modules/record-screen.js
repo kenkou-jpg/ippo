@@ -18,7 +18,52 @@
 //    （app-legacy.js版とはstate取得経路のみ異なる別物）、openRecordScreen
 //    専用のprivateヘルパーとしてapp-legacy.js版をそのまま同梱移動し、
 //    window export はしない（calendar.js版と衝突させない）。
+//
+//  PR-092B (UI/UX Final Council採用): saveRecordScreen() を物理移動。
+//  Business Logic変更なし（既存保存ロジックを維持、純粋な物理移動 + import解決のみ）。
+//  - bare `state` 参照 → `window.state`（本ファイル既存の idiom と同型）
+//  - gatherRecordData/gatherDiseaseData/toLocalDateKey/parseMealMemo/calcWellnessScore/
+//    calcSMIScore/showAlertModal/saveSymptomSelection/updateHomeCTA/updateHomeSummary/
+//    updateDailyHintCard/updateTodayMessage/updateStreakBadge/buildHomeWeekRow/
+//    updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/
+//    updateStats/checkAndShowTempAlert/updateFastingWidgetPhase/getCurrentCyclePhase/
+//    saveAndSync は、いずれもapp-legacy.js側で既に他モジュールへ物理移動済みの実装を
+//    importしていたもの（bare呼び出し）だったため、本ファイルでも同じモジュールから
+//    直接importする（挙動変更なし）。
+//  - `cloudBackupAll`/`saveState` の2件のみ、app-legacy.js側にローカル実装が残置されており
+//    （window.cloudBackupAll/window.saveStateが未設定の場合のみ使われるフォールバック、
+//    実運用では到達しない安全網）、本ファイルへexportされていないため、
+//    app-legacy.js側に window.__ippoLegacyCloudBackupAll / window.__ippoLegacySaveState
+//    ブリッジを新設し、それ経由で参照する（既存のフォールバック挙動を完全に保持）。
+//  - `showToast`（クラウド同期2回失敗時のみ到達する内側catch内）は、app-legacy.js側でも
+//    importされておらずbare参照のまま（到達時ReferenceErrorとなる pre-existing の潜在バグ）
+//    だったため、本PRのScope（Business Logic変更禁止・既存保存ロジック維持）に従い
+//    そのまま同一のbare参照として移植する（修正しない）。
+//  - 調査メモ: src/modules/record.js にも saveRecordScreen という別実装
+//    （_saveRecordScreenImpl、app-legacy.js廃止後のフォールバックとして設計済み）が
+//    存在するが、window.saveRecordScreen は「未設定の場合のみ」自身を割り当てる
+//    ガードを持つため、本ファイルが従来通り無条件で window.saveRecordScreen を
+//    割り当てる限り、record.js側は引き続き休眠状態のままで競合しない
+//    （2026-07-07 実機確認済み。詳細は docs/HANDOFF_PHASE7_COMPLETE.md PR-092B節）。
 // ============================================================
+
+import { gatherRecordData, gatherDiseaseData } from './record-edit.js';
+import { toLocalDateKey } from '../utils/string-utils.js';
+import { calcSMIScore } from '../utils/stats-utils.js';
+import { parseMealMemo } from './meal-tracker.js';
+import { calcWellnessScore } from './pro/shared/pro-metric-utils.js';
+import { showAlertModal } from './ui-notifications.js';
+import { saveSymptomSelection } from './symptom-settings.js';
+import {
+  updateHomeCTA, updateHomeSummary, updateStreakBadge,
+  buildHomeWeekRow, updateHomeInsightCard, updateHomeNumbers,
+  updateHomeDiseaseAdvice, updateHomeCTAState, updateStats,
+  updateDailyHintCard, updateTodayMessage,
+} from './home-renderer.js';
+import { checkAndShowTempAlert } from './temp-alert.js';
+import { updateFastingWidgetPhase } from './fasting.js';
+import { getCurrentCyclePhase } from '../analytics/cycle-engine.js';
+import { saveAndSync } from './save-and-sync.js';
 
 // ===== 記録モーダル → 詳細記録画面への引き継ぎ（private、window非export） =====
 function prefillRecordFromModal() {
@@ -500,6 +545,232 @@ export function editPastRecord(dateStr) {
   }, 150);
 }
 
+// ===== RECORD SCREEN 保存（PR-092A/PR-092B: app-legacy.jsから物理移動） =====
+export function saveRecordScreen(){
+  try {
+    var data = gatherRecordData();
+    var targetDate = window.state.editingDate ? new Date(window.state.editingDate) : new Date();
+    var todayStr = targetDate.toDateString();
+    var targetDateSlice = toLocalDateKey(targetDate);
+    var rec = null;
+    for(var i=0; i<window.state.records.length; i++){
+      var _r = window.state.records[i];
+      if((_r.date && new Date(_r.date).toDateString() === todayStr) ||
+         (_r.record_date && _r.record_date.slice(0, 10) === targetDateSlice)){
+        rec = _r; break;
+      }
+    }
+    var isNew = false;
+    if(!rec){
+      rec = { date: targetDate.toISOString(), record_date: targetDate.toISOString().slice(0, 10) };
+      isNew = true;
+    } else if(!rec.date) {
+      rec.date = targetDate.toISOString();
+      if(!rec.record_date) rec.record_date = targetDate.toISOString().slice(0, 10);
+    }
+    var mealFreeEl = document.getElementById('rs-meal-free');
+    var mealFreeText = mealFreeEl ? mealFreeEl.value.trim() : '';
+    var parsed = parseMealMemo(mealFreeText);
+    rec.mealFree = mealFreeText;
+    rec.meals = { free: mealFreeText };
+    rec.firstMealTime = parsed ? parsed.firstTime : '';
+    rec.lastMealTime = parsed ? parsed.lastTime : '';
+    rec.mealCount = parsed ? parsed.mealCount : 0;
+    rec.fasting = parsed ? parsed.fastingHours : 0;
+    var _newDiseaseCheck = gatherDiseaseData();
+    if (Object.keys(_newDiseaseCheck).length > 0) {
+      rec.diseaseCheck = _newDiseaseCheck;
+    }
+    localStorage.removeItem('ippo_meal_draft');
+    rec.temperature = data.temp;
+    rec.tempMethod = data.tempMethod || 'sublingual';
+    rec.symptoms = data.symptoms;
+    rec.menstrualCycle = data.cycle;
+    var bodyChoices = {};
+    document.querySelectorAll('#rs-body-choices .chips').forEach(function(group){
+      var cat = group.getAttribute('data-category');
+      var selected = [];
+      group.querySelectorAll('.chip.selected').forEach(function(c){
+        selected.push(c.getAttribute('data-val'));
+      });
+      if(selected.length) bodyChoices[cat] = selected;
+    });
+    if (Object.keys(bodyChoices).length > 0) {
+      rec.bodyChoices = bodyChoices;
+    }
+    if(data.note) rec.note = data.note;
+    // 痛みの詳細
+    rec.painLocation = data.painLocation;
+    rec.painType = data.painType;
+    rec.painLevel = data.painLevel;
+    // 服薬
+    rec.medication = data.medication;
+    rec.bloodClot = data.bloodClot;
+    rec.bloodColor = data.bloodColor;
+    // エネルギー・睡眠・ファクター・お通じ
+    rec.energy = data.energy;
+    rec.sleepBed = data.sleepBed;
+    rec.sleepWake = data.sleepWake;
+    rec.sleepQuality = data.sleepQuality;
+    rec.sleepHours = data.sleepHours;
+    rec.factors = data.factors;
+    rec.bowel = data.bowel;
+    rec.bowelCount = data.bowelCount || 0;
+    rec.mood = data.mood;
+    rec.dischargeAmount = data.dischargeAmount;
+    rec.dischargeType = data.dischargeType;
+    rec.diseases = data.diseases;
+    rec.wellnessScore = calcWellnessScore(rec);
+    // 更年期SMIスコア
+    var smi = calcSMIScore(rec.diseaseCheck || {});
+    if(smi !== null) rec.smiScore = smi;
+
+    // 新規の場合のみ配列に追加
+    if(isNew){
+      window.state.records.push(rec);
+      window.state.totalDays++;
+      // streak計算
+      var yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      var yStr = yesterday.toDateString();
+      var hadYesterday = window.state.records.some(function(r){ return new Date(r.date).toDateString() === yStr; });
+      window.state.streak = window.state.streak || 0;
+      if(hadYesterday || window.state.streak === 0) window.state.streak++;
+      else window.state.streak = 1;
+    }
+
+    // 保存を即座に実行
+    try {
+      if (typeof window.saveState === 'function') {
+        window.saveState();
+      } else if (typeof window.__ippoLegacySaveState === 'function') {
+        window.__ippoLegacySaveState();
+      } else {
+        localStorage.setItem('ippo_state', JSON.stringify(window.state));
+      }
+    } catch(storageErr) {
+      showAlertModal('記録の保存に失敗しました。端末のストレージ容量を確認してください。');
+      console.error('Storage error:', storageErr);
+      return;
+    }
+
+    // 保存成功を検証
+    var verify = JSON.parse(localStorage.getItem('ippo_state'));
+    var saved = verify.records.some(function(r){
+      return (r.date && new Date(r.date).toDateString() === todayStr) ||
+             (r.record_date && r.record_date.slice(0, 10) === targetDateSlice);
+    });
+    if(!saved){
+      showAlertModal('記録の保存に失敗しました。もう一度お試しください。');
+      return;
+    }
+
+    // P0-A: 保存成功後 draft を即削除し dirtyFlag をリセット
+    localStorage.removeItem('ippo_record_draft');
+    if (window.ippoRecordDraftGuard && typeof window.ippoRecordDraftGuard.markClean === 'function') {
+      window.ippoRecordDraftGuard.markClean();
+    }
+
+    // 最近使った症状を記録（自動昇格ロジック用）
+    if(data.symptoms && data.symptoms.length) saveSymptomSelection(data.symptoms);
+
+    // UI更新（保存成功後のみ）
+    updateHomeSummary();
+    if (typeof updateDailyHintCard === 'function') updateDailyHintCard();
+    updateHomeCTA();
+    updateHomeCTAState();
+    if (typeof updateTodayMessage === 'function') updateTodayMessage();
+    updateStreakBadge();
+    buildHomeWeekRow();
+    updateHomeInsightCard();
+    updateHomeNumbers();
+    updateHomeDiseaseAdvice();
+    checkAndShowTempAlert();
+    if (typeof updateFastingWidgetPhase === 'function') updateFastingWidgetPhase();
+    updateStats();
+    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
+    if (typeof window.buildCalendarNext === 'function') window.buildCalendarNext();
+    localStorage.removeItem('ippo_draft');
+    var _cloudBackupFn = (typeof window.cloudBackupAll === 'function' ? window.cloudBackupAll : window.__ippoLegacyCloudBackupAll);
+    if(typeof _cloudBackupFn === 'function'){
+      _cloudBackupFn().catch(function(e){
+        console.warn('クラウドバックアップ失敗、リトライ中...', e);
+        setTimeout(function(){
+          _cloudBackupFn().catch(function(){
+            // pre-existing: showToastはこのファイル・移動元app-legacy.js側いずれでも
+            // importされておらずbare参照のまま（到達時ReferenceErrorとなる潜在バグ）。
+            // Business Logic変更禁止のScopeのため修正せず、挙動をそのまま移植する。
+            showToast('クラウド同期に失敗しました。Wi-Fiを確認してください。', 'warn');
+          });
+        }, 3000);
+      });
+    }
+
+    var so = document.getElementById('success-overlay');
+    if(so){
+      document.getElementById('success-emoji').textContent = '🌿';
+      document.getElementById('success-title').textContent = '記録を保存しました';
+      // フィードバックカード生成
+      var streak = window.state.streak || 0;
+      var feedbackHtml = '';
+      // 1. 連続記録日数
+      feedbackHtml += '<div style="background:#FBEAF0;border-radius:14px;padding:14px 16px;margin:12px 0 4px;text-align:left;">';
+      feedbackHtml += '<div style="font-weight:500;color:#72243E;margin-bottom:4px;">今日で' + streak + '日連続記録中</div>';
+      // 2. 先週との比較
+      var now = new Date();
+      var last7 = window.state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=0&&diff<7; });
+      var prev7 = window.state.records.filter(function(r){ var d=new Date(r.date); var diff=(now-d)/86400000; return diff>=7&&diff<14; });
+      if(last7.length>0 && prev7.length>0){
+        var lastPain = last7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/last7.length;
+        var prevPain = prev7.reduce(function(s,r){ return s+(r.painLevel||0); },0)/prev7.length;
+        var diff = Math.round((prevPain - lastPain)*10)/10;
+        if(diff > 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週より痛みの記録が'+diff.toFixed(1)+'ポイント改善の傾向です</div>';
+        else if(diff < 0) feedbackHtml += '<div style="font-size:13px;color:#72243E;">記録を続けてパターンを見つけましょう</div>';
+        else feedbackHtml += '<div style="font-size:13px;color:#72243E;">先週と同じペースで記録中です</div>';
+      }
+      // 3. フェーズメッセージ
+      var phaseMsg = '';
+      if(typeof getCurrentCyclePhase === 'function'){
+        var ph = getCurrentCyclePhase();
+        if(ph === '生理期') phaseMsg = '生理期です。無理せず、水分補給を大切に。';
+        else if(ph === '卵胞期') phaseMsg = '卵胞期です。体が軽く動きやすい時期です。';
+        else if(ph === '排卵期') phaseMsg = '排卵期です。体温の変化を確認しましょう。';
+        else if(ph === '黄体期') phaseMsg = '黄体期です。水分補給と早めの睡眠を意識しましょう。';
+        if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
+      }
+      feedbackHtml += '</div>';
+      document.getElementById('success-message').innerHTML = feedbackHtml;
+      so.classList.add('active');
+      // P0-3: 前のタイマーをクリアしてから新タイマーをセット
+      if (window.__ippoSuccessOverlayTimer) {
+        clearTimeout(window.__ippoSuccessOverlayTimer);
+        window.__ippoSuccessOverlayTimer = null;
+      }
+      window.__ippoSuccessOverlayTimer = setTimeout(function() {
+        var overlay = document.getElementById('success-overlay');
+        if (overlay && overlay.classList.contains('active')) {
+          overlay.style.transition = 'opacity 0.5s ease';
+          overlay.style.opacity = '0';
+          setTimeout(function() {
+            overlay.classList.remove('active');
+            overlay.style.opacity = '';
+            overlay.style.transition = '';
+            window.__ippoSuccessOverlayTimer = null;
+            // P0-1: ホーム強制遷移を削除
+          }, 500);
+        }
+      }, 2000);
+    }
+    if(window.state.editingDate){
+      window.state.editingDate = null;
+      saveAndSync();
+    }
+  } catch(e) {
+    console.error('saveRecordScreen error:', e);
+    showAlertModal('記録の保存中にエラーが発生しました。<br>もう一度お試しください。<br><br>エラー: ' + e.message);
+  }
+}
+
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('record-screen-module-loaded');
 }
@@ -509,3 +780,5 @@ if (typeof window.ippoMarkBootEvent === 'function') {
 // 上書きガードがあるため対象外・app-legacy.js側の実装のまま維持（触らない）。
 // editPastRecordのみ単純な自己exportが可能（app-legacy.js側の重複export行は削除済み）。
 window.editPastRecord = editPastRecord;
+// PR-092B: saveRecordScreenも自己export化（app-legacy.js側の重複export行は削除済み）。
+window.saveRecordScreen = saveRecordScreen;

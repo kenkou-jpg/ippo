@@ -149,6 +149,77 @@ home-next有効時（デフォルト）のユーザーには当てはまらな�
 前提のまま進めてよいかはFounder確認が必要と判断し、PR-092B着手前に報告する。
 ```
 
+**PR-092A-1: home-next 実態調査**（2026-07-07・Founder指示、コード変更ゼロ）
+- 詳細: [docs/PR-092A-1-home-next-reality-audit.md](PR-092A-1-home-next-reality-audit.md)
+- 実測確認（開発サーバー、state注入 + save/switchTab直接実行）:
+  1. 実際に表示されるHomeはhome-next（デフォルト有効、`#screen-home`はDOM上に存在するが非表示）
+  2. 保存直後、home-nextは自動更新**されない**（`window.saveRecordScreen()`実行後も`#hn-status`内容は変化なし）
+  3. タブ切替時、home-nextは正しく最新state を反映**する**（`window.switchTab('home', null)`実行後
+     `#hn-status`が保存済みの新しい記録を反映）
+  4. `disableHomeNext()`が`localStorage`キーを削除するのみで`isHomeNextEnabled()`の
+     `flag !== '0'`判定と噛み合わず、home-next無効化が機能しない副次的バグを発見
+     （PR-092A-1のスコープ外、Founder参考情報として記録）
+  5. `updateHomeCTA()`（`updateHomeCTAState`とは別の第3実装）は、全4呼び出し箇所で
+     常に`updateHomeCTAState()`より先に呼ばれるため実害はないが、実質無意味なコードと確認
+  6. `#screen-record`の`data-legacy-isolated`/`data-replacement`属性は陳腐化した記載で、
+     実際には`editPastRecord()`（カレンダー経由の過去日編集、現役機能）から到達可能と確認。
+     `saveRecordScreen()`はDead Codeではない
+- 判定: PR-092Bへ進めてよい。home-nextへの即時反映追加・disableHomeNext()バグ修正・
+  `updateHomeCTA()`整理はいずれもBusiness Logic拡張のためPR-092Bのスコープに含めず、
+  別途Founder判断が必要な項目として切り出し済み（詳細は監査文書4-C節）
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、調査のみ）
+- Next: Founder承認後、PR-092B（saveRecordScreen物理移動、正当化理由を4-Bの通り修正）に着手
+
+**PR-092B: saveRecordScreen物理移動**（2026-07-07・UI/UX Final Council採用、Founder承認済み）
+- `saveRecordScreen()`を`src/app-legacy.js`から`src/modules/record-screen.js`へ物理移動。
+  Business Logic変更なし（既存保存ロジックを完全維持、bare `state`→`window.state`変換 +
+  import解決のみ）
+- 新規import: `gatherRecordData`/`gatherDiseaseData`（record-edit.js）、`toLocalDateKey`
+  （utils/string-utils.js）、`calcSMIScore`（utils/stats-utils.js）、`parseMealMemo`
+  （meal-tracker.js）、`calcWellnessScore`（pro/shared/pro-metric-utils.js）、
+  `showAlertModal`（ui-notifications.js）、`saveSymptomSelection`（symptom-settings.js）、
+  `updateHomeCTA`/`updateHomeSummary`/`updateStreakBadge`/Home Cluster6関数/
+  `updateDailyHintCard`/`updateTodayMessage`（home-renderer.js）、`checkAndShowTempAlert`
+  （temp-alert.js）、`updateFastingWidgetPhase`（fasting.js）、`getCurrentCyclePhase`
+  （analytics/cycle-engine.js）、`saveAndSync`（save-and-sync.js）
+- `cloudBackupAll`/`saveState`の2件のみapp-legacy.js側にローカル実装が残置されており
+  （window版が未設定の場合のみ使われるフォールバック）、`window.__ippoLegacyCloudBackupAll`/
+  `window.__ippoLegacySaveState`ブリッジを新設して既存フォールバック挙動を完全に保持
+- `showToast`（クラウド同期2回失敗時のみ到達する内側catch内）は移動元でもbare参照未解決
+  （到達時ReferenceErrorとなるpre-existingの潜在バグ）のため、Scope（Business Logic変更禁止）
+  に従いそのまま同一のbare参照として移植（修正しない）
+- app-legacy.js側: `saveRecordScreen()`本体・`window.saveRecordScreen`bridge行を削除。
+  本関数専用だった7件のimport（gatherRecordData/gatherDiseaseData/toLocalDateKey/
+  calcSMIScore/calcWellnessScore/saveSymptomSelection/getCurrentCyclePhase）も
+  orphan化したため削除（同じimport文内の他の現役シンボルは維持）
+- record-screen.js側: `saveRecordScreen`を自己export化（`window.saveRecordScreen = saveRecordScreen;`）
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,278→2,077
+  （app-legacy.js実測201行減）に更新
+- **調査で判明した事実（Scope変更には至らないが記録）**: `src/modules/record.js`にも
+  `saveRecordScreen`/`_saveRecordScreenImpl`という別実装が存在し、「app-legacy.js廃止後の
+  フォールバック」として設計されているが、`window.saveRecordScreen`が未設定の場合のみ
+  自身を割り当てるガードを持つため、現在は休眠状態（app-legacy.js/record-screen.js側の
+  実装が既に`window.saveRecordScreen`を占有しているため）。実機のwrapper chain追跡により、
+  現在実行される実体が本PRで移動した実装であることを確認済み（record.js側の実装は
+  競合しない）。record.js側は`../../domains/record/record.service.js`を静的importするが、
+  このパスはプロジェクトルート直下の`domains/record/record.service.ts`（TypeScript、
+  `src/`外の別ドメイン層）に解決される（vite build/dev下では解決成功、vitestの解決設定との
+  差異により`tests/modules/save-record-screen.test.js`等の既知失敗が発生している、
+  との推定）。将来record.jsへの完全移行を検討する際は、この別TypeScriptドメイン層
+  （`domains/record/*.ts`）の存在を前提に精査すること
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでカレンダー経由の過去日編集（`editPastRecord`→
+  `#screen-record`→`saveRecordScreen()`）を実行し、既存レコードの上書き保存・
+  `editingDate`リセット・成功オーバーレイ表示・Home Cluster再描画が正しく動作することを確認。
+  新規レコード保存（`totalDays`/`streak`更新含む）も別途確認。Console Errorは既知の
+  vite websocket接続失敗ノイズのみ
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし）
+- 判定: PR-092Bはこれをもって完了。禁止事項（home-next即時反映追加・disableHomeNext修正・
+  updateHomeCTA整理・Home UX変更・Business Logic変更・Architecture変更）はいずれも実施していない
+- Next: PR-092C着手前確認（HIGH risk、Founderへの個別Go要求）
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）
