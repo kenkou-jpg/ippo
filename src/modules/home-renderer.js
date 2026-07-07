@@ -1104,8 +1104,10 @@ export function handleHomeCTA(){
     window.openTodayReflection();
   } else if (typeof window.openRecordScreen === 'function') {
     window.openRecordScreen();
-  } else if (typeof window.__ippoLegacyOpenRecordModal === 'function') {
-    window.__ippoLegacyOpenRecordModal(); // fallback: record-three-card.js 未ロード時のみ
+  } else if (typeof window.showToast === 'function') {
+    // PR-092C (UI/UX Final Council採用): record-modal完全終了に伴い、旧5ステップwizard
+    // フォールバックを廃止し、record-three-card.js未ロード時は最小限のエラー通知に置換。
+    window.showToast('読み込みに問題が発生しました。ページを再読み込みしてください。', 'warn');
   }
 }
 

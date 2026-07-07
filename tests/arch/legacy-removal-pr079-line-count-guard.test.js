@@ -14,9 +14,12 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-092B時点のベースライン（UI/UX Final Council採用: saveRecordScreenを
-// src/modules/record-screen.jsへ物理移動し、本ファイル側のローカル実装を削除した
-// 実測値、2,077行 = split('\n').length基準）。
+// PR-092C時点のベースライン（UI/UX Final Council採用・Decision-4確定内容の実施:
+// record-modal完全終了。switchTab/openRecordModal/closeModal/saveRecord/
+// renderStep・nextStep・prevStep・buildSteps（本ファイル側const alias）を削除した
+// 実測値、1,918行 = split('\n').length基準）。
+// PR-092B時点は2,077行（saveRecordScreenをsrc/modules/record-screen.jsへ物理移動し、
+// 本ファイル側のローカル実装を削除した実測値）。
 // PR-092A時点は2,278行（Home Cluster統合: buildHomeWeekRow/updateHomeInsightCard/
 // updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsを
 // src/modules/home-renderer.jsの統合版へ一本化し、本ファイル側の
@@ -36,7 +39,7 @@ const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf
 // PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
 // PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 2077;
+const BASELINE_LINE_COUNT = 1918;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {

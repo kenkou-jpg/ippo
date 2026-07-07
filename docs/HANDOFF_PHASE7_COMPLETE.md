@@ -220,6 +220,49 @@ home-next有効時（デフォルト）のユーザーには当てはまらな�
   updateHomeCTA整理・Home UX変更・Business Logic変更・Architecture変更）はいずれも実施していない
 - Next: PR-092C着手前確認（HIGH risk、Founderへの個別Go要求）
 
+**PR-092C: record-modal完全終了**（2026-07-07・UI/UX Final Council採用・Decision-4確定内容の実施、Founder承認済み）
+- 削除: `#record-modal`（`app.html:1178-1204`、HTMLブロック全体）
+- 削除: `switchTab`（app-legacy.js版ローカル実装。`window.switchTab`はtab-navigation.js版が
+  引き続き保持し無変更。app-legacy.js版はcloseModal()経由のbare呼び出し専用だったため削除）
+- 削除: `_prevTab` / `openRecordModal()` / `closeModal()` / `window.__ippoLegacyOpenRecordModal`ブリッジ
+- 削除: `saveRecord()`（旧5ステップwizard保存ハンドラ、Decision-4で到達経路ゼロを確認済み）
+- 削除: `renderStep`/`nextStep`/`prevStep`/`buildSteps`（app-legacy.js側のconst alias 4件と
+  そのwindowブリッジ4件。実体である`record-input.js`側・3-card UIでの利用は無変更）
+- 削除: `src/modules/record-modal-controller.js`（openRecordModal/closeModal/saveAndSyncの
+  no-op export、実測でいずれも`_inline*`が常にnullと確認済み）。`main.js`のimportも削除
+- 削除: `ui-notifications.js`・`app-legacy.js`（2箇所重複していたことを実装中に発見）の
+  Escapeキーハンドラから`#record-modal`分岐を削除
+- 置換: `home-renderer.js`の`handleHomeCTA()`フォールバック分岐を、
+  `window.__ippoLegacyOpenRecordModal()`呼び出しから`window.showToast()`による
+  最小限のエラー通知（「読み込みに問題が発生しました。ページを再読み込みしてください。」）に置換
+- 副次的なorphan import削除: `getSuccessMessage`（旧saveRecord用、success-message.js）
+- `save-and-sync.js`本体・`record-input.js`実体・`tab-navigation.js`版switchTabには
+  一切触れていない（Founder条件を遵守）
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,077→1,918
+  （app-legacy.js実測159行減）に更新
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification:
+  - `#record-modal`がDOMに存在しないことを確認
+  - 通常の3-card記録フロー（handleHomeCTA→screen-record-three-card）が無変更で動作することを確認
+  - カレンダー経由の過去日編集（editPastRecord→#screen-record→saveRecordScreen、PR-092Bの経路）が
+    record-modal-controller.js削除後も無変更で動作することを確認
+  - `window.openRecordScreen`未定義時の新フォールバック（showToastによるエラー通知）が
+    正しく表示され、`#record-modal`は表示されないことを確認
+  - Escapeキーによる他のオーバーレイ（dmOverlay等）の開閉が無変更で動作することを確認
+  - **検証中の注記**: 開発サーバーに登録済みのService Workerが変更前のバンドルをキャッシュしており、
+    最初の検証で`window.openRecordModal`等が誤って「まだ存在する」ように見えた。
+    Service Worker登録解除 + Cache Storage削除後に再検証し、削除が正しく反映されていることを
+    確認した。実装上の問題ではなくブラウザ側のキャッシュによる見かけ上の結果であったため、
+    Rollback Planは発動していない
+  - Console Errorは既知のvite websocketノイズのみ
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし）
+- 判定: PR-092Cはこれをもって完了。禁止事項（Business Logic追加・UI追加・Architecture変更・
+  Scope外変更・save-and-sync.js本体変更・record-input.js実体変更・tab-navigation.js版switchTab変更）
+  はいずれも実施していない
+- Next: PR-092D（Final Cutover Exit Audit）
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）

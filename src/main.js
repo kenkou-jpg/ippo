@@ -170,8 +170,9 @@ import './modules/record-three-card-save.js';
 // Must load after record-three-card.js (screen shares showScreen infrastructure).
 import './modules/today-reflection.js';
 
-// record modal open/close
-import './modules/record-modal-controller.js';
+// PR-092C (UI/UX Final Council採用): record modal完全終了に伴い、
+// record-modal-controller.js（openRecordModal/closeModal/saveAndSyncのno-op export、
+// 実体はすべてnullで到達不可だったことを確認済み）を削除。importも削除。
 
 // ─── Phase D-2: onboarding / settings runtime ────────────
 import './modules/onboarding-runtime.js';

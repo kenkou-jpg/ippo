@@ -57,8 +57,7 @@ document.addEventListener('keydown', function (e) {
   if (dm && dm.classList.contains('dm-open')) { dm.classList.remove('dm-open'); return; }
   var eo = document.getElementById('editOverlay');
   if (eo && eo.style.display === 'flex') { eo.style.display = 'none'; return; }
-  var rm = document.getElementById('record-modal');
-  if (rm && rm.classList.contains('active')) { if (typeof window.closeModal === 'function') window.closeModal(); return; }
+  // PR-092C (UI/UX Final Council採用): #record-modal完全終了に伴い、当該分岐を削除。
   var diag = document.getElementById('diagnosis-overlay');
   if (diag) { diag.remove(); return; }
 });

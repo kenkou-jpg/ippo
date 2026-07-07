@@ -94,7 +94,7 @@ import { checkSuddenTempRise, checkAndShowTempAlert, showTempAlertBanner } from 
 import { addCustomFactor } from './modules/record-factors.js';
 // PR-087: getSuccessMessage は src/modules/success-message.js へ新設・物理移動済み
 // （audit文書は移植先未指定。cycle-utils.js等と同型の専用新設ファイルへ分離）。
-import { getSuccessMessage } from './modules/success-message.js';
+// PR-092C: getSuccessMessage（旧saveRecord用）はrecord-modal完全終了に伴いimport削除。
 // PR-090-P1 (Legacy Completion Recovery): closeSuccess は
 // src/modules/success-overlay.js へ新設・物理移動済み。
 import { closeSuccess } from './modules/success-overlay.js';
@@ -713,9 +713,7 @@ document.addEventListener('keydown', function(e){
   // 編集オーバーレイ
   var eo = document.getElementById('editOverlay');
   if(eo && eo.style.display === 'flex'){ eo.style.display = 'none'; return; }
-  // 記録モーダル（ステップ）
-  var rm = document.getElementById('record-modal');
-  if(rm && rm.classList.contains('active')){ if(typeof closeModal === 'function') closeModal(); return; }
+  // PR-092C (UI/UX Final Council採用): #record-modal完全終了に伴い、当該分岐を削除。
   // 診断オーバーレイ
   var diag = document.getElementById('diagnosis-overlay');
   if(diag){ diag.remove(); return; }
@@ -1017,82 +1015,12 @@ function openDayDetailByDate(isoStr) {
 // PR-082D (Legacy Removal Batch-4 分割④): renderPhaseMap/selectPhaseTab/
 // _buildPhaseBarPreview は src/modules/pro/cycle-report.js へ物理移動済み（import参照）。
 
-// ===== TABS =====
-function switchTab(tab, btn) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById(`screen-${tab}`).classList.add('active');
-  if (btn) btn.classList.add('active');
-
-
-  if (tab === 'insights') {
-    var activePaneName = 'free';
-    if (document.getElementById('ins-pane-pro') && document.getElementById('ins-pane-pro').style.display === 'block') activePaneName = 'pro';
-    if (document.getElementById('ins-pane-doctor') && document.getElementById('ins-pane-doctor').style.display === 'block') activePaneName = 'doctor';
-    if (typeof switchInsTab === 'function') switchInsTab(activePaneName);
-    if (typeof renderInsightDiscoveries === 'function') renderInsightDiscoveries();
-  }
-  if (tab === 'home') {
-    buildHomeWeekRow();
-    updateHomeInsightCard();
-    updateHomeNumbers();
-    updateHomeDiseaseAdvice();
-    updateHomeCTAState();
-    if (typeof updateHomePhaseBanner === 'function') updateHomePhaseBanner();
-    if (typeof updateTodayMessage === 'function') updateTodayMessage();
-  }
-  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
-}
-　
-
-
-// ===== RECORD MODAL =====
-let _prevTab = 'home'; // バグ07: 直前タブを記憶して閉じたとき復元
-
-function openRecordModal() {
-  const activeScreen = document.querySelector('.screen.active');
-  if (activeScreen) _prevTab = activeScreen.id.replace('screen-', '');
-  RecordInput.resetCurrentRecord();
-  var steps = RecordInput.initSteps();
-  // ステップインジケーターのドットを動的生成
-  var indicator = document.getElementById('step-indicator');
-  if (indicator) {
-    indicator.innerHTML = '';
-    steps.forEach(function() {
-      var dot = document.createElement('div');
-      dot.className = 'step-dot';
-      indicator.appendChild(dot);
-    });
-  }
-  renderStep();
-  document.getElementById('record-modal').classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  // バグ14: フォーカスをモーダル内の最初のボタンに移動
-  requestAnimationFrame(() => {
-    const firstFocusable = document.querySelector('#record-modal .modal-sheet button, #record-modal .modal-sheet [tabindex]');
-    if (firstFocusable) firstFocusable.focus();
-  });
-}
-
-function closeModal() {
-  document.getElementById('record-modal').classList.remove('active');
-  const prevBtn = document.querySelector(`.nav-item[onclick*="'${_prevTab}'"]`);
-  switchTab(_prevTab, prevBtn);
-  // バグ14: モーダルを閉じたらナビボタンにフォーカスを戻す
-  if (prevBtn) prevBtn.focus();
-}
-// PR-089D: handleHomeCTA（home-renderer.js、物理移動済み）のfallback分岐が本ファイル
-// 残置のopenRecordModal（SAFE_DEAD版、record-modal-controller.jsが優先実装）を明示的に
-// 呼び出すための専用ブリッジ（window.openRecordModalは既にrecord-modal-controller.js側が
-// 先取り済みのため衝突回避。PR-085 __ippoLegacySaveAndSyncと同型パターン）。
-window.__ippoLegacyOpenRecordModal = openRecordModal;
-
-// PR-079: renderStep/nextStep/prevStep は src/modules/record-input.js へ移植済み。
-// bare identifier は委譲のみ（再実装禁止）。nextStep の saveRecord() 呼び出しは
-// record-input.js 側で window.saveRecord 経由に置き換え済み。
-const renderStep = RecordInput.renderStep;
-const nextStep = RecordInput.nextStep;
-const prevStep = RecordInput.prevStep;
+// PR-092C (UI/UX Final Council採用): record-modal完全終了に伴い、switchTab
+// （app-legacy.js版ローカル実装。window.switchTabはtab-navigation.js版が別途保持し
+// 現役、本ファイル側は closeModal() 経由のbare呼び出し専用だったため削除）/
+// _prevTab / openRecordModal / closeModal / window.__ippoLegacyOpenRecordModal
+// ブリッジ / renderStep・nextStep・prevStep（本ファイル側のconst alias。実体である
+// record-input.js側・3-card UIでの利用は無変更）を削除。
 
 // ===== STEP RENDERERS =====
 // PR-079: renderWellness/selectWellness は src/modules/record-input.js へ移植済み。
@@ -1114,9 +1042,10 @@ const selectFasting = RecordInput.selectFasting;
 const renderEmotion = RecordInput.renderEmotion;
 const selectEmotion = RecordInput.selectEmotion;
 
-// PR-079: buildSteps/getBodyCheckTitle/renderBodyCheck/selectBodyCheckItem/
+// PR-079: getBodyCheckTitle/renderBodyCheck/selectBodyCheckItem/
 // selectBodyCheckExtra/getDiseaseMorningQuestion は src/modules/record-input.js へ移植済み。
-const buildSteps = RecordInput.buildSteps;
+// buildSteps（本ファイル側のconst alias）はPR-092Cでrecord-modal完全終了に伴い削除
+// （実体であるrecord-input.js側は無変更）。
 const getBodyCheckTitle = RecordInput.getBodyCheckTitle;
 const renderBodyCheck = RecordInput.renderBodyCheck;
 const selectBodyCheckItem = RecordInput.selectBodyCheckItem;
@@ -1140,96 +1069,8 @@ const toggleDetailItem = RecordInput.toggleDetailItem;
 const updateSliderDetail = RecordInput.updateSliderDetail;
 const selectBowelCount = RecordInput.selectBowelCount;
 
-// ===== SAVE RECORD =====
-// PR-080: currentRecord bridge 撤去。毎回 RecordInput.getCurrentRecord() から取得する。
-function saveRecord() {
-  var currentRecord = RecordInput.getCurrentRecord();
-  const noteEl = document.getElementById('journal-note');
-  if (noteEl) currentRecord.note = noteEl.value;
-  // Object schema を排除: consumer は全て Array schema (三カード) を前提とする
-  delete currentRecord.symptomDetails;
-
-  // ★ 編集モードの場合は編集対象日を使用
-  if (state.editingDate) {
-    currentRecord.date = new Date(state.editingDate).toISOString();
-    currentRecord.record_date = state.editingDate;
-    
-    // 既存の記録を上書き
-    var editIdx = state.records.findIndex(function(r) {
-      return (r.record_date || (r.date && r.date.slice(0,10))) === state.editingDate;
-    });
-    if (editIdx !== -1) {
-      state.records[editIdx] = currentRecord;
-    } else {
-      state.records.push(currentRecord);
-    }
-    
-    state.editingDate = null; // 編集モード解除
-    
-    saveAndSync();
-    closeModal();
-    updateStats();
-    updateUnlock();
-    updateHistory();
-    // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
-    document.getElementById('success-message').innerHTML = '記録を更新しました。';
-document.getElementById('success-overlay').classList.add('active');
-    return;
-  }
-  
-  currentRecord.date = new Date().toISOString();
-
-  // Check if already recorded today (BEFORE push)
-  const today = new Date().toDateString();
-  const alreadyToday = state.records.some(r => new Date(r.date).toDateString() === today);
-
-  // Streak logic (BEFORE push, so yesterday check is not polluted by today's record)
-  if (!alreadyToday) {
-    state.totalDays++;
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yStr = yesterday.toDateString();
-    const hadYesterday = state.records.some(r => new Date(r.date).toDateString() === yStr);
-    if (hadYesterday || state.streak === 0) {
-      state.streak++;
-    } else if (!hadYesterday && state.streak > 0) {
-      state.streak = 1;
-    }
-  }
-
-  // Push after all checks (prevent duplicate accumulation on same day)
-  if (!alreadyToday) {
-    state.records.push(currentRecord);
-  } else {
-    // Overwrite today's record instead of appending
-    const idx = state.records.findLastIndex
-      ? state.records.findLastIndex(r => new Date(r.date).toDateString() === today)
-      : state.records.reduce((acc, r, i) => new Date(r.date).toDateString() === today ? i : acc, -1);
-    if (idx !== -1) state.records[idx] = currentRecord;
-    else state.records.push(currentRecord);
-  }
-
-  saveAndSync();
-  closeModal();
-  updateStats();
-  updateUnlock();
-  updateHistory();
-  // PR-080G: buildCalendar()呼び出しを削除（Dead Code — #calLabel/#calGrid実体なし、詳細はHANDOFF参照）
-  updateHomeCTA();
-  if (typeof updateHomeCTAState === 'function') updateHomeCTAState();
-  if (typeof updateStreakBadge === 'function') updateStreakBadge();
-  if (typeof checkAndShowTempAlert === 'function') checkAndShowTempAlert();
-
-  // パーソナライズされた成功メッセージ
-  var latestRecord = (state.records || []).slice().reverse().find(function(r) {
-    return r.date && r.date.slice(0, 10) === new Date().toISOString().slice(0, 10);
-  });
-  var successResult = getSuccessMessage(latestRecord);
-  document.getElementById('success-emoji').innerHTML = successResult.icon || ICONS.check(32, 'var(--rose)');
-  document.getElementById('success-title').textContent = successResult.title;
-  document.getElementById('success-message').textContent = successResult.msg;
-  document.getElementById('success-overlay').classList.add('active');
-}
+// PR-092C (UI/UX Final Council採用): saveRecord()（旧5ステップwizard保存ハンドラ、
+// 到達経路ゼロ・Decision-4確認済み）はrecord-modal完全終了に伴い削除。
 
 // PR-087 (Legacy Removal Batch-9): getSuccessMessage は
 // src/modules/success-message.js へ物理移動済み（import参照）。
@@ -2003,7 +1844,7 @@ window.addEventListener('ippo:vite-ready', function() {
 if (typeof _generateDoctorPDF === "function") window._generateDoctorPDF = _generateDoctorPDF;
 if (typeof appendSymptomDetail === "function") window.appendSymptomDetail = appendSymptomDetail;
 if (typeof buildPhaseBar === "function") window.buildPhaseBar = buildPhaseBar;
-if (typeof buildSteps === "function") window.buildSteps = buildSteps;
+// PR-092C: window.buildStepsは record-modal完全終了に伴い削除。
 if (typeof cancelExperiment === "function") window.cancelExperiment = cancelExperiment;
 if (typeof closeSuccess === "function") window.closeSuccess = closeSuccess;
 if (typeof completeExperiment === "function") window.completeExperiment = completeExperiment;
@@ -2018,7 +1859,7 @@ if (typeof initNavIcons === "function") window.initNavIcons = initNavIcons;
 if (typeof initSettingsIcons === "function") window.initSettingsIcons = initSettingsIcons;
 // PR-2A: manualCloudRestore は src/services/recovery.js に移植済み。window 公開は recovery.js が担う。
 // if (typeof manualCloudRestore === "function") window.manualCloudRestore = manualCloudRestore;
-if (typeof nextStep === "function") window.nextStep = nextStep;
+// PR-092C: window.nextStepは record-modal完全終了に伴い削除。
 if (typeof openDayDetailByDate === "function") window.openDayDetailByDate = openDayDetailByDate;
 if (typeof openExperiments === "function") window.openExperiments = openExperiments;
 if (typeof showExperimentReport === "function") window.showExperimentReport = showExperimentReport;
@@ -2035,13 +1876,13 @@ if (typeof openRecordScreen === "function" && typeof window.openRecordScreen !==
 // the legacy STEP1/2/3 screen (vs home CTA which uses openRecordScreen → three-card).
 if (typeof openRecordScreen === "function") window.openLegacyRecordScreen = openRecordScreen;
 if (typeof parseMealFree === "function") window.parseMealFree = parseMealFree;
-if (typeof prevStep === "function") window.prevStep = prevStep;
+// PR-092C: window.prevStepは record-modal完全終了に伴い削除。
 if (typeof renderBodyCheck === "function") window.renderBodyCheck = renderBodyCheck;
 if (typeof renderEmotion === "function") window.renderEmotion = renderEmotion;
 if (typeof renderFasting === "function") window.renderFasting = renderFasting;
 if (typeof renderFood === "function") window.renderFood = renderFood;
 if (typeof renderMonthlySummaryText === "function") window.renderMonthlySummaryText = renderMonthlySummaryText;
-if (typeof renderStep === "function") window.renderStep = renderStep;
+// PR-092C: window.renderStepは record-modal完全終了に伴い削除。
 if (typeof renderSymptomDetail === "function") window.renderSymptomDetail = renderSymptomDetail;
 if (typeof renderWellness === "function") window.renderWellness = renderWellness;
 if (typeof restoreFromHistory === "function") window.restoreFromHistory = restoreFromHistory;

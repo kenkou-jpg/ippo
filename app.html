@@ -1175,32 +1175,10 @@
 
 
 
-  <!-- ===== RECORD MODAL (LEGACY — SOFT-ISOLATED 2026-05-27) =====
-       Status   : soft-isolated. openRecordModal() / buildSteps() / renderStep()
-                  are unreachable in normal flow (handleHomeCTA fallback only).
-       Deletion : can be removed once openRecordModal + buildSteps + renderStep
-                  are confirmed unreferenced in app-legacy.js.
-  ===== -->
-  <div class="modal-overlay" id="record-modal" onclick="closeModal()" data-legacy-isolated="2026-05-27">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <div class="modal-header">
-       <div class="modal-step-indicator" id="step-indicator">
-  <div class="step-dot active"></div>
-  <div class="step-dot"></div>
-  <div class="step-dot"></div>
-  <div class="step-dot"></div>
-</div>
-        <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
-        <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer">
-        <button class="btn-secondary" id="modal-back-btn" onclick="prevStep()">← 戻る</button>
-        <button class="btn-save" id="modal-next-btn" onclick="nextStep()">次へ →</button>
-      </div>
-    </div>
-  </div>
+  <!-- PR-092C (UI/UX Final Council採用): RECORD MODAL（旧5ステップwizard、
+       SOFT-ISOLATED 2026-05-27）を完全終了。openRecordModal/closeModal/
+       nextStep/prevStep/renderStep/buildSteps（app-legacy.js版）は
+       src/app-legacy.jsから削除済み。 -->
 
   <!-- ===== SUCCESS OVERLAY ===== -->
   <div class="success-overlay" id="success-overlay">
