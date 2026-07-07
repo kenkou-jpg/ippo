@@ -3,6 +3,11 @@
 
 ---
 
+> **【2026-07-07 追記】** FD-1・FD-2・FD-3は [FOUNDER_FINAL_DECISIONS.md](FOUNDER_FINAL_DECISIONS.md) で
+> 最終確定した。FD-1: Premium ¥980/Pro ¥1,980（BBS-001価格）を採用。FD-2: PRO層はPhase2で実装
+> （Premium/Proの2層としてtier分離）。FD-3: 表示名称はBBS-001通り「Premium」「Pro」を採用
+> （既存の単一「PRO」表示は新設Proティアへ引き継がれる）。以下は確定に至る検討過程として残す。
+>
 > **この文書の役割**: [MONETIZATION_COUNCIL_REPORT.md](MONETIZATION_COUNCIL_REPORT.md) 第9章
 > 「Important Founder Decisions」で提起された FD-1〜FD-6 それぞれについて、選択肢・推奨案・リスク・
 > General Releaseへの影響・Founderが今決めるべき最小判断を整理し、Founderが意思決定するための
