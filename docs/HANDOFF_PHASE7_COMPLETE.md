@@ -94,6 +94,61 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
+**PR-092A: Home Cluster統合**（2026-07-07・UI/UX Final Council採用、Founder承認済み）
+- buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsを
+  `src/modules/home-renderer.js`の統合版へ一本化。`src/app-legacy.js`側の重複ローカル実装を削除し、
+  該当6関数をhome-renderer.jsからimportする形に変更（bare呼び出し箇所は変更不要）
+- buildHomeWeekRow: 新仕様（円形セルの視覚言語を保ちつつ、痛みレベル4段階色分け+生理周期フェーズ色を統合。
+  従来renderer版が呼んでいなかった`buildPhaseBar(monday)`も統合）
+- updateHomeCTAState: 新仕様（daily-checkin完了基準を正式採用、完了時サブテキストに
+  `buildComparisonComment()`（前回比較コメント）を統合）
+- updateHomeInsightCard: 統合（`window.buildHomeInsight()`パケット優先ロジックを追加。
+  `src/home/home-insight-engine.js`は現時点でどこからもimportされておらず常にfalseのため
+  挙動変更なし、将来同エンジンがバンドルされた場合に自動的に有効化される設計）
+- updateHomeNumbers/updateHomeDiseaseAdvice/updateStats: 統合（home-renderer.js側の既存実装を正とし、
+  legacy-misc-stats.js側の重複実装・関連import（calcPainFreeDaysThisMonth/calcAvgPainThisMonth）を削除、
+  data-export.jsのimport元をhome-renderer.jsへ変更）
+- app-legacy.js: 964〜1419行付近の6関数ローカル実装削除、未使用となったcycle-utils.js import
+  （getPhaseForDate/isPeriodExpected/buildComparisonComment/buildDayComparison/buildWeekComparison）を削除
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,447→2,278
+  （app-legacy.js実測170行減、`split('\n').length`基準）に更新
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、Recovery Program baseline通り増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでシード済みstateを用いて確認。週間カレンダー（痛みレベル色分け+✓）・
+  CTAカード（「✓ 今日をふり返る」+ buildComparisonCommentによる動的コメント）が意図通り描画されることを確認
+
+**⚠ 重要な新規発見（PR-092B着手前にFounder確認が必要）**
+```
+Browser Verification中に、UI/UX Final Council（および本HANDOFF・LEGACY_REMOVAL_PLAN・
+PR-090-R5・Decision-4のいずれの文書）も認識していなかった事実が判明した:
+
+1. src/modules/home-next/ に、ホーム画面の完全に別実装（home-next-shell.js他11ファイル）が
+   存在し、`isHomeNextEnabled()`はデフォルトで有効（フラグ未設定時もtrueを返す実装、
+   src/main.jsのコメント「フラグOFFの場合は既存homeに影響しない」は現状のコードと矛盾する
+   陳腐化した記載）。
+2. home-next有効時、`initHomeNext()`が`window.showMain`をhome-next版に差し替え、かつ
+   `window.buildHomeWeekRow`等5関数を明示的にno-op化する（home-next-shell.js:242-248）。
+   ただしapp-legacy.js側は本PRでbare importに変更したためwindow経由ではなくimportされた
+   実体を直接参照しており、この差し替えの影響は受けない（意図せず無効化されてはいない）。
+3. `src/screens/home-next.html`には`#home-week-row`/`#home-cta-card`/`#home-insight-card`等
+   Home Cluster対象DOMが一切存在しない。これらのDOM自体は`#screen-home`として引き続き
+   DOMに存在する（screen-router.jsは非activeスクリーンをDOMから除去しない）が、
+   home-next有効時はユーザーの目に触れない。
+4. `saveRecordScreen()`等の記録保存経路から`window.ippoHomeNext.render()`
+   （home-next再描画の正式エントリポイント）を呼ぶ箇所が見当たらない。cloudRestore成功時と
+   settings-profile-changedイベント時のみ再描画される。
+5. 副次的に、`updateHomeCTA()`（updateHomeCTAStateとは別の第3の実装、home-renderer.js:1061）が
+   同じ`#home-cta-title`/`#home-cta-sub`/`#home-cta-card`を対象にしており、
+   Council/既存文書のいずれもこの関数の存在に言及していなかった。
+
+含意: UI/UX Final Councilの「保存直後とタブ切替後で見た目が異なる」という問題認識は、
+home-next有効時（デフォルト）のユーザーには当てはまらない可能性が高い。PR-092A自体は
+安全（テスト全件PASS・重複コード削減・home-next側への影響なし）だが、PR-092B
+（saveRecordScreen物理移動）・以降の作業を「Home Clusterの統合によりUXが改善する」という
+前提のまま進めてよいかはFounder確認が必要と判断し、PR-092B着手前に報告する。
+```
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）

@@ -59,7 +59,10 @@ import { setFastGoal, endFast, startFastTimer, resumeFasting, updateFastingWidge
 // PR-086 (Legacy Removal Batch-8): getPhaseForDate/isPeriodExpected/buildComparisonComment
 // （+ 未文書化ヘルパー buildDayComparison/buildWeekComparison）は
 // src/modules/cycle-utils.js へ新設・物理移動済み。
-import { getPhaseForDate, isPeriodExpected, buildComparisonComment, buildDayComparison, buildWeekComparison } from './modules/cycle-utils.js';
+// PR-092A (UI/UX Final Council Home Cluster統合): 本ファイル側の最後の呼び出し元
+// （buildHomeWeekRow/updateHomeCTAState）を削除したため、本importも削除
+// （cycle-utils.js自身が window.buildComparisonComment 等を自己exportしているため
+// 他モジュール・onclick経由の到達性に影響なし）。
 // PR-086: switchInsTab/renderInsightDiscoveries/_updateInsMainCard/updateFoodBodyCorrelation/
 // updateCycleSymptomCorrelation は src/modules/insights-tab-panel.js へ新設・物理移動済み
 // （audit文書はinsights-dynamic-renderer.js拡充を想定していたが、実装前調査の結果同ファイルは
@@ -148,7 +151,11 @@ import { saveAndSync } from './modules/save-and-sync.js';
 // PR-089F-7B (Legacy Removal Batch-11分割⑦-B): isAdminOrPremium/analyzeCyclePhases/
 // _bleedingToNum/calcPainFreeDays/updateUnlock は src/modules/legacy-misc-stats.js へ
 // 物理移動済み（bare呼び出し継続のためimport back）。
-import { isAdminOrPremium, analyzeCyclePhases, _bleedingToNum, calcPainFreeDays, updateUnlock, updateStats } from './modules/legacy-misc-stats.js';
+import { isAdminOrPremium, analyzeCyclePhases, _bleedingToNum, calcPainFreeDays, updateUnlock } from './modules/legacy-misc-stats.js';
+// PR-092A (UI/UX Final Council Home Cluster統合): buildHomeWeekRow/updateHomeInsightCard/
+// updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsは
+// home-renderer.js側の統合済み実装へ一本化済み（本ファイルのローカル重複実装は削除）。
+import { buildHomeWeekRow, updateHomeInsightCard, updateHomeNumbers, updateHomeDiseaseAdvice, updateHomeCTAState, updateStats } from './modules/home-renderer.js';
 // PR-089F-7C (Legacy Removal Batch-11分割⑦-C): calcCycleDay/getCyclePhase/
 // getCurrentCyclePhaseは1行delegation shim（window.xxxへの委譲のみ）であり、実体は
 // src/analytics/cycle-engine.js（window.calcCycleDay等を設定）。shimを撤去し実体を
@@ -789,11 +796,10 @@ function updateGreeting() {
 }
 
 // ===== STATS =====
-// PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-4): updateStats（本ファイルのローカル実装、
-// home-renderer.js版とは別、PR-080C重複整理と同型の「統合しない」判断を踏襲）は
-// src/modules/legacy-misc-stats.js へ物理移動済み（import back、下記のbare呼び出しは
-// importされた実体をそのまま参照）。data-export.js（clearData）はwindow経由の旧
-// __ippoLegacyUpdateStats ブリッジを廃止し、同モジュールから直接importする。
+// PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-4): updateStats（本ファイルのローカル実装）は
+// 一度 src/modules/legacy-misc-stats.js へ物理移動されたが、PR-092A (UI/UX Final Council
+// Home Cluster統合) で home-renderer.js版と統合され、legacy-misc-stats.js側の実装は削除。
+// 下記のbare呼び出しは home-renderer.js からimportされた統合版実体を参照する。
 
 // PR-089F-7B: calcPainFreeDays は src/modules/legacy-misc-stats.js へ物理移動済み（import back）。
 
@@ -959,66 +965,9 @@ var PHASE_BANNER_CONFIG = {
 
 // PR-089D (Legacy Removal Batch-11分割③): updateHomePhaseBanner は
 // src/modules/home-renderer.js へ物理移動済み（import参照）。
-
-// ===== ホーム 週間カレンダーバー =====
-function buildHomeWeekRow() {
-  var weekRow    = document.getElementById('home-week-row');
-  if (!weekRow) return;
-
-  var today     = new Date();
-  var dayOfWeek = today.getDay();
-  var monday    = new Date(today);
-  monday.setDate(today.getDate() - ((dayOfWeek + 6) % 7));
-
-  var days = ['月','火','水','木','金','土','日'];
-  var html = '';
-
-  // 白背景下段用の色設定
-  var phaseColors = {
-    '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
-    '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4'
-  };
-
-  for (var i = 0; i < 7; i++) {
-    var d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    var dateStr  = d.toISOString().slice(0, 10);
-    var todayStr = today.toISOString().slice(0, 10);
-    var isToday  = dateStr === todayStr;
-    var isFuture = dateStr > todayStr;
-
-    var rec = (state.records || []).find(function(r) {
-      return (r.date || r.record_date || '').slice(0, 10) === dateStr;
-    });
-    var pain = rec ? (rec.painLevel || 0) : null;
-
-    var phase = getPhaseForDate(d);
-    var phaseColor = phaseColors[phase] || phaseColors['不明'];
-
-    var cellBg = isFuture ? '#f0ebe8' :
-                 rec === undefined ? '#ede8e4' :
-                 pain >= 4 ? '#c04060' :
-                 pain >= 2 ? '#e8809a' :
-                 pain >= 1 ? '#f0a8b8' : phaseColor;
-    var cellColor = (pain >= 2) ? 'white' : 'var(--ink)';
-    var cellWeight = isToday ? '700' : '500';
-
-    var clickable = !isFuture;
-    html += '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;'
-      + (clickable ? 'cursor:pointer;' : '') + '"'
-      + (clickable ? ' onclick="openDayDetailByDate(\'' + dateStr + '\')"' : '')
-      + '>';
-    html += '<div style="font-size:10px;color:var(--ink-light);">' + days[i] + '</div>';
-    html += '<div style="width:100%;aspect-ratio:1;border-radius:9px;display:flex;align-items:center;justify-content:center;'
-      + 'font-size:12px;font-weight:' + cellWeight + ';'
-      + 'color:' + cellColor + ';background:' + cellBg + ';'
-      + (isToday ? 'box-shadow:0 0 0 2px var(--rose-dark);' : '')
-      + '">' + d.getDate() + '</div>';
-    html += '</div>';
-  }
-  weekRow.innerHTML = html;
-  buildPhaseBar(monday);
-}
+// PR-092A (UI/UX Final Council Home Cluster統合): buildHomeWeekRow は
+// src/modules/home-renderer.js の統合版（円形セル+痛みレベル/周期フェーズ色分け、
+// 新仕様）へ一本化済み（本ファイル冒頭でimport）。
 
 // ホーム週セルから日付詳細を開くヘルパー（ISO文字列 → calYear/calMonth を設定してから開く）
 function openDayDetailByDate(isoStr) {
@@ -1033,105 +982,9 @@ function openDayDetailByDate(isoStr) {
 // PR-089D (Legacy Removal Batch-11分割③): buildPhaseBar は
 // src/modules/home-renderer.js へ物理移動済み（import参照）。
 
-// ===== 今週の気づき =====
-function updateHomeInsightCard() {
-  var card = document.getElementById('home-insight-card');
-  var text = document.getElementById('home-insight-text');
-  if (!card || !text) return;
-
-  var records = state.records || [];
-  if (records.length < 3) { card.style.display = 'none'; return; }
-
-  if (typeof window.buildHomeInsight === 'function') {
-    var packet = window.buildHomeInsight(records, state);
-
-    var lines = [];
-    if (packet.reason)     lines.push(packet.reason.title + ' — ' + packet.reason.body);
-    if (packet.prediction) lines.push(packet.prediction.title + ' — ' + packet.prediction.body);
-
-    if (lines.length) {
-      text.innerHTML = lines.map(function(l) { return '<div>' + l + '</div>'; }).join('');
-      card.style.display = 'block';
-      var predEl = document.getElementById('home-prediction-text');
-      if (predEl && packet.prediction) predEl.textContent = packet.prediction.body;
-      return;
-    }
-  }
-
-  // フォールバック: 旧ロジック
-  var today = new Date();
-  var weekRecords = records.filter(function(r) {
-    var d = new Date(r.date || r.record_date || '');
-    var diff = Math.floor((today - d) / 86400000);
-    return diff >= 0 && diff < 7;
-  });
-  if (weekRecords.length === 0) { card.style.display = 'none'; return; }
-
-  var painDays   = weekRecords.filter(function(r) { return r.painLevel >= 2; }).length;
-  var noPainDays = weekRecords.filter(function(r) { return r.painLevel === 0; }).length;
-  var avgPain    = weekRecords.reduce(function(s, r) { return s + (r.painLevel || 0); }, 0) / weekRecords.length;
-
-  var insight = '';
-  if (painDays >= 4)       insight = '今週は' + painDays + '日間、痛みの記録があります。';
-  else if (noPainDays >= 5) insight = '今週は' + noPainDays + '日、らくな日が続いています。';
-  else if (avgPain > 0)    insight = '今週の平均痛みスコアは ' + avgPain.toFixed(1) + '/4 でした。';
-
-  if (!insight) { card.style.display = 'none'; return; }
-  text.textContent = insight;
-  card.style.display = 'block';
-}
-
-// ===== 数値2つ（連続・次の生理） =====
-function updateHomeNumbers() {
-  var streak = state.streak || 0;
-  var streakEl = document.getElementById('home-streak-num');
-  if (streakEl) streakEl.textContent = streak;
-  // 連続7日以上で🔥表示
-  var fireEl = document.getElementById('home-streak-fire');
-  if (fireEl) fireEl.textContent = streak >= 7 ? '🔥' : streak >= 3 ? '✨' : '';
-
-  var nextEl    = document.getElementById('home-next-num');
-  var nextLabel = document.getElementById('home-next-label');
-  var nextUnit  = document.getElementById('home-next-unit');
-  if (!nextEl) return;
-
-  if (state.lastPeriodDate && state.cycleLength) {
-    var last     = new Date(state.lastPeriodDate + 'T00:00:00');
-    var today    = new Date();
-    var dayNum   = Math.floor((today - last) / 86400000) + 1;
-    var daysLeft = state.cycleLength - dayNum;
-    if (daysLeft > 0) {
-      nextEl.textContent = daysLeft;
-      if (nextUnit) nextUnit.textContent = '日後';
-    } else {
-      nextEl.textContent = '今日';
-      if (nextUnit) nextUnit.textContent = '頃';
-    }
-  } else {
-    nextEl.textContent = '—';
-    if (nextLabel) nextLabel.textContent = '次の生理予測';
-    if (nextUnit)  nextUnit.textContent  = '';
-  }
-}
-
-// ===== 疾患別アドバイス =====
-function updateHomeDiseaseAdvice() {
-  var card = document.getElementById('home-disease-advice');
-  var text = document.getElementById('home-disease-advice-text');
-  if (!card || !text) return;
-
-  var diseases = state.myDiseases || [];
-  if (diseases.length === 0) { card.style.display = 'none'; return; }
-
-  var h = new Date().getHours();
-  var isMorning = h >= 5 && h < 12;
-  var isNight   = h >= 20;
-  var hint = (typeof getDailyHint === 'function') ? getDailyHint(diseases, isMorning, isNight) : null;
-  if (!hint) { card.style.display = 'none'; return; }
-
-  text.textContent = diseases[0] + '：' + hint.text;
-  card.style.display = 'block';
-}
+// PR-092A (UI/UX Final Council Home Cluster統合): updateHomeInsightCard/updateHomeNumbers/
+// updateHomeDiseaseAdvice は src/modules/home-renderer.js の統合版へ一本化済み
+// （本ファイル冒頭でimport）。
 
 // ===== インサイト タブ切り替え (Pattern B: 5タブ) =====
 // PR-086 (Legacy Removal Batch-8): switchInsTab/renderInsightDiscoveries/_updateInsMainCard は
@@ -1392,31 +1245,9 @@ document.getElementById('success-overlay').classList.add('active');
 // PR-086 (Legacy Removal Batch-8): updateTodayMessage は src/modules/home-renderer.js へ
 // 物理移動済み（本ファイル冒頭で import back）。
 
-function updateHomeCTAState() {
-  var today = new Date().toISOString().slice(0, 10);
-  var rec = (state.records || []).find(function(r) {
-    return (r.date || r.record_date || '').slice(0, 10) === today;
-  });
-
-  var card  = document.getElementById('home-cta-card');
-  var title = document.getElementById('home-cta-title');
-  var sub   = document.getElementById('home-cta-sub');
-  if (!card) return;
-
-  if (rec) {
-    // 記録済み：ダークローズ・✓マーク
-    card.style.background = 'var(--rose-dark)';
-    card.style.opacity = '0.82';
-    if (title) title.textContent = '✓ 今日の記録完了';
-    if (sub)   sub.textContent   = buildComparisonComment(rec);
-  } else {
-    // 未記録：鮮やかなローズ
-    card.style.background = 'var(--rose-dark)';
-    card.style.opacity = '1';
-    if (title) title.textContent = '今日を記録する';
-    if (sub)   sub.textContent   = '';
-  }
-}
+// PR-092A (UI/UX Final Council Home Cluster統合・新仕様): updateHomeCTAState は
+// src/modules/home-renderer.js の統合版（daily-checkin完了基準 + buildComparisonComment統合）
+// へ一本化済み（本ファイル冒頭でimport）。
 
 // PR-089D (Legacy Removal Batch-11分割③): updateStreakBadge は
 // src/modules/home-renderer.js へ物理移動済み（import参照）。

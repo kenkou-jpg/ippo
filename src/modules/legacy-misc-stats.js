@@ -12,8 +12,10 @@
 //    src/services/supabase.js へ物理移動済みのため、getSupabaseUserId() 直接importに
 //    変更（window.__ippoGetSupabaseUserId()経由を廃止）。ADMIN_USER_ID は
 //    admin.js から直接import（app-legacy.js側と同一値）。
-//  - updateStats: PR-090-R4 で app-legacy.js のローカル実装（home-renderer.js版とは
-//    別実装、統合しない既定路線を踏襲）を物理移動。bare `state`はgetState()経由へ変換。
+//  - updateStats: PR-090-R4 で app-legacy.js のローカル実装をここへ物理移動したが、
+//    PR-092A (UI/UX Final Council Home Cluster統合) で home-renderer.js版と統合され、
+//    本ファイルの実装は削除済み（calcPainFreeDaysThisMonth/calcAvgPainThisMonthの
+//    importも不要になったため削除）。
 //  - analyzeCyclePhases: bare `calcCycleDay`/`getCyclePhase` 呼び出しは、実体である
 //    src/analytics/cycle-engine.js から直接importへ変更（app-legacy.js側の同名関数は
 //    window.calcCycleDay等への1行delegation shimに過ぎず、実体はcycle-engine.js側
@@ -29,7 +31,6 @@ import { calcCycleDay, getCyclePhase } from '../analytics/cycle-engine.js';
 import { ADMIN_USER_ID } from './admin.js';
 import { isPremium } from './premium/premium-service.js';
 import { getSupabaseUserId } from '../services/supabase.js';
-import { calcPainFreeDaysThisMonth, calcAvgPainThisMonth } from '../utils/stats-utils.js';
 
 // ===== 周期フェーズ連動分析 =====
 function analyzeCyclePhases(records){
@@ -143,48 +144,20 @@ function isAdminOrPremium() {
   return isPremium() || (supabaseUserId && supabaseUserId === ADMIN_USER_ID);
 }
 
-// ===== STATS（app-legacy.js ローカル実装、home-renderer.js版とは別、
-// PR-080C重複整理と同型の「統合しない」判断を踏襲） =====
-function updateStats() {
-  var s = getState();
-  var streakEl = document.getElementById('streak-count');
-  if (streakEl) streakEl.textContent = s.streak || 0;
-  var totalEl = document.getElementById('total-count');
-  if (totalEl) totalEl.textContent = s.totalDays || 0;
-  var itEl = document.getElementById('insight-total');
-  if (itEl) itEl.textContent = s.totalDays || 0;
-  var isEl = document.getElementById('insight-streak');
-  if (isEl) isEl.textContent = s.streak || 0;
-  // 空状態バナー
-  var emptyEl = document.getElementById('insights-empty-state');
-  if(emptyEl) emptyEl.style.display = (s.records.length === 0) ? 'block' : 'none';
-
-  // 今月の無痛み日数
-  calcPainFreeDays();
-  var pfDays = calcPainFreeDaysThisMonth();
-  var pfEl = document.getElementById('pain-free-days');
-  if (pfEl) pfEl.textContent = pfDays > 0 ? pfDays : '—';
-
-  // 今月の平均痛みスコア
-  var avgPain = calcAvgPainThisMonth();
-  var apEl = document.getElementById('avg-pain-score');
-  if (apEl) apEl.textContent = avgPain !== null ? avgPain : '—';
-}
+// PR-092A (UI/UX Final Council Home Cluster統合): updateStats は
+// src/modules/home-renderer.js の統合版へ一本化済み（このモジュール側の重複実装は削除）。
 
 export {
   analyzeCyclePhases,
   _bleedingToNum,
   calcPainFreeDays,
   updateUnlock,
-  isAdminOrPremium,
-  updateStats
+  isAdminOrPremium
 };
 
 // PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
 // app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
-// _bleedingToNum/updateStatsは元々window非公開（updateStatsはhome-renderer.js側の
-// 別実装が window.updateStats を占有するため意図的に未設定、PR-090-R4参照）のため
-// 引き続き自己exportしない。
+// _bleedingToNumは元々window非公開のため引き続き自己exportしない。
 window.analyzeCyclePhases = analyzeCyclePhases;
 window.calcPainFreeDays   = calcPainFreeDays;
 window.isAdminOrPremium   = isAdminOrPremium;

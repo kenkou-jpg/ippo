@@ -7,7 +7,7 @@ import { showScreen } from './screen-router.js';
 import { getState, saveState } from '../store/state.js';
 // PR-089D (Legacy Removal Batch-11分割③): updateHomePhaseBanner/buildPhaseBar/
 // updateHomeSummary/updateHomeCTAが参照する共有ユーティリティ。
-import { getPhaseForDate, isPeriodExpected } from './cycle-utils.js';
+import { getPhaseForDate, isPeriodExpected, buildComparisonComment } from './cycle-utils.js';
 import { parseMealMemo } from './meal-tracker.js';
 import { detectFlareups } from './pro/flareup-report.js';
 import { calcTemperaturePhases } from './pro/temp-report.js';
@@ -145,10 +145,9 @@ export function updateGreeting() {
 
 // ── 統計 ─────────────────────────────────────────────────────
 
-// PR-080C: app-legacy.js に同名のローカル実装が並存する。window.updateStats はこのモジュール版が
-// 上書きするが、app-legacy.js内のbare呼び出しはscope分離によりapp-legacy.js側のローカル版を
-// 常に実行するため無効化されない。統合見送りの理由は calcPainFreeDaysThisMonth() 直前の
-// コメント参照。
+// PR-092A (UI/UX Final Council Home Cluster統合): app-legacy.js/legacy-misc-stats.js側の
+// 重複実装（PR-080C/PR-090-R4で「統合しない」と判断していたもの）を本関数に一本化した。
+// 差分は防御的nullガードのみで実質同一挙動（Council判定・docs/HANDOFF_PHASE7_COMPLETE.md参照）。
 export function updateStats() {
   var s = getState();
   var streakEl = document.getElementById('streak-count');
@@ -178,6 +177,16 @@ export function updateStats() {
 
 // ── 週間行 ────────────────────────────────────────────────────
 
+// PR-092A (UI/UX Final Council Home Cluster統合・新仕様): app-legacy.js版
+// （角丸正方形・痛みレベル4段階色分け・生理周期フェーズ色・buildPhaseBar連動）と
+// 本モジュール版（円形・記録有無のみ）を統合し、円形セルの視覚言語を保ちながら
+// 痛みレベル/周期フェーズの色分け情報を統合した新デザインに一本化した。
+// 参照: docs/HANDOFF_PHASE7_COMPLETE.md PR-092A節。
+var _WEEK_ROW_PHASE_COLORS = {
+  '月経期': '#f0a0b0', '卵胞期': '#88c8a0',
+  '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4'
+};
+
 export function buildHomeWeekRow() {
   var weekRow = document.getElementById('home-week-row');
   if (!weekRow) return;
@@ -204,16 +213,18 @@ export function buildHomeWeekRow() {
     });
     var hasRecord = !!rec;
     var clickable = !isFuture;
+    var pain = hasRecord ? (rec.painLevel || 0) : null;
+    var phaseColor = _WEEK_ROW_PHASE_COLORS[getPhaseForDate(d)] || _WEEK_ROW_PHASE_COLORS['不明'];
 
     var circleContent, circleBg, circleBorder, circleColor, fontSize;
     if (hasRecord) {
       circleContent = '✓';
       fontSize = '14px';
-      if (isToday) {
-        circleBg = 'var(--rose-dark)'; circleColor = 'white'; circleBorder = 'none';
-      } else {
-        circleBg = 'var(--rose-pale)'; circleColor = 'var(--rose)'; circleBorder = 'none';
-      }
+      circleBorder = 'none';
+      if (pain >= 4)      { circleBg = '#c04060'; circleColor = 'white'; }
+      else if (pain >= 2) { circleBg = '#e8809a'; circleColor = 'white'; }
+      else if (pain >= 1) { circleBg = '#f0a8b8'; circleColor = 'var(--ink)'; }
+      else                { circleBg = phaseColor; circleColor = 'var(--ink)'; }
     } else if (isToday) {
       circleContent = '+'; fontSize = '20px';
       circleBg = 'var(--rose-dark)'; circleColor = 'white'; circleBorder = 'none';
@@ -236,6 +247,7 @@ export function buildHomeWeekRow() {
     html += '</div>';
   }
   weekRow.innerHTML = html;
+  buildPhaseBar(monday);
 }
 
 // ── 今週の気づきカード ────────────────────────────────────────
@@ -251,6 +263,25 @@ export function updateHomeInsightCard() {
   var s = getState();
   var records = s.records || [];
   if (records.length < 3) { card.style.display = 'none'; return; }
+
+  // PR-092A (UI/UX Final Council Home Cluster統合): app-legacy.js版が持っていた
+  // window.buildHomeInsight() パケット優先処理を統合。src/home/home-insight-engine.js は
+  // 現時点でどのエントリポイントからもimportされておらずwindow.buildHomeInsightは未定義
+  // （app-legacy.js版でも同じ理由で常にfalseだった、挙動変更なし）。将来同エンジンが
+  // バンドルされた場合はこのパスが自動的に有効化される。
+  if (typeof window.buildHomeInsight === 'function') {
+    var packet = window.buildHomeInsight(records, s);
+    var lines = [];
+    if (packet.reason)     lines.push(packet.reason.title + ' — ' + packet.reason.body);
+    if (packet.prediction) lines.push(packet.prediction.title + ' — ' + packet.prediction.body);
+    if (lines.length) {
+      text.innerHTML = lines.map(function (l) { return '<div>' + l + '</div>'; }).join('');
+      card.style.display = 'block';
+      var predEl = document.getElementById('home-prediction-text');
+      if (predEl && packet.prediction) predEl.textContent = packet.prediction.body;
+      return;
+    }
+  }
 
   var today = new Date();
   var weekRecords = records.filter(function (r) {
@@ -515,7 +546,9 @@ export function updateHomeCTAState() {
     card.style.background = 'var(--rose-dark)';
     card.style.opacity = '0.85';
     if (title) title.textContent = '✓ 今日をふり返る';
-    if (sub)   sub.textContent   = 'チェックイン完了 — 静かに振り返る';
+    // PR-092A (UI/UX Final Council Home Cluster統合・新仕様): app-legacy.js版が持っていた
+    // buildComparisonComment()（前回との比較コメント）を完了時サブテキストとして統合。
+    if (sub)   sub.textContent   = buildComparisonComment(rec);
   } else {
     card.style.background = 'var(--rose-dark)';
     card.style.opacity = '1';
