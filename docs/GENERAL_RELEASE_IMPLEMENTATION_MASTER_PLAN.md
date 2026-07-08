@@ -405,6 +405,52 @@ General Release直前（Stage3・Stage4）に実施する実機検証項目の�
   一貫したトーン（断定禁止・押し売り感の排除）で表示されることの確認
 ```
 
+### レスポンシブ確認幅
+
+```
+□ 320px / 375px / 390px / 430px の4幅で、崩れ・折返し・Overflow・Safe Areaを確認
+```
+
+### Console確認
+
+```
+□ Console Error / Promise rejection / 404 / Import Error がないことを確認
+```
+
+### Stage3 Exit Criteria（数値基準、Founder確定）
+
+```
+Critical              0件
+High                  0件
+Medium                5件以下
+Console Error         0件
+Browser Crash         0件
+Navigation Broken     0件
+Premium Broken        0件
+Experiment Broken     0件
+Record Broken         0件
+```
+
+上記すべてを満たした時点でStage3完了・Stage4着手可能と判定する。
+
+### Founder UX Evaluation（最終判断、数値化しない定性評価）
+
+Browser Verificationの機械的なチェック項目とは別に、Founderが最後に必ず自分の視点で評価する。
+
+```
+□ このアプリを毎日開きたいと思うか
+□ 記録が義務ではなく自然な行動になっているか
+□ 「健康記録アプリ」ではなく「体質改善実験プラットフォーム」に見えるか
+□ Premium→Proへの価値の流れは自然か
+□ 情報量は適切か
+□ 疲れないか
+□ 1年間使い続けられる設計か
+□ General Releaseしても恥ずかしくない品質か
+```
+
+この評価はAIによる代行を行わない（CLAUDE.md Browser Verification Rule）。判定結果はFounderが
+本会話または別途HANDOFFへの記録依頼という形でAIに伝え、AIはその結果をHANDOFFに記録する。
+
 ---
 
 ## Regression Matrix
