@@ -651,6 +651,29 @@ Stage2、Founder承認により小規模初期セットで実装）
 - 判定: **保留**（PR-P2-06完了待ち）
 - Next: PR-P2-06（Consent UI）に着手する
 
+**PR-P2-06: Consent UI**（2026-07-08・着手前調査によりFounder指示で保留、コード変更ゼロ）
+- 着手前調査で、「ユーザーの現在の同意レベル」を保存・取得する仕組みが統一されていない
+  2系統に分かれていることを発見した:
+  1. `src/repositories/consent/consent-repository.js`（`ConsentRepositoryImpl`）—
+     PR-018でDI登録済み、`IConsentRepository`契約準拠、localStorage(`ippo_consent`)に
+     `findByUserId`/`save`/`update`/`appendEvent`。ApiGatewayには未接続
+     （コンストラクタ引数に存在しない）
+  2. `src/domains/consent/ConsentRepository.js` — Supabaseの`consents`/`consent_events`
+     テーブル直結、`findByUser`/`grantPlatform`/`grantResearch`/`grantCommercial`/`withdraw`。
+     DIコンテナ未登録、こちらもApiGateway未接続
+- さらに、PR-076の`consent-gate-service.js`（`filterCasesByResearchConsent()`）が実際に
+  参照するのは`Case.consentLevel`（`case-generation-service.js`の`candidate.consentLevel`、
+  呼び出し側が渡した値をそのまま信頼するのみ）であり、上記いずれのConsentRepositoryからも
+  自動でpopulateされない。「Settings画面で同意」→「Case生成時のconsentLevelに反映」の結線は
+  本PRのMaster Plan完成条件（「Settings画面でConsent同意/撤回が可能」）の範囲外で、別途
+  integration作業が必要
+- Founder指示: アーキテクチャ統一（2系統のうちどちらを正とするか）が先決問題と判断し、
+  PR-P2-06は今回保留。統一方針確定後に再着手する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（Consentバックエンド統一方針確定待ち）
+- Next: PR-P2-04（Research Contribution Badge）・PR-P2-06はいずれもConsentバックエンド
+  統一待ちで保留中。Founderが次の着手対象（統一方針の確定、またはPR-P2-05等の独立PR）を判断する
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）
