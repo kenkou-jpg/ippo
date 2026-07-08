@@ -15,8 +15,10 @@
 ---
 
 **文書番号:** IPPO-GENREL-MASTER-001
-**作成日:** 2026-07-07
-**前提文書:** FOUNDER_FINAL_DECISIONS.md / IMPLEMENTATION_SEQUENCE.md / PHASE2_GOVERNANCE.md / PHASE2_IMPLEMENTATION_PR_PLAN.md / GENERAL_RELEASE_EXPERIENCE_COUNCIL.md / PHASE2_EXPERIENCE_INTEGRATION_COUNCIL.md / PHASE2_IMPLEMENTATION_COUNCIL.md / PHASE2_ARCHITECTURE_FREEZE.md / MONETIZATION_COUNCIL_REPORT.md / APP_EXPERIENCE_FRAMEWORK.md
+**作成日:** 2026-07-07（2026-07-07 改訂: Repository Execution Audit / Founder Execution Decision / 体質改善実験プラットフォーム UI/UX Council 反映）
+**前提文書:** FOUNDER_FINAL_DECISIONS.md / IMPLEMENTATION_SEQUENCE.md / PHASE2_GOVERNANCE.md / PHASE2_IMPLEMENTATION_PR_PLAN.md / GENERAL_RELEASE_EXPERIENCE_COUNCIL.md / PHASE2_EXPERIENCE_INTEGRATION_COUNCIL.md / PHASE2_IMPLEMENTATION_COUNCIL.md / PHASE2_ARCHITECTURE_FREEZE.md / MONETIZATION_COUNCIL_REPORT.md / APP_EXPERIENCE_FRAMEWORK.md / [FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)
+
+> **改訂に伴う権威関係**: [FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)は「General ReleaseまでのFounderによる唯一の実装判断文書」と位置づけられており、本書と当該文書の2文書のみを基準に以後の実装を進める。本改訂は、同文書が確定した結論（Repository Execution Auditの条件付き採用、PR-EXP-03のスコープ拡張、PR-EXP-06の新設）と、体質改善実験プラットフォーム UI/UX Councilの結論（最終判定C: General Release前にレイアウト修正が必要）を本書に統合するものである。
 
 ---
 
@@ -24,9 +26,11 @@
 
 IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetization Council → App Experience Council → General Release Experience Council → Phase2 Experience Integration Council → Phase2 Implementation Council → Phase2 Architecture Freeze → Phase2 Governance → Founder Final Decisions）をすべて完了しており、**設計・意思決定は完全に確定した状態にある**。[FOUNDER_FINAL_DECISIONS.md](FOUNDER_FINAL_DECISIONS.md)が下した最終判定は IMPLEMENTATION READY である。
 
-一方、**本文書作成時点で、実装（コード変更）は一件も行われていない。** これまでの全Councilは一貫して「コード変更禁止・設計のみ」という制約のもとで開催されており、PR-EXP-01〜05・PR-P2-01〜06はいずれも設計・計画段階に留まる。したがって、General Release Readiness（実際に動くソフトウェアの品質）は、[GENERAL_RELEASE_EXPERIENCE_COUNCIL.md](GENERAL_RELEASE_EXPERIENCE_COUNCIL.md)が実機検証で算出した **58/100** のままである。
+その後、Repository Execution Audit（静的コード追跡による設計と実装のズレの検証）が実施され、[FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)としてFounderが正式に採用した。**PR-EXP-01・02・04・05は実際にコード上で修正済みであることを確認済み。** PR-EXP-03（Premium購入導線）のみ未完了である。したがって「実装は一件も行われていない」という記述は本改訂時点では事実と一致しない——この自己矛盾は本改訂で解消する。General Release Readiness（実際に動くソフトウェアの品質）は、[GENERAL_RELEASE_EXPERIENCE_COUNCIL.md](GENERAL_RELEASE_EXPERIENCE_COUNCIL.md)が実機検証で算出した **58/100** のままだが、PR-EXP-03完了後は85点前後まで回復する見込みに変わりはない。
 
-本文書が管理する残工程は、Stage1（General Release絶対修正の実装）→ Stage2（Phase2実装）→ Stage3（実環境統合検証）→ Stage4（最終UX監査）→ Stage5（Release Preparation Council）→ Stage6（General Release）の6段階である。設計上のブロッカーは存在しないため、次に取るべき行動は「実装に着手すること」のみである。
+さらに、体質改善実験プラットフォーム UI/UX Council（Product Experience Review Councilの「よくある健康記録アプリのβ版にしか見えない」という指摘への対応設計）の結論を反映し、PR-EXP-03のスコープをPremium/Pro価値グルーピング（Premium=理解／Pro=改善の物語化）まで拡張し、新規PR-EXP-06（Experiment Platform Framing）をStage1に追加した。Phase2側では、AI Suggestion本接続・Home Experiment cardのAI駆動化・Premium比較表正式実装・Consent UIの4項目を実装スコープとして明記した。
+
+本文書が管理する残工程は、Stage1（General Release絶対修正の実装、PR-EXP-01〜06）→ Stage2（Phase2実装、PR-P2-01〜06）→ Stage3（実環境統合検証）→ Stage4（最終UX監査）→ Stage5（Release Preparation Council）→ Stage6（General Release）の6段階である。設計上のブロッカーは存在しないため、次に取るべき行動は「残るPR-EXP群の実装を完了させること」である。
 
 ---
 
@@ -47,13 +51,24 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ✓ Phase2 Governance（Design System Freeze、禁止事項、UX Change Control確定）
 ✓ Founder Final Decisions（FD-1・FREEZE-FD-1・IMPL-FD-1・IMPL-FD-2・IMPL-FD-3・GRX-FD-3確定、
   IMPLEMENTATION READY判定）
+✓ Repository Execution Audit（Execution Gap Audit、静的コード追跡による設計/実装ズレの検証）
+✓ Founder Execution Decision Council（監査を条件付き採用、READY WITH FIXES判定、
+  PR-EXP-03スコープ拡張・PR-EXP-06新設を決定）
+✓ 体質改善実験プラットフォーム UI/UX Council（Home/Insights/Premium/Record/Navigationの
+  レイアウト・文言変更案を確定、最終判定C: General Release前にレイアウト修正が必要）
+✓ PR-EXP-01（ボトムナビ4アイコン描画復旧）実装済み・コード確認済み
+✓ PR-EXP-02（Insightsヒーローのモバイルレイアウト修正）実装済み・コード確認済み
+✓ PR-EXP-04（Home Weekly Progress Migration）実装済み・コード確認済み
+✓ PR-EXP-05（ナビラベル・Premium下部余白調整）実装済み・コード確認済み
 ```
 
 ### 未着手のもの（実装フェーズ）
 
 ```
-✗ PR-EXP-01〜05（設計完了・実装ゼロ）
-✗ PR-P2-01〜06（設計完了・実装ゼロ）
+✗ PR-EXP-03（Premium購入導線 + Premium/Pro価値グルーピング、スコープ拡張済み・Founder確認待ち）
+✗ PR-EXP-06（Experiment Platform Framing、新規追加・未着手）
+✗ PR-P2-01〜06（設計完了・実装ゼロ、AI Suggestion本接続・Home Experiment card AI駆動化・
+  Premium比較表正式実装・Consent UIを含む）
 ✗ Stage3 統合Browser Verification（未実施）
 ✗ Stage4 Final UX Audit（未実施、PR実装後の再監査として位置づけ）
 ✗ Stage5 Release Preparation Council（未開催）
@@ -63,7 +78,7 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ### 進行中のもの
 
 ```
-（現時点でなし。次のアクションはStage1 PR-EXP群の実装着手である）
+（現時点でなし。次のアクションはPR-EXP-03の完了とPR-EXP-06の実装着手である）
 ```
 
 ---
@@ -73,7 +88,7 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ```
 Stage0: Founder Decision                          [Completed]
    ↓
-Stage1: PR-EXP-01〜05（General Release絶対修正）       [Ready]
+Stage1: PR-EXP-01〜06（General Release絶対修正 + Experiment Platform Framing） [In Progress]
    ↓
 Stage2: PR-P2-01〜06（Phase2実装）                    [Ready]
    ↓
@@ -104,19 +119,25 @@ Release Risk: なし
 状態:       Completed
 ```
 
-### Stage1: PR-EXP-01〜05（General Release絶対修正）
+### Stage1: PR-EXP-01〜06（General Release絶対修正 + Experiment Platform Framing）
 
 ```
 目的:       実機検証で発見した3件の絶対修正（ナビアイコン欠落・Insightsレイアウト崩れ・
-            Premium価格/CTA不在）と2件の推奨修正を実装する
-成果物:     PR-EXP-01, 02, 03, 04, 05（コード変更）
+            Premium価格/CTA不在）と2件の推奨修正を実装する。加えて、Founder Execution
+            DecisionおよびUI/UX Councilの結論を反映し、PR-EXP-03のスコープをPremium/Pro
+            価値グルーピングまで拡張し、新規PR-EXP-06（Experiment Platform Framing）を
+            追加する
+成果物:     PR-EXP-01, 02, 03, 04, 05, 06（コード変更）
 開始条件:   Founder Decision確定（Stage0完了）。個々のPRに追加のFounder Decision依存はない
-終了条件:   5PRすべてが実装・Browser Verification完了
-依存関係:   PR-EXP-02は必ずStage2（Phase2 Insightsタブ追加）より先に完了させること
+終了条件:   6PRすべてが実装・Browser Verification完了
+依存関係:   PR-EXP-02は必ずStage2（Phase2 Insightsタブ追加）より先に完了させること。
+            PR-EXP-06はPR-EXP-03（Premium/Proグルーピング）と文言・トーンの整合を取ること
 Browser Verification: 各PR個別の検証項目（PR Master List参照）
 Rollback:   PR単位で個別ロールバック可能（各PRのRollback方針参照）
-Release Risk: PR-EXP-03が「高」（収益機能の入口）、他は「低〜中」
-状態:       Ready（未着手）
+Release Risk: PR-EXP-03が「高」（収益機能の入口）、PR-EXP-06は「低」（文言・軽量レイアウト
+            調整のみ、入力項目・新規画面・新規タブの追加を伴わない）、他は「低〜中」
+状態:       In Progress（PR-EXP-01・02・04・05完了。PR-EXP-03はFounder確認待ちで保留・
+            スコープ拡張済み。PR-EXP-06は新規追加・未着手）
 ```
 
 ### Stage2: PR-P2-01〜06（Phase2実装）
@@ -206,24 +227,46 @@ Release Risk: 未実施のため評価対象外
 
 ### PR-EXP群（Stage1、General Release絶対修正）
 
-| PR | 目的 | 対象画面 | 対象モジュール | 依存PR | Regression対象 | Browser Verification | 完了条件 | Release Risk |
-|---|---|---|---|---|---|---|---|---|
-| PR-EXP-01 | ボトムナビ4アイコン描画復旧 | 全画面 | src/app-legacy.js（initNavIcons） | なし | 全画面のタブ切り替え | フレッシュリロード後の4アイコン表示確認 | 4アイコンが常時表示される | 低 |
-| PR-EXP-02 | Insightsヒーローのモバイルレイアウト修正 | Insights | src/screens/insights.html | なし（PR-P2-02/03より先に完了必須） | 他Insights要素のレイアウト | 375/320/768px幅での表示確認 | 全モバイル幅でヒーロー正常表示 | 低〜中 |
-| PR-EXP-03 | Premium価格・比較表・CTA復旧 | Premium | app.html（#pro-hero）、premium関連JS | FD-1確定（済） | premiumGate()呼び出し全般 | CTAクリック→Checkout遷移確認 | 価格・CTAが表示され購入導線が機能する | **高** |
-| PR-EXP-04 | Home週間行の日付・記録表示復旧 | Home | src/modules/home-renderer.js | なし | Home他要素（CTA状態等） | 記録0件/保存直後の週間行表示確認 | 週間行に日付・記録有無が表示される | 低 |
-| PR-EXP-05 | ナビラベル・Premium下部余白調整 | Navigation, Premium | CSS（.nav-item、.pf-grid） | なし | 他ナビラベル表示 | ラベル1行表示・カード全体視認確認 | 折り返り・occlusionが解消 | 低 |
+| PR | 目的 | 対象画面 | 対象モジュール | 依存PR | Regression対象 | Browser Verification | 完了条件 | Release Risk | 状態 |
+|---|---|---|---|---|---|---|---|---|---|
+| PR-EXP-01 | ボトムナビ4アイコン描画復旧 | 全画面 | src/app-legacy.js（initNavIcons） | なし | 全画面のタブ切り替え | フレッシュリロード後の4アイコン表示確認 | 4アイコンが常時表示される | 低 | **完了** |
+| PR-EXP-02 | Insightsヒーローのモバイルレイアウト修正 | Insights | src/screens/insights.html | なし（PR-P2-02/03より先に完了必須） | 他Insights要素のレイアウト | 375/320/768px幅での表示確認 | 全モバイル幅でヒーロー正常表示 | 低〜中 | **完了** |
+| PR-EXP-03 | Premium価格・比較表・CTA復旧 **+ Premium/Pro価値グルーピング**（Premium=理解／Pro=改善の物語化、体質改善実験プラットフォーム UI/UX Council反映） | Premium | app.html（#pro-hero）、premium関連JS | FD-1確定（済） | premiumGate()呼び出し全般 | CTAクリック→Checkout遷移確認、Premium/Proグルーピング見出しの表示確認 | 価格・CTAが表示され購入導線が機能する。9カードがPremium/Proの2グループに視覚分割される（比較表は作らない、6項目上限内） | **高** | **保留（Founder確認待ち・スコープ拡張済み）** |
+| PR-EXP-04 | Home Weekly Progress Migration（home-next統合、HOME_WEEK_ROW_REMOVAL_AUDIT.md経由でスコープ修正） | Home | src/modules/home-next/home-next-status.js, home-renderer.js, ownership-map.js, home-next-shell.js | なし | Home他要素（CTA状態等） | 記録0件/保存直後の週間ストリップ表示確認 | home-next（デフォルト有効）に週間ストリップが表示される | 低 | **完了** |
+| PR-EXP-05 | ナビラベル・Premium下部余白調整 | Navigation, Premium | CSS（.nav-item、.pf-grid） | なし | 他ナビラベル表示 | ラベル1行表示・カード全体視認確認 | 折り返り・occlusionが解消 | 低 | **完了** |
+| PR-EXP-06 | **Experiment Platform Framing**（体質改善実験プラットフォーム UI/UX Council新規提案）: Home CTA文言調整・Record完了メッセージ1行追加・Insights「試してみる？」静的リンク追加・Status cardsスパークライン再有効化（PHASE 1-B解除） | Home, Record, Insights | home-next-shell.js/home-next-status.js（CTA文言、スパークライン描画）、record-screen.js（完了メッセージ）、insights.html（Trend Card末尾リンク） | PR-EXP-03（文言・トーンの整合） | Home CTA状態管理、Record完了フロー、Insights Trend Card | Home CTA文言表示確認、Record完了画面の文言確認、Insights「試してみる？」リンク表示確認、Status cardsスパークライン表示確認 | Home/Record/InsightsでExperiment Platform Framingの文言・可視化が反映され、入力項目・新規画面・新規タブの追加がないことを確認 | 低 | **未着手（新規）** |
 
 ### PR-P2群（Stage2、Phase2実装）
 
 | PR | 目的 | 対象画面 | 対象モジュール | 依存PR | Regression対象 | Browser Verification | 完了条件 | Release Risk |
 |---|---|---|---|---|---|---|---|---|
-| PR-P2-01 | hn-experiment-card実装 | Home | home-renderer.js, companion-intelligence.js | IMPL-FD-1確定（済） | Home他要素 | 記録0件時非表示・週1回制限確認 | UX-A完成条件達成 | 中 |
-| PR-P2-02 | ins-question-card実装 | Insights | insights.html, companion-intelligence.js | IMPL-FD-1確定（済）、PR-EXP-02完了、PR-P2-01直後推奨 | ins-clinical-summary等 | 回答保存・2週間非再表示確認 | UX-B完成条件達成 | 中 |
+| PR-P2-01 | hn-experiment-card実装 **（AI Suggestion本接続・Home Experiment cardのAI駆動化を含む）** | Home | home-renderer.js, companion-intelligence.js, recommendation-engine.js | IMPL-FD-1確定（済） | Home他要素 | 記録0件時非表示・週1回制限確認、AI提案文言が禁止表現リストに抵触しないことの確認 | UX-A完成条件達成 | 中 |
+| PR-P2-02 | ins-question-card実装 **（AI Suggestion本接続の一部、PR-EXP-06の「試してみる？」静的リンクをAI動的生成に置き換え）** | Insights | insights.html, companion-intelligence.js | IMPL-FD-1確定（済）、PR-EXP-02完了、PR-EXP-06完了、PR-P2-01直後推奨 | ins-clinical-summary等 | 回答保存・2週間非再表示確認 | UX-B完成条件達成 | 中 |
 | PR-P2-03 | trend-cards/correlation-chart/medical-reportタブ統合 | Insights | insights.html | PR-EXP-02完了 | modules/pro/配下レポート機能 | 各タブ遷移・30日未満時の非表示確認 | UX-B完成条件達成 | 低 |
 | PR-P2-04 | Research Contribution Badge | Home, Premium | home-renderer.js等（新規） | IMPL-FD-3確定（済） | Consent関連バックエンド | Consent未同意者への非表示確認 | UX-E完成条件達成 | 低 |
-| PR-P2-05 | tier分離（isPremium→getTierLevel）+比較表UI | Premium | premium-service.js | FREEZE-FD-1・IMPL-FD-2確定（済）、PR-P2-01〜04完了後に実施 | PR-EXP-03の価格/CTA表示 | 新tier名称での比較表・価格確認 | UX-C完成条件達成 | 中 |
-| PR-P2-06 | Research Consent UI（新規） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 |
+| PR-P2-05 | tier分離（isPremium→getTierLevel）+ **Premium比較表正式実装**（PR-EXP-03のPremium/Proグルーピングを比較表UIへ発展） | Premium | premium-service.js | FREEZE-FD-1・IMPL-FD-2確定（済）、PR-P2-01〜04完了後に実施 | PR-EXP-03の価格/CTA表示・グルーピング表示 | 新tier名称での比較表・価格確認 | UX-C完成条件達成 | 中 |
+| PR-P2-06 | **Consent UI**（Research Consent UI新規実装） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 |
+
+### Phase2実装スコープの明確化
+
+Founder Execution Decisionおよび体質改善実験プラットフォーム UI/UX Councilが明記したPhase2実装項目と、上記PR-P2群との対応関係:
+
+```
+AI Suggestion本接続              → PR-P2-01, PR-P2-02
+  （companion-intelligence.js/recommendation-engine.jsの実接続。
+    PR-EXP-06で仮設置した静的文言・静的リンクを、Phase2で動的生成に置き換える）
+
+Home Experiment cardのAI駆動化    → PR-P2-01
+  （hn-experiment-cardの提案ロジックをAI Suggestion層に接続する）
+
+Premium比較表正式実装             → PR-P2-05
+  （PR-EXP-03で導入するPremium/Pro価値グルーピングを、Phase2で正式な比較表UIへ発展させる）
+
+Consent UI                       → PR-P2-06
+  （既存決定どおり変更なし。ただしFounder Execution Decisionにより、Case/Experiment
+    生成系のConsent安全確認〔デフォルトdeny担保〕をGeneral Release前のCritical項目として
+    別途実施すること）
+```
 
 ---
 
@@ -234,22 +277,28 @@ Release Risk: 未実施のため評価対象外
 ### UX-A: Home体験
 
 ```
-関連PR:     PR-EXP-04, PR-P2-01
+関連PR:     PR-EXP-04, PR-EXP-06, PR-P2-01
 関連画面:   Home
-完成条件:   要素数6以内、スクロールがほぼ発生しない、hn-experiment-cardが週1回制限を守る、
-            週間行に日付・記録有無が表示される
-Browser Verification: 記録0件/記録済み双方のCTA状態、週間行表示、実験カード表示条件
+完成条件:   要素数6以内（ブロック追加なし、既存ブロックの順序・文言調整のみ）、
+            スクロールがほぼ発生しない、hn-experiment-cardが週1回制限を守る、
+            週間行に日付・記録有無が表示される、記録CTA文言が「記録が実験の材料になる」
+            ことを断定なしに示唆する、Status cardsのスパークラインが表示される
+Browser Verification: 記録0件/記録済み双方のCTA状態、週間行表示、実験カード表示条件、
+            PR-EXP-06のCTA文言表示、スパークライン描画確認
 Regression対象: 状態カード・ヒーローメッセージ表示
 ```
 
 ### UX-B: Insights体験
 
 ```
-関連PR:     PR-EXP-02, PR-P2-02, PR-P2-03
+関連PR:     PR-EXP-02, PR-EXP-06, PR-P2-02, PR-P2-03
 関連画面:   Insights
 完成条件:   ヒーローが全モバイル幅で正常表示、同時表示要素4以下、
-            タブ切り替え（傾向/問いかけ/相関/レポート）が機能する
-Browser Verification: 375/320/768px幅表示、タブ切り替え動作、ロックUIプレビュー表示
+            タブ切り替え（傾向/問いかけ/相関/レポート）が機能する、
+            今日の気づきカード末尾に「試してみる？」への静的リンクが表示される
+            （PR-EXP-06。Phase2でPR-P2-02によりAI動的生成へ置き換え）
+Browser Verification: 375/320/768px幅表示、タブ切り替え動作、ロックUIプレビュー表示、
+            「試してみる？」リンクとスキップ導線の併記確認
 Regression対象: ins-clinical-summary、PROロックカードの挙動
 ```
 
@@ -259,18 +308,25 @@ Regression対象: ins-clinical-summary、PROロックカードの挙動
 関連PR:     PR-EXP-03, PR-EXP-05, PR-P2-05
 関連画面:   Premium
 完成条件:   価格・CTAが表示され購入導線が機能する、tier名称がFREEZE-FD-1決定通り
-            （Premium/Pro）に統一される、比較項目最大6件
-Browser Verification: CTAクリック→Checkout遷移、比較表の新tier名称表示
+            （Premium/Pro）に統一される、比較項目最大6件、9枚のカードがPremium（理解）/
+            Pro（改善）の2グループに視覚分割される（PR-EXP-03、比較表ではないグルーピング
+            見出しのみ）、Phase2でPR-P2-05により正式な比較表UIへ発展する
+Browser Verification: CTAクリック→Checkout遷移、比較表の新tier名称表示、
+            Premium/Proグルーピング見出しの表示確認
 Regression対象: 各PROカードのpremiumGate()呼び出し
 ```
 
 ### UX-D: Experiment体験
 
 ```
-関連PR:     PR-P2-01（入口）
+関連PR:     PR-EXP-06（入口の物語化）, PR-P2-01（AI駆動化）
 関連画面:   Home（入口）、Experiments overlay（既存）
-完成条件:   hn-experiment-cardタップから既存startExperiment()フローへ自然に接続される
-Browser Verification: 提案カードタップ→実験開始画面遷移、完了後レポート表示
+完成条件:   hn-experiment-cardタップから既存startExperiment()フローへ自然に接続される、
+            Home最下部固定・PROバッジで隠れる配置ではなく、進行中実験がある場合は
+            条件付きで優先順位が引き上がる（PR-EXP-06はブロック順の入替のみ、新規ブロック
+            追加は行わない）
+Browser Verification: 提案カードタップ→実験開始画面遷移、完了後レポート表示、
+            進行中実験の有無による表示順の切り替え確認
 Regression対象: Premium画面「ヘルス実験」カードからの単独起動
 ```
 
@@ -288,13 +344,20 @@ Regression対象: PR-076 Consent Gate関連バックエンド処理
 ### UX-F: AI体験
 
 ```
-関連PR:     PR-P2-01, PR-P2-02
+関連PR:     PR-EXP-06（静的な問いかけ文言の仮設置）, PR-P2-01, PR-P2-02（AI Suggestion本接続）
 関連画面:   Home、Insights
-完成条件:   断定表現が一切含まれない、tier別ゲートが正しく機能する、
-            companion-intelligence.js/recommendation-engine.jsの接続が完了している
-Browser Verification: 生成文言のサンプルレビュー（禁止表現/許容表現の基準準拠確認）
+完成条件:   断定表現が一切含まれない、常に「今はいい」相当のスキップ導線が併記される、
+            tier別ゲートが正しく機能する、companion-intelligence.js/recommendation-engine.js
+            の接続が完了している（PR-EXP-06段階では静的文言、PR-P2-01/02完了後にAI動的
+            生成へ置き換わる）
+Browser Verification: 生成文言のサンプルレビュー（禁止表現/許容表現の基準準拠確認）、
+            スキップ導線の有無確認
 Regression対象: home-insight-engine.js出力形式（DerivedInsight）との整合
 ```
+
+### Record体験に関する補足
+
+Record画面はPhase2 Implementation Councilにより「全Phaseで意図的に進化させない画面」と設計されているため、UX-A〜Fのいずれの独立したUXグループにも属さない。PR-EXP-06によるRecord完了メッセージの1行変更（「記録しました」→記録が実験の土台になることを示唆する追記）は、新規UXグループを設けず、下記Regression Matrixで個別に管理する。入力カード追加・入力項目追加は本改訂後も禁止のままとする。
 
 ---
 
@@ -305,11 +368,15 @@ General Release直前（Stage3・Stage4）に実施する実機検証項目の�
 ### 画面別
 
 ```
-□ Home: CTA状態遷移、週間行の日付・記録表示、hn-experiment-card表示条件
-□ Record: 3カード入力フロー、保存完了、エラー時・オフライン時の挙動（未検証項目）
+□ Home: CTA状態遷移、週間行の日付・記録表示、hn-experiment-card表示条件、
+  記録CTA文言（PR-EXP-06）、Status cardsスパークライン表示（PR-EXP-06）
+□ Record: 3カード入力フロー、保存完了、エラー時・オフライン時の挙動（未検証項目）、
+  完了メッセージ1行追加の表示確認（PR-EXP-06、入力項目増加がないことも併せて確認）
 □ Calendar: 月表示・月相・凡例、編集導線の詳細確認（前回セッション未深掘り）
-□ Insights: ヒーロー表示（全モバイル幅）、タブ切り替え、ロックUIプレビュー
-□ Premium: 価格・CTA表示、Checkout遷移、比較表新tier名称表示
+□ Insights: ヒーロー表示（全モバイル幅）、タブ切り替え、ロックUIプレビュー、
+  「試してみる？」静的リンクとスキップ導線の表示確認（PR-EXP-06）
+□ Premium: 価格・CTA表示、Checkout遷移、比較表新tier名称表示、
+  Premium/Proグルーピング見出しの表示確認（PR-EXP-03スコープ拡張分）
 □ Settings: Research Consent UI、既存項目の網羅性維持確認
 □ Navigation: 4アイコン表示、ラベル1行表示、戻る導線
 ```
@@ -332,7 +399,10 @@ General Release直前（Stage3・Stage4）に実施する実機検証項目の�
 □ Paywall: PAYWALL_STRATEGY.md絶対禁止5場面（Record画面・保存直後・Error・
   Empty State・Consent画面）にPaywallが出現しないことの再確認
 □ premiumGate()クリック時の実際の挙動（GRX-FD-2、実環境必須）
-□ Experiment導線: hn-experiment-card→既存experiments.jsフローへの接続
+□ Experiment導線: hn-experiment-card→既存experiments.jsフローへの接続、
+  進行中実験の有無によるHome優先順位の切り替え確認（PR-EXP-06）
+□ Experiment Platform Framing: Home/Record/InsightsでPR-EXP-06の文言・可視化が
+  一貫したトーン（断定禁止・押し売り感の排除）で表示されることの確認
 ```
 
 ---
@@ -346,11 +416,12 @@ General Release直前（Stage3・Stage4）に実施する実機検証項目の�
 | PR-EXP-03 | 各PROカードのpremiumGate()呼び出し | 各カードタップ時の挙動確認 |
 | PR-EXP-04 | Home CTA状態管理 | 記録前後でのCTA表示確認 |
 | PR-EXP-05 | 他ナビラベルの表示 | 全ラベルの折り返り確認 |
-| PR-P2-01 | Home他要素の表示順序・スクロール量 | Home全体のスクロール量測定 |
-| PR-P2-02 | ins-clinical-summary等の既存タブ内容 | 各タブの独立動作確認 |
+| PR-EXP-06 | Home CTA状態管理（PR-EXP-04と同一箇所）、Record完了フロー、Insights今日の気づきカード、Status cards描画ロジック | Home CTA文言・Record完了メッセージ・Insightsリンク・スパークライン描画の目視確認、入力項目数が増えていないことの確認 |
+| PR-P2-01 | Home他要素の表示順序・スクロール量、PR-EXP-06のExperiment card条件付き優先順位 | Home全体のスクロール量測定 |
+| PR-P2-02 | ins-clinical-summary等の既存タブ内容、PR-EXP-06の「試してみる？」静的リンク（AI動的生成へ置き換え） | 各タブの独立動作確認 |
 | PR-P2-03 | modules/pro/配下レポート機能単体 | 各レポート機能の単独動作確認 |
 | PR-P2-04 | PR-076 Consent Gateバックエンド | Consent状態のDB確認 |
-| PR-P2-05 | PR-EXP-03で復旧した価格・CTA表示 | tier分離後の価格表示整合確認 |
+| PR-P2-05 | PR-EXP-03で復旧した価格・CTA表示、Premium/Proグルーピング表示 | tier分離後の価格表示整合確認 |
 | PR-P2-06 | Consent関連バックエンド全般 | 同意/撤回操作後のDB確認 |
 
 ---
@@ -376,7 +447,9 @@ General Release直前（Stage3・Stage4）に実施する実機検証項目の�
 ```
 Stage1 Exit → Stage2 Entry:
   PR-EXP-01・02・04・05が実装・検証完了。PR-EXP-03が実装・検証完了
-  （最低限、絶対修正3件すべての解消を確認すること）
+  （最低限、絶対修正3件すべての解消を確認すること）。PR-EXP-06が実装・検証完了
+  （Experiment Platform Framingの文言・可視化がHome/Record/Insightsに反映され、
+  入力カード・入力項目・新規画面・新規タブの追加がないことを確認すること）
 
 Stage2 Exit → Stage3 Entry:
   PR-P2-01〜06が実装・検証完了。PHASE2_GOVERNANCE.mdの禁止事項・
@@ -398,7 +471,7 @@ Stage5 Exit → Stage6 Entry:
 ## Release Readiness Checklist
 
 ```
-□ PR-EXP-01〜05実装・検証完了
+□ PR-EXP-01〜06実装・検証完了
 □ PR-P2-01〜06実装・検証完了
 □ GRX-FD-1（オンボーディング自然遷移）実環境検証完了
 □ GRX-FD-2（premiumGate実際の挙動）実環境検証完了
@@ -408,6 +481,8 @@ Stage5 Exit → Stage6 Entry:
 □ 医療免責文言・AI安全基準（BD-044/045/048/050）の遵守確認
 □ Research Consent UIが機能し、Consent Gateと正しく連動している
 □ Tier Branding（FREE/Premium/Pro）が全画面で一貫して表示されている
+□ Experiment Platform Framing（PR-EXP-06）がHome/Record/Insightsで一貫したトーンで
+  表示され、記録アプリではなく体質改善実験プラットフォームであることが初見で伝わる
 □ Release Preparation CouncilでGO判定
 ```
 
@@ -462,16 +537,22 @@ Stage5（Release Preparation Council）でNO-GO判定の場合:
 ## Progress Dashboard
 
 ```
-General Release完成までの進捗: 約30%
+General Release完成までの進捗: 約35%
 
 内訳:
   設計・意思決定フェーズ（Stage0）:        100% 完了
-  実装フェーズ（Stage1・Stage2）:          0% 完了（11 PRすべて未着手）
+  （Repository Execution Audit / Founder Execution Decision / 体質改善実験プラットフォーム
+   UI/UX Councilも設計・判断フェーズとして完了済み。PR-EXP-06新設によりPR総数が
+   11件→12件に増加したため、実装フェーズの完了率は分母増加分だけ下方修正されている）
+  実装フェーズ（Stage1・Stage2）:          33% 完了（12 PR中4件完了、PR-EXP-01・02・04・05。
+                                     PR-EXP-03はFounder確認待ちで保留・スコープ拡張済み。
+                                     PR-EXP-06は新規追加・未着手）
   検証フェーズ（Stage3・Stage4）:          0% 完了（未着手）
   リリース判定フェーズ（Stage5・Stage6）:   0% 完了（未着手）
 
-Stage進捗:  1/6 Stage完了（Stage0のみ）
-PR進捗:     0/11 PR完了（PR-EXP-01〜05、PR-P2-01〜06すべて未着手）
+Stage進捗:  1/6 Stage完了（Stage0のみ、Stage1進行中）
+PR進捗:     4/12 PR完了（PR-EXP-01・02・04・05完了。PR-EXP-03は保留。PR-EXP-06は新規未着手。
+            PR-P2-01〜06は未着手）
 UX進捗:     0/6 UXグループ完成（UX-A〜Fいずれも実装待ち）
 Verification進捗: 0%（Stage3・Stage4とも未実施）
 ```
@@ -483,7 +564,7 @@ Verification進捗: 0%（Stage3・Stage4とも未実施）
 | Stage | 判定 |
 |---|---|
 | Stage0（Founder Decision） | **PASS** |
-| Stage1（PR-EXP-01〜05） | **未実施**（判定保留、実装後に評価） |
+| Stage1（PR-EXP-01〜06） | **未実施**（判定保留、PR-EXP-01・02・04・05は完了確認済み。PR-EXP-03・06の実装後に最終評価） |
 | Stage2（PR-P2-01〜06） | **未実施**（判定保留、実装後に評価） |
 | Stage3（統合Browser Verification） | **未実施**（判定保留） |
 | Stage4（Final UX Audit） | **未実施**（判定保留） |
@@ -505,10 +586,10 @@ Verification進捗: 0%（Stage3・Stage4とも未実施）
 | 項目 | 内容 |
 |---|---|
 | **文書番号** | IPPO-GENREL-MASTER-001 |
-| **作成日** | 2026-07-07 |
-| **権威レベル** | LEVEL-1 GOVERNING DOCUMENT（Single Source of Truth） |
-| **前提文書** | FOUNDER_FINAL_DECISIONS.md / IMPLEMENTATION_SEQUENCE.md / PHASE2_GOVERNANCE.md / PHASE2_IMPLEMENTATION_PR_PLAN.md / 他6文書（冒頭記載） |
-| **コード変更** | ゼロ（既存文書の統合・整理のみ） |
+| **作成日** | 2026-07-07（初版）／2026-07-07 改訂（Repository Execution Audit・Founder Execution Decision・体質改善実験プラットフォーム UI/UX Council反映） |
+| **権威レベル** | LEVEL-1 GOVERNING DOCUMENT（Single Source of Truth。[FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)と2文書でGeneral Releaseまでの実装判断を構成する） |
+| **前提文書** | FOUNDER_FINAL_DECISIONS.md / IMPLEMENTATION_SEQUENCE.md / PHASE2_GOVERNANCE.md / PHASE2_IMPLEMENTATION_PR_PLAN.md / FOUNDER_EXECUTION_DECISION.md / 他6文書（冒頭記載） |
+| **コード変更** | ゼロ（既存文書の統合・整理のみ。本改訂も文書更新のみ） |
 | **次回改訂トリガー** | 各Stage完了時（進捗更新） |
 
 ---
@@ -517,7 +598,7 @@ Verification進捗: 0%（Stage3・Stage4とも未実施）
 
 ```
 Stage0: Completed
-Stage1: Ready
+Stage1: In Progress（PR-EXP-01・02・04・05完了、PR-EXP-03保留、PR-EXP-06新規未着手）
 Stage2: Ready
 Stage3: Waiting
 Stage4: Waiting
@@ -530,7 +611,13 @@ Stage6: Waiting
 # IMPLEMENTATION READY
 
 ```
-YES
+YES（設計上のブロッカーなし、という意味でのIMPLEMENTATION READY。FOUNDER_FINAL_DECISIONS.md基準）
+
+補足: FOUNDER_EXECUTION_DECISION.mdは、現時点の実装進捗そのものに対する別基準の判定として
+READY WITH FIXESを下している（Premium購入導線・initNavIcons二重実装・record.jsの壊れた
+import・Consent安全確認の4件のCritical項目が未解決のため）。両者は異なる問いに答える
+判定であり矛盾しない——「設計は実装着手可能な状態か」＝YES、「現在の実装はGeneral Release
+可能な状態か」＝READY WITH FIXES。
 ```
 
 ---
@@ -540,6 +627,13 @@ YES
 ```
 58 / 100（現時点評価。PR-EXP-01〜03完了後は85点前後まで回復見込み、
           GENERAL_RELEASE_EXPERIENCE_COUNCIL.md算出値をそのまま継承）
+
+補足: このスコアはGENERAL_RELEASE_EXPERIENCE_COUNCIL.mdが定義した技術的な絶対修正3件
+（ナビアイコン・Insightsレイアウト・Premium導線）を基準とした数値であり、PR-EXP-06
+（Experiment Platform Framing）はこのスコアの構成要素ではない。PR-EXP-06は、Product
+Experience Review Councilが指摘した「よくある健康記録アプリのβ版にしか見えない」という
+体験面の課題に対応するものであり、Readiness Scoreとは独立したExperience Alignment
+（Founder Vision Alignment）の観点で評価する。
 ```
 
 ---
