@@ -714,14 +714,14 @@ Stage2、Founder承認により小規模初期セットで実装）
 - Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし —
   本PRはDI/domains層に一切触れていないため対象外）
 - Regression: `npx vitest run` 5,200件中5,161件PASS（失敗39件は既知5ファイルのみ、増加なし）
-- Browser Verification: **未実施**（CLAUDE.md Browser Verification Ruleにより、AIによる
-  自己判断でのブラウザ確認は行っていない）。実装停止・Founder報告済み（本会話内）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Settings画面「データと安心」
+  セクションの新規行タップ→確認モーダル→同意/撤回→状態テキスト（`#settings-consent-sub`）の
+  切り替え、いずれも問題なしと確認済み
 - Decision Log: 更新不要（Roadmap変更なし。GRX-FD-3確定済みのタイミングどおりの実装。
   Consentバックエンド2系統の統一自体は据え置いたままの判断のため、次回この領域に触れる際は
   本エントリと前エントリ（着手前調査）を参照すること）
-- 判定: **実装完了、Founder Browser Verification待ち**
-- Next: Founderが実機（通常ブラウザ）でSettings画面の同意/撤回導線を確認し、Complete/Modify判定。
-  完了後、PR-P2-04（Research Contribution Badge、Consent状態参照の可否を本サービス基準で再調査）
+- 判定: **完了**（Founder実機確認済み）
+- Next: PR-P2-04（Research Contribution Badge、Consent状態参照の可否を本サービス基準で再調査）
   またはPR-P2-05へ
 
 ---
