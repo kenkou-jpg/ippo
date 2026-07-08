@@ -763,6 +763,40 @@ Stage2、Founder承認により小規模初期セットで実装）
 - 判定: **完了**（Founder実機確認済み）
 - Next: PR-P2-05（tier分離、PR-P2-01〜04完了が前提条件 — 本PRをもって充足）に着手する
 
+**PR-P2-05: tier分離（isPremium→getTierLevel）— コード形状のみ先行**（2026-07-08・
+着手前調査によりFounder指示でスコープ縮小、Mode: STANDARD）
+- 着手前調査で、本PRの想定スコープ（`isPremium()`→`getTierLevel()`置き換え、Premium比較表UI）が
+  1PRの規模を超える事実を発見した:
+  1. `isPremium()`は`src`内14ファイルから参照されており（app-legacy.js、insights-tab-panel.js、
+     stripe.js、複数のauth domain等）、FREEZE-FD-1決定文自体が「洗い出しが必要」と警告する規模
+  2. より根本的に、`src/services/stripe.js`のCheckout実装は`monthly`/`annual`の支払い頻度のみを
+     区別しており、Premium/Proを別々に購入できるStripe商品・価格が存在しない。`subscriptions`
+     テーブルにもtier列がなく、現状は単一課金ですべての機能が同時に開放される
+     （PR-EXP-03のPremium/Proグルーピングも同一の`premiumGate()`で両方を判定しており、
+     表示上の分類のみでアクセス制御は分離されていないことを確認済み）
+- Founder指示: 「表示・コード形状のみ先行」方針を採用。Stripe側の別価格追加・14箇所の
+  呼び出し元変更・Premium比較表UIの本格実装はいずれも今回のスコープ外とし、
+  `getTierLevel()`をFREEZE-FD-1が定めた型シェイプ（`'free'|'premium'|'pro'`）で
+  追加するに留めた
+- 実装（`src/modules/premium/premium-service.js`のみ、既存14箇所の呼び出し元・Stripe/
+  Checkout・subscriptionsテーブルはいずれも無変更）:
+  - `getTierLevel()`を新設。課金中（`isPremium()===true`）は一律`'pro'`、未課金は`'free'`を返す
+    （`'premium'`は将来Stripeに別価格が追加された時点で実データに基づき区別する）
+  - `isPremium()`本体は無変更（既存の14箇所の呼び出し元は無変更のまま動作）
+- 新規テスト: `tests/modules/premium-service.test.js`に4件追加（初期値・課金中・期限切れ・
+  isPremium()との等価性）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Regression: `npx vitest run` 5,210件中5,171件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: 対象外（UI・呼び出し元とも無変更のコード追加のみ、ユーザーから観測可能な
+  変化なし）
+- Decision Log: 更新不要（Roadmap変更なし。FREEZE-FD-1・IMPL-FD-2確定済み仕様の型シェイプに
+  沿った追加のみ。Stripe側の本格tier分離・Premium比較表UIは別途Founder判断のうえ再着手が必要）
+- 判定: **部分完了**（コード形状のみ。Stripe別価格追加・14箇所の呼び出し元移行・比較表UI本実装は
+  未着手のまま次回以降に持ち越し）
+- Next: Stage2（PR-P2-01〜06）はこれをもって一区切り。Stripe側の本格tier分離・比較表UI実装の
+  要否・時期はFounderが判断する
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）

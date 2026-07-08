@@ -39,7 +39,7 @@ function mockSubscriptionsChain(data, error = null) {
 }
 
 let supabaseMock;
-let isPremium, refreshPremiumStatus, startPremiumSync, stopPremiumSync;
+let isPremium, getTierLevel, refreshPremiumStatus, startPremiumSync, stopPremiumSync;
 
 beforeEach(async () => {
   vi.resetModules();
@@ -57,6 +57,7 @@ beforeEach(async () => {
 
   const mod = await import('../../src/modules/premium/premium-service.js');
   isPremium            = mod.isPremium;
+  getTierLevel         = mod.getTierLevel;
   refreshPremiumStatus = mod.refreshPremiumStatus;
   startPremiumSync     = mod.startPremiumSync;
   stopPremiumSync      = mod.stopPremiumSync;
@@ -158,6 +159,43 @@ describe('startPremiumSync / stopPremiumSync', () => {
   it('stopPremiumSync clears interval without throwing', () => {
     startPremiumSync();
     expect(() => stopPremiumSync()).not.toThrow();
+  });
+});
+
+// ── getTierLevel (PR-P2-05, FREEZE-FD-1) ──────────────────────
+describe('getTierLevel', () => {
+  it('returns "free" before any sync', () => {
+    expect(getTierLevel()).toBe('free');
+  });
+
+  it('returns "pro" when subscriptions returns status=active (single-tier billing today)', async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
+    mockSubscriptionsChain({ status: 'active', current_period_end: null });
+
+    await refreshPremiumStatus();
+    expect(getTierLevel()).toBe('pro');
+    expect(isPremium()).toBe(true);
+  });
+
+  it('returns "free" when subscription is expired, matching isPremium()', async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
+    const pastDate = new Date(Date.now() - 86400000).toISOString();
+    mockSubscriptionsChain({ status: 'active', current_period_end: pastDate });
+
+    await refreshPremiumStatus();
+    expect(getTierLevel()).toBe('free');
+    expect(isPremium()).toBe(false);
+  });
+
+  it('stays equivalent to isPremium() across state transitions', async () => {
+    supabaseMock.auth.getSession.mockResolvedValue({ data: { session: _mockSession } });
+    mockSubscriptionsChain({ status: 'canceled', current_period_end: null });
+    await refreshPremiumStatus();
+    expect(getTierLevel() !== 'free').toBe(isPremium());
+
+    mockSubscriptionsChain({ status: 'active', current_period_end: null });
+    await refreshPremiumStatus();
+    expect(getTierLevel() !== 'free').toBe(isPremium());
   });
 });
 
