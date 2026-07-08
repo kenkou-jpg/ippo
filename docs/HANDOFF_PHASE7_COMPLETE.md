@@ -757,13 +757,11 @@ Stage2、Founder承認により小規模初期セットで実装）
 - Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
 - Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし）
 - Regression: `npx vitest run` 5,206件中5,167件PASS（失敗39件は既知5ファイルのみ、増加なし）
-- Browser Verification: 未実施（CLAUDE.md Browser Verification Ruleにより、AIによる自己判断での
-  ブラウザ確認は行っていない）。実装停止・Founder報告済み（本会話内）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Home末尾のBadge表示・
+  タップ詳細（showResearchBadgeDetail）・初回演出、いずれも問題なしと確認済み
 - Decision Log: 更新不要（Roadmap変更なし。IMPL-FD-3確定済み仕様どおりの実装）
-- 判定: **実装完了、Founder Browser Verification待ち**
-- Next: Founderが実機（通常ブラウザ、記録365日以上のシード状態＋Research Consent同意状態）で
-  Home末尾のBadge表示・タップ詳細・初回演出を確認しComplete/Modify判定。完了後はPR-P2-05
-  （tier分離、PR-P2-01〜04完了が前提条件）に着手可能
+- 判定: **完了**（Founder実機確認済み）
+- Next: PR-P2-05（tier分離、PR-P2-01〜04完了が前提条件 — 本PRをもって充足）に着手する
 
 ---
 
