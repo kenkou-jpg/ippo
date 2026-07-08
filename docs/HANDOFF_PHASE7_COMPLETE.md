@@ -285,6 +285,372 @@ home-next有効時（デフォルト）のユーザーには当てはまらな�
   （Decision-3・Decision-4対象）の未解消項目なし
 - Next: 次工程（Release Preparation等）の要否・進行はFounderが別途判断する
 
+**PR-EXP-01: ボトムナビ4アイコン描画復旧**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md Stage1、
+General Release絶対修正1件目）
+- 根本原因: `src/app-legacy.js`の`initNavIcons()`/`initSettingsIcons()`が裸の`ICONS`識別子を参照していたが、
+  本モジュールは`ICONS`を一切importしておらず（`window.ICONS`のみ`src/constants/icons.js`が設定）、
+  `typeof ICONS === 'undefined'`判定が常にtrueとなり無音でno-opしていた。呼び出し元の
+  DOMContentLoadedリスナー内ゲート（`typeof ICONS !== 'undefined'`、旧1270行目付近）も同一理由で
+  常にfalseとなり、initNavIcons/initSettingsIcons/カレンダーchevron（calPrev/calNext）注入の
+  いずれも一度も実行されていなかったことを確認
+- 修正: `initNavIcons()`/`initSettingsIcons()`内および呼び出しゲート・chevron参照の計6箇所で、
+  裸の`ICONS`参照を`window.ICONS`に置換。SG-7 line count guard（app-legacy.js行数減少監視）に
+  抵触しないよう、新規宣言行を追加せず既存行内でのプロパティアクセス変更のみで対応
+  （app-legacy.js: 1,918行のまま不変）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、PR-092D時点から増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、line count guard含む）
+- Browser Verification: 開発サーバーでフレッシュリロード後、nav-icon-home/nav-icon-insights/
+  nav-icon-settings/nav-icon-plus/home-settings-iconの5要素すべてに実SVGが注入されることを確認。
+  ホーム→インサイト→設定→ホームのタブ切り替え・アクティブ状態表示も無変更で動作することを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所バグ修正）
+- 判定: PR-EXP-01完了。絶対修正3件のうち1件目を解消
+- Next: PR-EXP-02 — Insightsヒーローのモバイルレイアウト修正
+
+**PR-EXP-02: Insightsヒーローのモバイルレイアウト修正**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、General Release絶対修正2件目）
+- 根本原因: `src/screens/insights.html`の`.ipr-art`（143行目、常に空のdiv、装飾artの位置決めには
+  一切使われていない純粋なflexスペーサー）が`width:420px; min-width:420px;`を固定で持つが、
+  モバイル用`@media(max-width:767px)`ブロック（旧382行目）は`.ipr-art`の`height`/`margin-top`のみ
+  上書きし`width`/`min-width`は上書きしていなかった。この結果、375/320px幅では`.ipr-hero`
+  （flex row、利用可能幅約351px）内で420px固定幅の`.ipr-art`が縮小不可のまま大半の幅を占有し、
+  テキスト列（`.ipr-hero > div:first-child`、flex-shrink:1・min-width:0）が実測67px程度まで
+  圧縮され、見出し文字が1文字ずつ改行される表示崩れが発生していた（実機Browser Verificationで
+  computed rectを実測し確認）。実際の装飾art（`.hero-art`）はモバイル用に別途
+  `position:absolute; top:10px; right:0; width/height:180px`で独立配置されており、
+  `.ipr-art`のボックスに一切依存していないことも確認済み
+- 追加で判明: メディアクエリの閾値が`max-width:767px`のため、Master Plan Browser Verification
+  要件の768px幅がちょうど対象外となり、768pxでも同一の崩れが再現することを実測で確認
+- 修正（src/screens/insights.htmlのみ、CSS2箇所）:
+  1. `.ipr-art`のモバイル上書きに`width: 0; min-width: 0;`を追加（既存のheight/margin-topは維持）
+  2. メディアクエリを`@media(max-width:767px)`→`@media(max-width:768px)`に変更し、
+     768px幅もモバイルレイアウトに含める
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーで320px/375px/768pxの3幅すべてでヒーロー見出し・リード文・
+  CTAボタンが正常表示されることを実測確認（`.ipr-hero > div:first-child`が280pxのmax-widthまで
+  正しく確保されることをcomputed rectで確認）。1280px（デスクトップ幅）で`.ipr-art`が
+  420px幅を維持し既存デスクトップレイアウトに影響がないことも確認。Cycle Phase/Reflection/
+  関連分析タグ等の他Insightsカードのレイアウトにも崩れがないことを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所CSS修正）
+- 判定: PR-EXP-02完了。絶対修正3件のうち2件目を解消
+- Next: PR-EXP-03 — Premium価格・比較表・CTA復旧（Release Risk「高」、収益機能の入口）
+
+**PR-EXP-03: Premium価格・比較表・CTA復旧**（2026-07-07・Founder Decisionにより判定保留）
+- 調査の結果、`renderProHero()`自体・呼び出しチェーン（`updatePremiumBadges()`経由で起動時に
+  3回リクエストされることを`ippoRenderAuthority.getPending()`で確認済み）は正常に動作しており、
+  `window.ippoRenderAuthority.flushNow()`で強制フラッシュすると価格・CTAが正しく描画されることを確認した
+- `#pro-hero`が空に見えた原因は、本プレビュー環境が`document.visibilityState === 'hidden'`固定であり、
+  `render-authority.js`のRAFキュー（`requestAnimationFrame`ベース）が一切flushされないことによる
+  検証ツール側の制約である可能性が高いと判明（Home/Insights/Settings等、同じrender-authority経由の
+  他画面は正常表示されていたこととも整合）
+- Founder Decision: 実環境（Chrome拡張接続または通常ブラウザ、Supabase接続環境）でのBrowser Verification
+  結果を待って最終判定（Complete/Modify/Continue）する。それまでコード変更は行わない
+- Regression: 対象外（コード変更なし）
+- Decision Log: 更新不要（コード変更なし、判定保留）
+- 判定: **保留**（Founder確認待ち）
+- Next: 保留のままPR-EXP-04・05へ
+
+**PR-EXP-03: Premium価格・比較表・CTA復旧 + Premium/Pro価値グルーピング**（2026-07-08・Founder実機確認によりComplete判定、
+体質改善実験プラットフォーム UI/UX Council反映のスコープ拡張分を含む）
+- Founderが実環境（通常ブラウザ、Supabase接続環境）で`#pro-hero`の価格・比較表・CTAボタンが
+  正しく表示されることを確認済み（完了条件1）。プレビュー環境固有の`document.visibilityState`
+  制約による見かけ上の問題であったことが確定した
+- 完了条件2（9枚のカードがPremium/Proの2グループに視覚分割される）は、スコープ拡張決定時点では
+  未実装であることをコード確認（`app.html`の`.pf-grid`が全9カードをフラットに配置、グルーピング
+  マーカーなし）で発見し、Founderに実装要否を確認のうえ本PRで実装した
+- グルーピング方針: `docs/business/FREE_PRO_BOUNDARY.md`（Monetization Council正典）の
+  「STARTER(表示名:Premium)＝自分のパターンを理解する」「PRO＝自分を研究する人のためのプラン」の
+  分類に基づき、既存9カードを以下のとおり割当（Founder確認済み）:
+  - **Premium（理解）**（8件）: AIパターン解析／フレアアップ分析／要因効果レポート／
+    周期フェーズ分析／からだサマリー／月次レポートPDF／体温パターン解析／デバイス間同期
+    （デバイス間同期はどちらの物語にも直接該当しないユーティリティ機能のため、
+    割当をFounderに個別確認）
+  - **Pro（改善）**（1件）: ヘルス実験（仮説検証・行動系）
+- 実装（`app.html`、Business Logic変更なし・比較表は作らない・既存`premiumGate()`呼び出し
+  無変更）:
+  1. `#pro-hero`直後に`Premium（理解）`見出し（`.pf-group-heading`）を追加
+  2. 既存の「📊 分析・インサイト」「📋 レポート」「🌡️ 健康トラッキング」3カテゴリを
+     `Premium（理解）`見出し配下にそのまま維持（カテゴリ構造自体は変更しない）
+  3. 「🌡️ 健康トラッキング」内の`.pf-grid`から「ヘルス実験」カードを分離し、
+     「デバイス間同期」のみ残置（1カードのみの単列表示、`grid-template-columns:1fr`を追加）
+  4. 末尾に`Pro（改善）`見出し（`.pf-group-heading`）+ 「ヘルス実験」カード単独の
+     `.pf-grid`（`grid-template-columns:1fr`）を新設
+  5. `src/styles/app.css`: `.pf-group-heading`クラスを新規追加
+     （`.pf-category-label`と同系統、既存CSS変数`var(--ink)`のみ使用、
+     Design System Freeze準拠・新規カラー値なし）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザでPremium画面を確認し、Complete判定。
+  `#pro-hero`直下の「Premium（理解）」見出し・既存3カテゴリのレイアウト・
+  「デバイス間同期」カード単列表示・末尾「Pro（改善）」見出し+「ヘルス実験」カード単列表示・
+  CTAクリック→Checkout遷移・premiumGate()動作、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。Master Planが定義した完了条件2の実装であり
+  新規UX方針決定ではない。ただしグルーピング割当の解釈はFounder確認済み）
+- 判定: **完了**（完了条件1・2ともFounder実機確認済み）
+- Next: Stage1完了条件（PR-EXP-01〜06すべて完了）の再評価。残りはPR-EXP-06
+  （Experiment Platform Framing）のみ。本PRで確定した文言・トーン
+  （Premium=理解／Pro=改善）との整合を取ったうえで着手する
+
+**PR-EXP-04: Home週間行の日付・記録表示復旧**（2026-07-07・Founder Decisionにより判定保留）
+- 調査の結果、`buildHomeWeekRow()`（home-renderer.js:190）自体のロジックは正しく実装されている
+  （記録注入→手動でロジックを再現すると正しく検出されることを確認済み）
+- しかし実機では、`window.buildHomeWeekRow`が`home-next-shell.js:242`の
+  `window.buildHomeWeekRow = noOp;`によって完全な空関数に置き換えられており
+  （`ownership-map.js`の`_wrapRender`がこのno-opを`original`として捕捉するため、以降
+  home-renderer.js側の実体には一切到達しない）、`AUTH.request`呼び出しを横取りして
+  渡された関数が`() => {}`であることを実測で確認した
+- さらに、この関数が描画する`#home-week-row`要素自体も、home-next有効時（デフォルト）は
+  `#screen-home`が非activeのため非表示（`offsetParent === null`）であることを確認した
+- 加えて、`home-next-shell.js`冒頭のFeature Parity Mapには週間カレンダーバー
+  （`buildHomeWeekRow`相当）が「⬜ legacy-only（未移植）」と明記されており、
+  home-next側にはそもそも同等機能が実装されていない
+- 結論: Master Plan記載スコープ（home-renderer.js内の修正）を実装しても、
+  実際のユーザー（home-nextがデフォルト有効）には一切見えない。真にユーザー体験を直すには
+  home-next側への新規実装が必要だが、これはPR-EXP-04の宣言スコープ
+  （表示ロジック復旧・Release Risk「低」）を超えるBusiness Logic/UX追加に該当する
+- Founder Decision: 保留してPR-EXP-05へ進む
+- Regression: 対象外（コード変更なし）
+- Decision Log: 更新不要（コード変更なし、判定保留）
+- 判定: **保留**（Founder確認待ち、home-next側実装の要否について今後判断が必要）
+- Next: 保留のままPR-EXP-05へ
+
+**HOME_WEEK_ROW_REMOVAL_AUDIT**（2026-07-07・Founder指示、コード変更ゼロ・調査のみ）
+- 詳細: [docs/HOME_WEEK_ROW_REMOVAL_AUDIT.md](HOME_WEEK_ROW_REMOVAL_AUDIT.md)
+- `buildHomeWeekRow()`/週間カレンダーバーの削除・保留・移植を、参照調査・home-next設計・
+  Phase2整合・UX観点・削除影響の5観点から監査
+- 4件のLEVEL-1文書（PHASE2_IMPLEMENTATION_COUNCIL.md・PHASE2_EXPERIENCE_INTEGRATION_COUNCIL.md・
+  PHASE2_ARCHITECTURE_FREEZE.md・PHASE2_GOVERNANCE.md）すべてが週間行をHomeの恒久的構成要素
+  （Final Visionまで不変の骨格・Home最大6ブロックの一員）として明記していることを確認。
+  削除を正当化する記述は皆無
+- 判定: **C. Migrate（home-nextへ移植する）**
+- PR-EXP-04再判定: **Modify**（元のhome-renderer.js単体修正スコープでは効果がないため、
+  home-next統合を含むスコープへ修正の上Proceedすべきと判定）
+- Next: Founder承認を経てPR-EXP-04（Home Weekly Progress Migration）に着手
+
+**PR-EXP-04: Home Weekly Progress Migration**（2026-07-07・Founder承認・監査結果を受けた
+スコープ修正版、GENERAL_RELEASE_EXPERIENCE_COUNCIL.md / PHASE2_ARCHITECTURE_FREEZE.md準拠）
+- 実装着手前の追加調査で、`src/modules/home-next/home-next-status.js`に
+  **home-next独自の週間ストリップ実装（`buildWeekStrip()`）が既に完成した状態で存在**しており、
+  `renderStatusCards()`からも既に呼び出されていた（`#hn-status`内に追記される設計）ことが判明。
+  レガシー`buildHomeWeekRow()`とは別の、home-next専用のCSS（`.hn-week-card`/`.hn-week-grid`/
+  `.hn-week-day`/`.hn-week-dot`等、home-next.cssに完全に現存）を伴う独立実装だった
+- `buildWeekStrip()`は`return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）`という1行により
+  無効化されていた。git log確認の結果、これは2026-06-07のコミット`29047a1`
+  「HOME画面情報密度削減 – 描画停止のみ (PHASE 1)」による意図的な過去のFounder決定
+  （buildBarChart/buildDotScale/buildSparkline/buildWeekStrip/renderHero/renderRecoveryを
+  同時に停止）であり、直近（2026-07-07付）のLEVEL-1 Governance文書群とは1ヶ月の時間差がある
+  矛盾状態だったことが分かった
+- Founder確認（スクリーンショットで実物を提示の上）の結果、「既存実装（buildWeekStrip）の
+  再有効化」を採用する方針で承認を得た。これにより「レガシーロジックの新規移植」ではなく
+  「既存の完成済みhome-next実装を再有効化する」という、当初想定よりはるかに低リスク・
+  低工数の実装方針に変更された
+- 実装（Business Logic追加なし・UI仕様変更なし、既存コードの再有効化+ドキュメント整理のみ）:
+  1. `src/modules/home-next/home-next-status.js`: `buildWeekStrip()`冒頭の
+     `return '';`を削除し関数を再有効化。ロジック・レイアウト・配色は
+     PHASE 1-B以前の実装から一切変更していない
+  2. `src/modules/home-renderer.js`: `buildHomeWeekRow()`にコメント追加。
+     home-next有効時はhome-next側の独立実装が使われ、本関数はscreen-home
+     （home-next無効時のフォールバック）専用であることを明記（責務整理、ロジック変更なし）
+  3. `src/modules/ownership-map.js`: `buildHomeWeekRow`のownership登録に、
+     home-next側はこのレジストリの対象外である旨のコメントを追加（ロジック変更なし）
+  4. `src/modules/home-next/home-next-shell.js`: Feature Parity Mapを
+     「週間カレンダーバー」✅ covered by home-nextへ更新し、Legacy dependency map内の
+     `window.buildHomeWeekRow`項目に責務分離の注記を追加（コメントのみ）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Regression: Founder指示によりフルリグレッションスイート実行を省略（ビルド・Architecture Guard
+  PASSを最終確認とする）
+- Browser Verification: 実装前に対象UI（月〜日7マスの週間ストリップ）をFounderへ
+  スクリーンショット提示済み。再有効化後の実機での最終目視確認は次回セッションで実施
+- Decision Log: 更新不要（Roadmap変更なし。ただし2026-06-07のPHASE 1密度削減決定を
+  部分的に上書きする実質的な影響があるため、次回の週次レビュー等で記録の整合を確認推奨）
+- 判定: PR-EXP-04完了
+- Next: Stage1完了条件の確認（PR-EXP-03は引き続き実環境Browser Verification待ちで保留）
+
+**PR-EXP-05: ナビラベル・Premium下部余白調整**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、推奨修正）
+- 対象1（Premiumカードグリッド最終行のボトムナビ隠れ）: 実機計測で`#screen-premium`に
+  ボトムナビ分の余白確保がなく、最終行カード（8件中最後）の下端(833px)がボトムナビ上端(617px)より
+  下にあり隠れることを確認（`src/styles/app.css`に`.screen { min-height: 100dvh; }`のみで
+  padding-bottomの指定なし）
+- 対象2（ナビ「カレンダー」ラベルの折返り）: 本環境（Noto Sans JPロード済み、375px/320px幅）では
+  折返りを再現できなかったが、Master Planの完了条件「ラベル1行表示」を環境非依存で保証するため、
+  `white-space: nowrap`を防御的に追加
+- 修正（src/styles/app.css、2箇所）:
+  1. `#screen-premium { padding-bottom: 90px; }`追加（PREMIUM SECTIONブロック冒頭、
+     insights.htmlの.iprモバイル余白と同水準）
+  2. `.nav-item span:not(.nav-icon) { white-space: nowrap; }`追加
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでPremium画面最下部までスクロールし、最終カード下端(518px)が
+  ボトムナビ上端(617px)より上に収まり隠れないことを確認。ナビ5ラベル（ホーム/カレンダー/記録/
+  インサイト/設定）すべてが`white-space:nowrap`・単一行高さ(13px)で表示されることを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所CSS修正）
+- 判定: PR-EXP-05完了
+- Next: （2026-07-08追記）PR-EXP-03・04はその後Founder確認によりいずれも完了確定。
+  Stage1の残りはPR-EXP-06のみ。次エントリ参照
+
+**PR-EXP-06: Experiment Platform Framing**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、体質改善実験プラットフォーム UI/UX Council新規提案、PR-EXP-03完了後の着手）
+- 対象1（Status cardsスパークライン再有効化、PHASE 1-B解除）: `home-next-status.js`の
+  `buildSparkline()`冒頭の`return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）`を削除し再有効化。
+  Master Plan記載スコープが「スパークライン」のみを明記しているため、同じPHASE 1-Bで停止された
+  `buildBarChart()`/`buildDotScale()`はスコープ外として無変更のまま維持（Scope Creep回避）
+- 対象2（Home CTA文言調整）: 実装前に対象ファイルを確認した結果、Master Plan記載の
+  `home-next-shell.js`/`home-next-status.js`にはCTA文言の実体がなく（`home-next-shell.js`の
+  `updateHomeCTAState`はレガシー用でnoOp化済み、Feature Parity Mapでも「⬜ legacy-only」）、
+  実際にhome-next有効時（デフォルト）に表示されるCTAは`home-next-quick-record.js`の
+  `renderQuickRecord()`であることをコード確認（PR-EXP-04時と同型のドキュメント記載と実体の乖離）。
+  同ファイルの未記録時サブテキストを「今日はまだ記録していません」→
+  「今日の記録が、実験の材料になるかもしれません」に変更（Master Plan UX-A完成条件
+  「記録CTA文言が『記録が実験の材料になる』ことを断定なしに示唆する」に対応、
+  「かもしれません」は同ファイル内`getTrendText()`の既存ヘッジ表現と同系統）
+- 対象3（Record完了メッセージ1行追加）: `record-screen.js`の`saveRecordScreen()`内、
+  成功オーバーレイの`feedbackHtml`（連続記録日数・先週比較・周期フェーズメッセージの
+  3ブロックで構成、動的生成）末尾に、条件分岐なしの固定1行
+  「この記録が、これからの実験の土台になっていくかもしれません」を追加。
+  入力カード・入力項目の追加は行っていない
+- 対象4（Insights「試してみる？」静的リンク追加）: `insights.html`の「今日の気づき」カード
+  （`.ipr-ins-card`）内、既存「関連分析」チップ行の直後に、`.ipr-rel-label`/`.ipr-chips`
+  （既存CSSクラス再利用、新規カラー値なし）で「試してみる？」（`openExperiments()`遷移）+
+  「今はいい」（クリックで両行を非表示にするスキップ導線）を追加。
+  Phase2でPR-P2-02によりAI動的生成へ置き換え予定の静的仮設置
+- 実装中に発見した既存HTMLネストの誤り: 上記対象4の編集で`.ipr-main`グリッドを誤って
+  早期に閉じる余分な`</div>`を一時的に混入させたが、実装直後の目視確認で発見し同一PR内で修正済み
+  （最終的な差分には含まれない）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定（全5項目問題なし）。
+  Home未記録時CTA直下の文言・Record完了オーバーレイ末尾の文言・Insights「今日の気づき」
+  カード末尾の「試してみる？」/「今はいい」・Home Status cardsのスパークライン表示・
+  320/375/768px幅でのレイアウト、いずれも確認済み
+- Decision Log: 更新不要（Roadmap変更なし。文言はMaster Plan記載の指定フレーズ
+  「記録が実験の材料になる」を踏襲し、断定を避けるヘッジ表現へ落とし込んだのみ。
+  新規UX方針決定ではない）
+- 判定: **完了**
+- Next: Stage1（PR-EXP-01〜06）は本PRをもって全件完了。Stage2（PR-P2-01〜06）着手の
+  要否・優先順位をFounderが判断する
+
+**PR-P2-01: hn-experiment-card実装**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage2、Founder承認によりStage2着手・第1PR）
+- 実装着手前の調査で、Master Plan記載スコープ（AI Suggestion本接続）を上回る事実を発見し、
+  Founderに実装方針を確認のうえ着手した:
+  1. `home-next-shell.js:174-178`の「PHASE 1密度削減」処理が、`hn-experiment`単独ではなく
+     `hn-hero`/`hn-daily-note`/`hn-personalize`/`hn-optional`/`hn-recovery`/`hn-reflections`
+     を含む計7セクションを一括で空にしていた（`renderAll()`実行毎）
+  2. `renderExperiment()`（`home-next-recovery.js:80`）は実装済みで、`window.ippoCompanionIntelligence`
+     （`companion-intelligence.js`、コード冒頭に「禁止: LLM呼び出し/診断/断定/病名推測/不安誘導」と
+     明記されたrule-based実装、`main.js`でimport済み・非dead code）・
+     `window.ippoRecoveryJourney`（`recovery-journey.js`、同様にimport済み）に接続済みだったが、
+     呼び出し自体が一度も行われていなかった（PR-EXP-04のbuildWeekStrip・PR-EXP-06の
+     buildSparklineと同型の「実装済みだが未呼び出し」パターン）
+  3. Master Plan完成条件「週1回制限」と、既存`generateGentleExperiment()`
+     （`recovery-journey.js:352`）の「3日クールダウン」というコード実態に不一致があった
+- Founder確認結果:
+  1. `hn-experiment`のみを再有効化し、他6セクション（hero/daily-note/personalize/optional/
+     recovery/reflections）はScope外として現状維持（今回はブロック追加ではなく既存要素の
+     再有効化1件のみ）
+  2. クールダウンは既存の「3日」をそのまま採用（コード変更なし、Master Plan記載の
+     「週1回」は「最低数日は間隔を空ける」という趣旨の要件として解釈）
+- 実装（`src/modules/home-next/home-next-shell.js`のみ、Business Logic変更なし・
+  companion-intelligence.js/recovery-journey.js本体は無変更）:
+  1. PHASE 1クリアリストから`'hn-experiment'`を除外（他6セクションは無変更のまま維持）
+  2. `renderAll()`に`experiment`コンテナ取得 + `renderExperiment(experiment)`呼び出しを追加
+- 「記録0件時非表示」完成条件について: `renderExperiment()`が呼ぶ`generateGentleExperiment()`
+  内の各ルール（`_experimentByMode`/`_experimentBySleep`/`_experimentByFatigue`）は
+  いずれもレコード件数不足時に`null`を返す設計のため、記録0件時は自然に非表示になる
+  （新規の分岐追加は行っていない）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Gentle Experiment Cardの
+  表示条件・文言トーン・記録0件時非表示・3日クールダウン・他6セクションの非表示維持・
+  Home全体のレイアウト、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。PHASE 1密度削減の一部解除範囲・クールダウン期間の
+  解釈はFounder確認済み。新規UX方針決定ではない）
+- 判定: **完了**
+- Next: PR-P2-02（ins-question-card実装、PR-EXP-06の「試してみる？」静的リンクをAI動的生成に
+  置き換え）に着手する
+
+**PR-P2-02: ins-question-card実装**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage2、Founder承認により小規模初期セットで実装）
+- 実装着手前の調査で、Master Plan記載モジュール（companion-intelligence.js）と、
+  実際にInsights画面「今日の気づき」カード（`#ins-main-insight-text`/`#ins-main-insight-sub`）を
+  駆動している実体（`insights-tab-panel.js`の`renderInsightDiscoveries()`、優先度スコア方式・
+  安定したid無し）が異なるモジュールであることを発見した。また
+  `docs/PRO_INSIGHT_ARCHITECTURE.md`が前提とする`src/insights/questions/templates.js`・
+  `DerivedInsight`スキーマは未実装（設計のみ）であることも確認した
+- Founder確認結果: 「小規模な初期セット」で実装する方針を採用。`renderInsightDiscoveries()`の
+  不安定なid無し構造には依存せず、companion-intelligence.jsが既に提供する
+  `buildCompanionContext()`の形状（sleepTendency/symptomTendency/emotionTendency/
+  recentRecords）に対して独立した3件の問いかけテンプレートを新設する設計とした
+  （companion-intelligence.jsの既存reflection群とも独立、Master Plan記載の
+  companion-intelligence.js配置とは整合）
+- 新規実装:
+  1. `src/insights/questions/templates.js`（新設）: 問いかけテンプレート3件
+     （疲労傾向/睡眠と翌日の変化/不安と症状、いずれも`docs/PRO_INSIGHT_ARCHITECTURE.md`
+     5章のInsightQuestionSchemaに準拠したprompt+options形式。断定・診断・病名推測・
+     不安誘導を含まない）
+  2. `src/services/companion-intelligence.js`: `getWeeklyQuestion(context)`
+     （週1件上限・同一問い2週間非再表示の判定、`localStorage['ippo_question_state']`で管理）・
+     `recordQuestionShown(questionId)`・`answerQuestion(questionId, value)`を追加し
+     `window.ippoCompanionIntelligence`に公開。既存のbuildCompanionContext等は無変更
+  3. `src/screens/insights.html`: PR-EXP-06の静的リンク（「試してみる？」/「今はいい」）を
+     `id="ipr-question-layer"`でラップし、`_hydrate()`内で`_renderQuestionLayer()`を呼び出す
+     よう追加。`getWeeklyQuestion()`が問いを返した場合のみ内容を動的な問いかけ+選択肢に
+     置き換え、対象なしの場合はPR-EXP-06の静的リンクをそのまま残す（フォールバック維持）。
+     回答クリック時は`answerQuestion()`で保存し「ありがとうございます」表示に切り替え
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Question Layerの表示条件・
+  文言・回答保存・フォールバック動作、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。テンプレート数・依存先の選定はFounder確認済み。
+  新規UX方針決定ではない）
+- 判定: **完了**
+- Next: PR-P2-03（trend-cards/correlation-chart/medical-reportタブ統合）に着手する
+
+**PR-P2-03: trend-cards/correlation-chart/medical-reportタブ統合**（2026-07-08・
+着手前調査によりFounder指示で保留、コード変更ゼロ）
+- 着手前調査で、本PRが前提とする「既存タブ」自体が現行`insights.html`に存在しないことを発見した:
+  - `switchInsTab()`（`insights-tab-panel.js`）が扱う5タブ体系
+    （`recommended`/`trends`/`cycle`/`experiments`/`report`）用のタブボタン（`ins-tab-btn-*`）は
+    現行`insights.html`に一つも存在しない
+  - 対応するペイン（`#ins-pane-trends`/`#ins-pane-report`等、`insights.html:911-915`）は
+    「Backwards-compat stubs」というコメント付きで`display:none;height:0`のまま放置された
+    空divであり、実際のUIではない
+  - 現行`insights.html`はタブ切り替え型ではなく、カードを縦に並べた1ページスクロール型
+    （Hero → 暫定PRO整理室カード → 今日の気づき/疾患つながり → 分析グラフカード →
+    受診に備える → Tips）に作り替えられている
+  - グラフ・相関・レポート系機能は、ページ内タブではなく「暫定PRO整理室カード」
+    （`openProHub()`で別画面/モーダルへ遷移する入口、ラベルに「暫定」と明記、
+    `insights.html:613-625`）に集約されている可能性が高いが、遷移先の実態は未調査
+- Founder指示: 今回はPR-P2-03を保留し、依存関係のないPR-P2-04（Research Contribution Badge）へ
+  進む。PR-P2-03の再設計（openProHub()遷移先の実態調査を含む）は別途実施する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（タブ構造不在のため現行スコープのままでは実装不可。再設計待ち）
+- Next: PR-P2-04（Research Contribution Badge）に着手する
+
+**PR-P2-04: Research Contribution Badge**（2026-07-08・着手前調査によりFounder指示で保留、
+コード変更ゼロ）
+- 着手前調査で、UX-E完成条件「Research Consent同意済み・記録365日以上のユーザーにのみ
+  Badgeが恒久表示される」を判定する材料が現状のフロントエンドに一切存在しないことを発見した:
+  - `src/store/state.js`に`consentLevel`/`researchConsent`等の同意状態フィールドが存在しない
+  - `ConsentEnforcementService`（`consent-enforcement-service.js`）は`consentLevel`を
+    引数として受け取るバリデーション関数群のみで、同意状態自体の保存・取得機構ではない
+  - Consent UI自体（PR-P2-06）が未実装（`docs/FOUNDER_EXECUTION_DECISION.md`にも
+    「Consent Decision: 判定：PR-P2-06のままでよい」と明記、着手済みの兆候なし）
+- Founder指示: PR-P2-04も保留し、同意状態を保存する仕組みを持つPR-P2-06（Consent UI）を
+  先に実施する。PR-P2-04はPR-P2-06完了後に再着手する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（PR-P2-06完了待ち）
+- Next: PR-P2-06（Consent UI）に着手する
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）

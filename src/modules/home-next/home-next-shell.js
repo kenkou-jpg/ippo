@@ -14,8 +14,9 @@
 // ─── home-next Feature Parity Map (Phase B: migration prep) ──
 // ✅ covered by home-next  ┆  ⬜ legacy-only (未移植)
 //
-// ✅ Hero / greeting       ┆  ⬜ 週間カレンダーバー (buildHomeWeekRow)
-// ✅ Status cards          ┆  ⬜ 今日のCTA状態 (updateHomeCTAState)
+// ✅ Hero / greeting       ┆  ⬜ 今日のCTA状態 (updateHomeCTAState)
+// ✅ Status cards          ┆
+// ✅ 週間カレンダーバー(buildWeekStrip)┆  ← PR-EXP-04で再有効化（home-next-status.js内）
 // ✅ Today insight         ┆  ⬜ 数値ハイライト (updateHomeNumbers)
 // ✅ Disease-aware config  ┆  ⬜ フェーズバナー (updateHomePhaseBanner)
 // ✅ homeModules filter    ┆  ⬜ todayMessage (updateTodayMessage)
@@ -31,6 +32,8 @@
 //
 // Legacy dependency map (home-renderer.js → screen-home):
 //   window.buildHomeWeekRow        → home-renderer.js:buildHomeWeekRow
+//     （PR-EXP-04以降、home-next側は独自のbuildWeekStrip[home-next-status.js]を使用。
+//      window.buildHomeWeekRowはscreen-home専用のまま、下記noOp化の対象は変わらない）
 //   window.updateHomeInsightCard   → home-renderer.js:updateHomeInsightCard
 //   window.updateHomeDiseaseAdvice → home-renderer.js:updateHomeDiseaseAdvice
 //   window.updateHomeNumbers       → home-renderer.js:updateHomeNumbers
@@ -166,10 +169,13 @@ function renderAll() {
   const insights       = document.getElementById('hn-insights');
   const medicalSummary = document.getElementById('hn-medical-summary');
   const record         = document.getElementById('hn-record');
+  const experiment      = document.getElementById('hn-experiment');
 
   // PHASE 1: 除外セクションのコンテナをクリア（ファイル・ロジックは保持）
+  // PR-P2-01 (Phase2 Implementation): hn-experimentはPHASE2_IMPLEMENTATION_COUNCIL.mdの
+  // Value Ladder③改善ギャップを埋めるため再有効化。他6セクションはScope外のため無変更のまま維持
   ['hn-hero','hn-daily-note','hn-personalize','hn-optional',
-   'hn-recovery','hn-reflections','hn-experiment'].forEach(function(id) {
+   'hn-recovery','hn-reflections'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
   });
@@ -197,6 +203,10 @@ function renderAll() {
   if (status)         renderStatusCards(status, config, state);
   if (insights)       renderInsights(insights, state, config);
   if (record)         renderQuickRecord(record, state);
+  // PR-P2-01 (Phase2 Implementation): Gentle Experiment Card再有効化。
+  // renderExperiment内部でcompanion-intelligence.js/recovery-journey.js（非LLM・rule-based）
+  // の3日クールダウン・データ閾値により、記録不足時・クールダウン中は自動的に非表示になる
+  if (experiment)     renderExperiment(experiment);
 
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();

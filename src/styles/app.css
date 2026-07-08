@@ -394,6 +394,7 @@ h1, h2, h3, .serif { font-family: var(--font-serif); }
   gap: 3px;
   opacity: 0.48;
 }
+.nav-item span:not(.nav-icon) { white-space: nowrap; }
 .nav-item.active { color: var(--rose); opacity: 1; }
 .nav-icon { font-size: 18px; line-height: 1; }
 
@@ -1410,6 +1411,7 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 #screen-settings .fb-star.active { opacity: 1; transform: scale(1.08); }
 
 /* ===== PREMIUM SECTION ===== */
+#screen-premium { padding-bottom: 90px; }
 .premium-card {
   margin: 0 24px 20px;
   background: linear-gradient(135deg, var(--ink), #3d302a);
@@ -1617,6 +1619,10 @@ input[type="range"]::-webkit-slider-thumb:active { transform: scale(1.2); }
 .pf-arrow { color: var(--ink-light); font-size: 16px; }
 
 /* ===== Premium Screen Grid ===== */
+.pf-group-heading {
+  font-size: 15px; font-weight: 700; color: var(--ink);
+  margin: 4px 20px 14px;
+}
 .pf-category-label {
   font-size: 11px; font-weight: 700; color: var(--ink-mid);
   letter-spacing: 0.1em; margin: 0 20px 10px;

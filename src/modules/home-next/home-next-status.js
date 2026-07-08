@@ -103,7 +103,6 @@ function buildMoodFaces(moodLevel) {
 // ── スパークライン SVG ────────────────────────────────────
 
 function buildSparkline(values, color = '#B0C2A8') {
-  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   if (!values || values.length < 2) {
     return `<svg class="hn-sparkline" viewBox="0 0 60 24">
       <line x1="0" y1="12" x2="60" y2="12" stroke="${color}" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.4"/>
@@ -348,9 +347,21 @@ function buildTempOrEnergyCard(records, priorityKey) {
 }
 
 // ── 週間ストリップ ────────────────────────────────────────
+// PR-EXP-04 (Home Weekly Progress Migration, 2026-07-07): PHASE 1-B（2026-06-07,
+// commit 29047a1「HOME画面情報密度削減」）で return '' により描画停止されていたが、
+// GENERAL_RELEASE_EXPERIENCE_COUNCIL.md（絶対修正3件中の推奨修正）・
+// PHASE2_GOVERNANCE.md（Home最大6ブロックの一員として明記）・
+// PHASE2_ARCHITECTURE_FREEZE.md（Final Visionまで不変の骨格要素）・
+// PHASE2_IMPLEMENTATION_COUNCIL.md（Phase2 hn-experiment-cardの前提条件）の
+// 4件のLEVEL-1文書がいずれも週間行をHomeの恒久的構成要素として要求しており、
+// 別途 docs/HOME_WEEK_ROW_REMOVAL_AUDIT.md の監査（判定: C. Migrate）を経て
+// Founder承認により再有効化した。ロジック・見た目（レイアウト・配色・CSS）は
+// PHASE 1-B以前の実装から一切変更していない（UI仕様変更なし）。
+// レガシー版 src/modules/home-renderer.js の buildHomeWeekRow() は、home-next
+// 無効時（disableHomeNext()）のフォールバック画面（screen-home）専用として
+// 引き続き独立に存在し、本関数とは責務が完全に分離している（後述コメント参照）。
 
 function buildWeekStrip(records) {
-  return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）
   const today    = new Date();
   const todayStr = today.toISOString().slice(0, 10);
   const dow      = today.getDay();

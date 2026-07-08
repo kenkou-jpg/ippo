@@ -16,6 +16,7 @@
 
 import { addPostSaveHook, getState }        from '../store/state.js';
 import { getCompanionMemory, updateCompanionMemory } from './companion-memory.js';
+import { QUESTION_TEMPLATES }               from '../insights/questions/templates.js';
 
 // ─── キャッシュ ────────────────────────────────────────────
 
@@ -434,6 +435,73 @@ export function getCompanionContext() {
   return ctx;
 }
 
+// ─── Question Layer (PR-P2-02 小規模初期セット) ────────────
+//
+// 「一緒に考えるための問い」。診断ではない。
+// 週1件を上限とし、同じ問いは2週間以内に再表示しない。
+
+const _Q_STATE_KEY   = 'ippo_question_state';
+const _Q_WEEK_MS      = 7 * 24 * 60 * 60 * 1000;
+const _Q_TWO_WEEK_MS  = 14 * 24 * 60 * 60 * 1000;
+
+function _readQuestionState() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(_Q_STATE_KEY));
+    return (raw && typeof raw === 'object') ? raw : { lastShownAt: null, byId: {} };
+  } catch (_) {
+    return { lastShownAt: null, byId: {} };
+  }
+}
+
+function _writeQuestionState(s) {
+  try { localStorage.setItem(_Q_STATE_KEY, JSON.stringify(s)); } catch (_) {}
+}
+
+/**
+ * 今週表示すべき問いかけを1件返す（なければ null）。
+ * 副作用なし（表示確定は recordQuestionShown で別途記録する）。
+ */
+export function getWeeklyQuestion(context) {
+  if (!context) return null;
+
+  const state = _readQuestionState();
+  if (state.lastShownAt && (Date.now() - new Date(state.lastShownAt).getTime()) < _Q_WEEK_MS) {
+    return null;
+  }
+
+  for (const tmpl of QUESTION_TEMPLATES) {
+    let matches = false;
+    try { matches = !!tmpl.check(context); } catch (_) { matches = false; }
+    if (!matches) continue;
+
+    const rec = state.byId[tmpl.id];
+    if (rec && rec.lastShownAt && (Date.now() - new Date(rec.lastShownAt).getTime()) < _Q_TWO_WEEK_MS) {
+      continue;
+    }
+    return { id: tmpl.id, prompt: tmpl.prompt, options: tmpl.options };
+  }
+  return null;
+}
+
+/** 問いを表示したことを記録する（週次上限・2週間非再表示の基準時刻を更新）。 */
+export function recordQuestionShown(questionId) {
+  const state = _readQuestionState();
+  const now = new Date().toISOString();
+  state.lastShownAt = now;
+  state.byId[questionId] = Object.assign({}, state.byId[questionId], { lastShownAt: now });
+  _writeQuestionState(state);
+}
+
+/** ユーザーの回答を保存する。 */
+export function answerQuestion(questionId, value) {
+  const state = _readQuestionState();
+  state.byId[questionId] = Object.assign({}, state.byId[questionId], {
+    answer: value,
+    answeredAt: new Date().toISOString(),
+  });
+  _writeQuestionState(state);
+}
+
 // ─── Post-save hook ───────────────────────────────────────
 
 function _onPostSave() {
@@ -478,6 +546,9 @@ window.ippoCompanionIntelligence = Object.freeze({
   rankInsightPriorities,
   getCompanionContext,
   invalidateCompanionCache,
+  getWeeklyQuestion,
+  recordQuestionShown,
+  answerQuestion,
 });
 
 if (typeof window.ippoMarkBootEvent === 'function') {

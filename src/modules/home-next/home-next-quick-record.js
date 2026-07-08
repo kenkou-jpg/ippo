@@ -187,7 +187,7 @@ export function renderQuickRecord(container, state) {
           <div style="width:32px;height:32px;border-radius:10px;background:#EEF3EB;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;">+</div>
           <div>
             <div style="font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:500;color:#2A2320;">${esc(ctaLabel)}</div>
-            <div style="font-size:11px;color:#AFA298;margin-top:1px;">今日はまだ記録していません</div>
+            <div style="font-size:11px;color:#AFA298;margin-top:1px;">今日の記録が、実験の材料になるかもしれません</div>
           </div>
           <span style="margin-left:auto;color:#AFA298;font-size:16px;">›</span>
         </div>`

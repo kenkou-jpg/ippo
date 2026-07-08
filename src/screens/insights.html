@@ -379,10 +379,10 @@ animation: mistDrift 28s ease-in-out infinite; }
 .ipr-chev { display: inline-block; vertical-align: middle; }
 
 /* ─── Responsive ─────────────────────────────────────────── */
-@media(max-width:767px){
+@media(max-width:768px){
   .ipr { padding: var(--screen-top-space) 12px 90px; }
   .ipr-hero { grid-template-columns: 1fr; gap: 0; min-height: 0; padding: 20px 0 20px; margin-bottom: 14px; }
-  .ipr-art { height: 180px; margin-top: -10px; }
+  .ipr-art { width: 0; min-width: 0; height: 180px; margin-top: -10px; }
   .hero-art { width: 180px; height: 180px; top: 10px; right: 0; }
   .ipr-hero-h1 { font-size: 28px; margin-bottom: 12px; }
   .ipr-hero-lead { font-size: 13px; margin-bottom: 16px; }
@@ -648,6 +648,15 @@ animation: mistDrift 28s ease-in-out infinite; }
               <button class="ipr-chip" onclick="if(typeof window.openAIAnalysis==='function')window.openAIAnalysis()">AIパターン解析</button>
               <button class="ipr-chip" onclick="if(typeof window.openExperiments==='function')window.openExperiments()">ヘルス実験</button>
               <button class="ipr-chip" onclick="if(typeof window.openCorrelationReport==='function')window.openCorrelationReport()">一緒に起きやすいこと</button>
+            </div>
+          </div>
+          <!-- PR-EXP-06 (Experiment Platform Framing) 静的リンク → PR-P2-02でQuestion Layerが
+               利用可能な場合は動的問いかけに置き換え。利用不可時はこの静的リンクのまま残す -->
+          <div id="ipr-question-layer">
+            <div class="ipr-rel-label">気になることがあれば</div>
+            <div class="ipr-chips">
+              <button class="ipr-chip" onclick="if(typeof window.openExperiments==='function')window.openExperiments()">試してみる？</button>
+              <button class="ipr-chip" style="opacity:.6;" onclick="document.getElementById('ipr-question-layer').style.display='none';">今はいい</button>
             </div>
           </div>
         </div>
@@ -1143,7 +1152,49 @@ animation: mistDrift 28s ease-in-out infinite; }
       /* Main insight card (targets #ins-main-insight-text / #ins-main-insight-sub) */
       if(typeof window.renderInsightDiscoveries==='function') window.renderInsightDiscoveries();
       if(typeof window.renderMonthlySummaryText==='function') window.renderMonthlySummaryText();
+
+      /* PR-P2-02: Question Layer（利用可能な場合のみPR-EXP-06静的リンクを置き換え） */
+      _renderQuestionLayer();
     }
+
+    /* PR-P2-02 (Question Layer): 週1件・同一問い2週間非再表示の判定はcompanion-intelligence.js側 */
+    function _escQHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function _escQAttr(s){ return String(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
+
+    function _renderQuestionLayer(){
+      var el = document.getElementById('ipr-question-layer');
+      if(!el) return;
+      var ci = window.ippoCompanionIntelligence;
+      if(!ci || typeof ci.getCompanionContext!=='function' || typeof ci.getWeeklyQuestion!=='function') return;
+
+      var ctx = null;
+      try { ctx = ci.getCompanionContext(); } catch(_) {}
+      if(!ctx) return;
+
+      var q = null;
+      try { q = ci.getWeeklyQuestion(ctx); } catch(_) {}
+      if(!q) return; /* 対象なし: PR-EXP-06静的リンクをそのまま残す */
+
+      var optsHtml = (q.options||[]).map(function(o){
+        return '<button class="ipr-chip" onclick="window._ipoAnswerQuestion(\''+_escQAttr(q.id)+'\',\''+_escQAttr(o.value)+'\')">'+_escQHtml(o.label)+'</button>';
+      }).join('');
+
+      el.innerHTML =
+        '<div class="ipr-rel-label">問いかけ</div>' +
+        '<p style="font-size:12px;color:#6b7280;margin:2px 0 8px;">'+_escQHtml(q.prompt)+'</p>' +
+        '<div class="ipr-chips">'+optsHtml+'</div>';
+
+      try { ci.recordQuestionShown(q.id); } catch(_) {}
+    }
+
+    window._ipoAnswerQuestion = function(qId, value){
+      var ci = window.ippoCompanionIntelligence;
+      if(ci && typeof ci.answerQuestion==='function'){ try { ci.answerQuestion(qId, value); } catch(_){} }
+      var el = document.getElementById('ipr-question-layer');
+      if(el) el.innerHTML =
+        '<div class="ipr-rel-label">ありがとうございます</div>' +
+        '<p style="font-size:12px;color:#6b7280;margin:2px 0;">記録を続けると、また新しい問いかけが届きます</p>';
+    };
 
     setTimeout(_hydrate, 150);
     setTimeout(_setupTooltip, 220); /* fallback: static SVG data when no state */

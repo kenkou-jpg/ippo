@@ -187,6 +187,13 @@ var _WEEK_ROW_PHASE_COLORS = {
   '排卵期': '#80b8c8', '黄体期': '#d4a870', '不明': '#ede8e4'
 };
 
+// PR-EXP-04 (Home Weekly Progress Migration, 2026-07-07): home-next有効時（デフォルト）は
+// src/modules/home-next/home-next-status.js の buildWeekStrip() が #hn-status 内に
+// 同等の週間ストリップを描画するため、本関数は screen-home（home-next無効時の
+// フォールバック画面）専用として責務を分離する。home-next-shell.js の
+// patchTabNavigation() が window.buildHomeWeekRow を no-op化するため、home-next有効時は
+// 本関数のbare呼び出し（record-screen.js等）自体は発火するが実質的に到達しない
+// （home-next側の再描画は renderAll() が別途担う）。詳細: docs/HOME_WEEK_ROW_REMOVAL_AUDIT.md
 export function buildHomeWeekRow() {
   var weekRow = document.getElementById('home-week-row');
   if (!weekRow) return;

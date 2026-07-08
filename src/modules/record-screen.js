@@ -738,6 +738,8 @@ export function saveRecordScreen(){
         else if(ph === '黄体期') phaseMsg = '黄体期です。水分補給と早めの睡眠を意識しましょう。';
         if(phaseMsg) feedbackHtml += '<div style="font-size:13px;color:#72243E;margin-top:4px;">'+phaseMsg+'</div>';
       }
+      // PR-EXP-06 (Experiment Platform Framing): 記録が実験の土台になることを断定なしに示唆する追記
+      feedbackHtml += '<div style="font-size:12px;color:#9B8B7A;margin-top:6px;">この記録が、これからの実験の土台になっていくかもしれません</div>';
       feedbackHtml += '</div>';
       document.getElementById('success-message').innerHTML = feedbackHtml;
       so.classList.add('active');

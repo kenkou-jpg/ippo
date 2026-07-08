@@ -249,13 +249,13 @@ var VISION_PRESETS = [
 
 // ===== ナビアイコン注入 =====
 function initNavIcons() {
-  if (typeof ICONS === 'undefined') return;
+  if (typeof window.ICONS === 'undefined') return;
   var navIcons = {
-    'nav-icon-home':         ICONS.home(20, 'currentColor'),
-    'nav-icon-insights':     ICONS.insights(20, 'currentColor'),
-    'nav-icon-settings':     ICONS.settings(20, 'currentColor'),
-    'nav-icon-plus':         ICONS.plus(22, 'white'),
-    'home-settings-icon':    ICONS.settings(18, 'rgba(255,255,255,0.9)')
+    'nav-icon-home':         window.ICONS.home(20, 'currentColor'),
+    'nav-icon-insights':     window.ICONS.insights(20, 'currentColor'),
+    'nav-icon-settings':     window.ICONS.settings(20, 'currentColor'),
+    'nav-icon-plus':         window.ICONS.plus(22, 'white'),
+    'home-settings-icon':    window.ICONS.settings(18, 'rgba(255,255,255,0.9)')
   };
   Object.keys(navIcons).forEach(function(id) {
     var el = document.getElementById(id);
@@ -265,23 +265,23 @@ function initNavIcons() {
 
 // ===== 設定画面アイコン注入 =====
 function initSettingsIcons() {
-  if (typeof ICONS === 'undefined') return;
+  if (typeof window.ICONS === 'undefined') return;
   var map = {
-    'settings-icon-profile':   ICONS.user(16, 'var(--rose)'),
-    'settings-icon-theme':     ICONS.star(16, 'var(--rose)'),
-    'settings-icon-reminder':  ICONS.bell(16, 'var(--rose)'),
-    'settings-icon-disease':   ICONS.heart(16, 'var(--rose)'),
-    'settings-icon-symptom':   ICONS.activity(16, 'var(--rose)'),
-    'settings-icon-privacy':   ICONS.shield(16, 'var(--rose)'),
-    'settings-icon-export':    ICONS.barChart(16, '#4a7c5c'),
-    'settings-icon-backup':    ICONS.download(16, '#4a7c5c'),
-    'settings-icon-restore':   ICONS.cloud(16, '#4a7c5c'),
-    'settings-icon-history':   ICONS.download(16, '#4a7c5c'),
-    'settings-icon-diagnosis': ICONS.search(16, 'var(--ink-light)'),
-    'settings-icon-delete':    ICONS.trash(16, 'var(--rose)'),
-    'settings-icon-priority':  ICONS.star(16, '#c8a060'),
-    'settings-icon-density':   ICONS.settings(16, 'var(--ink-light)'),
-    'settings-icon-home-info': ICONS.home(16, '#4a7c5c')
+    'settings-icon-profile':   window.ICONS.user(16, 'var(--rose)'),
+    'settings-icon-theme':     window.ICONS.star(16, 'var(--rose)'),
+    'settings-icon-reminder':  window.ICONS.bell(16, 'var(--rose)'),
+    'settings-icon-disease':   window.ICONS.heart(16, 'var(--rose)'),
+    'settings-icon-symptom':   window.ICONS.activity(16, 'var(--rose)'),
+    'settings-icon-privacy':   window.ICONS.shield(16, 'var(--rose)'),
+    'settings-icon-export':    window.ICONS.barChart(16, '#4a7c5c'),
+    'settings-icon-backup':    window.ICONS.download(16, '#4a7c5c'),
+    'settings-icon-restore':   window.ICONS.cloud(16, '#4a7c5c'),
+    'settings-icon-history':   window.ICONS.download(16, '#4a7c5c'),
+    'settings-icon-diagnosis': window.ICONS.search(16, 'var(--ink-light)'),
+    'settings-icon-delete':    window.ICONS.trash(16, 'var(--rose)'),
+    'settings-icon-priority':  window.ICONS.star(16, '#c8a060'),
+    'settings-icon-density':   window.ICONS.settings(16, 'var(--ink-light)'),
+    'settings-icon-home-info': window.ICONS.home(16, '#4a7c5c')
   };
   Object.keys(map).forEach(function(id) {
     var el = document.getElementById(id);
@@ -1267,14 +1267,14 @@ document.addEventListener('DOMContentLoaded', function(){
   if(dmOverlay) dmOverlay.addEventListener('click', function(e){ if(e.target===e.currentTarget) e.currentTarget.classList.remove('dm-open'); });
   updateSymptomSettingDisplay();
   updateDiseaseSettingDisplay();
-  if (typeof ICONS !== 'undefined') {
+  if (typeof window.ICONS !== 'undefined') {
     initNavIcons();
     initSettingsIcons();
     // カレンダーナビ矢印をSVGに
     var calPrevBtn = document.getElementById('calPrev');
     var calNextBtn = document.getElementById('calNext');
-    if (calPrevBtn) calPrevBtn.innerHTML = ICONS.chevronLeft(16, 'var(--ink-mid)');
-    if (calNextBtn) calNextBtn.innerHTML = ICONS.chevronRight(16, 'var(--ink-mid)');
+    if (calPrevBtn) calPrevBtn.innerHTML = window.ICONS.chevronLeft(16, 'var(--ink-mid)');
+    if (calNextBtn) calNextBtn.innerHTML = window.ICONS.chevronRight(16, 'var(--ink-mid)');
   }
   updateHomeCTA();
   updateHomeCTAState();

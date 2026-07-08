@@ -690,6 +690,9 @@
       <!-- Hero (JS で描画) -->
       <div id="pro-hero" style="margin:4px 20px 24px;"></div>
 
+      <!-- Premium（理解） -->
+      <div class="pf-group-heading">Premium（理解）</div>
+
       <!-- 分析・インサイト -->
       <div class="pf-category-label">📊 &nbsp;分析・インサイト</div>
       <div class="pf-grid">
@@ -746,17 +749,22 @@
         </div>
         <span class="pf-lock-badge" style="position:static;flex-shrink:0;font-size:9px;font-weight:700;background:var(--rose);color:white;padding:3px 8px;border-radius:8px;">PRO</span>
       </div>
-      <div class="pf-grid" style="margin-bottom:20px;">
-        <div class="pf-grid-card" onclick="premiumGate(openExperiments)">
-          <div class="pf-grid-icon" style="background:#eef2f8;">🧪</div>
-          <div class="pf-grid-title">ヘルス実験</div>
-          <div class="pf-grid-sub">仮説を立てて30日間検証</div>
-          <span class="pf-lock-badge pf-grid-badge">PRO</span>
-        </div>
+      <div class="pf-grid" style="grid-template-columns:1fr;margin-bottom:20px;">
         <div class="pf-grid-card" onclick="openSyncModal()">
           <div class="pf-grid-icon" style="background:#f0eef8;">🔄</div>
           <div class="pf-grid-title">デバイス間同期</div>
           <div class="pf-grid-sub" id="syncStatusBrief">未ログイン</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+      </div>
+
+      <!-- Pro（改善） -->
+      <div class="pf-group-heading">Pro（改善）</div>
+      <div class="pf-grid" style="grid-template-columns:1fr;margin-bottom:20px;">
+        <div class="pf-grid-card" onclick="premiumGate(openExperiments)">
+          <div class="pf-grid-icon" style="background:#eef2f8;">🧪</div>
+          <div class="pf-grid-title">ヘルス実験</div>
+          <div class="pf-grid-sub">仮説を立てて30日間検証</div>
           <span class="pf-lock-badge pf-grid-badge">PRO</span>
         </div>
       </div>

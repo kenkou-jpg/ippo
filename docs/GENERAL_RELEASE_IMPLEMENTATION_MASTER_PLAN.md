@@ -26,11 +26,11 @@
 
 IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetization Council → App Experience Council → General Release Experience Council → Phase2 Experience Integration Council → Phase2 Implementation Council → Phase2 Architecture Freeze → Phase2 Governance → Founder Final Decisions）をすべて完了しており、**設計・意思決定は完全に確定した状態にある**。[FOUNDER_FINAL_DECISIONS.md](FOUNDER_FINAL_DECISIONS.md)が下した最終判定は IMPLEMENTATION READY である。
 
-その後、Repository Execution Audit（静的コード追跡による設計と実装のズレの検証）が実施され、[FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)としてFounderが正式に採用した。**PR-EXP-01・02・04・05は実際にコード上で修正済みであることを確認済み。** PR-EXP-03（Premium購入導線）のみ未完了である。したがって「実装は一件も行われていない」という記述は本改訂時点では事実と一致しない——この自己矛盾は本改訂で解消する。General Release Readiness（実際に動くソフトウェアの品質）は、[GENERAL_RELEASE_EXPERIENCE_COUNCIL.md](GENERAL_RELEASE_EXPERIENCE_COUNCIL.md)が実機検証で算出した **58/100** のままだが、PR-EXP-03完了後は85点前後まで回復する見込みに変わりはない。
+その後、Repository Execution Audit（静的コード追跡による設計と実装のズレの検証）が実施され、[FOUNDER_EXECUTION_DECISION.md](FOUNDER_EXECUTION_DECISION.md)としてFounderが正式に採用した。**PR-EXP-01〜06はすべて実際にコード上で修正済み・Founder Browser Verification済みであることを確認済みであり、Stage1は完了した。** General Release Readiness（実際に動くソフトウェアの品質）は、[GENERAL_RELEASE_EXPERIENCE_COUNCIL.md](GENERAL_RELEASE_EXPERIENCE_COUNCIL.md)が実機検証で算出した **58/100** のままだが、PR-EXP-03・06完了により85点前後まで回復する見込みは維持される（正式なReadiness Score再算出はStage4で実施）。
 
 さらに、体質改善実験プラットフォーム UI/UX Council（Product Experience Review Councilの「よくある健康記録アプリのβ版にしか見えない」という指摘への対応設計）の結論を反映し、PR-EXP-03のスコープをPremium/Pro価値グルーピング（Premium=理解／Pro=改善の物語化）まで拡張し、新規PR-EXP-06（Experiment Platform Framing）をStage1に追加した。Phase2側では、AI Suggestion本接続・Home Experiment cardのAI駆動化・Premium比較表正式実装・Consent UIの4項目を実装スコープとして明記した。
 
-本文書が管理する残工程は、Stage1（General Release絶対修正の実装、PR-EXP-01〜06）→ Stage2（Phase2実装、PR-P2-01〜06）→ Stage3（実環境統合検証）→ Stage4（最終UX監査）→ Stage5（Release Preparation Council）→ Stage6（General Release）の6段階である。設計上のブロッカーは存在しないため、次に取るべき行動は「残るPR-EXP群の実装を完了させること」である。
+本文書が管理する残工程は、Stage1（General Release絶対修正の実装、PR-EXP-01〜06）→ Stage2（Phase2実装、PR-P2-01〜06）→ Stage3（実環境統合検証）→ Stage4（最終UX監査）→ Stage5（Release Preparation Council）→ Stage6（General Release）の6段階である。Stage1はPR-EXP-01〜06全件の実装・Founder Browser Verification完了により終了した。設計上のブロッカーは存在しないため、次に取るべき行動はStage2（PR-P2-01〜06）着手の要否・優先順位をFounderが判断することである。
 
 ---
 
@@ -60,13 +60,13 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ✓ PR-EXP-02（Insightsヒーローのモバイルレイアウト修正）実装済み・コード確認済み
 ✓ PR-EXP-04（Home Weekly Progress Migration）実装済み・コード確認済み
 ✓ PR-EXP-05（ナビラベル・Premium下部余白調整）実装済み・コード確認済み
+✓ PR-EXP-03（Premium購入導線 + Premium/Pro価値グルーピング）実装済み・Founder Browser Verification完了
+✓ PR-EXP-06（Experiment Platform Framing）実装済み・Founder Browser Verification完了
 ```
 
 ### 未着手のもの（実装フェーズ）
 
 ```
-✗ PR-EXP-03（Premium購入導線 + Premium/Pro価値グルーピング、スコープ拡張済み・Founder確認待ち）
-✗ PR-EXP-06（Experiment Platform Framing、新規追加・未着手）
 ✗ PR-P2-01〜06（設計完了・実装ゼロ、AI Suggestion本接続・Home Experiment card AI駆動化・
   Premium比較表正式実装・Consent UIを含む）
 ✗ Stage3 統合Browser Verification（未実施）
@@ -78,7 +78,8 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ### 進行中のもの
 
 ```
-（現時点でなし。次のアクションはPR-EXP-03の完了とPR-EXP-06の実装着手である）
+（Stage1（PR-EXP-01〜06）はPR-EXP-06のFounder Browser Verification完了をもって全件完了。
+次のアクションはStage2（PR-P2-01〜06）着手の要否・優先順位のFounder判断である）
 ```
 
 ---
@@ -88,9 +89,9 @@ IPPOはGeneral Release前の設計フェーズ（Business Strategy → Monetizat
 ```
 Stage0: Founder Decision                          [Completed]
    ↓
-Stage1: PR-EXP-01〜06（General Release絶対修正 + Experiment Platform Framing） [In Progress]
+Stage1: PR-EXP-01〜06（General Release絶対修正 + Experiment Platform Framing） [Completed]
    ↓
-Stage2: PR-P2-01〜06（Phase2実装）                    [Ready]
+Stage2: PR-P2-01〜06（Phase2実装）                    [In Progress]
    ↓
 Stage3: General Release Integrated Browser Verification [Waiting]
    ↓
@@ -136,8 +137,7 @@ Browser Verification: 各PR個別の検証項目（PR Master List参照）
 Rollback:   PR単位で個別ロールバック可能（各PRのRollback方針参照）
 Release Risk: PR-EXP-03が「高」（収益機能の入口）、PR-EXP-06は「低」（文言・軽量レイアウト
             調整のみ、入力項目・新規画面・新規タブの追加を伴わない）、他は「低〜中」
-状態:       In Progress（PR-EXP-01・02・04・05完了。PR-EXP-03はFounder確認待ちで保留・
-            スコープ拡張済み。PR-EXP-06は新規追加・未着手）
+状態:       **Completed**（PR-EXP-01〜06すべて実装・Founder Browser Verification完了）
 ```
 
 ### Stage2: PR-P2-01〜06（Phase2実装）
@@ -153,7 +153,7 @@ Release Risk: PR-EXP-03が「高」（収益機能の入口）、PR-EXP-06は「
 Browser Verification: 各PR個別の検証項目（PR Master List参照）
 Rollback:   PR単位で個別ロールバック可能
 Release Risk: 全体として「中」（新機能追加のため既存動線への影響を要監視）
-状態:       Ready（未着手）
+状態:       In Progress（PR-P2-01・02完了。PR-P2-03保留（再設計待ち）。PR-P2-04〜06未着手）
 ```
 
 ### Stage3: General Release Integrated Browser Verification
@@ -231,21 +231,21 @@ Release Risk: 未実施のため評価対象外
 |---|---|---|---|---|---|---|---|---|---|
 | PR-EXP-01 | ボトムナビ4アイコン描画復旧 | 全画面 | src/app-legacy.js（initNavIcons） | なし | 全画面のタブ切り替え | フレッシュリロード後の4アイコン表示確認 | 4アイコンが常時表示される | 低 | **完了** |
 | PR-EXP-02 | Insightsヒーローのモバイルレイアウト修正 | Insights | src/screens/insights.html | なし（PR-P2-02/03より先に完了必須） | 他Insights要素のレイアウト | 375/320/768px幅での表示確認 | 全モバイル幅でヒーロー正常表示 | 低〜中 | **完了** |
-| PR-EXP-03 | Premium価格・比較表・CTA復旧 **+ Premium/Pro価値グルーピング**（Premium=理解／Pro=改善の物語化、体質改善実験プラットフォーム UI/UX Council反映） | Premium | app.html（#pro-hero）、premium関連JS | FD-1確定（済） | premiumGate()呼び出し全般 | CTAクリック→Checkout遷移確認、Premium/Proグルーピング見出しの表示確認 | 価格・CTAが表示され購入導線が機能する。9カードがPremium/Proの2グループに視覚分割される（比較表は作らない、6項目上限内） | **高** | **保留（Founder確認待ち・スコープ拡張済み）** |
+| PR-EXP-03 | Premium価格・比較表・CTA復旧 **+ Premium/Pro価値グルーピング**（Premium=理解／Pro=改善の物語化、体質改善実験プラットフォーム UI/UX Council反映） | Premium | app.html（#pro-hero, .pf-grid）、src/styles/app.css（.pf-group-heading） | FD-1確定（済） | premiumGate()呼び出し全般 | CTAクリック→Checkout遷移確認、Premium/Proグルーピング見出しの表示確認 | 価格・CTAが表示され購入導線が機能する。9カードがPremium/Proの2グループに視覚分割される（比較表は作らない、6項目上限内） | **高** | **完了** |
 | PR-EXP-04 | Home Weekly Progress Migration（home-next統合、HOME_WEEK_ROW_REMOVAL_AUDIT.md経由でスコープ修正） | Home | src/modules/home-next/home-next-status.js, home-renderer.js, ownership-map.js, home-next-shell.js | なし | Home他要素（CTA状態等） | 記録0件/保存直後の週間ストリップ表示確認 | home-next（デフォルト有効）に週間ストリップが表示される | 低 | **完了** |
 | PR-EXP-05 | ナビラベル・Premium下部余白調整 | Navigation, Premium | CSS（.nav-item、.pf-grid） | なし | 他ナビラベル表示 | ラベル1行表示・カード全体視認確認 | 折り返り・occlusionが解消 | 低 | **完了** |
-| PR-EXP-06 | **Experiment Platform Framing**（体質改善実験プラットフォーム UI/UX Council新規提案）: Home CTA文言調整・Record完了メッセージ1行追加・Insights「試してみる？」静的リンク追加・Status cardsスパークライン再有効化（PHASE 1-B解除） | Home, Record, Insights | home-next-shell.js/home-next-status.js（CTA文言、スパークライン描画）、record-screen.js（完了メッセージ）、insights.html（Trend Card末尾リンク） | PR-EXP-03（文言・トーンの整合） | Home CTA状態管理、Record完了フロー、Insights Trend Card | Home CTA文言表示確認、Record完了画面の文言確認、Insights「試してみる？」リンク表示確認、Status cardsスパークライン表示確認 | Home/Record/InsightsでExperiment Platform Framingの文言・可視化が反映され、入力項目・新規画面・新規タブの追加がないことを確認 | 低 | **未着手（新規）** |
+| PR-EXP-06 | **Experiment Platform Framing**（体質改善実験プラットフォーム UI/UX Council新規提案）: Home CTA文言調整・Record完了メッセージ1行追加・Insights「試してみる？」静的リンク追加・Status cardsスパークライン再有効化（PHASE 1-B解除） | Home, Record, Insights | home-next-quick-record.js（CTA文言、Master Plan記載のhome-next-shell.js/home-next-status.jsから実装時にコード確認のうえ修正）、home-next-status.js（スパークライン描画）、record-screen.js（完了メッセージ）、insights.html（今日の気づきカード末尾リンク） | PR-EXP-03（文言・トーンの整合）完了済み | Home CTA状態管理、Record完了フロー、Insights今日の気づきカード | Home CTA文言表示確認、Record完了画面の文言確認、Insights「試してみる？」リンク表示確認、Status cardsスパークライン表示確認 | Home/Record/InsightsでExperiment Platform Framingの文言・可視化が反映され、入力項目・新規画面・新規タブの追加がないことを確認 | 低 | **完了** |
 
 ### PR-P2群（Stage2、Phase2実装）
 
-| PR | 目的 | 対象画面 | 対象モジュール | 依存PR | Regression対象 | Browser Verification | 完了条件 | Release Risk |
-|---|---|---|---|---|---|---|---|---|
-| PR-P2-01 | hn-experiment-card実装 **（AI Suggestion本接続・Home Experiment cardのAI駆動化を含む）** | Home | home-renderer.js, companion-intelligence.js, recommendation-engine.js | IMPL-FD-1確定（済） | Home他要素 | 記録0件時非表示・週1回制限確認、AI提案文言が禁止表現リストに抵触しないことの確認 | UX-A完成条件達成 | 中 |
-| PR-P2-02 | ins-question-card実装 **（AI Suggestion本接続の一部、PR-EXP-06の「試してみる？」静的リンクをAI動的生成に置き換え）** | Insights | insights.html, companion-intelligence.js | IMPL-FD-1確定（済）、PR-EXP-02完了、PR-EXP-06完了、PR-P2-01直後推奨 | ins-clinical-summary等 | 回答保存・2週間非再表示確認 | UX-B完成条件達成 | 中 |
-| PR-P2-03 | trend-cards/correlation-chart/medical-reportタブ統合 | Insights | insights.html | PR-EXP-02完了 | modules/pro/配下レポート機能 | 各タブ遷移・30日未満時の非表示確認 | UX-B完成条件達成 | 低 |
-| PR-P2-04 | Research Contribution Badge | Home, Premium | home-renderer.js等（新規） | IMPL-FD-3確定（済） | Consent関連バックエンド | Consent未同意者への非表示確認 | UX-E完成条件達成 | 低 |
-| PR-P2-05 | tier分離（isPremium→getTierLevel）+ **Premium比較表正式実装**（PR-EXP-03のPremium/Proグルーピングを比較表UIへ発展） | Premium | premium-service.js | FREEZE-FD-1・IMPL-FD-2確定（済）、PR-P2-01〜04完了後に実施 | PR-EXP-03の価格/CTA表示・グルーピング表示 | 新tier名称での比較表・価格確認 | UX-C完成条件達成 | 中 |
-| PR-P2-06 | **Consent UI**（Research Consent UI新規実装） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 |
+| PR | 目的 | 対象画面 | 対象モジュール | 依存PR | Regression対象 | Browser Verification | 完了条件 | Release Risk | 状態 |
+|---|---|---|---|---|---|---|---|---|---|
+| PR-P2-01 | hn-experiment-card実装 **（AI Suggestion本接続・Home Experiment cardのAI駆動化を含む）** | Home | home-next-shell.js（実装時にコード確認のうえhome-renderer.jsから変更。companion-intelligence.js/recommendation-engine.jsは既存rule-based実装をそのまま利用、本体無変更） | IMPL-FD-1確定（済） | Home他要素（hero/daily-note/personalize/optional/recovery/reflectionsの6セクションが意図せず再有効化されないこと） | 記録0件時非表示・クールダウン確認（Founder確認により既存3日クールダウンを採用）、AI提案文言が禁止表現リストに抵触しないことの確認 | UX-A完成条件達成 | 中 | **完了** |
+| PR-P2-02 | ins-question-card実装 **（AI Suggestion本接続の一部、PR-EXP-06の「試してみる？」静的リンクをAI動的生成に置き換え）**。Founder承認により小規模初期セット（テンプレート3件、companion-intelligence.js独立実装）で実施 | Insights | insights.html, companion-intelligence.js, insights/questions/templates.js（新設） | IMPL-FD-1確定（済）、PR-EXP-02完了、PR-EXP-06完了、PR-P2-01直後推奨 | ins-clinical-summary等 | 回答保存・2週間非再表示確認 | UX-B完成条件達成 | 中 | **完了** |
+| PR-P2-03 | trend-cards/correlation-chart/medical-reportタブ統合 | Insights | insights.html | PR-EXP-02完了 | modules/pro/配下レポート機能 | 各タブ遷移・30日未満時の非表示確認 | UX-B完成条件達成 | 低 | **保留**（着手前調査で前提のタブ構造が現行insights.htmlに不在と判明、再設計待ち。詳細はHANDOFF参照） |
+| PR-P2-04 | Research Contribution Badge | Home, Premium | home-renderer.js等（新規） | IMPL-FD-3確定（済） | Consent関連バックエンド | Consent未同意者への非表示確認 | UX-E完成条件達成 | 低 | **保留**（同意状態を参照する手段が存在せずPR-P2-06完了待ち。詳細はHANDOFF参照） |
+| PR-P2-05 | tier分離（isPremium→getTierLevel）+ **Premium比較表正式実装**（PR-EXP-03のPremium/Proグルーピングを比較表UIへ発展） | Premium | premium-service.js | FREEZE-FD-1・IMPL-FD-2確定（済）、PR-P2-01〜04完了後に実施 | PR-EXP-03の価格/CTA表示・グルーピング表示 | 新tier名称での比較表・価格確認 | UX-C完成条件達成 | 中 | 未着手 |
+| PR-P2-06 | **Consent UI**（Research Consent UI新規実装） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 | 未着手 |
 
 ### Phase2実装スコープの明確化
 
@@ -537,22 +537,22 @@ Stage5（Release Preparation Council）でNO-GO判定の場合:
 ## Progress Dashboard
 
 ```
-General Release完成までの進捗: 約35%
+General Release完成までの進捗: 約44%
 
 内訳:
   設計・意思決定フェーズ（Stage0）:        100% 完了
   （Repository Execution Audit / Founder Execution Decision / 体質改善実験プラットフォーム
    UI/UX Councilも設計・判断フェーズとして完了済み。PR-EXP-06新設によりPR総数が
    11件→12件に増加したため、実装フェーズの完了率は分母増加分だけ下方修正されている）
-  実装フェーズ（Stage1・Stage2）:          33% 完了（12 PR中4件完了、PR-EXP-01・02・04・05。
-                                     PR-EXP-03はFounder確認待ちで保留・スコープ拡張済み。
-                                     PR-EXP-06は新規追加・未着手）
+  実装フェーズ（Stage1・Stage2）:          52% 完了（12 PR中6件完了、PR-EXP-01〜06全件完了。
+                                     PR-P2-01は実装完了・Founder Browser Verification待ち。
+                                     PR-P2-02〜06は未着手）
   検証フェーズ（Stage3・Stage4）:          0% 完了（未着手）
   リリース判定フェーズ（Stage5・Stage6）:   0% 完了（未着手）
 
-Stage進捗:  1/6 Stage完了（Stage0のみ、Stage1進行中）
-PR進捗:     4/12 PR完了（PR-EXP-01・02・04・05完了。PR-EXP-03は保留。PR-EXP-06は新規未着手。
-            PR-P2-01〜06は未着手）
+Stage進捗:  2/6 Stage完了（Stage0・Stage1完了、Stage2進行中）
+PR進捗:     6/12 PR完了（PR-EXP-01〜06全件完了。PR-P2-01は実装完了・Founder Browser
+            Verification待ち。PR-P2-02〜06は未着手）
 UX進捗:     0/6 UXグループ完成（UX-A〜Fいずれも実装待ち）
 Verification進捗: 0%（Stage3・Stage4とも未実施）
 ```
@@ -564,7 +564,7 @@ Verification進捗: 0%（Stage3・Stage4とも未実施）
 | Stage | 判定 |
 |---|---|
 | Stage0（Founder Decision） | **PASS** |
-| Stage1（PR-EXP-01〜06） | **未実施**（判定保留、PR-EXP-01・02・04・05は完了確認済み。PR-EXP-03・06の実装後に最終評価） |
+| Stage1（PR-EXP-01〜06） | **完了**（PR-EXP-01〜06すべて実装・Founder Browser Verification完了） |
 | Stage2（PR-P2-01〜06） | **未実施**（判定保留、実装後に評価） |
 | Stage3（統合Browser Verification） | **未実施**（判定保留） |
 | Stage4（Final UX Audit） | **未実施**（判定保留） |
@@ -598,7 +598,7 @@ Verification進捗: 0%（Stage3・Stage4とも未実施）
 
 ```
 Stage0: Completed
-Stage1: In Progress（PR-EXP-01・02・04・05完了、PR-EXP-03保留、PR-EXP-06新規未着手）
+Stage1: Completed（PR-EXP-01〜06全件完了・Founder Browser Verification完了）
 Stage2: Ready
 Stage3: Waiting
 Stage4: Waiting
