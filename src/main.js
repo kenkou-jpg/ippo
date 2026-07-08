@@ -335,6 +335,10 @@ import './services/companion-intelligence.js';
 import './services/life-rhythm-memory.js';
 import './services/recovery-journey.js';
 
+// ─── PR-P2-06: Research Consent UI ───────────────────────
+// rollback: 以下1行を削除するだけで全機能がバイパスされる
+import './services/consent-service.js';
+
 // C-5: app-legacy.js の cloud sync ガードが `typeof window.supabase` を参照するため
 // supabase.js の side-effect に加えて main.js でも明示的に公開する。
 // (removal condition: app-legacy.js の window.supabase 参照が全廃されたら削除可)

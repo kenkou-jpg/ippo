@@ -245,7 +245,7 @@ Release Risk: 未実施のため評価対象外
 | PR-P2-03 | trend-cards/correlation-chart/medical-reportタブ統合 | Insights | insights.html | PR-EXP-02完了 | modules/pro/配下レポート機能 | 各タブ遷移・30日未満時の非表示確認 | UX-B完成条件達成 | 低 | **保留**（着手前調査で前提のタブ構造が現行insights.htmlに不在と判明、再設計待ち。詳細はHANDOFF参照） |
 | PR-P2-04 | Research Contribution Badge | Home, Premium | home-renderer.js等（新規） | IMPL-FD-3確定（済） | Consent関連バックエンド | Consent未同意者への非表示確認 | UX-E完成条件達成 | 低 | **保留**（同意状態を参照する手段が存在せずPR-P2-06完了待ち。詳細はHANDOFF参照） |
 | PR-P2-05 | tier分離（isPremium→getTierLevel）+ **Premium比較表正式実装**（PR-EXP-03のPremium/Proグルーピングを比較表UIへ発展） | Premium | premium-service.js | FREEZE-FD-1・IMPL-FD-2確定（済）、PR-P2-01〜04完了後に実施 | PR-EXP-03の価格/CTA表示・グルーピング表示 | 新tier名称での比較表・価格確認 | UX-C完成条件達成 | 中 | 未着手 |
-| PR-P2-06 | **Consent UI**（Research Consent UI新規実装） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 | **保留**（Consentバックエンド2系統統一方針確定待ち。詳細はHANDOFF参照） |
+| PR-P2-06 | **Consent UI**（Research Consent UI新規実装） | Settings | Settings画面（新規）、PR-076連携 | GRX-FD-3確定（済） | Consent関連バックエンド | 同意/撤回の反映確認 | UX-E完成条件達成 | 低 | **実装完了、Founder Browser Verification待ち**（新規`src/services/consent-service.js`、既存2系統のConsentRepositoryは無変更。詳細はHANDOFF参照） |
 
 ### Phase2実装スコープの明確化
 

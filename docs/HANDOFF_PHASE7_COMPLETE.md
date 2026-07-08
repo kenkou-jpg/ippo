@@ -674,6 +674,56 @@ Stage2、Founder承認により小規模初期セットで実装）
 - Next: PR-P2-04（Research Contribution Badge）・PR-P2-06はいずれもConsentバックエンド
   統一待ちで保留中。Founderが次の着手対象（統一方針の確定、またはPR-P2-05等の独立PR）を判断する
 
+**PR-P2-06: Consent UI（Settings画面 新規実装）**（2026-07-08・Founder指示「進めてください」により
+着手・実装完了、Mode: FULL — Consent/Privacyのため必須）
+- 前回調査で判明した2系統のConsentバックエンド（`ConsentRepositoryImpl` PR-018 DI登録済み
+  vs `domains/consent/ConsentRepository.js` Supabase直結）はいずれもApiGatewayに未接続、かつ
+  DI/ApiGateway経由の統合はまだ実際のUI画面から一切呼ばれていない（companion-intelligence.js/
+  recovery-journey.js等、実際に稼働しているUI連携はすべてDIを介さないplain moduleが
+  `window.ippoXxx`で直接公開される方式）と確認したため、実装方針として**軽量な新規サービス
+  （既存の稼働中パターンに合わせる）**を採用し、2系統統一の判断自体は据え置いた
+  （どちらの既存Repositoryにも一切手を加えていない）
+- 追加調査で`domains/consent/consent.service.ts`（プロジェクトルート直下のTypeScriptドメイン層、
+  `src/`外）を発見。`src/contracts/IConsentRepository.js`のコメントが「aligned with
+  domains/consent/consent.service.ts::ConsentRepository」と明記しており、JS契約(`findByUserId`/
+  `save`/`appendEvent`)の設計原典であることを確認したが、`grep`でsrc/内からの参照ゼロ件
+  （import実績なし、record.service.tsと同型の未接続ドメイン層）と確認したため、本PRでは
+  接続せず参考情報として記録に留めた
+- 実装（新規ファイルのみ、既存Repository/Service/ApiGateway/composition-root/ArchGuardは無変更）:
+  1. `src/services/consent-service.js`（新設）: localStorage(`ippo_consent`/`ippo_consent_events`)
+     ベースのResearch Consent（Level 2）管理。ストレージキー・エンティティ形状は意図的に
+     `ConsentRepositoryImpl`/`ConsentMapper`と同一にし（`{level,grantedAt,updatedAt}`・
+     GRANTED/REVOKED event log）、将来DI版Repositoryへ移行する際にドロップイン互換となるよう
+     設計。`getConsentState`/`isResearchConsentGranted`/`grantResearchConsent`/
+     `withdrawResearchConsent`/`toggleResearchConsent`/`renderResearchConsentStatus`を
+     `window.ippoConsent`として公開、`toggleResearchConsent`は`window.toggleResearchConsent`
+     としても公開（onclick文字列から呼べるよう他機能と同型のbridge）
+  2. `src/main.js`: PHASE 7ブロック直後に1行importを追加（rollback: 1行削除で全機能バイパス、
+     既存の他Phase importと同じ設計方針）
+  3. `app.html`: `#screen-settings`の「データと安心」セクションに新規行を追加
+     （`settings-icon-privacy`— app-legacy.jsのICONS mapに既存も現行DOMには未使用だった
+     アイコンIDを再利用、新規アイコン追加なし）。「研究への協力（匿名データ提供）」+
+     状態テキスト（`#settings-consent-sub`）、タップで`showConfirmModal`（既存共通モーダル）
+     経由の同意/撤回確認へ
+  4. `src/screens/settings.html`（421行）は`screen-router.js`の`?raw`静的import一覧に
+     含まれておらず未使用（dead file、home-next.html等が使う遅延読み込み対象外）と確認したため
+     触れていない
+- 新規テスト: `tests/services/consent-service.test.js`（7件、localStorage永続化・Level遷移・
+  event log・showConfirmModal経由の同意/撤回導線・showConfirmModal未定義時のフォールバック）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし —
+  本PRはDI/domains層に一切触れていないため対象外）
+- Regression: `npx vitest run` 5,200件中5,161件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: **未実施**（CLAUDE.md Browser Verification Ruleにより、AIによる
+  自己判断でのブラウザ確認は行っていない）。実装停止・Founder報告済み（本会話内）
+- Decision Log: 更新不要（Roadmap変更なし。GRX-FD-3確定済みのタイミングどおりの実装。
+  Consentバックエンド2系統の統一自体は据え置いたままの判断のため、次回この領域に触れる際は
+  本エントリと前エントリ（着手前調査）を参照すること）
+- 判定: **実装完了、Founder Browser Verification待ち**
+- Next: Founderが実機（通常ブラウザ）でSettings画面の同意/撤回導線を確認し、Complete/Modify判定。
+  完了後、PR-P2-04（Research Contribution Badge、Consent状態参照の可否を本サービス基準で再調査）
+  またはPR-P2-05へ
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）
