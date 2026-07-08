@@ -724,6 +724,47 @@ Stage2、Founder承認により小規模初期セットで実装）
 - Next: PR-P2-04（Research Contribution Badge、Consent状態参照の可否を本サービス基準で再調査）
   またはPR-P2-05へ
 
+**PR-P2-04: Research Contribution Badge**（2026-07-08・PR-P2-06完了によりブロッカー解消、
+着手・実装完了。Mode: STANDARD — Consent状態は読み取り専用参照のみ、同意付与/撤回ロジック自体は
+変更しないため）
+- 前回保留の原因（Consent状態を参照する手段の不在）は`consent-service.js`
+  （`window.ippoConsent.isResearchConsentGranted()`）の追加により解消したため着手した
+- `docs/FOUNDER_FINAL_DECISIONS.md` IMPL-FD-3で確定済みの仕様に厳密準拠:
+  表示条件（Research Consent同意済み＋記録365日以上）／抽象的貢献度表現のみ・件数や提供先の
+  非開示／Home状態カード群末尾に恒久表示／初回表示時のみ達成演出・以後は演出なし／通知なし／
+  タップで詳細説明（Consent設定への導線）
+- 実機で表示されるHomeはhome-next（PR-EXP-04調査で確認済みのデフォルト有効実装）のため、
+  Master Plan記載の`home-renderer.js`ではなく`src/modules/home-next/home-next-status.js`
+  （`renderStatusCards()`、buildWeekStrip/buildSparkline/hn-experiment-card等と同じ
+  Home状態カードモジュール）に実装した
+- 実装（新規追加のみ、既存カード関数・Consentサービス本体は無変更）:
+  1. `buildResearchBadge(state)`: `window.ippoConsent.isResearchConsentGranted()`と
+     `state.totalDays >= 365`の両方を満たす場合のみ抽象文言（「🌱 あなたの記録が、からだの研究に
+     貢献しています」）を返す。`window.ippoConsent`未定義時はfail-closedで非表示
+     （新たな同意取得を意味しない設計、IMPL-FD-3の医療倫理整合要件に対応）
+  2. 初回表示判定は`localStorage['ippo_research_badge_seen']`で管理。未設定時のみ
+     既存の`.hn-anim-1`（scale-inアニメーション、Design Freeze遵守のため新規keyframes追加なし）を
+     付与し、以降は演出なしのプレーン表示
+  3. カード見た目は既存`.hn-experiment-card`/`.hn-experiment-text`クラスをそのまま再利用
+     （新規CSS追加ゼロ、Design Freeze完全準拠）
+  4. `showResearchBadgeDetail()`（`window`ブリッジ）: タップ時に既存`showAlertModal`で
+     使途説明＋Settings画面での撤回導線を案内するテキストを表示
+  5. `renderStatusCards()`の返り値末尾（`buildWeekStrip(records)`の直後）に
+     `buildResearchBadge(state)`を追加
+- 新規テスト: `tests/modules/home-next/home-next-research-badge.test.js`（6件、
+  Consent未同意/365日未満/window.ippoConsent未定義のfail-closed非表示、条件充足時の抽象表現・
+  件数非開示、初回のみ演出、恒久表示の確認）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし）
+- Regression: `npx vitest run` 5,206件中5,167件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: 未実施（CLAUDE.md Browser Verification Ruleにより、AIによる自己判断での
+  ブラウザ確認は行っていない）。実装停止・Founder報告済み（本会話内）
+- Decision Log: 更新不要（Roadmap変更なし。IMPL-FD-3確定済み仕様どおりの実装）
+- 判定: **実装完了、Founder Browser Verification待ち**
+- Next: Founderが実機（通常ブラウザ、記録365日以上のシード状態＋Research Consent同意状態）で
+  Home末尾のBadge表示・タップ詳細・初回演出を確認しComplete/Modify判定。完了後はPR-P2-05
+  （tier分離、PR-P2-01〜04完了が前提条件）に着手可能
+
 ---
 
 ## Current Architecture Snapshot（PR-048時点）

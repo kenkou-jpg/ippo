@@ -825,6 +825,43 @@ function buildColdnessCard(records) {
   return buildDiseaseCard({ icon: SVG_COLD, label: '冷え傾向', value, sub, viz: buildSparkline(vals, '#9BB0C2') });
 }
 
+// ── Research Contribution Badge (PR-P2-04, FOUNDER_FINAL_DECISIONS.md IMPL-FD-3) ──
+// 表示条件: Research Consent同意済み + 記録365日以上。抽象的貢献度表現のみ、
+// 件数・提供先は非開示。恒久表示（条件を満たし続ける限り毎回描画）。
+// 初回表示時のみ軽い達成演出（hn-anim-1 scale-in）、以後は演出なし。通知は行わない。
+const RESEARCH_BADGE_SEEN_KEY = 'ippo_research_badge_seen';
+const RESEARCH_BADGE_MIN_DAYS = 365;
+
+export function buildResearchBadge(state) {
+  const consentGranted = typeof window !== 'undefined'
+    && window.ippoConsent
+    && typeof window.ippoConsent.isResearchConsentGranted === 'function'
+    && window.ippoConsent.isResearchConsentGranted();
+  const totalDays = (state && state.totalDays) || 0;
+  if (!consentGranted || totalDays < RESEARCH_BADGE_MIN_DAYS) return '';
+
+  let firstReveal = false;
+  try {
+    firstReveal = !localStorage.getItem(RESEARCH_BADGE_SEEN_KEY);
+    if (firstReveal) localStorage.setItem(RESEARCH_BADGE_SEEN_KEY, '1');
+  } catch (_) {}
+
+  return `
+    <div class="hn-experiment-card${firstReveal ? ' hn-anim-1' : ''}" onclick="if(typeof window.showResearchBadgeDetail==='function')window.showResearchBadgeDetail()">
+      <p class="hn-experiment-text">🌱 あなたの記録が、からだの研究に貢献しています</p>
+    </div>`;
+}
+
+function showResearchBadgeDetail() {
+  if (typeof window.showAlertModal !== 'function') return;
+  window.showAlertModal(
+    'あなたの記録は匿名化されたうえで、からだの研究に役立てられています。\n\n'
+    + '・具体的な件数や提供先は公開されません\n'
+    + '・同意はいつでも設定 > データと安心 から撤回できます'
+  );
+}
+window.showResearchBadgeDetail = showResearchBadgeDetail;
+
 // ── メインレンダリング ────────────────────────────────────
 
 import { getStatusCardKeys } from './home-next-config.js';
@@ -868,7 +905,8 @@ export function renderStatusCards(container, config, state) {
       </div>
       <div class="hn-sc-row">${cards}</div>
     </div>
-    ${buildWeekStrip(records)}`;
+    ${buildWeekStrip(records)}
+    ${buildResearchBadge(state)}`;
 }
 
 function esc(str) {
