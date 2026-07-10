@@ -44,6 +44,16 @@ describe("record-factory — createRecord", () => {
     expect(event.payload.symptomCount).toBe(0);
   });
 
+  it("defaults experimentId to null when not provided", () => {
+    const { record } = createRecord("user_1", VALID_DRAFT);
+    expect(record.experimentId).toBeNull();
+  });
+
+  it("assigns the provided experimentId", () => {
+    const { record } = createRecord("user_1", { ...VALID_DRAFT, experimentId: "exp_1" });
+    expect(record.experimentId).toBe("exp_1");
+  });
+
   it("throws RecordFactoryError when userId is empty", () => {
     expect(() => createRecord("", VALID_DRAFT)).toThrow(RecordFactoryError);
   });

@@ -74,6 +74,9 @@ export interface RecordEntity {
   factors: string[];
   medication: string[];
 
+  // Experiment linkage (PR-REC-05)
+  experimentId: ID | null;
+
   // Meta
   note: string | null;
   isDeleted: boolean;

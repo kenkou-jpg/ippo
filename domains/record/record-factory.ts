@@ -90,6 +90,8 @@ export function createRecord(
     factors: draft.factors ?? [],
     medication: draft.medication ?? [],
 
+    experimentId: draft.experimentId ?? null,
+
     note: draft.note ?? null,
     isDeleted: false,
     consentLevel: draft.consentLevel ?? 0,
