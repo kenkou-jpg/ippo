@@ -513,6 +513,83 @@
   color: #9e8f8b;
   line-height: 1.8;
 }
+
+/* ── PR-REC-03a: Prototype Record UI (flagged, hidden by default) ──
+   Verbatim from prototype/styles.css Record section. Grep-verified
+   against src/ before adding: no existing definitions of these class
+   names anywhere in the codebase, so no scoping prefix is needed. ── */
+#rtc-proto-view { padding: 20px 20px 0; }
+#rtc-proto-view .rtc-proto-back {
+  border: none; background: none; font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px; color: #9e8f8b; cursor: pointer; padding: 4px 0 16px;
+  -webkit-tap-highlight-color: transparent;
+}
+#rtc-proto-view .screen-header { padding: 0 0 12px; }
+#rtc-proto-view .screen-header h1 { font-family: 'Shippori Mincho', serif; font-size: 1.5rem; color: var(--ink, #2d1f1a); margin: 0; }
+#rtc-proto-view .screen-sub { font-size: 0.8125rem; color: var(--ink-light, #6e5f56); margin-top: 4px; }
+#rtc-proto-view .block {
+  background: var(--white, #ffffff);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 2px 12px rgba(200,120,140,0.10));
+  padding: 18px 18px 20px;
+  margin: 0 0 14px;
+}
+#rtc-proto-view .card-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+#rtc-proto-view .card-icon-badge {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 0.875rem;
+}
+#rtc-proto-view .badge-gold { background: var(--gold-light, #fdf0d8); }
+#rtc-proto-view .badge-rose { background: var(--rose-light, #ecd0d2); }
+#rtc-proto-view .badge-plum { background: var(--rose-pale, #f7f2f2); }
+#rtc-proto-view .card-kicker-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; color: var(--ink-mid, #4a3830); }
+#rtc-proto-view .field-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--divider, rgba(200,180,170,0.20)); }
+#rtc-proto-view .field-row:last-child { border-bottom: none; }
+#rtc-proto-view .field-name { font-size: 0.875rem; color: var(--ink-mid, #4a3830); width: 56px; flex-shrink: 0; }
+#rtc-proto-view .emoji-picker { display: flex; gap: 4px; }
+#rtc-proto-view .emoji-picker button { font-size: 1.5rem; padding: 6px; border-radius: 12px; min-width: 48px; min-height: 48px; }
+#rtc-proto-view .emoji-picker button.selected { background: var(--rose-pale, #f7f2f2); }
+#rtc-proto-view .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+#rtc-proto-view .chip-group button { font-size: 0.8125rem; padding: 8px 12px; border-radius: var(--radius-pill, 999px); background: var(--bg-subtle, #f0ebe6); color: var(--ink-mid, #4a3830); min-height: 40px; }
+#rtc-proto-view .chip-group button.selected { background: var(--rose, #c8747b); color: white; }
+#rtc-proto-view .disease-chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--divider, rgba(200,180,170,0.20)); }
+#rtc-proto-view .disease-chip-row button { font-size: 0.8125rem; padding: 8px 12px; border-radius: var(--radius-pill, 999px); background: var(--bg-subtle, #f0ebe6); color: var(--ink-mid, #4a3830); min-height: 40px; }
+#rtc-proto-view .disease-chip-row button.selected { background: var(--rose, #c8747b); color: white; }
+#rtc-proto-view .card-cta { color: var(--rose, #c8747b); font-size: 0.8125rem; font-weight: 700; margin-top: 12px; display: inline-block; }
+#rtc-proto-view .detail-toggle {
+  padding: 10px 0 4px; border: none; background: none; width: 100%; text-align: left;
+  font-family: 'Noto Sans JP', sans-serif; cursor: pointer;
+}
+#rtc-proto-view .record-detail-panel { padding-top: 4px; }
+#rtc-proto-view .detail-field { padding: 10px 0; border-bottom: 1px solid var(--divider, rgba(200,180,170,0.20)); }
+#rtc-proto-view .detail-field:last-child { border-bottom: none; }
+#rtc-proto-view .detail-field .field-name { display: block; width: auto; margin-bottom: 8px; }
+#rtc-proto-view .detail-field input[type="range"] { width: 100%; accent-color: var(--rose, #c8747b); }
+#rtc-proto-view .detail-field input[type="number"] { width: 96px; border: 1px solid var(--border-ui, rgba(200,180,170,0.30)); border-radius: 12px; padding: 10px 12px; font-size: 0.875rem; }
+#rtc-proto-view .tag-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+#rtc-proto-view .tag-grid button { font-size: 0.875rem; padding: 12px 10px; border-radius: 12px; background: var(--bg-subtle, #f0ebe6); text-align: left; min-height: 44px; border: none; font-family: 'Noto Sans JP', sans-serif; color: inherit; cursor: pointer; }
+#rtc-proto-view .tag-grid button.selected { background: var(--rose, #c8747b); color: white; }
+#rtc-proto-view .hint-text { font-size: 0.6875rem; color: var(--ink-light, #8a7a70); margin-top: 8px; }
+#rtc-proto-view .memo-input {
+  width: 100%; border: 1px solid var(--border-ui, rgba(200,180,170,0.30)); border-radius: 12px;
+  padding: 12px 14px; font-size: 0.875rem; min-height: 44px; font-family: 'Noto Sans JP', sans-serif;
+  box-sizing: border-box; resize: none;
+}
+#rtc-proto-view .memo-input:focus { outline: none; border-color: var(--rose, #c8747b); }
+#rtc-proto-view .submit-record {
+  display: block; width: 100%; margin: 8px 0 24px;
+  background: var(--rose, #c8747b); color: white; font-weight: 700; font-size: 0.9375rem;
+  padding: 16px; border-radius: var(--radius-pill, 999px); text-align: center;
+  box-shadow: 0 4px 14px rgba(200,116,123,0.35); border: none; cursor: pointer;
+  font-family: 'Noto Sans JP', sans-serif;
+}
+#rtc-proto-view .record-focus-banner {
+  padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+  background: var(--rose-pale, #f7f2f2); border-radius: 12px; margin: 0 0 14px;
+}
+#rtc-proto-view .record-focus-icon { font-size: 1.25rem; }
+#rtc-proto-view .record-focus-label { display: block; font-size: 0.6875rem; font-weight: 700; color: var(--plum, #b14e56); }
+#rtc-proto-view .record-focus-text { display: block; font-size: 0.8125rem; color: var(--ink-mid, #4a3830); }
 </style>
 
 <!-- ── PROGRESS HEADER ────────────────────────────────────── -->
@@ -683,6 +760,136 @@
 <!-- ── BOTTOM HINT ────────────────────────────────────────── -->
 <div class="rtc-bottom-hint" id="rtc-bottom-hint">
   💡 小さな変化を知ることが、あなたの理解につながります
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PR-REC-03a: Prototype Record UI（フラグ有効時のみ表示）
+     出典: prototype/index.html #screen-record（193〜308行目）を
+     ほぼ逐語的に移植。保存接続・Business Logic変更は行わない
+     （PR-REC-03bのスコープ）。フラグ切替は record-three-card.js の
+     isPrototypeRecordUIEnabled() 参照。
+     ═══════════════════════════════════════════════════════════ -->
+<div id="rtc-proto-view" hidden>
+  <button class="rtc-proto-back" onclick="if(window.rtcClose)window.rtcClose()">← ホームへ</button>
+
+  <header class="screen-header">
+    <h1>記録する</h1>
+    <p class="screen-sub">10秒で今日の実験ログをつける</p>
+  </header>
+
+  <!-- 今週の実験対象（experimentContext未接続のため既定非表示） -->
+  <div class="record-focus-banner" id="rtc-proto-focus-banner" hidden>
+    <span class="record-focus-icon" id="rtc-proto-focus-icon">🥛</span>
+    <div>
+      <span class="record-focus-label">今週の実験対象</span>
+      <span class="record-focus-text" id="rtc-proto-focus-text">乳製品断ち</span>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="card-kicker"><span class="card-icon-badge badge-plum">📝</span><span class="card-kicker-label">今日の体調</span></div>
+    <div class="field-row">
+      <span class="field-name">気分</span>
+      <div class="emoji-picker" data-field="mood">
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😞</button>
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😐</button>
+        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">🙂</button>
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😊</button>
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😄</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-name">睡眠</span>
+      <div class="chip-group" data-field="sleep">
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">短い</button>
+        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">よく寝た</button>
+      </div>
+    </div>
+    <div class="field-row">
+      <span class="field-name">肌</span>
+      <div class="chip-group" data-field="skin">
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">荒れ</button>
+        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">良い</button>
+      </div>
+    </div>
+
+    <!-- PR-REC-02: 疾患選択時のみ表示（diseaseContext未接続のため既定非表示） -->
+    <div class="disease-chip-row" data-field="diseaseQuickSymptoms" id="rtc-proto-disease-chips" hidden></div>
+
+    <!-- PR-REC-02: 詳細を開いた時のみ表示 -->
+    <button class="card-cta detail-toggle" type="button" id="btn-record-detail-toggle" onclick="if(window._rtcProtoToggleDetail)window._rtcProtoToggleDetail()">くわしく記録する（任意）</button>
+    <div class="record-detail-panel" id="record-detail-panel" hidden>
+      <div class="detail-field">
+        <span class="field-name">痛みの強さ</span>
+        <input type="range" min="0" max="10" value="0" id="rtc-proto-pain-level" data-field="painLevel" />
+      </div>
+      <div class="detail-field">
+        <span class="field-name">周期</span>
+        <div class="chip-group" data-field="menstrualCycle">
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">生理中</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">卵胞期</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">排卵期</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">黄体期</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <span class="field-name">血塊</span>
+        <div class="chip-group" data-field="bloodClot">
+          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">なし</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">少し</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">多い</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <span class="field-name">おりもの</span>
+        <div class="chip-group" data-field="bloodColor">
+          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">透明</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">白</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">茶色</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">赤</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <span class="field-name">体温</span>
+        <input type="number" step="0.1" min="35" max="40" placeholder="36.5" id="rtc-proto-temperature" data-field="temperature" />
+      </div>
+      <div class="detail-field">
+        <span class="field-name">排便</span>
+        <div class="chip-group" data-field="bowel">
+          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">便秘</button>
+          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">下痢</button>
+        </div>
+      </div>
+      <div class="detail-field">
+        <span class="field-name">服薬</span>
+        <input class="memo-input" type="text" placeholder="服用した薬があれば" id="rtc-proto-medication" data-field="medication" />
+      </div>
+      <div class="detail-field disease-detail-symptoms" id="rtc-proto-disease-detail-chips" hidden></div>
+    </div>
+  </div>
+
+  <div class="block">
+    <div class="card-kicker"><span class="card-icon-badge badge-rose">🧪</span><span class="card-kicker-label">今日の行動タグ</span></div>
+    <div class="tag-grid" data-field="tags" id="rtc-proto-tag-grid">
+      <button data-tag="caffeine" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">☕ カフェイン</button>
+      <button data-tag="dairy" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🥛 乳製品</button>
+      <button data-tag="sugar" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🍚 糖質</button>
+      <button data-tag="alcohol" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🍷 アルコール</button>
+      <button data-tag="exercise" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🏃 運動</button>
+      <button data-tag="earlysleep" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">💤 早寝</button>
+    </div>
+    <p class="hint-text" id="rtc-proto-hint-text">ハイライトされたタグは今週の実験に関係する項目です</p>
+  </div>
+
+  <div class="block">
+    <div class="card-kicker"><span class="card-icon-badge badge-gold">💡</span><span class="card-kicker-label">気づきメモ（任意）</span></div>
+    <textarea class="memo-input" id="rtc-proto-memo" rows="3" placeholder="今日気づいたことがあれば"></textarea>
+  </div>
+
+  <button class="submit-record" id="btn-submit-record" onclick="if(window._rtcProtoSubmit)window._rtcProtoSubmit()">記録する</button>
 </div>
 
 </div>

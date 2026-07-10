@@ -1097,6 +1097,11 @@ Phase 7: Research Contribution Badgeが実データ（Case数・研究同意状�
 ✓ 疾患別段階的開示層の設計 → Information Density Freeze例外として承認、4枚目のカード追加はしない
 ✓ PMS/PMDDキーの扱い → UIは2チップ維持、データ層は既存disease_definitions.key='pms_pmdd'へ統合
 ✓ 「肌=良い」状態の扱い → 「良い」「普通」いずれもrecord_symptomsへ行を追加しない（UI表示上のみ区別）
+✓ PR-REC-03a Runtime Integration方式（2026-07-10 Founder Decision）→ Prototype Record UIは
+  既存rtc-*マークアップを置換せず、Feature Flag（`?recordUI=prototype`またはlocalStorage
+  `ippo_record_ui_v2`、デフォルトOFF）による並存方式を正式採用。現行Record UIを本番既定として
+  維持し、Prototype Record UIは検証用限定公開とする。詳細は
+  `docs/rebuild/PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`参照
 ```
 
 ---

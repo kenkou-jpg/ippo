@@ -597,9 +597,96 @@ function _skipAdaptive() {
   }, 300);
 }
 
+// ─── PR-REC-03a: Prototype Record View (flagged, save not wired) ──
+// Markup lives in src/screens/record-three-card.html under #rtc-proto-view
+// (hidden by default). This section only toggles visibility and provides
+// local-state-only chip interactivity — no save/business logic connection
+// (that is PR-REC-03b scope).
+function _isPrototypeViewEnabled() {
+  try {
+    var params = new URLSearchParams(window.location.search);
+    if (params.get('recordUI') === 'prototype') return true;
+    return window.localStorage.getItem('ippo_record_ui_v2') === '1';
+  } catch (_) {
+    return false;
+  }
+}
+
+function _initProtoView() {
+  // PR-REC-03a fix: '.rtc-header' is a CSS class, not an element id — it was
+  // previously mixed into the getElementById loop below and silently never
+  // matched, leaving the legacy progress header visible behind the new view.
+  var headerEl = document.querySelector('.rtc-header');
+  if (headerEl) headerEl.style.display = 'none';
+
+  ['rtc-hint-banner', 'rtc-card-1', 'rtc-card-2', 'rtc-card-3', 'rtc-success', 'rtc-nav', 'rtc-bottom-hint'].forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  });
+
+  var view = document.getElementById('rtc-proto-view');
+  if (!view) return;
+  view.hidden = false;
+
+  view.querySelectorAll('.selected').forEach(function (el) { el.classList.remove('selected'); });
+  var detailPanel = document.getElementById('record-detail-panel');
+  if (detailPanel) detailPanel.hidden = true;
+  var memo = document.getElementById('rtc-proto-memo');
+  if (memo) memo.value = '';
+
+  // Restore the prototype's default-selected demo state (mood=🙂/normal/normal
+  // sleep/skin, bloodClot=none, bloodColor=clear, bowel=normal), matching the
+  // markup's baked-in `class="selected"` defaults after the reset above.
+  ['[data-field="mood"] button:nth-child(3)', '[data-field="sleep"] button:nth-child(2)',
+   '[data-field="skin"] button:nth-child(2)', '[data-field="bloodClot"] button:nth-child(1)',
+   '[data-field="bloodColor"] button:nth-child(1)', '[data-field="bowel"] button:nth-child(1)'
+  ].forEach(function (sel) {
+    var el = view.querySelector(sel);
+    if (el) el.classList.add('selected');
+  });
+}
+
+function _protoSelect(el) {
+  var group = el.parentElement;
+  if (group) group.querySelectorAll('button').forEach(function (b) { b.classList.remove('selected'); });
+  el.classList.add('selected');
+}
+
+function _protoToggleTag(el) {
+  el.classList.toggle('selected');
+}
+
+function _protoToggleDetail() {
+  var panel = document.getElementById('record-detail-panel');
+  if (panel) panel.hidden = !panel.hidden;
+}
+
+function _protoSubmit() {
+  // PR-REC-03a scope: markup/CSS + local UI state only. Save pipeline
+  // connection (_integrateWithExistingSave / window.rtcSaveDelegate) is
+  // PR-REC-03b scope — intentionally not wired here.
+  console.log('[rtc-proto] submit tapped — save not wired yet (PR-REC-03b)');
+}
+
+// Temporary migration bridge only (Founder Decision, PR-REC-03a adoption).
+// Not a permanent API — inline onclick handlers in #rtc-proto-view need these
+// on window until the Prototype markup is wired through a proper event
+// delegation layer. Removal candidate for PR-REC-03c or the Legacy Removal
+// Program (do not add further window.* exports on top of these).
+window.isPrototypeRecordUIEnabled = _isPrototypeViewEnabled;
+window._rtcProtoSelect       = _protoSelect;
+window._rtcProtoToggleTag    = _protoToggleTag;
+window._rtcProtoToggleDetail = _protoToggleDetail;
+window._rtcProtoSubmit       = _protoSubmit;
+
 // ─── Screen Initialization ────────────────────────────────────
 function _initScreen() {
   _state = _initState();
+
+  if (_isPrototypeViewEnabled()) {
+    _initProtoView();
+    return;
+  }
 
   _buildSymptomGrid();
   _buildEmotionGrid();

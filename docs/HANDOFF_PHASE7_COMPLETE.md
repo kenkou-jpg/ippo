@@ -94,10 +94,39 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **⚠ PUSH未完了（2026-07-10）**: 以下のPR-REC系4コミット（`c77229c`〜`53ad12e`）は
-> ローカルの`ops/recovery-program`ブランチには存在するが、`git push`がサンドボックス環境の
-> ネットワーク制約（`Could not resolve host: github.com`）により失敗し、**originには未反映**。
+> **⚠ PUSH未完了（2026-07-10）**: `ops/recovery-program`のローカルコミット（本セッション分の
+> PR-REC-03a採用コミットを含む）は、サンドボックス環境のネットワーク制約
+> （`Could not resolve host: github.com`）により`git push`できていない。**originには未反映**。
 > 次セッション開始時、まず`git push origin ops/recovery-program`を再試行すること。
+
+**PR-REC-03a: Prototype Record View 採用（Founder Decision, ADOPT WITH FIXES）**（2026-07-10）
+- 前セッション終了後、未コミットで`src/modules/record-three-card.js`・
+  `src/screens/record-three-card.html`にPR-REC-03a相当の実装（Feature Flag
+  `?recordUI=prototype` / `localStorage.ippo_record_ui_v2`で切替、デフォルトOFF、
+  保存接続なし）が存在しているのを発見。READ-ONLY監査（10項目）の結果
+  「ADOPT WITH FIXES」と判定し、Founder承認を得て以下2件を修正の上、正式採用した
+- **修正1**: `_initProtoView()`が`'rtc-header'`をIDとして`getElementById`していたが
+  実際はCSSクラス（`<div class="rtc-header">`）のため常にno-op化し、フラグON時に
+  旧ヘッダーと新viewが二重表示される実バグを修正（`document.querySelector('.rtc-header')`へ変更）
+- **修正2**: Prototypeと同じスクリーンタイトル「記録する」「10秒で今日の実験ログをつける」を
+  `#rtc-proto-view`内に追加（`.screen-header`/`.screen-sub`、`#rtc-proto-view`スコープCSS付き）
+- 新規window export 5件（`isPrototypeRecordUIEnabled`/`_rtcProtoSelect`/`_rtcProtoToggleTag`/
+  `_rtcProtoToggleDetail`/`_rtcProtoSubmit`）は恒久APIではなく移行Bridgeとして扱う旨をコード
+  コメントに明記。**PR-REC-03cまたはLegacy Removal Programでの削除候補として記録**
+- 採用方式（Founder Decision）: Prototype Record UIと既存Record UIの**並存+Feature Flag**。
+  現行Record UIを本番既定として維持し、Prototype Record UIは検証用限定公開
+- 新規テスト: `tests/modules/record-three-card-prototype-view.test.js`（5件、ソースレベルの
+  regression guard — rtc-header修正/タイトル追加/save非接続/フラグ既定OFF/window export
+  コメント明記を検証）。既存の`record-three-card`関連テストは元々存在しない
+- Build PASS（`npx vite build`、既知の循環チャンク警告のみ）。dist成果物に
+  `rtc-proto`/`isPrototypeRecordUIEnabled`が正しく含まれることを実測確認
+- Browser Verification: AI自己判断での実施は禁止のため未実施。停止・報告が必要
+  （対象: Flag OFF時の既存Record UI無変化・Flag ON時のヘッダー非重複・タイトル表示・
+  Prototype UIの操作性、Console Error 0件）
+- 禁止事項（保存接続・DB変更・Domain変更・Business Logic変更・旧Record UI削除・
+  mainへのマージ・releaseブランチ作成・Scope外整理）はいずれも実施していない
+- 判定: コード修正完了、**Founder Browser Verification待ち**。完了後はPR-REC-03b着手前に
+  Founderへ報告し一旦停止する方針（Founder Decision通り）
 
 **PR-REC-03: Record Screen Runtime Integration Plan**（2026-07-10・コード変更ゼロ、設計文書のみ）
 - 当初「Adapter接続のみの小PR」として着手しようとしたが、調査の結果`prototype/`は
