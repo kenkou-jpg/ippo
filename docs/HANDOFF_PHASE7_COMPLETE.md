@@ -12,7 +12,7 @@ ippoの設計・実装を進めている。
 > 詳細: docs/RELEASE_READINESS_COUNCIL.md 21章。以下の本文書内の記述（「女性疾患」「疾患プラットフォーム」等）は
 > Wave1〜Wave2設計当時の呼称であり、歴史的記録として保持する（Append-Only方針により本文は書き換えない）。
 
-作業ブランチ: feat/phase4d-batch1-record-input
+作業ブランチ: ops/recovery-program（2026-07-10更新。旧feat/phase4d-batch1-record-inputは陳腐化した記載）
 
 リポジトリ: C:/Users/USER/Documents/ippo
 
@@ -93,6 +93,129 @@ ippoの設計・実装を進めている。
 - 本HANDOFFの製品概要・戦略上の条件表・Governing Document Hierarchy・BD registryを更新
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
+
+> **⚠ PUSH未完了（2026-07-10）**: 以下のPR-REC系4コミット（`c77229c`〜`53ad12e`）は
+> ローカルの`ops/recovery-program`ブランチには存在するが、`git push`がサンドボックス環境の
+> ネットワーク制約（`Could not resolve host: github.com`）により失敗し、**originには未反映**。
+> 次セッション開始時、まず`git push origin ops/recovery-program`を再試行すること。
+
+**PR-REC-03: Record Screen Runtime Integration Plan**（2026-07-10・コード変更ゼロ、設計文書のみ）
+- 当初「Adapter接続のみの小PR」として着手しようとしたが、調査の結果`prototype/`は
+  `app.html`が読み込むVite bundleと実行時に完全に分離された独立静的ページであり
+  （`window.rtcSaveDelegate`等のグローバルが存在しない）、単純なAdapter関数だけでは
+  何にも接続されず無音で失敗することが判明。PR-REC-03を「Record Screen Runtime
+  Integration PR」として再定義し、`docs/rebuild/PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`
+  を作成（10節: 抽出範囲・置換範囲・接続方針・window/Vite依存整理・rollback・
+  Browser Verification項目・PR分割案）
+- 発見: 実際のライブ保存経路は`record-three-card.js`の`_buildPayload()`→
+  `window.rtcSaveDelegate`→`record-three-card-save.js`の`_rtcPipelineSave()`
+  （upsertRecord/persistRecordState/syncRecordImmediately/syncRecordCloud）。
+  `record-edit.js`の`gatherRecordData()`は別系統で、`#screen-record`（レガシー
+  スタブ、`data-legacy-isolated="2026-05-27"`）経由の過去日編集専用（本統合の対象外）
+- 発見: 現行`_buildPayload()`には「行動タグ」（caffeine/dairy等）に対応するフィールドが
+  存在しない新規ギャップ。PR-REC-03cとして切り出し予定
+- `domains/record/prototype-payload-mapper.ts`（PR-REC-01）は、対象スキーマ（正規化
+  records系）がPR-REC-06完了までは本番で使われないため、今回は接続しない
+- 判定: **CONDITIONAL GO**。4条件（行動タグ対応要否／共有CSS値diff確認／
+  フィーチャーフラグか直接置換か／Supabase接続確認環境）がFounder決定待ち
+- Decision Log: 更新不要（PR Plan自体の作成、Architecture変更はまだ実施していない）
+- Next: 上記4条件確定後、PR-REC-03a（マークアップ/CSS移植）→03b（ロジック統合）
+  →03c（行動タグ対応、要否次第）の順で着手
+
+**PR-REC-06: Recordスキーマ一本化**（2026-07-10・Founder判断により保留）
+- 着手前に`src/application/composition-root.js`のPR-014/PR-021由来のDual-Write/
+  ReadSwitch/RecordCommandService/`ApiGateway.saveRecord()`スタックを監査した結果、
+  **実際のUI保存経路からは一切呼ばれていないデッドコード**と確認（localStorage上の
+  別スキーマ`ippo_state_v2`/`ippo_diff_log`が対象で、Council文書が問題にしている
+  Supabaseの`user_records`↔正規化テーブル移行とは無関係）
+- しかし正規化`records`/`record_symptoms`/`record_factors`への実書込みを行う
+  `infrastructure/record/`の`StubRecordRepository`は全メソッドが`"not implemented"`
+  を投げるスタブのままであることも判明。PR-REC-06は「切替えるだけ」ではなく
+  新規実装（同日上書き・オフライン再試行等を含む）+ 保存パイプライン切替 +
+  バックフィルスクリプトが必要な、Phase A-3/A-4相当（2〜3週間規模）の作業
+- Founder判断: 「いったん保留、他の未着手PRへ」。サブPR分割案（06a/06b/06c）の
+  提示は行っておらず、次回セッションでの再判断待ち
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- Next: Founder方針確定後に着手。それまでPR-REC-08（最終Browser Verification）は
+  スコープ確定不可のため保留のまま
+
+**PR-REC-07: Consent Context監査ログ**（2026-07-10・Founder方針により保留、任意項目）
+- Council文書で「任意・優先度低、Phase 6以降でも可」と明記された項目。既存
+  `audit_log`テーブルはRLSでService Role専用（クライアントから直接INSERT不可）の
+  ため、着手するには新規テーブル/カラム設計が必要と判明し、「小さいPR」の範囲を
+  超えるため保留
+- Decision Log: 更新不要
+- Next: 対応不要のまま据え置き。着手する場合は専用の設計会議が必要
+
+**PR-REC-05: experiment_idカラム追加 + Experiment Context接続**（2026-07-10・PR-REC-01に続く
+Record Migration実装）
+- `supabase/migrations/20260092_alter_records_experiment_id.sql`: `records`テーブルへ
+  `experiment_id uuid REFERENCES experiments(id)`（nullable）+ 部分インデックスを追加
+- `domains/record/record.entity.ts`/`record-factory.ts`: `RecordEntity`/`RecordDraft`へ
+  `experimentId: ID | null`を追加（デフォルトnull）
+- `domains/record/prototype-payload-mapper.ts`: `payload.experimentContext.experimentId`
+  をそのままマッピングするよう拡張
+- Build PASS / `vitest run tests/domains/record/` 58件PASS（新規2件含む）。
+  Founder方針（毎PR全Regression/全Architecture Guardは省略）に従い、全体Regression・
+  全Architecture Guardは未実施
+- Decision Log: 更新不要（Scope内のカラム追加、Roadmap変更なし）
+- 判定: PR-REC-05完了
+- Next: PR-REC-06（保留、上記参照）
+
+**PR-REC-04: factor_definitions シード追加**（2026-07-10・DB seedのみ、コード変更ゼロ）
+- `supabase/migrations/20260091_seed_factor_definitions_prototype_tags.sql`: Prototypeの
+  行動タグ6種のうち既存キーが無かった`dairy`（乳製品）・`early_sleep`（早寝）を
+  `factor_definitions`へINSERT（`ON CONFLICT DO UPDATE`、スキーマ変更なし）
+- src側にfactorキーをハードコードした重複箇所なし（DB seedのみで完結）を確認済み
+- 判定: PR-REC-04完了。マイグレーションファイルは追加したがSupabase側への適用は
+  別途必要（本セッションでは`supabase db push`等は未実施）
+- Next: PR-REC-05
+
+**PR-REC-02: 疾患別段階的開示UI**（2026-07-10・`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`
+Decision 2準拠、UI変更あり）
+- `prototype/index.html`/`styles.css`/`app.js`のRecordカード1（今日の体調）へ、
+  4枚目カード追加なしで以下を追加:
+  - 肌チップ直下: オンボーディング選択疾患に応じた症状チップ（2〜3個、複数疾患は
+    重複除去して統合）
+  - カード末尾:「くわしく記録する（任意）」折りたたみ（痛み/周期/血塊/おりもの/
+    体温/排便/服薬 + 疾患別詳細症状、すべてnull許容）。sensitive症状は婉曲的表現
+  - 実装中に発見・修正: 疾患チップ行に`.chip-group`クラスを流用すると既存の
+    単一選択トグルと自作の複数選択トグルが二重発火する競合があり、専用クラス
+    `.disease-chip-row`に分離して解消
+- `prototype/`はvitest/vite build対象外のため、`node --check`（構文）+ 重複ID検査で確認
+- **未接続**: Business Logic・実保存には未接続（静的Prototypeへの追加のみ）。
+  接続はPR-REC-03（上記Runtime Integration Plan）のスコープ
+- Browser Verification: AI自己判断での実施は禁止のため未実施。停止・報告済み
+  （対象: Recordカード1の疾患別チップ・詳細開示パネル、320/375/390/430px確認が必要）
+- 判定: コード実装完了、**Founder Browser Verification待ち**
+- Next: Founder確認後、問題なければPR-REC-03へ
+
+**PR-REC-01: Record Payload設計・Adapter実装**（2026-07-10・Record Migration着手PR）
+- `domains/record/prototype-payload-mapper.ts`（新規）: Prototype Record UIのPayload
+  （recordDate/mood/sleep/skin/tags/memo/diseaseContext/optionalDetails）を既存
+  `RecordDraft`型へ変換するマッピング関数`mapPrototypePayloadToRecordDraft()`。
+  DB・スキーマ・保存パイプラインには一切未接続（マッピングのみ）
+- Confirmed Founder Decisions（`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`）準拠:
+  sleep 3択→sleepHours/sleepQuality暫定値、skin=rough時のみ`skin_roughness`登録
+  （normal/goodは非永続化）、tags(sugar→high_carb/earlysleep→early_sleep)、
+  PMS/PMDD選択時は`pms_pmdd`単一キーへ統合
+- `tests/domains/record/prototype-payload-mapper.test.ts`（新規）11件PASS
+- Build PASS / Architecture Guard 単体実行では104件中103件PASS・1件timeout
+  （`architecture-guard-pr073.test.js`、単体再実行で31件PASS済み、本PRと無関係の
+  既知flaky timeoutと確認）
+- 判定: PR-REC-01完了
+- Next: PR-REC-04（並行実施可能）
+
+**IMPLEMENTATION_PLAN_V1.1改訂 + Migration Feasibility Council群**（2026-07-09、本セッション
+着手前に既にリポジトリへ存在していた未コミット状態。本セッションでコミットのみ実施）
+- `docs/IMPLEMENTATION_PLAN_V1.md`をV1.0→V1.1へ改訂（出力11〜17追加、Gap一覧G-01〜G-23へ
+  実態を反映）。`docs/rebuild/IPPO_REBUILD_MIGRATION_FEASIBILITY_COUNCIL.md`・
+  `IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`・`IPPO_REPOSITORY_STRATEGY_REEVALUATION_COUNCIL.md`・
+  `IPPO_FINAL_REPOSITORY_ARCHITECTURE_COUNCIL.md`の4文書を新規追加
+- Repository Strategy A（現行ippoへPrototypeを統合）を正式採用。UI/Logic権威分担の原則
+  （見た目=Prototype優先、機能=現行IPPO優先、データ整合性で迷ったら現行IPPO優先）を明記
+- 以降のPR-REC系はこの改訂とIPPO_RECORD_MIGRATION_DESIGN_COUNCIL.mdの「Record Migration
+  PR Plan」（PR-REC-01〜08）に従って実施
 
 **PR-092A: Home Cluster統合**（2026-07-07・UI/UX Final Council採用、Founder承認済み）
 - buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsを
