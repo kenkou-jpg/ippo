@@ -270,6 +270,115 @@ const CONCERN_CONTENT = {
   },
 };
 
+/* PR-REC-02: 疾患別段階的開示 — docs/rebuild/IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md
+ * 「Disease-Specific Disclosure」節の症状キー・表示条件をそのまま反映する。
+ * quick = カード1「肌」直下に常設表示する2〜3個のチップ
+ * detail = 「くわしく記録する」を開いた時のみ表示する追加チップ（sensitive=trueは婉曲的なラベルにする） */
+const DISEASE_DISCLOSURE = {
+  pms: {
+    quick: [
+      { key: "irritability", label: "イライラ" },
+      { key: "bloating", label: "腹部膨満" },
+      { key: "breast_tenderness", label: "胸の張り" },
+    ],
+    detail: [
+      { key: "depression", label: "気分の落ち込み" },
+      { key: "anxiety", label: "不安感" },
+      { key: "increased_appetite", label: "食欲増加" },
+      { key: "difficulty_concentrating", label: "集中力低下" },
+      { key: "brain_fog", label: "ブレインフォグ" },
+      { key: "insomnia", label: "不眠" },
+    ],
+  },
+  pmdd: {
+    // PMDDはDB上pms_pmddキーに統合されるため、pmsと同じ症状セットを使う
+    quick: [
+      { key: "irritability", label: "イライラ" },
+      { key: "bloating", label: "腹部膨満" },
+      { key: "breast_tenderness", label: "胸の張り" },
+    ],
+    detail: [
+      { key: "depression", label: "気分の落ち込み" },
+      { key: "anxiety", label: "不安感" },
+      { key: "increased_appetite", label: "食欲増加" },
+      { key: "difficulty_concentrating", label: "集中力低下" },
+      { key: "brain_fog", label: "ブレインフォグ" },
+      { key: "insomnia", label: "不眠" },
+    ],
+  },
+  pcos: {
+    quick: [{ key: "skin_roughness", label: "肌荒れ" }],
+    detail: [
+      { key: "increased_appetite", label: "食欲増加" },
+      { key: "fatigue", label: "倦怠感" },
+      { key: "joint_pain", label: "関節痛" },
+    ],
+  },
+  endometriosis: {
+    quick: [{ key: "lower_abdominal_pain", label: "下腹部痛" }],
+    detail: [
+      { key: "dyspareunia", label: "性交時の痛み", sensitive: true },
+      { key: "painful_defecation", label: "排便時の痛み", sensitive: true },
+      { key: "pelvic_heaviness", label: "骨盤内の重だるさ" },
+      { key: "stabbing_pain", label: "刺すような痛み" },
+      { key: "heavy_menstruation", label: "経血量増加" },
+      { key: "abnormal_bleeding", label: "不正出血" },
+    ],
+  },
+  "ovarian-cyst": {
+    quick: [
+      { key: "lower_abdominal_pain", label: "下腹部痛" },
+      { key: "bloating", label: "腹部膨満" },
+    ],
+    detail: [
+      { key: "pressure_sensation", label: "圧迫感" },
+      { key: "frequent_urination", label: "頻尿" },
+      { key: "stabbing_pain", label: "刺すような痛み" },
+    ],
+  },
+};
+
+function dedupeByKey(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (seen.has(item.key)) return false;
+    seen.add(item.key);
+    return true;
+  });
+}
+
+function renderRecordDiseaseDisclosure() {
+  const active = STATE.concerns.filter((c) => c !== "none" && DISEASE_DISCLOSURE[c]);
+  const quick = dedupeByKey(active.flatMap((c) => DISEASE_DISCLOSURE[c].quick));
+  const detail = dedupeByKey(active.flatMap((c) => DISEASE_DISCLOSURE[c].detail));
+
+  const quickRow = document.getElementById("record-disease-chips");
+  quickRow.hidden = quick.length === 0;
+  quickRow.innerHTML = quick
+    .map((s) => `<button type="button" data-symptom="${s.key}">${s.label}</button>`)
+    .join("");
+
+  const detailRow = document.getElementById("record-disease-detail-chips");
+  detailRow.hidden = detail.length === 0;
+  detailRow.innerHTML =
+    detail.length === 0
+      ? ""
+      : `<span class="field-name">気になる症状</span><div class="tag-grid">` +
+        detail
+          .map(
+            (s) =>
+              `<button type="button" data-symptom="${s.key}"${s.sensitive ? ' class="sensitive"' : ""}>${s.label}</button>`,
+          )
+          .join("") +
+        `</div>`;
+
+  [quickRow, detailRow].forEach((row) => {
+    row.querySelectorAll("button[data-symptom]").forEach((btn) => {
+      btn.addEventListener("click", () => btn.classList.toggle("selected"));
+    });
+  });
+}
+
 /* ===== Rendering ===== */
 
 function renderHero(day) {
@@ -497,6 +606,7 @@ function renderAll() {
   renderHomeNext(day);
   renderRecordFocusBanner(day);
   renderRecordTagHighlight(day);
+  renderRecordDiseaseDisclosure();
   renderCalendar(day);
   renderInsightsHighlight(day);
   renderInsightsCompare(day);
@@ -677,6 +787,15 @@ function initRecordForm() {
     const btn = e.target.closest("button");
     if (!btn) return;
     btn.classList.toggle("selected");
+  });
+
+  // PR-REC-02: 「くわしく記録する（任意）」の折りたたみ導線
+  document.getElementById("btn-record-detail-toggle").addEventListener("click", (e) => {
+    const btn = e.currentTarget;
+    const panel = document.getElementById("record-detail-panel");
+    const willOpen = panel.hidden;
+    panel.hidden = !willOpen;
+    btn.textContent = willOpen ? "くわしく記録する（任意）を閉じる" : "くわしく記録する（任意）";
   });
 
   document.getElementById("btn-submit-record").addEventListener("click", () => {

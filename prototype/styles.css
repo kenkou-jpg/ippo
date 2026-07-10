@@ -301,9 +301,24 @@ input { font-family: inherit; }
 .emoji-picker button { font-size: 1.5rem; padding: 6px; border-radius: 12px; min-width: 48px; min-height: 48px; }
 .emoji-picker button.selected { background: var(--rose-pale); animation: emoji-pop 0.3s ease; }
 @keyframes emoji-pop { 0% { transform: scale(1); } 45% { transform: scale(1.22); } 100% { transform: scale(1); } }
-.chip-group { display: flex; gap: 6px; }
+.chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
 .chip-group button { font-size: 0.8125rem; padding: 8px 12px; border-radius: var(--radius-pill); background: var(--bg-subtle); color: var(--ink-mid); min-height: 40px; }
 .chip-group button.selected { background: var(--rose); color: white; }
+
+/* PR-REC-02: 疾患選択時のみ表示（カード1「肌」直下の小さなチップ行、複数選択可） */
+.disease-chip-row { display: flex; gap: 6px; flex-wrap: wrap; padding-top: 10px; margin-top: 2px; border-top: 1px solid var(--divider); }
+.disease-chip-row button { font-size: 0.8125rem; padding: 8px 12px; border-radius: var(--radius-pill); background: var(--bg-subtle); color: var(--ink-mid); min-height: 40px; }
+.disease-chip-row button.selected { background: var(--rose); color: white; }
+
+/* PR-REC-02: 詳細を開いた時のみ表示 */
+.detail-toggle { padding: 10px 0 4px; }
+.record-detail-panel { padding-top: 4px; }
+.detail-field { padding: 10px 0; border-bottom: 1px solid var(--divider); }
+.detail-field:last-child { border-bottom: none; }
+.detail-field .field-name { display: block; width: auto; margin-bottom: 8px; }
+.detail-field input[type="range"] { width: 100%; accent-color: var(--rose); }
+.detail-field input[type="number"] { width: 96px; border: 1px solid var(--border-ui); border-radius: 12px; padding: 10px 12px; font-size: 0.875rem; }
+.disease-detail-symptoms .tag-grid button.sensitive { font-style: italic; }
 
 .tag-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 .tag-grid button { font-size: 0.875rem; padding: 12px 10px; border-radius: 12px; background: var(--bg-subtle); text-align: left; min-height: 44px; }

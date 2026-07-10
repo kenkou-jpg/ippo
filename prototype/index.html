@@ -230,6 +230,61 @@
           <button data-value="good">良い</button>
         </div>
       </div>
+
+      <!-- PR-REC-02: 疾患選択時のみ表示（オンボーディングの気になることに連動） -->
+      <div class="disease-chip-row" data-field="diseaseQuickSymptoms" id="record-disease-chips" hidden></div>
+
+      <!-- PR-REC-02: 詳細を開いた時のみ表示 -->
+      <button class="card-cta detail-toggle" type="button" id="btn-record-detail-toggle">くわしく記録する（任意）</button>
+      <div class="record-detail-panel" id="record-detail-panel" hidden>
+        <div class="detail-field">
+          <span class="field-name">痛みの強さ</span>
+          <input type="range" min="0" max="10" value="0" id="record-detail-pain-level" data-field="painLevel" />
+        </div>
+        <div class="detail-field">
+          <span class="field-name">周期</span>
+          <div class="chip-group" data-field="menstrualCycle">
+            <button data-value="menstruation">生理中</button>
+            <button data-value="follicular">卵胞期</button>
+            <button data-value="ovulation">排卵期</button>
+            <button data-value="luteal">黄体期</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">血塊</span>
+          <div class="chip-group" data-field="bloodClot">
+            <button data-value="none" class="selected">なし</button>
+            <button data-value="small">少し</button>
+            <button data-value="large">多い</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">おりもの</span>
+          <div class="chip-group" data-field="bloodColor">
+            <button data-value="clear" class="selected">透明</button>
+            <button data-value="white">白</button>
+            <button data-value="brown">茶色</button>
+            <button data-value="red">赤</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">体温</span>
+          <input type="number" step="0.1" min="35" max="40" placeholder="36.5" id="record-detail-temperature" data-field="temperature" />
+        </div>
+        <div class="detail-field">
+          <span class="field-name">排便</span>
+          <div class="chip-group" data-field="bowel">
+            <button data-value="normal" class="selected">普通</button>
+            <button data-value="constipation">便秘</button>
+            <button data-value="diarrhea">下痢</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">服薬</span>
+          <input class="memo-input" type="text" placeholder="服用した薬があれば" id="record-detail-medication" data-field="medication" />
+        </div>
+        <div class="detail-field disease-detail-symptoms" id="record-disease-detail-chips" hidden></div>
+      </div>
     </section>
 
     <section class="block">
