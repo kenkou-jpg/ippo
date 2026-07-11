@@ -22,7 +22,15 @@ vi.stubGlobal('localStorage', {
 
 function makeRecords(count = 30, overrides = {}) {
   const records = [];
-  const base = new Date('2026-03-01');
+  // Anchored to "today minus (count-1) days" rather than a fixed calendar
+  // date: BaseAnalyzer.analyze() calls sliceDays(records, 90) with no
+  // explicit referenceDate, which defaults to the real wall-clock date.
+  // A fixed base date (previously 2026-03-01) ages out of that 90-day
+  // window as real time passes, silently emptying r90 and flipping
+  // confidence to 'insufficient'. Anchoring to "now" keeps every generated
+  // record perpetually recent regardless of when the suite runs.
+  const base = new Date();
+  base.setDate(base.getDate() - (count - 1));
   for (let i = 0; i < count; i++) {
     const d = new Date(base);
     d.setDate(d.getDate() + i);
