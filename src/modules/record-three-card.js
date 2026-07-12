@@ -661,11 +661,151 @@ function _protoToggleDetail() {
   if (panel) panel.hidden = !panel.hidden;
 }
 
+// ─── PR-REC-03b: Application layer — DOM → Prototype Payload ──
+// Reads #rtc-proto-view exclusively via data-value/data-tag attributes
+// (never button text or emoji) per Founder Decision: "表示テキストや絵文字を
+// 値判定に利用すること" is forbidden. Shape matches PrototypeRecordPayload
+// from docs/rebuild/IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md "Record Payload
+// Design" / domains/record/prototype-payload-mapper.ts.
+function _selectedValue(view, fieldSelector) {
+  var group = view.querySelector('[data-field="' + fieldSelector + '"]');
+  if (!group) return null;
+  var sel = group.querySelector('button.selected');
+  return sel ? sel.getAttribute('data-value') : null;
+}
+
+function _gatherProtoPayload() {
+  var view = document.getElementById('rtc-proto-view');
+  if (!view) return null;
+
+  var today = new Date().toISOString().split('T')[0];
+
+  var tags = Array.prototype.slice
+    .call(view.querySelectorAll('#rtc-proto-tag-grid button.selected'))
+    .map(function (b) { return b.getAttribute('data-tag'); })
+    .filter(Boolean);
+
+  var painLevelEl = document.getElementById('rtc-proto-pain-level');
+  var temperatureEl = document.getElementById('rtc-proto-temperature');
+  var medicationEl = document.getElementById('rtc-proto-medication');
+  var memoEl = document.getElementById('rtc-proto-memo');
+
+  return {
+    recordDate: today,
+    mood: (function () { var v = _selectedValue(view, 'mood'); return v ? Number(v) : null; })(),
+    sleep: _selectedValue(view, 'sleep'),
+    skin: _selectedValue(view, 'skin'),
+    tags: tags,
+    memo: memoEl ? memoEl.value : '',
+    // diseaseContext/experimentContext: PR-REC-02の疾患別チップ描画ロジックは
+    // record-three-card.js側に未移植のため常に空（PR_REC_03B_RUNTIME_
+    // CONNECTION_REVIEW.md 4節。Scope外・03bでは対応しない）。
+    diseaseContext: { concerns: [] },
+    experimentContext: { experimentId: null },
+    optionalDetails: {
+      painLevel: painLevelEl ? Number(painLevelEl.value) : null,
+      menstrualCycle: _selectedValue(view, 'menstrualCycle'),
+      bloodClot: _selectedValue(view, 'bloodClot'),
+      bloodColor: _selectedValue(view, 'bloodColor'),
+      temperature: (temperatureEl && temperatureEl.value !== '') ? Number(temperatureEl.value) : null,
+      bowel: _selectedValue(view, 'bowel'),
+      medication: medicationEl ? medicationEl.value : '',
+      symptoms: [],
+    },
+  };
+}
+
+// ─── PR-REC-03b: Adapter — Prototype Payload → legacy save shape ──
+// Target shape matches _buildPayload() (this file, non-prototype path) /
+// record-three-card-save.js:_rtcPipelineSave() expectations. record_date
+// must stay snake_case — _rtcPipelineSave's immediate Supabase sync branch
+// checks payload.record_date specifically (see PR_REC_03_RUNTIME_
+// INTEGRATION_PLAN.md 5節). Legacy fields use Japanese display labels
+// (symptoms/factors/cycle/bloodClot/bloodColor/bowel), matching the existing
+// state.records[] convention — a known, pre-existing divergence from the
+// English canonical keys used by domains/record/*.ts (out of scope to
+// unify here; see PR-REC-06).
+var PROTO_SLEEP_QUALITY_MAP = { short: 2, normal: 3, long: 4 };
+var PROTO_MOOD_CONDITION_MAP = { 1: 'tough', 2: 'slightlyBad', 3: 'normal', 4: 'good', 5: 'great' };
+var PROTO_FACTOR_LABEL_MAP = {
+  caffeine: 'カフェイン',
+  dairy: '乳製品',
+  sugar: '糖質過多',
+  alcohol: 'アルコール',
+  exercise: '運動した',
+  earlysleep: '早寝',
+};
+var PROTO_CYCLE_LABEL_MAP = { menstruation: '生理中', follicular: '卵胞期', ovulation: '排卵期', luteal: '黄体期' };
+var PROTO_BLOOD_CLOT_LABEL_MAP = { none: 'なし', small: '少し', large: '多い' };
+var PROTO_BLOOD_COLOR_LABEL_MAP = { clear: '透明', white: '白', brown: '茶色', red: '赤' };
+var PROTO_BOWEL_LABEL_MAP = { normal: '普通', constipation: '便秘', diarrhea: '下痢' };
+
+function _mapProtoPayloadToLegacyRecord(payload) {
+  var details = payload.optionalDetails || {};
+  var symptoms = (payload.skin === 'rough') ? ['肌荒れ'] : [];
+  var factors = (payload.tags || []).map(function (t) { return PROTO_FACTOR_LABEL_MAP[t] || t; });
+  var conditionLabel = payload.mood != null ? PROTO_MOOD_CONDITION_MAP[payload.mood] : null;
+
+  return {
+    record_date: payload.recordDate,
+    snapshot: {
+      condition: conditionLabel || null,
+      sleep: payload.sleep || null,
+      energy: null,
+    },
+    symptomDetails: [],
+    emotions: { tags: [], memo: payload.memo || '' },
+    adaptiveResponses: [],
+    // uiFlow: 'daily-checkin' must match exactly — home-renderer.js /
+    // daily-record-card-guard.js / today-reflection.js gate "今日の記録は
+    // 完了しているか" on this literal string. Using a different marker here
+    // would silently break Home's streak/CTA state for Prototype-origin saves.
+    meta: {
+      uiFlow: 'daily-checkin',
+      completedAt: new Date().toISOString(),
+      checkinSnapshot: buildCheckinSnapshot({
+        snapshot: { condition: conditionLabel || null, sleep: payload.sleep || null, energy: null },
+        symptomList: symptoms.map(function (s) { return { symptom: s, severity: null, types: [], locations: [] }; }),
+        emotions: { tags: [], memo: payload.memo || '' },
+        note: payload.memo || '',
+      }),
+    },
+    mood: payload.mood != null ? payload.mood : null,
+    sleepQuality: payload.sleep ? (PROTO_SLEEP_QUALITY_MAP[payload.sleep] || null) : null,
+    condition_scale: payload.mood != null ? payload.mood : null,
+    symptoms: symptoms,
+    note: payload.memo || '',
+    painLevel: details.painLevel != null ? details.painLevel : null,
+    factors: factors,
+    cycle: details.menstrualCycle ? (PROTO_CYCLE_LABEL_MAP[details.menstrualCycle] || null) : null,
+    bloodClot: details.bloodClot ? [PROTO_BLOOD_CLOT_LABEL_MAP[details.bloodClot] || details.bloodClot] : [],
+    bloodColor: details.bloodColor ? [PROTO_BLOOD_COLOR_LABEL_MAP[details.bloodColor] || details.bloodColor] : [],
+    temp: details.temperature != null ? details.temperature : null,
+    bowel: details.bowel ? (PROTO_BOWEL_LABEL_MAP[details.bowel] || null) : null,
+    medication: details.medication ? [details.medication] : [],
+    // experiment_id: reserved for PR-REC-06 (normalized records.experiment_id,
+    // PR-REC-05). No legacy user_records column consumes this today; kept
+    // as an explicit null rather than omitted so the field's presence is
+    // traceable once schema unification lands.
+    experiment_id: null,
+  };
+}
+
 function _protoSubmit() {
-  // PR-REC-03a scope: markup/CSS + local UI state only. Save pipeline
-  // connection (_integrateWithExistingSave / window.rtcSaveDelegate) is
-  // PR-REC-03b scope — intentionally not wired here.
-  console.log('[rtc-proto] submit tapped — save not wired yet (PR-REC-03b)');
+  var payload = _gatherProtoPayload();
+  if (!payload) {
+    console.warn('[rtc-proto] submit aborted: #rtc-proto-view not found');
+    return;
+  }
+
+  var legacyRecord = _mapProtoPayloadToLegacyRecord(payload);
+  console.log('[rtc-proto] saving record:', legacyRecord);
+
+  _integrateWithExistingSave(legacyRecord);
+
+  var view = document.getElementById('rtc-proto-view');
+  if (view) view.hidden = true;
+  _showSuccessState();
 }
 
 // Temporary migration bridge only (Founder Decision, PR-REC-03a adoption).

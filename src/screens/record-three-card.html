@@ -791,27 +791,27 @@
     <div class="field-row">
       <span class="field-name">気分</span>
       <div class="emoji-picker" data-field="mood">
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😞</button>
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😐</button>
-        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">🙂</button>
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😊</button>
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😄</button>
+        <button data-value="1" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😞</button>
+        <button data-value="2" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😐</button>
+        <button data-value="3" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">🙂</button>
+        <button data-value="4" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😊</button>
+        <button data-value="5" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😄</button>
       </div>
     </div>
     <div class="field-row">
       <span class="field-name">睡眠</span>
       <div class="chip-group" data-field="sleep">
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">短い</button>
-        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">よく寝た</button>
+        <button data-value="short" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">短い</button>
+        <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+        <button data-value="long" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">よく寝た</button>
       </div>
     </div>
     <div class="field-row">
       <span class="field-name">肌</span>
       <div class="chip-group" data-field="skin">
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">荒れ</button>
-        <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-        <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">良い</button>
+        <button data-value="rough" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">荒れ</button>
+        <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+        <button data-value="good" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">良い</button>
       </div>
     </div>
 
@@ -828,27 +828,27 @@
       <div class="detail-field">
         <span class="field-name">周期</span>
         <div class="chip-group" data-field="menstrualCycle">
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">生理中</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">卵胞期</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">排卵期</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">黄体期</button>
+          <button data-value="menstruation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">生理中</button>
+          <button data-value="follicular" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">卵胞期</button>
+          <button data-value="ovulation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">排卵期</button>
+          <button data-value="luteal" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">黄体期</button>
         </div>
       </div>
       <div class="detail-field">
         <span class="field-name">血塊</span>
         <div class="chip-group" data-field="bloodClot">
-          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">なし</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">少し</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">多い</button>
+          <button data-value="none" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">なし</button>
+          <button data-value="small" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">少し</button>
+          <button data-value="large" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">多い</button>
         </div>
       </div>
       <div class="detail-field">
         <span class="field-name">おりもの</span>
         <div class="chip-group" data-field="bloodColor">
-          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">透明</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">白</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">茶色</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">赤</button>
+          <button data-value="clear" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">透明</button>
+          <button data-value="white" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">白</button>
+          <button data-value="brown" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">茶色</button>
+          <button data-value="red" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">赤</button>
         </div>
       </div>
       <div class="detail-field">
@@ -858,9 +858,9 @@
       <div class="detail-field">
         <span class="field-name">排便</span>
         <div class="chip-group" data-field="bowel">
-          <button class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">便秘</button>
-          <button onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">下痢</button>
+          <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
+          <button data-value="constipation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">便秘</button>
+          <button data-value="diarrhea" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">下痢</button>
         </div>
       </div>
       <div class="detail-field">
