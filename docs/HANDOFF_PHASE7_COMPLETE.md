@@ -94,10 +94,110 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **⚠ PUSH未完了（2026-07-10）**: `ops/recovery-program`のローカルコミット（本セッション分の
-> PR-REC-03a採用コミットを含む）は、サンドボックス環境のネットワーク制約
-> （`Could not resolve host: github.com`）により`git push`できていない。**originには未反映**。
-> 次セッション開始時、まず`git push origin ops/recovery-program`を再試行すること。
+> **次セッション最優先タスク（2026-07-12引継ぎ）**: オンボーディング「はじめる」完了直後に
+> 表示される「不要な画面」（週間カレンダー+「今日を記録する」ボタン、名前が
+> パーソナライズされず「あなたさん」のまま）の調査。ホームボタンを手動で押すと
+> 現行IPPOの本来のホーム画面に切り替わる、という報告あり。`home-next`
+> （デフォルト有効の別Home実装、過去のHANDOFF記載参照）関連の可能性があるが未確証。
+> **TDZ障害（下記PR-TDZ-01）とは無関係と考えられる別問題**として、AI_EXECUTION.mdの
+> Repository Exploration Policyに従い、まず起動〜画面遷移の直接依存ファイルのみ
+> 確認するところから着手すること。
+>
+> **その他の未着手項目**:
+> - PR-REC-02・PR-REC-03a/03b/03cのBrowser Verification（TDZ関連のConsole確認は
+>   完了。UI表示・操作感の確認は未実施）
+> - PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中
+> - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
+> - PR-REC-08（最終Browser Verification）: 02/03系に依存、保留中
+> - `docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`: 作業ディレクトリに存在するが
+>   **未コミット**。PR-CI-01/02・PR-TDZ-01のmainマージにより前提条件が変化しているため、
+>   このまま使わず内容の見直しが必要
+> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点）
+
+**PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
+- 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
+  Uncaught ReferenceErrorとして発生し、「はじめる」ボタン押下後の画面遷移が
+  停止する疑いが報告された
+- 調査: `docs/rebuild/STARTUP_TDZ_BLOCKER_INVESTIGATION.md`（READ-ONLY調査、
+  sourcemap付き一時buildでminified symbol `lo`→`LocalStorageAdapter`
+  （`src/adapters/storage/local-storage-adapter.js:6`）、評価元
+  `src/modules/record-draft-guard.js:24`のモジュールtop-level`new`と特定）
+- 原因: `record-draft-guard.js`（`record-modules`チャンク）が、別チャンク
+  （`runtime-guards`）配置の`LocalStorageAdapter`をモジュールtop-levelで即座に
+  `new`しており、Rollupが毎buildで警告する`record-modules ⇄ runtime-guards`の
+  循環チャンク依存と組み合わさってTDZを引き起こしうる状態だった（PR-013
+  （2026-06-24）由来の既存バグ。PR-REC系・PR-CI系とは無関係と確認済み）
+- 修正: `_getDraftStorage()`による遅延初期化へ変更（全10箇所の呼び出しサイトを
+  `_getDraftStorage().*`に統一）。`manualChunks`は意図的に無変更
+  （Founder方針: chunk構成見直しは別PRで扱う）
+- PR: [#368](https://github.com/kenkou-jpg/ippo/pull/368)、merge commit `3f9dcd1`。
+  `ops/recovery-program`へは`2441cdb`をcherry-pick（`d664022`、コンフリクトなし）
+- Tests: `tests/modules/record-draft-guard.test.js`6件PASS（新規、top-level
+  instantiation回帰防止ガード含む）。`npm test`（mainベース）5,200件全PASS
+- build.yml（merge後）: Unit tests / Vite build / Deploy to GitHub Pages
+  全PASS（[run 29180723608](https://github.com/kenkou-jpg/ippo/actions/runs/29180723608)）
+- **Founder Browser Verification実施済み・FIX CONFIRMED**: 本番URL
+  （`www.ippo-app.com`）で「はじめる」タップ後の画面遷移が正常に進み、
+  Console上にReferenceErrorが一切出ないことを確認済み
+- 判定: TDZ障害は解消。ただしBrowser Verification中に上記「不要な画面」問題が
+  新たに発見され、別問題として次セッションへ引き継ぎ
+
+**PR-CI-01/PR-CI-02: GitHub Pages Build and Deployブロッカー解消**（2026-07-11）
+- 現象: GitHub Pagesが404「There isn't a GitHub Pages site here」を返す状態が
+  継続していた。原因調査の結果、(a) build.ymlのUnit testsジョブが既知failure
+  （DOMAIN_EVENT_TYPES件数ドリフト、disease-analyzer.test.jsの日付固定fixture、
+  record.jsのimport拡張子誤り）で毎回失敗しBuildにすら到達していなかったこと、
+  (b) GitHub Pages自体がリポジトリ設定で有効化されていなかったこと、の2つの
+  独立した原因が判明
+- PR-CI-01（[#366](https://github.com/kenkou-jpg/ippo/pull/366)）:
+  `DOMAIN_EVENT_TYPES`件数の期待値を29→47へ修正（PR-057以降の追加に
+  追随していなかった固定値ドリフト）。値の重複なし・現行実装が正しいことを
+  確認した上で修正
+- PR-CI-02（[#367](https://github.com/kenkou-jpg/ippo/pull/367)）:
+  `disease-analyzer.test.js`のテスト用レコード生成日付を固定暦日から実行時
+  相対日付へ変更（`sliceDays(90)`の時間窓から外れて`confidence`が
+  `insufficient`になっていた、テスト側の問題と特定）。`src/modules/record.js`の
+  `record.service.js`という誤ったimport拡張子を修正（vite buildは元々解決
+  できていたがvitestの解決のみ失敗していた、実装は元々正しかった）
+- 両PRとも`main`へマージ済み。マージ後、Founderが手動でGitHub Pages
+  Settings（Source: GitHub Actions）を有効化し、再デプロイでUnit tests /
+  Vite build / Configure Pages / Deploy全PASSを確認
+- カスタムドメイン`www.ippo-app.com`のcname設定もFounder承認の上で実施
+  （DNS自体は既存設定済みだったため、GitHub Pages側の関連付けのみ）。
+  `www.ippo-app.com`・`kenkou-jpg.github.io/ippo/`とも200 OKでippoアプリが
+  正常表示されることを確認済み
+- 判定: GitHub Pages 404は完全解消
+
+**PR-REC-03c: 内部リファクタ — inline onclickをイベント委譲層へ置換**（2026-07-11）
+- `#rtc-proto-view`内の全inline `onclick`（`_rtcProtoSelect`/`_rtcProtoToggleTag`/
+  `_rtcProtoToggleDetail`/`_rtcProtoSubmit`、計32箇所）を削除し、`_bindProtoViewEvents(view)`
+  による単一の委譲clickリスナーへ統合。`view.__rtcProtoDelegated`フラグで
+  画面再訪問時の二重バインドを防止
+- PR-REC-03a由来のwindow bridge 5件（`window.isPrototypeRecordUIEnabled`等）を完全削除。
+  `.rtc-proto-back`の`window.rtcClose`参照は既存の正式ブリッジのため対象外・無変更
+- 見た目・振る舞い・Feature Flag既定値（OFF）は一切変更なし（純粋な内部配線の置き換え）
+- Tests: 18件PASS（実クリックディスパッチで委譲経路を実地検証、新規4件）
+- コミット: `165f280`（`ops/recovery-program`）
+
+**PR-REC-03b: Prototype Record Save Integration**（2026-07-10）
+- `docs/rebuild/PR_REC_03B_RUNTIME_CONNECTION_REVIEW.md`（CONDITIONAL GO）に基づき、
+  `Prototype UI → Application → Adapter → Runtime → Legacy → Supabase`の5層接続を実装
+- `data-value`属性を`#rtc-proto-view`全チップ（mood/sleep/skin/menstrualCycle/bloodClot/
+  bloodColor/bowel、計25箇所）へ復元（Founder承認: UI変更ではなく機械可読メタデータの復元）。
+  Prototype原本と完全一致することをテストで確認
+- `_gatherProtoPayload()`（Application層）: DOM状態を`PrototypeRecordPayload`形状へ集約。
+  `data-value`/`data-tag`のみ参照、表示テキスト・絵文字は値判定に不使用
+- `_mapProtoPayloadToLegacyRecord()`（Adapter層）: legacy `_buildPayload()`互換形状へ変換。
+  `record_date`はsnake_case維持（`_rtcPipelineSave`の即時Supabase同期判定に必要）、
+  `meta.uiFlow='daily-checkin'`で今日の記録完了判定と整合させた
+  （home-renderer.js等が参照する固定文字列）
+- Runtime/Legacy/Supabase層は無変更のまま`_integrateWithExistingSave()`経由で
+  既存パイプラインへ接続。保存成功後は既存`_showSuccessState()`を再利用
+- **既知の制約（スコープ外、事前合意済み）**: `diseaseContext.concerns`は常に空配列
+  （PR-REC-02の疾患チップ描画ロジックがrecord-three-card.js側に未移植のため）。
+  `experiment_id`は常にnull（PR-REC-06のスキーマ一本化まで legacy user_records側に
+  対応カラムがないため）
+- Tests: 新規/更新14件PASS。コミット: `2f78a56`（`ops/recovery-program`）
 
 **PR-REC-03a: Prototype Record View 採用（Founder Decision, ADOPT WITH FIXES）**（2026-07-10）
 - 前セッション終了後、未コミットで`src/modules/record-three-card.js`・
