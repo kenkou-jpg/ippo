@@ -791,27 +791,27 @@
     <div class="field-row">
       <span class="field-name">気分</span>
       <div class="emoji-picker" data-field="mood">
-        <button data-value="1" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😞</button>
-        <button data-value="2" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😐</button>
-        <button data-value="3" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">🙂</button>
-        <button data-value="4" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😊</button>
-        <button data-value="5" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">😄</button>
+        <button data-value="1">😞</button>
+        <button data-value="2">😐</button>
+        <button data-value="3" class="selected">🙂</button>
+        <button data-value="4">😊</button>
+        <button data-value="5">😄</button>
       </div>
     </div>
     <div class="field-row">
       <span class="field-name">睡眠</span>
       <div class="chip-group" data-field="sleep">
-        <button data-value="short" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">短い</button>
-        <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-        <button data-value="long" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">よく寝た</button>
+        <button data-value="short">短い</button>
+        <button data-value="normal" class="selected">普通</button>
+        <button data-value="long">よく寝た</button>
       </div>
     </div>
     <div class="field-row">
       <span class="field-name">肌</span>
       <div class="chip-group" data-field="skin">
-        <button data-value="rough" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">荒れ</button>
-        <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-        <button data-value="good" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">良い</button>
+        <button data-value="rough">荒れ</button>
+        <button data-value="normal" class="selected">普通</button>
+        <button data-value="good">良い</button>
       </div>
     </div>
 
@@ -819,7 +819,7 @@
     <div class="disease-chip-row" data-field="diseaseQuickSymptoms" id="rtc-proto-disease-chips" hidden></div>
 
     <!-- PR-REC-02: 詳細を開いた時のみ表示 -->
-    <button class="card-cta detail-toggle" type="button" id="btn-record-detail-toggle" onclick="if(window._rtcProtoToggleDetail)window._rtcProtoToggleDetail()">くわしく記録する（任意）</button>
+    <button class="card-cta detail-toggle" type="button" id="btn-record-detail-toggle">くわしく記録する（任意）</button>
     <div class="record-detail-panel" id="record-detail-panel" hidden>
       <div class="detail-field">
         <span class="field-name">痛みの強さ</span>
@@ -828,27 +828,27 @@
       <div class="detail-field">
         <span class="field-name">周期</span>
         <div class="chip-group" data-field="menstrualCycle">
-          <button data-value="menstruation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">生理中</button>
-          <button data-value="follicular" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">卵胞期</button>
-          <button data-value="ovulation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">排卵期</button>
-          <button data-value="luteal" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">黄体期</button>
+          <button data-value="menstruation">生理中</button>
+          <button data-value="follicular">卵胞期</button>
+          <button data-value="ovulation">排卵期</button>
+          <button data-value="luteal">黄体期</button>
         </div>
       </div>
       <div class="detail-field">
         <span class="field-name">血塊</span>
         <div class="chip-group" data-field="bloodClot">
-          <button data-value="none" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">なし</button>
-          <button data-value="small" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">少し</button>
-          <button data-value="large" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">多い</button>
+          <button data-value="none" class="selected">なし</button>
+          <button data-value="small">少し</button>
+          <button data-value="large">多い</button>
         </div>
       </div>
       <div class="detail-field">
         <span class="field-name">おりもの</span>
         <div class="chip-group" data-field="bloodColor">
-          <button data-value="clear" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">透明</button>
-          <button data-value="white" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">白</button>
-          <button data-value="brown" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">茶色</button>
-          <button data-value="red" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">赤</button>
+          <button data-value="clear" class="selected">透明</button>
+          <button data-value="white">白</button>
+          <button data-value="brown">茶色</button>
+          <button data-value="red">赤</button>
         </div>
       </div>
       <div class="detail-field">
@@ -858,9 +858,9 @@
       <div class="detail-field">
         <span class="field-name">排便</span>
         <div class="chip-group" data-field="bowel">
-          <button data-value="normal" class="selected" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">普通</button>
-          <button data-value="constipation" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">便秘</button>
-          <button data-value="diarrhea" onclick="if(window._rtcProtoSelect)window._rtcProtoSelect(this)">下痢</button>
+          <button data-value="normal" class="selected">普通</button>
+          <button data-value="constipation">便秘</button>
+          <button data-value="diarrhea">下痢</button>
         </div>
       </div>
       <div class="detail-field">
@@ -874,12 +874,12 @@
   <div class="block">
     <div class="card-kicker"><span class="card-icon-badge badge-rose">🧪</span><span class="card-kicker-label">今日の行動タグ</span></div>
     <div class="tag-grid" data-field="tags" id="rtc-proto-tag-grid">
-      <button data-tag="caffeine" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">☕ カフェイン</button>
-      <button data-tag="dairy" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🥛 乳製品</button>
-      <button data-tag="sugar" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🍚 糖質</button>
-      <button data-tag="alcohol" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🍷 アルコール</button>
-      <button data-tag="exercise" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">🏃 運動</button>
-      <button data-tag="earlysleep" onclick="if(window._rtcProtoToggleTag)window._rtcProtoToggleTag(this)">💤 早寝</button>
+      <button data-tag="caffeine">☕ カフェイン</button>
+      <button data-tag="dairy">🥛 乳製品</button>
+      <button data-tag="sugar">🍚 糖質</button>
+      <button data-tag="alcohol">🍷 アルコール</button>
+      <button data-tag="exercise">🏃 運動</button>
+      <button data-tag="earlysleep">💤 早寝</button>
     </div>
     <p class="hint-text" id="rtc-proto-hint-text">ハイライトされたタグは今週の実験に関係する項目です</p>
   </div>
@@ -889,7 +889,7 @@
     <textarea class="memo-input" id="rtc-proto-memo" rows="3" placeholder="今日気づいたことがあれば"></textarea>
   </div>
 
-  <button class="submit-record" id="btn-submit-record" onclick="if(window._rtcProtoSubmit)window._rtcProtoSubmit()">記録する</button>
+  <button class="submit-record" id="btn-submit-record">記録する</button>
 </div>
 
 </div>

@@ -627,6 +627,7 @@ function _initProtoView() {
   var view = document.getElementById('rtc-proto-view');
   if (!view) return;
   view.hidden = false;
+  _bindProtoViewEvents(view);
 
   view.querySelectorAll('.selected').forEach(function (el) { el.classList.remove('selected'); });
   var detailPanel = document.getElementById('record-detail-panel');
@@ -643,6 +644,30 @@ function _initProtoView() {
   ].forEach(function (sel) {
     var el = view.querySelector(sel);
     if (el) el.classList.add('selected');
+  });
+}
+
+// PR-REC-03c: event delegation (replaces the PR-REC-03a inline onclick /
+// window.* bridge pattern). Attached once per view element — _initProtoView()
+// runs on every screen open, so this guards against re-binding a second
+// listener on repeat visits. Behavior is identical to PR-REC-03a/b; only the
+// wiring mechanism changed (no visual/markup/text changes).
+function _bindProtoViewEvents(view) {
+  if (view.__rtcProtoDelegated) return;
+  view.__rtcProtoDelegated = true;
+
+  view.addEventListener('click', function (e) {
+    var tagBtn = e.target.closest('#rtc-proto-tag-grid button[data-tag]');
+    if (tagBtn) { _protoToggleTag(tagBtn); return; }
+
+    var detailToggle = e.target.closest('#btn-record-detail-toggle');
+    if (detailToggle) { _protoToggleDetail(); return; }
+
+    var submitBtn = e.target.closest('#btn-submit-record');
+    if (submitBtn) { _protoSubmit(); return; }
+
+    var chipBtn = e.target.closest('[data-field] > button[data-value]');
+    if (chipBtn) { _protoSelect(chipBtn); return; }
   });
 }
 
@@ -808,16 +833,10 @@ function _protoSubmit() {
   _showSuccessState();
 }
 
-// Temporary migration bridge only (Founder Decision, PR-REC-03a adoption).
-// Not a permanent API — inline onclick handlers in #rtc-proto-view need these
-// on window until the Prototype markup is wired through a proper event
-// delegation layer. Removal candidate for PR-REC-03c or the Legacy Removal
-// Program (do not add further window.* exports on top of these).
-window.isPrototypeRecordUIEnabled = _isPrototypeViewEnabled;
-window._rtcProtoSelect       = _protoSelect;
-window._rtcProtoToggleTag    = _protoToggleTag;
-window._rtcProtoToggleDetail = _protoToggleDetail;
-window._rtcProtoSubmit       = _protoSubmit;
+// PR-REC-03c: the PR-REC-03a temporary window.* bridge (isPrototypeRecordUIEnabled/
+// _rtcProtoSelect/_rtcProtoToggleTag/_rtcProtoToggleDetail/_rtcProtoSubmit) has
+// been removed. #rtc-proto-view no longer uses inline onclick — all interaction
+// is wired through _bindProtoViewEvents()'s delegated listener above.
 
 // ─── Screen Initialization ────────────────────────────────────
 function _initScreen() {
