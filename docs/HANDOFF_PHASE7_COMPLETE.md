@@ -94,25 +94,63 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **次セッション最優先タスク（2026-07-12引継ぎ）**: オンボーディング「はじめる」完了直後に
-> 表示される「不要な画面」（週間カレンダー+「今日を記録する」ボタン、名前が
-> パーソナライズされず「あなたさん」のまま）の調査。ホームボタンを手動で押すと
-> 現行IPPOの本来のホーム画面に切り替わる、という報告あり。`home-next`
-> （デフォルト有効の別Home実装、過去のHANDOFF記載参照）関連の可能性があるが未確証。
-> **TDZ障害（下記PR-TDZ-01）とは無関係と考えられる別問題**として、AI_EXECUTION.mdの
-> Repository Exploration Policyに従い、まず起動〜画面遷移の直接依存ファイルのみ
-> 確認するところから着手すること。
+> **次セッション最優先タスク（2026-07-12更新）**: 下記PR-OB-01のクローズにより
+> 「はじめる」完了直後の不要画面問題は解消済み。次はFounder指定の優先順で着手する。
+>
+> 1. PR-REC-02・PR-REC-03a/03b/03cのBrowser Verification（TDZ関連のConsole確認は
+>    完了。UI表示・操作感の確認は未実施）
+> 2. PR-REC-08（最終Browser Verification、02/03系のBV完了後に着手）
+> 3. PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中
+> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+>    見直し。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
+>    PR-OB-01のmainマージ/cherry-pickにより前提条件が変化しているため、このまま
+>    使わず内容の見直しが必要）
 >
 > **その他の未着手項目**:
-> - PR-REC-02・PR-REC-03a/03b/03cのBrowser Verification（TDZ関連のConsole確認は
->   完了。UI表示・操作感の確認は未実施）
-> - PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
-> - PR-REC-08（最終Browser Verification）: 02/03系に依存、保留中
-> - `docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`: 作業ディレクトリに存在するが
->   **未コミット**。PR-CI-01/02・PR-TDZ-01のmainマージにより前提条件が変化しているため、
->   このまま使わず内容の見直しが必要
-> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点）
+> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点、
+>   PR-OB-01コミット`c50e1be`まで反映済み）
+
+**PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
+- 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
+  完了直後、home-next有効時（デフォルト）でも旧`screen-home`（週間カレンダー+
+  「今日を記録する」ボタン、名前が「あなたさん」のまま）が一瞬表示され、ホームタブを
+  手動で押すと初めて正しいhome-nextに切り替わる、という報告があった
+- 調査: 起動〜画面遷移の直接依存ファイルのみ確認（`src/screens/welcome.html`→
+  `src/modules/onboarding-runtime.js`→`src/modules/screen-router.js`→
+  `src/modules/home-next/home-next-shell.js`/`src/modules/home-renderer.js`）
+- 原因: `onboarding-runtime.js`の`finishOnboarding()`が`showScreen('home')`を直接呼び、
+  legacy専用のhome更新関数（`buildHomeWeekRow`等）を個別に呼んでいたため、
+  `home-next-shell.js`の`initHomeNext()`が差し替える`window.showMain`
+  （home-next有効時は`showHomeNext`）を経由していなかった。`app-bootstrap.js`等
+  他の起動経路は既に`window.showMain()`経由の確立済みパターンを使っており、
+  `finishOnboarding()`だけが独自実装で取り残されていた
+- 修正: `finishOnboarding()`を`window.showMain()`呼び出しに統一。home-next描画に
+  含まれない独立関数（`updateHistory`/`buildCalendar`/`updateStats`/
+  `reorderRecordSections`）のみ個別に維持
+- 初期化順序の安全性確認: `window.showMain`を設定する`home-renderer.js`・
+  `home-next-shell.js`はいずれも`main.js`でstatic import（dynamic importではない）
+  されており、オンボーディングのクリックリスナー（`bindOnboardingEvents()`、
+  `app-legacy.js`から呼び出し）が発火可能になる時点で必ず定義済みであることを
+  コードレベルで確認した。フォールバック（`showScreen('home')`への後退）は
+  不要と判断し追加していない
+- リロード／ログアウト→再ログインでのhome-next維持についてもコードレベルで確認:
+  `home-next-shell.js`の`initHomeNext()`はページロード毎に自動実行され
+  `state.homeNextEnabled === false`が明示されない限りデフォルト有効。
+  `logoutSync()`（`src/services/supabase.js`）は`state.homeNextEnabled`にも
+  リロードにも影響しないため、いずれの経路でもhome-next維持が成立する設計
+- Tests: `tests/modules/onboarding-runtime.test.js`5件新規PASS（`finishOnboarding`が
+  `window.showMain`経由でhome表示を委譲することの回帰ガード）。既存
+  `tests/modules/onboarding.test.js`9件PASS。フルスイート5,254件中失敗35件
+  （`build-draft-from-ui.test.js`・`save-record-screen.test.js`・
+  `disease-analyzer.test.js`の既知failureのみ、いずれも変更ファイルと無関係。
+  新規失敗ゼロを確認）
+- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）
+- コミット: `c50e1be`（`ops/recovery-program`、`origin/ops/recovery-program`へpush済み）
+- **Founder Browser Verification実施済み・FIX CONFIRMED**: ①初回オンボーディング完了
+  →home-next遷移 ②リロード後もhome-next維持 ③ログアウト→再ログイン後もhome-next維持
+  ④再ログイン後のリロードでもhome-next維持、の4項目すべて確認済み
+- 判定: GO。本Bugはこれをもってクローズ
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
