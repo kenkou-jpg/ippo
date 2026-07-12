@@ -94,20 +94,22 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **次セッション最優先タスク（2026-07-12更新）**: 下記PR-OB-01のクローズにより
-> 「はじめる」完了直後の不要画面問題は解消済み。次はFounder指定の優先順で着手する。
+> **次セッション最優先タスク（2026-07-12更新）**: PR-OB-01のクローズに続き、
+> PR-REC-02・PR-REC-03a・PR-REC-03bもFounder Browser Verification実施済み・GOで
+> クローズ（PR-REC-03cは2026-07-11時点で実装・テストとも完了済み）。
+> PR-REC-02〜03系はこれで全件クローズ。次はFounder指定の優先順で着手する。
 >
-> 1. PR-REC-02・PR-REC-03a/03b/03cのBrowser Verification（TDZ関連のConsole確認は
->    完了。UI表示・操作感の確認は未実施）
-> 2. PR-REC-08（最終Browser Verification、02/03系のBV完了後に着手）
-> 3. PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中
-> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
->    見直し。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
+> 1. PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中 → 着手判断待ち
+> 2. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+>    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
 >    PR-OB-01のmainマージ/cherry-pickにより前提条件が変化しているため、このまま
 >    使わず内容の見直しが必要）
+> 3. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
+>    Founderへスコープ確認が必要）
 >
 > **その他の未着手項目**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
+> - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
 > - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点、
 >   PR-OB-01コミット`c50e1be`まで反映済み）
 
@@ -236,6 +238,9 @@ ippoの設計・実装を進めている。
   `experiment_id`は常にnull（PR-REC-06のスキーマ一本化まで legacy user_records側に
   対応カラムがないため）
 - Tests: 新規/更新14件PASS。コミット: `2f78a56`（`ops/recovery-program`）
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: 保存ボタン押下後に成功表示・
+  recordが正しく保存されること（Supabase同期含む）を確認済み。問題なし
+- 判定: クローズ
 
 **PR-REC-03a: Prototype Record View 採用（Founder Decision, ADOPT WITH FIXES）**（2026-07-10）
 - 前セッション終了後、未コミットで`src/modules/record-three-card.js`・
@@ -258,13 +263,12 @@ ippoの設計・実装を進めている。
   コメント明記を検証）。既存の`record-three-card`関連テストは元々存在しない
 - Build PASS（`npx vite build`、既知の循環チャンク警告のみ）。dist成果物に
   `rtc-proto`/`isPrototypeRecordUIEnabled`が正しく含まれることを実測確認
-- Browser Verification: AI自己判断での実施は禁止のため未実施。停止・報告が必要
-  （対象: Flag OFF時の既存Record UI無変化・Flag ON時のヘッダー非重複・タイトル表示・
-  Prototype UIの操作性、Console Error 0件）
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Flag OFF時の既存Record UI
+  無変化・Flag ON時のヘッダー非重複・タイトル表示・Prototype UIの操作性・Console Error 0件、
+  いずれも問題なし
 - 禁止事項（保存接続・DB変更・Domain変更・Business Logic変更・旧Record UI削除・
   mainへのマージ・releaseブランチ作成・Scope外整理）はいずれも実施していない
-- 判定: コード修正完了、**Founder Browser Verification待ち**。完了後はPR-REC-03b着手前に
-  Founderへ報告し一旦停止する方針（Founder Decision通り）
+- 判定: クローズ
 
 **PR-REC-03: Record Screen Runtime Integration Plan**（2026-07-10・コード変更ゼロ、設計文書のみ）
 - 当初「Adapter接続のみの小PR」として着手しようとしたが、調査の結果`prototype/`は
@@ -352,10 +356,9 @@ Decision 2準拠、UI変更あり）
 - `prototype/`はvitest/vite build対象外のため、`node --check`（構文）+ 重複ID検査で確認
 - **未接続**: Business Logic・実保存には未接続（静的Prototypeへの追加のみ）。
   接続はPR-REC-03（上記Runtime Integration Plan）のスコープ
-- Browser Verification: AI自己判断での実施は禁止のため未実施。停止・報告済み
-  （対象: Recordカード1の疾患別チップ・詳細開示パネル、320/375/390/430px確認が必要）
-- 判定: コード実装完了、**Founder Browser Verification待ち**
-- Next: Founder確認後、問題なければPR-REC-03へ
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Recordカード1の疾患別チップ・
+  詳細開示パネル、320/375/390/430pxいずれのブレークポイントも正常表示、問題なし
+- 判定: クローズ
 
 **PR-REC-01: Record Payload設計・Adapter実装**（2026-07-10・Record Migration着手PR）
 - `domains/record/prototype-payload-mapper.ts`（新規）: Prototype Record UIのPayload
