@@ -7,15 +7,11 @@
 // チェックが一貫して機能することを保証する。
 //
 // 依存（すべて window 経由）:
-//   saveState, updateGreeting, updateStats, updateUnlock,
-//   updateHistory, buildCalendar, buildHomeWeekRow,
-//   updateHomeInsightCard, updateHomeNumbers, updateHomeDiseaseAdvice,
-//   updateHomeCTAState, updateHomePhaseBanner, updateTodayMessage,
-//   initReminders, reorderRecordSections, updateSettingsHero
+//   showMain（home-next 有効時は home-next-shell.js が showHomeNext に差し替え）、
+//   updateHistory, buildCalendar, updateStats, reorderRecordSections
 // ============================================================
 
 import { shouldShowMain } from './welcome-runtime.js';
-import { showScreen } from './screen-router.js';
 import { getState, setState, saveState } from '../store/state.js';
 
 function call(name) {
@@ -32,30 +28,18 @@ export function finishOnboarding() {
   // welcome-runtime に委譲してメイン画面判定
   if (!shouldShowMain()) return;
 
-  showScreen('home');
+  // ホーム画面の表示・描画は window.showMain() に委譲する。home-next 有効時
+  // （デフォルト）は home-next-shell.js の initHomeNext() が window.showMain を
+  // showHomeNext へ差し替えているため、ここで showScreen('home') 等を直接呼ぶと
+  // home-next を経由せず旧 screen-home が表示されてしまう
+  // （2026-07-12 HANDOFF記載「はじめる」完了直後の不要画面バグの原因）。
+  call('showMain');
 
-  call('updateGreeting');
-  call('updateStats');
-  call('updateUnlock');
+  // home 描画に含まれない独立した関数のみ個別に呼ぶ
   call('updateHistory');
   call('buildCalendar');
-  call('updateSettingsHero');
-  call('buildHomeWeekRow');
-  call('updateHomeInsightCard');
-  call('updateHomeNumbers');
-  call('updateHomeDiseaseAdvice');
-  call('updateHomeCTAState');
-  call('updateHomePhaseBanner');
-  call('updateTodayMessage');
-  call('initReminders');
+  call('updateStats');
   call('reorderRecordSections');
-
-  try {
-    if (localStorage.getItem('ippo_hide_add_home') === '1') {
-      const banner = document.getElementById('add-home-banner');
-      if (banner) banner.style.display = 'none';
-    }
-  } catch (_) {}
 }
 
 function handleObClick(e) {
