@@ -28,3 +28,8 @@ export function submitFeedback() {
   document.querySelectorAll('.fb-star').forEach(function(s){ s.classList.remove('active'); });
   if(document.getElementById('fb-comment')) document.getElementById('fb-comment').value = '';
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+window.setRating      = setRating;
+window.submitFeedback = submitFeedback;

@@ -10,12 +10,18 @@
 //  Sync本体ロジックのため app-legacy.js 側に残置（Scope外）。
 //  ・openSyncModal → renderSyncUI（残置側）は window.renderSyncUI 経由で参照
 //    （PR-080E window.__ippoGetBowelCount と同型パターン）。
-//  ・toggleSyncMode → syncMode（残置側 var、submitSyncが参照）は
-//    window.__ippoGetSyncMode()/__ippoSetSyncMode() 経由で読み書き
-//    （同型パターン）。
+//  ・toggleSyncMode → syncMode は PR-090-R4 (EXPORT_HUB_REFACTOR_COUNCIL 6-4) で
+//    app-legacy.js側varから本ファイルのmodule-local変数へ物理移動。
+//    getSyncMode()/setSyncMode()をexportし、services/supabase.js（submitSync）が
+//    直接importして参照する（window.__ippoGetSyncMode()等の旧ブリッジは廃止）。
 //  ・submitSync()/toggleSyncMode() の onclick 文字列呼び出しは
 //    window bridge（app-legacy.js末尾）経由でそのまま解決される。
 // ================================================================
+
+var syncMode = 'login'; // 'login' or 'signup'
+
+export function getSyncMode() { return syncMode; }
+export function setSyncMode(v) { syncMode = v; }
 
 export function openSyncModal() {
   document.getElementById('syncOverlay').classList.add('active');
@@ -47,8 +53,8 @@ export function showLoginForm() {
 }
 
 export function toggleSyncMode() {
-  var mode = window.__ippoGetSyncMode() === 'login' ? 'signup' : 'login';
-  window.__ippoSetSyncMode(mode);
+  var mode = getSyncMode() === 'login' ? 'signup' : 'login';
+  setSyncMode(mode);
   const title = document.getElementById('syncFormTitle');
   const btn = document.getElementById('syncSubmitBtn');
   const toggle = document.getElementById('syncToggleBtn');
@@ -77,3 +83,13 @@ export function hideMessage() {
   const msg = document.getElementById('syncMessage');
   if (msg) msg.className = 'sync-message';
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（DEVICE SYNC節の手動exportブロック +
+// アルファベット順自動生成節の二重定義、計2箇所×3関数）はいずれも削除済み。
+window.closeSyncModal = closeSyncModal;
+window.hideMessage    = hideMessage;
+window.openSyncModal  = openSyncModal;
+window.showLoginForm  = showLoginForm;
+window.showMessage    = showMessage;
+window.toggleSyncMode = toggleSyncMode;

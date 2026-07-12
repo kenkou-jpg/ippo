@@ -690,6 +690,9 @@
       <!-- Hero (JS で描画) -->
       <div id="pro-hero" style="margin:4px 20px 24px;"></div>
 
+      <!-- Premium（理解） -->
+      <div class="pf-group-heading">Premium（理解）</div>
+
       <!-- 分析・インサイト -->
       <div class="pf-category-label">📊 &nbsp;分析・インサイト</div>
       <div class="pf-grid">
@@ -746,17 +749,22 @@
         </div>
         <span class="pf-lock-badge" style="position:static;flex-shrink:0;font-size:9px;font-weight:700;background:var(--rose);color:white;padding:3px 8px;border-radius:8px;">PRO</span>
       </div>
-      <div class="pf-grid" style="margin-bottom:20px;">
-        <div class="pf-grid-card" onclick="premiumGate(openExperiments)">
-          <div class="pf-grid-icon" style="background:#eef2f8;">🧪</div>
-          <div class="pf-grid-title">ヘルス実験</div>
-          <div class="pf-grid-sub">仮説を立てて30日間検証</div>
-          <span class="pf-lock-badge pf-grid-badge">PRO</span>
-        </div>
+      <div class="pf-grid" style="grid-template-columns:1fr;margin-bottom:20px;">
         <div class="pf-grid-card" onclick="openSyncModal()">
           <div class="pf-grid-icon" style="background:#f0eef8;">🔄</div>
           <div class="pf-grid-title">デバイス間同期</div>
           <div class="pf-grid-sub" id="syncStatusBrief">未ログイン</div>
+          <span class="pf-lock-badge pf-grid-badge">PRO</span>
+        </div>
+      </div>
+
+      <!-- Pro（改善） -->
+      <div class="pf-group-heading">Pro（改善）</div>
+      <div class="pf-grid" style="grid-template-columns:1fr;margin-bottom:20px;">
+        <div class="pf-grid-card" onclick="premiumGate(openExperiments)">
+          <div class="pf-grid-icon" style="background:#eef2f8;">🧪</div>
+          <div class="pf-grid-title">ヘルス実験</div>
+          <div class="pf-grid-sub">仮説を立てて30日間検証</div>
           <span class="pf-lock-badge pf-grid-badge">PRO</span>
         </div>
       </div>
@@ -988,6 +996,16 @@
           </div>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
         </div>
+        <div class="set-row" onclick="toggleResearchConsent()">
+          <div class="set-row-l">
+            <div class="set-row-icon" style="background:#f0ebf5;" id="settings-icon-privacy"></div>
+            <div class="set-row-texts">
+              <div class="set-row-text">研究への協力（匿名データ提供）</div>
+              <div class="set-row-sub" id="settings-consent-sub">同意していません</div>
+            </div>
+          </div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.33;flex-shrink:0;"><path d="M9 18l6-6-6-6"/></svg>
+        </div>
         <div class="set-row" onclick="showConfirmModal('すべての記録を削除しますか？', clearData)">
           <div class="set-row-l">
             <div class="set-row-icon" style="background:#fde8e8;" id="settings-icon-delete"></div>
@@ -1175,32 +1193,10 @@
 
 
 
-  <!-- ===== RECORD MODAL (LEGACY — SOFT-ISOLATED 2026-05-27) =====
-       Status   : soft-isolated. openRecordModal() / buildSteps() / renderStep()
-                  are unreachable in normal flow (handleHomeCTA fallback only).
-       Deletion : can be removed once openRecordModal + buildSteps + renderStep
-                  are confirmed unreferenced in app-legacy.js.
-  ===== -->
-  <div class="modal-overlay" id="record-modal" onclick="closeModal()" data-legacy-isolated="2026-05-27">
-    <div class="modal-sheet" onclick="event.stopPropagation()">
-      <div class="modal-handle"></div>
-      <div class="modal-header">
-       <div class="modal-step-indicator" id="step-indicator">
-  <div class="step-dot active"></div>
-  <div class="step-dot"></div>
-  <div class="step-dot"></div>
-  <div class="step-dot"></div>
-</div>
-        <div class="modal-title" id="modal-title">今日のからだの調子は<br>どうですか？</div>
-        <div class="modal-subtitle" id="modal-step-label">1 / 5</div>
-      </div>
-      <div class="modal-body" id="modal-body"></div>
-      <div class="modal-footer">
-        <button class="btn-secondary" id="modal-back-btn" onclick="prevStep()">← 戻る</button>
-        <button class="btn-save" id="modal-next-btn" onclick="nextStep()">次へ →</button>
-      </div>
-    </div>
-  </div>
+  <!-- PR-092C (UI/UX Final Council採用): RECORD MODAL（旧5ステップwizard、
+       SOFT-ISOLATED 2026-05-27）を完全終了。openRecordModal/closeModal/
+       nextStep/prevStep/renderStep/buildSteps（app-legacy.js版）は
+       src/app-legacy.jsから削除済み。 -->
 
   <!-- ===== SUCCESS OVERLAY ===== -->
   <div class="success-overlay" id="success-overlay">

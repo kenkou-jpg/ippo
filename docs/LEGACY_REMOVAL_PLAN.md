@@ -166,8 +166,19 @@ Mode 判定: AI_EXECUTION.md 1章「Legacy Removal は必ず FULL」に従い、
 | **PR-086** | Batch-8 | Home Insight & Cycle UI | 約12 | 2〜3 | LOW | なし |
 | **PR-087** | Batch-9 | Utility & Misc（純粋関数） | 約18 | 5〜6 | LOW | なし（即時着手可） |
 | **PR-088** | Batch-10 | Community & Admin | 約9 | 2 | MEDIUM（Supabase直接呼び出し） | なし |
-| **PR-089** | Batch-11 | **app.html Cleanup & Legacy Removal**（`<script>`削除・shim20件削除・DeadCode4件削除） | 全残存 | app.html + app-legacy.js | **HIGH**（onclick全置換・全画面UI回帰） | PR-079〜088 **全完了後** |
-| **PR-090** | — | **Legacy Removal Exit Audit**（capstone） | — | — | — | PR-089 |
+| **PR-089A** | Batch-11監査 | Legacy Final Cutover Audit（完了） | — | docs のみ | — | PR-079〜088 全完了後 |
+| **PR-089B** | Batch-11分割① | Experiment Module Migration | 約9 | `modules/experiments.js`, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089C** | Batch-11分割② | Cloud Sync Migration | 約7 | `services/supabase.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089D** | Batch-11分割③ | Home Remaining Migration | 未確定 | `home-renderer.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089E** | Batch-11分割④ | Calendar Remaining Migration | 未確定 | `calendar.js`等, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089F** | Batch-11分割⑤ | Utility / Misc Remaining Migration | 未確定 | 各種, `app-legacy.js` | LOW（Category限定） | PR-089A |
+| **PR-089Z** | Batch-11本体 | **Final Cutover**（app.html最終切替・Legacy Adapter削除・window bridge最終整理・app-legacy.js削除・不要script/Import削除） | 残SAFE_DEAD分 | app.html + app-legacy.js | **HIGH**（onclick全置換・全画面UI回帰） | PR-089B〜F **全完了後** |
+| **PR-090** | — | **Legacy Removal Exit Audit**（capstone） | — | — | — | PR-089Z |
+
+> **2026-07-04追記（10-C章参照）:** 当初のPR-089（一括削除）はCategory単位の段階移植へ
+> 再編成された。各サブPRの対象関数数はPR-089B〜Fそれぞれの着手時監査で確定する
+> （Home/Calendar/Utility分の正確な件数はPR-089A時点で未算出）。9-E章条件2
+> （Founder個別承認要件）はPR-089Zに引き継ぐ。
 
 **実施順序（依存グラフ、phase4d監査 5章を継承）:**
 
@@ -238,6 +249,14 @@ PR-089完了後、以下を機械的に検証し記録する:
 これは PR-075（Wave2 Exit Audit）・PR-077（Release Readiness Evidence Ledger）と
 同一パターン（Founder確認台帳への記録）を踏襲する。
 ```
+
+> **【PR-089A追記・2026-07-04・Founder審議中】** PR-089着手前の実測監査（`docs/PR-089A-legacy-final-cutover-audit.md`）
+> により、上表の「Batch-11 = shim約20件+確定DeadCode4件の削除のみ」という前提は
+> 成立しないことが判明した。実際には app-legacy.js に101関数が残存し、うち24件のみが
+> shim相当（削除可能）で、残り77件（Experiment機能一式・Cloud Sync本体・Record編集/
+> Quick Log/Meal入力等のUI操作系）はBatch-1〜10で移植対象になっていなかった。
+> 詳細な分類とPR-089B〜G＋PR-089Zへの分割提案は監査文書の4章を参照。
+> **本表（4章）自体の改訂はFounder確認後に実施する（本追記は改訂ではなく状況記録）。**
 
 ---
 
@@ -494,6 +513,119 @@ Architecture Guard（120件全PASS）・Regression（5,171件中5,132件PASS、�
 既知5ファイルのみで増加なし）・Build（vite build PASS）・Browser Verification
 （6機能全てopen/render/close確認、console error 0件）を実施し、Batch-4完了を確認。
 本追補以降の新規Decision Log項目なし（10-B章の決定事項の範囲内で完了したため）。
+```
+
+## 10-C. Decision Log 追補（2026-07-04・PR-089再編成）
+
+```
+決定事項: PR-089（Batch-11: app.html Cleanup & Legacy Removal）着手前監査（PR-089A、
+docs/PR-089A-legacy-final-cutover-audit.md）の結果、本文書が前提としていた
+「Batch-1〜10完了後はshim約20件+確定Dead Code 4件のみ残存」は実測（101関数残存）と
+一致しないことが判明した。Founderは「Business Logic変更禁止・Architecture変更禁止・
+仕様変更禁止」の方針を優先し、PR-089を一括削除PRとして実施せず、Category単位で
+段階的に移植したのちFinal Cutoverを行う方針を確定した。
+
+  □ 既存PR-090の番号は変更しない
+  □ PR-089を以下のCategory別PRへ再編成する:
+      PR-089A  Legacy Final Cutover Audit（完了）
+      PR-089B  Experiment Module Migration
+      PR-089C  Cloud Sync Migration
+      PR-089D  Home Remaining Migration
+      PR-089E  Calendar Remaining Migration
+      PR-089F  Utility / Misc Remaining Migration
+      PR-089Z  Final Cutover（app.html最終切替・Legacy Adapter削除・window bridge最終整理・
+               app-legacy.js削除・不要script削除・不要Import削除）
+  □ PR-089A時点の4分類（SAFE_DEAD/ORPHAN/NO_OTHER_IMPL/AMBIGUOUS）を、以下6分類へ
+    再定義する:
+      SAFE_DEAD           削除して問題ない
+      ORPHAN              未接続コード
+      ALREADY_OVERRIDDEN  window export等により既に旧実装は実行されていない
+      NEEDS_IMPORT        Moduleは存在するがimport漏れ
+      REAL_IMPLEMENTATION 実際にapp-legacy.jsのみが動作している
+      AMBIGUOUS           追加調査が必要
+  □ 各PR（089B〜F）はCategory一つのみを対象とし、Scope外のRead/Search/Import/
+    Module生成/Bridge生成は行わない（Progressive Loading / Scope Guard厳守）
+  □ Business Logic変更・Architecture変更・UI変更・仕様変更・リファクタ・改善は
+    PR-089B〜Fでは一切行わない（最小差分の物理移動のみ）
+  □ Browser VerificationはPR-089Zのみ必須。PR-089B〜FはBuild/Regression/
+    Architecture Guard/Legacy Guardのみ実施する
+  □ 本追補・4章ロードマップ表の更新のみを行い、5章以降のDependency Map/Safety Gate/
+    Rollback/9-E判定は無変更（9-E条件2のFounder個別承認要件はPR-089Zに引き継がれる）
+
+根拠: Founder判断「PR-089Aの監査結果を採用し、Business Logic変更禁止・Architecture変更禁止・
+仕様変更禁止の方針を優先してCategory単位の段階移植へ再編成する」（2026-07-04）、および
+AI_EXECUTION.md 9章（Roadmap変更・Legacy Removal判断はDecision Log候補）に基づく。
+```
+
+---
+
+## 10-D. Decision Log 追補（2026-07-06・PR-090-R5 saveRecordScreen/Home Cluster除外）
+
+```
+決定事項: PR-090-R5（docs/PR-090-R5-saveRecordScreen-migration-decision.md）で
+提示した選択肢A/B/C/DのうちDを採用する。saveRecordScreenおよびHome Cluster
+（buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/
+updateHomeCTAState）はLegacy Removal Programの対象から除外し、β後のUI/UX Final
+Councilで統合方針を判断する。
+
+根拠:
+  ・app-legacy.js版⇄home-renderer.js版のどちらに統一してもBusiness Logic変更になる
+    （updateHomeCTAStateの完了判定基準がdaily-record-card-guard.js Hotfix導入前後で
+    異なる、buildHomeWeekRowの意匠が別デザイン）
+  ・どちらに統一してもUI変更になる
+  ・Legacy Removalの目的（同一実装の置き場所整理＝物理移動）ではなく、
+    機能統合そのものの製品判断が必要なため
+  ・判断はβ後のUI/UX Final Councilに委ねる
+
+  □ docs/LEGACY_COMPLETION_RECOVERY_PLAN.md 2-3節・Step 3を更新
+    （Decision-3を「確定済み・対象外」に変更）
+  □ 次PR: PR-091 Legacy Exit Auditを実施する。ただし監査スコープは
+    「現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）の対象範囲」
+    に限定し、saveRecordScreen/buildHomeWeekRow/updateHomeCTAState/Home Clusterは
+    Known Deferred Itemsとして監査対象から除外する
+  □ saveRecord/record-modal系（Decision-4、LEGACY_COMPLETION_RECOVERY_PLAN.md 2-4節）は
+    本決定とは別の未決事項として残る（今回のFounder指示には含まれず、現行Programの
+    実施対象でもなかったためPR-091でも監査対象外）
+  □ Business Logic変更は引き続き禁止。本決定はコード変更を伴わない
+
+根拠文書: docs/PR-090-R5-saveRecordScreen-migration-decision.md（差分表・選択肢評価・
+Release Risk）、AI_EXECUTION.md 9章（Legacy Removal判断はDecision Log候補）に基づく。
+Founder: kenkou-jpg（2026-07-06）。
+```
+
+---
+
+## 10-E. Decision Log 追補（2026-07-06・Decision-4 saveRecord/record-modal系除外）
+
+```
+決定事項: Decision-4（docs/DECISION_4_RECORD_MODAL_REVIEW.md）で提示した選択肢の
+うちD+Cを採用する。saveRecord/record-modal/openRecordModal/closeModal/saveAndSync
+（record-modal-controller.js側）/nextStep/prevStep/renderStep/buildSteps
+（app-legacy.js版）/#record-modalはLegacy Exit Audit対象から除外し、β後のUI/UX
+Final Councilへ正式移管する。
+
+根拠:
+  ・修復(A)・削除(B)いずれもBusiness Logic変更を伴う
+    （saveRecordの`window.saveRecord`ブリッジ修復は現在no-opの挙動を実働化させる、
+    削除は#record-modal・saveAndSyncの実体分離を伴う）
+  ・修復(A)・削除(B)いずれもUI変更を伴う（#record-modalのHTML変更を含む）
+  ・「record-three-card.jsロード失敗時のフォールバック設計をどう扱うか」という
+    製品判断が必要なため
+  ・Legacy Removalの目的（同一実装の物理移動・整理）ではないため
+  ・判断はβ後のUI/UX Final Councilに委ねる
+
+  □ docs/LEGACY_COMPLETION_RECOVERY_PLAN.md 2-4節・2-5節・Step 4を更新
+    （Decision-4を「確定済み・対象外」に変更）
+  □ Recovery Program（PR-090-P1〜R6）はこれをもって完了とする
+  □ 次: Legacy Exit Audit Final（docs/LEGACY_EXIT_AUDIT_FINAL.md）を実施する。
+    Known Deferred Items（saveRecordScreen/Home Cluster、10-D節）とDecision-4対象
+    （本節）はいずれもApproved Deferred Items（Founder承認済みの延期項目）として
+    監査対象から除外し、現行Recovery Programの成果のみを監査する
+  □ Business Logic変更は引き続き禁止。本決定はコード変更を伴わない
+
+根拠文書: docs/DECISION_4_RECORD_MODAL_REVIEW.md（差分表・選択肢評価・
+Release Risk・saveAndSync実体分離の整理）、AI_EXECUTION.md 9章（Legacy Removal判断は
+Decision Log候補）に基づく。Founder: kenkou-jpg（2026-07-06）。
 ```
 
 ---

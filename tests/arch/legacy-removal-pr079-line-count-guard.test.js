@@ -14,15 +14,32 @@ import { resolve } from 'path';
 
 const appLegacy = readFileSync(resolve(process.cwd(), 'src/app-legacy.js'), 'utf-8');
 
-// PR-088時点のベースライン（Batch-10 — Community & Adminの物理移動後の実測値）。
-// PR-087時点は5,408行、PR-086時点は5,611行、PR-085時点は6,242行、PR-084時点は6,650行、
-// PR-083時点は7,025行、PR-082G(Batch-4 Exit Audit)時点は7,071行、PR-082E時点は7,664行、
-// PR-082D時点は8,186行、PR-082C時点は8,441行、PR-082B時点は8,806行、
-// PR-082A時点は8,977行、PR-081時点は9,569行、PR-080G時点は9,680行、
-// PR-080E時点は9,768行、PR-080D時点は10,237行、PR-080時点は10,242行、
-// PR-079時点は10,247行、PR-078時点は10,804行だった
+// PR-092C時点のベースライン（UI/UX Final Council採用・Decision-4確定内容の実施:
+// record-modal完全終了。switchTab/openRecordModal/closeModal/saveRecord/
+// renderStep・nextStep・prevStep・buildSteps（本ファイル側const alias）を削除した
+// 実測値、1,918行 = split('\n').length基準）。
+// PR-092B時点は2,077行（saveRecordScreenをsrc/modules/record-screen.jsへ物理移動し、
+// 本ファイル側のローカル実装を削除した実測値）。
+// PR-092A時点は2,278行（Home Cluster統合: buildHomeWeekRow/updateHomeInsightCard/
+// updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsを
+// src/modules/home-renderer.jsの統合版へ一本化し、本ファイル側の
+// ローカル重複実装を削除した実測値）。
+// PR-090-R6時点は2,447行（EXPORT_HUB_REFACTOR_COUNCIL Step D: 自己export化+
+// app-legacy.js側重複export行107件削除後）、
+// PR-090-R4/R5時点は2,554行（R5は調査のみのためapp-legacy.js行数は無変化）、
+// PR-090-R2/R3時点は2,686行（R3はstate.js側のみの変更のためapp-legacy.js行数は無変化）、
+// PR-090-P2時点は2,733行、
+// PR-090-P1時点は2,759行、
+// PR-089F-7G時点は2,765行、
+// PR-089F-7F時点は2,778行、PR-089F-7B+7C時点は2,832行、PR-089F-6時点は2,912行、PR-089F-5時点は2,918行、PR-089F-4時点は3,176行、PR-089F-3時点は3,283行、PR-089F-2時点は3,423行、PR-089F-1時点は3,507行、PR-089E時点は3,760行（調査のみ・変更なし）、PR-089D時点は3,760行、
+// PR-089C時点は4,252行、PR-089B時点は4,450行、PR-088時点は5,084行、PR-087時点は5,408行、
+// PR-086時点は5,611行、PR-085時点は6,242行、PR-084時点は6,650行、PR-083時点は7,025行、
+// PR-082G(Batch-4 Exit Audit)時点は7,071行、PR-082E時点は7,664行、PR-082D時点は8,186行、
+// PR-082C時点は8,441行、PR-082B時点は8,806行、PR-082A時点は8,977行、PR-081時点は9,569行、
+// PR-080G時点は9,680行、PR-080E時点は9,768行、PR-080D時点は10,237行、
+// PR-080時点は10,242行、PR-079時点は10,247行、PR-078時点は10,804行だった
 // （docs/HANDOFF_PHASE7_COMPLETE.md参照）。
-const BASELINE_LINE_COUNT = 5084;
+const BASELINE_LINE_COUNT = 1918;
 const PRE_PR079_LINE_COUNT = 10804;
 
 function countLines(text) {

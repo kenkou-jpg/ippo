@@ -2,9 +2,17 @@
 
 ## プロジェクト概要
 
-ippo（女性疾患症例プラットフォーム）の設計・実装を進めている。
+ippoの設計・実装を進めている。
 
-作業ブランチ: feat/phase4d-batch1-record-input
+> **製品定義（2026-07-07 Release Readiness Council Review v2 で正式確認、BD-061/BD-062）**:
+> IPPOは「自己実験プラットフォーム」である。ユーザー自身が食事・睡眠・運動・断食・サプリ・
+> 生活習慣などを組み合わせて自分自身の身体で実験し、結果を記録・比較・分析するためのアプリ。
+> 診断・治療・医療判断・医師への指示・症状改善の保証は一切行わない。AIの役割は記録整理・
+> 要約・傾向分析・自己実験結果の可視化・類似パターン表示に限定される。
+> 詳細: docs/RELEASE_READINESS_COUNCIL.md 21章。以下の本文書内の記述（「女性疾患」「疾患プラットフォーム」等）は
+> Wave1〜Wave2設計当時の呼称であり、歴史的記録として保持する（Append-Only方針により本文は書き換えない）。
+
+作業ブランチ: ops/recovery-program（2026-07-10更新。旧feat/phase4d-batch1-record-inputは陳腐化した記載）
 
 リポジトリ: C:/Users/USER/Documents/ippo
 
@@ -31,6 +39,7 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | REGULATORY & MEDICAL COUNCIL | docs/REGULATORY_MEDICAL_COUNCIL.md | 規制・医療・倫理・BD-044〜052 |
 | GO-TO-MARKET COUNCIL | docs/GTM_COUNCIL.md | 市場投入戦略・BD-053〜060 |
 | FOUNDER STRATEGIC REVIEW | docs/FOUNDER_STRATEGIC_REVIEW_WAVE2.md | Wave2 Go/No-Go 監査（CONDITIONAL GO） |
+| RELEASE READINESS COUNCIL | docs/RELEASE_READINESS_COUNCIL.md | β公開可否監査・製品定義（自己実験プラットフォーム）・BD-061〜062 |
 
 ### LEVEL-2 — Architecture Authority（変更にはアーキテクチャレビューが必要）
 
@@ -72,6 +81,1072 @@ ippo（女性疾患症例プラットフォーム）の設計・実装を進め�
 | C-3 | SaMD非該当の書面見解取得（BD-051）| Wave2 Phase D 前 |
 | C-4 | Research Consent追加（BD-049）| Wave2 Phase B 前 |
 | C-5 | Research Dataset提供契約書雛形作成 | Wave2 Phase F 前 |
+
+> **2026-07-07 更新**: 上記5条件はRelease Readiness Council Review v2（docs/RELEASE_READINESS_COUNCIL.md 21章）
+> により再監査済み。C-2（医師アドバイザー招聘）・C-3（SaMD書面見解）は現行の製品定義（自己実験プラットフォーム、
+> BD-061/BD-062）では非適用。C-1は推奨へ格下げ。C-4はデータ利用同意として縮小再定義。表自体は当時の記録として保持する。
+
+**PR-OPS-06: Release Readiness Council Review v2 の正式反映**（2026-07-07・文書のみ、コード変更ゼロ）
+- docs/RELEASE_READINESS_COUNCIL.md 21章追加（製品定義再監査、Critical 5件→2件、BD-061/062新設、Score 93→95/100）
+- docs/release-readiness/FOUNDER_ACTION_CHECKLIST.md 更新（対象2件へ圧縮、対象外4件を記録）
+- docs/release-readiness/MEDICAL_ADVISOR_REQUEST.md・SAMD_OPINION_REQUEST.md に非適用注記追加（confirmed:falseは維持）
+- 本HANDOFFの製品概要・戦略上の条件表・Governing Document Hierarchy・BD registryを更新
+- Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
+- 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
+
+> **次セッション最優先タスク（2026-07-12更新）**: PR-OB-01のクローズに続き、
+> PR-REC-02・PR-REC-03a・PR-REC-03bもFounder Browser Verification実施済み・GOで
+> クローズ（PR-REC-03cは2026-07-11時点で実装・テストとも完了済み）。
+> PR-REC-02〜03系はこれで全件クローズ。
+>
+> Founder承認によりPR-REC-06（Recordスキーマ一本化、Founder方針保留を解除）に着手。
+> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06a（下記参照）を実装し
+> コード修正完了・**Founder Browser Verification待ち**。実機確認（Supabase実環境での
+> FK制約/RLS動作確認）が必要なため停止・報告中。
+>
+> 1. **PR-REC-06aのBrowser Verification**（下記参照）→ 確認後PR-REC-06b（バックフィル+
+>    リトライ機構）の設計へ
+> 2. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+>    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
+>    PR-OB-01・PR-REC-06aのmainマージ/cherry-pickにより前提条件が変化しているため、
+>    このまま使わず内容の見直しが必要）
+> 3. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
+>    Founderへスコープ確認が必要）
+>
+> **その他の未着手項目**:
+> - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
+> - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
+> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点、
+>   PR-OB-01コミット`c50e1be`まで反映済み）
+
+**PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
+- 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
+  完了直後、home-next有効時（デフォルト）でも旧`screen-home`（週間カレンダー+
+  「今日を記録する」ボタン、名前が「あなたさん」のまま）が一瞬表示され、ホームタブを
+  手動で押すと初めて正しいhome-nextに切り替わる、という報告があった
+- 調査: 起動〜画面遷移の直接依存ファイルのみ確認（`src/screens/welcome.html`→
+  `src/modules/onboarding-runtime.js`→`src/modules/screen-router.js`→
+  `src/modules/home-next/home-next-shell.js`/`src/modules/home-renderer.js`）
+- 原因: `onboarding-runtime.js`の`finishOnboarding()`が`showScreen('home')`を直接呼び、
+  legacy専用のhome更新関数（`buildHomeWeekRow`等）を個別に呼んでいたため、
+  `home-next-shell.js`の`initHomeNext()`が差し替える`window.showMain`
+  （home-next有効時は`showHomeNext`）を経由していなかった。`app-bootstrap.js`等
+  他の起動経路は既に`window.showMain()`経由の確立済みパターンを使っており、
+  `finishOnboarding()`だけが独自実装で取り残されていた
+- 修正: `finishOnboarding()`を`window.showMain()`呼び出しに統一。home-next描画に
+  含まれない独立関数（`updateHistory`/`buildCalendar`/`updateStats`/
+  `reorderRecordSections`）のみ個別に維持
+- 初期化順序の安全性確認: `window.showMain`を設定する`home-renderer.js`・
+  `home-next-shell.js`はいずれも`main.js`でstatic import（dynamic importではない）
+  されており、オンボーディングのクリックリスナー（`bindOnboardingEvents()`、
+  `app-legacy.js`から呼び出し）が発火可能になる時点で必ず定義済みであることを
+  コードレベルで確認した。フォールバック（`showScreen('home')`への後退）は
+  不要と判断し追加していない
+- リロード／ログアウト→再ログインでのhome-next維持についてもコードレベルで確認:
+  `home-next-shell.js`の`initHomeNext()`はページロード毎に自動実行され
+  `state.homeNextEnabled === false`が明示されない限りデフォルト有効。
+  `logoutSync()`（`src/services/supabase.js`）は`state.homeNextEnabled`にも
+  リロードにも影響しないため、いずれの経路でもhome-next維持が成立する設計
+- Tests: `tests/modules/onboarding-runtime.test.js`5件新規PASS（`finishOnboarding`が
+  `window.showMain`経由でhome表示を委譲することの回帰ガード）。既存
+  `tests/modules/onboarding.test.js`9件PASS。フルスイート5,254件中失敗35件
+  （`build-draft-from-ui.test.js`・`save-record-screen.test.js`・
+  `disease-analyzer.test.js`の既知failureのみ、いずれも変更ファイルと無関係。
+  新規失敗ゼロを確認）
+- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）
+- コミット: `c50e1be`（`ops/recovery-program`、`origin/ops/recovery-program`へpush済み）
+- **Founder Browser Verification実施済み・FIX CONFIRMED**: ①初回オンボーディング完了
+  →home-next遷移 ②リロード後もhome-next維持 ③ログアウト→再ログイン後もhome-next維持
+  ④再ログイン後のリロードでもhome-next維持、の4項目すべて確認済み
+- 判定: GO。本Bugはこれをもってクローズ
+
+**PR-REC-06a: SupabaseRecordRepository実装 + 正規化テーブルへのDual-Write接続**（2026-07-12）
+- 背景: `IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md` Decision 1（Founder確定済み）により
+  Recordスキーマは正規化`records`/`record_symptoms`/`record_factors`系を正とすることが
+  決まっていたが、`infrastructure/record/record.repository.ts`の`StubRecordRepository`は
+  全メソッドが`throw new Error("not implemented")`のまま（PR-001/002由来）で、実際の
+  ライブ保存経路（`record-three-card-save.js:_rtcPipelineSave`）は`user_records`テーブルへ
+  JSONBブロブとして書き込むのみだった
+- PR-REC-06全体（正規化テーブルへの書込み一本化＋`user_records`からのバックフィル、
+  Council文書のPhase A-3/A-4相当）は2〜3週間規模のため、Founder承認のもと最初の安全な
+  一片（Dual-Write接続のみ）に着手。既存の`user_records`書込みは変更せず安全網として維持
+- `infrastructure/record/record.repository.ts`: `StubRecordRepository`はそのまま残し、
+  新規`SupabaseRecordRepository`クラスを追加（`IRecordRepository`実装）。`records`への
+  upsert（`UNIQUE(user_id, record_date)`が未適用のため手動lookup→update/insertパターン）、
+  `record_symptoms`/`record_factors`をdelete-then-insertで同期。症状/行動タグの日本語
+  表示ラベル（`record-three-card.js`が保存する形式）→ DB正規キー（`symptoms.key`/
+  `factor_definitions.key`）は`symptoms`/`factor_definitions`テーブルを初回fetchして
+  メモリキャッシュした`display_name_ja→key`マップで解決。未知ラベルは該当行をスキップし
+  ログのみ（Dual-Write全体を失敗させない）
+- `supabase/migrations/20260093_alter_records_prototype_fields.sql`（新規）: Prototype
+  Payloadが持つが`records`に列が無かった`note`/`menstrual_cycle`/`blood_clot`/
+  `blood_color`/`bowel`/`medication`をnullable追加（Expand段階、既存カラム削除なし）
+- `src/modules/record-normalized-write.js`（新規）: legacy record shape →
+  `Partial<RecordDraft>`変換（`mapLegacyRecordToDraft`）＋ 既存Application層ユースケース
+  `application/record/createRecord.ts`（`validateDraft`経由、既存実装を再利用）に
+  `SupabaseRecordRepository`を注入して呼び出す`syncRecordToNormalizedSchema(record)`を追加
+- `record-three-card-save.js:_rtcPipelineSave`: `syncRecordImmediately`呼び出し直後に
+  `syncRecordToNormalizedSchema(savedRecord)`をfire-and-forgetで追加。失敗しても
+  `user_records`保存には一切影響しない
+- **含まない（06b/06c以降へ分離）**: `user_records`からのバックフィル、
+  `UNIQUE(user_id, record_date)`制約の適用、読み取り経路（ReadSwitch）の切替、旧5ステップ
+  wizard由来フィールド（painLocation/painType/bodyChoices/diseaseCheck等、現行Prototype
+  UIが生成しないもの）の正規化対応
+- 調査中の副発見: `src/repositories/record/dual-write-record-repository.js`等
+  （PR-014由来のDual-Write/ReadSwitchスタック）はSupabaseの正規化テーブルとは無関係の
+  別物（localStorage `ippo_state_v2`/`ippo_diff_log`間のシャドウ書込み・diff検知が目的）
+  と確認。再利用せず新規実装とした判断は妥当
+- Tests: `tests/infrastructure/record/record.repository.test.ts`（新規7件）・
+  `tests/modules/record-normalized-write.test.js`（新規8件）、計15件PASS。既存
+  `tests/modules/record-three-card-prototype-view.test.js`18件PASSに変化なし
+- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）。フルスイート5,269件中
+  失敗35件（`build-draft-from-ui.test.js`・`save-record-screen.test.js`・
+  `disease-analyzer.test.js`の既知failureのみ、本PRと無関係。新規失敗ゼロを確認）
+- 判定: コード修正完了、**Founder Browser Verification待ち**（FK制約・RLSポリシーは
+  実際のSupabase環境でしか検証できないため）
+- Browser Verification Required:
+  対象: Prototype Record保存時の正規化テーブルへのDual-Write
+  理由: symptom_key/factor_keyのFK制約、RLSポリシーは実機のSupabase環境でのみ確認可能
+  確認方法: 通常ブラウザでPrototype Recordを保存 → Supabase Table Editorで
+    records/record_symptoms/record_factorsに対応する行が作成されていることを確認。
+    既存のuser_records保存が変わらず動作することも確認（回帰なし）
+  次のステップ: 確認OKならPR-REC-06b（バックフィル+リトライ機構）の設計へ進む
+
+**PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
+- 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
+  Uncaught ReferenceErrorとして発生し、「はじめる」ボタン押下後の画面遷移が
+  停止する疑いが報告された
+- 調査: `docs/rebuild/STARTUP_TDZ_BLOCKER_INVESTIGATION.md`（READ-ONLY調査、
+  sourcemap付き一時buildでminified symbol `lo`→`LocalStorageAdapter`
+  （`src/adapters/storage/local-storage-adapter.js:6`）、評価元
+  `src/modules/record-draft-guard.js:24`のモジュールtop-level`new`と特定）
+- 原因: `record-draft-guard.js`（`record-modules`チャンク）が、別チャンク
+  （`runtime-guards`）配置の`LocalStorageAdapter`をモジュールtop-levelで即座に
+  `new`しており、Rollupが毎buildで警告する`record-modules ⇄ runtime-guards`の
+  循環チャンク依存と組み合わさってTDZを引き起こしうる状態だった（PR-013
+  （2026-06-24）由来の既存バグ。PR-REC系・PR-CI系とは無関係と確認済み）
+- 修正: `_getDraftStorage()`による遅延初期化へ変更（全10箇所の呼び出しサイトを
+  `_getDraftStorage().*`に統一）。`manualChunks`は意図的に無変更
+  （Founder方針: chunk構成見直しは別PRで扱う）
+- PR: [#368](https://github.com/kenkou-jpg/ippo/pull/368)、merge commit `3f9dcd1`。
+  `ops/recovery-program`へは`2441cdb`をcherry-pick（`d664022`、コンフリクトなし）
+- Tests: `tests/modules/record-draft-guard.test.js`6件PASS（新規、top-level
+  instantiation回帰防止ガード含む）。`npm test`（mainベース）5,200件全PASS
+- build.yml（merge後）: Unit tests / Vite build / Deploy to GitHub Pages
+  全PASS（[run 29180723608](https://github.com/kenkou-jpg/ippo/actions/runs/29180723608)）
+- **Founder Browser Verification実施済み・FIX CONFIRMED**: 本番URL
+  （`www.ippo-app.com`）で「はじめる」タップ後の画面遷移が正常に進み、
+  Console上にReferenceErrorが一切出ないことを確認済み
+- 判定: TDZ障害は解消。ただしBrowser Verification中に上記「不要な画面」問題が
+  新たに発見され、別問題として次セッションへ引き継ぎ
+
+**PR-CI-01/PR-CI-02: GitHub Pages Build and Deployブロッカー解消**（2026-07-11）
+- 現象: GitHub Pagesが404「There isn't a GitHub Pages site here」を返す状態が
+  継続していた。原因調査の結果、(a) build.ymlのUnit testsジョブが既知failure
+  （DOMAIN_EVENT_TYPES件数ドリフト、disease-analyzer.test.jsの日付固定fixture、
+  record.jsのimport拡張子誤り）で毎回失敗しBuildにすら到達していなかったこと、
+  (b) GitHub Pages自体がリポジトリ設定で有効化されていなかったこと、の2つの
+  独立した原因が判明
+- PR-CI-01（[#366](https://github.com/kenkou-jpg/ippo/pull/366)）:
+  `DOMAIN_EVENT_TYPES`件数の期待値を29→47へ修正（PR-057以降の追加に
+  追随していなかった固定値ドリフト）。値の重複なし・現行実装が正しいことを
+  確認した上で修正
+- PR-CI-02（[#367](https://github.com/kenkou-jpg/ippo/pull/367)）:
+  `disease-analyzer.test.js`のテスト用レコード生成日付を固定暦日から実行時
+  相対日付へ変更（`sliceDays(90)`の時間窓から外れて`confidence`が
+  `insufficient`になっていた、テスト側の問題と特定）。`src/modules/record.js`の
+  `record.service.js`という誤ったimport拡張子を修正（vite buildは元々解決
+  できていたがvitestの解決のみ失敗していた、実装は元々正しかった）
+- 両PRとも`main`へマージ済み。マージ後、Founderが手動でGitHub Pages
+  Settings（Source: GitHub Actions）を有効化し、再デプロイでUnit tests /
+  Vite build / Configure Pages / Deploy全PASSを確認
+- カスタムドメイン`www.ippo-app.com`のcname設定もFounder承認の上で実施
+  （DNS自体は既存設定済みだったため、GitHub Pages側の関連付けのみ）。
+  `www.ippo-app.com`・`kenkou-jpg.github.io/ippo/`とも200 OKでippoアプリが
+  正常表示されることを確認済み
+- 判定: GitHub Pages 404は完全解消
+
+**PR-REC-03c: 内部リファクタ — inline onclickをイベント委譲層へ置換**（2026-07-11）
+- `#rtc-proto-view`内の全inline `onclick`（`_rtcProtoSelect`/`_rtcProtoToggleTag`/
+  `_rtcProtoToggleDetail`/`_rtcProtoSubmit`、計32箇所）を削除し、`_bindProtoViewEvents(view)`
+  による単一の委譲clickリスナーへ統合。`view.__rtcProtoDelegated`フラグで
+  画面再訪問時の二重バインドを防止
+- PR-REC-03a由来のwindow bridge 5件（`window.isPrototypeRecordUIEnabled`等）を完全削除。
+  `.rtc-proto-back`の`window.rtcClose`参照は既存の正式ブリッジのため対象外・無変更
+- 見た目・振る舞い・Feature Flag既定値（OFF）は一切変更なし（純粋な内部配線の置き換え）
+- Tests: 18件PASS（実クリックディスパッチで委譲経路を実地検証、新規4件）
+- コミット: `165f280`（`ops/recovery-program`）
+
+**PR-REC-03b: Prototype Record Save Integration**（2026-07-10）
+- `docs/rebuild/PR_REC_03B_RUNTIME_CONNECTION_REVIEW.md`（CONDITIONAL GO）に基づき、
+  `Prototype UI → Application → Adapter → Runtime → Legacy → Supabase`の5層接続を実装
+- `data-value`属性を`#rtc-proto-view`全チップ（mood/sleep/skin/menstrualCycle/bloodClot/
+  bloodColor/bowel、計25箇所）へ復元（Founder承認: UI変更ではなく機械可読メタデータの復元）。
+  Prototype原本と完全一致することをテストで確認
+- `_gatherProtoPayload()`（Application層）: DOM状態を`PrototypeRecordPayload`形状へ集約。
+  `data-value`/`data-tag`のみ参照、表示テキスト・絵文字は値判定に不使用
+- `_mapProtoPayloadToLegacyRecord()`（Adapter層）: legacy `_buildPayload()`互換形状へ変換。
+  `record_date`はsnake_case維持（`_rtcPipelineSave`の即時Supabase同期判定に必要）、
+  `meta.uiFlow='daily-checkin'`で今日の記録完了判定と整合させた
+  （home-renderer.js等が参照する固定文字列）
+- Runtime/Legacy/Supabase層は無変更のまま`_integrateWithExistingSave()`経由で
+  既存パイプラインへ接続。保存成功後は既存`_showSuccessState()`を再利用
+- **既知の制約（スコープ外、事前合意済み）**: `diseaseContext.concerns`は常に空配列
+  （PR-REC-02の疾患チップ描画ロジックがrecord-three-card.js側に未移植のため）。
+  `experiment_id`は常にnull（PR-REC-06のスキーマ一本化まで legacy user_records側に
+  対応カラムがないため）
+- Tests: 新規/更新14件PASS。コミット: `2f78a56`（`ops/recovery-program`）
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: 保存ボタン押下後に成功表示・
+  recordが正しく保存されること（Supabase同期含む）を確認済み。問題なし
+- 判定: クローズ
+
+**PR-REC-03a: Prototype Record View 採用（Founder Decision, ADOPT WITH FIXES）**（2026-07-10）
+- 前セッション終了後、未コミットで`src/modules/record-three-card.js`・
+  `src/screens/record-three-card.html`にPR-REC-03a相当の実装（Feature Flag
+  `?recordUI=prototype` / `localStorage.ippo_record_ui_v2`で切替、デフォルトOFF、
+  保存接続なし）が存在しているのを発見。READ-ONLY監査（10項目）の結果
+  「ADOPT WITH FIXES」と判定し、Founder承認を得て以下2件を修正の上、正式採用した
+- **修正1**: `_initProtoView()`が`'rtc-header'`をIDとして`getElementById`していたが
+  実際はCSSクラス（`<div class="rtc-header">`）のため常にno-op化し、フラグON時に
+  旧ヘッダーと新viewが二重表示される実バグを修正（`document.querySelector('.rtc-header')`へ変更）
+- **修正2**: Prototypeと同じスクリーンタイトル「記録する」「10秒で今日の実験ログをつける」を
+  `#rtc-proto-view`内に追加（`.screen-header`/`.screen-sub`、`#rtc-proto-view`スコープCSS付き）
+- 新規window export 5件（`isPrototypeRecordUIEnabled`/`_rtcProtoSelect`/`_rtcProtoToggleTag`/
+  `_rtcProtoToggleDetail`/`_rtcProtoSubmit`）は恒久APIではなく移行Bridgeとして扱う旨をコード
+  コメントに明記。**PR-REC-03cまたはLegacy Removal Programでの削除候補として記録**
+- 採用方式（Founder Decision）: Prototype Record UIと既存Record UIの**並存+Feature Flag**。
+  現行Record UIを本番既定として維持し、Prototype Record UIは検証用限定公開
+- 新規テスト: `tests/modules/record-three-card-prototype-view.test.js`（5件、ソースレベルの
+  regression guard — rtc-header修正/タイトル追加/save非接続/フラグ既定OFF/window export
+  コメント明記を検証）。既存の`record-three-card`関連テストは元々存在しない
+- Build PASS（`npx vite build`、既知の循環チャンク警告のみ）。dist成果物に
+  `rtc-proto`/`isPrototypeRecordUIEnabled`が正しく含まれることを実測確認
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Flag OFF時の既存Record UI
+  無変化・Flag ON時のヘッダー非重複・タイトル表示・Prototype UIの操作性・Console Error 0件、
+  いずれも問題なし
+- 禁止事項（保存接続・DB変更・Domain変更・Business Logic変更・旧Record UI削除・
+  mainへのマージ・releaseブランチ作成・Scope外整理）はいずれも実施していない
+- 判定: クローズ
+
+**PR-REC-03: Record Screen Runtime Integration Plan**（2026-07-10・コード変更ゼロ、設計文書のみ）
+- 当初「Adapter接続のみの小PR」として着手しようとしたが、調査の結果`prototype/`は
+  `app.html`が読み込むVite bundleと実行時に完全に分離された独立静的ページであり
+  （`window.rtcSaveDelegate`等のグローバルが存在しない）、単純なAdapter関数だけでは
+  何にも接続されず無音で失敗することが判明。PR-REC-03を「Record Screen Runtime
+  Integration PR」として再定義し、`docs/rebuild/PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`
+  を作成（10節: 抽出範囲・置換範囲・接続方針・window/Vite依存整理・rollback・
+  Browser Verification項目・PR分割案）
+- 発見: 実際のライブ保存経路は`record-three-card.js`の`_buildPayload()`→
+  `window.rtcSaveDelegate`→`record-three-card-save.js`の`_rtcPipelineSave()`
+  （upsertRecord/persistRecordState/syncRecordImmediately/syncRecordCloud）。
+  `record-edit.js`の`gatherRecordData()`は別系統で、`#screen-record`（レガシー
+  スタブ、`data-legacy-isolated="2026-05-27"`）経由の過去日編集専用（本統合の対象外）
+- 発見: 現行`_buildPayload()`には「行動タグ」（caffeine/dairy等）に対応するフィールドが
+  存在しない新規ギャップ。PR-REC-03cとして切り出し予定
+- `domains/record/prototype-payload-mapper.ts`（PR-REC-01）は、対象スキーマ（正規化
+  records系）がPR-REC-06完了までは本番で使われないため、今回は接続しない
+- 判定: **CONDITIONAL GO**。4条件（行動タグ対応要否／共有CSS値diff確認／
+  フィーチャーフラグか直接置換か／Supabase接続確認環境）がFounder決定待ち
+- Decision Log: 更新不要（PR Plan自体の作成、Architecture変更はまだ実施していない）
+- Next: 上記4条件確定後、PR-REC-03a（マークアップ/CSS移植）→03b（ロジック統合）
+  →03c（行動タグ対応、要否次第）の順で着手
+
+**PR-REC-06: Recordスキーマ一本化**（2026-07-10・Founder判断により保留）
+- 着手前に`src/application/composition-root.js`のPR-014/PR-021由来のDual-Write/
+  ReadSwitch/RecordCommandService/`ApiGateway.saveRecord()`スタックを監査した結果、
+  **実際のUI保存経路からは一切呼ばれていないデッドコード**と確認（localStorage上の
+  別スキーマ`ippo_state_v2`/`ippo_diff_log`が対象で、Council文書が問題にしている
+  Supabaseの`user_records`↔正規化テーブル移行とは無関係）
+- しかし正規化`records`/`record_symptoms`/`record_factors`への実書込みを行う
+  `infrastructure/record/`の`StubRecordRepository`は全メソッドが`"not implemented"`
+  を投げるスタブのままであることも判明。PR-REC-06は「切替えるだけ」ではなく
+  新規実装（同日上書き・オフライン再試行等を含む）+ 保存パイプライン切替 +
+  バックフィルスクリプトが必要な、Phase A-3/A-4相当（2〜3週間規模）の作業
+- Founder判断: 「いったん保留、他の未着手PRへ」。サブPR分割案（06a/06b/06c）の
+  提示は行っておらず、次回セッションでの再判断待ち
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- Next: Founder方針確定後に着手。それまでPR-REC-08（最終Browser Verification）は
+  スコープ確定不可のため保留のまま
+
+**PR-REC-07: Consent Context監査ログ**（2026-07-10・Founder方針により保留、任意項目）
+- Council文書で「任意・優先度低、Phase 6以降でも可」と明記された項目。既存
+  `audit_log`テーブルはRLSでService Role専用（クライアントから直接INSERT不可）の
+  ため、着手するには新規テーブル/カラム設計が必要と判明し、「小さいPR」の範囲を
+  超えるため保留
+- Decision Log: 更新不要
+- Next: 対応不要のまま据え置き。着手する場合は専用の設計会議が必要
+
+**PR-REC-05: experiment_idカラム追加 + Experiment Context接続**（2026-07-10・PR-REC-01に続く
+Record Migration実装）
+- `supabase/migrations/20260092_alter_records_experiment_id.sql`: `records`テーブルへ
+  `experiment_id uuid REFERENCES experiments(id)`（nullable）+ 部分インデックスを追加
+- `domains/record/record.entity.ts`/`record-factory.ts`: `RecordEntity`/`RecordDraft`へ
+  `experimentId: ID | null`を追加（デフォルトnull）
+- `domains/record/prototype-payload-mapper.ts`: `payload.experimentContext.experimentId`
+  をそのままマッピングするよう拡張
+- Build PASS / `vitest run tests/domains/record/` 58件PASS（新規2件含む）。
+  Founder方針（毎PR全Regression/全Architecture Guardは省略）に従い、全体Regression・
+  全Architecture Guardは未実施
+- Decision Log: 更新不要（Scope内のカラム追加、Roadmap変更なし）
+- 判定: PR-REC-05完了
+- Next: PR-REC-06（保留、上記参照）
+
+**PR-REC-04: factor_definitions シード追加**（2026-07-10・DB seedのみ、コード変更ゼロ）
+- `supabase/migrations/20260091_seed_factor_definitions_prototype_tags.sql`: Prototypeの
+  行動タグ6種のうち既存キーが無かった`dairy`（乳製品）・`early_sleep`（早寝）を
+  `factor_definitions`へINSERT（`ON CONFLICT DO UPDATE`、スキーマ変更なし）
+- src側にfactorキーをハードコードした重複箇所なし（DB seedのみで完結）を確認済み
+- 判定: PR-REC-04完了。マイグレーションファイルは追加したがSupabase側への適用は
+  別途必要（本セッションでは`supabase db push`等は未実施）
+- Next: PR-REC-05
+
+**PR-REC-02: 疾患別段階的開示UI**（2026-07-10・`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`
+Decision 2準拠、UI変更あり）
+- `prototype/index.html`/`styles.css`/`app.js`のRecordカード1（今日の体調）へ、
+  4枚目カード追加なしで以下を追加:
+  - 肌チップ直下: オンボーディング選択疾患に応じた症状チップ（2〜3個、複数疾患は
+    重複除去して統合）
+  - カード末尾:「くわしく記録する（任意）」折りたたみ（痛み/周期/血塊/おりもの/
+    体温/排便/服薬 + 疾患別詳細症状、すべてnull許容）。sensitive症状は婉曲的表現
+  - 実装中に発見・修正: 疾患チップ行に`.chip-group`クラスを流用すると既存の
+    単一選択トグルと自作の複数選択トグルが二重発火する競合があり、専用クラス
+    `.disease-chip-row`に分離して解消
+- `prototype/`はvitest/vite build対象外のため、`node --check`（構文）+ 重複ID検査で確認
+- **未接続**: Business Logic・実保存には未接続（静的Prototypeへの追加のみ）。
+  接続はPR-REC-03（上記Runtime Integration Plan）のスコープ
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Recordカード1の疾患別チップ・
+  詳細開示パネル、320/375/390/430pxいずれのブレークポイントも正常表示、問題なし
+- 判定: クローズ
+
+**PR-REC-01: Record Payload設計・Adapter実装**（2026-07-10・Record Migration着手PR）
+- `domains/record/prototype-payload-mapper.ts`（新規）: Prototype Record UIのPayload
+  （recordDate/mood/sleep/skin/tags/memo/diseaseContext/optionalDetails）を既存
+  `RecordDraft`型へ変換するマッピング関数`mapPrototypePayloadToRecordDraft()`。
+  DB・スキーマ・保存パイプラインには一切未接続（マッピングのみ）
+- Confirmed Founder Decisions（`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`）準拠:
+  sleep 3択→sleepHours/sleepQuality暫定値、skin=rough時のみ`skin_roughness`登録
+  （normal/goodは非永続化）、tags(sugar→high_carb/earlysleep→early_sleep)、
+  PMS/PMDD選択時は`pms_pmdd`単一キーへ統合
+- `tests/domains/record/prototype-payload-mapper.test.ts`（新規）11件PASS
+- Build PASS / Architecture Guard 単体実行では104件中103件PASS・1件timeout
+  （`architecture-guard-pr073.test.js`、単体再実行で31件PASS済み、本PRと無関係の
+  既知flaky timeoutと確認）
+- 判定: PR-REC-01完了
+- Next: PR-REC-04（並行実施可能）
+
+**IMPLEMENTATION_PLAN_V1.1改訂 + Migration Feasibility Council群**（2026-07-09、本セッション
+着手前に既にリポジトリへ存在していた未コミット状態。本セッションでコミットのみ実施）
+- `docs/IMPLEMENTATION_PLAN_V1.md`をV1.0→V1.1へ改訂（出力11〜17追加、Gap一覧G-01〜G-23へ
+  実態を反映）。`docs/rebuild/IPPO_REBUILD_MIGRATION_FEASIBILITY_COUNCIL.md`・
+  `IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`・`IPPO_REPOSITORY_STRATEGY_REEVALUATION_COUNCIL.md`・
+  `IPPO_FINAL_REPOSITORY_ARCHITECTURE_COUNCIL.md`の4文書を新規追加
+- Repository Strategy A（現行ippoへPrototypeを統合）を正式採用。UI/Logic権威分担の原則
+  （見た目=Prototype優先、機能=現行IPPO優先、データ整合性で迷ったら現行IPPO優先）を明記
+- 以降のPR-REC系はこの改訂とIPPO_RECORD_MIGRATION_DESIGN_COUNCIL.mdの「Record Migration
+  PR Plan」（PR-REC-01〜08）に従って実施
+
+**PR-092A: Home Cluster統合**（2026-07-07・UI/UX Final Council採用、Founder承認済み）
+- buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState/updateStatsを
+  `src/modules/home-renderer.js`の統合版へ一本化。`src/app-legacy.js`側の重複ローカル実装を削除し、
+  該当6関数をhome-renderer.jsからimportする形に変更（bare呼び出し箇所は変更不要）
+- buildHomeWeekRow: 新仕様（円形セルの視覚言語を保ちつつ、痛みレベル4段階色分け+生理周期フェーズ色を統合。
+  従来renderer版が呼んでいなかった`buildPhaseBar(monday)`も統合）
+- updateHomeCTAState: 新仕様（daily-checkin完了基準を正式採用、完了時サブテキストに
+  `buildComparisonComment()`（前回比較コメント）を統合）
+- updateHomeInsightCard: 統合（`window.buildHomeInsight()`パケット優先ロジックを追加。
+  `src/home/home-insight-engine.js`は現時点でどこからもimportされておらず常にfalseのため
+  挙動変更なし、将来同エンジンがバンドルされた場合に自動的に有効化される設計）
+- updateHomeNumbers/updateHomeDiseaseAdvice/updateStats: 統合（home-renderer.js側の既存実装を正とし、
+  legacy-misc-stats.js側の重複実装・関連import（calcPainFreeDaysThisMonth/calcAvgPainThisMonth）を削除、
+  data-export.jsのimport元をhome-renderer.jsへ変更）
+- app-legacy.js: 964〜1419行付近の6関数ローカル実装削除、未使用となったcycle-utils.js import
+  （getPhaseForDate/isPeriodExpected/buildComparisonComment/buildDayComparison/buildWeekComparison）を削除
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,447→2,278
+  （app-legacy.js実測170行減、`split('\n').length`基準）に更新
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、Recovery Program baseline通り増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでシード済みstateを用いて確認。週間カレンダー（痛みレベル色分け+✓）・
+  CTAカード（「✓ 今日をふり返る」+ buildComparisonCommentによる動的コメント）が意図通り描画されることを確認
+
+**⚠ 重要な新規発見（PR-092B着手前にFounder確認が必要）**
+```
+Browser Verification中に、UI/UX Final Council（および本HANDOFF・LEGACY_REMOVAL_PLAN・
+PR-090-R5・Decision-4のいずれの文書）も認識していなかった事実が判明した:
+
+1. src/modules/home-next/ に、ホーム画面の完全に別実装（home-next-shell.js他11ファイル）が
+   存在し、`isHomeNextEnabled()`はデフォルトで有効（フラグ未設定時もtrueを返す実装、
+   src/main.jsのコメント「フラグOFFの場合は既存homeに影響しない」は現状のコードと矛盾する
+   陳腐化した記載）。
+2. home-next有効時、`initHomeNext()`が`window.showMain`をhome-next版に差し替え、かつ
+   `window.buildHomeWeekRow`等5関数を明示的にno-op化する（home-next-shell.js:242-248）。
+   ただしapp-legacy.js側は本PRでbare importに変更したためwindow経由ではなくimportされた
+   実体を直接参照しており、この差し替えの影響は受けない（意図せず無効化されてはいない）。
+3. `src/screens/home-next.html`には`#home-week-row`/`#home-cta-card`/`#home-insight-card`等
+   Home Cluster対象DOMが一切存在しない。これらのDOM自体は`#screen-home`として引き続き
+   DOMに存在する（screen-router.jsは非activeスクリーンをDOMから除去しない）が、
+   home-next有効時はユーザーの目に触れない。
+4. `saveRecordScreen()`等の記録保存経路から`window.ippoHomeNext.render()`
+   （home-next再描画の正式エントリポイント）を呼ぶ箇所が見当たらない。cloudRestore成功時と
+   settings-profile-changedイベント時のみ再描画される。
+5. 副次的に、`updateHomeCTA()`（updateHomeCTAStateとは別の第3の実装、home-renderer.js:1061）が
+   同じ`#home-cta-title`/`#home-cta-sub`/`#home-cta-card`を対象にしており、
+   Council/既存文書のいずれもこの関数の存在に言及していなかった。
+
+含意: UI/UX Final Councilの「保存直後とタブ切替後で見た目が異なる」という問題認識は、
+home-next有効時（デフォルト）のユーザーには当てはまらない可能性が高い。PR-092A自体は
+安全（テスト全件PASS・重複コード削減・home-next側への影響なし）だが、PR-092B
+（saveRecordScreen物理移動）・以降の作業を「Home Clusterの統合によりUXが改善する」という
+前提のまま進めてよいかはFounder確認が必要と判断し、PR-092B着手前に報告する。
+```
+
+**PR-092A-1: home-next 実態調査**（2026-07-07・Founder指示、コード変更ゼロ）
+- 詳細: [docs/PR-092A-1-home-next-reality-audit.md](PR-092A-1-home-next-reality-audit.md)
+- 実測確認（開発サーバー、state注入 + save/switchTab直接実行）:
+  1. 実際に表示されるHomeはhome-next（デフォルト有効、`#screen-home`はDOM上に存在するが非表示）
+  2. 保存直後、home-nextは自動更新**されない**（`window.saveRecordScreen()`実行後も`#hn-status`内容は変化なし）
+  3. タブ切替時、home-nextは正しく最新state を反映**する**（`window.switchTab('home', null)`実行後
+     `#hn-status`が保存済みの新しい記録を反映）
+  4. `disableHomeNext()`が`localStorage`キーを削除するのみで`isHomeNextEnabled()`の
+     `flag !== '0'`判定と噛み合わず、home-next無効化が機能しない副次的バグを発見
+     （PR-092A-1のスコープ外、Founder参考情報として記録）
+  5. `updateHomeCTA()`（`updateHomeCTAState`とは別の第3実装）は、全4呼び出し箇所で
+     常に`updateHomeCTAState()`より先に呼ばれるため実害はないが、実質無意味なコードと確認
+  6. `#screen-record`の`data-legacy-isolated`/`data-replacement`属性は陳腐化した記載で、
+     実際には`editPastRecord()`（カレンダー経由の過去日編集、現役機能）から到達可能と確認。
+     `saveRecordScreen()`はDead Codeではない
+- 判定: PR-092Bへ進めてよい。home-nextへの即時反映追加・disableHomeNext()バグ修正・
+  `updateHomeCTA()`整理はいずれもBusiness Logic拡張のためPR-092Bのスコープに含めず、
+  別途Founder判断が必要な項目として切り出し済み（詳細は監査文書4-C節）
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、調査のみ）
+- Next: Founder承認後、PR-092B（saveRecordScreen物理移動、正当化理由を4-Bの通り修正）に着手
+
+**PR-092B: saveRecordScreen物理移動**（2026-07-07・UI/UX Final Council採用、Founder承認済み）
+- `saveRecordScreen()`を`src/app-legacy.js`から`src/modules/record-screen.js`へ物理移動。
+  Business Logic変更なし（既存保存ロジックを完全維持、bare `state`→`window.state`変換 +
+  import解決のみ）
+- 新規import: `gatherRecordData`/`gatherDiseaseData`（record-edit.js）、`toLocalDateKey`
+  （utils/string-utils.js）、`calcSMIScore`（utils/stats-utils.js）、`parseMealMemo`
+  （meal-tracker.js）、`calcWellnessScore`（pro/shared/pro-metric-utils.js）、
+  `showAlertModal`（ui-notifications.js）、`saveSymptomSelection`（symptom-settings.js）、
+  `updateHomeCTA`/`updateHomeSummary`/`updateStreakBadge`/Home Cluster6関数/
+  `updateDailyHintCard`/`updateTodayMessage`（home-renderer.js）、`checkAndShowTempAlert`
+  （temp-alert.js）、`updateFastingWidgetPhase`（fasting.js）、`getCurrentCyclePhase`
+  （analytics/cycle-engine.js）、`saveAndSync`（save-and-sync.js）
+- `cloudBackupAll`/`saveState`の2件のみapp-legacy.js側にローカル実装が残置されており
+  （window版が未設定の場合のみ使われるフォールバック）、`window.__ippoLegacyCloudBackupAll`/
+  `window.__ippoLegacySaveState`ブリッジを新設して既存フォールバック挙動を完全に保持
+- `showToast`（クラウド同期2回失敗時のみ到達する内側catch内）は移動元でもbare参照未解決
+  （到達時ReferenceErrorとなるpre-existingの潜在バグ）のため、Scope（Business Logic変更禁止）
+  に従いそのまま同一のbare参照として移植（修正しない）
+- app-legacy.js側: `saveRecordScreen()`本体・`window.saveRecordScreen`bridge行を削除。
+  本関数専用だった7件のimport（gatherRecordData/gatherDiseaseData/toLocalDateKey/
+  calcSMIScore/calcWellnessScore/saveSymptomSelection/getCurrentCyclePhase）も
+  orphan化したため削除（同じimport文内の他の現役シンボルは維持）
+- record-screen.js側: `saveRecordScreen`を自己export化（`window.saveRecordScreen = saveRecordScreen;`）
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,278→2,077
+  （app-legacy.js実測201行減）に更新
+- **調査で判明した事実（Scope変更には至らないが記録）**: `src/modules/record.js`にも
+  `saveRecordScreen`/`_saveRecordScreenImpl`という別実装が存在し、「app-legacy.js廃止後の
+  フォールバック」として設計されているが、`window.saveRecordScreen`が未設定の場合のみ
+  自身を割り当てるガードを持つため、現在は休眠状態（app-legacy.js/record-screen.js側の
+  実装が既に`window.saveRecordScreen`を占有しているため）。実機のwrapper chain追跡により、
+  現在実行される実体が本PRで移動した実装であることを確認済み（record.js側の実装は
+  競合しない）。record.js側は`../../domains/record/record.service.js`を静的importするが、
+  このパスはプロジェクトルート直下の`domains/record/record.service.ts`（TypeScript、
+  `src/`外の別ドメイン層）に解決される（vite build/dev下では解決成功、vitestの解決設定との
+  差異により`tests/modules/save-record-screen.test.js`等の既知失敗が発生している、
+  との推定）。将来record.jsへの完全移行を検討する際は、この別TypeScriptドメイン層
+  （`domains/record/*.ts`）の存在を前提に精査すること
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでカレンダー経由の過去日編集（`editPastRecord`→
+  `#screen-record`→`saveRecordScreen()`）を実行し、既存レコードの上書き保存・
+  `editingDate`リセット・成功オーバーレイ表示・Home Cluster再描画が正しく動作することを確認。
+  新規レコード保存（`totalDays`/`streak`更新含む）も別途確認。Console Errorは既知の
+  vite websocket接続失敗ノイズのみ
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし）
+- 判定: PR-092Bはこれをもって完了。禁止事項（home-next即時反映追加・disableHomeNext修正・
+  updateHomeCTA整理・Home UX変更・Business Logic変更・Architecture変更）はいずれも実施していない
+- Next: PR-092C着手前確認（HIGH risk、Founderへの個別Go要求）
+
+**PR-092C: record-modal完全終了**（2026-07-07・UI/UX Final Council採用・Decision-4確定内容の実施、Founder承認済み）
+- 削除: `#record-modal`（`app.html:1178-1204`、HTMLブロック全体）
+- 削除: `switchTab`（app-legacy.js版ローカル実装。`window.switchTab`はtab-navigation.js版が
+  引き続き保持し無変更。app-legacy.js版はcloseModal()経由のbare呼び出し専用だったため削除）
+- 削除: `_prevTab` / `openRecordModal()` / `closeModal()` / `window.__ippoLegacyOpenRecordModal`ブリッジ
+- 削除: `saveRecord()`（旧5ステップwizard保存ハンドラ、Decision-4で到達経路ゼロを確認済み）
+- 削除: `renderStep`/`nextStep`/`prevStep`/`buildSteps`（app-legacy.js側のconst alias 4件と
+  そのwindowブリッジ4件。実体である`record-input.js`側・3-card UIでの利用は無変更）
+- 削除: `src/modules/record-modal-controller.js`（openRecordModal/closeModal/saveAndSyncの
+  no-op export、実測でいずれも`_inline*`が常にnullと確認済み）。`main.js`のimportも削除
+- 削除: `ui-notifications.js`・`app-legacy.js`（2箇所重複していたことを実装中に発見）の
+  Escapeキーハンドラから`#record-modal`分岐を削除
+- 置換: `home-renderer.js`の`handleHomeCTA()`フォールバック分岐を、
+  `window.__ippoLegacyOpenRecordModal()`呼び出しから`window.showToast()`による
+  最小限のエラー通知（「読み込みに問題が発生しました。ページを再読み込みしてください。」）に置換
+- 副次的なorphan import削除: `getSuccessMessage`（旧saveRecord用、success-message.js）
+- `save-and-sync.js`本体・`record-input.js`実体・`tab-navigation.js`版switchTabには
+  一切触れていない（Founder条件を遵守）
+- tests/arch/legacy-removal-pr079-line-count-guard.test.js: BASELINE_LINE_COUNTを2,077→1,918
+  （app-legacy.js実測159行減）に更新
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification:
+  - `#record-modal`がDOMに存在しないことを確認
+  - 通常の3-card記録フロー（handleHomeCTA→screen-record-three-card）が無変更で動作することを確認
+  - カレンダー経由の過去日編集（editPastRecord→#screen-record→saveRecordScreen、PR-092Bの経路）が
+    record-modal-controller.js削除後も無変更で動作することを確認
+  - `window.openRecordScreen`未定義時の新フォールバック（showToastによるエラー通知）が
+    正しく表示され、`#record-modal`は表示されないことを確認
+  - Escapeキーによる他のオーバーレイ（dmOverlay等）の開閉が無変更で動作することを確認
+  - **検証中の注記**: 開発サーバーに登録済みのService Workerが変更前のバンドルをキャッシュしており、
+    最初の検証で`window.openRecordModal`等が誤って「まだ存在する」ように見えた。
+    Service Worker登録解除 + Cache Storage削除後に再検証し、削除が正しく反映されていることを
+    確認した。実装上の問題ではなくブラウザ側のキャッシュによる見かけ上の結果であったため、
+    Rollback Planは発動していない
+  - Console Errorは既知のvite websocketノイズのみ
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし）
+- 判定: PR-092Cはこれをもって完了。禁止事項（Business Logic追加・UI追加・Architecture変更・
+  Scope外変更・save-and-sync.js本体変更・record-input.js実体変更・tab-navigation.js版switchTab変更）
+  はいずれも実施していない
+- Next: PR-092D（Final Cutover Exit Audit）
+
+**PR-092D: Final Cutover Exit Audit**（2026-07-07・コード変更ゼロ、監査のみ）
+- 詳細: [docs/PR-092D-final-cutover-exit-audit.md](PR-092D-final-cutover-exit-audit.md)
+- 目的: PR-092A〜C（UI/UX Final Council採用・Decision-3/Decision-4実施）の成果を
+  実コードで再確認し、PR-092 Final Cutoverの区切りを確定する監査
+- 確認結果: Decision-3対象（Home Cluster 6関数・saveRecordScreen）・Decision-4対象
+  （saveRecord/openRecordModal/closeModal/record-modal-controller.js/nextStep/
+  prevStep/renderStep/buildSteps/`#record-modal`）はいずれもapp-legacy.js・app.html・
+  src/modules/から実装ゼロ件を確認（grepで再検証、報告内容と差異なし）
+- Build: `npx vite build` PASS（既知警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件、PR-092C時点から増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- app-legacy.js: 1,917行（PR-092C完了時点の1,918行から不変。BASELINE_LINE_COUNT=1,918のまま）
+- 副次的発見（対応不要・Founder確認事項）: `.claude/worktrees/`配下に古いgit worktree
+  ディレクトリが多数残存し、削除済みのはずの`record-modal`実装を含む古いスナップショットが
+  存在することを確認。現行の`src/`・ルート`app.html`には影響しないため本監査スコープ外。
+  整理の要否はFounder判断
+- Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
+  監査のみ）
+- 判定: PR-092 Final Cutover（PR-092A〜C）完了確定。Approved Deferred Items
+  （Decision-3・Decision-4対象）の未解消項目なし
+- Next: 次工程（Release Preparation等）の要否・進行はFounderが別途判断する
+
+**PR-EXP-01: ボトムナビ4アイコン描画復旧**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md Stage1、
+General Release絶対修正1件目）
+- 根本原因: `src/app-legacy.js`の`initNavIcons()`/`initSettingsIcons()`が裸の`ICONS`識別子を参照していたが、
+  本モジュールは`ICONS`を一切importしておらず（`window.ICONS`のみ`src/constants/icons.js`が設定）、
+  `typeof ICONS === 'undefined'`判定が常にtrueとなり無音でno-opしていた。呼び出し元の
+  DOMContentLoadedリスナー内ゲート（`typeof ICONS !== 'undefined'`、旧1270行目付近）も同一理由で
+  常にfalseとなり、initNavIcons/initSettingsIcons/カレンダーchevron（calPrev/calNext）注入の
+  いずれも一度も実行されていなかったことを確認
+- 修正: `initNavIcons()`/`initSettingsIcons()`内および呼び出しゲート・chevron参照の計6箇所で、
+  裸の`ICONS`参照を`window.ICONS`に置換。SG-7 line count guard（app-legacy.js行数減少監視）に
+  抵触しないよう、新規宣言行を追加せず既存行内でのプロパティアクセス変更のみで対応
+  （app-legacy.js: 1,918行のまま不変）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、PR-092D時点から増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、line count guard含む）
+- Browser Verification: 開発サーバーでフレッシュリロード後、nav-icon-home/nav-icon-insights/
+  nav-icon-settings/nav-icon-plus/home-settings-iconの5要素すべてに実SVGが注入されることを確認。
+  ホーム→インサイト→設定→ホームのタブ切り替え・アクティブ状態表示も無変更で動作することを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所バグ修正）
+- 判定: PR-EXP-01完了。絶対修正3件のうち1件目を解消
+- Next: PR-EXP-02 — Insightsヒーローのモバイルレイアウト修正
+
+**PR-EXP-02: Insightsヒーローのモバイルレイアウト修正**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、General Release絶対修正2件目）
+- 根本原因: `src/screens/insights.html`の`.ipr-art`（143行目、常に空のdiv、装飾artの位置決めには
+  一切使われていない純粋なflexスペーサー）が`width:420px; min-width:420px;`を固定で持つが、
+  モバイル用`@media(max-width:767px)`ブロック（旧382行目）は`.ipr-art`の`height`/`margin-top`のみ
+  上書きし`width`/`min-width`は上書きしていなかった。この結果、375/320px幅では`.ipr-hero`
+  （flex row、利用可能幅約351px）内で420px固定幅の`.ipr-art`が縮小不可のまま大半の幅を占有し、
+  テキスト列（`.ipr-hero > div:first-child`、flex-shrink:1・min-width:0）が実測67px程度まで
+  圧縮され、見出し文字が1文字ずつ改行される表示崩れが発生していた（実機Browser Verificationで
+  computed rectを実測し確認）。実際の装飾art（`.hero-art`）はモバイル用に別途
+  `position:absolute; top:10px; right:0; width/height:180px`で独立配置されており、
+  `.ipr-art`のボックスに一切依存していないことも確認済み
+- 追加で判明: メディアクエリの閾値が`max-width:767px`のため、Master Plan Browser Verification
+  要件の768px幅がちょうど対象外となり、768pxでも同一の崩れが再現することを実測で確認
+- 修正（src/screens/insights.htmlのみ、CSS2箇所）:
+  1. `.ipr-art`のモバイル上書きに`width: 0; min-width: 0;`を追加（既存のheight/margin-topは維持）
+  2. メディアクエリを`@media(max-width:767px)`→`@media(max-width:768px)`に変更し、
+     768px幅もモバイルレイアウトに含める
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーで320px/375px/768pxの3幅すべてでヒーロー見出し・リード文・
+  CTAボタンが正常表示されることを実測確認（`.ipr-hero > div:first-child`が280pxのmax-widthまで
+  正しく確保されることをcomputed rectで確認）。1280px（デスクトップ幅）で`.ipr-art`が
+  420px幅を維持し既存デスクトップレイアウトに影響がないことも確認。Cycle Phase/Reflection/
+  関連分析タグ等の他Insightsカードのレイアウトにも崩れがないことを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所CSS修正）
+- 判定: PR-EXP-02完了。絶対修正3件のうち2件目を解消
+- Next: PR-EXP-03 — Premium価格・比較表・CTA復旧（Release Risk「高」、収益機能の入口）
+
+**PR-EXP-03: Premium価格・比較表・CTA復旧**（2026-07-07・Founder Decisionにより判定保留）
+- 調査の結果、`renderProHero()`自体・呼び出しチェーン（`updatePremiumBadges()`経由で起動時に
+  3回リクエストされることを`ippoRenderAuthority.getPending()`で確認済み）は正常に動作しており、
+  `window.ippoRenderAuthority.flushNow()`で強制フラッシュすると価格・CTAが正しく描画されることを確認した
+- `#pro-hero`が空に見えた原因は、本プレビュー環境が`document.visibilityState === 'hidden'`固定であり、
+  `render-authority.js`のRAFキュー（`requestAnimationFrame`ベース）が一切flushされないことによる
+  検証ツール側の制約である可能性が高いと判明（Home/Insights/Settings等、同じrender-authority経由の
+  他画面は正常表示されていたこととも整合）
+- Founder Decision: 実環境（Chrome拡張接続または通常ブラウザ、Supabase接続環境）でのBrowser Verification
+  結果を待って最終判定（Complete/Modify/Continue）する。それまでコード変更は行わない
+- Regression: 対象外（コード変更なし）
+- Decision Log: 更新不要（コード変更なし、判定保留）
+- 判定: **保留**（Founder確認待ち）
+- Next: 保留のままPR-EXP-04・05へ
+
+**PR-EXP-03: Premium価格・比較表・CTA復旧 + Premium/Pro価値グルーピング**（2026-07-08・Founder実機確認によりComplete判定、
+体質改善実験プラットフォーム UI/UX Council反映のスコープ拡張分を含む）
+- Founderが実環境（通常ブラウザ、Supabase接続環境）で`#pro-hero`の価格・比較表・CTAボタンが
+  正しく表示されることを確認済み（完了条件1）。プレビュー環境固有の`document.visibilityState`
+  制約による見かけ上の問題であったことが確定した
+- 完了条件2（9枚のカードがPremium/Proの2グループに視覚分割される）は、スコープ拡張決定時点では
+  未実装であることをコード確認（`app.html`の`.pf-grid`が全9カードをフラットに配置、グルーピング
+  マーカーなし）で発見し、Founderに実装要否を確認のうえ本PRで実装した
+- グルーピング方針: `docs/business/FREE_PRO_BOUNDARY.md`（Monetization Council正典）の
+  「STARTER(表示名:Premium)＝自分のパターンを理解する」「PRO＝自分を研究する人のためのプラン」の
+  分類に基づき、既存9カードを以下のとおり割当（Founder確認済み）:
+  - **Premium（理解）**（8件）: AIパターン解析／フレアアップ分析／要因効果レポート／
+    周期フェーズ分析／からだサマリー／月次レポートPDF／体温パターン解析／デバイス間同期
+    （デバイス間同期はどちらの物語にも直接該当しないユーティリティ機能のため、
+    割当をFounderに個別確認）
+  - **Pro（改善）**（1件）: ヘルス実験（仮説検証・行動系）
+- 実装（`app.html`、Business Logic変更なし・比較表は作らない・既存`premiumGate()`呼び出し
+  無変更）:
+  1. `#pro-hero`直後に`Premium（理解）`見出し（`.pf-group-heading`）を追加
+  2. 既存の「📊 分析・インサイト」「📋 レポート」「🌡️ 健康トラッキング」3カテゴリを
+     `Premium（理解）`見出し配下にそのまま維持（カテゴリ構造自体は変更しない）
+  3. 「🌡️ 健康トラッキング」内の`.pf-grid`から「ヘルス実験」カードを分離し、
+     「デバイス間同期」のみ残置（1カードのみの単列表示、`grid-template-columns:1fr`を追加）
+  4. 末尾に`Pro（改善）`見出し（`.pf-group-heading`）+ 「ヘルス実験」カード単独の
+     `.pf-grid`（`grid-template-columns:1fr`）を新設
+  5. `src/styles/app.css`: `.pf-group-heading`クラスを新規追加
+     （`.pf-category-label`と同系統、既存CSS変数`var(--ink)`のみ使用、
+     Design System Freeze準拠・新規カラー値なし）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザでPremium画面を確認し、Complete判定。
+  `#pro-hero`直下の「Premium（理解）」見出し・既存3カテゴリのレイアウト・
+  「デバイス間同期」カード単列表示・末尾「Pro（改善）」見出し+「ヘルス実験」カード単列表示・
+  CTAクリック→Checkout遷移・premiumGate()動作、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。Master Planが定義した完了条件2の実装であり
+  新規UX方針決定ではない。ただしグルーピング割当の解釈はFounder確認済み）
+- 判定: **完了**（完了条件1・2ともFounder実機確認済み）
+- Next: Stage1完了条件（PR-EXP-01〜06すべて完了）の再評価。残りはPR-EXP-06
+  （Experiment Platform Framing）のみ。本PRで確定した文言・トーン
+  （Premium=理解／Pro=改善）との整合を取ったうえで着手する
+
+**PR-EXP-04: Home週間行の日付・記録表示復旧**（2026-07-07・Founder Decisionにより判定保留）
+- 調査の結果、`buildHomeWeekRow()`（home-renderer.js:190）自体のロジックは正しく実装されている
+  （記録注入→手動でロジックを再現すると正しく検出されることを確認済み）
+- しかし実機では、`window.buildHomeWeekRow`が`home-next-shell.js:242`の
+  `window.buildHomeWeekRow = noOp;`によって完全な空関数に置き換えられており
+  （`ownership-map.js`の`_wrapRender`がこのno-opを`original`として捕捉するため、以降
+  home-renderer.js側の実体には一切到達しない）、`AUTH.request`呼び出しを横取りして
+  渡された関数が`() => {}`であることを実測で確認した
+- さらに、この関数が描画する`#home-week-row`要素自体も、home-next有効時（デフォルト）は
+  `#screen-home`が非activeのため非表示（`offsetParent === null`）であることを確認した
+- 加えて、`home-next-shell.js`冒頭のFeature Parity Mapには週間カレンダーバー
+  （`buildHomeWeekRow`相当）が「⬜ legacy-only（未移植）」と明記されており、
+  home-next側にはそもそも同等機能が実装されていない
+- 結論: Master Plan記載スコープ（home-renderer.js内の修正）を実装しても、
+  実際のユーザー（home-nextがデフォルト有効）には一切見えない。真にユーザー体験を直すには
+  home-next側への新規実装が必要だが、これはPR-EXP-04の宣言スコープ
+  （表示ロジック復旧・Release Risk「低」）を超えるBusiness Logic/UX追加に該当する
+- Founder Decision: 保留してPR-EXP-05へ進む
+- Regression: 対象外（コード変更なし）
+- Decision Log: 更新不要（コード変更なし、判定保留）
+- 判定: **保留**（Founder確認待ち、home-next側実装の要否について今後判断が必要）
+- Next: 保留のままPR-EXP-05へ
+
+**HOME_WEEK_ROW_REMOVAL_AUDIT**（2026-07-07・Founder指示、コード変更ゼロ・調査のみ）
+- 詳細: [docs/HOME_WEEK_ROW_REMOVAL_AUDIT.md](HOME_WEEK_ROW_REMOVAL_AUDIT.md)
+- `buildHomeWeekRow()`/週間カレンダーバーの削除・保留・移植を、参照調査・home-next設計・
+  Phase2整合・UX観点・削除影響の5観点から監査
+- 4件のLEVEL-1文書（PHASE2_IMPLEMENTATION_COUNCIL.md・PHASE2_EXPERIENCE_INTEGRATION_COUNCIL.md・
+  PHASE2_ARCHITECTURE_FREEZE.md・PHASE2_GOVERNANCE.md）すべてが週間行をHomeの恒久的構成要素
+  （Final Visionまで不変の骨格・Home最大6ブロックの一員）として明記していることを確認。
+  削除を正当化する記述は皆無
+- 判定: **C. Migrate（home-nextへ移植する）**
+- PR-EXP-04再判定: **Modify**（元のhome-renderer.js単体修正スコープでは効果がないため、
+  home-next統合を含むスコープへ修正の上Proceedすべきと判定）
+- Next: Founder承認を経てPR-EXP-04（Home Weekly Progress Migration）に着手
+
+**PR-EXP-04: Home Weekly Progress Migration**（2026-07-07・Founder承認・監査結果を受けた
+スコープ修正版、GENERAL_RELEASE_EXPERIENCE_COUNCIL.md / PHASE2_ARCHITECTURE_FREEZE.md準拠）
+- 実装着手前の追加調査で、`src/modules/home-next/home-next-status.js`に
+  **home-next独自の週間ストリップ実装（`buildWeekStrip()`）が既に完成した状態で存在**しており、
+  `renderStatusCards()`からも既に呼び出されていた（`#hn-status`内に追記される設計）ことが判明。
+  レガシー`buildHomeWeekRow()`とは別の、home-next専用のCSS（`.hn-week-card`/`.hn-week-grid`/
+  `.hn-week-day`/`.hn-week-dot`等、home-next.cssに完全に現存）を伴う独立実装だった
+- `buildWeekStrip()`は`return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）`という1行により
+  無効化されていた。git log確認の結果、これは2026-06-07のコミット`29047a1`
+  「HOME画面情報密度削減 – 描画停止のみ (PHASE 1)」による意図的な過去のFounder決定
+  （buildBarChart/buildDotScale/buildSparkline/buildWeekStrip/renderHero/renderRecoveryを
+  同時に停止）であり、直近（2026-07-07付）のLEVEL-1 Governance文書群とは1ヶ月の時間差がある
+  矛盾状態だったことが分かった
+- Founder確認（スクリーンショットで実物を提示の上）の結果、「既存実装（buildWeekStrip）の
+  再有効化」を採用する方針で承認を得た。これにより「レガシーロジックの新規移植」ではなく
+  「既存の完成済みhome-next実装を再有効化する」という、当初想定よりはるかに低リスク・
+  低工数の実装方針に変更された
+- 実装（Business Logic追加なし・UI仕様変更なし、既存コードの再有効化+ドキュメント整理のみ）:
+  1. `src/modules/home-next/home-next-status.js`: `buildWeekStrip()`冒頭の
+     `return '';`を削除し関数を再有効化。ロジック・レイアウト・配色は
+     PHASE 1-B以前の実装から一切変更していない
+  2. `src/modules/home-renderer.js`: `buildHomeWeekRow()`にコメント追加。
+     home-next有効時はhome-next側の独立実装が使われ、本関数はscreen-home
+     （home-next無効時のフォールバック）専用であることを明記（責務整理、ロジック変更なし）
+  3. `src/modules/ownership-map.js`: `buildHomeWeekRow`のownership登録に、
+     home-next側はこのレジストリの対象外である旨のコメントを追加（ロジック変更なし）
+  4. `src/modules/home-next/home-next-shell.js`: Feature Parity Mapを
+     「週間カレンダーバー」✅ covered by home-nextへ更新し、Legacy dependency map内の
+     `window.buildHomeWeekRow`項目に責務分離の注記を追加（コメントのみ）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Regression: Founder指示によりフルリグレッションスイート実行を省略（ビルド・Architecture Guard
+  PASSを最終確認とする）
+- Browser Verification: 実装前に対象UI（月〜日7マスの週間ストリップ）をFounderへ
+  スクリーンショット提示済み。再有効化後の実機での最終目視確認は次回セッションで実施
+- Decision Log: 更新不要（Roadmap変更なし。ただし2026-06-07のPHASE 1密度削減決定を
+  部分的に上書きする実質的な影響があるため、次回の週次レビュー等で記録の整合を確認推奨）
+- 判定: PR-EXP-04完了
+- Next: Stage1完了条件の確認（PR-EXP-03は引き続き実環境Browser Verification待ちで保留）
+
+**PR-EXP-05: ナビラベル・Premium下部余白調整**（2026-07-07・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、推奨修正）
+- 対象1（Premiumカードグリッド最終行のボトムナビ隠れ）: 実機計測で`#screen-premium`に
+  ボトムナビ分の余白確保がなく、最終行カード（8件中最後）の下端(833px)がボトムナビ上端(617px)より
+  下にあり隠れることを確認（`src/styles/app.css`に`.screen { min-height: 100dvh; }`のみで
+  padding-bottomの指定なし）
+- 対象2（ナビ「カレンダー」ラベルの折返り）: 本環境（Noto Sans JPロード済み、375px/320px幅）では
+  折返りを再現できなかったが、Master Planの完了条件「ラベル1行表示」を環境非依存で保証するため、
+  `white-space: nowrap`を防御的に追加
+- 修正（src/styles/app.css、2箇所）:
+  1. `#screen-premium { padding-bottom: 90px; }`追加（PREMIUM SECTIONブロック冒頭、
+     insights.htmlの.iprモバイル余白と同水準）
+  2. `.nav-item span:not(.nav-icon) { white-space: nowrap; }`追加
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: 開発サーバーでPremium画面最下部までスクロールし、最終カード下端(518px)が
+  ボトムナビ上端(617px)より上に収まり隠れないことを確認。ナビ5ラベル（ホーム/カレンダー/記録/
+  インサイト/設定）すべてが`white-space:nowrap`・単一行高さ(13px)で表示されることを確認
+- Decision Log: 更新不要（Roadmap/Architecture/Business/Founder Strategy変更なし、局所CSS修正）
+- 判定: PR-EXP-05完了
+- Next: （2026-07-08追記）PR-EXP-03・04はその後Founder確認によりいずれも完了確定。
+  Stage1の残りはPR-EXP-06のみ。次エントリ参照
+
+**PR-EXP-06: Experiment Platform Framing**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage1、体質改善実験プラットフォーム UI/UX Council新規提案、PR-EXP-03完了後の着手）
+- 対象1（Status cardsスパークライン再有効化、PHASE 1-B解除）: `home-next-status.js`の
+  `buildSparkline()`冒頭の`return ''; // PHASE 1-B: 描画停止（関数・ロジック保持）`を削除し再有効化。
+  Master Plan記載スコープが「スパークライン」のみを明記しているため、同じPHASE 1-Bで停止された
+  `buildBarChart()`/`buildDotScale()`はスコープ外として無変更のまま維持（Scope Creep回避）
+- 対象2（Home CTA文言調整）: 実装前に対象ファイルを確認した結果、Master Plan記載の
+  `home-next-shell.js`/`home-next-status.js`にはCTA文言の実体がなく（`home-next-shell.js`の
+  `updateHomeCTAState`はレガシー用でnoOp化済み、Feature Parity Mapでも「⬜ legacy-only」）、
+  実際にhome-next有効時（デフォルト）に表示されるCTAは`home-next-quick-record.js`の
+  `renderQuickRecord()`であることをコード確認（PR-EXP-04時と同型のドキュメント記載と実体の乖離）。
+  同ファイルの未記録時サブテキストを「今日はまだ記録していません」→
+  「今日の記録が、実験の材料になるかもしれません」に変更（Master Plan UX-A完成条件
+  「記録CTA文言が『記録が実験の材料になる』ことを断定なしに示唆する」に対応、
+  「かもしれません」は同ファイル内`getTrendText()`の既存ヘッジ表現と同系統）
+- 対象3（Record完了メッセージ1行追加）: `record-screen.js`の`saveRecordScreen()`内、
+  成功オーバーレイの`feedbackHtml`（連続記録日数・先週比較・周期フェーズメッセージの
+  3ブロックで構成、動的生成）末尾に、条件分岐なしの固定1行
+  「この記録が、これからの実験の土台になっていくかもしれません」を追加。
+  入力カード・入力項目の追加は行っていない
+- 対象4（Insights「試してみる？」静的リンク追加）: `insights.html`の「今日の気づき」カード
+  （`.ipr-ins-card`）内、既存「関連分析」チップ行の直後に、`.ipr-rel-label`/`.ipr-chips`
+  （既存CSSクラス再利用、新規カラー値なし）で「試してみる？」（`openExperiments()`遷移）+
+  「今はいい」（クリックで両行を非表示にするスキップ導線）を追加。
+  Phase2でPR-P2-02によりAI動的生成へ置き換え予定の静的仮設置
+- 実装中に発見した既存HTMLネストの誤り: 上記対象4の編集で`.ipr-main`グリッドを誤って
+  早期に閉じる余分な`</div>`を一時的に混入させたが、実装直後の目視確認で発見し同一PR内で修正済み
+  （最終的な差分には含まれない）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定（全5項目問題なし）。
+  Home未記録時CTA直下の文言・Record完了オーバーレイ末尾の文言・Insights「今日の気づき」
+  カード末尾の「試してみる？」/「今はいい」・Home Status cardsのスパークライン表示・
+  320/375/768px幅でのレイアウト、いずれも確認済み
+- Decision Log: 更新不要（Roadmap変更なし。文言はMaster Plan記載の指定フレーズ
+  「記録が実験の材料になる」を踏襲し、断定を避けるヘッジ表現へ落とし込んだのみ。
+  新規UX方針決定ではない）
+- 判定: **完了**
+- Next: Stage1（PR-EXP-01〜06）は本PRをもって全件完了。Stage2（PR-P2-01〜06）着手の
+  要否・優先順位をFounderが判断する
+
+**PR-P2-01: hn-experiment-card実装**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage2、Founder承認によりStage2着手・第1PR）
+- 実装着手前の調査で、Master Plan記載スコープ（AI Suggestion本接続）を上回る事実を発見し、
+  Founderに実装方針を確認のうえ着手した:
+  1. `home-next-shell.js:174-178`の「PHASE 1密度削減」処理が、`hn-experiment`単独ではなく
+     `hn-hero`/`hn-daily-note`/`hn-personalize`/`hn-optional`/`hn-recovery`/`hn-reflections`
+     を含む計7セクションを一括で空にしていた（`renderAll()`実行毎）
+  2. `renderExperiment()`（`home-next-recovery.js:80`）は実装済みで、`window.ippoCompanionIntelligence`
+     （`companion-intelligence.js`、コード冒頭に「禁止: LLM呼び出し/診断/断定/病名推測/不安誘導」と
+     明記されたrule-based実装、`main.js`でimport済み・非dead code）・
+     `window.ippoRecoveryJourney`（`recovery-journey.js`、同様にimport済み）に接続済みだったが、
+     呼び出し自体が一度も行われていなかった（PR-EXP-04のbuildWeekStrip・PR-EXP-06の
+     buildSparklineと同型の「実装済みだが未呼び出し」パターン）
+  3. Master Plan完成条件「週1回制限」と、既存`generateGentleExperiment()`
+     （`recovery-journey.js:352`）の「3日クールダウン」というコード実態に不一致があった
+- Founder確認結果:
+  1. `hn-experiment`のみを再有効化し、他6セクション（hero/daily-note/personalize/optional/
+     recovery/reflections）はScope外として現状維持（今回はブロック追加ではなく既存要素の
+     再有効化1件のみ）
+  2. クールダウンは既存の「3日」をそのまま採用（コード変更なし、Master Plan記載の
+     「週1回」は「最低数日は間隔を空ける」という趣旨の要件として解釈）
+- 実装（`src/modules/home-next/home-next-shell.js`のみ、Business Logic変更なし・
+  companion-intelligence.js/recovery-journey.js本体は無変更）:
+  1. PHASE 1クリアリストから`'hn-experiment'`を除外（他6セクションは無変更のまま維持）
+  2. `renderAll()`に`experiment`コンテナ取得 + `renderExperiment(experiment)`呼び出しを追加
+- 「記録0件時非表示」完成条件について: `renderExperiment()`が呼ぶ`generateGentleExperiment()`
+  内の各ルール（`_experimentByMode`/`_experimentBySleep`/`_experimentByFatigue`）は
+  いずれもレコード件数不足時に`null`を返す設計のため、記録0件時は自然に非表示になる
+  （新規の分岐追加は行っていない）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Gentle Experiment Cardの
+  表示条件・文言トーン・記録0件時非表示・3日クールダウン・他6セクションの非表示維持・
+  Home全体のレイアウト、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。PHASE 1密度削減の一部解除範囲・クールダウン期間の
+  解釈はFounder確認済み。新規UX方針決定ではない）
+- 判定: **完了**
+- Next: PR-P2-02（ins-question-card実装、PR-EXP-06の「試してみる？」静的リンクをAI動的生成に
+  置き換え）に着手する
+
+**PR-P2-02: ins-question-card実装**（2026-07-08・GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md
+Stage2、Founder承認により小規模初期セットで実装）
+- 実装着手前の調査で、Master Plan記載モジュール（companion-intelligence.js）と、
+  実際にInsights画面「今日の気づき」カード（`#ins-main-insight-text`/`#ins-main-insight-sub`）を
+  駆動している実体（`insights-tab-panel.js`の`renderInsightDiscoveries()`、優先度スコア方式・
+  安定したid無し）が異なるモジュールであることを発見した。また
+  `docs/PRO_INSIGHT_ARCHITECTURE.md`が前提とする`src/insights/questions/templates.js`・
+  `DerivedInsight`スキーマは未実装（設計のみ）であることも確認した
+- Founder確認結果: 「小規模な初期セット」で実装する方針を採用。`renderInsightDiscoveries()`の
+  不安定なid無し構造には依存せず、companion-intelligence.jsが既に提供する
+  `buildCompanionContext()`の形状（sleepTendency/symptomTendency/emotionTendency/
+  recentRecords）に対して独立した3件の問いかけテンプレートを新設する設計とした
+  （companion-intelligence.jsの既存reflection群とも独立、Master Plan記載の
+  companion-intelligence.js配置とは整合）
+- 新規実装:
+  1. `src/insights/questions/templates.js`（新設）: 問いかけテンプレート3件
+     （疲労傾向/睡眠と翌日の変化/不安と症状、いずれも`docs/PRO_INSIGHT_ARCHITECTURE.md`
+     5章のInsightQuestionSchemaに準拠したprompt+options形式。断定・診断・病名推測・
+     不安誘導を含まない）
+  2. `src/services/companion-intelligence.js`: `getWeeklyQuestion(context)`
+     （週1件上限・同一問い2週間非再表示の判定、`localStorage['ippo_question_state']`で管理）・
+     `recordQuestionShown(questionId)`・`answerQuestion(questionId, value)`を追加し
+     `window.ippoCompanionIntelligence`に公開。既存のbuildCompanionContext等は無変更
+  3. `src/screens/insights.html`: PR-EXP-06の静的リンク（「試してみる？」/「今はいい」）を
+     `id="ipr-question-layer"`でラップし、`_hydrate()`内で`_renderQuestionLayer()`を呼び出す
+     よう追加。`getWeeklyQuestion()`が問いを返した場合のみ内容を動的な問いかけ+選択肢に
+     置き換え、対象なしの場合はPR-EXP-06の静的リンクをそのまま残す（フォールバック維持）。
+     回答クリック時は`answerQuestion()`で保存し「ありがとうございます」表示に切り替え
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Regression: `npx vitest run` 5,193件中5,154件PASS（既知失敗39件・5ファイルのみ、増加なし）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Question Layerの表示条件・
+  文言・回答保存・フォールバック動作、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。テンプレート数・依存先の選定はFounder確認済み。
+  新規UX方針決定ではない）
+- 判定: **完了**
+- Next: PR-P2-03（trend-cards/correlation-chart/medical-reportタブ統合）に着手する
+
+**PR-P2-03: trend-cards/correlation-chart/medical-reportタブ統合**（2026-07-08・
+着手前調査によりFounder指示で保留、コード変更ゼロ）
+- 着手前調査で、本PRが前提とする「既存タブ」自体が現行`insights.html`に存在しないことを発見した:
+  - `switchInsTab()`（`insights-tab-panel.js`）が扱う5タブ体系
+    （`recommended`/`trends`/`cycle`/`experiments`/`report`）用のタブボタン（`ins-tab-btn-*`）は
+    現行`insights.html`に一つも存在しない
+  - 対応するペイン（`#ins-pane-trends`/`#ins-pane-report`等、`insights.html:911-915`）は
+    「Backwards-compat stubs」というコメント付きで`display:none;height:0`のまま放置された
+    空divであり、実際のUIではない
+  - 現行`insights.html`はタブ切り替え型ではなく、カードを縦に並べた1ページスクロール型
+    （Hero → 暫定PRO整理室カード → 今日の気づき/疾患つながり → 分析グラフカード →
+    受診に備える → Tips）に作り替えられている
+  - グラフ・相関・レポート系機能は、ページ内タブではなく「暫定PRO整理室カード」
+    （`openProHub()`で別画面/モーダルへ遷移する入口、ラベルに「暫定」と明記、
+    `insights.html:613-625`）に集約されている可能性が高いが、遷移先の実態は未調査
+- Founder指示: 今回はPR-P2-03を保留し、依存関係のないPR-P2-04（Research Contribution Badge）へ
+  進む。PR-P2-03の再設計（openProHub()遷移先の実態調査を含む）は別途実施する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（タブ構造不在のため現行スコープのままでは実装不可。再設計待ち）
+- Next: PR-P2-04（Research Contribution Badge）に着手する
+
+**PR-P2-04: Research Contribution Badge**（2026-07-08・着手前調査によりFounder指示で保留、
+コード変更ゼロ）
+- 着手前調査で、UX-E完成条件「Research Consent同意済み・記録365日以上のユーザーにのみ
+  Badgeが恒久表示される」を判定する材料が現状のフロントエンドに一切存在しないことを発見した:
+  - `src/store/state.js`に`consentLevel`/`researchConsent`等の同意状態フィールドが存在しない
+  - `ConsentEnforcementService`（`consent-enforcement-service.js`）は`consentLevel`を
+    引数として受け取るバリデーション関数群のみで、同意状態自体の保存・取得機構ではない
+  - Consent UI自体（PR-P2-06）が未実装（`docs/FOUNDER_EXECUTION_DECISION.md`にも
+    「Consent Decision: 判定：PR-P2-06のままでよい」と明記、着手済みの兆候なし）
+- Founder指示: PR-P2-04も保留し、同意状態を保存する仕組みを持つPR-P2-06（Consent UI）を
+  先に実施する。PR-P2-04はPR-P2-06完了後に再着手する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（PR-P2-06完了待ち）
+- Next: PR-P2-06（Consent UI）に着手する
+
+**PR-P2-06: Consent UI**（2026-07-08・着手前調査によりFounder指示で保留、コード変更ゼロ）
+- 着手前調査で、「ユーザーの現在の同意レベル」を保存・取得する仕組みが統一されていない
+  2系統に分かれていることを発見した:
+  1. `src/repositories/consent/consent-repository.js`（`ConsentRepositoryImpl`）—
+     PR-018でDI登録済み、`IConsentRepository`契約準拠、localStorage(`ippo_consent`)に
+     `findByUserId`/`save`/`update`/`appendEvent`。ApiGatewayには未接続
+     （コンストラクタ引数に存在しない）
+  2. `src/domains/consent/ConsentRepository.js` — Supabaseの`consents`/`consent_events`
+     テーブル直結、`findByUser`/`grantPlatform`/`grantResearch`/`grantCommercial`/`withdraw`。
+     DIコンテナ未登録、こちらもApiGateway未接続
+- さらに、PR-076の`consent-gate-service.js`（`filterCasesByResearchConsent()`）が実際に
+  参照するのは`Case.consentLevel`（`case-generation-service.js`の`candidate.consentLevel`、
+  呼び出し側が渡した値をそのまま信頼するのみ）であり、上記いずれのConsentRepositoryからも
+  自動でpopulateされない。「Settings画面で同意」→「Case生成時のconsentLevelに反映」の結線は
+  本PRのMaster Plan完成条件（「Settings画面でConsent同意/撤回が可能」）の範囲外で、別途
+  integration作業が必要
+- Founder指示: アーキテクチャ統一（2系統のうちどちらを正とするか）が先決問題と判断し、
+  PR-P2-06は今回保留。統一方針確定後に再着手する
+- Decision Log: 更新不要（コード変更ゼロ、調査のみ）
+- 判定: **保留**（Consentバックエンド統一方針確定待ち）
+- Next: PR-P2-04（Research Contribution Badge）・PR-P2-06はいずれもConsentバックエンド
+  統一待ちで保留中。Founderが次の着手対象（統一方針の確定、またはPR-P2-05等の独立PR）を判断する
+
+**PR-P2-06: Consent UI（Settings画面 新規実装）**（2026-07-08・Founder指示「進めてください」により
+着手・実装完了、Mode: FULL — Consent/Privacyのため必須）
+- 前回調査で判明した2系統のConsentバックエンド（`ConsentRepositoryImpl` PR-018 DI登録済み
+  vs `domains/consent/ConsentRepository.js` Supabase直結）はいずれもApiGatewayに未接続、かつ
+  DI/ApiGateway経由の統合はまだ実際のUI画面から一切呼ばれていない（companion-intelligence.js/
+  recovery-journey.js等、実際に稼働しているUI連携はすべてDIを介さないplain moduleが
+  `window.ippoXxx`で直接公開される方式）と確認したため、実装方針として**軽量な新規サービス
+  （既存の稼働中パターンに合わせる）**を採用し、2系統統一の判断自体は据え置いた
+  （どちらの既存Repositoryにも一切手を加えていない）
+- 追加調査で`domains/consent/consent.service.ts`（プロジェクトルート直下のTypeScriptドメイン層、
+  `src/`外）を発見。`src/contracts/IConsentRepository.js`のコメントが「aligned with
+  domains/consent/consent.service.ts::ConsentRepository」と明記しており、JS契約(`findByUserId`/
+  `save`/`appendEvent`)の設計原典であることを確認したが、`grep`でsrc/内からの参照ゼロ件
+  （import実績なし、record.service.tsと同型の未接続ドメイン層）と確認したため、本PRでは
+  接続せず参考情報として記録に留めた
+- 実装（新規ファイルのみ、既存Repository/Service/ApiGateway/composition-root/ArchGuardは無変更）:
+  1. `src/services/consent-service.js`（新設）: localStorage(`ippo_consent`/`ippo_consent_events`)
+     ベースのResearch Consent（Level 2）管理。ストレージキー・エンティティ形状は意図的に
+     `ConsentRepositoryImpl`/`ConsentMapper`と同一にし（`{level,grantedAt,updatedAt}`・
+     GRANTED/REVOKED event log）、将来DI版Repositoryへ移行する際にドロップイン互換となるよう
+     設計。`getConsentState`/`isResearchConsentGranted`/`grantResearchConsent`/
+     `withdrawResearchConsent`/`toggleResearchConsent`/`renderResearchConsentStatus`を
+     `window.ippoConsent`として公開、`toggleResearchConsent`は`window.toggleResearchConsent`
+     としても公開（onclick文字列から呼べるよう他機能と同型のbridge）
+  2. `src/main.js`: PHASE 7ブロック直後に1行importを追加（rollback: 1行削除で全機能バイパス、
+     既存の他Phase importと同じ設計方針）
+  3. `app.html`: `#screen-settings`の「データと安心」セクションに新規行を追加
+     （`settings-icon-privacy`— app-legacy.jsのICONS mapに既存も現行DOMには未使用だった
+     アイコンIDを再利用、新規アイコン追加なし）。「研究への協力（匿名データ提供）」+
+     状態テキスト（`#settings-consent-sub`）、タップで`showConfirmModal`（既存共通モーダル）
+     経由の同意/撤回確認へ
+  4. `src/screens/settings.html`（421行）は`screen-router.js`の`?raw`静的import一覧に
+     含まれておらず未使用（dead file、home-next.html等が使う遅延読み込み対象外）と確認したため
+     触れていない
+- 新規テスト: `tests/services/consent-service.test.js`（7件、localStorage永続化・Level遷移・
+  event log・showConfirmModal経由の同意/撤回導線・showConfirmModal未定義時のフォールバック）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし —
+  本PRはDI/domains層に一切触れていないため対象外）
+- Regression: `npx vitest run` 5,200件中5,161件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Settings画面「データと安心」
+  セクションの新規行タップ→確認モーダル→同意/撤回→状態テキスト（`#settings-consent-sub`）の
+  切り替え、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。GRX-FD-3確定済みのタイミングどおりの実装。
+  Consentバックエンド2系統の統一自体は据え置いたままの判断のため、次回この領域に触れる際は
+  本エントリと前エントリ（着手前調査）を参照すること）
+- 判定: **完了**（Founder実機確認済み）
+- Next: PR-P2-04（Research Contribution Badge、Consent状態参照の可否を本サービス基準で再調査）
+  またはPR-P2-05へ
+
+**PR-P2-04: Research Contribution Badge**（2026-07-08・PR-P2-06完了によりブロッカー解消、
+着手・実装完了。Mode: STANDARD — Consent状態は読み取り専用参照のみ、同意付与/撤回ロジック自体は
+変更しないため）
+- 前回保留の原因（Consent状態を参照する手段の不在）は`consent-service.js`
+  （`window.ippoConsent.isResearchConsentGranted()`）の追加により解消したため着手した
+- `docs/FOUNDER_FINAL_DECISIONS.md` IMPL-FD-3で確定済みの仕様に厳密準拠:
+  表示条件（Research Consent同意済み＋記録365日以上）／抽象的貢献度表現のみ・件数や提供先の
+  非開示／Home状態カード群末尾に恒久表示／初回表示時のみ達成演出・以後は演出なし／通知なし／
+  タップで詳細説明（Consent設定への導線）
+- 実機で表示されるHomeはhome-next（PR-EXP-04調査で確認済みのデフォルト有効実装）のため、
+  Master Plan記載の`home-renderer.js`ではなく`src/modules/home-next/home-next-status.js`
+  （`renderStatusCards()`、buildWeekStrip/buildSparkline/hn-experiment-card等と同じ
+  Home状態カードモジュール）に実装した
+- 実装（新規追加のみ、既存カード関数・Consentサービス本体は無変更）:
+  1. `buildResearchBadge(state)`: `window.ippoConsent.isResearchConsentGranted()`と
+     `state.totalDays >= 365`の両方を満たす場合のみ抽象文言（「🌱 あなたの記録が、からだの研究に
+     貢献しています」）を返す。`window.ippoConsent`未定義時はfail-closedで非表示
+     （新たな同意取得を意味しない設計、IMPL-FD-3の医療倫理整合要件に対応）
+  2. 初回表示判定は`localStorage['ippo_research_badge_seen']`で管理。未設定時のみ
+     既存の`.hn-anim-1`（scale-inアニメーション、Design Freeze遵守のため新規keyframes追加なし）を
+     付与し、以降は演出なしのプレーン表示
+  3. カード見た目は既存`.hn-experiment-card`/`.hn-experiment-text`クラスをそのまま再利用
+     （新規CSS追加ゼロ、Design Freeze完全準拠）
+  4. `showResearchBadgeDetail()`（`window`ブリッジ）: タップ時に既存`showAlertModal`で
+     使途説明＋Settings画面での撤回導線を案内するテキストを表示
+  5. `renderStatusCards()`の返り値末尾（`buildWeekStrip(records)`の直後）に
+     `buildResearchBadge(state)`を追加
+- 新規テスト: `tests/modules/home-next/home-next-research-badge.test.js`（6件、
+  Consent未同意/365日未満/window.ippoConsent未定義のfail-closed非表示、条件充足時の抽象表現・
+  件数非開示、初回のみ演出、恒久表示の確認）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件、新規ルール追加なし）
+- Regression: `npx vitest run` 5,206件中5,167件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: Founderが通常ブラウザで確認し、Complete判定。Home末尾のBadge表示・
+  タップ詳細（showResearchBadgeDetail）・初回演出、いずれも問題なしと確認済み
+- Decision Log: 更新不要（Roadmap変更なし。IMPL-FD-3確定済み仕様どおりの実装）
+- 判定: **完了**（Founder実機確認済み）
+- Next: PR-P2-05（tier分離、PR-P2-01〜04完了が前提条件 — 本PRをもって充足）に着手する
+
+**PR-P2-05: tier分離（isPremium→getTierLevel）— コード形状のみ先行**（2026-07-08・
+着手前調査によりFounder指示でスコープ縮小、Mode: STANDARD）
+- 着手前調査で、本PRの想定スコープ（`isPremium()`→`getTierLevel()`置き換え、Premium比較表UI）が
+  1PRの規模を超える事実を発見した:
+  1. `isPremium()`は`src`内14ファイルから参照されており（app-legacy.js、insights-tab-panel.js、
+     stripe.js、複数のauth domain等）、FREEZE-FD-1決定文自体が「洗い出しが必要」と警告する規模
+  2. より根本的に、`src/services/stripe.js`のCheckout実装は`monthly`/`annual`の支払い頻度のみを
+     区別しており、Premium/Proを別々に購入できるStripe商品・価格が存在しない。`subscriptions`
+     テーブルにもtier列がなく、現状は単一課金ですべての機能が同時に開放される
+     （PR-EXP-03のPremium/Proグルーピングも同一の`premiumGate()`で両方を判定しており、
+     表示上の分類のみでアクセス制御は分離されていないことを確認済み）
+- Founder指示: 「表示・コード形状のみ先行」方針を採用。Stripe側の別価格追加・14箇所の
+  呼び出し元変更・Premium比較表UIの本格実装はいずれも今回のスコープ外とし、
+  `getTierLevel()`をFREEZE-FD-1が定めた型シェイプ（`'free'|'premium'|'pro'`）で
+  追加するに留めた
+- 実装（`src/modules/premium/premium-service.js`のみ、既存14箇所の呼び出し元・Stripe/
+  Checkout・subscriptionsテーブルはいずれも無変更）:
+  - `getTierLevel()`を新設。課金中（`isPremium()===true`）は一律`'pro'`、未課金は`'free'`を返す
+    （`'premium'`は将来Stripeに別価格が追加された時点で実データに基づき区別する）
+  - `isPremium()`本体は無変更（既存の14箇所の呼び出し元は無変更のまま動作）
+- 新規テスト: `tests/modules/premium-service.test.js`に4件追加（初期値・課金中・期限切れ・
+  isPremium()との等価性）
+- Build: `npx vite build` PASS（既知の循環チャンク警告のみ）
+- Architecture Guard: `npx vitest run tests/arch/` 104件PASS（全件）
+- Regression: `npx vitest run` 5,210件中5,171件PASS（失敗39件は既知5ファイルのみ、増加なし）
+- Browser Verification: 対象外（UI・呼び出し元とも無変更のコード追加のみ、ユーザーから観測可能な
+  変化なし）
+- Decision Log: 更新不要（Roadmap変更なし。FREEZE-FD-1・IMPL-FD-2確定済み仕様の型シェイプに
+  沿った追加のみ。Stripe側の本格tier分離・Premium比較表UIは別途Founder判断のうえ再着手が必要）
+- 判定: **部分完了**（コード形状のみ。Stripe別価格追加・14箇所の呼び出し元移行・比較表UI本実装は
+  未着手のまま次回以降に持ち越し）
+- Next: Stage2（PR-P2-01〜06）はこれをもって一区切り。Stripe側の本格tier分離・比較表UI実装の
+  要否・時期はFounderが判断する
 
 ---
 
@@ -1042,8 +2117,62 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
   正しくnullを返すことを確認 / Console Errorはvite websocket接続失敗ノイズと
   Supabase未設定環境ノイズのみで新規エラーなし。
   Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし）。
-  Next: PR-089 — Batch-11: app.html Cleanup & Legacy Removal（docs/LEGACY_REMOVAL_PLAN.md
-  4章参照、HIGH リスク・onclick全置換・全画面UI回帰・PR-079〜088全完了後）。
+
+  ✓ PR-089A  Legacy Final Cutover 事前監査（2026-07-04、Founder個別承認によりPR-089着手）—
+  `docs/PR-089A-legacy-final-cutover-audit.md` 新設。コード変更ゼロ、調査のみ。
+  `src/app-legacy.js`（実測5,083行）の残存トップレベル関数101件を機械的に分類:
+  A. SAFE_DEAD 24件（Wave2モジュール側がmain.jsで後読みされwindowを上書き済み・削除候補）/
+  B. ORPHAN 9件（`experiments.js`/`cycle-engine.js`/`pain-scale.js`等、Wave2ファイルは存在するが
+  main.jsから未import・app-legacy.js側が実質稼働中）/ C. NO_OTHER_IMPL 65件（Wave2側に同名実装
+  なし、うち3件は既存Dead Code確定分、実質62件が未移植）/ D. AMBIGUOUS 3件（`mergeRecords`/
+  `getGreetingText`/`openDayDetail`、個別検証要）。`docs/LEGACY_REMOVAL_PLAN.md`が前提としていた
+  「Batch-11=shim約20件+確定DeadCode4件の削除のみ」は成立せず、Experiment機能一式・Cloud Sync
+  本体（`cloudBackupAll`/`cloudRestore`は既にsupabase.js側が勝っているが`renderSyncUI`/
+  `submitSync`/`migrateDataToUser`/`syncNow`/`logoutSync`等は未移植）・Record編集/Quick Log/
+  Meal入力等のUI操作系が未移植のまま残存していることが判明。`docs/LEGACY_REMOVAL_PLAN.md`
+  6-9章末尾にFounder審議中の追記を実施（4章ロードマップ表自体は未改訂、Founder確認後に別PRで
+  改訂予定）。PR-089B〜G＋PR-089Z（旧PR-089本体）への分割を提案。Architecture/Business Logic/
+  UI/仕様/データ構造の変更ゼロ。
+  Decision Log: 更新不要（本PRは調査のみ。Roadmap改訂そのものはFounder確認後に別途記録）。
+
+  ✓ Founder Decision（2026-07-04）— PR-089A監査結果を採用し、PR-089を一括削除PRとして
+  実施せずCategory単位の段階移植へ再編成する決定。新ロードマップ: PR-089A(完了)→089B
+  (Experiment)→089C(Cloud Sync)→089D(Home Remaining)→089E(Calendar Remaining)→089F
+  (Utility/Misc)→089Z(Final Cutover)→090(Exit Audit)。分類スキームをSAFE_DEAD/ORPHAN/
+  ALREADY_OVERRIDDEN/NEEDS_IMPORT/REAL_IMPLEMENTATION/AMBIGUOUSの6分類へ再定義。
+  Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-C章に記録済み（4章ロードマップ表も改訂済み）。
+
+  ✓ PR-089B  Experiment Module Migration — Batch-11分割①。app-legacy.jsの
+  「ヘルスエクスペリメント」機能一式（`_DISEASE_COMPANION_RULES` / `_bleedingToNum`(呼び出し元の
+  み・実体はCalendar/Cycle系のため残置) / `_expMetric` / `_buildExperimentCompanion` /
+  `EXPERIMENT_PRESETS` / `openExperiments` / `startExperiment` / `startCustomExperiment` /
+  `cancelExperiment` / `completeExperiment` / `_buildAIResultReport` / `showExperimentReport`）を
+  `src/modules/experiments.js`へ物理移動。PR-089A時点でORPHAN分類だった`experiments.js`の
+  既存ドラフト（`_expMetric`/`_buildExperimentCompanion`）は app-legacy.js 最新版と再照合した
+  結果、`_DISEASE_COMPANION_RULES`（全10疾患ルール）が欠落し`_expMetric`も5ケースしか
+  実装されていない（app-legacy.js側は8ケース: sleep/mood/symptoms/pain/fatigue/temp/
+  bleeding/bloating）不完全な状態と判明したため、app-legacy.js側を正として全面差し替え。
+  `_bleedingToNum`はCalendar/Cycle系（`analyzeCyclePhases`が使用、PR-089E対象）と共有のため
+  app-legacy.js側を無変更で残置し、experiments.js側には`_expMetric`が必要とする最小限の
+  変換ロジックを一時的に複製（PR-089E完了後に一本化予定、コメントで明記）。状態アクセスは
+  既存ドラフトの`window.getState()`/`window.setState()`パターンに統一（bare `state`直接変更
+  → immutable update、`store/state.js`のsetState実装(_state全置換)と整合、外部観測される
+  最終結果は同一）。`saveState()`/`cloudBackupAll()`は`window.saveState()`/
+  `window.cloudBackupAll()`に、`showAlertModal`/`showConfirmModal`は`./ui-notifications.js`
+  からのimportに変更（app-legacy.js自身の既存import文と同一パターン）。app-legacy.js側は
+  該当6関数を`./modules/experiments.js`からnamed importし、既存のwindow bridge（末尾、
+  無変更）がそのまま機能継続。main.jsの変更は不要（app-legacy.js自身がexperiments.jsを
+  importするため、main.js:52のapp-legacy.js import解決時に連鎖的にロードされる）。
+  SG-7: tests/arch/legacy-removal-pr079-line-count-guard.test.js BASELINE_LINE_COUNTを
+  5,084→4,450に更新 / app-legacy.js: 5,083行→4,449行 / vitest run全件: 5,193件、
+  失敗39件は既知5ファイルのみで増加なし / vite build PASS（既知警告のみ）/
+  Architecture Guard・Legacy Guard: 11ファイル104件全PASS / Browser Verification:
+  PR-089B〜Fでは未実施（Founder方針によりPR-089Zでまとめて実施）。
+  Business Logic/Architecture/UI/仕様/データ構造の変更ゼロ（純粋な物理移動+モジュール境界
+  越え時の機械的なAPI変換のみ）。
+  Decision Log: 更新不要（10-C章の決定範囲内で実施）。
+  Next: PR-089C — Cloud Sync Migration。Experiment/Home/Calendar/Utility/Final Cutoverは
+  読み込まない。
 
 ---
 
@@ -1206,6 +2335,13 @@ Legacy Removal Program（PR-079〜090）— docs/LEGACY_REMOVAL_PLAN.md（IPPO-L
 | BD-058 | 海外展開順序は台湾→韓国→オーストラリア→EU→米国を厳守 | GTM COUNCIL |
 | BD-059 | Founder週間GTM稼働時間は3時間以内（通常期）| GTM COUNCIL |
 | BD-060 | IPPO Dataset使用論文にはAcknowledgment記載を提供条件とする | GTM COUNCIL |
+
+### BD-061〜BD-062（Release Readiness Council Review v2 / 製品定義再確認）
+
+| BD | 内容 | 出典 |
+|---|---|---|
+| BD-061 | IPPOは自己実験プラットフォームであり、診断・治療・医療判断・医師への指示・症状改善の保証を一切行わない。この定義に反する機能・AI出力・マーケティング表現は禁止する | RELEASE READINESS COUNCIL（21章） |
+| BD-062 | AIの役割は記録整理・要約・傾向分析・自己実験結果の可視化・類似パターン表示に限定する。診断的・治療的・因果断定的なAI出力は設計上禁止する（BD-031/BD-038/BD-050は継続適用） | RELEASE READINESS COUNCIL（21章） |
 
 ### BBS-001〜006（Business Strategy）/ BGS-001〜005（Growth Strategy）
 
@@ -1471,7 +2607,184 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 
 ## 次のPR
 
-**Release Readiness Council**（Wave2正式完了後の次ステップ）
+**Founder承認済み（2026-07-06）**: EXPORT_HUB_REFACTOR_COUNCILの結果、および
+Decision-1（限定範囲: `window.state`同期経路を`state.js`へ移管）・Decision-2
+（172件の自己export方式統一）を承認。Recovery Programを以下の順序で再開する。
+
+```
+Decision-1 承認済み / Decision-2 承認済み
+  ↓
+PR-090-R1 — isPremium依存解消（import差し替え）        [完了]
+  ↓
+PR-090-R2 — 自己export可能47件の自己export化            [完了]
+  ↓
+PR-090-R3 — window.state依存70件（Decision-1実装含む）  [完了]
+  ↓
+PR-090-R4 — Legacy依存残件の整理（supabaseUserId/syncMode/
+            updateStats/SYMPTOM_DETAIL_CONFIG/saveRecordScreen） [完了、
+            saveRecordScreenのみ既知の理由により未着手・据え置き]
+  ↓
+PR-090-R5 — saveRecordScreen Migration Decision（調査・判定のみ） [完了、Founder Decision確定]
+  ↓
+PR-091 — Legacy Exit Audit（現行Recovery Program範囲のみ、Known Deferred Items除外） [完了]
+  ↓
+PR-090-R6 — Step D: 自己export追加+app-legacy.js側dedup（107行） [完了]
+  ↓
+Decision-4 Founder Review — saveRecord/record-modal系（調査のみ） [完了、Founder Decision確定]
+  ↓
+Legacy Exit Audit Final — Recovery Program完了監査 [完了]
+
+Recovery Program（PR-090-P1〜R6）: Founder確認により完了確定（2026-07-06）
+```
+
+**Founder Decision（2026-07-06・Decision-4）**: Decision-4の選択肢はD+Cを採用。
+`saveRecord`/`record-modal`/`openRecordModal`/`closeModal`/`saveAndSync`
+（record-modal-controller.js側）/`nextStep`/`prevStep`/`renderStep`/`buildSteps`
+（app-legacy.js版）/`#record-modal`はLegacy Exit Audit対象から除外し、β後のUI/UX
+Final Councilへ正式移管する。Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-E節。
+Recovery Plan更新: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-4節・2-5節・Step 4。
+
+**Recovery Program（PR-090-P1〜R6）完了確定**: Founder確認により、現行Recovery
+Programはこれで区切りとする。Known Deferred Items（saveRecordScreen/Home Cluster、
+10-D節）とDecision-4対象（10-E節）は合わせて**Approved Deferred Items**として、
+以後のLegacy Exit Audit対象から除外する。
+
+**Legacy Exit Audit Final**（完了）: Recovery Program（PR-090-P1〜R6）の成果を最終監査。
+詳細は`docs/LEGACY_EXIT_AUDIT_FINAL.md`参照。
+
+- Step A（自己export可能47件）〜Step D（自己export化+dedup）はApproved Deferred
+  Items（success-overlay.js 1件・record-input.js 26件の暫定保留を除く）を除き完了確認。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知のみ、Program全体を通じて増加なし）/
+  Architecture Guard 104件PASS。
+- app-legacy.js: 10,804行（Batch-1開始時）→ 2,447行（現在、約77%削減）。
+- app-legacy.js削除は引き続き不可（Approved Deferred Itemsが存在する限り、意図的な
+  現状）。PR-092 Final Cutoverはβ後UI/UX Final Councilの判断確定まで着手しない。
+- 次のLegacy Removal関連アクションは、β後UI/UX Final Councilの開催・判断確定を待つ。
+
+**Decision-4 Founder Review**（完了、Founder DecisionでD+C確定）: `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
+2-4節・2-5節で2026-07-05時点から未決だったDecision-4（`saveRecord`/`#record-modal`/
+`openRecordModal`/`closeModal`/`saveAndSync`/`nextStep`/`prevStep`/`renderStep`/
+`buildSteps`）を実コードで再調査し、分類判定資料を作成した。
+詳細は`docs/DECISION_4_RECORD_MODAL_REVIEW.md`参照。
+
+調査で判明した要点（Founder Decision確定後も記録として残す）:
+- `saveRecord()`は到達経路ゼロ（`window.saveRecord`ブリッジは自己参照no-op）で
+  実質的にdeadだが、`openRecordModal()`は`handleHomeCTA()`の
+  「record-three-card.js未ロード時のみ」のフォールバックとして**現に生存**している。
+- `closeModal()`はapp-legacy.js内部フロー（Escapeキー等）では正常動作するが、
+  `#record-modal`背景タップ（`window.closeModal`経由）はno-op——同じ関数名で
+  経路によって挙動が割れている。
+- **新規整理**: `saveAndSync`は同名で実体が2つある。`src/modules/save-and-sync.js`の
+  実装は`saveRecordScreen()`のカレンダー編集分岐でも使われる**現役コード**であり、
+  Dead/no-opなのは`record-modal-controller.js`側の`window.saveAndSync`ラッパーのみ。
+  将来の削除PRでは誤って`save-and-sync.js`本体を壊さないよう要注意。
+- 選択肢A(修復)/B(削除)はいずれもBusiness Logic変更・UI変更（app.html変更含む）を
+  伴うため、Home Cluster（Decision-3）と同型の理由で採用不可と判定し、
+  Founderも同じ理由でD+Cを確定採用した（2026-07-06）。
+
+**PR-090-R6**（完了、STANDARD Mode）: PR-091で発見されたStep D未実施分を解消。
+window.state依存18モジュール + Legacy依存解消済み6モジュール（admin.js/community.js/
+data-export.js/insights-tab-panel.js/legacy-misc-stats.js/sync-modal.js）、計24モジュールへ
+自己export行を追加し、app-legacy.js側の重複export行107行を削除した
+（アルファベット順hub 93行 + DEVICE SYNC節の旧手動exportブロック14行）。
+
+- `openSyncModal`/`closeSyncModal`/`toggleSyncMode`の二重定義（DEVICE SYNC節の
+  手動exportブロック+アルファベット順自動生成節）は両方とも削除し、
+  `sync-modal.js`側の自己exportに一本化。
+- `openRecordScreen`（record-three-card.jsとのload順依存ガードあり）・
+  `updateSettingsHero`（settings-display-runtime.jsとの重複、製品判断待ち）は
+  引き続き対象外（app-legacy.js側の実装のまま無改造）。
+- `record-input.js`（SYMPTOM_DETAIL_CONFIG関連26件）は、PR-090-R4での意図的な
+  window bridge未設置判断と一貫させるため、本PRでも自己export対象から除外
+  （別途Founder確認が必要な課題として維持）。
+- `success-overlay.js`（closeSuccess、Known Deferred Item）・Home Cluster関連は
+  一切変更していない。
+- SG-7 line-count-guard: `app-legacy.js`: 2,554行→2,447行（107行削減）。
+  BASELINE_LINE_COUNTを2,447に更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 104件PASS。
+- Browser Verification: Vite dev server + app.html実機で①自己export対象95関数すべてが
+  `typeof window.X === 'function'`で解決可能なことを確認 ②`toggleSyncMode()`実行後の
+  タイトル/ボタン文言切替、`openSyncModal()`/`closeSyncModal()`のoverlay開閉が
+  正しく機能することを確認 ③`initAdminPanel()`/`openSymptomSettings()`/
+  `isAdminOrPremium()`/`updateUnlock()`/`calcPainFreeDaysThisMonth()`/
+  `loadCommunityTopic()`が例外なく実行されることを確認 ④`openRecordScreen`/
+  `openLegacyRecordScreen`/`updateSettingsHero`/`submitSync`/`syncNow`/`logoutSync`の
+  特殊ケースが引き続き解決可能なことを確認。Console ErrorはSupabase未設定環境ノイズ
+  （既知）のみで新規エラーなし。
+- Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
+  純粋な自己export化+重複削除のみ）。
+- **PR-091再監査は不要と判定**（12節参照）。Step Dは本PRで完了し、PR-091の判定内容
+  （Known Deferred Items・Decision-4の扱い）自体には変更がないため。
+
+**Founder Decision（2026-07-06）**: PR-090-R5の選択肢はDを採用。saveRecordScreenおよび
+Home Cluster（buildHomeWeekRow/updateHomeInsightCard/updateHomeNumbers/
+updateHomeDiseaseAdvice/updateHomeCTAState）はLegacy Removal Programから除外し、
+β後のUI/UX Final Councilで判断する。理由: (1)どちらの実装に統一してもBusiness Logic
+変更になる (2)どちらに統一してもUI変更になる (3)Legacy Removalの目的（物理移動）では
+なく機能統合の製品判断が必要なため (4)判断はβ後のUI/UX Final Councilに委ねる。
+Decision Log: `docs/LEGACY_REMOVAL_PLAN.md` 10-D節に記録。Recovery Plan更新:
+`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-3節・Step 3（Decision-3を「確定済み・
+対象外」に変更）。
+
+**PR-091 Legacy Exit Audit**（完了）: 監査スコープを「現行Recovery Program
+（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）の対象範囲」のみに限定し、
+saveRecordScreen/buildHomeWeekRow/updateHomeCTAState/Home ClusterはKnown Deferred
+Itemsとして監査対象から除外して実施した（`docs/PR-091-legacy-exit-audit.md`）。
+
+要点:
+- Step A（自己export可能47件）: 完了（PR-090-R2）。
+- Step B（window.state依存70件・Decision-1）/ Step C（Legacy依存55件のうち
+  Known Deferred Item 1件を除く7モジュール）: **依存関係の解消は完了**
+  （PR-090-R1/R3/R4）だが、**自己export行の追加とapp-legacy.js側の重複export行
+  削除（Step D）は未実施**であることを新規発見（`grep`で現在も172行の
+  window exportブロックが手つかずのまま残存していることを確認）。
+- 【副次的発見】`window.openSyncModal`/`closeSyncModal`/`toggleSyncMode`の
+  3行が、DEVICE SYNC節の手動exportとアルファベット順自動生成節の両方に
+  重複して存在（実害なしだが冗長、SAFE_DEAD）。
+- Build PASS / `vitest run` 5,193件中40件失敗（既知39件+
+  research-query-api.test.jsの1件が並列実行時タイムアウト、単体実行では
+  1.5秒でPASSする環境依存フレーキーと確認、実質増加なし）。
+- 判定: app-legacy.js削除は不可（Known Deferred Items・Decision-4未決・
+  Step D未実施のため）。ただしStep D自体はBusiness Logic変更を伴わない機械的
+  作業（Step Aと同型）のため、Founder判断を待たずに次PRとして実施可能と判定。
+- 次のアクション提案: PR-090-R6（Step D実施、約169行のexport行整理+重複3行削除）。
+
+**PR-090-R5**（完了）: `saveRecordScreen()`が呼ぶ
+`buildHomeWeekRow`/`updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`/
+`updateHomeCTAState`の5関数（app-legacy.jsローカル実装 vs home-renderer.js export版の
+重複、PR-080Eで新規発見・据え置き済み）を実コード全文比較し、移動可否を判定した。
+詳細は`docs/PR-090-R5-saveRecordScreen-migration-decision.md`参照。
+
+要点:
+- 5関数はいずれも**現在も両実装が同時に生存**しており、トリガー（起動時/タブ切替 vs
+  保存直後/編集直後）によって描画される実装が異なる、pre-existingの実挙動不整合を
+  新規発見。
+- `buildHomeWeekRow`は正方形（痛みレベル色分け+周期フェーズ色+buildPhaseBar副作用、
+  app-legacy.js版）vs 円形（✓/+のみ、home-renderer.js版）という**デザインそのものが
+  別物**。
+- `updateHomeCTAState`は完了判定基準が異なる（app-legacy.js版:「今日の記録が1件でも
+  あれば完了」/ home-renderer.js版:「`record.meta.uiFlow === 'daily-checkin'`のみ完了」
+  ——後者は`daily-record-card-guard.js`Hotfixが正としている現行基準で、app-legacy.js版は
+  Hotfix以前の旧基準）。**これは重複整理ではなくプロダクト判断（どちらの完了基準を
+  正式採用するか）に該当**。
+- 選択肢A（app-legacy.js版へ統一）/B（home-renderer.js版へ統一）はいずれも
+  Business Logic変更・UI変更を伴うため、本Program（Business Logic/UI変更禁止）の
+  制約下では選択不可。C（現状維持）/D（β後UI/UX Final Councilで決定）のみ制約を満たす。
+- 推奨: **D**（Cと同一の措置＝現状維持を取りつつ、判断主体をエンジニアリングから
+  プロダクト/UXへ明示的に移管）。
+
+各PRはFounder OS Scope Guard・Progressive Loadingに従い、Business Logic変更・
+UI変更を禁止し、Architecture変更はDecision-1/2承認済み範囲のみ許可する。
+
+Legacy Removal Program（PR-079〜PR-090-R6）としては、app-legacy.jsをBatch-1開始時
+10,804行から2,447行（約77%削減、PR-090-R6時点）まで縮小し、現行Recovery Program
+（EXPORT_HUB_REFACTOR_COUNCIL Step A〜D）が定義した範囲をすべて完了した時点で、
+一旦の区切りとする。残るKnown Deferred Items（saveRecordScreen/Home Cluster）と
+Decision-4（saveRecord/record-modal系）はいずれもFounder判断待ちであり、
+これらが確定するまでPR-092 Final Cutoverには進まない。
+
+**Release Readiness Council**（Wave2正式完了後の次ステップ、Legacy Removal Programとは別系統）
 - Wave2（PR-041〜075）は2026-07-02にFounder承認（kenkou-jpg）を得て正式完了。
 - Wave3 MASTER DESIGN入力・Wave3 Roadmap起点はRelease Readiness Council開催後に着手する。
 - 本HANDOFFはPR実行ルールのエントリポイントであり、Release Readiness Council / Legacy Removal / Operations Council開始の要否・進行はFounderが別途判断する。
@@ -1479,6 +2792,268 @@ FeatureVector V2（12次元 / VECTOR_VERSION='2'）:
 ---
 
 ## 直前PR完了メモ
+
+**PR-091: Legacy Exit Audit（監査のみ、コード変更ゼロ）**（Founder Decision後1本目、
+FULL Mode相当——Legacy Removal判断を伴うため）
+- Founder Decision（saveRecordScreen/Home ClusterのProgram除外、選択肢D採用）を受け、
+  `docs/LEGACY_REMOVAL_PLAN.md` 10-D節・`docs/LEGACY_COMPLETION_RECOVERY_PLAN.md`
+  2-3節/Step 3・`docs/PR-090-R5-saveRecordScreen-migration-decision.md`を確定版に更新。
+- 続けて、現行Recovery Program（EXPORT_HUB_REFACTOR_COUNCIL・PR-090-P1〜R5）が
+  自ら定義した対象範囲を完了しているか監査し、`docs/PR-091-legacy-exit-audit.md`に
+  まとめた。Known Deferred Items（saveRecordScreen/buildHomeWeekRow/
+  updateHomeCTAState/Home Cluster）は監査対象から除外。
+- **新規発見**: Step A（自己export可能47件、PR-090-R2）は自己export追加+
+  app-legacy.js側dedupの両方が完了済みだが、Step B（window.state依存70件）・
+  Step C（Legacy依存55件のうちKnown Deferred Item除く7モジュール）は
+  「依存関係の解消」（PR-090-R1/R3/R4）のみが完了しており、**自己export行の追加と
+  app-legacy.js側の重複export行削除（Step D）が未実施**のまま残っていることを
+  実コードで確認（`window.X = X`パターンが現在も172行、うち3行
+  ——openSyncModal/closeSyncModal/toggleSyncMode——は二重定義）。
+- Build PASS / `vitest run` 5,193件中40件失敗（既知39件 +
+  `research-query-api.test.js`の1件が並列実行時タイムアウト、単体実行で
+  1.5秒PASSを確認した環境依存フレーキー。実質増加なし）。Architecture Guard PASS
+  （フル実行内、単体実行時の同型フレーキー1件は既知）。
+- 判定: app-legacy.js削除は不可（Known Deferred Items・Decision-4未決・Step D未実施）。
+  Step D自体はBusiness Logic変更を伴わない機械的作業のためFounder判断不要と判定し、
+  PR-090-R6として次PRに提案。
+- Decision Log: 更新不要（本PRは監査のみ、新たなFounder判断を要する事項なし。
+  Founder Decision自体の記録はPR-090-R5完了時点で10-D節に反映済み）。
+- 次: PR-090-R6（Step D実施）。実施可否・優先順位はFounderの通常のPR着手指示を待つ。
+
+**PR-090-R5: saveRecordScreen Migration Decision（調査・判定のみ、コード変更ゼロ）**
+（Recovery Program再開後5本目、FULL Mode相当——Founder判断が必要な変更のため）
+- `saveRecordScreen()`が呼ぶ5関数（buildHomeWeekRow/updateHomeInsightCard/
+  updateHomeNumbers/updateHomeDiseaseAdvice/updateHomeCTAState）の
+  app-legacy.js実装とhome-renderer.js実装を全文比較し、あわせて実際の呼び出し経路
+  （app.html onclick解決先・window export・ES module bare識別子解決）を追跡した。
+- 全文比較の結果を`docs/PR-090-R5-saveRecordScreen-migration-decision.md`にまとめた。
+  詳細な差分表・選択肢評価・Release Riskは同文書参照。
+- 【新規発見の要旨】
+  1. 5関数はいずれも両実装が現在も同時に生存しており、起動時/タブ切替では
+     home-renderer.js版、`saveRecordScreen`/`saveEditRecord`直後はapp-legacy.js版が
+     描画される、pre-existingの実挙動不整合（本文書作成による調査でのみ判明、
+     PR-090-R1〜R4のいずれの変更にも起因しない）。
+  2. `switchTab`自体も同型の2実装並存状態（app.htmlのonclickは`tab-navigation.js`版
+     `window.switchTab`に解決され、app-legacy.js版switchTabはbottom-nav経由では
+     到達しないが、`closeModal()`内のbare呼び出しでは生存）。PR-091 Legacy Exit Audit
+     で考慮すべき別課題として記録。
+  3. `updateHomeCTAState`の完了判定基準の相違は「重複」ではなく
+     「`daily-record-card-guard.js`Hotfixによる基準変更が片方の実装にしか反映
+     されていない」状態——エンジニアリングの物理移動判断ではなくプロダクト判断が必要。
+- 選択肢A（app-legacy.js版に統一）/B（home-renderer.js版に統一）はいずれも
+  Business Logic変更・UI変更を伴うため本Programの制約下では採用不可と判定。
+  C（現状維持）/D（β後UI/UX Final Councilで決定）のみ制約を満たす。
+- **推奨: D**。Cと同一の措置（現状維持）を取りつつ、判断主体をエンジニアリングから
+  プロダクト/UXへ明示的に移管する。
+- Build/Test: 未実施（コード変更ゼロのため対象外）。
+- Decision Log: 本件はDecision候補（saveRecordScreen統合方針の最終決定）として
+  Founder確認待ち。A/B/C/Dのいずれを採用するか、Dの場合UI/UX Final Councilの
+  開催時期、updateHomeCTAStateの完了基準がHotfix導入時に正式決定済みかの3点を
+  9節にまとめた。
+- 次: Founderの判断（A/B/C/D選択）を待つ。判断確定までPR-091 Legacy Exit Auditは
+  着手しない。
+
+**PR-090-R4: Legacy依存残件の物理移動（supabaseUserId/syncMode/updateStats/SYMPTOM_DETAIL_CONFIG）**
+（Recovery Program再開後4本目、STANDARD Mode。指示範囲は5項目だったが、うち
+saveRecordScreenは下記理由により本PRでは未着手）
+- **supabaseUserId**（Council 6-2）: `src/services/supabase.js`へ物理移動。
+  `getSupabaseUserId()`/`setSupabaseUserId()`をexportし、admin.js/community.js/
+  legacy-misc-stats.js（isAdminOrPremium）・app-legacy.js（import back、4箇所の
+  bare参照を置換）はいずれも直接importに変更。`window.__ippoGetSupabaseUserId`/
+  `__ippoSetSupabaseUserId`ブリッジは廃止。
+- **syncMode**（Council 6-4）: `src/modules/sync-modal.js`へ物理移動（`toggleSyncMode`が
+  唯一のmutatorであるため同ファイルが自然な所有者と判断）。`getSyncMode()`/
+  `setSyncMode()`をexportし、`src/services/supabase.js`（submitSync、2箇所）が
+  直接import。`window.__ippoGetSyncMode`/`__ippoSetSyncMode`ブリッジは廃止。
+- **updateStats**（Council 6-4）: app-legacy.jsローカル実装（home-renderer.js版とは
+  別実装、PR-080C重複整理と同型の「統合しない」判断を踏襲）を
+  `src/modules/legacy-misc-stats.js`（calcPainFreeDays/updateUnlockと同型のDOM更新系
+  ヘルパーが既に集約されている場所）へ物理移動。data-export.js（clearData）は
+  `window.__ippoLegacyUpdateStats()`ブリッジ経由を廃止し同モジュールから直接import。
+  app-legacy.js側はimport backし、bare呼び出し4箇所（オブジェクト定義部除く）は無改造。
+- **SYMPTOM_DETAIL_CONFIG**（Council 6-4）: `src/constants/symptom-detail.js`（新設、
+  ICONS/DISEASE_CONFIGと同型）へデータのみ物理移動。
+  **【新規発見】** 移動前調査で、`window.SYMPTOM_DETAIL_CONFIG`を設定するコードが
+  リポジトリ中に一切存在しないと判明（`window.DISEASE_CONFIG`はconstants/disease.js側
+  window bridgeにより実際に機能しているのと対照的）。つまりrecord-input.jsの
+  `appendSymptomDetail`/`renderSymptomDetail`は常時`{}`フォールバックが発火しており、
+  症状詳細サブUI（部位/タイプ/スライダー）は移動前から機能していなかった
+  （pre-existing、本PR起因ではない）。ICONS/DISEASE_CONFIGと同様に`window.X = X;`
+  ブリッジを新設すると、この症状詳細UIが初めて表示されるようになり実質的な機能有効化
+  ＝Business Logic/UI変更に該当するため、本PRでは意図的にwindow bridgeを追加せず
+  data-onlyの物理移動に留めた。record-input.js側の配線見直しは別途Founder判断が
+  必要な別課題として扱う（詳細はsrc/constants/symptom-detail.jsのコメント参照）。
+- **saveRecordScreen**（Council 6-4）: **未着手**。実装前調査で、
+  `saveRecordScreen()`が呼ぶ`buildHomeWeekRow`/`updateHomeCTAState`/
+  `updateHomeInsightCard`/`updateHomeNumbers`/`updateHomeDiseaseAdvice`の5関数は
+  PR-080Eで新規発見済みの「app-legacy.jsローカル実装 vs home-renderer.js側export版」
+  重複問題（未解消のままFounder判断により据え置き中）を持つと判明。この重複を
+  解消せずに`saveRecordScreen`を物理移動すると、移動先が5関数のどちらの実装を
+  importするか次第でBusiness Logic変更のリスクを伴う（PR-080E時点でFounderが
+  同じ理由で「重複のない部分のみ限定的に移動」と判断済み）。本PRの「Business Logic
+  変更なし」の制約と矛盾するため、他4項目とは切り離し次PR（重複解消方針の
+  Founder確認後）へ据え置いた。
+- SG-7 line-count-guard: `app-legacy.js`: 2,686行→2,554行（132行削減）。
+  BASELINE_LINE_COUNTを2,554に更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 113件PASS。
+- Browser Verification: Vite dev server + app.html実機で①`toggleSyncMode()`実行後
+  タイトル/ボタン文言が「新規登録」⇔「ログイン」に正しく切り替わることを確認
+  ②`window.__ippoGetSupabaseUserId`等の旧ブリッジが未定義になったことを確認
+  ③`clearData()`実行後、物理移動後の`updateStats()`が例外なく実行され
+  `state.totalDays`が0にリセットされることを確認。Console Errorは
+  vite websocket接続失敗・Supabase未設定環境ノイズ（`renderSyncUI`の
+  `supabase.auth.getSession()`呼び出し、既知）のみで新規エラーなし。
+- Decision Log: 更新不要（Architecture/Roadmap/Business/Founder Strategy変更なし。
+  SYMPTOM_DETAIL_CONFIGのwindow bridge新設判断とsaveRecordScreenの5関数重複解消方針は
+  Founder確認が必要な別課題として切り出し済み）。
+- 次: saveRecordScreen物理移動の前提条件（5関数重複）を実コードで比較・判定する
+  PR-090-R5（調査PR）を実施。
+
+**PR-090-R3: window.state依存70件の解放（Decision-1実装）**（Recovery Program再開後3本目、STANDARD Mode）
+- `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 5節・7節Step Bの実装。`src/store/state.js`の
+  `setState()`内、`_state = newState;`の直後に`try { window.state = _state; } catch (_) {}`
+  を追加し、`window.state`を`state.js`自身が直接同期するよう変更（Decision-1承認範囲）。
+- 冒頭の設計方針コメントも実態に合わせて修正（存在しない
+  `Object.defineProperty`ゲッターの記述を削除し、実装済みの直接同期方式を記載）。
+- 変更は`src/store/state.js`1ファイルのみ。`app-legacy.js`側の既存`_ippoStateHooks`
+  ブリッジ（`window.state`への同型の同期）はそのまま維持しており、二重同期になるが
+  同一値の再代入のため副作用なし。
+- これによりCouncil 4節の「window.state依存」18モジュール・70件（一部は
+  Legacy依存と複合、6-3節参照）が、`app-legacy.js`の実行有無に関わらず
+  `window.state`の値が保証される状態になった。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Browser Verification: Vite dev server + app.html実機で`setState()`呼び出し後に
+  `window.state === getState()`（同一参照）であることを確認、新規Console Errorなし。
+- 次: PR-090-R4（Legacy依存残件の物理移動、Founder判断不要）。
+
+**PR-090-R2: 自己export可能47件の自己export化**（Recovery Program再開後2本目、STANDARD Mode）
+- `docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 4節「自己export可能」12モジュール・47件
+  （meal-quick-input.js/meal-tracker.js/pro/shared/pro-metric-utils.js/quick-log.js/
+  record-edit.js/record-factors.js/record-screen-widgets.js/save-and-sync.js/
+  share.js/symptom-layers.js/ui-notifications.js/utils/string-utils.js）へ
+  `window.X = X;`の自己export行を追加。
+- `save-and-sync.js`は`window.saveAndSync`（record-modal-controller.jsの別実装が
+  既に使用中）ではなく、fasting.js/quick-log.jsが明示的に呼ぶための専用ブリッジ
+  `window.__ippoLegacySaveAndSync`のみを自己export（bridge維持タグ対象、
+  Council 3-1節の設計通り）。
+- `app-legacy.js`側の重複export行47件を削除（末尾のexportブロックから、
+  `if (typeof X === "function") window.X = X;`形式46件 + `window.__ippoLegacySaveAndSync
+  = saveAndSync;`1件）。importと内部bare呼び出しは維持（app-legacy.js自身が
+  これらの関数を直接呼ぶ箇所が残っているため）。
+- `app-legacy.js`: 2,733行 → 2,686行。line-count-guardの`BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）/
+  Architecture Guard 120件PASS（`tests/arch`単体実行時に1件flaky timeout発生も、
+  フル`vitest run`内では該当テストは正常PASSしていることを確認済み）。
+- 次: PR-090-R3（Decision-1実装、`state.js`でのwindow.state直接同期）。
+
+**PR-090-R1: isPremium依存解消（import差し替え）**（Recovery Program再開後1本目、FAST Mode）
+- Founder承認（Decision-1/2 + EXPORT_HUB_REFACTOR_COUNCIL結果）後の最初のPR。
+- `src/modules/insights-tab-panel.js`（`updateFoodBodyCorrelation`/
+  `updateCycleSymptomCorrelation`内、2箇所）と`src/modules/legacy-misc-stats.js`
+  （`isAdminOrPremium`内、1箇所）の`window.__ippoGetIsPremium()`呼び出しを、
+  既存の正式なPremium Source of Truthである`src/modules/premium/premium-service.js`の
+  `isPremium()`直接importへ差し替え。挙動変更なし（同一の値を参照）。
+  `app-legacy.js`は未変更（`window.__ippoGetIsPremium`ブリッジ自体は
+  `__ippoSetIsPremium`との対で残置、呼び出し元ゼロになったが削除はScope外）。
+- **実装中に発見・訂正した誤り**: Council報告書6-1節は「isPremium依存17件、
+  import差し替えのみで解決可能」としていたが、実際に呼び出し元を再検証したところ
+  `admin.js`/`community.js`は`__ippoGetSupabaseUserId`のみに依存しており
+  `__ippoGetIsPremium`とは無関係（真の対象は`insights-tab-panel.js`+
+  `legacy-misc-stats.js`の計6件のみ）。さらに`community.js`/
+  `insights-tab-panel.js`の一部関数（`renderInsightDiscoveries`、
+  `switchInsTab`が呼ぶ`updateFoodBodyCorrelation`/`updateCycleSymptomCorrelation`）
+  は`window.state`にも依存する**複合ブロッカー**であることが判明し、
+  本PRの範囲では完全な自己export可能化には至っていない（PR-090-R3のDecision-1
+  実装待ち）。詳細・訂正は`docs/EXPORT_HUB_REFACTOR_COUNCIL.md` 6節参照。
+- 本PRでは自己export追加・app-legacy.js側export行削除は行っていない
+  （対象exportの一部が依然window.state/supabaseUserId依存のため、PR-090-R2以降
+  「全ブロッカー解消済み」の単位でまとめて実施する）。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
+
+**EXPORT_HUB_REFACTOR_COUNCIL**（Recovery Program一時停止中の設計提案、コード変更ゼロ）
+- Founder指示により、PR-090-E1着手前にAPP_LEGACY_EXPORT_HUB 172件（PR-090-P3で判明、
+  全exportの78%）を依存関係レベルで再調査し、`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`を作成。
+- 172件を38モジュールに集約し、自己export可能12モジュール/47件（27%）・window.state依存
+  18モジュール/70件（41%）・Legacy依存8モジュール/55件（32%）に分類。
+- **新規発見**: `src/store/state.js`の設計コメントが想定する「window.stateの
+  Object.definePropertyゲッター」は実装に存在せず、実際は`app-legacy.js`の
+  `_ippoStateHooks`フックのみが`window.state`を同期している（app-legacy.js削除で
+  即stale化する）。対処は`state.js`1ファイル内で完結する見積もり。
+- **新規発見**: Legacy依存55件のうち17件（`__ippoGetIsPremium`系）は、実は既に
+  独立した正式なSource of Truth（`src/modules/premium/premium-service.js`、
+  Supabase subscriptions realtime購読）が存在し、importを差し替えるだけで
+  Architecture変更なしに解決できる。
+- 判定: Legacy依存55件はArchitecture変更不要（個別の物理移動PRで解決可能、
+  Recovery Programの延長として続行可）。window.state依存70件は`state.js`への
+  限定的な変更（Decision-1拡張版）が前提。自己export可能47件はDecision-2承認のみ。
+- コード変更ゼロ。Build PASS / Architecture Guard 120件PASS（1件は無関係なflaky
+  timeoutで単体実行では合格を再確認済み）。
+- Founder確認待ちで停止。詳細は`docs/EXPORT_HUB_REFACTOR_COUNCIL.md`参照。
+
+**PR-090-P3: Window Export Inventory Audit**（Legacy Completion Recovery Plan Step1、監査のみ・コード変更ゼロ）
+- `src/app-legacy.js`のwindow export行**220件全件**を機械的に抽出・分類。
+  A.SELF_EXPORTED_BY_MODULE 18件 / B.APP_LEGACY_EXPORT_HUB 172件（78%）/
+  C.STATE_PROVIDER 6件 / D.LIVE_LEGACY_IMPLEMENTATION 18件 / E.DEAD_EXPORT 6件 /
+  F.AMBIGUOUS 0件。詳細は`docs/PR-090-P3-window-export-inventory.md`参照。
+- **最重要の発見**: PR-089Zの定性的判断（「移動先モジュール自身はwindow exportしていない
+  ケースを確認」）が、B分類172件（全体の78%）に該当すると定量的に確定。これが
+  `app-legacy.js`削除の最大の障壁であることを数値で裏付けた。
+- E分類6件のうち`updateHomeVision`は本PRで新規発見（`src/modules/app-bootstrap.js`の
+  起動時呼び出しがtypeof guardにより常にno-opになっている、home cluster5関数とは別枠）。
+- 補助検証として`app.html`のonclick参照全件を突合、孤立参照（呼び出し先不在）はゼロを確認。
+- コード変更ゼロ（監査文書1件のみ追加）。Build PASS / Architecture Guard 120件PASS。
+- 次: PR-090-E1（E分類6件の削除、Founder判断不要）。Decision-1〜4はFounder確認待ちで
+  本Recovery Programを一旦停止。
+
+**PR-090-P2: updateSettingsHero Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
+- `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
+  なしの純粋な物理移動として実施。settings-display-runtime.js版との統合はPR-081時点で
+  「製品判断が必要、Scope外」と確定済みのため再確認せず、現状（重複維持）のまま実施。
+- `updateSettingsHero()`（app-legacy.js側のローカル実装）を`src/modules/legacy-settings-hero.js`
+  （新設）へ物理移動。挙動変更なし。bare `state`→`window.state`、`isAdminOrPremium`は
+  `src/modules/legacy-misc-stats.js`から直接import。
+- `window.__ippoLegacyUpdateSettingsHero`ブリッジ（premium-lock.jsのupdatePremiumBadges()が
+  本ローカル実装を明示的に呼び出すための専用経路）はimport経由の関数を指すよう自動的に解決、
+  挙動変更なし。`window.updateSettingsHero`エクスポートも同様に維持（実際にはload順で
+  settings-display-runtime.js版に上書きされる、PR-081時点と同じ挙動）。
+- `app-legacy.js`: 2,759行 → 2,733行。`tests/arch/legacy-removal-pr079-line-count-guard.test.js`の
+  `BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
+- 次: PR-090-P3（window exportブロック全件棚卸し監査）。
+
+**PR-090-P1: closeSuccess Physical Move**（Legacy Completion Recovery Plan Step1、FAST Mode）
+- `docs/LEGACY_COMPLETION_RECOVERY_PLAN.md` 2-6節の定義通り、Founder判断・Business Logic変更
+  なしの純粋な物理移動として実施。
+- `closeSuccess()`（成功オーバーレイのクローズ処理）を`src/app-legacy.js`から
+  `src/modules/success-overlay.js`（新設）へ物理移動。挙動変更なし。
+  `window.closeSuccess`ブリッジはapp-legacy.js側のexportブロックをそのまま維持（import経由で解決）。
+- `app-legacy.js`: 2,765行 → 2,759行。`tests/arch/legacy-removal-pr079-line-count-guard.test.js`の
+  `BASELINE_LINE_COUNT`を更新。
+- Build PASS / `vitest run` 5,193件中失敗39件（既知5ファイルのみ、増加なし）。
+- 次: PR-090-P2（updateSettingsHeroの物理移動）。
+
+**PR-089Z: Legacy Removal Final Cutover判定**（Legacy Removal Program最終PR、コード変更ゼロ）
+- 目的: PR-089A〜PR-089F-7GまでのLegacy Removal監査・移植結果をもとに、`app-legacy.js`の
+  最終削除可否を判定する。
+- **判定: `app-legacy.js`は削除不可。** 静的解析（grep全件確認）+ ビルドレベル実地検証
+  （`import './app-legacy.js';`を一時除外して`npx vite build`実行 → ビルド自体は成功、
+  検証後に復元）+ Node.js/jsdomによるモジュール単体実行時検証、の3手法で確認した。
+- 削除不可の主因: (1) `window.state`の唯一の提供元であり`src/store/state.js`側の設計もこれに
+  依存、(2) PR-079〜088で物理移動済みの多数のモジュールにとって、app-legacy.js末尾の
+  window exportブロックが唯一の`window.*`公開経路になっている（移動先モジュール自身は
+  window exportしていないケースを確認）、(3) `initNavIcons`/`initSettingsIcons`等、
+  他に委譲先のない実働コードを内包。
+- `closeModal`/`openRecordModal`/`saveAndSync`のno-op疑惑（`record-modal-controller.js`の
+  `_inline*`委譲パターン）をjsdom実行時検証で確定。設計コメントが前提とする「inline
+  `<script>`実行後にロード」という条件が、現行コード（`<script type="module">`1本のみ）では
+  満たされないため。ユーザー影響のある潜在バグだが、到達経路が2026-05-27付けsoft-isolated済み
+  の`#record-modal`に限定されるため、Release Riskは低〜中と判定。修正は別途Founderが優先度判断。
+- Chrome拡張機能（claude-in-chrome）が本PR実施中終始接続不可のため、実ブラウザでの
+  クリック検証は未実施。代替としてNode.js/jsdomのモジュール単体実行時検証を採用。
+- Build PASS / `tests/arch/`(Legacy Guard含む) 104件PASS / `vitest run` 5,193件中失敗39件
+  （既知5ファイルのみ、増加なし）。
+- 詳細・Remaining Legacy一覧・Decision Log候補は`docs/PR-089Z-final-cutover-decision.md`参照。
 
 **Wave2 Official Completion — Founder Approval**（Wave2正式完了、Phase G capstone後続）
 - 2026-07-02、Founder（kenkou-jpg）が `generateWave2ExitReport()` の結果を確認し「APPROVE WAVE2 EXIT」を明示。

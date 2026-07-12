@@ -5,6 +5,22 @@
 
 ---
 
+> ## ⚠ 非適用（Not Applicable）— 2026-07-07 Release Readiness Council Review v2
+>
+> IPPOの正式な製品定義は「自己実験プラットフォーム」であり、診断・治療・予防を目的とする
+> ソフトウェアではない（BD-061）。SaMD（プログラム医療機器）該当性は「疾患の診断・治療・
+> 予防に使用することを目的とするソフトウェア」に対して問題となるものであり、記録整理・
+> 要約・傾向分析・可視化・類似パターン表示（BD-062）に機能範囲を限定する製品はこの目的要件を
+> 満たさない。よって**C-3は現時点で非適用**と判定する。
+>
+> 再適用条件: 将来、AI出力が診断示唆・緊急度判定・治療指示・因果断定に踏み込む場合（BD-031/
+> BD-038/BD-050が禁止する表現に該当する変更を行う場合）は、本メモを再度有効化し外部弁護士
+> または規制当局への確認を必須とする。詳細: docs/RELEASE_READINESS_COUNCIL.md 21章。
+>
+> `confirmed:false` は維持する（非適用の記録であり、`confirmed:true` への切替えではない）。
+
+---
+
 ## 目的
 
 IPPOはSignal Insight（[signal-insight-service.js](../../src/domains/signal-insight/signal-insight-service.js)）、

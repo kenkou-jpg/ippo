@@ -51,6 +51,25 @@ Completion Report（AI_EXECUTION.md の Report Optimization に従う）
 禁止: PR 外実装（次 PR を先取りする実装）
 禁止: 推測による Scope 外実装
 禁止: AI_EXECUTION.md を読まずに実装を開始する
+禁止: 実機確認・Browser Verification を AI が自己判断で実施する
+禁止: Chrome 拡張・追加ツール等の補助環境に依存した動作確認を実施する
+```
+
+---
+
+## Browser Verification Rule
+
+```
+実装中に実機確認が必要になった場合は、実装を停止して Founder へ報告する。
+
+Chrome 拡張等の追加環境には依存しない。
+Founder による通常ブラウザでの Browser Verification を正式な判定とする。
+
+停止・報告の形式:
+  Browser Verification Required:
+    対象: [確認が必要な画面・機能]
+    理由: [なぜ実機確認が必要か]
+    確認方法: [Founder が通常ブラウザで確認すべき手順]
 ```
 
 ---

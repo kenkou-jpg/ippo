@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>ippo — Prototype</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ ONBOARDING (0分) ============ -->
+  <main class="screen screen-onboarding" id="screen-onboarding" data-screen="onboarding">
+    <div class="onboarding-hero">
+      <div class="brand-lockup onboarding-brand">
+        <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+          <circle cx="13" cy="13" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="42 17" transform="rotate(-45 13 13)"/>
+          <circle cx="22.5" cy="22.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <div class="brand-lockup-text">
+          <span class="brand-wordmark">ippo</span>
+          <span class="brand-tagline">EXPERIMENT LOG</span>
+        </div>
+      </div>
+      <h1 class="onboarding-title">ようこそ、ippoへ</h1>
+      <p class="onboarding-lead">ippoは、自分の体で小さな実験を重ね、<br>パターンを発見していくための実験ノートです。</p>
+    </div>
+
+    <section class="card onboarding-card">
+      <div class="card-kicker"><span class="card-icon-badge badge-rose">🔒</span><span class="card-kicker-label">安心してはじめてください</span></div>
+      <p class="onboarding-reassure">記録はあなただけが見られます。誰かに共有されたり、公開されたりすることはありません。いつでも削除できます。</p>
+    </section>
+
+    <section class="card onboarding-card">
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">💬</span><span class="card-kicker-label">気になることはありますか？（任意）</span></div>
+      <p class="onboarding-sub">選んでおくと、実験の提案が合わせやすくなります。あとで変更もできます。</p>
+      <div class="onboarding-chip-grid" id="onboarding-concern-chips">
+        <button data-concern="pms">PMS</button>
+        <button data-concern="pmdd">PMDD</button>
+        <button data-concern="pcos">PCOS</button>
+        <button data-concern="endometriosis">子宮内膜症</button>
+        <button data-concern="ovarian-cyst">卵巣嚢腫</button>
+        <button data-concern="none">特にない</button>
+      </div>
+      <div class="onboarding-suggestion" id="onboarding-suggestion" hidden>
+        <span class="onboarding-suggestion-label">💡 最初の一歩の候補</span>
+        <p class="onboarding-suggestion-text" id="onboarding-suggestion-text"></p>
+      </div>
+    </section>
+
+    <button class="btn-primary onboarding-start" id="btn-onboarding-start">はじめる →</button>
+  </main>
+
+  <!-- ============ HOME ============ -->
+  <main class="screen" id="screen-home" data-screen="home" hidden>
+
+    <!-- Hero: 挨拶 / 実験Day / 進捗 / 今日の目的 -->
+    <header class="hero">
+      <div class="hero-top-row">
+        <div class="brand-lockup">
+          <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
+            <circle cx="13" cy="13" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="42 17" transform="rotate(-45 13 13)"/>
+            <circle cx="22.5" cy="22.5" r="2.1" fill="currentColor"/>
+          </svg>
+          <div class="brand-lockup-text">
+            <span class="brand-wordmark">ippo</span>
+            <span class="brand-tagline">EXPERIMENT LOG</span>
+          </div>
+        </div>
+        <span class="hero-date" id="hero-date">7月8日（水）</span>
+      </div>
+      <p class="hero-greeting" id="hero-greeting">おはようございます、あかりさん</p>
+
+      <div class="hero-signature">
+        <div class="hero-ring" id="hero-ring" style="--pct:0">
+          <div class="hero-ring-inner">
+            <span class="hero-ring-day" id="hero-day-number">0</span>
+            <span class="hero-ring-unit">日目</span>
+          </div>
+        </div>
+        <div class="hero-signature-info">
+          <span class="hero-experiment-name" id="hero-experiment-name">🌱 まだ実験はありません</span>
+          <span class="hero-progress-caption" id="hero-progress-caption">記録を続けると実験を始められます</span>
+        </div>
+      </div>
+
+      <div class="hero-streak" aria-hidden="true">
+        <span class="hero-streak-label">直近7日</span>
+        <div class="hero-streak-dots" id="hero-streak-dots">
+          <span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span>
+        </div>
+      </div>
+
+      <div class="hero-focus-row">
+        <span class="hero-focus-label">今日の目的</span>
+        <span class="hero-focus-text" id="hero-focus-text">気になることを3日間、記録してみましょう</span>
+      </div>
+    </header>
+
+    <!-- 実験完了時の静かなお祝い -->
+    <section class="milestone-banner" id="home-milestone-banner" hidden>
+      <span class="milestone-mark" aria-hidden="true">✦</span>
+      <div class="milestone-copy">
+        <div class="milestone-title" id="milestone-title"></div>
+        <p class="milestone-sub" id="milestone-sub"></p>
+      </div>
+    </section>
+
+    <!-- 今日の記録：あえて控えめな帯 -->
+    <div class="record-strip" id="home-record-strip">
+      <!-- filled by app.js -->
+    </div>
+
+    <!-- 気づき / 空状態ガイド（Day0のみ） -->
+    <section class="card card-insight" id="home-insight-card">
+      <div class="card-kicker">
+        <span class="card-icon-badge badge-gold">💡</span>
+        <span class="card-kicker-label" id="home-insight-label">今日の気づき</span>
+      </div>
+      <p class="card-quote" id="home-insight-text"></p>
+      <div class="confidence-row" id="home-insight-confidence-row" hidden>
+        <div class="confidence-meter" aria-hidden="true">
+          <span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span>
+        </div>
+        <span class="confidence-tag" id="home-insight-confidence"></span>
+      </div>
+      <button class="card-cta" data-nav="insights" id="home-insight-cta">くわしく見る →</button>
+    </section>
+
+    <!-- 進行中の実験 -->
+    <section class="card card-experiment" id="home-experiment-section">
+      <div class="card-kicker">
+        <span class="card-icon-badge badge-rose">🧪</span>
+        <span class="card-kicker-label">進行中の実験</span>
+      </div>
+      <div class="home-experiment-body" id="home-experiment-card">
+        <!-- filled by app.js -->
+      </div>
+    </section>
+
+    <!-- 結果：Before → After（共有前提ビジュアル） -->
+    <section class="card card-result card-shareable" id="home-result-section" hidden>
+      <div class="share-watermark" aria-hidden="true">
+        <svg class="brand-mark" viewBox="0 0 28 28" focusable="false">
+          <circle cx="13" cy="13" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="42 17" transform="rotate(-45 13 13)"/>
+          <circle cx="22.5" cy="22.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>ippo</span>
+      </div>
+      <div class="card-kicker">
+        <span class="card-icon-badge badge-sage">📈</span>
+        <span class="card-kicker-label">実験の結果</span>
+      </div>
+      <div class="result-flow">
+        <span class="result-before" id="home-result-before">乳製品断ち</span>
+        <span class="result-arrow">→</span>
+        <span class="result-target" id="home-result-target">肌荒れ</span>
+      </div>
+      <div class="result-main-row">
+        <div class="result-delta-block">
+          <div class="result-delta" id="home-result-delta">-38<span class="result-delta-unit">%</span></div>
+          <p class="result-meaning" id="home-result-meaning">肌荒れが落ち着いてきた実感があります</p>
+        </div>
+        <div class="result-mini-compare">
+          <div class="result-mini-col">
+            <div class="result-mini-track"><div class="result-mini-fill before" id="home-result-mini-before" style="height:54%"></div></div>
+            <span class="result-mini-label">前</span>
+          </div>
+          <div class="result-mini-col">
+            <div class="result-mini-track"><div class="result-mini-fill after" id="home-result-mini-after" style="height:82%"></div></div>
+            <span class="result-mini-label">後</span>
+          </div>
+        </div>
+      </div>
+      <p class="result-caption" id="home-result-caption">実験開始から2週間の変化・7件の記録から算出</p>
+    </section>
+
+    <!-- 次の実験候補 -->
+    <section class="card card-next" id="home-next-section" hidden>
+      <div class="card-kicker">
+        <span class="card-icon-badge badge-gold">🌱</span>
+        <span class="card-kicker-label">次の実験候補</span>
+      </div>
+      <div class="next-title" id="home-next-title">☕ カフェイン断ち・2週間</div>
+      <p class="next-expected" id="home-next-expected">同じ悩みの人の <strong>62%</strong> が「寝つきの改善」を実感</p>
+      <p class="next-reassure">いつでもやめられます。まずは軽い気持ちで。</p>
+      <button class="btn-gold" data-nav="experiment">試してみる →</button>
+    </section>
+  </main>
+
+  <!-- ============ RECORD ============ -->
+  <main class="screen" id="screen-record" data-screen="record" hidden>
+    <header class="screen-header"><h1>記録する</h1><p class="screen-sub">10秒で今日の実験ログをつける</p></header>
+
+    <!-- 今週の実験対象 -->
+    <div class="record-focus-banner" id="record-focus-banner" hidden>
+      <span class="record-focus-icon" id="record-focus-icon">🥛</span>
+      <div>
+        <span class="record-focus-label">今週の実験対象</span>
+        <span class="record-focus-text" id="record-focus-text">乳製品断ち</span>
+      </div>
+    </div>
+
+    <section class="block">
+      <div class="card-kicker"><span class="card-icon-badge badge-plum">📝</span><span class="card-kicker-label">今日の体調</span></div>
+      <div class="field-row">
+        <span class="field-name">気分</span>
+        <div class="emoji-picker" data-field="mood">
+          <button data-value="1">😞</button>
+          <button data-value="2">😐</button>
+          <button data-value="3" class="selected">🙂</button>
+          <button data-value="4">😊</button>
+          <button data-value="5">😄</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <span class="field-name">睡眠</span>
+        <div class="chip-group" data-field="sleep">
+          <button data-value="short">短い</button>
+          <button data-value="normal" class="selected">普通</button>
+          <button data-value="long">よく寝た</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <span class="field-name">肌</span>
+        <div class="chip-group" data-field="skin">
+          <button data-value="rough">荒れ</button>
+          <button data-value="normal" class="selected">普通</button>
+          <button data-value="good">良い</button>
+        </div>
+      </div>
+
+      <!-- PR-REC-02: 疾患選択時のみ表示（オンボーディングの気になることに連動） -->
+      <div class="disease-chip-row" data-field="diseaseQuickSymptoms" id="record-disease-chips" hidden></div>
+
+      <!-- PR-REC-02: 詳細を開いた時のみ表示 -->
+      <button class="card-cta detail-toggle" type="button" id="btn-record-detail-toggle">くわしく記録する（任意）</button>
+      <div class="record-detail-panel" id="record-detail-panel" hidden>
+        <div class="detail-field">
+          <span class="field-name">痛みの強さ</span>
+          <input type="range" min="0" max="10" value="0" id="record-detail-pain-level" data-field="painLevel" />
+        </div>
+        <div class="detail-field">
+          <span class="field-name">周期</span>
+          <div class="chip-group" data-field="menstrualCycle">
+            <button data-value="menstruation">生理中</button>
+            <button data-value="follicular">卵胞期</button>
+            <button data-value="ovulation">排卵期</button>
+            <button data-value="luteal">黄体期</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">血塊</span>
+          <div class="chip-group" data-field="bloodClot">
+            <button data-value="none" class="selected">なし</button>
+            <button data-value="small">少し</button>
+            <button data-value="large">多い</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">おりもの</span>
+          <div class="chip-group" data-field="bloodColor">
+            <button data-value="clear" class="selected">透明</button>
+            <button data-value="white">白</button>
+            <button data-value="brown">茶色</button>
+            <button data-value="red">赤</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">体温</span>
+          <input type="number" step="0.1" min="35" max="40" placeholder="36.5" id="record-detail-temperature" data-field="temperature" />
+        </div>
+        <div class="detail-field">
+          <span class="field-name">排便</span>
+          <div class="chip-group" data-field="bowel">
+            <button data-value="normal" class="selected">普通</button>
+            <button data-value="constipation">便秘</button>
+            <button data-value="diarrhea">下痢</button>
+          </div>
+        </div>
+        <div class="detail-field">
+          <span class="field-name">服薬</span>
+          <input class="memo-input" type="text" placeholder="服用した薬があれば" id="record-detail-medication" data-field="medication" />
+        </div>
+        <div class="detail-field disease-detail-symptoms" id="record-disease-detail-chips" hidden></div>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="card-kicker"><span class="card-icon-badge badge-rose">🧪</span><span class="card-kicker-label">今日の行動タグ</span></div>
+      <div class="tag-grid" data-field="tags" id="record-tag-grid">
+        <button data-tag="caffeine">☕ カフェイン</button>
+        <button data-tag="dairy">🥛 乳製品</button>
+        <button data-tag="sugar">🍚 糖質</button>
+        <button data-tag="alcohol">🍷 アルコール</button>
+        <button data-tag="exercise">🏃 運動</button>
+        <button data-tag="earlysleep">💤 早寝</button>
+      </div>
+      <p class="hint-text" id="record-hint-text">ハイライトされたタグは今週の実験に関係する項目です</p>
+    </section>
+
+    <section class="block">
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">💡</span><span class="card-kicker-label">気づきメモ（任意）</span></div>
+      <input class="memo-input" type="text" placeholder="今日気づいたことがあれば" />
+    </section>
+
+    <button class="btn-primary submit-record" id="btn-submit-record">記録する</button>
+  </main>
+
+  <!-- ============ INSIGHTS ============ -->
+  <main class="screen" id="screen-insights" data-screen="insights" hidden>
+    <header class="screen-header"><h1>Insights</h1><p class="screen-sub">自分の体のパターンを発見する</p></header>
+
+    <section class="block tint-gold">
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">💡</span><span class="card-kicker-label">今週のハイライト</span></div>
+      <p class="card-quote large" id="insights-highlight-text"></p>
+      <div class="confidence-row" id="insights-highlight-confidence-row" hidden>
+        <div class="confidence-meter" aria-hidden="true">
+          <span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span>
+        </div>
+        <span class="confidence-tag" id="insights-highlight-confidence"></span>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="card-kicker"><span class="card-icon-badge badge-plum">🗓️</span><span class="card-kicker-label">パターンカレンダー</span></div>
+      <p class="insight-narrative" id="insights-calendar-narrative">色が濃い日ほど、体調の変化が大きかった日です。</p>
+      <div class="calendar-grid" id="pattern-calendar"><!-- filled by app.js --></div>
+      <div class="legend-row">
+        <span><i class="dot dot-rose"></i>体調やや不調</span>
+        <span><i class="dot dot-sage"></i>体調良好</span>
+        <span><i class="dot dot-plum"></i>生理周期</span>
+      </div>
+    </section>
+
+    <section class="block tint-sage" id="insights-compare-section" hidden>
+      <div class="card-kicker"><span class="card-icon-badge badge-sage">📈</span><span class="card-kicker-label">実験結果サマリー</span></div>
+      <p class="insight-narrative" id="insights-compare-question">この実験で、本当に変化はあったのでしょうか？</p>
+      <div class="compare-row">
+        <div class="compare-col">
+          <span class="compare-title" id="insights-compare-before-label">前</span>
+          <div class="bar-track"><div class="bar-vertical" id="insights-compare-before-bar" style="height:54%;background:var(--rose-light)"></div></div>
+          <span class="compare-value" id="insights-compare-before-value">62</span>
+        </div>
+        <div class="compare-col">
+          <span class="compare-title" id="insights-compare-after-label">後</span>
+          <div class="bar-track"><div class="bar-vertical" id="insights-compare-after-bar" style="height:82%;background:var(--sage)"></div></div>
+          <span class="compare-value" id="insights-compare-after-value">78</span>
+        </div>
+      </div>
+      <p class="result-caption" id="insights-compare-caption">16時間断食を始めてから体調スコアが+16向上</p>
+    </section>
+
+    <section class="block premium-locked" id="insights-cycle-block">
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">🌙</span><span class="card-kicker-label">周期との重なりグラフ</span></div>
+      <div class="blur-content">
+        <div class="mini-chart"><span style="height:40%"></span><span style="height:70%"></span><span style="height:30%"></span><span style="height:60%"></span></div>
+      </div>
+      <div class="lock-overlay">
+        <p>周期×体調の長期トレンドは Premium で見られます</p>
+        <button class="btn-secondary" data-open="premium">Premiumを見る</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ EXPERIMENT ============ -->
+  <main class="screen" id="screen-experiment" data-screen="experiment" hidden>
+    <header class="screen-header"><h1>Experiment</h1><p class="screen-sub">小さな挑戦を試す</p></header>
+
+    <section class="block running-experiment tint-rose" id="experiment-running-section" hidden>
+      <div class="card-kicker"><span class="card-icon-badge badge-rose">🧪</span><span class="card-kicker-label">進行中の実験</span></div>
+      <div class="running-row">
+        <div class="progress-ring" id="experiment-progress-ring" data-progress="36">
+          <span id="experiment-progress-label">Day 5<br>/14</span>
+        </div>
+        <div class="running-info">
+          <div class="running-title" id="experiment-running-title">🔥 16時間断食</div>
+          <p class="running-caption" id="experiment-running-caption">今日の断食: 22:00〜翌14:00</p>
+          <button class="btn-secondary sm">今日もOK</button>
+        </div>
+      </div>
+      <p class="experiment-hypothesis" id="experiment-running-hypothesis">仮説: 乳製品を断つと、肌荒れが減るかもしれません</p>
+      <p class="experiment-observe" id="experiment-running-observe">観察すること: 肌の調子・気分</p>
+      <p class="experiment-reassure">いつでもやめられます</p>
+    </section>
+
+    <section class="block suggested-experiment tint-gold" id="experiment-suggested-section" hidden>
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">🌱</span><span class="card-kicker-label">おすすめの実験</span></div>
+      <p class="suggest-reason" id="experiment-suggest-reason">肌荒れと乳製品の関係が気になったので</p>
+      <div class="experiment-card-inline">
+        <span id="experiment-suggest-title">🥛 乳製品断ち</span>
+      </div>
+      <p class="experiment-hypothesis" id="experiment-suggest-hypothesis">仮説: 乳製品を断つと、肌荒れが減るかもしれません</p>
+      <p class="experiment-observe" id="experiment-suggest-observe">観察すること: 肌の調子・気分</p>
+      <p class="experiment-reassure">いつでもやめられます。まずは軽い気持ちで。</p>
+      <button class="experiment-start-cta" data-action="start-experiment">この実験を試してみる →</button>
+    </section>
+
+    <section class="block">
+      <div class="card-kicker"><span class="card-icon-badge badge-plum">📚</span><span class="card-kicker-label">実験ライブラリ</span></div>
+      <div class="library-grid">
+        <button class="library-card">
+          <span class="lib-icon">🔥</span><span class="lib-name">16時間断食</span><span class="lib-desc">1日8時間だけ食べる</span>
+        </button>
+        <button class="library-card">
+          <span class="lib-icon">⏱️</span><span class="lib-name">14時間断食</span><span class="lib-desc">はじめての断食に</span>
+        </button>
+        <button class="library-card">
+          <span class="lib-icon">☕</span><span class="lib-name">カフェイン断ち</span><span class="lib-desc">2週間試す</span>
+        </button>
+        <button class="library-card">
+          <span class="lib-icon">🥛</span><span class="lib-name">乳製品断ち</span><span class="lib-desc">2週間試す</span>
+        </button>
+        <button class="library-card locked" data-open="pro">
+          <span class="library-card-lock-badge">✨ Pro</span>
+          <span class="lib-icon">✨</span><span class="lib-name">カスタム実験</span><span class="lib-desc">どんな実験を作れるか、のぞいてみる</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ ME (Settings + Premium/Pro) ============ -->
+  <main class="screen" id="screen-me" data-screen="me" hidden>
+    <header class="screen-header"><h1>Me</h1></header>
+
+    <section class="block profile-block">
+      <div class="avatar-circle">A</div>
+      <div>
+        <div class="profile-name">あかり</div>
+        <div class="profile-plan">現在のプラン: Free</div>
+        <div class="profile-concern" id="profile-concern-line" hidden></div>
+      </div>
+    </section>
+
+    <section class="card onboarding-card">
+      <div class="card-kicker"><span class="card-icon-badge badge-rose">🔒</span><span class="card-kicker-label">プライバシーについて</span></div>
+      <p class="onboarding-reassure">あなたの記録は、あなただけが見られます。第三者への共有・公開は行いません。</p>
+    </section>
+
+    <section class="block plan-card plan-premium">
+      <div class="card-kicker"><span class="card-icon-badge badge-rose">🔬</span><span class="card-kicker-label">PLAN</span></div>
+      <div class="plan-heading">Premium</div>
+      <p class="plan-tagline">自分の体をもっと深く理解する</p>
+      <ul class="plan-list">
+        <li>Insights全履歴の閲覧</li>
+        <li>周期×体調の長期トレンド</li>
+        <li>パターンカレンダー全期間表示</li>
+      </ul>
+      <button class="btn-primary" data-open="premium">Premiumを見る</button>
+    </section>
+
+    <section class="block plan-card plan-pro">
+      <div class="card-kicker"><span class="card-icon-badge badge-gold">🔭</span><span class="card-kicker-label">PLAN</span></div>
+      <div class="plan-heading">Pro</div>
+      <p class="plan-tagline">改善実験をもっと進める</p>
+      <ul class="plan-list">
+        <li>カスタム実験の作成</li>
+        <li>複数実験の同時進行</li>
+        <li>AIによる次の実験提案</li>
+        <li>Research Contribution Badge</li>
+      </ul>
+      <button class="btn-primary gold" data-open="pro">Proを見る</button>
+    </section>
+
+    <section class="block settings-list">
+      <button class="settings-row">通知設定</button>
+      <button class="settings-row">データのエクスポート</button>
+      <button class="settings-row">アカウント</button>
+      <button class="settings-row" id="btn-review-onboarding">気になることを変更する</button>
+      <button class="settings-row">ヘルプ</button>
+    </section>
+
+    <!-- レビュー用プレビュー: 経過日数（本番機能ではありません） -->
+    <section class="block preview-block">
+      <div class="card-kicker"><span class="card-icon-badge badge-plum">🔍</span><span class="card-kicker-label">プレビュー: 経過日数</span></div>
+      <p class="preview-caption">Founderレビュー用の機能です。本番には含まれません。Day0〜Day30の見え方を切り替えて確認できます。</p>
+      <div class="preview-day-row" id="preview-day-row">
+        <button data-day="0">Day 0</button>
+        <button data-day="3">Day 3</button>
+        <button data-day="7">Day 7</button>
+        <button data-day="14">Day 14</button>
+        <button data-day="30">Day 30</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ BOTTOM NAV ============ -->
+  <nav class="nav-bar" id="nav-bar" hidden>
+    <button class="nav-item active" data-nav="home"><span class="nav-icon">🏠</span><span>Home</span></button>
+    <button class="nav-item" data-nav="record"><span class="nav-icon">✏️</span><span>Record</span></button>
+    <button class="nav-item" data-nav="insights"><span class="nav-icon">📊</span><span>Insights</span></button>
+    <button class="nav-item" data-nav="experiment"><span class="nav-icon">🔥</span><span>Experiment</span></button>
+    <button class="nav-item" data-nav="me"><span class="nav-icon">👤</span><span>Me</span></button>
+  </nav>
+
+  <!-- ============ PREMIUM / PRO MODAL ============ -->
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal-sheet" id="modal-sheet"><!-- filled by app.js --></div>
+  </div>
+
+  <!-- ============ TOAST ============ -->
+  <div class="toast" id="toast" hidden></div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

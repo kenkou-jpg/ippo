@@ -20,9 +20,9 @@
 //    設定する設計（同ファイルコメント「app-legacy.js の bare identifier 参照の
 //    ために window に設定」）のため、既存 idiom に合わせ window.SUPABASE_KEY を
 //    そのまま参照する。
-//  ・bare `supabaseUserId`（app-legacy.js側 var、ログイン処理が更新）は
-//    window.__ippoGetSupabaseUserId() 経由の読み取りに変更
-//    （PR-080E window.__ippoGetBowelCount と同型パターン）。
+//  ・bare `supabaseUserId`（旧: app-legacy.js側 var）は PR-090-R4
+//    (EXPORT_HUB_REFACTOR_COUNCIL 6-2) でsrc/services/supabase.jsへ物理移動済みのため、
+//    getSupabaseUserId() 直接importに変更（getSupabaseUserId()経由を廃止）。
 //  ・bare `state.name` → `window.state.name`（_ippoStateHooks経由、既存idiomと同型）。
 //  ・switchCVTab/deleteCommunityReply は現状 window bridge が存在せず app.html にも
 //    対応する onclick / DOM要素（#cv-archive等）が見当たらないため、実質到達不能な
@@ -31,7 +31,7 @@
 //    switchCVTab/deleteCommunityReplyともに従来通り window 非公開のまま移動する。
 // ================================================================
 
-import { SUPABASE_URL, supabase } from '../services/supabase.js';
+import { SUPABASE_URL, supabase, getSupabaseUserId } from '../services/supabase.js';
 import { escapeHtml, getTimeAgo } from '../utils/string-utils.js';
 import { showToast } from './ui-notifications.js';
 
@@ -39,7 +39,7 @@ var currentTopicId = null;
 
 export function loadCommunityTopic(){
   // 未認証時は 401 になるため、認証済みの場合のみリクエストを送る
-  if (!window.__ippoGetSupabaseUserId()) {
+  if (!getSupabaseUserId()) {
     var qEl = document.getElementById('community-question');
     if(qEl) qEl.textContent = 'コミュニティ機能は準備中です。もうしばらくお待ちください 🌸';
     return;
@@ -189,7 +189,7 @@ export function loadCommunityReplies(){
       html += '<div style="display:flex;align-items:center;gap:4px;">';
       html += '<button onclick="likeCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">';
       html += '♡ 共感</button>';
-      if(window.__ippoGetSupabaseUserId() && r.user_id === window.__ippoGetSupabaseUserId()){
+      if(getSupabaseUserId() && r.user_id === getSupabaseUserId()){
         html += '<button onclick="deleteCommunityReply(\'' + r.id + '\', this)" style="background:none;border:1px solid #e8ddd8;border-radius:16px;padding:4px 12px;font-size:11px;color:var(--ink-light);cursor:pointer;">削除</button>';
       }
       html += '</div>';
@@ -209,7 +209,7 @@ export function postCommunityReply(){
 
   var body = {
     topic_id: currentTopicId,
-    user_id: window.__ippoGetSupabaseUserId() || null,
+    user_id: getSupabaseUserId() || null,
     display_name: (window.state.name || '匿名') + 'さん',
     body: input.value.trim()
   };
@@ -236,7 +236,7 @@ export function postCommunityReply(){
 }
 
 export function likeCommunityReply(replyId, btn){
-  if(!window.__ippoGetSupabaseUserId()){ showToast('いいねするにはログインが必要です', 'warn'); return; }
+  if(!getSupabaseUserId()){ showToast('いいねするにはログインが必要です', 'warn'); return; }
 
   fetch(SUPABASE_URL + '/rest/v1/community_likes', {
     method: 'POST',
@@ -245,7 +245,7 @@ export function likeCommunityReply(replyId, btn){
       'Content-Type': 'application/json',
       'Prefer': 'return=minimal'
     },
-    body: JSON.stringify({ reply_id: replyId, user_id: window.__ippoGetSupabaseUserId() })
+    body: JSON.stringify({ reply_id: replyId, user_id: getSupabaseUserId() })
   })
   .then(function(r){
     if(r.ok){
@@ -303,9 +303,9 @@ export function updateReplyLikeCount(replyId, newCount){
 }
 
 export function checkMyLikes(replies){
-  if(!window.__ippoGetSupabaseUserId()) return;
+  if(!getSupabaseUserId()) return;
   var ids = replies.map(function(r){ return r.id; });
-  fetch(SUPABASE_URL + '/rest/v1/community_likes?user_id=eq.' + window.__ippoGetSupabaseUserId() + '&reply_id=in.(' + ids.join(',') + ')', {
+  fetch(SUPABASE_URL + '/rest/v1/community_likes?user_id=eq.' + getSupabaseUserId() + '&reply_id=in.(' + ids.join(',') + ')', {
     headers: {'apikey': window.SUPABASE_KEY}
   })
   .then(function(r){ return r.json(); })
@@ -325,3 +325,16 @@ export function checkMyLikes(replies){
     });
   });
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+// switchCVTab/deleteCommunityReplyは元々window非公開（onclick/DOM要素が存在せず
+// 到達不能、ファイル冒頭コメント参照）のため引き続き自己exportしない。
+window.checkMyLikes         = checkMyLikes;
+window.likeCommunityReply   = likeCommunityReply;
+window.loadCommunityReplies = loadCommunityReplies;
+window.loadCommunityTopic   = loadCommunityTopic;
+window.loadCVArchive        = loadCVArchive;
+window.postCommunityReply   = postCommunityReply;
+window.toggleArchiveReplies = toggleArchiveReplies;
+window.updateReplyLikeCount = updateReplyLikeCount;

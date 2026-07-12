@@ -5,6 +5,8 @@ on:
     branches:
       - main
       - ippo-dev
+  # 手動実行用（Rollback Runbook: 任意のコミット/タグから再デプロイする場合に使用）
+  workflow_dispatch: {}
 
 # Grant the GITHUB_TOKEN permissions required for Pages deployment
 permissions:
@@ -62,6 +64,8 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
           VITE_APP_ENV: production
+          # 未設定でもビルドは通る（sentry-reporter.js は DSN 空文字時 no-op）
+          VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN }}
 
       - name: Configure Pages
         if: github.ref == 'refs/heads/main'

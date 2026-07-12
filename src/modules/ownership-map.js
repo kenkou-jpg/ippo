@@ -228,6 +228,10 @@
     _wrapRender('renderCalendarMonthlySummary', SLOTS.CALENDAR_MONTHLY,  'calendar-module');
 
     // Home
+    // PR-EXP-04: buildHomeWeekRow のownership登録はscreen-home（home-next無効時の
+    // フォールバック）専用。home-next側の週間ストリップ（buildWeekStrip、
+    // home-next-status.js）はrenderAll()の一部として直接描画されるため、本レジストリの
+    // 対象外（home-nextはownership-map/render-authorityのスロット機構を使わない）。
     _wrapRender('updateGreeting',       SLOTS.HOME_GREETING,     'home-module');
     _wrapRender('buildHomeWeekRow',     SLOTS.HOME_WEEK_ROW,     'home-module');
     _wrapRender('updateHomePhaseBanner',SLOTS.HOME_PHASE_BANNER, 'home-module');

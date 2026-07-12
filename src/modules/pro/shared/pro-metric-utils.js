@@ -307,3 +307,7 @@ export function calcWellnessScore(rec){
   // 0〜100にクランプ
   return Math.max(0, Math.min(100, Math.round(score)));
 }
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.calcWellnessScore = calcWellnessScore;

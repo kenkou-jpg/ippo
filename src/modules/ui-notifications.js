@@ -57,8 +57,7 @@ document.addEventListener('keydown', function (e) {
   if (dm && dm.classList.contains('dm-open')) { dm.classList.remove('dm-open'); return; }
   var eo = document.getElementById('editOverlay');
   if (eo && eo.style.display === 'flex') { eo.style.display = 'none'; return; }
-  var rm = document.getElementById('record-modal');
-  if (rm && rm.classList.contains('active')) { if (typeof window.closeModal === 'function') window.closeModal(); return; }
+  // PR-092C (UI/UX Final Council採用): #record-modal完全終了に伴い、当該分岐を削除。
   var diag = document.getElementById('diagnosis-overlay');
   if (diag) { diag.remove(); return; }
 });
@@ -128,3 +127,10 @@ export function setDailyMessage() {
   // バグ11: replace は最初の\nしか置換しないため replaceAll を使用
   if (el) el.innerHTML = _dailyMessages[idx].replaceAll('\n', '<br>');
 }
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.showConfirmModal = showConfirmModal;
+window.showAlertModal = showAlertModal;
+window.showPrivacyInfo = showPrivacyInfo;
+window.setDailyMessage = setDailyMessage;

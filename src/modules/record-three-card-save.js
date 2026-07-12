@@ -26,6 +26,7 @@ import {
 
 import { upsertRecord } from './record-upsert.js';
 import { syncRecordImmediately } from '../services/supabase.js';
+import { syncRecordToNormalizedSchema } from './record-normalized-write.js';
 
 function _rtcPipelineSave(payload) {
   var ctx = createRecordSaveContext('rtc:saveRecord');
@@ -78,6 +79,13 @@ function _rtcPipelineSave(payload) {
   if (savedRecord) {
     syncRecordImmediately(savedRecord).catch(function(e) {
       console.warn('[rtc:phase2] immediate sync error:', e);
+    });
+
+    // PR-REC-06a: Dual-Write — 正規化records/record_symptoms/record_factors
+    // テーブルへの並行書込み。user_records（上記）への書込みとは完全に独立
+    // しており、失敗してもuser_records保存には一切影響しない。
+    syncRecordToNormalizedSchema(savedRecord).catch(function(e) {
+      console.warn('[rtc:phase2] normalized schema sync error:', e);
     });
   }
 

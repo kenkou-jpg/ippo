@@ -28,3 +28,8 @@ export function addToHome() {
   try { localStorage.setItem('ippo_hide_add_home', '1'); } catch(e) {}
   document.getElementById('add-home-banner').style.display = 'none';
 }
+
+// PR-090-R2 (EXPORT_HUB_REFACTOR_COUNCIL Step A): 自己export追加。
+// app-legacy.js側の重複export行は削除済み。
+window.shareApp = shareApp;
+window.addToHome = addToHome;

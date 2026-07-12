@@ -304,3 +304,13 @@ export function applyFastingVisibility() {
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('fasting-loaded');
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+window.applyFastingVisibility   = applyFastingVisibility;
+window.endFast                  = endFast;
+window.resumeFasting            = resumeFasting;
+window.setFastGoal              = setFastGoal;
+window.startFastTimer           = startFastTimer;
+window.toggleFastingFeature     = toggleFastingFeature;
+window.updateFastingWidgetPhase = updateFastingWidgetPhase;

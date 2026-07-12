@@ -92,6 +92,17 @@ export function isPremium() {
   return _isPremiumValue;
 }
 
+// ─── Public: getTierLevel (PR-P2-05, FREEZE-FD-1) ────────────
+// FREE_PRO_BOUNDARY.md 5章 / FOUNDER_FINAL_DECISIONS.md FREEZE-FD-1で確定した
+// 'free' | 'premium' | 'pro' の3層シェイプ。ただし現状のStripe/subscriptionsは
+// Premium/Proを区別する別商品を持たない単一課金のため、課金中は一律 'pro' を返す
+// （コード形状のみ先行させる方針、Founder確認済み）。'premium'は将来Stripe側に
+// 別価格が追加された時点で実データに基づき区別する。isPremium()は本関数と等価な
+// 後方互換ヘルパーとして維持し、既存14箇所の呼び出し元は無変更のまま動作する。
+export function getTierLevel() {
+  return _isPremiumValue ? 'pro' : 'free';
+}
+
 // ─── Public: refreshPremiumStatus ───────────────────────────
 export async function refreshPremiumStatus() {
   await _fetchPremiumFromDB();

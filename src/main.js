@@ -25,6 +25,7 @@ import './runtime/rollback-manager.js';
 import './runtime/startup-validator.js';
 import './runtime/render-boundary.js';
 import './runtime/error-reporter.js';
+import './runtime/sentry-reporter.js';
 
 // ─── Ownership / Render Authority / Timer Registry ───────────
 // 必ず app-legacy.js より前にロード。
@@ -169,8 +170,9 @@ import './modules/record-three-card-save.js';
 // Must load after record-three-card.js (screen shares showScreen infrastructure).
 import './modules/today-reflection.js';
 
-// record modal open/close
-import './modules/record-modal-controller.js';
+// PR-092C (UI/UX Final Council採用): record modal完全終了に伴い、
+// record-modal-controller.js（openRecordModal/closeModal/saveAndSyncのno-op export、
+// 実体はすべてnullで到達不可だったことを確認済み）を削除。importも削除。
 
 // ─── Phase D-2: onboarding / settings runtime ────────────
 import './modules/onboarding-runtime.js';
@@ -332,6 +334,10 @@ import './services/companion-intelligence.js';
 // rollback: 以下2行を削除するだけで全機能がバイパスされる
 import './services/life-rhythm-memory.js';
 import './services/recovery-journey.js';
+
+// ─── PR-P2-06: Research Consent UI ───────────────────────
+// rollback: 以下1行を削除するだけで全機能がバイパスされる
+import './services/consent-service.js';
 
 // C-5: app-legacy.js の cloud sync ガードが `typeof window.supabase` を参照するため
 // supabase.js の side-effect に加えて main.js でも明示的に公開する。

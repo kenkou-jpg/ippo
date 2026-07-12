@@ -18,8 +18,11 @@
 //  同型）であり、本PRで新たに生じたものではない。
 //
 //  ・bare `state` → `window.state`（_ippoStateHooks経由、既存idiomと同型）。
-//  ・raw `isPremium` は app-legacy.js側の専用ブリッジ window.__ippoGetIsPremium() 経由
-//    （isAdminOrPremium()は管理者バイパスを含み意味が異なるため使用しない）。
+//  ・raw `isPremium` は PR-090-R1 (EXPORT_HUB_REFACTOR_COUNCIL Legacy依存解消) で
+//    app-legacy.js側ブリッジ window.__ippoGetIsPremium() から
+//    src/modules/premium/premium-service.js の isPremium() 直接importへ変更
+//    （同一のPremium Source of Truthを参照する値のため挙動変更なし。
+//    isAdminOrPremium()は管理者バイパスを含み意味が異なるため使用しない、の方針は継続）。
 //  ・displayPhases（updateCycleSymptomCorrelation内）はapp-legacy.js側にも定義が
 //    存在しない未解決識別子だが、container(#cycle-symptom-correlation)がapp.htmlに
 //    存在せず必ず早期returnするため到達不能（pre-existing dead code、本PR起因ではない）。
@@ -35,6 +38,8 @@
 //    調査時に発見済みの既知ギャップ、本PR起因ではない）のため window.renderTimeline は
 //    常にundefinedでガード節がno-opになる、元々の挙動と同一。
 // ================================================================
+
+import { isPremium } from './premium/premium-service.js';
 
 // ===== インサイト タブ切り替え (Pattern B: 5タブ) =====
 export function switchInsTab(tab) {
@@ -212,7 +217,7 @@ export function updateFoodBodyCorrelation() {
   var container = document.getElementById('food-body-correlation');
   if (!container) return;
 
-  if (!window.__ippoGetIsPremium()) {
+  if (!isPremium()) {
     container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
       +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
       +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">🕐 ファスティングと不調の関係</div>'
@@ -375,7 +380,7 @@ export function updateCycleSymptomCorrelation(){
   var container = document.getElementById('cycle-symptom-correlation');
   if(!container) return;
 
-  if(!window.__ippoGetIsPremium()){
+  if(!isPremium()){
     container.innerHTML = '<div style="position:relative;overflow:hidden;border-radius:12px;">'
       +'<div style="filter:blur(6px);opacity:0.5;pointer-events:none;">'
       +'<div style="margin-bottom:12px;"><div style="font-size:12px;font-weight:600;color:var(--ink);margin-bottom:10px;">📊 フェーズ別の不調出現率</div>'
@@ -490,3 +495,10 @@ export function updateCycleSymptomCorrelation(){
 if (typeof window.ippoMarkBootEvent === 'function') {
   window.ippoMarkBootEvent('insights-tab-panel-loaded');
 }
+
+// PR-090-R6 (Legacy Removal, EXPORT_HUB_REFACTOR_COUNCIL Step D): 自己export化。
+// app-legacy.js側の重複export行（guarded window.X = X）は削除済み。
+// _updateInsMainCard/updateFoodBodyCorrelation/updateCycleSymptomCorrelationは
+// 元々window非公開のため引き続き自己exportしない。
+window.renderInsightDiscoveries = renderInsightDiscoveries;
+window.switchInsTab             = switchInsTab;

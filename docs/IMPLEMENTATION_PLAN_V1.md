@@ -1,12 +1,38 @@
 # IMPLEMENTATION_PLAN_V1.md
 ## IPPO EVOLUTION PROGRAM — Phase 5: Implementation Planning
 
-Version: 1.0
+Version: 1.1
 Generated: 2026-06-24
-Authority: Implementation Planning Council (9名)
+改訂: 2026-07-09 — IPPO REBUILD MIGRATION FEASIBILITY COUNCILの結論を反映（出力11〜17を追加、出力1のGap一覧を実態に合わせて修正）
+Authority: Implementation Planning Council (9名) ／ 改訂分は Migration Feasibility Council
 効力: Phase 6 Migration Planning / Phase 7 Implementation / Phase 8 Testing の唯一の実装計画書
 
 上位憲法: docs/CONSTITUTION_RECONCILIATION_V1.md
+関連監査: docs/rebuild/IPPO_REBUILD_MIGRATION_FEASIBILITY_COUNCIL.md（2026-07-09、Prototype Layout×現行IPPO機能の移植可能性監査）
+
+---
+
+## UI/Logic 権威分担の原則（2026-07-09追記）
+
+Prototype（`ippo-rebuild` / `prototype/`）がPrototype Freeze・Founder実機確認をクリアした時点で、以下を本文書全体の解釈原則とする。
+
+```
+ippo-rebuild (Prototype) = 正式UI/UX
+  = レイアウト / 配色 / カード構造 / 情報設計 / 画面の雰囲気
+  = 「体質改善実験プラットフォーム」としての見え方
+
+現行 ippo = 機能資産の移植元
+  = Record保存 / Supabase / Stripe / Consent / Case / Similarity
+  = Experimentロジック / 既存テスト・DB・ドメイン
+
+判断に迷ったときの優先順位:
+  見た目で迷ったら    → ippo-rebuild を採用
+  機能で迷ったら      → 現行IPPOを参照
+  UX思想で迷ったら    → ippo-rebuild を優先
+  データ整合性で迷ったら → 現行IPPOを優先
+```
+
+以下の出力3（Phase A〜F）・出力4（PR Breakdown）等に記載されている`screens/record/`, `screens/experiment/`等のUI成果物は、**今後はPrototypeのレイアウト（`prototype/index.html`, `styles.css`, `app.js`）をそのまま踏襲する**ことを前提とする。既存のPhase A〜Fの「バックエンド正規化が先、UI移管はPhase Fで最後」という順序原則は維持しつつ、UIの中身（マークアップ・配色・情報設計）はPrototypeを正とする。詳細は出力11を参照。
 
 ---
 
@@ -40,28 +66,33 @@ Authority: Implementation Planning Council (9名)
 
 ## Gap一覧（実装対象）
 
+> **2026-07-09修正**: G-05〜G-08, G-10は、生成時点（2026-06-24）では「なし」としていたが、Migration Feasibility Council監査（`docs/rebuild/IPPO_REBUILD_MIGRATION_FEASIBILITY_COUNCIL.md`）により、実際には相当部分が実装・テスト済みであることが判明した。以下は現状に即して修正済み。詳細根拠は同Council文書「Function Migration Matrix」「Executive Summary」を参照。
+
 | # | Gap | 現状 | Target | 優先度 |
 |---|-----|------|--------|--------|
-| G-01 | recordsテーブル正規化 | user_dataのJSONBブロブ | 正規化recordsテーブル | Critical |
+| G-01 | recordsテーブル正規化 | user_dataのJSONBブロブ **と** 正規化recordsテーブルが並存（下記G-21参照） | どちらか一方への一本化 | Critical |
 | G-02 | diseaseテーブル | なし（state.myDiseases JSONB） | disease_definitions / user_diseases | Critical |
-| G-03 | experimentsテーブル | state.experimentsのJSONBブロブ | 正規化experiments/experiment_events | Critical |
-| G-04 | outcomesテーブル | なし | outcomes (計算結果) | Critical |
-| G-05 | casesテーブル | なし | cases (症例エンティティ) | Critical |
-| G-06 | consentドメイン | なし | consents / consent_events | Critical |
-| G-07 | Case生成パイプライン | なし | CaseGenerationService | Critical |
-| G-08 | Quality Score計算 | なし | CaseQualityService (FD-001) | Critical |
-| G-09 | Tier昇格バッチ | なし | TierEvaluationBatch (FD-002) | Critical |
-| G-10 | anonymized_user_map | なし | Stage1匿名化テーブル | Critical |
+| G-03 | experimentsテーブル | state.experimentsのJSONBブロブ（レガシー）**と** 正規化experiments/DI接続済みJS実装（`src/domains/experiment/*`）**と** 未接続TS実装（`domains/experiment/*`）の3系統並存（下記G-23参照） | 1系統への一本化 | Critical |
+| G-04 | outcomesテーブル | 未確認（本Council監査範囲外。要フォローアップ） | outcomes (計算結果) | Critical |
+| G-05 | casesテーブル | ~~なし~~ **実装・テスト済み**: `domains/case/case.factory.ts`（前提条件チェック・品質スコア・Tier分類）、対応するSupabaseテーブル（`cases`, `case_snapshots`, `case_quality_scores`）、506行のテストあり | 既存資産の棚卸しと接続方針決定 | Critical |
+| G-06 | consentドメイン | ~~なし~~ **実装・テスト済み**: `consents`/`consent_events`テーブル（RLS・append-only監査証跡）、`ConsentService`（grant/withdraw/expire）。ただしTS版（`domains/consent/*.ts`）はSupabase未接続のまま並存 | 既存資産の棚卸しとUI接続 | Critical |
+| G-07 | Case生成パイプライン | ~~なし~~ **実装・テスト済み**: `CaseGenerationService`相当のロジックが`case.factory.ts`として稼働（7件以上の記録・21日以上・1件以上のOutcomeを前提条件化） | UIからの接続（Research Contribution Badge等） | Critical |
+| G-08 | Quality Score計算 | ~~なし~~ **実装済み**: FD-001配点式ロジックが存在（詳細は`domains/case/`配下を参照。本Councilでは配点の完全一致までは検証していない） | 実装内容がFD-001と完全一致するかの再検証 | Critical |
+| G-09 | Tier昇格バッチ | 未確認（本Council監査範囲外。要フォローアップ） | TierEvaluationBatch (FD-002) | Critical |
+| G-10 | anonymized_user_map | 未確認（本Council監査では`cases`/`consents`ほど明確な証跡を確認できていない。要フォローアップ） | Stage1匿名化テーブル | Critical |
 | G-11 | Symptom Key英語化 | 一部日本語キー混在 | 全英語キー統一 | High |
 | G-12 | Disease Key定義 | disease-registry.js (キーが混在) | disease_definitions テーブル準拠 | High |
-| G-13 | domains/ ディレクトリ構造 | 存在しない | CONSTITUTION §Output8準拠 | High |
-| G-14 | repositories/ レイヤー | 存在しない（直接supabase.js呼出） | Repository Pattern導入 | High |
-| G-15 | app-legacy.js削減 | 10,804行 | 段階削減（Phase A-F） | High |
-| G-16 | similarity_edges | なし | SimilarityService + テーブル | Medium |
-| G-17 | PRO Case Search | なし | PRO検索UI + API | Medium |
+| G-13 | domains/ ディレクトリ構造 | 一部存在する（record/experiment/case/consent/similarity等）。ただし各ドメインごとに「TS版（未接続）」「JS版（接続済み）」が混在するケースあり | CONSTITUTION §Output8準拠への統一 | High |
+| G-14 | repositories/ レイヤー | Record用は`infrastructure/record/`にスタブが存在するが未接続（`StubRecordRepository`が全メソッドでエラーを投げる） | Repository Pattern導入（実接続） | High |
+| G-15 | app-legacy.js削減 | 10,804行。**`app.html`は`app-legacy.js`なしに起動不可**であることを確認済み（strangler fig未完了） | 段階削減（Phase A-F） | High |
+| G-16 | similarity_edges | ~~なし~~ **実装・テスト済み**: `similarity.engine.ts`（ルールベース重み付けスコアリング、embeddingではない）、`similarity_edges`テーブル（premium向けRLS）、2500行超のテスト | UI表出は意図的に後送り継続（症例DBが目的に見えないようにする原則） | Medium |
+| G-17 | PRO Case Search | 未確認（本Council監査範囲外） | PRO検索UI + API | Medium |
 | G-18 | profiles肥大化解消 | baseline/cluster/predictionがprofilesに混在 | 専用テーブルへ分離 | Medium |
-| G-19 | is_premium→subscriptions移行 | 二重管理中 | subscriptions.statusを正とする | Medium |
+| G-19 | is_premium→subscriptions移行 | 二重管理中。加えて`getTierLevel()`は`isPremium`のみを見て常に`'pro'`を返す単一ティア実装であることを確認済み（コメントで「コード形状のみ先行」と明記） | subscriptions.statusを正とし、FREE/Premium/Proの実差別化を実装 | Medium |
 | G-20 | コミュニティ残骸削除 | app-legacy.jsに死コード | 削除 | Low |
+| G-21 | **（新規）Recordスキーマの二重化** | ~~実際に稼働している保存経路...G-01が目標とする正規化テーブルとは別スキーマ~~ **2026-07-09決定済み: 正規化records系を正とする（`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`参照）** | PR-REC-06でバックフィル実施 | Critical |
+| G-22 | **（新規）疾患別段階的開示UIの未設計** | ~~両者を橋渡しする段階的開示層が未設計~~ **2026-07-09決定済み: Information Density Freeze例外として承認、既存3カード内での開示に限定（`IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`参照）** | PR-REC-02で実装 | Critical |
+| G-23 | **（新規）Experiment実装の三重化** | ①レガシー`src/modules/experiments.js`（独自の疾患別companion metricモデル）、②DI接続済みJS実装`src/domains/experiment/*`（ApiGateway経由で実際に稼働）、③未接続TS実装`domains/experiment/*`（テストのみ）の3系統が並存。加えて提案ロジック`ExperimentNudgeService`は実装・テスト済みだがUIからの呼び出しがゼロ | ②を正としてUI接続、①③を退役（詳細は出力14） | Critical |
 
 ---
 
@@ -137,6 +168,8 @@ Authority: Implementation Planning Council (9名)
 ## Phase A: Foundation & Record Normalization
 **目的:** 正規化DBの基盤を確立。全Domainの前提となるrecordを正規化する。
 **期間目安:** 2〜3週間
+
+> **2026-07-09追記**: 着手前に出力13「Record Migration Audit」（Recordスキーマの二重化・疾患別段階的開示UI）を必ず参照すること。Phase A-3の「正規化recordsテーブル」は既に一部存在するが、実際に稼働している保存経路は別スキーマ（`user_records`ブロブ）である（G-21）。
 
 ### Phase A-1: ディレクトリ構造 + 型定義
 **目的:** CONSTITUTION §Output8のディレクトリを物理作成。TypeScript型を用意。
@@ -225,6 +258,9 @@ Authority: Implementation Planning Council (9名)
 **依存:** Phase A-1, B-1
 
 ### Phase C-2: ExperimentService (状態機械)
+
+> **2026-07-09追記（Experiment Decision）**: 監査の結果、`src/domains/experiment/*`（JS実装）が既にDIコンテナ/ApiGateway経由で稼働していることを確認した。以下の成果物は、この既存JS実装を正としてTypeScript化・整理する作業と位置づける。詳細は出力14を参照。
+
 **成果物:**
   - `src/domains/experiment/ExperimentService.ts`
   - start() / complete() / abandon() の状態遷移
@@ -865,6 +901,211 @@ Priority 8 — profiles肥大化解消:
 
 ---
 
+# 出力11: Prototype Layout Migration 方針（2026-07-09 Migration Feasibility Council反映）
+
+> 根拠: `docs/rebuild/IPPO_REBUILD_MIGRATION_FEASIBILITY_COUNCIL.md`
+
+## Repository Strategy（正式採用）
+
+**A案「現行ippoへPrototypeを戻す」を正式採用する。**
+
+`app.html`のスクリーンフラグメントを、既存のstrangler figパターン（`src/legacy/`・`LEGACY_REMOVAL_PLAN.md`で実践済みの「ロジックをモジュールへ抽出しつつwindow経由の互換性を保つ」手法）を継続適用し、以下の順序で置き換える。
+
+```
+Home → Record → Insights → Experiment → Me
+```
+
+比較検討したB(ippo-rebuildを新主リポジトリ化)/C(monorepo化)/D(完全新規再実装)/E(アイデアのみ引き継ぎ)は、既存の内部推奨文書`docs/final-recommendation.md`（2026-05、Vite+app.html構成の維持とフレームワーク移行の段階的実施を推奨）と整合しないか、Consent/Case等の法的証跡・コンプライアンスロジックを再実装するリスクが高いため不採用。
+
+## Phase別移植順序（本文書のPhase A〜Fを置き換えるものではなく、UI移管の実務順序として追加する）
+
+```
+Phase 1: Record基盤統合（最優先・最難関。出力13参照）
+Phase 2: Home Insight + Question Layer接続
+Phase 3: Experiment統合（出力14の一本化方針が前提）
+Phase 4: Insights Pattern Calendar構築
+Phase 5: Premium/Pro/Stripe整合
+Phase 6: Consent UI構築
+Phase 7: Case / Similarity表出
+```
+
+既存のPhase A〜F（バックエンド正規化中心）とPhase 1〜7（UI移管中心）は競合するものではなく、同じ移行の異なる側面を記述している。対応関係の目安:
+
+| 出力11 Phase | 対応する既存Phase |
+|---|---|
+| Phase 1 (Record基盤統合) | Phase A + Phase F-2 |
+| Phase 2 (Home Insight) | Phase A/B（Analytics部分）+ 新規UI接続 |
+| Phase 3 (Experiment統合) | Phase C + Phase F-4 |
+| Phase 4 (Pattern Calendar) | 新規（既存Phaseに対応なし） |
+| Phase 5 (Premium/Stripe) | Phase F-5, G-19 |
+| Phase 6 (Consent UI) | Phase E-3 + 新規UI |
+| Phase 7 (Case/Similarity表出) | Phase E-5/E-6 + Phase F-6/F-7 |
+
+## UI/Logic 権威分担
+
+冒頭「UI/Logic 権威分担の原則」を参照。要約: **見た目・レイアウト・情報設計はPrototype（ippo-rebuild）を正**とし、**保存ロジック・Supabase・Stripe・Consent・Case・Similarity・Experimentのドメインロジックは現行ippoを移植元**とする。両者が矛盾した場合はデータ整合性を優先する。
+
+---
+
+# 出力12: Function Migration Matrix（Council反映）
+
+| 機能 | 判定 | 理由 |
+|---|---|---|
+| Record保存 | Adapterで移植 | 保存ロジック（`record-three-card-save.js`, `save-and-sync.js`）はUIマークアップに非依存（windowグローバル経由）。ただし`user_records`ブロブ vs 正規化テーブルの分岐解消が前提（G-21） |
+| Record入力UI | UI作り直し／ロジック一部再利用 | 既存2ウィザードとは構造が異なる。保存ロジックはアダプター経由で再利用、UIはPrototypeを正とする |
+| Calendar | ロジックだけ再利用／UI作り直し | `calendar-next.js`の月齢計算はデータソースとして部分流用。UIはInsightsのパターンカレンダーへ統合するかFounder判断 |
+| Home Insight | Adapterで移植 | `home-insight-engine.js`等の出力をHero単一カード＋確信度メーターへ接続 |
+| AI Insight | Phase後送り（実LLM接続は新規開発） | 実際のLLM API呼び出しは存在しない（`prompt-builder.js`はプロンプト構築のみ）。当面はルールベース出力を「気づき」として使用継続 |
+| Question Layer | そのまま移植 | `forbidden-word-validator.js`は実働・Prototypeの断定禁止原則を上回る保護。新しい気づき生成パスに直結すべき |
+| Experiment | UI再利用は可・ロジックは一本化が前提 | 出力14参照。JS実装（DI接続済み）を正とする |
+| Experiment Suggestion | ロジック再接続（実装済みだが死んでいる） | `ExperimentNudgeService`は実装・テスト済みだがUI呼び出しがゼロ。配線のみで済む |
+| Premium / Pro | UIは維持、バックエンドは追加開発 | UIは既に正しい2段階表現。バックエンドは単一ティア（`getTierLevel()`が常に'pro'を返す）ため価格差別化の実装が必要 |
+| Stripe | そのまま移植 | Checkout Session作成・Webhook検証・subscriptions更新は実働。追加が必要なのは価格ID差別化のみ |
+| Consent | バックエンドはそのまま移植・UIは新規 | `consents`/`consent_events`+`ConsentService`は実装・テスト済み。Prototypeには研究同意等のUIがまだない |
+| Research Consent UI | 新規UI／既存ロジック活用 | `ConsentGateService`(level≥2)は実装済み。オンボーディングまたはMeへの新規導線が必要 |
+| Case生成 | そのまま移植 | `case.factory.ts`は前提条件（7件以上/21日以上/1件以上のOutcome）を強制する実働パイプライン。UI不要（効果のみ表出） |
+| Similarity | そのまま移植（バックエンド）・UIはPhase後送り継続 | `similarity.engine.ts`はルールベース重み付けスコアリングとして実装済み。「症例DBが目的に見えないように」原則により非表出を継続 |
+| Settings / Me | Adapterで移植 | 「気になること」変更導線・プライバシーカード・Research Contribution Badgeは既存Consent/Caseロジックへアダプター接続可能 |
+| Backup / Export | 本Councilでは未調査（要フォローアップ監査） | Phase 1着手前に専用の小規模監査を追加すること |
+
+---
+
+# 出力13: Record Migration Audit
+
+> RecordはIPPOの中核であるため、Migration Feasibility Councilが最も重点的に監査した領域。以下、同Council文書より全文転記。
+
+**現行データモデルとの乖離**
+本番の`RecordEntity`（`domains/record/record.entity.ts:17-81`）は約30項目を持つ（`symptoms[]`, `painLevel`(0-10), `painLocation[]`, `painType[]`, `menstrualCycle`, `bloodClot[]`, `bloodColor[]`, `temperature`, `energy`(0-5), `mood`(0-5), `sleepBed/sleepWake/sleepHours/sleepQuality`, `meals`, `bowel`, `dischargeAmount/Type`, `wellnessScore`, `smiScore`, `bodyChoices`, `diseaseCheck`, `factors[]`, `medication[]`, `note`）。Prototypeの5項目（気分・睡眠3択・肌3択・行動タグ6種・メモ）とは構造的に別物であり、**「肌」の概念はコードベースのどこにも存在しない**（`domains/record`・`src`全体をgrepしてゼロ件）。行動タグ（カフェイン/乳製品/糖質/アルコール/運動/早寝）に対応する語彙も存在せず、最も近いのは汎用的な`factors[]`配列のみ。
+
+**保存ロジックの現状（2系統が並存）**
+- クリーンアーキテクチャ層（`domains/record`, `application/record`, `infrastructure/record`, `infrastructure/db`）は**未接続のスタブ**。`infrastructure/db/client.ts:1-6`は`"DB not implemented yet"`を投げ、`infrastructure/record/record.repository.ts:22-42`の`StubRecordRepository`は全メソッドが`"not implemented"`を投げる（コメントには「PR-007でSupabaseRecordRepositoryに置き換え予定」とあるが、実際には別経路が採用された模様）。
+- 実際に稼働している保存経路はレガシー側: `record-three-card-save.js`/`save-and-sync.js`→`window.getState()/saveState()`（localStorage）→`syncRecordImmediately()`（`supabase.js:392-443`）→`user_records`テーブルへJSONBブロブとしてupsert（`{id, user_id, record_date, data: record, updated_at}`）。これは`supabase/migrations/20260029-32`が作る正規化`records`/`record_symptoms`/`record_factors`テーブルとは**別のテーブル**である。
+
+**Prototypeとの自然な接続可否**
+自然には接続できない。理由は上記のスキーマ乖離に加え、`UNIQUE(user_id, record_date)`制約がバックフィル待ちで未適用（migration 20260030コメントより）である点、そして保存パイプラインが`window`グローバルとSupabaseセッションのuser_idに強く依存しており、静的なPrototypeにはそのブリッジが存在しない点。
+
+**入力項目を増やさずに済むか**
+そのままでは済まない。ただし全項目を毎回すべて表示する必要はない。既存の`record-three-card.html`には既に「症状ピッカー→適応的follow-up」という段階的開示パターンが存在しており、これを再利用し、**オンボーディングの「気になること」選択に応じて疾患別の深い項目（痛みレベル・周期・血塊等）を条件付きで追加表示する**設計であれば、Prototypeの既定ビュー（5項目フォーム）を壊さずに疾患特化の深さを取り戻せる。この設計は移植の前提として明示的に行う必要があり、後回しにすると「入力負荷を増やさない」原則と「疾患特化の特別感を削がない」原則のどちらかが破られる。
+
+**データ構造の矛盾**
+矛盾あり（上述の2スキーマ並存）。新UIを接続する前に、どちらを正とするか（正規化`records`系を推奨、根拠: migration世代が新しく、本文書Phase A-3が正規化テーブルを前提としている）をFounderが決定し、レガシーブロブからのバックフィルを実施する必要がある。
+
+**Experiment文脈・今週の実験対象・観察タグとの整合**
+部分的に整合。Prototypeの「今週の実験対象」バナーとタグハイライト機能に対応する直接的なフィールドは現行データモデルに存在しない（最も近いのは汎用`factors[]`）。`Experiment.interventionType`とRecordの`factors[]`をクライアント側で突き合わせるか、`recordHighlightTag`相当の新規フィールドが必要。
+
+**Supabase接続時のUX負荷**
+現行の保存パイプラインには既に非同期セーフティ（`syncPending`フラグによるリトライ、500ms遅延の`cloudBackupAll`フォールバック）が存在する。PR-LAYOUT-03で追加した「記録しました✓」フィードバック（550ms固定タイマー）は、実データ接続時には**固定タイマーではなく実際の保存Promiseの解決を待つ形に置き換える**必要がある。楽観的UI（即座に成功表示→裏で同期・失敗時は静かにリトライ）という設計方針自体は現行パターンと矛盾しない。
+
+---
+
+# 出力14: Experiment Decision
+
+**方針: `src/domains/experiment/*`（DI接続済みJS実装）を正とする。**
+
+根拠:
+- `src/domains/experiment/*`（`experiment-lifecycle-service.js`, `experiment-state-machine.js`, `ExperimentRepository.js`）は、DIコンテナ（`composition-root.js`）に登録され、`ApiGateway`経由で実際に稼働している唯一の実装である。
+- `domains/experiment/experiment.entity.ts`（TypeScript版）はテストのみで composition root に接続されておらず、実際には動いていない。
+- `src/modules/experiments.js`（レガシー）は独自の疾患別companion metricモデル（`_DISEASE_COMPANION_RULES`）を持つが、`app.html`の`onclick="premiumGate(openExperiments)"`からのみ呼ばれる旧UI専用実装であり、Phase 3でPrototypeのExperiment画面に置き換わることで役目を終える。
+
+**退役方針:**
+1. 未接続TS実装（`domains/experiment/*`）は、JS実装をTypeScript化する際の参考資料として扱い、そのまま昇格させない（フィールド形状の再検討が必要なため。Day X/14・icon・observe-tagsがどちらにも存在しない）。
+2. レガシー`src/modules/experiments.js`は、Phase 3でPrototypeのExperiment画面がJS実装に接続された時点で削除する（Phase F-4の完了条件と一致）。
+3. `ExperimentNudgeService`（`src/domains/engagement/experiment-nudge-service.js`）は実装・DI登録・テスト済みだが呼び出し元がないため、Phase 3で「おすすめの実験」カードへ配線するだけで新規ロジック開発なしに活用できる。
+
+**新規に必要な作業（三本化の解消そのものではなく、UI接続のために必要な追加実装）:**
+- `startDate`/`plannedEndDate`からのDay X/14進捗算出ロジック
+- icon・observe-tagsフィールドの追加（実装計画に含める）
+
+---
+
+# 出力15: Integration Risk（Council反映）
+
+| リスク | 深刻度 | 内容 |
+|---|---|---|
+| UI崩壊リスク | 低〜中 | Recordのみ中リスク（段階的開示設計の成否に依存）、他画面は低リスク |
+| Legacy混入リスク | 高 | `app.html`は`app-legacy.js`なしに起動不可であることが確認済み。ブリッジ修復前にアダプターを組むと新UIにもレガシー依存が波及する |
+| Record保存破壊リスク | 高 | 2つに分岐したスキーマ（G-21）を統一せずに新UIを接続すると、どちらかのデータが欠損・不整合になる |
+| Supabase接続リスク | 中 | 認証自体は実働しているが、2つの並行認証スタック（`app.html`内REST + Supabase JS SDK）がlocalStorageキーを共有する設計であり、脆さが文書化済みの技術的負債として存在する |
+| AI出力トーン違反リスク | 低 | `forbidden-word-validator.js`が実働しており、Prototypeの原則を上回る保護がある。ただし「AI Insight」という呼称を実際に使う場合、実LLM接続（現状未配線）とのギャップに注意 |
+| Consent未接続リスク | 中 | バックエンドは成熟しているが、新Prototype UIには研究同意等の導線がまだない。Phase 7（Case/Similarity表出）前に必ず接続する必要がある |
+| Premium/Stripe不整合 | 高 | Stripeは単一価格帯（月額/年額）のみで、PrototypeのPremium/Pro 2段階の価格差別化に未対応（G-19、FREEZE-FD-1として既知・未解消） |
+| Experiment二重実装 | 高（移植前から既に発生済み） | 3つの並行Experiment実装が現在進行形で存在する（G-23）。新規移植時に4つ目を生まないよう、出力14の一本化方針に従うこと |
+| Data Model不一致 | 高 | Record（30項目 vs 5項目）、Experiment（3実装間のフィールド不一致）、Billing（`getTierLevel()`の'pro'/'free' vs `billing.entity.ts`の`PlanType FREE\|PRO\|CLINIC` vs Founder決定のFREE/Premium/Pro、という3つの命名体系）が象徴的 |
+| Browser Verification不足 | 中 | 各Phase実装後は、既存の検証プロセス（複数幅・Console Error確認）を継続する必要がある |
+| 既存実装計画書の陳腐化リスク | 高（本改訂で一部解消） | 出力1のGap一覧を本改訂で修正済み。今後も定期的な実態との突き合わせが必要 |
+
+---
+
+# 出力16: Exit Criteria（Phase別）
+
+## Phase 1完了条件（Record基盤統合）— 特に厳格に適用
+
+```
+□ Recordスキーマが単一テーブル系統に統一されている（G-21解消）
+□ 疾患別段階的開示層の設計がFounder承認済み（G-22解消）
+□ Experiment文脈・観察タグとRecordの整合フィールドが設計されている
+□ 新Record UIからの保存がsyncPending/リトライを含めて既存パターンと同等に動作する
+□ Browser Verification実施済み:
+    - 320px / 375px / 390px / 430px の4幅で確認
+    - Console Error 0件
+    - オンボーディング〜Record〜保存フィードバックの一連の操作を確認
+```
+
+## Phase 2完了条件（Home Insight + Question Layer接続）
+```
+□ forbidden-word-validator.jsが新しい気づき生成パスに接続されている
+□ 4段階confidenceLabelと3段階CONFIDENCE_LEVELSの語彙統一が完了している
+□ Browser Verification実施済み（同上4幅・Console Error 0件）
+```
+
+## Phase 3完了条件（Experiment統合）
+```
+□ 出力14の一本化方針に従い、レガシー実装が削除されている（Phase F-4完了条件と一致）
+□ ExperimentNudgeServiceが「おすすめの実験」カードに配線されている
+□ Day X/14導出ロジックが実装・テストされている
+□ Browser Verification実施済み
+```
+
+## Phase 4〜7完了条件
+```
+Phase 4: パターンカレンダーの色分けロジックが実装・Browser Verification済み
+Phase 5: getTierLevel()が実際にfree/premium/proの3値を返す。Stripeに価格差別化が実装済み
+Phase 6: Consent UIがconsents/consent_eventsに実接続され、Research Consent導線が存在する
+Phase 7: Research Contribution Badgeが実データ（Case数・研究同意状態）に接続されている。Similarity/症例DB検索UIは意図的に非表出のまま
+```
+
+---
+
+# 出力17: Pending Founder Decisions
+
+> **2026-07-09 Implementation Guardrail更新**: `docs/rebuild/IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md`の「Confirmed Founder Decisions」により、Recordスキーマ一本化方針・疾患別段階的開示層の設計（Freeze例外承認含む）・PMS/PMDDキー及び肌=良い状態の暫定仕様は確定済み。詳細は同文書を参照。以下のリストから該当項目を除去し、残る未決定事項のみを記載する。
+
+```
+□ Calendar機能（calendar-next.jsの月齢計算等）の行き場
+    （Insightsのパターンカレンダーへ吸収 or 別枠維持）
+□ Backup/Export機能の追加監査の実施タイミング
+□ Experiment実装一本化（出力14）の実施タイミング
+    （Phase 3着手時 or それ以前の独立したクリーンアップPRとして先行実施）
+□ 過去日編集をRecord Phase 1に含めるか
+    （docs/rebuild/IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md「Founder Recommendation」5参照）
+```
+
+## 確定済み（参考）
+
+```
+✓ Recordスキーマ一本化方針 → 正規化records系を正とする（B案採用）
+✓ 疾患別段階的開示層の設計 → Information Density Freeze例外として承認、4枚目のカード追加はしない
+✓ PMS/PMDDキーの扱い → UIは2チップ維持、データ層は既存disease_definitions.key='pms_pmdd'へ統合
+✓ 「肌=良い」状態の扱い → 「良い」「普通」いずれもrecord_symptomsへ行を追加しない（UI表示上のみ区別）
+✓ PR-REC-03a Runtime Integration方式（2026-07-10 Founder Decision）→ Prototype Record UIは
+  既存rtc-*マークアップを置換せず、Feature Flag（`?recordUI=prototype`またはlocalStorage
+  `ippo_record_ui_v2`、デフォルトOFF）による並存方式を正式採用。現行Record UIを本番既定として
+  維持し、Prototype Record UIは検証用限定公開とする。詳細は
+  `docs/rebuild/PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`参照
+```
+
+---
+
 # 実装開始チェックリスト
 
 ```
@@ -887,6 +1128,6 @@ PR作成ルール:
 
 ---
 
-*IMPLEMENTATION_PLAN_V1.md — Version 1.0 — Implementation Planning Council承認*
+*IMPLEMENTATION_PLAN_V1.md — Version 1.1 — Implementation Planning Council承認（初版） / Migration Feasibility Council改訂（出力11〜17、2026-07-09）*
 *本文書はPhase 6 Migration Planning / Phase 7 Implementation / Phase 8 Testing の唯一の計画書である*
 *設計変更はCONSTITUTION_RECONCILIATION_V1.mdの改訂を経ること*
