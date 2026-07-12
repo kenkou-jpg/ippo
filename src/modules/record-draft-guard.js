@@ -21,7 +21,23 @@
 
 // PR-013: route draft persistence through StorageService adapter
 import { LocalStorageAdapter } from '../adapters/storage/local-storage-adapter.js';
-var _draftStorage = new LocalStorageAdapter();
+
+// PR-TDZ-01: lazy singleton — do not instantiate at module top-level.
+// This module (bundled into the `record-modules` chunk) and
+// local-storage-adapter.js (bundled into `runtime-guards`) sit on a
+// circular chunk dependency that Rollup reports on every build
+// ("Circular chunk: record-modules -> runtime-guards -> record-modules").
+// A top-level `new LocalStorageAdapter()` here can run before that chunk's
+// class binding finishes initializing, throwing
+// "Cannot access '...' before initialization" and aborting the rest of
+// main.js's synchronous bootstrap. Deferring instantiation to first use
+// (well after all chunks have loaded) avoids the hazard without touching
+// the chunk split itself. See docs/rebuild/STARTUP_TDZ_BLOCKER_INVESTIGATION.md.
+var _draftStorage = null;
+function _getDraftStorage() {
+  if (!_draftStorage) _draftStorage = new LocalStorageAdapter();
+  return _draftStorage;
+}
 
 var DRAFT_KEY = 'ippo_record_draft';
 var _dirtyFlag = false; // 入力中フラグ（P0-FIX-5 SW更新ガードとも共有）
@@ -80,7 +96,7 @@ function _saveDraft() {
   try {
     var draft = _gatherDraft();
     if (!draft) return;
-    _draftStorage.set(DRAFT_KEY, draft); // PR-013: via StorageService adapter
+    _getDraftStorage().set(DRAFT_KEY, draft); // PR-013: via StorageService adapter
     console.log('[record-draft-guard] draft saved:', draft.targetDate);
   } catch(e) {
     console.warn('[record-draft-guard] draft save error:', e);
@@ -96,7 +112,7 @@ function _isDraftAlreadySaved(draft) {
     // P0-A 修正③: state 未ハイドレート時は StorageService 経由で取得 (PR-013)
     if (records.length === 0) {
       try {
-        var ls = _draftStorage.get('ippo_state') || {};
+        var ls = _getDraftStorage().get('ippo_state') || {};
         records = ls.records || [];
       } catch(_) {}
     }
@@ -113,7 +129,7 @@ function _isDraftAlreadySaved(draft) {
 function _showRestorePrompt(draft) {
   if (!draft || !draft.draft) return;
   if (_isDraftAlreadySaved(draft)) {
-    _draftStorage.remove(DRAFT_KEY);
+    _getDraftStorage().remove(DRAFT_KEY);
     return;
   }
 
@@ -168,12 +184,12 @@ function _showRestorePrompt(draft) {
     } catch(e) {
       console.warn('[record-draft-guard] restore error:', e);
     }
-    _draftStorage.remove(DRAFT_KEY);
+    _getDraftStorage().remove(DRAFT_KEY);
   });
 
   document.getElementById('ippo-draft-dismiss-btn').addEventListener('click', function() {
     banner.remove();
-    _draftStorage.remove(DRAFT_KEY);
+    _getDraftStorage().remove(DRAFT_KEY);
     markRecordClean();
   });
 
@@ -189,16 +205,16 @@ function _showRestorePrompt(draft) {
 export function checkAndShowDraftRestore() {
   try {
     // PR-013: read via StorageService adapter (returns parsed object directly)
-    var draft = _draftStorage.get(DRAFT_KEY);
+    var draft = _getDraftStorage().get(DRAFT_KEY);
     if (!draft) return;
-    if (!draft.targetDate) { _draftStorage.remove(DRAFT_KEY); return; }
+    if (!draft.targetDate) { _getDraftStorage().remove(DRAFT_KEY); return; }
 
     // 24時間以上古いドラフトは破棄
     var age = Date.now() - new Date(draft.updatedAt || 0).getTime();
-    if (age > 86400000) { _draftStorage.remove(DRAFT_KEY); return; }
+    if (age > 86400000) { _getDraftStorage().remove(DRAFT_KEY); return; }
 
     // 正式保存済みなら不要
-    if (_isDraftAlreadySaved(draft)) { _draftStorage.remove(DRAFT_KEY); return; }
+    if (_isDraftAlreadySaved(draft)) { _getDraftStorage().remove(DRAFT_KEY); return; }
 
     // プロンプト表示（DOM ready を待つ）
     if (document.readyState === 'complete' || document.readyState === 'interactive') {
@@ -210,7 +226,7 @@ export function checkAndShowDraftRestore() {
     }
   } catch(e) {
     console.warn('[record-draft-guard] check error:', e);
-    try { _draftStorage.remove(DRAFT_KEY); } catch(_) {}
+    try { _getDraftStorage().remove(DRAFT_KEY); } catch(_) {}
   }
 }
 
