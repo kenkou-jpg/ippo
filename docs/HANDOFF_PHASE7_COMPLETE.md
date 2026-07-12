@@ -97,13 +97,19 @@ ippoの設計・実装を進めている。
 > **次セッション最優先タスク（2026-07-12更新）**: PR-OB-01のクローズに続き、
 > PR-REC-02・PR-REC-03a・PR-REC-03bもFounder Browser Verification実施済み・GOで
 > クローズ（PR-REC-03cは2026-07-11時点で実装・テストとも完了済み）。
-> PR-REC-02〜03系はこれで全件クローズ。次はFounder指定の優先順で着手する。
+> PR-REC-02〜03系はこれで全件クローズ。
 >
-> 1. PR-REC-06（Recordスキーマ一本化）: Founder方針により保留中 → 着手判断待ち
+> Founder承認によりPR-REC-06（Recordスキーマ一本化、Founder方針保留を解除）に着手。
+> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06a（下記参照）を実装し
+> コード修正完了・**Founder Browser Verification待ち**。実機確認（Supabase実環境での
+> FK制約/RLS動作確認）が必要なため停止・報告中。
+>
+> 1. **PR-REC-06aのBrowser Verification**（下記参照）→ 確認後PR-REC-06b（バックフィル+
+>    リトライ機構）の設計へ
 > 2. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01のmainマージ/cherry-pickにより前提条件が変化しているため、このまま
->    使わず内容の見直しが必要）
+>    PR-OB-01・PR-REC-06aのmainマージ/cherry-pickにより前提条件が変化しているため、
+>    このまま使わず内容の見直しが必要）
 > 3. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
 >    Founderへスコープ確認が必要）
 >
@@ -153,6 +159,58 @@ ippoの設計・実装を進めている。
   →home-next遷移 ②リロード後もhome-next維持 ③ログアウト→再ログイン後もhome-next維持
   ④再ログイン後のリロードでもhome-next維持、の4項目すべて確認済み
 - 判定: GO。本Bugはこれをもってクローズ
+
+**PR-REC-06a: SupabaseRecordRepository実装 + 正規化テーブルへのDual-Write接続**（2026-07-12）
+- 背景: `IPPO_RECORD_MIGRATION_DESIGN_COUNCIL.md` Decision 1（Founder確定済み）により
+  Recordスキーマは正規化`records`/`record_symptoms`/`record_factors`系を正とすることが
+  決まっていたが、`infrastructure/record/record.repository.ts`の`StubRecordRepository`は
+  全メソッドが`throw new Error("not implemented")`のまま（PR-001/002由来）で、実際の
+  ライブ保存経路（`record-three-card-save.js:_rtcPipelineSave`）は`user_records`テーブルへ
+  JSONBブロブとして書き込むのみだった
+- PR-REC-06全体（正規化テーブルへの書込み一本化＋`user_records`からのバックフィル、
+  Council文書のPhase A-3/A-4相当）は2〜3週間規模のため、Founder承認のもと最初の安全な
+  一片（Dual-Write接続のみ）に着手。既存の`user_records`書込みは変更せず安全網として維持
+- `infrastructure/record/record.repository.ts`: `StubRecordRepository`はそのまま残し、
+  新規`SupabaseRecordRepository`クラスを追加（`IRecordRepository`実装）。`records`への
+  upsert（`UNIQUE(user_id, record_date)`が未適用のため手動lookup→update/insertパターン）、
+  `record_symptoms`/`record_factors`をdelete-then-insertで同期。症状/行動タグの日本語
+  表示ラベル（`record-three-card.js`が保存する形式）→ DB正規キー（`symptoms.key`/
+  `factor_definitions.key`）は`symptoms`/`factor_definitions`テーブルを初回fetchして
+  メモリキャッシュした`display_name_ja→key`マップで解決。未知ラベルは該当行をスキップし
+  ログのみ（Dual-Write全体を失敗させない）
+- `supabase/migrations/20260093_alter_records_prototype_fields.sql`（新規）: Prototype
+  Payloadが持つが`records`に列が無かった`note`/`menstrual_cycle`/`blood_clot`/
+  `blood_color`/`bowel`/`medication`をnullable追加（Expand段階、既存カラム削除なし）
+- `src/modules/record-normalized-write.js`（新規）: legacy record shape →
+  `Partial<RecordDraft>`変換（`mapLegacyRecordToDraft`）＋ 既存Application層ユースケース
+  `application/record/createRecord.ts`（`validateDraft`経由、既存実装を再利用）に
+  `SupabaseRecordRepository`を注入して呼び出す`syncRecordToNormalizedSchema(record)`を追加
+- `record-three-card-save.js:_rtcPipelineSave`: `syncRecordImmediately`呼び出し直後に
+  `syncRecordToNormalizedSchema(savedRecord)`をfire-and-forgetで追加。失敗しても
+  `user_records`保存には一切影響しない
+- **含まない（06b/06c以降へ分離）**: `user_records`からのバックフィル、
+  `UNIQUE(user_id, record_date)`制約の適用、読み取り経路（ReadSwitch）の切替、旧5ステップ
+  wizard由来フィールド（painLocation/painType/bodyChoices/diseaseCheck等、現行Prototype
+  UIが生成しないもの）の正規化対応
+- 調査中の副発見: `src/repositories/record/dual-write-record-repository.js`等
+  （PR-014由来のDual-Write/ReadSwitchスタック）はSupabaseの正規化テーブルとは無関係の
+  別物（localStorage `ippo_state_v2`/`ippo_diff_log`間のシャドウ書込み・diff検知が目的）
+  と確認。再利用せず新規実装とした判断は妥当
+- Tests: `tests/infrastructure/record/record.repository.test.ts`（新規7件）・
+  `tests/modules/record-normalized-write.test.js`（新規8件）、計15件PASS。既存
+  `tests/modules/record-three-card-prototype-view.test.js`18件PASSに変化なし
+- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）。フルスイート5,269件中
+  失敗35件（`build-draft-from-ui.test.js`・`save-record-screen.test.js`・
+  `disease-analyzer.test.js`の既知failureのみ、本PRと無関係。新規失敗ゼロを確認）
+- 判定: コード修正完了、**Founder Browser Verification待ち**（FK制約・RLSポリシーは
+  実際のSupabase環境でしか検証できないため）
+- Browser Verification Required:
+  対象: Prototype Record保存時の正規化テーブルへのDual-Write
+  理由: symptom_key/factor_keyのFK制約、RLSポリシーは実機のSupabase環境でのみ確認可能
+  確認方法: 通常ブラウザでPrototype Recordを保存 → Supabase Table Editorで
+    records/record_symptoms/record_factorsに対応する行が作成されていることを確認。
+    既存のuser_records保存が変わらず動作することも確認（回帰なし）
+  次のステップ: 確認OKならPR-REC-06b（バックフィル+リトライ機構）の設計へ進む
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
