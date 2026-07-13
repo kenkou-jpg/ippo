@@ -361,7 +361,14 @@ ippoの設計・実装を進めている。
 - Tests: `tests/infrastructure/record/record.repository.test.ts`を`.rpc()`前提へ書き換え
   （14件、check-then-act/複数`.from()`呼び出しを前提にした旧テストは削除）
 - Build PASS。フルスイート5,310件中失敗35件（既知3ファイルのみ、無関係と確認済み）
-- 判定: コード修正完了。Migration適用はFounder承認待ち（下記チェックリスト参照）
+- **Migration適用結果（2026-07-13、Founder実施・本番Supabase）**: `20260095`適用完了。
+  確認SQL（`SELECT proname, prosecdef FROM pg_proc WHERE proname =
+  'upsert_record_with_children'`）で1行返り、`prosecdef = false`
+  （SECURITY INVOKER、設計通り）を確認済み
+- 判定: Migration適用完了。**次は実機Browser Verification**
+  （Prototype Record保存 → `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`が
+  `'success'`になること、records/record_symptoms/record_factorsが正しく揃って
+  更新されることを確認）→ 完了後PR-REC-06a-FIX-2をクローズ
 - コミット: `1187763`（`ops/recovery-program`、push済み）
 
 **PR-REC-06c: user_recordsバックフィルスクリプト**（2026-07-13）
