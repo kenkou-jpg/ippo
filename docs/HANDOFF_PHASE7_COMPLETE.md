@@ -115,12 +115,16 @@ ippoの設計・実装を進めている。
 >    `applyNormalizedSyncResult`/`retryNormalizedSyncPending`を追加し既存
 >    `retrySyncPending()`パターンをミラー。テスト28件新規PASS、Build PASS、レグレッションなし
 >    （下記PR-REC-06bエントリ参照）。**実機確認要否はFounder判断待ち**
-> 3. 次: PR-REC-06c（バックフィル）・PR-REC-06a-FIX-2（子テーブル同期のRPC原子化）の
->    着手要否をFounderが判断
+> 3. ~~PR-REC-06c（バックフィル）・PR-REC-06a-FIX-2（RPC原子化）~~ → **両方とも
+>    コード修正完了**（2026-07-13、Founder「１と２に着手」承認、Plan Mode経由で
+>    別コミットとして実装）。**いずれもMigration未適用・実行未実施でFounder承認待ち**。
+>    詳細は下記PR-REC-06a-FIX-2・PR-REC-06cエントリ参照。実装中に2件の設計上の不具合
+>    （RPCのauth.uid()チェックがservice_role呼び出しを誤って拒否する問題、バックフィル
+>    スクリプトのエントリポイント判定がWindowsで機能しない問題）を発見・修正済み
 > 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06a/06a-FIX/06bのmainマージ/cherry-pickにより前提条件が変化している
->    ため、このまま使わず内容の見直しが必要）
+>    PR-OB-01・PR-REC-06a/06a-FIX/06b/06a-FIX-2/06cのmainマージ/cherry-pickにより
+>    前提条件が変化しているため、このまま使わず内容の見直しが必要）
 > 5. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
 >    Founderへスコープ確認が必要）
 >
@@ -327,6 +331,74 @@ ippoの設計・実装を進めている。
   `syncRecordToNormalizedSchema`の呼び出し回数が増えるのみ）ため、実機確認要否は
   Founder判断とする
 - Next: バックフィル（PR-REC-06c）・RPC原子化（PR-REC-06a-FIX-2）の着手要否をFounderが判断
+
+**PR-REC-06a-FIX-2: records/record_symptoms/record_factors書込みのRPC原子化**（2026-07-13）
+- 背景: `SupabaseRecordRepository.upsert()`はrecords upsert→record_symptoms delete/insert→
+  record_factors delete/insertを3回の独立したSupabase API呼び出しで行っており、途中で
+  失敗すると部分的成功状態（recordsだけ更新され子テーブルが古いまま）が残り得る
+  （PR-REC-06a-FIX D節で明記済みの既知制約、投資規模調査の結果「本PRのスコープ外」と
+  していた項目）。Founder承認によりPR-REC-06cと共に着手
+- `supabase/migrations/20260095_upsert_record_with_children_rpc.sql`（新規、**未適用**）:
+  Postgres関数`public.upsert_record_with_children(...)`を追加。records upsert
+  （ON CONFLICT (user_id, record_date)）→record_symptoms/record_factorsのdelete-then-insertを
+  1関数内（単一トランザクション）で実行し原子性を確保。`SECURITY INVOKER`
+  （既存RLSがそのまま適用）。症状/行動タグのラベル→key解決は引き続きJS側で行い、
+  解決済みkeyのみRPCへ渡す（vocabulary解決ロジックをSQL側へ持ち込まない）
+- **実装中に発見・修正した設計上の問題**: 当初`p_user_id = auth.uid()`を無条件チェックする
+  設計にしていたが、これはPR-REC-06cバックフィルスクリプト（service_roleキー経由、
+  `auth.uid()`はNULLになる）を誤って拒否してしまう欠陥だった。`auth.uid() IS NOT NULL`の
+  場合のみ検証するよう修正し、GRANT EXECUTEも`authenticated`に加え`service_role`へ付与した
+- `infrastructure/record/record.repository.ts`: `upsert()`を`.rpc('upsert_record_with_children', {...})`
+  の単一呼び出しへ置き換え。`syncChildRows()`（3回の独立`.from()`呼び出し）は削除。
+  `IRecordRepository`インターフェース・戻り値の型は無変更
+- **既知の制約（正直に明記）**: このリポジトリに`.rpc()`呼び出しの既存パターンがなく、
+  plpgsql関数のローカル統合テスト環境（pgTAP等）も存在しないため、SQL関数自体の正しさは
+  vitestでは検証できない。JS側のテストは`.rpc()`が正しい引数で呼ばれることのみを検証する
+  モックベースに留まる。SQL関数の実際の正しさは、Migration適用後にFounderが直接SQL Editorで
+  動作確認するか、実機Browser Verification（Prototype Record保存 →
+  records/record_symptoms/record_factorsが正しく揃って更新されることを確認）で
+  担保する必要がある
+- Tests: `tests/infrastructure/record/record.repository.test.ts`を`.rpc()`前提へ書き換え
+  （14件、check-then-act/複数`.from()`呼び出しを前提にした旧テストは削除）
+- Build PASS。フルスイート5,310件中失敗35件（既知3ファイルのみ、無関係と確認済み）
+- 判定: コード修正完了。Migration適用はFounder承認待ち（下記チェックリスト参照）
+- コミット: `1187763`（`ops/recovery-program`、push済み）
+
+**PR-REC-06c: user_recordsバックフィルスクリプト**（2026-07-13）
+- 背景: PR-REC-06a（Shadow Write）開始以前に`user_records`のみへ保存された過去のRecordは
+  正規化テーブルには一切反映されていない。`IMPLEMENTATION_PLAN_V1.md`は「ユーザー数0のため
+  本番Backfillは不要」としていたが、Founder承認により今回は着手し、バックフィル
+  スクリプトの作成のみ行った（実行はFounder承認後に別途）
+- Founder事前確認: 「まずはリトライ機構のみ、Backfillは06cへ先送り」の方針に基づき
+  PR-REC-06bではリトライ機構のみ実装済み。本PRでバックフィル部分を実施
+- `scripts/backfill-normalized-records.ts`（新規）: `user_records`全行をページング取得し、
+  `.data`（legacy record shape、`user_records.record_date`列で`record_date`を上書き）を
+  `mapLegacyRecordToDraft()`で変換、`validateDraft()`でプレビュー検証した上で
+  `SupabaseRecordRepository`経由でupsert。dry-runがデフォルト（`--apply`指定時のみ実書込み）。
+  1行ごとにtry/catchし不正データはスキップ、実行後にサマリー（total/succeeded/skipped/failed）
+  を出力。冪等性はupsert_record_with_children RPC（PR-REC-06a-FIX-2、UNIQUE制約前提）により
+  担保される
+- **実装中に発見・修正した2件の問題**:
+  1. `mapLegacyRecordToDraft()`は元々`record-normalized-write.js`にあったが、同ファイルは
+     `src/services/supabase.js`を経由してブラウザ専用コード（CDN import・`window.*`代入）を
+     間接的に読み込むため、Node実行スクリプトからはimportできなかった。外部依存のない
+     `src/modules/record-legacy-mapper.js`へ切り出し、`record-normalized-write.js`は
+     後方互換のためre-exportするよう修正（既存テスト・呼び出し元は無変更で動作継続を確認済み）
+  2. スクリプトのエントリポイント判定に`import.meta.url === \`file://${process.argv[1]}\``という
+     単純比較を使っていたが、これはWindows環境では`import.meta.url`が`file:///C:/...`形式、
+     `process.argv[1]`が`C:\...`形式でスラッシュ・エンコーディングが異なるため常に不一致になり、
+     スクリプトが`npx tsx`で直接実行されても`main()`が一切実行されずexit code 0で
+     終了してしまう不具合があった（実機で`npx tsx scripts/backfill-normalized-records.ts`を
+     実行し発見）。Node標準の`pathToFileURL()`で正規化する実装に修正し、修正後は
+     認証情報未設定時に正しくexit code 1・エラーメッセージが出ることを実機確認済み
+- Tests: `tests/scripts/backfill-normalized-records.test.ts`（新規14件）。
+  `fetchAllUserRecords`のページング・エラー処理、`processRow`のスキップ/成功/失敗分類、
+  `runBackfill`の集計を検証
+- Build PASS（`scripts/`はViteアプリバンドルに含まれないことも確認）。フルスイート
+  5,310件中失敗35件（既知3ファイルのみ、無関係と確認済み）
+- 判定: コード修正完了。**実行はFounderが手動で行う**（AIはSupabase接続情報を持たず
+  技術的にも実行不可）。実行前に20260093/20260094/20260095すべてのMigration適用が必要
+- コミット: `b8225e9`（`ops/recovery-program`、push済み）
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
