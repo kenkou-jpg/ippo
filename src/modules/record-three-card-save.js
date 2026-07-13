@@ -84,8 +84,20 @@ function _rtcPipelineSave(payload) {
     // PR-REC-06a: Dual-Write — 正規化records/record_symptoms/record_factors
     // テーブルへの並行書込み。user_records（上記）への書込みとは完全に独立
     // しており、失敗してもuser_records保存には一切影響しない。
-    syncRecordToNormalizedSchema(savedRecord).catch(function(e) {
-      console.warn('[rtc:phase2] normalized schema sync error:', e);
+    //
+    // PR-REC-06a-FIX 検証項目B: syncRecordToNormalizedSchema() は必ず
+    // resolveし、構造化結果 { status, ... } を返す。成功/skippedは静かに
+    // 扱うが、failed:* は不可視にならないようログする。デバッグ用に直近の
+    // 結果を window に保持する（window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ と
+    // 同様のパターン）。
+    syncRecordToNormalizedSchema(savedRecord).then(function(result) {
+      window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__ = result;
+      if (result && String(result.status).indexOf('failed:') === 0) {
+        console.warn('[rtc:phase2] normalized schema sync ' + result.status + ':', result.message || result.errors || '');
+      }
+    }).catch(function(e) {
+      // syncRecordToNormalizedSchema自体は原則rejectしないが、万一に備える。
+      console.warn('[rtc:phase2] normalized schema sync unexpected error:', e);
     });
   }
 
