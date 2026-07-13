@@ -107,14 +107,16 @@ ippoの設計・実装を進めている。
 > （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
 > 本番Read Sourceに使用しない）。
 >
-> 1. ~~`docs/rebuild/PR-REC-06a-duplicate-check.sql`の実行~~ → **完了**。
->    Founderが本番SupabaseのSQL Editorで実行し、**records.(user_id, record_date)の
->    重複行 0件**を確認済み（2026-07-12）。20260094のUNIQUE制約適用を妨げる要因なし。
->    次はMigration適用（**20260093→20260094の順序厳守**）→ 実機確認 → PR-REC-06a
->    クローズ判定。Migration自体はまだ未適用、Founder承認待ち
-> 2. Migration適用・実機確認完了後、PR-REC-06b（バックフィル+リトライ機構）・
->    PR-REC-06a-FIX-2（子テーブル同期のRPC原子化、投資規模調査済み・分割提案あり）の
->    着手要否をFounderが判断
+> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → **いずれも完了**（2026-07-12、
+>    Founder実施）。作業中に本番Supabaseプロジェクト（Freeプラン）が7日間無操作による
+>    自動一時停止状態だったことが判明し、Resumeしてから適用。適用後の確認SQLで
+>    note/medication列・UNIQUE(user_id, record_date)制約・重複0件をすべて確認済み。
+>    **次は実機Browser Verification**（下記PR-REC-06a-FIXエントリのチェックリスト参照）
+>    → PR-REC-06aクローズ判定
+> 2. 実機確認完了後、PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2
+>    （子テーブル同期のRPC原子化、投資規模調査済み・分割提案あり）の着手要否をFounderが判断。
+>    一時停止していたSupabaseプロジェクトが本番と同一かどうかの確認・本番影響調査も
+>    別途Founder判断で必要になる可能性がある
 > 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
 >    PR-OB-01・PR-REC-06a/06a-FIXのmainマージ/cherry-pickにより前提条件が変化しているため、
@@ -259,13 +261,31 @@ ippoの設計・実装を進めている。
   Writeは**「Shadow Write」**として扱う。`user_records`を引き続き唯一の読取り元・
   復旧元とし、Normalized側（records/record_symptoms/record_factors）はHome/Insights/
   Case等の本番Read Sourceには使用しない
-- 判定: コード修正完了・Founder ADOPT。Migration適用（20260093→20260094の順序厳守）は
-  重複検査SQL実行・Founder承認を経てから別途実施。適用まではPR-REC-06aは未Close
+- 判定: コード修正完了・Founder ADOPT
 - **重複検査結果（2026-07-12）**: Founderが本番SupabaseのSQL Editorで
   `docs/rebuild/PR-REC-06a-duplicate-check.sql`を実行。**records.(user_id, record_date)
   の重複行 0件**。20260094（UNIQUE制約）適用を妨げる既存データ上の要因なしと確認
-- Next: Migration適用（20260093→20260094、Founder承認待ち・AIは自動適用しない）→
-  実機確認 → PR-REC-06aクローズ判定
+- **Supabaseプロジェクト一時停止からの復帰（2026-07-12）**: Migration適用作業中、
+  本番Supabaseプロジェクト（Freeプラン`main`）が7日間無操作による自動一時停止状態
+  だったことが判明。Founderが「Resume project」で再開してから作業を継続した。
+  一時停止中はSupabase依存機能（ログイン・記録同期等）が本番で動作していなかった
+  可能性がある（別途影響確認が必要な場合はFounder判断）
+- **Migration適用結果（2026-07-12、Founder実施・本番Supabase）**:
+  `20260093_alter_records_prototype_fields.sql` → `20260094_records_unique_constraint.sql`
+  の順で適用完了。適用後の確認SQL結果:
+  - ① `records.note`（text, nullable）・`records.medication`（text[], nullable）の
+    存在を確認（yes/yes）
+  - ② `records_user_id_record_date_key`制約が`contype='u'`・
+    `UNIQUE (user_id, record_date)`として存在することを確認
+  - ③ 適用後の重複再検査も0件を確認
+  - Migration適用時のエラーなし
+  - `note`/`medication`以外の未承認追加列は存在しない（20260093の内容通り）
+- 判定: **Migration適用完了**。PR-REC-06aは実機Browser Verification待ちで未Close
+- Next: 実機Browser Verification（前回提示済みチェックリスト：Prototype Record保存の
+  legacy/normalized両立、同日再保存での非重複更新、record_symptoms/record_factors
+  同期、`window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`確認、vocabulary再取得、
+  normalized失敗時のlegacy独立性、Console未捕捉例外なし） → PR-REC-06aクローズ判定 →
+  PR-REC-06b着手要否をFounderが判断
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
