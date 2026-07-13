@@ -1,6 +1,6 @@
 // tests/modules/record-normalized-write.test.js
 // ─────────────────────────────────────────────────────────────
-// syncRecordToNormalizedSchema / mapLegacyRecordToDraft — PR-REC-06a
+// syncRecordToNormalizedSchema / mapLegacyRecordToDraft — PR-REC-06a-FIX
 // ─────────────────────────────────────────────────────────────
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -32,10 +32,7 @@ describe('mapLegacyRecordToDraft', () => {
       note: 'メモ',
       painLevel: 2,
       cycle: '生理中',
-      bloodClot: ['少し'],
-      bloodColor: ['透明'],
       temp: 36.5,
-      bowel: '普通',
       medication: ['イブプロフェン'],
       experiment_id: 'exp-1',
     });
@@ -49,13 +46,25 @@ describe('mapLegacyRecordToDraft', () => {
       note: 'メモ',
       painLevel: 2,
       menstrualCycle: '生理中',
-      bloodClot: ['少し'],
-      bloodColor: ['透明'],
       temperature: 36.5,
-      bowel: '普通',
       medication: ['イブプロフェン'],
       experimentId: 'exp-1',
     });
+  });
+
+  // PR-REC-06a-FIX (Founder Decision 3/4): bloodClot/bloodColor/bowel は
+  // controlled vocabulary未確定のためnormalized write対象外。draftに含めない
+  // （legacy user_records側のみ保持）。
+  it('does not include bloodClot/bloodColor/bowel in the draft even when present on the legacy record', () => {
+    const draft = mapLegacyRecordToDraft({
+      record_date: '2026-07-12',
+      bloodClot: ['少し'],
+      bloodColor: ['透明'],
+      bowel: '普通',
+    });
+    expect(draft).not.toHaveProperty('bloodClot');
+    expect(draft).not.toHaveProperty('bloodColor');
+    expect(draft).not.toHaveProperty('bowel');
   });
 
   it('leaves unset fields as undefined rather than null/empty', () => {
@@ -65,33 +74,33 @@ describe('mapLegacyRecordToDraft', () => {
   });
 });
 
-describe('syncRecordToNormalizedSchema', () => {
+describe('syncRecordToNormalizedSchema — structured result (status)', () => {
   beforeEach(() => {
     mockClient = null;
     mockCreateRecord.mockReset();
   });
 
-  it('resolves ok:false when no Supabase client is configured', async () => {
+  it('resolves status:"skipped:no-client" when no Supabase client is configured', async () => {
     mockClient = null;
     const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12' });
-    expect(result).toEqual({ ok: false, reason: 'no-client' });
+    expect(result).toEqual({ status: 'skipped:no-client' });
   });
 
-  it('resolves ok:false when the record has no record_date', async () => {
+  it('resolves status:"skipped:no-record-date" when the record has no record_date', async () => {
     mockClient = { auth: { getSession: vi.fn() } };
     const result = await syncRecordToNormalizedSchema({});
-    expect(result).toEqual({ ok: false, reason: 'no-record-date' });
+    expect(result).toEqual({ status: 'skipped:no-record-date' });
   });
 
-  it('resolves ok:false when there is no active session', async () => {
+  it('resolves status:"skipped:not-logged-in" when there is no active session', async () => {
     mockClient = {
       auth: { getSession: vi.fn().mockResolvedValue({ data: { session: null } }) },
     };
     const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12' });
-    expect(result).toEqual({ ok: false, reason: 'not-logged-in' });
+    expect(result).toEqual({ status: 'skipped:not-logged-in' });
   });
 
-  it('calls createRecord with the mapped draft and resolves ok:true on success', async () => {
+  it('calls createRecord with the mapped draft and resolves status:"success"', async () => {
     mockClient = {
       auth: {
         getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
@@ -101,14 +110,14 @@ describe('syncRecordToNormalizedSchema', () => {
 
     const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12', mood: 3 });
 
-    expect(result).toEqual({ ok: true });
+    expect(result).toEqual({ status: 'success' });
     expect(mockCreateRecord).toHaveBeenCalledTimes(1);
     const [command] = mockCreateRecord.mock.calls[0];
     expect(command.userId).toBe('u1');
     expect(command.draft).toMatchObject({ recordDate: '2026-07-12', mood: 3 });
   });
 
-  it('resolves ok:false with validation errors when createRecord fails validation', async () => {
+  it('resolves status:"failed:validation" with errors when createRecord fails validation', async () => {
     mockClient = {
       auth: {
         getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
@@ -117,15 +126,52 @@ describe('syncRecordToNormalizedSchema', () => {
     mockCreateRecord.mockResolvedValue({ success: false, recordDate: null, errors: ['mood must be 0-5'] });
 
     const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12', mood: 99 });
-    expect(result).toEqual({ ok: false, reason: 'mood must be 0-5' });
+    expect(result).toEqual({ status: 'failed:validation', errors: ['mood must be 0-5'] });
   });
 
-  it('catches thrown errors and resolves ok:false', async () => {
+  it('resolves status:"failed:vocabulary" when the repository throws a code:"vocabulary" error', async () => {
+    mockClient = {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
+      },
+    };
+    const err = new Error('symptoms vocabulary fetch failed: rls denied');
+    err.code = 'vocabulary';
+    mockCreateRecord.mockRejectedValue(err);
+
+    const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12' });
+    expect(result.status).toBe('failed:vocabulary');
+    expect(result.message).toMatch(/vocabulary fetch failed/);
+  });
+
+  it('resolves status:"failed:database" when the repository throws a code:"database" error', async () => {
+    mockClient = {
+      auth: {
+        getSession: vi.fn().mockResolvedValue({ data: { session: { user: { id: 'u1' } } } }),
+      },
+    };
+    const err = new Error('no unique constraint matching ON CONFLICT');
+    err.code = 'database';
+    mockCreateRecord.mockRejectedValue(err);
+
+    const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12' });
+    expect(result.status).toBe('failed:database');
+    expect(result.message).toMatch(/ON CONFLICT/);
+  });
+
+  it('resolves status:"failed:database" (default classification) for untagged errors, e.g. getSession() itself failing', async () => {
     mockClient = {
       auth: { getSession: vi.fn().mockRejectedValue(new Error('network down')) },
     };
     const result = await syncRecordToNormalizedSchema({ record_date: '2026-07-12' });
-    expect(result.ok).toBe(false);
-    expect(result.reason).toMatch(/network down/);
+    expect(result.status).toBe('failed:database');
+    expect(result.message).toMatch(/network down/);
+  });
+
+  it('never rejects — always resolves with a status field', async () => {
+    mockClient = {
+      auth: { getSession: vi.fn().mockRejectedValue(new Error('boom')) },
+    };
+    await expect(syncRecordToNormalizedSchema({ record_date: '2026-07-12' })).resolves.toHaveProperty('status');
   });
 });

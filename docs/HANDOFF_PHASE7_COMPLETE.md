@@ -100,24 +100,31 @@ ippoの設計・実装を進めている。
 > PR-REC-02〜03系はこれで全件クローズ。
 >
 > Founder承認によりPR-REC-06（Recordスキーマ一本化、Founder方針保留を解除）に着手。
-> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06a（下記参照）を実装し
-> コード修正完了・**Founder Browser Verification待ち**。実機確認（Supabase実環境での
-> FK制約/RLS動作確認）が必要なため停止・報告中。
+> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06aを実装したが、Founder
+> サブPRスコープ承認を経ずにcommit・pushされていたためREAD-ONLY再監査を実施し
+> ADOPT WITH FIXES。指摘10項目をPR-REC-06a-FIXで是正し、Founderが**ADOPT**（下記参照）。
+> ただし現時点のNormalized Writeは**「Shadow Write」**扱い
+> （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
+> 本番Read Sourceに使用しない）。
 >
-> 1. **PR-REC-06aのBrowser Verification**（下記参照）→ 確認後PR-REC-06b（バックフィル+
->    リトライ機構）の設計へ
-> 2. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → ~~実機Browser
+>    Verification~~ → **PR-REC-06a（06a-FIX含む）クローズ**（2026-07-12、Founder GO）。
+>    一時停止していたSupabaseプロジェクトの本番影響も「なし」と確認済み
+> 2. **次: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
+>    RPC原子化）の着手**。Founderより「進めてください」と承認済み。規模が大きいため
+>    PR-REC-06a着手時の反省（サブPRスコープFounder承認前のcommit・pushによりREAD-ONLY
+>    再監査が必要になった）を踏まえ、実装前にPlan Modeでサブスコープを設計する
+> 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06aのmainマージ/cherry-pickにより前提条件が変化しているため、
+>    PR-OB-01・PR-REC-06a/06a-FIXのmainマージ/cherry-pickにより前提条件が変化しているため、
 >    このまま使わず内容の見直しが必要）
-> 3. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
+> 4. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
 >    Founderへスコープ確認が必要）
 >
 > **その他の未着手項目**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
-> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点、
->   PR-OB-01コミット`c50e1be`まで反映済み）
+> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点）
 
 **PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
 - 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
@@ -178,9 +185,10 @@ ippoの設計・実装を進めている。
   `factor_definitions.key`）は`symptoms`/`factor_definitions`テーブルを初回fetchして
   メモリキャッシュした`display_name_ja→key`マップで解決。未知ラベルは該当行をスキップし
   ログのみ（Dual-Write全体を失敗させない）
-- `supabase/migrations/20260093_alter_records_prototype_fields.sql`（新規）: Prototype
+- `supabase/migrations/20260093_alter_records_prototype_fields.sql`（新規、初版）: Prototype
   Payloadが持つが`records`に列が無かった`note`/`menstrual_cycle`/`blood_clot`/
   `blood_color`/`bowel`/`medication`をnullable追加（Expand段階、既存カラム削除なし）
+  ※PR-REC-06a-FIXで`menstrual_cycle`/`blood_clot`/`blood_color`/`bowel`は削除、下記参照
 - `src/modules/record-normalized-write.js`（新規）: legacy record shape →
   `Partial<RecordDraft>`変換（`mapLegacyRecordToDraft`）＋ 既存Application層ユースケース
   `application/record/createRecord.ts`（`validateDraft`経由、既存実装を再利用）に
@@ -199,18 +207,87 @@ ippoの設計・実装を進めている。
 - Tests: `tests/infrastructure/record/record.repository.test.ts`（新規7件）・
   `tests/modules/record-normalized-write.test.js`（新規8件）、計15件PASS。既存
   `tests/modules/record-three-card-prototype-view.test.js`18件PASSに変化なし
-- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）。フルスイート5,269件中
-  失敗35件（`build-draft-from-ui.test.js`・`save-record-screen.test.js`・
-  `disease-analyzer.test.js`の既知failureのみ、本PRと無関係。新規失敗ゼロを確認）
-- 判定: コード修正完了、**Founder Browser Verification待ち**（FK制約・RLSポリシーは
-  実際のSupabase環境でしか検証できないため）
-- Browser Verification Required:
-  対象: Prototype Record保存時の正規化テーブルへのDual-Write
-  理由: symptom_key/factor_keyのFK制約、RLSポリシーは実機のSupabase環境でのみ確認可能
-  確認方法: 通常ブラウザでPrototype Recordを保存 → Supabase Table Editorで
-    records/record_symptoms/record_factorsに対応する行が作成されていることを確認。
-    既存のuser_records保存が変わらず動作することも確認（回帰なし）
-  次のステップ: 確認OKならPR-REC-06b（バックフィル+リトライ機構）の設計へ進む
+- Build PASS（既知の循環チャンク警告のみ、新規エラーなし）
+- 判定: コード修正完了 → **READ-ONLY再監査によりADOPT WITH FIXESへ差戻し**、下記
+  PR-REC-06a-FIXで是正。単独ではCloseせず、06a-FIXとあわせて評価する
+
+**PR-REC-06a-FIX: READ-ONLY再監査で指摘された10項目の是正**（2026-07-12・**Founder ADOPT**）
+- 背景: PR-REC-06aはFounderのサブPRスコープ承認を経ずに実装・commit・pushされていたため
+  「IMPLEMENTED — FOUNDER REVIEW REQUIRED」としてREAD-ONLY再監査を実施（コード変更ゼロ）。
+  判定はADOPT WITH FIXES。「Architecture変更なし」の記録は誤りとして訂正し、
+  「後方互換な永続化アーキテクチャ変更」として扱うことも確定
+- **A（vocabulary fetch）**: `getSymptomKeyByLabel()`/`getFactorKeyByLabel()`が失敗時に
+  空Mapを恒久キャッシュしていた不具合を修正。成功時のみキャッシュし、失敗時は
+  `code:'vocabulary'`タグ付きエラーをthrow・キャッシュしない（次回保存時に自動再fetch）
+- **B（観測性）**: `syncRecordToNormalizedSchema()`が構造化結果
+  `{status: 'success'|'skipped:no-client'|'skipped:not-logged-in'|'skipped:no-record-date'|
+  'failed:validation'|'failed:vocabulary'|'failed:database', ...}`を返すよう変更。
+  `record-three-card-save.js`側は`.then()`で結果を確認し`failed:*`のみ`console.warn`。
+  直近結果を`window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__`に保持
+- **C（原子的upsert）**: check-then-act（select→insert/update）を廃止し
+  `.upsert(row, {onConflict:'user_id,record_date'})`へ統一。
+  `supabase/migrations/20260094_records_unique_constraint.sql`（新規、**未適用**）を追加。
+  制約適用前の重複検査用に`docs/rebuild/PR-REC-06a-duplicate-check.sql`（migrationではない、
+  手動実行用）を追加
+- **D（子テーブル非原子性）**: records upsertとrecord_symptoms/record_factors同期の間、
+  および delete/insert の間はトランザクションで結ばれていない。真の原子性には
+  Postgres RPC新設が必要と判断したが、新規SQL関数・新テスト戦略を伴い本PRのスコープを
+  超えるため実装せず、コードコメントで明記のみ。**PR-REC-06a-FIX-2として分割提案**
+  （Founder承認・PR-REC-06a本体のBrowser Verification完了後に着手判断）
+- **E（Migration整理、Founder Decision 1〜5準拠）**:
+  - 生理周期の正は既存`records.period_day`/`records.is_period`（generated column）とする。
+    `menstrual_cycle`列は追加しない。`mapMenstrualCycleToPeriodDay()`を新設したが、
+    Prototypeはフェーズ（生理中/卵胞期/排卵期/黄体期）のみで日数情報を持たないため
+    「推測しない」方針により常に`undefined`を返す（将来Prototype UI側に日数入力が
+    追加された場合の拡張点として明示）
+  - `blood_clot`/`blood_color`/`bowel`はcontrolled vocabulary専用設計が確定するまで
+    normalized write対象外。自由テキスト列としてrecordsへ追加しない
+  - `20260093`は`note`/`medication`のみに縮小
+- Tests: repository test 17件（7→17、vocabulary再取得・原子的upsert・子テーブル同期・
+  未知ラベル除外等を追加）、adapter test 12件（8→12、status分類全パターン）、計29件PASS。
+  既存`record-three-card-prototype-view.test.js`18件・`onboarding-runtime.test.js`5件・
+  `onboarding.test.js`9件に変化なし
+- 副次的発見（本PRと無関係、修正せず）: `vite.config.js`の`esbuild.drop:['console','debugger']`
+  が`vitest`実行時にも適用され、新規transformされるファイルの`console.warn`呼び出しを
+  `vi.spyOn(console,'warn')`で捕捉できないケースがあることを確認。該当箇所は
+  observable behavior（構造化結果・DB呼び出し引数）ベースの検証に置き換えて対応した。
+  プロジェクト共通の既存設定であり本PRのスコープ外のため無変更
+- Build PASS（既知の循環チャンク警告のみ）。フルスイート5,283件中失敗35件
+  （既知3ファイルのみ、本PRと無関係。新規失敗ゼロを確認）
+- **Founder Decision（2026-07-12）**: PR-REC-06a-FIXをADOPT。ただし現時点のNormalized
+  Writeは**「Shadow Write」**として扱う。`user_records`を引き続き唯一の読取り元・
+  復旧元とし、Normalized側（records/record_symptoms/record_factors）はHome/Insights/
+  Case等の本番Read Sourceには使用しない
+- 判定: コード修正完了・Founder ADOPT
+- **重複検査結果（2026-07-12）**: Founderが本番SupabaseのSQL Editorで
+  `docs/rebuild/PR-REC-06a-duplicate-check.sql`を実行。**records.(user_id, record_date)
+  の重複行 0件**。20260094（UNIQUE制約）適用を妨げる既存データ上の要因なしと確認
+- **Supabaseプロジェクト一時停止からの復帰（2026-07-12）**: Migration適用作業中、
+  本番Supabaseプロジェクト（Freeプラン`main`）が7日間無操作による自動一時停止状態
+  だったことが判明。Founderが「Resume project」で再開してから作業を継続した。
+  一時停止中はSupabase依存機能（ログイン・記録同期等）が本番で動作していなかった
+  可能性がある（別途影響確認が必要な場合はFounder判断）
+- **Migration適用結果（2026-07-12、Founder実施・本番Supabase）**:
+  `20260093_alter_records_prototype_fields.sql` → `20260094_records_unique_constraint.sql`
+  の順で適用完了。適用後の確認SQL結果:
+  - ① `records.note`（text, nullable）・`records.medication`（text[], nullable）の
+    存在を確認（yes/yes）
+  - ② `records_user_id_record_date_key`制約が`contype='u'`・
+    `UNIQUE (user_id, record_date)`として存在することを確認
+  - ③ 適用後の重複再検査も0件を確認
+  - Migration適用時のエラーなし
+  - `note`/`medication`以外の未承認追加列は存在しない（20260093の内容通り）
+- **Supabase一時停止の本番影響確認（2026-07-12、Founder確認）**: 一時停止期間中の
+  実ユーザーへの影響は**なし**と確認済み
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Prototype Record保存の
+  legacy/normalized両立、同日再保存での非重複更新、record_symptoms/record_factors同期、
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`確認、vocabulary再取得、
+  normalized失敗時のlegacy独立性、Console未捕捉例外なし、いずれも問題なし
+- 判定: **GO。PR-REC-06a（06a-FIX含む）はこれをもってクローズ**
+- Next: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
+  RPC原子化）の着手。規模が大きいためPlan Modeでサブスコープを設計してからの実装とする
+  （PR-REC-06a着手時の反省: サブPRスコープFounder承認前のcommit・pushにより
+  READ-ONLY再監査が必要になった経緯を踏まえる）
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
