@@ -1,9 +1,9 @@
 // tests/infrastructure/record/record.repository.test.ts
 // ─────────────────────────────────────────────────────────────
-// SupabaseRecordRepository — PR-REC-06a-FIX
+// SupabaseRecordRepository — PR-REC-06a-FIX / PR-REC-06a-FIX-2
 // ─────────────────────────────────────────────────────────────
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   SupabaseRecordRepository,
   mapMenstrualCycleToPeriodDay,
@@ -36,9 +36,15 @@ function makeBuilder(result: any) {
   return builder;
 }
 
-// テーブルごとに、呼ばれた順に返す結果のキューを設定できるモック client。
-function makeClient(queues: Record<string, any[]>) {
+// テーブルごとに、呼ばれた順に返す結果のキューを設定できる、および
+// upsert_record_with_children RPCの呼ばれた順の結果キューを設定できるモック client。
+// PR-REC-06a-FIX-2: records/record_symptoms/record_factorsへの実書込みは
+// .rpc('upsert_record_with_children', ...) 経由に集約されたため、
+// これらのテーブルへの直接の.from()書込みはもう発生しない
+// （findByDate/findByUser/softDeleteの読取り・論理削除は引き続き.from()を使う）。
+function makeClient(queues: Record<string, any[]>, rpcResults: any[] = []) {
   const calls: Record<string, number> = {};
+  let rpcCallIndex = 0;
   return {
     from: vi.fn((table: string) => {
       calls[table] = (calls[table] || 0) + 1;
@@ -46,14 +52,12 @@ function makeClient(queues: Record<string, any[]>) {
       const result = queue[calls[table] - 1] ?? queue[queue.length - 1] ?? { data: null, error: null };
       return makeBuilder(result);
     }),
+    rpc: vi.fn((_fn: string, _params: Record<string, unknown>) => {
+      const result = rpcResults[rpcCallIndex] ?? rpcResults[rpcResults.length - 1] ?? { data: null, error: null };
+      rpcCallIndex += 1;
+      return Promise.resolve(result);
+    }),
   };
-}
-
-// client.from(table) が呼ばれた順に返した builder 一覧を取得する。
-function buildersFor(client: ReturnType<typeof makeClient>, table: string) {
-  return (client.from as any).mock.calls
-    .map((call: any[], i: number) => (call[0] === table ? (client.from as any).mock.results[i].value : null))
-    .filter(Boolean);
 }
 
 describe("mapMenstrualCycleToPeriodDay", () => {
@@ -68,14 +72,14 @@ describe("mapMenstrualCycleToPeriodDay", () => {
 describe("SupabaseRecordRepository — vocabulary fetch failure recovery", () => {
   it("does not cache an empty map on fetch error, and retries on the next upsert() call", async () => {
     const savedRow = { id: "rec-1", user_id: "u1", record_date: "2026-07-12" };
-    const client = makeClient({
-      // 1回目: symptoms fetch失敗。2回目: 成功。
-      symptoms: [{ data: null, error: { message: "network blip" } }, { data: SYMPTOMS_VOCAB, error: null }],
-      factor_definitions: [{ data: FACTOR_VOCAB, error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
+    const client = makeClient(
+      {
+        // 1回目: symptoms fetch失敗。2回目: 成功。
+        symptoms: [{ data: null, error: { message: "network blip" } }, { data: SYMPTOMS_VOCAB, error: null }],
+        factor_definitions: [{ data: FACTOR_VOCAB, error: null }],
+      },
+      [{ data: savedRow, error: null }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
     await expect(repo.upsert("u1", "2026-07-12", { symptoms: ["肌荒れ"] } as any)).rejects.toMatchObject({
@@ -86,8 +90,9 @@ describe("SupabaseRecordRepository — vocabulary fetch failure recovery", () =>
     const entity = await repo.upsert("u1", "2026-07-12", { symptoms: ["肌荒れ"] } as any);
     expect(entity.id).toBe("rec-1");
 
-    const insertedRow = buildersFor(client, "records")[0].upsert.mock.calls[0][0];
-    expect(insertedRow.symptom_keys).toEqual(["skin_roughness"]);
+    expect(client.rpc).toHaveBeenCalledTimes(1);
+    const [, params] = (client.rpc as any).mock.calls[0];
+    expect(params.p_symptom_keys).toEqual(["skin_roughness"]);
   });
 
   it("tags factor_definitions fetch errors with code:'vocabulary' too", async () => {
@@ -98,6 +103,7 @@ describe("SupabaseRecordRepository — vocabulary fetch failure recovery", () =>
     const repo = new SupabaseRecordRepository(client as any);
 
     await expect(repo.upsert("u1", "2026-07-12", {} as any)).rejects.toMatchObject({ code: "vocabulary" });
+    expect(client.rpc).not.toHaveBeenCalled();
   });
 });
 
@@ -106,42 +112,33 @@ describe("SupabaseRecordRepository — resolveKeys unknown label reporting", () 
   // 適用されるため（プロジェクト共通の既存設定、本PR起因ではない）、新規に
   // transformされるファイルからの console.warn 呼び出しは spy で捕捉できない
   // ケースがある。そのため「ログが出ること」ではなく「未知ラベルが
-  // symptom_keys / record_symptoms挿入行から確実に除外されること」という
-  // 観測可能な振る舞いで検証する。
-  it("excludes unknown labels from symptom_keys while keeping known labels", async () => {
+  // p_symptom_keys から確実に除外されること」という観測可能な振る舞いで検証する。
+  it("excludes unknown labels from p_symptom_keys while keeping known labels", async () => {
     const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
+    const client = makeClient(
+      {
+        symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
+        factor_definitions: [{ data: [], error: null }],
+      },
+      [{ data: savedRow, error: null }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
     await repo.upsert("u1", "2026-07-12", { symptoms: ["肌荒れ", "未知の症状"] } as any);
 
-    const insertedRow = buildersFor(client, "records")[0].upsert.mock.calls[0][0];
-    expect(insertedRow.symptom_keys).toEqual(["skin_roughness"]);
-
-    // record_symptoms は delete → insert の2回 .from() される。
-    // [0] = delete用builder, [1] = insert用builder。
-    const rsInsertBuilder = buildersFor(client, "record_symptoms")[1];
-    expect(rsInsertBuilder.insert).toHaveBeenCalledWith([
-      expect.objectContaining({ symptom_key: "skin_roughness" }),
-    ]);
-    expect(rsInsertBuilder.insert.mock.calls[0][0]).toHaveLength(1);
+    const [, params] = (client.rpc as any).mock.calls[0];
+    expect(params.p_symptom_keys).toEqual(["skin_roughness"]);
   });
 
   it("still calls console.warn without throwing when a label is unknown (best-effort; not asserted on due to esbuild.drop in this env)", async () => {
     const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
+    const client = makeClient(
+      {
+        symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
+        factor_definitions: [{ data: [], error: null }],
+      },
+      [{ data: savedRow, error: null }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
     await expect(
@@ -150,39 +147,46 @@ describe("SupabaseRecordRepository — resolveKeys unknown label reporting", () 
   });
 });
 
-describe("SupabaseRecordRepository — upsert (atomic, onConflict)", () => {
-  it("calls records.upsert() with onConflict:'user_id,record_date' instead of check-then-act", async () => {
+describe("SupabaseRecordRepository — upsert (RPC-based, atomic)", () => {
+  it("calls upsert_record_with_children RPC with the mapped parameters", async () => {
     const savedRow = { id: "rec-1", user_id: "u1", record_date: "2026-07-12" };
-    const client = makeClient({
-      symptoms: [{ data: [], error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
+    const client = makeClient(
+      {
+        symptoms: [{ data: [], error: null }],
+        factor_definitions: [{ data: [], error: null }],
+      },
+      [{ data: savedRow, error: null }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
-    await repo.upsert("u1", "2026-07-12", { mood: 4, note: "眠い" } as any);
+    const entity = await repo.upsert("u1", "2026-07-12", { mood: 4, note: "眠い" } as any);
 
-    const recordsBuilder = buildersFor(client, "records")[0];
-    expect(recordsBuilder.upsert).toHaveBeenCalledWith(
-      expect.objectContaining({ user_id: "u1", record_date: "2026-07-12", mood: 4, note: "眠い" }),
-      { onConflict: "user_id,record_date" },
+    expect(entity.id).toBe("rec-1");
+    expect(client.rpc).toHaveBeenCalledWith(
+      "upsert_record_with_children",
+      expect.objectContaining({
+        p_user_id: "u1",
+        p_record_date: "2026-07-12",
+        p_mood: 4,
+        p_note: "眠い",
+        p_symptom_keys: [],
+        p_factor_keys: [],
+      }),
     );
-    // check-then-act の名残（存在確認のためのselect("id")呼び出し）が
-    // records に対して行われていないこと
-    expect(recordsBuilder.select).not.toHaveBeenCalledWith("id");
+    // check-then-act / 個別.from()書込みの名残がないこと
+    expect((client.from as any).mock.calls.map((c: any[]) => c[0])).not.toContain("records");
+    expect((client.from as any).mock.calls.map((c: any[]) => c[0])).not.toContain("record_symptoms");
   });
 
-  it("does not include menstrual_cycle/blood_clot/blood_color/bowel columns in the upserted row", async () => {
+  it("does not include p_menstrual_cycle/p_blood_clot/p_blood_color/p_bowel params", async () => {
     const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: [], error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
+    const client = makeClient(
+      {
+        symptoms: [{ data: [], error: null }],
+        factor_definitions: [{ data: [], error: null }],
+      },
+      [{ data: savedRow, error: null }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
     await repo.upsert("u1", "2026-07-12", {
@@ -193,83 +197,28 @@ describe("SupabaseRecordRepository — upsert (atomic, onConflict)", () => {
       medication: ["イブプロフェン"],
     } as any);
 
-    const insertedRow = buildersFor(client, "records")[0].upsert.mock.calls[0][0];
-    expect(insertedRow).not.toHaveProperty("menstrual_cycle");
-    expect(insertedRow).not.toHaveProperty("blood_clot");
-    expect(insertedRow).not.toHaveProperty("blood_color");
-    expect(insertedRow).not.toHaveProperty("bowel");
-    expect(insertedRow.medication).toEqual(["イブプロフェン"]);
+    const [, params] = (client.rpc as any).mock.calls[0];
+    expect(params).not.toHaveProperty("p_menstrual_cycle");
+    expect(params).not.toHaveProperty("p_blood_clot");
+    expect(params).not.toHaveProperty("p_blood_color");
+    expect(params).not.toHaveProperty("p_bowel");
+    expect(params.p_medication).toEqual(["イブプロフェン"]);
   });
 
-  it("throws a code:'database' error when the upsert itself fails", async () => {
-    const client = makeClient({
-      symptoms: [{ data: [], error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: null, error: { message: "no unique constraint matching ON CONFLICT" } }],
-    });
+  it("throws a code:'database' error when the RPC returns an error", async () => {
+    const client = makeClient(
+      {
+        symptoms: [{ data: [], error: null }],
+        factor_definitions: [{ data: [], error: null }],
+      },
+      [{ data: null, error: { message: "function upsert_record_with_children(...) does not exist" } }],
+    );
     const repo = new SupabaseRecordRepository(client as any);
 
     await expect(repo.upsert("u1", "2026-07-12", {} as any)).rejects.toMatchObject({
       code: "database",
-      message: expect.stringContaining("no unique constraint"),
+      message: expect.stringContaining("does not exist"),
     });
-  });
-
-  it("throws a code:'database' error when child-row sync fails", async () => {
-    const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: { message: "fk violation" } }],
-    });
-    const repo = new SupabaseRecordRepository(client as any);
-
-    await expect(repo.upsert("u1", "2026-07-12", { symptoms: ["肌荒れ"] } as any)).rejects.toMatchObject({
-      code: "database",
-    });
-  });
-});
-
-describe("SupabaseRecordRepository — child row sync (delete-then-insert)", () => {
-  it("deletes existing rows before inserting the new set", async () => {
-    const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: SYMPTOMS_VOCAB, error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
-    const repo = new SupabaseRecordRepository(client as any);
-
-    await repo.upsert("u1", "2026-07-12", { symptoms: ["肌荒れ"] } as any);
-
-    // record_symptoms は delete → insert の2回 .from() される。
-    // [0] = delete用builder, [1] = insert用builder。
-    const rsBuilders = buildersFor(client, "record_symptoms");
-    expect(rsBuilders[0].delete).toHaveBeenCalled();
-    expect(rsBuilders[1].insert).toHaveBeenCalledWith([
-      expect.objectContaining({ record_id: "rec-1", symptom_key: "skin_roughness" }),
-    ]);
-  });
-
-  it("skips insert entirely when there are no keys left (still deletes)", async () => {
-    const savedRow = { id: "rec-1" };
-    const client = makeClient({
-      symptoms: [{ data: [], error: null }],
-      factor_definitions: [{ data: [], error: null }],
-      records: [{ data: savedRow, error: null }],
-      record_symptoms: [{ data: null, error: null }],
-      record_factors: [{ data: null, error: null }],
-    });
-    const repo = new SupabaseRecordRepository(client as any);
-
-    await repo.upsert("u1", "2026-07-12", {} as any);
-
-    const rsBuilder = buildersFor(client, "record_symptoms")[0];
-    expect(rsBuilder.delete).toHaveBeenCalled();
-    expect(rsBuilder.insert).not.toHaveBeenCalled();
   });
 });
 
