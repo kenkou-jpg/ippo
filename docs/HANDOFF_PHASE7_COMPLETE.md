@@ -107,16 +107,13 @@ ippoの設計・実装を進めている。
 > （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
 > 本番Read Sourceに使用しない）。
 >
-> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → **いずれも完了**（2026-07-12、
->    Founder実施）。作業中に本番Supabaseプロジェクト（Freeプラン）が7日間無操作による
->    自動一時停止状態だったことが判明し、Resumeしてから適用。適用後の確認SQLで
->    note/medication列・UNIQUE(user_id, record_date)制約・重複0件をすべて確認済み。
->    **次は実機Browser Verification**（下記PR-REC-06a-FIXエントリのチェックリスト参照）
->    → PR-REC-06aクローズ判定
-> 2. 実機確認完了後、PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2
->    （子テーブル同期のRPC原子化、投資規模調査済み・分割提案あり）の着手要否をFounderが判断。
->    一時停止していたSupabaseプロジェクトが本番と同一かどうかの確認・本番影響調査も
->    別途Founder判断で必要になる可能性がある
+> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → ~~実機Browser
+>    Verification~~ → **PR-REC-06a（06a-FIX含む）クローズ**（2026-07-12、Founder GO）。
+>    一時停止していたSupabaseプロジェクトの本番影響も「なし」と確認済み
+> 2. **次: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
+>    RPC原子化）の着手**。Founderより「進めてください」と承認済み。規模が大きいため
+>    PR-REC-06a着手時の反省（サブPRスコープFounder承認前のcommit・pushによりREAD-ONLY
+>    再監査が必要になった）を踏まえ、実装前にPlan Modeでサブスコープを設計する
 > 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
 >    PR-OB-01・PR-REC-06a/06a-FIXのmainマージ/cherry-pickにより前提条件が変化しているため、
@@ -280,12 +277,17 @@ ippoの設計・実装を進めている。
   - ③ 適用後の重複再検査も0件を確認
   - Migration適用時のエラーなし
   - `note`/`medication`以外の未承認追加列は存在しない（20260093の内容通り）
-- 判定: **Migration適用完了**。PR-REC-06aは実機Browser Verification待ちで未Close
-- Next: 実機Browser Verification（前回提示済みチェックリスト：Prototype Record保存の
-  legacy/normalized両立、同日再保存での非重複更新、record_symptoms/record_factors
-  同期、`window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`確認、vocabulary再取得、
-  normalized失敗時のlegacy独立性、Console未捕捉例外なし） → PR-REC-06aクローズ判定 →
-  PR-REC-06b着手要否をFounderが判断
+- **Supabase一時停止の本番影響確認（2026-07-12、Founder確認）**: 一時停止期間中の
+  実ユーザーへの影響は**なし**と確認済み
+- **Founder Browser Verification実施済み・GO（2026-07-12）**: Prototype Record保存の
+  legacy/normalized両立、同日再保存での非重複更新、record_symptoms/record_factors同期、
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`確認、vocabulary再取得、
+  normalized失敗時のlegacy独立性、Console未捕捉例外なし、いずれも問題なし
+- 判定: **GO。PR-REC-06a（06a-FIX含む）はこれをもってクローズ**
+- Next: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
+  RPC原子化）の着手。規模が大きいためPlan Modeでサブスコープを設計してからの実装とする
+  （PR-REC-06a着手時の反省: サブPRスコープFounder承認前のcommit・pushにより
+  READ-ONLY再監査が必要になった経緯を踏まえる）
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
