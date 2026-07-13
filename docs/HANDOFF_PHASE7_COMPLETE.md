@@ -107,11 +107,11 @@ ippoの設計・実装を進めている。
 > （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
 > 本番Read Sourceに使用しない）。
 >
-> 1. **`docs/rebuild/PR-REC-06a-duplicate-check.sql`の実行**（records.(user_id,record_date)
->    重複検査）→ 結果報告 → Founder承認 → Migration適用（**20260093→20260094の順序厳守**）
->    → 実機確認 → PR-REC-06aクローズ判定
->    **本セッション時点でSupabase接続情報（.env等）がリポジトリ内に存在せず、AIからは
->    重複検査SQLを直接実行できない。Founderが手動実行するか、接続情報を提供する必要あり**
+> 1. ~~`docs/rebuild/PR-REC-06a-duplicate-check.sql`の実行~~ → **完了**。
+>    Founderが本番SupabaseのSQL Editorで実行し、**records.(user_id, record_date)の
+>    重複行 0件**を確認済み（2026-07-12）。20260094のUNIQUE制約適用を妨げる要因なし。
+>    次はMigration適用（**20260093→20260094の順序厳守**）→ 実機確認 → PR-REC-06a
+>    クローズ判定。Migration自体はまだ未適用、Founder承認待ち
 > 2. Migration適用・実機確認完了後、PR-REC-06b（バックフィル+リトライ機構）・
 >    PR-REC-06a-FIX-2（子テーブル同期のRPC原子化、投資規模調査済み・分割提案あり）の
 >    着手要否をFounderが判断
@@ -261,8 +261,11 @@ ippoの設計・実装を進めている。
   Case等の本番Read Sourceには使用しない
 - 判定: コード修正完了・Founder ADOPT。Migration適用（20260093→20260094の順序厳守）は
   重複検査SQL実行・Founder承認を経てから別途実施。適用まではPR-REC-06aは未Close
-- Next: `docs/rebuild/PR-REC-06a-duplicate-check.sql`の実行結果報告 → Founder承認 →
-  Migration適用（20260093→20260094）→ 実機確認 → PR-REC-06aクローズ判定
+- **重複検査結果（2026-07-12）**: Founderが本番SupabaseのSQL Editorで
+  `docs/rebuild/PR-REC-06a-duplicate-check.sql`を実行。**records.(user_id, record_date)
+  の重複行 0件**。20260094（UNIQUE制約）適用を妨げる既存データ上の要因なしと確認
+- Next: Migration適用（20260093→20260094、Founder承認待ち・AIは自動適用しない）→
+  実機確認 → PR-REC-06aクローズ判定
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
