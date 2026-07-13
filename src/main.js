@@ -255,6 +255,8 @@ window.loadProfileCache = loadProfileCache;
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';
 // P0-FIX-4: 記録入力中ドラフト保護 / P0-FIX-5: SW更新ガードと連携
 import { checkAndShowDraftRestore } from './modules/record-draft-guard.js';
+// PR-REC-06b: 正規化テーブルへのShadow Write再送（retrySyncPendingと同じパターン）
+import { retryNormalizedSyncPending } from './modules/record-normalized-write.js';
 
 import { migrateToIDB }     from './services/storage-migration.js';
 import { autoRecoveryCheck } from './services/recovery.js';
@@ -391,6 +393,8 @@ setTimeout(function() {
 // bootstrap + cloudRestore が落ち着いた後（3秒後）に実行
 setTimeout(function() {
   try { retrySyncPending(); } catch(e) {}
+  // PR-REC-06b: 正規化テーブルへのShadow Write再送（同タイミング、独立実行）
+  try { retryNormalizedSyncPending(); } catch(e) {}
 }, 3000);
 
 // ─── Phase A: Settings Store 初期化 (bootstrap 直後) ──

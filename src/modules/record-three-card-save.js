@@ -26,7 +26,7 @@ import {
 
 import { upsertRecord } from './record-upsert.js';
 import { syncRecordImmediately } from '../services/supabase.js';
-import { syncRecordToNormalizedSchema } from './record-normalized-write.js';
+import { syncRecordToNormalizedSchema, applyNormalizedSyncResult } from './record-normalized-write.js';
 
 function _rtcPipelineSave(payload) {
   var ctx = createRecordSaveContext('rtc:saveRecord');
@@ -90,11 +90,17 @@ function _rtcPipelineSave(payload) {
     // 扱うが、failed:* は不可視にならないようログする。デバッグ用に直近の
     // 結果を window に保持する（window.__IPPO_LAST_RECORD_SAVE_CONTEXT__ と
     // 同様のパターン）。
+    //
+    // PR-REC-06b: 結果を applyNormalizedSyncResult() で savedRecord へ反映し
+    // （normalizedSyncPending / normalizedSyncedAt）、main.js起動時の
+    // retryNormalizedSyncPending() が再送できるよう saveState() で永続化する。
     syncRecordToNormalizedSchema(savedRecord).then(function(result) {
       window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__ = result;
       if (result && String(result.status).indexOf('failed:') === 0) {
         console.warn('[rtc:phase2] normalized schema sync ' + result.status + ':', result.message || result.errors || '');
       }
+      applyNormalizedSyncResult(savedRecord, result);
+      if (typeof window.saveState === 'function') window.saveState();
     }).catch(function(e) {
       // syncRecordToNormalizedSchema自体は原則rejectしないが、万一に備える。
       console.warn('[rtc:phase2] normalized schema sync unexpected error:', e);

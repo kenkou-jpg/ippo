@@ -110,15 +110,18 @@ ippoの設計・実装を進めている。
 > 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → ~~実機Browser
 >    Verification~~ → **PR-REC-06a（06a-FIX含む）クローズ**（2026-07-12、Founder GO）。
 >    一時停止していたSupabaseプロジェクトの本番影響も「なし」と確認済み
-> 2. **次: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
->    RPC原子化）の着手**。Founderより「進めてください」と承認済み。規模が大きいため
->    PR-REC-06a着手時の反省（サブPRスコープFounder承認前のcommit・pushによりREAD-ONLY
->    再監査が必要になった）を踏まえ、実装前にPlan Modeでサブスコープを設計する
-> 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+> 2. ~~PR-REC-06b（リトライ機構）~~ → **完了**（2026-07-13）。Founder事前確認により
+>    バックフィルはPR-REC-06cへ先送りし、リトライ機構のみに縮小してPlan Mode経由で実装。
+>    `applyNormalizedSyncResult`/`retryNormalizedSyncPending`を追加し既存
+>    `retrySyncPending()`パターンをミラー。テスト28件新規PASS、Build PASS、レグレッションなし
+>    （下記PR-REC-06bエントリ参照）。**実機確認要否はFounder判断待ち**
+> 3. 次: PR-REC-06c（バックフィル）・PR-REC-06a-FIX-2（子テーブル同期のRPC原子化）の
+>    着手要否をFounderが判断
+> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06a/06a-FIXのmainマージ/cherry-pickにより前提条件が変化しているため、
->    このまま使わず内容の見直しが必要）
-> 4. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
+>    PR-OB-01・PR-REC-06a/06a-FIX/06bのmainマージ/cherry-pickにより前提条件が変化している
+>    ため、このまま使わず内容の見直しが必要）
+> 5. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
 >    Founderへスコープ確認が必要）
 >
 > **その他の未着手項目**:
@@ -288,6 +291,42 @@ ippoの設計・実装を進めている。
   RPC原子化）の着手。規模が大きいためPlan Modeでサブスコープを設計してからの実装とする
   （PR-REC-06a着手時の反省: サブPRスコープFounder承認前のcommit・pushにより
   READ-ONLY再監査が必要になった経緯を踏まえる）
+
+**PR-REC-06b: Normalized Write（Shadow Write）のリトライ機構**（2026-07-13）
+- 背景: PR-REC-06a READ-ONLY監査Q5で指摘済みの通り、`syncRecordToNormalizedSchema()`の
+  失敗（`{status:'skipped:*'|'failed:*'}`）は`console.warn`されるのみで再送手段がなかった。
+  legacy `user_records`側には既に確立済みのパターン（`record.syncPending`フラグ→
+  `retrySyncPending()`が起動3秒後に再送、`src/services/supabase.js`/`main.js`）があり、
+  本PRはこれをNormalized Write側にもミラーする
+- Plan Mode実施前にFounderへスコープ確認: バックフィル（`user_records`過去データの
+  正規化テーブルへの移行）は含めず、リトライ機構のみとしPR-REC-06cへ先送り
+  （`IMPLEMENTATION_PLAN_V1.md`も「ユーザー数0のため本番Backfillは不要」と既記載）
+- `src/modules/record-normalized-write.js`:
+  - `applyNormalizedSyncResult(record, result)`（新規）: `status`に応じて
+    `record.normalizedSyncPending`/`record.normalizedSyncedAt`を設定する純粋関数。
+    再送する（`skipped:no-client`/`skipped:not-logged-in`/`failed:vocabulary`/
+    `failed:database`、一時的失敗の可能性）・再送しない（`skipped:no-record-date`/
+    `failed:validation`、データ自体の問題で再送しても同じ結果になる）を分類
+  - `retryNormalizedSyncPending()`（新規）: `state.records`のうち
+    `normalizedSyncPending===true`のみを`syncRecordToNormalizedSchema()`で再送し、
+    結果を`applyNormalizedSyncResult`で反映して`saveState()`（`retrySyncPending()`と同型）
+- `record-three-card-save.js:_rtcPipelineSave`: Dual-Write結果の`.then()`コールバックへ
+  `applyNormalizedSyncResult()` + `saveState()`を追加（既存の`failed:*`ログ・
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__`保持は維持）
+- `main.js`: 既存の`retrySyncPending()`と同一の3秒後`setTimeout`ブロック内へ
+  `retryNormalizedSyncPending()`を追加（同一tick、独立try/catch）
+- Tests: `record-normalized-write.test.js`に24件追加（既存分と合わせ計48件）、
+  新規`tests/modules/record-three-card-save.test.js`4件（このモジュール初のユニットテスト、
+  Dual-Write失敗時のフラグ設定・legacy独立性を検証）。計28件新規PASS
+- Build PASS。フルスイート実行で新規レグレッションなし（既知3ファイル
+  build-draft-from-ui.test.js/save-record-screen.test.js/disease-analyzer.test.jsのみ、
+  加えて`composition-root-pr030.test.js`/`wave2-integration.test.js`が並列実行時の
+  flaky timeoutで断続的に失敗することを確認したが、いずれも単体実行では問題なくPASS、
+  本PRと無関係と確認済み）
+- 判定: コード修正完了。Supabaseへの新規書込みAPIは追加していない（既存
+  `syncRecordToNormalizedSchema`の呼び出し回数が増えるのみ）ため、実機確認要否は
+  Founder判断とする
+- Next: バックフィル（PR-REC-06c）・RPC原子化（PR-REC-06a-FIX-2）の着手要否をFounderが判断
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が
