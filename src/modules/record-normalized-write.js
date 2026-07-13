@@ -38,29 +38,13 @@
 import { SupabaseRecordRepository } from '../../infrastructure/record/record.repository';
 import { createRecord } from '../../application/record/createRecord';
 import { getSupabaseClient } from '../services/supabase.js';
+// PR-REC-06a-FIX-2: mapLegacyRecordToDraft() は外部依存のない純粋関数として
+// record-legacy-mapper.js へ切り出した（scripts/backfill-normalized-records.ts
+// がこのファイル経由でservices/supabase.js の CDN import / window.* 副作用を
+// 引き込まずに再利用できるようにするため）。ここでは後方互換のため re-export する。
+import { mapLegacyRecordToDraft } from './record-legacy-mapper.js';
 
-// legacy record shape（record-three-card.js:_mapProtoPayloadToLegacyRecord の
-// 出力）→ Partial<RecordDraft> 相当のプレーンオブジェクトへ変換する。
-// symptoms/factors は日本語表示ラベルのまま渡す
-// （SupabaseRecordRepository側でkeyへ解決する、record-three-card.jsのコメント
-// 「a known, pre-existing divergence from the English canonical keys」参照）。
-export function mapLegacyRecordToDraft(record) {
-  return {
-    recordDate: record.record_date,
-    mood: record.mood != null ? record.mood : undefined,
-    sleepQuality: record.sleepQuality != null ? record.sleepQuality : undefined,
-    symptoms: Array.isArray(record.symptoms) ? record.symptoms : undefined,
-    factors: Array.isArray(record.factors) ? record.factors : undefined,
-    note: record.note != null ? record.note : undefined,
-    painLevel: record.painLevel != null ? record.painLevel : undefined,
-    // menstrualCycle はDraftとしては引き渡すが、DBへ永続化されるとは限らない
-    // （SupabaseRecordRepository.upsert()内のmapMenstrualCycleToPeriodDay参照）。
-    menstrualCycle: record.cycle != null ? record.cycle : undefined,
-    temperature: record.temp != null ? record.temp : undefined,
-    medication: Array.isArray(record.medication) ? record.medication : undefined,
-    experimentId: record.experiment_id != null ? record.experiment_id : undefined,
-  };
-}
+export { mapLegacyRecordToDraft };
 
 let _repository = null;
 function getRepository(client) {
