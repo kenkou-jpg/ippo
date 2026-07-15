@@ -115,12 +115,15 @@ ippoの設計・実装を進めている。
 >    `applyNormalizedSyncResult`/`retryNormalizedSyncPending`を追加し既存
 >    `retrySyncPending()`パターンをミラー。テスト28件新規PASS、Build PASS、レグレッションなし
 >    （下記PR-REC-06bエントリ参照）。**実機確認要否はFounder判断待ち**
-> 3. ~~PR-REC-06c（バックフィル）・PR-REC-06a-FIX-2（RPC原子化）~~ → **両方とも
->    コード修正完了**（2026-07-13、Founder「１と２に着手」承認、Plan Mode経由で
->    別コミットとして実装）。**いずれもMigration未適用・実行未実施でFounder承認待ち**。
->    詳細は下記PR-REC-06a-FIX-2・PR-REC-06cエントリ参照。実装中に2件の設計上の不具合
->    （RPCのauth.uid()チェックがservice_role呼び出しを誤って拒否する問題、バックフィル
->    スクリプトのエントリポイント判定がWindowsで機能しない問題）を発見・修正済み
+> 3. ~~PR-REC-06a-FIX-2（RPC原子化）~~ → ~~Migration 20260095適用~~ → ~~実機Browser
+>    Verification~~ → **クローズ**（2026-07-13、Founder GO）。実装中に発見した
+>    「RPCのauth.uid()チェックがservice_role呼び出しを誤って拒否する」不具合は修正済み
+> 3a. PR-REC-06c（バックフィル）: コード修正完了・**未実行のまま**（Founder任意タイミングで
+>    実行。実行手順はHANDOFF該当エントリ参照。実装中に発見した「Windows環境でスクリプトの
+>    エントリポイント判定が機能しない」不具合は修正済み）
+> 3b. PR-REC-06b（リトライ機構）: コード修正完了、**実機確認要否はFounder判断待ちのまま**
+>    （オフライン→オンライン復帰後の自動再送動作の実機確認が望ましいが必須ではないと
+>    HANDOFF記載済み）
 > 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
 >    PR-OB-01・PR-REC-06a/06a-FIX/06b/06a-FIX-2/06cのmainマージ/cherry-pickにより
@@ -365,10 +368,11 @@ ippoの設計・実装を進めている。
   確認SQL（`SELECT proname, prosecdef FROM pg_proc WHERE proname =
   'upsert_record_with_children'`）で1行返り、`prosecdef = false`
   （SECURITY INVOKER、設計通り）を確認済み
-- 判定: Migration適用完了。**次は実機Browser Verification**
-  （Prototype Record保存 → `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`が
-  `'success'`になること、records/record_symptoms/record_factorsが正しく揃って
-  更新されることを確認）→ 完了後PR-REC-06a-FIX-2をクローズ
+- **Founder Browser Verification実施済み・GO（2026-07-13）**: Prototype Record保存後
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`が`'success'`、
+  records/record_symptoms/record_factorsが正しく揃って更新、同日再保存でも
+  重複なく更新・最新選択内容に同期、いずれも問題なし
+- 判定: **GO。PR-REC-06a-FIX-2はこれをもってクローズ**
 - コミット: `1187763`（`ops/recovery-program`、push済み）
 
 **PR-REC-06c: user_recordsバックフィルスクリプト**（2026-07-13）
