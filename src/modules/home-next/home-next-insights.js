@@ -4,6 +4,8 @@
 //  自然な「傾向」を、太字で静かに提示する
 // ============================================================
 
+import { validateOutput } from '../../domains/signal-insight/forbidden-word-validator.js';
+
 // ── 直近レコード取得 ─────────────────────────────────────
 
 function getWeekRecords(records) {
@@ -341,6 +343,18 @@ export function renderInsights(container, state, config) {
   const insight = findBestInsight(records, config || {});
 
   if (!insight) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // BD-038 (IMPLEMENTATION_PLAN_V1.1 Phase2完了条件): 気づき生成パスの最終出力を
+  // forbidden-word-validatorへ通す。すべて非LLM・rule-baseの断定禁止文言のため
+  // isMedicalAdvice=falseで検証。違反時はカード自体を非表示にし、Home描画全体を
+  // 巻き込まない（renderAll()の他セクションに影響させない）。
+  try {
+    validateOutput(insight.main, false);
+    if (insight.sub) validateOutput(insight.sub, false);
+  } catch (_) {
     container.innerHTML = '';
     return;
   }

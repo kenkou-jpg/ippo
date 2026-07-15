@@ -150,6 +150,7 @@ Home専用（そのまま移植候補）:
   新マークアップに出力される
 □ forbidden-word-validator.jsが気づき生成パス（renderInsights経路）に接続されている
   ことを確認する（IMPLEMENTATION_PLAN_V1.1出力16 Phase2完了条件）
+  → **完了**（本文書3回目の更新時に実装。詳細は8節参照）
 □ confidence-row 4段階とCONFIDENCE_LEVELS定数の段階数不一致があれば本PR内で解消する
 □ Home最大6ブロックルール・情報量を増やさない原則を維持（新規カード追加禁止）
 □ Browser Verification（Founder実施）: 320/375/390/430px 4幅、Console Error 0件、
@@ -251,3 +252,32 @@ Home専用（そのまま移植候補）:
 This file follows the same design-only, zero-code-change convention as
 `PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`. Implementation begins in a separate PR
 (PR-HOME-01) once this plan is available for reference.
+
+---
+
+## 8. 実装完了分（forbidden-word-validator接続）
+
+```
+本文書3回目の更新時に、配色変更を伴わない安全な単体としてコード変更を実施した:
+
+  - src/modules/home-next/home-next-insights.js
+      renderInsights(): findBestInsight()の戻り値(main/sub)を
+      validateOutput(text, false)（forbidden-word-validator.js）で検証。
+      違反時はcontainer.innerHTML=''でカードごと非表示（他セクションへ影響なし）
+  - src/modules/home-next/home-next-recovery.js
+      renderExperiment(): generateGentleExperiment()の戻り値(exp.text)を
+      同様に検証・違反時非表示
+
+  Tests（新規）:
+    - tests/modules/home-next/home-next-insights.test.js（2件）
+    - tests/modules/home-next/home-next-recovery.test.js（2件）
+    いずれも「禁止パターン含む→非表示」「含まない→通常表示」を検証
+
+  Build: PASS（npm run build、既存の警告のみ・新規エラーなし）
+  Browser Verification: 未実施（配色・マークアップ構造は無変更、DOM出力の
+    分岐ロジック追加のみのため実機確認は必須ではないが、Founderの判断で
+    必要であれば実施する）
+
+  renderRecovery()（#hn-recovery）はPHASE1で無効化済みの6セクションの1つで
+  現在描画されないため、本対応の対象外とした（他5セクションも同様に対象外）
+```

@@ -115,14 +115,17 @@ ippoの設計・実装を進めている。
 >    **Founder操作待ち**（AI環境にSupabase接続情報なし）
 > 2. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
 >    （オフライン→オンライン復帰後の自動再送動作、必須ではない）。**Founder操作待ち**
-> 3. **PR-HOME-01（Phase 2: Prototype Home Runtime Integration）に着手可能** —
+> 3. **PR-HOME-01（Phase 2: Prototype Home Runtime Integration）は設計・一部実装済み** —
 >    設計文書`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md`を本セッションで
->    新規作成済み（コード変更ゼロ）。上記1・2がFounder操作待ちのため、依存しない
->    次PRとしてこちらへ進む。スコープ: hero/record-strip/insight-card/experiment-section
->    の4ブロックを`src/screens/home-next.html`へ統合、既存Insight Engine
->    （companion-intelligence.js、PR-P2-01/02で接続済み）はロジック無変更のまま
->    新マークアップへ出力先を差し替える。milestone-banner/card-result/card-nextは
->    Experiment/Outcomeドメイン依存のためPhase 3送りとしてスコープ外化した
+>    新規作成。調査の結果、マークアップ全体をPrototypeへ置換する当初案は
+>    (a) Adaptive Calmness機能のCSSセレクタ依存、(b) 部分restyleによる配色混在リスク、
+>    の2点から見送り、配色変更を含む本格統合はhero統合（PR-HOME-02）とまとめて
+>    実施する方針へ変更した。一方、Phase2完了条件のうち
+>    「forbidden-word-validator.jsが気づき生成パスに接続されている」は
+>    本セッションで実装完了（`home-next-insights.js`のrenderInsights()、
+>    `home-next-recovery.js`のrenderExperiment()にBD-038検証を追加、違反時は
+>    カードごと非表示。新規テスト4件PASS、Build PASS）。残りのPhase2完了条件
+>    （マークアップ統合・4段階confidenceLabel語彙統一）は次回セッションへ持ち越し
 > 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**）は全Phase完了後
 >    （IMPLEMENTATION_PLAN_V1.1 Phase 1〜7完了後）に着手するものであり、
