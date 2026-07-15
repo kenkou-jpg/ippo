@@ -216,8 +216,17 @@ Home専用（そのまま移植候補）:
      未実施のため）
 
 別途スコープ確定が必要な項目（PR-HOME-01完了後の候補）:
-   □ PR-HOME-INSIGHT-CONFIDENCE: confidence値統一（20ファイル横断、
-     専用調査PRとして起票）
+   ✓ PR-HOME-INSIGHT-CONFIDENCE: confidence値統一 — **完了**。
+     `insight-engine.js`が`calcConfidence()`（=`stats-utils.js`の`confidenceLabel()`、
+     4段階: high/medium/low/insufficient）で既に各insightへ`confidenceLabel`を
+     付与済みと判明。`home-next-insights.js`のfindBestInsight()が
+     engine/companion-intelligence経由の候補でこの値を破棄していたのが実体
+     （20ファイル規模の再設計は不要だった）。engine由来候補はconfidenceLabelを
+     そのまま引き継ぎ、rule-based候補（このファイル内蔵パターン判定）は
+     records.lengthを母数にしたconfidenceLabel()フォールバック値を付与するよう
+     修正。findBestInsight()をexportしテスト可能化。新規テスト3件PASS。
+     表示（confidence-row等の新規マークアップ）はPR-HOME-06 Restyleへ先送り
+     （Restyleルール: Logic変更のみ、CSS/HTML変更は含めない）
    □ PR-HOME-02: hero統合（Day-ring含む。Experiment domain側のDay計算
      データソース確認が前提、Phase 3と依存関係の整理が必要）
 

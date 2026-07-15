@@ -5,6 +5,7 @@
 // ============================================================
 
 import { validateOutput } from '../../domains/signal-insight/forbidden-word-validator.js';
+import { confidenceLabel } from '../../analytics/shared/stats-utils.js';
 
 // ── 直近レコード取得 ─────────────────────────────────────
 
@@ -26,9 +27,9 @@ function getMonthRecords(records) {
 }
 
 // ── インサイト候補を生成 ─────────────────────────────────
-// 戻り値: { main, sub } | null
+// 戻り値: { main, sub, confidenceLabel } | null
 
-function findBestInsight(records, config) {
+export function findBestInsight(records, config) {
   if (!records || records.length < 4) return null;
 
   const week     = getWeekRecords(records);
@@ -282,6 +283,9 @@ function findBestInsight(records, config) {
             priority: 6,
             main:     gi.main,
             sub:      gi.sub,
+            // insight-engine.js が calcConfidence()（4段階: high/medium/low/insufficient）
+            // で既に付与済みの値をそのまま引き継ぐ（PR-HOME-INSIGHT-CONFIDENCE）
+            confidenceLabel: gi.confidenceLabel,
           });
         }
       } catch (_) {}
@@ -304,6 +308,9 @@ function findBestInsight(records, config) {
               priority: 8,
               main:     top.main,
               sub:      top.sub,
+              // rankInsightPriorities()はinsights配列を並べ替えるのみで各要素は
+              // insight-engine.js由来のconfidenceLabelを保持している（PR-HOME-INSIGHT-CONFIDENCE）
+              confidenceLabel: top.confidenceLabel,
             });
           }
         }
@@ -315,7 +322,18 @@ function findBestInsight(records, config) {
 
   // 優先度順で1件だけ
   candidates.sort((a, b) => b.priority - a.priority);
-  return candidates[0];
+  const winner = candidates[0];
+
+  // PR-HOME-INSIGHT-CONFIDENCE: 4段階confidenceLabel（stats-utils.jsのBlueprint
+  // MIN_SAMPLES準拠、insight-engine.js/companion-intelligence.js経由の候補と同一関数）
+  // へ統一する。engine由来の候補は既に精度の高い値を持つためそれを優先し、
+  // rule-based候補（このファイル内で直接パターン判定するもの）には全体記録数を
+  // サンプルサイズとしたfallback値を付与する。
+  if (!winner.confidenceLabel) {
+    winner.confidenceLabel = confidenceLabel(records.length);
+  }
+
+  return winner;
 }
 
 // ── インサイトカード HTML ─────────────────────────────────

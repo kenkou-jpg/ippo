@@ -4,7 +4,7 @@
 // が返すインサイト本文がBD-038禁止パターンを含む場合、カードごと非表示になることを検証する。
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { renderInsights } from '../../../src/modules/home-next/home-next-insights.js';
+import { renderInsights, findBestInsight } from '../../../src/modules/home-next/home-next-insights.js';
 
 function makeDummyRecords(count) {
   const today = new Date().toISOString().slice(0, 10);
@@ -47,5 +47,57 @@ describe('renderInsights (forbidden-word-validator wiring)', () => {
     renderInsights(container, { records: makeDummyRecords(4) }, {});
 
     expect(container.innerHTML).toContain('最近、よく眠れているようです');
+  });
+});
+
+describe('findBestInsight confidenceLabel統一 (PR-HOME-INSIGHT-CONFIDENCE)', () => {
+  afterEach(() => {
+    delete window.ippoInsightEngine;
+    delete window.ippoCompanionIntelligence;
+  });
+
+  it('insight-engine.js由来の候補はconfidenceLabelをそのまま引き継ぐ', () => {
+    window.ippoInsightEngine = {
+      getInsights: () => [
+        { _source: 'gentle_tendency', tier: 'free', main: 'よく眠れています', sub: '調子が良さそうです', confidenceLabel: 'high' },
+      ],
+    };
+
+    const insight = findBestInsight(makeDummyRecords(4), {});
+
+    expect(insight.confidenceLabel).toBe('high');
+  });
+
+  it('companion-intelligenceランキング経由の候補もconfidenceLabelを引き継ぐ', () => {
+    const engineInsight = { priorityKey: 'x', tier: 'free', score: 40, main: '傾向があります', sub: '観察を続けましょう', confidenceLabel: 'medium' };
+    window.ippoInsightEngine = { getInsights: () => [engineInsight] };
+    window.ippoCompanionIntelligence = {
+      getCompanionContext: () => ({ settingsProfile: {}, companionMemory: {} }),
+      rankInsightPriorities: (insights) => insights,
+    };
+
+    const insight = findBestInsight(makeDummyRecords(4), {});
+
+    expect(insight.confidenceLabel).toBe('medium');
+  });
+
+  it('rule-based候補（engine未使用）は記録数からのfallback値を持つ', () => {
+    // 睡眠不足→翌日の痛み パターンが確実にヒットするレコード列を用意
+    const records = [];
+    const base = new Date();
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(base);
+      d.setDate(d.getDate() - (5 - i));
+      records.push({
+        date: d.toISOString().slice(0, 10),
+        sleepQuality: 3,
+        painLevel: i % 2 === 0 ? 0 : 2,
+      });
+    }
+
+    const insight = findBestInsight(records, {});
+
+    expect(insight).not.toBeNull();
+    expect(['insufficient', 'low', 'medium', 'high']).toContain(insight.confidenceLabel);
   });
 });
