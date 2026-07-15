@@ -171,6 +171,25 @@ ippoの設計・実装を進めている。
 >   既存テスト`tests/bootstrap/pr015-experiment-layer.test.ts`の3件を
 >   旧仕様（statusの直接設定を許容）から新仕様へ更新（Founder Decisionの
 >   意図的な反映）。Build PASS・回帰なし（計908件PASS）。BV不要（UI変更なし）
+> - PR-EXP-RUNTIME-05: CTA接続設計確認（コード変更なし）。**最重要発見**:
+>   `ApiGateway`はDI登録済みだが`container.resolve(TOKENS.ApiGateway)`が
+>   リポジトリ全体で一度も呼ばれていない
+>   （Application層全体が到達不可能な状態）。これを受けFounderがa案
+>   （ApiGatewayをApplication Facadeとして正式採用、`window.app.api`経由での
+>   み公開）を決定
+> - **PR-APP-BOOT-01: Application Runtime Bootstrap完了**（Experimentではなく
+>   Application層全体の基盤PR）。`Application.initialize()`が`ApiGateway`を
+>   resolveし、新設の`ApplicationRuntime`（`.api`のみ公開、containerは非公開）
+>   経由で`window.app`へ設定するよう変更。実boot()経路へ組み込む前に、フル
+>   組み立て済みcontainerからのresolveが安全か診断テストで先に確認済み。
+>   新規テスト7件・既存2件更新（`TOKENS.ApiGateway`未登録の最小containerが
+>   新しいinitialize()で失敗するようになったためfake登録を追加）。
+>   フルテストスイート304ファイル中301ファイルPASS（失敗3ファイル・35件は
+>   `record.js`の`record.service.js`import解決エラーに起因する既知の
+>   事前失敗でベースラインと完全一致、無関係と確認済み）。Build PASS。
+>   BV不要（UI変更なし、`window.app`はまだUIから未参照）。詳細は
+>   `docs/rebuild/PR_APP_BOOT_01_APPLICATION_RUNTIME.md`。
+>   **次PR**: PR-EXP-RUNTIME-06（Prototype CTA→`window.app.api`接続）
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
