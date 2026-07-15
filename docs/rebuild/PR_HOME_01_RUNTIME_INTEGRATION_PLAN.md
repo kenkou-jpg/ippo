@@ -215,6 +215,19 @@ Home専用（そのまま移植候補）:
      （hero-ring（Day数表示）はExperiment Day-tracking dataの所在確認が
      未実施のため）
 
+   ✓ PR-HOME-02: hero統合 — **完了（第一段）**。`home-next-hero.js`の
+     `renderHero()`は既に完成済みだったが`renderAll()`から呼ばれておらず
+     （PHASE1で`hn-hero`を意図的にクリア対象へ含めていた）死蔵状態だった。
+     `home-next-shell.js`のクリア対象リストから`hn-hero`を除外し、
+     `renderHero(hero, config, state)`呼び出しを追加して再接続。
+     CSS(.hn-hero系)は既存のまま流用、新規CSS/HTML追加なし。
+     Day-ring（実験Day数表示）・7日ストリークドット等のPrototype固有要素は
+     既存renderHero()に実装がなく、Experiment Day-trackingデータソースの
+     確認も未実施のため引き続きPR-HOME-06 Restyle以降の課題として残る。
+     Build PASS・既存home-nextテスト13件PASS（回帰なし）。
+     **画面に新しいカードが表示されるようになるため、他PRと異なりBrowser
+     Verificationが必要**（Founder確認事項）
+
 別途スコープ確定が必要な項目（PR-HOME-01完了後の候補）:
    ✓ PR-HOME-INSIGHT-CONFIDENCE: confidence値統一 — **完了**。
      `insight-engine.js`が`calcConfidence()`（=`stats-utils.js`の`confidenceLabel()`、

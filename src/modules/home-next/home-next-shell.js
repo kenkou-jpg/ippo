@@ -165,6 +165,7 @@ function renderAll() {
 
   const header         = document.getElementById('hn-header');
   const greeting       = document.getElementById('hn-greeting');
+  const hero           = document.getElementById('hn-hero');
   const status         = document.getElementById('hn-status');
   const insights       = document.getElementById('hn-insights');
   const medicalSummary = document.getElementById('hn-medical-summary');
@@ -173,8 +174,10 @@ function renderAll() {
 
   // PHASE 1: 除外セクションのコンテナをクリア（ファイル・ロジックは保持）
   // PR-P2-01 (Phase2 Implementation): hn-experimentはPHASE2_IMPLEMENTATION_COUNCIL.mdの
-  // Value Ladder③改善ギャップを埋めるため再有効化。他6セクションはScope外のため無変更のまま維持
-  ['hn-hero','hn-daily-note','hn-personalize','hn-optional',
+  // Value Ladder③改善ギャップを埋めるため再有効化。
+  // PR-HOME-02 (IMPLEMENTATION_PLAN_V1.1 Phase2): hn-heroも既存renderHero()を
+  // 再接続して有効化。残る4セクションはScope外のため無変更のまま維持
+  ['hn-daily-note','hn-personalize','hn-optional',
    'hn-recovery','hn-reflections'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
@@ -199,6 +202,7 @@ function renderAll() {
 
   if (header)         renderSharedHeader(header);
   if (greeting)       renderGreeting(greeting, state);
+  if (hero)           renderHero(hero, config, state);
   if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
   if (status)         renderStatusCards(status, config, state);
   if (insights)       renderInsights(insights, state, config);
