@@ -232,6 +232,18 @@ Home専用（そのまま移植候補）:
    Prototype値へ更新する（影響範囲：home-next.css全体、要全量監査）かは
    Design System Freeze文書との整合を含めた判断が必要なため、本PRでは決定せず
    次回の実装セッションで着手時に確定する。
+
+4. ローカル上書き方式の追加リスク（本文書2回目の更新時に追記）:
+   .hn-insight-card / .hn-quick-card のみを局所的にrestyleする案を検討したが、
+   同一Home画面内でhero/status/experiment/medical-summary等の他カードは
+   旧配色（--hn-card-bg: rgba(255,255,255,.82)等）のまま残るため、2種類の
+   配色がHome画面内に混在し、Design System Freezeが求める一貫性
+   （`docs/PHASE2_GOVERNANCE.md`）にかえって反する可能性が高いと判断した。
+   よって本PRでは restyle 実装を行わず、hero/experiment-section（PR-HOME-02）と
+   合わせてHome画面のカード全体を一括でrestyleする方針に変更する。
+   PR-HOME-01は「Insight Engine/Question Layerの再接続とマークアップ構造の
+   整理（配色変更なし）」のみに再スコープし、配色統一は
+   PR-HOME-02（hero統合）と同一PRでまとめて実施する。
 ```
 
 ---
