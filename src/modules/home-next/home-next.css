@@ -97,6 +97,39 @@
   min-height: 100dvh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+
+  /* PR-HOME-06: scoped visual tokens. Prototype(prototype/styles.css)は
+     src/styles/app.cssと同一のSoft Sakuraトークンで、app.htmlに既にグローバル
+     読込済み。:root側の--hn-*定義は変更せず#screen-home-next配下でのみ上書きし、
+     他画面(#screen-insights等)へ影響させない。DOM構造・class名・Business Logicは
+     無変更(restyleのみ)。 */
+  --hn-card-bg:        var(--white, #ffffff);
+  --hn-card-border:    none;
+  --hn-card-shadow:    var(--shadow-card, 0 2px 12px rgba(200,120,140,.10));
+  --hn-card-radius:    var(--radius-card, 16px);
+  --hn-card-radius-lg: var(--radius-card-lg, 24px);
+
+  --hn-ink:            var(--ink, #2d1f1a);
+  --hn-ink-mid:        var(--ink-mid, #4a3830);
+  --hn-ink-sec:        var(--ink-light, #6e5f56);
+  --hn-ink-muted:      var(--ink-light, #6e5f56);
+
+  --hn-sage:           var(--sage, #8abf9a);
+  --hn-sage-mid:       var(--sage-light, #d8f0e0);
+  --hn-sage-pale:      var(--sage-light, #d8f0e0);
+
+  --hn-terra:          var(--gold-dark, #a8781f);
+  --hn-beige:          var(--border-muted, #e8ddd8);
+  --hn-beige-pale:     var(--bg-subtle, #f0ebe6);
+}
+
+/* insight/experimentカードはPrototypeの.card-insight/.card-experimentに合わせ、
+   汎用--hn-card-bgではなくカード種別ごとのアクセント背景を適用する */
+#screen-home-next .hn-insight-card {
+  background: var(--warm-light, #fdf5e8);
+}
+#screen-home-next .hn-experiment-card {
+  background: var(--rose-pale, #f7f2f2);
 }
 
 #screen-home-next .hn-header {
@@ -463,14 +496,14 @@
     linear-gradient(
       to right,
       rgba(255,255,255,.82) 34%,
-      rgba(248,252,248,.76) 52%,
+      rgba(253,245,232,.76) 52%,
       transparent 70%
     ),
 
     linear-gradient(
       180deg,
       rgba(255,255,255,.90) 0%,
-      rgba(248,252,248,.82) 100%
+      rgba(253,245,232,.82) 100%
     );
 
   background-color: var(--hn-card-bg);
@@ -537,7 +570,7 @@
   font-family: var(--hn-font-ja);
   font-size: 18px;
   font-weight: 620;
-  color: #2f2a28;
+  color: var(--hn-ink);
   line-height: 1.58;
   letter-spacing: 0.05px;
   word-break: keep-all;
@@ -547,7 +580,7 @@
 .hn-hero-desc {
   font-family: var(--hn-font-ja);
   font-size: 13px;
-  color: #948d84;
+  color: var(--hn-ink-sec);
   line-height: 1.9;
   margin-top: 12px;
   font-weight: 300;
@@ -593,7 +626,7 @@
 /* 笏笏 繝｢繝舌う繝ｫ: 邵ｦ遨阪∩繝ｬ繧､繧｢繧ｦ繝・(竕､480px) 笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏笏 */
 
 @media (max-width: 480px) {
-.hn-hero {background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(248,252,248,.84) 100%);
+.hn-hero {background:linear-gradient(180deg,rgba(255,255,255,.92) 0%,rgba(253,245,232,.84) 100%);
           background-color: var(--hn-card-bg);
           padding-top: calc(58vw + 12px);
           padding-bottom: 20px;

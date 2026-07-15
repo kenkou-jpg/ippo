@@ -271,6 +271,99 @@ Home専用（そのまま移植候補）:
 
 ---
 
+## 9. PR-HOME-06: Prototype Design System視覚統合（完了、Browser Verification待ち）
+
+```
+方針: :root側の--hn-*グローバルトークンは無変更のまま、#screen-home-next配下にのみ
+Prototype配色（=src/styles/app.cssと同一トークン、app.htmlで既にグローバル読込済み）
+を上書きするscoped tokenブロックを追加。DOM構造・class名・カード順序・情報量・
+Business Logic・Adaptive Calmness条件分岐・Confidence算出・Question Layer・
+Feature Flagはすべて無変更。
+
+変更ファイル: src/modules/home-next/home-next.css のみ
+  - #screen-home-next { ... } ブロックへ以下を追加:
+      --hn-card-bg → var(--white)          [旧: rgba(255,255,255,.82)]
+      --hn-card-border → none               [旧: 1px solid rgba(188,210,190,.18)]
+      --hn-card-shadow → var(--shadow-card) [旧: 緑がかったshadow]
+      --hn-card-radius(-lg) → var(--radius-card / --radius-card-lg)
+      --hn-ink / --hn-ink-mid / --hn-ink-sec / --hn-ink-muted → var(--ink 系)
+      --hn-sage / --hn-sage-mid / --hn-sage-pale → var(--sage 系)
+      --hn-terra → var(--gold-dark)、--hn-beige(-pale) → var(--border-muted / --bg-subtle)
+  - #screen-home-next .hn-insight-card { background: var(--warm-light); }
+    （Prototypeの.card-insightに合わせたアクセント背景。汎用--hn-card-bgではなく個別指定）
+  - #screen-home-next .hn-experiment-card { background: var(--rose-pale); }
+    （Prototypeの.card-experimentに合わせたアクセント背景。home-next-status.jsの
+    Research Badgeも同じclass名を使うため同時に適用される）
+  - .hn-hero のグラデーション停止色（旧: rgba(248,252,248,...) 緑がかった白）を
+    rgba(253,245,232,...)（=--warm-light相当）へ変更。モバイル用@media内の
+    同種グラデーションも同様に変更
+  - .hn-hero-message / .hn-hero-desc のハードコード色(#2f2a28 / #948d84)を
+    var(--hn-ink) / var(--hn-ink-sec) へ変更（スコープトークンの恩恵を受けるように）
+
+意図的に対象外とした項目:
+  □ quick-record（record-strip、home-next-quick-record.js）— インラインstyleで
+    ハードコードされておりHome統合ルールで名指しされた5項目
+    （insight/hero/status/experiment/question）に含まれないため見送り。
+    #screen-home-nextスコープの新トークンは.hn-quick-cardにも自動的に適用される
+    （--hn-card-bg等を参照しているため）が、home-next-quick-record.js内の
+    インラインstyle（CTA/done行の背景色等）はトークン参照ではなくJS内ハードコードの
+    ため今回のCSSのみの変更では変わらない。次PRで扱う候補として残す
+  □ Prototypeの`.hero`（濃い紫系グラデーション+白文字、home-next側の.hn-heroとは
+    別物）は採用しなかった。.hero はPrototype内でも他カードと共有トークンを
+    使わない一回限りの装飾（var(--plum)直接指定）であり、「Design System
+    （共有トークン）への統合」の範囲を超える一枚絵的な意匠変更と判断したため。
+    .hn-heroは既存の淡いグラデーション構成を維持しつつ、色温度のみ
+    Prototypeのcream系へ寄せた。Founderがこの濃い紫グラデーション採用を
+    希望する場合は別途指示・別PRとする
+
+Tests: tests/modules/home-next/home-next-css-tokens.test.js（新規4件、
+  :root定義が無変更であること・スコープ付きオーバーライドの存在・
+  Adaptive Calmnessセレクタの維持を検証）+ 既存home-nextテスト13件、
+  計17件PASS
+Build: PASS
+Browser Verification: 必要（8節参照）。PR-HOME-02（Hero再接続）とあわせて
+  Founder確認待ちとする
+```
+
+---
+
+## 10. Browser Verification（PR-HOME-02 + PR-HOME-06 合同）
+
+```
+対象:
+  - Home画面（#screen-home-next、ホームタブ）
+  - hero / status（週間ストリップ含む）/ insight / experiment / quick-record
+    の各カード
+
+確認手順:
+  1. 320px / 375px / 390px / 430px の4幅でHome画面を表示
+     （devtoolsのレスポンシブモード、または実機）
+  2. 各幅で以下を確認:
+     - heroカードが表示され、テキストが折り返し崩れしていないこと
+       （PR-HOME-02で新たに表示されるようになったカード）
+     - status（週間ストリップ・状態カード横4列）が崩れていないこと
+     - insightカードがクリーム系の背景（旧: 白系）で表示されること
+     - experimentカードがrose系の淡い背景で表示されること
+       （記録0件・実験なし状態では非表示の場合あり、正常挙動）
+     - カード間の余白・角丸が不自然に破綻していないこと
+     - Console Errorが0件であること
+  3. Adaptive Calmness状態の確認（設定 or localStorageで再現）:
+     - 通常状態（data-mode未設定）
+     - anxious状態（data-mode="anxious"）: insightカードの見え方が
+       通常と変わる想定のスタイルが正しく当たっていること
+     - gentle状態（data-display="gentle"）: insightカードの簡略表示が
+       正しく当たっていること
+  4. Light/Dark: home-next.cssにdark mode定義自体が存在しないため対象外
+     （本PRで新規追加もしていない）
+
+確認方法（Founderが通常ブラウザで）:
+  www.ippo-app.com （または該当プレビュー環境）で上記1〜3を実施し、
+  問題なければ本HANDOFF/本文書へ結果を反映する。問題があれば該当カード名・
+  幅・状態を添えて報告する。
+```
+
+---
+
 This file follows the same design-only, zero-code-change convention as
 `PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`. Implementation begins in a separate PR
 (PR-HOME-01) once this plan is available for reference.

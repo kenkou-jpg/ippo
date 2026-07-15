@@ -108,29 +108,35 @@ ippoの設計・実装を進めている。
 > Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
 >
 > **未完了・次にやること**（優先順）:
-> 1. **PR-REC-06c（バックフィルスクリプト）を実行する** — コードは完了済み・未実行。
+> 1. **Founder Browser Verification待ち: PR-HOME-02（Hero再接続）+ PR-HOME-06
+>    （Prototype Design System視覚統合）** — 詳細手順は
+>    `docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節参照。
+>    320/375/390/430px・normal/anxious/gentle状態・Console Error 0件を確認し、
+>    結果を本HANDOFFへ反映してから次PR（PR-HOME-06以降のRestyle・Question Layer等）
+>    へ進むこと。**本セッションはこの確認待ちで意図的に停止**
+> 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
 >    `--apply`で本実行。詳細手順・想定出力は本HANDOFFのPR-REC-06cエントリ参照。
 >    **Founder操作待ち**（AI環境にSupabase接続情報なし）
-> 2. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
+> 3. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
 >    （オフライン→オンライン復帰後の自動再送動作、必須ではない）。**Founder操作待ち**
-> 3. **PR-HOME-01（Phase 2: Prototype Home Runtime Integration）は設計・一部実装済み** —
->    設計文書`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md`を本セッションで
->    新規作成。調査の結果、マークアップ全体をPrototypeへ置換する当初案は
->    (a) Adaptive Calmness機能のCSSセレクタ依存、(b) 部分restyleによる配色混在リスク、
->    の2点から見送り、配色変更を含む本格統合はhero統合（PR-HOME-02）とまとめて
->    実施する方針へ変更した。一方、Phase2完了条件のうち
->    「forbidden-word-validator.jsが気づき生成パスに接続されている」は
->    本セッションで実装完了（`home-next-insights.js`のrenderInsights()、
->    `home-next-recovery.js`のrenderExperiment()にBD-038検証を追加、違反時は
->    カードごと非表示。新規テスト4件PASS、Build PASS）。残りのPhase2完了条件
->    （マークアップ統合・4段階confidenceLabel語彙統一）は次回セッションへ持ち越し
 > 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**）は全Phase完了後
 >    （IMPLEMENTATION_PLAN_V1.1 Phase 1〜7完了後）に着手するものであり、
 >    現時点（Phase 1途中）では時期尚早と判断・着手見送り
 > 5. Release Gateへ進む（全Phase完了後、Founder指定の次マイルストーン）
+>
+> **本セッションでPhase 2（Home統合）関連に実装完了したPR一覧**（`ops/recovery-program`、
+> push済み・PR-HOME-06分は次コミットでpush予定）:
+> - PR-HOME-01: forbidden-word-validator接続（BD-038、Logic-only、BV不要）
+> - PR-HOME-INSIGHT-CONFIDENCE: confidenceLabel統一（insight-engine.js既存値の
+>   引き継ぎ漏れを修正、Logic-only、BV不要）
+> - PR-HOME-02: Hero(hn-hero)再接続（既存renderHero()を再有効化、**BV必要**）
+> - PR-HOME-03/04/05（Status/Experiment/Question Layer）: 旧PR-P2-01/02で
+>   接続済みと確認・追加変更なし
+> - PR-HOME-06: Prototype Design System視覚統合（`home-next.css`のみ、
+>   scoped tokenで#screen-home-next配下のみ配色更新、**BV必要**）
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
