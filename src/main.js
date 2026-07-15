@@ -196,6 +196,12 @@ import './modules/home-renderer.js';
 // フラグ OFF の場合は既存 home に影響しない。
 import './modules/home-next/home-next-shell.js';
 
+// ─── PR-EXP-RUNTIME-02: Prototype Experiment画面 (Read-only表示のみ) ───
+// Feature flag: localStorage['ippo_experiment_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
+// Navigation統合は未定義のため、到達手段は window.ippoExperimentNext のみ。
+import './modules/experiment-next/experiment-next-shell.js';
+
 // ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
 // 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。

@@ -108,12 +108,16 @@ ippoの設計・実装を進めている。
 > Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
 >
 > **未完了・次にやること**（優先順）:
-> 1. **Founder Browser Verification待ち: PR-HOME-02（Hero再接続）+ PR-HOME-06
->    （Prototype Design System視覚統合）** — 詳細手順は
->    `docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節参照。
->    320/375/390/430px・normal/anxious/gentle状態・Console Error 0件を確認し、
->    結果を本HANDOFFへ反映してから次PR（PR-HOME-06以降のRestyle・Question Layer等）
->    へ進むこと。**本セッションはこの確認待ちで意図的に停止**
+> 1. **Founder Browser Verification待ち（2件、並行して蓄積中・ブロッカーには
+>    しない）**:
+>    a. PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System視覚統合）
+>       — 手順は`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節
+>    b. PR-EXP-RUNTIME-02（Prototype Experiment画面・表示専用シェル統合）
+>       — 手順は`docs/rebuild/PR_EXP_RUNTIME_01_CURRENT_STATE.md` 5節
+>    いずれも320/375/390/430px・Console Error 0件を確認し、結果を本HANDOFFへ
+>    反映すること。Home側の結果が届くまでHome Phaseの本番既定化・旧UI削除には
+>    進まない。Experiment側の結果が届くまでPR-EXP-RUNTIME-03
+>    （ExperimentCommandService接続等の書込み機能）には進まない
 > 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
@@ -128,7 +132,7 @@ ippoの設計・実装を進めている。
 > 5. Release Gateへ進む（全Phase完了後、Founder指定の次マイルストーン）
 >
 > **本セッションでPhase 2（Home統合）関連に実装完了したPR一覧**（`ops/recovery-program`、
-> push済み・PR-HOME-06分は次コミットでpush予定）:
+> push済み）:
 > - PR-HOME-01: forbidden-word-validator接続（BD-038、Logic-only、BV不要）
 > - PR-HOME-INSIGHT-CONFIDENCE: confidenceLabel統一（insight-engine.js既存値の
 >   引き継ぎ漏れを修正、Logic-only、BV不要）
@@ -137,6 +141,19 @@ ippoの設計・実装を進めている。
 >   接続済みと確認・追加変更なし
 > - PR-HOME-06: Prototype Design System視覚統合（`home-next.css`のみ、
 >   scoped tokenで#screen-home-next配下のみ配色更新、**BV必要**）
+>
+> **本セッションでPhase 3（Experiment統合）着手・実装完了したPR一覧**
+> （`ops/recovery-program`、push済み）:
+> - PR-EXP-RUNTIME-01: 現状確認（コード変更なし）。「正」ドメイン
+>   （`src/domains/experiment/*`経由の`ApiGateway.getExperiments()`/
+>   `createExperiment()`）は呼び出し元ゼロで完全未使用、legacy
+>   `experiments.js`は独立した`state.experiments`を直接操作、という新規発見を
+>   記録。詳細は`docs/rebuild/PR_EXP_RUNTIME_01_CURRENT_STATE.md`
+> - PR-EXP-RUNTIME-02: Prototype Experiment画面を表示専用で本番Runtimeへ統合。
+>   Feature Flag `ippo_experiment_ui_v2`（デフォルトOFF）。新規画面モジュール
+>   一式（screen HTML/shell/adapter/Day X進捗算出の純粋関数/CSS）を追加。
+>   ExperimentCommandService等の書込み系には一切未接続（**BV必要**）。
+>   到達方法は`window.ippoExperimentNext.preview()`のみ（Navigation変更なし）
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・

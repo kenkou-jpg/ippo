@@ -1,0 +1,49 @@
+<div id="screen-experiment-next" class="screen">
+  <div class="expn-scroll">
+
+    <header class="expn-header">
+      <h1>Experiment</h1>
+      <p class="expn-sub">小さな挑戦を試す</p>
+    </header>
+
+    <!-- 進行中の実験（legacy state.experiments からRead-only Adapter経由で表示。
+         データが無い場合は非表示） -->
+    <section class="expn-block expn-running tint-rose" id="expn-running-section" hidden>
+      <div class="expn-kicker"><span class="expn-badge badge-rose">🧪</span><span class="expn-kicker-label">進行中の実験</span></div>
+      <div class="expn-running-row">
+        <div class="expn-progress-ring" id="expn-progress-ring">
+          <span id="expn-progress-label"></span>
+        </div>
+        <div class="expn-running-info">
+          <div class="expn-running-title" id="expn-running-title"></div>
+          <p class="expn-running-caption" id="expn-running-caption"></p>
+          <!-- PR-EXP-RUNTIME-02: 表示のみ。CommandService/legacy書込みへは未接続 -->
+          <button class="expn-btn-secondary" id="expn-today-ok-btn" type="button" disabled>今日もOK</button>
+        </div>
+      </div>
+      <p class="expn-hypothesis" id="expn-running-hypothesis"></p>
+      <p class="expn-observe" id="expn-running-observe"></p>
+      <p class="expn-reassure">いつでもやめられます</p>
+    </section>
+
+    <!-- 実験ライブラリ: Prototype同等の静的表示のみ。書き込み・実験開始は行わない -->
+    <section class="expn-block">
+      <div class="expn-kicker"><span class="expn-badge badge-plum">📚</span><span class="expn-kicker-label">実験ライブラリ</span></div>
+      <div class="expn-library-grid">
+        <div class="expn-library-card">
+          <span class="expn-lib-icon">🔥</span><span class="expn-lib-name">16時間断食</span><span class="expn-lib-desc">1日8時間だけ食べる</span>
+        </div>
+        <div class="expn-library-card">
+          <span class="expn-lib-icon">⏱️</span><span class="expn-lib-name">14時間断食</span><span class="expn-lib-desc">はじめての断食に</span>
+        </div>
+        <div class="expn-library-card">
+          <span class="expn-lib-icon">☕</span><span class="expn-lib-name">カフェイン断ち</span><span class="expn-lib-desc">2週間試す</span>
+        </div>
+        <div class="expn-library-card">
+          <span class="expn-lib-icon">🥛</span><span class="expn-lib-name">乳製品断ち</span><span class="expn-lib-desc">2週間試す</span>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</div>
