@@ -513,6 +513,44 @@ export class ApiGateway {
     return this.#experimentCommandService.create(data);
   }
 
+  // PR-EXP-RUNTIME-04: Experiment Lifecycle Gateway Integration.
+  // ApiGateway/UI must never set `status` directly — all transitions flow
+  // through ExperimentCommandService → ExperimentLifecycleService, which is
+  // the sole authority for the DRAFT/ACTIVE/COMPLETED/ABANDONED state machine.
+
+  /**
+   * Transition an experiment DRAFT → ACTIVE.
+   * @param {string} id
+   * @returns {Promise<object>}
+   */
+  async startExperiment(id) {
+    await this.#permissionService.require('experiment:write');
+    return this.#experimentCommandService.start(id);
+  }
+
+  /**
+   * Transition an experiment ACTIVE → COMPLETED.
+   * @param {string} id
+   * @param {string} [actualEndDate]  YYYY-MM-DD; defaults to today
+   * @returns {Promise<object>}
+   */
+  async completeExperiment(id, actualEndDate = null) {
+    await this.#permissionService.require('experiment:write');
+    return this.#experimentCommandService.complete(id, actualEndDate);
+  }
+
+  /**
+   * Transition an experiment ACTIVE → ABANDONED.
+   * @param {string} id
+   * @param {string} [reason]
+   * @param {string} [actualEndDate]  YYYY-MM-DD; defaults to today
+   * @returns {Promise<object>}
+   */
+  async abandonExperiment(id, reason = null, actualEndDate = null) {
+    await this.#permissionService.require('experiment:write');
+    return this.#experimentCommandService.abandon(id, reason, actualEndDate);
+  }
+
   // ── Case ──────────────────────────────────────────────────────────────────────
 
   async generateCase(recordId) {

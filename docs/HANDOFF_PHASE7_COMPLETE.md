@@ -154,6 +154,23 @@ ippoの設計・実装を進めている。
 >   一式（screen HTML/shell/adapter/Day X進捗算出の純粋関数/CSS）を追加。
 >   ExperimentCommandService等の書込み系には一切未接続（**BV必要**）。
 >   到達方法は`window.ippoExperimentNext.preview()`のみ（Navigation変更なし）
+> - **PR-EXP-RUNTIME-03: Founder Decision確定**（State Machine Authority=
+>   ExperimentLifecycleService、Status Vocabulary=DRAFT/ACTIVE/COMPLETED/
+>   ABANDONEDへ統一、ApiGateway経由の正規経路を承認）
+> - PR-EXP-RUNTIME-04: Experiment Lifecycle Gateway Integration完了。
+>   `ExperimentCommandService`を`ExperimentLifecycleService`へ委譲する薄い
+>   Application Serviceへ整理し、`ApiGateway`へ`startExperiment`/
+>   `completeExperiment`/`abandonExperiment`を追加。**新規発見**:
+>   legacy⇔domainのstatus変換は`ExperimentMapper`に既に実装済みで、
+>   `ExperimentRepositoryImpl`はlegacy `experiments.js`と同一の
+>   `state.experiments`(`ippo_state`キー)を読み書きしていた
+>   （RUNTIME-01時点の「完全独立」という認識は不正確、正しくは「同一データを
+>   異なる抽象化層から読み書き」）。Prototype UIへの接続はまだ行っていない
+>   （書込みCTAはPR-EXP-RUNTIME-05で設計確認のみ、実装は別途停止して
+>   Founder確認）。詳細は`docs/rebuild/PR_EXP_RUNTIME_04_LIFECYCLE_GATEWAY.md`。
+>   既存テスト`tests/bootstrap/pr015-experiment-layer.test.ts`の3件を
+>   旧仕様（statusの直接設定を許容）から新仕様へ更新（Founder Decisionの
+>   意図的な反映）。Build PASS・回帰なし（計908件PASS）。BV不要（UI変更なし）
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・

@@ -11,6 +11,7 @@ import { ExperimentMapper }            from '../../src/repositories/experiment/e
 import { ExperimentRepositoryImpl }    from '../../src/repositories/experiment/experiment-repository.js';
 import { ExperimentQueryService }      from '../../src/application/experiment-query-service.js';
 import { ExperimentCommandService }    from '../../src/application/experiment-command-service.js';
+import { ExperimentLifecycleService }  from '../../src/domains/experiment/experiment-lifecycle-service.js';
 import {
   resetAudit, getMetrics,
   trackRepositoryRoute, trackLegacyAccess, trackStorageDirectAccess,
@@ -280,24 +281,32 @@ describe('ExperimentCommandService', () => {
     expect(e.status).toBe('DRAFT');
   });
 
-  it('create: honours explicit status', async () => {
+  it('create: ignores explicit status, always DRAFT (PR-EXP-RUNTIME-04 Founder Decision 2: 正規4status以外のDomain混入防止)', async () => {
     const { repo } = makeRepo([]);
     const svc = new ExperimentCommandService(repo);
     const e = await svc.create({ title: 'テスト実験', hypothesis: 'h', status: 'ACTIVE' });
-    expect(e.status).toBe('ACTIVE');
+    expect(e.status).toBe('DRAFT');
   });
 
-  it('complete: sets status COMPLETED and actualEndDate', async () => {
+  it('complete: ExperimentLifecycleService未配線の場合はエラー(PR-EXP-RUNTIME-04 Founder Decision 1: 状態遷移はLifecycleService経由のみ)', async () => {
     const { repo } = makeRepo([LEGACY_ACTIVE]);
     const svc = new ExperimentCommandService(repo);
+    await expect(svc.complete('exp_001', '2024-03-31')).rejects.toThrow('not wired');
+  });
+
+  it('complete: ExperimentLifecycleService経由でCOMPLETEDへ遷移しactualEndDateが設定される', async () => {
+    const { repo } = makeRepo([LEGACY_ACTIVE]);
+    const lifecycle = new ExperimentLifecycleService(repo);
+    const svc = new ExperimentCommandService(repo, lifecycle);
     const e = await svc.complete('exp_001', '2024-03-31');
     expect(e.status).toBe('COMPLETED');
     expect(e.actualEndDate).toBe('2024-03-31');
   });
 
-  it('complete: defaults actualEndDate to today', async () => {
+  it('complete: actualEndDateはデフォルトで今日の日付になる', async () => {
     const { repo } = makeRepo([LEGACY_ACTIVE]);
-    const svc = new ExperimentCommandService(repo);
+    const lifecycle = new ExperimentLifecycleService(repo);
+    const svc = new ExperimentCommandService(repo, lifecycle);
     const e = await svc.complete('exp_001');
     expect(e.actualEndDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });

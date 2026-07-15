@@ -579,7 +579,10 @@ export class CompositionRoot {
     });
     c.singleton(TOKENS.ExperimentCommandService, (container) => {
       const repo = container.resolve(TOKENS.ExperimentRepository);
-      return new ExperimentCommandService(repo);
+      // PR-EXP-RUNTIME-04 (Founder Decision 1): status transitions delegate to
+      // ExperimentLifecycleService, the sole state machine authority.
+      const lifecycleService = container.resolve(TOKENS.ExperimentLifecycleService);
+      return new ExperimentCommandService(repo, lifecycleService);
     });
 
     // ── PR-021: UX Foundation Services ───────────────────────────────────
