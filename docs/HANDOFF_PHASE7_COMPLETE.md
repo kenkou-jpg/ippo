@@ -94,47 +94,40 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **次セッション最優先タスク（2026-07-12更新）**: PR-OB-01のクローズに続き、
-> PR-REC-02・PR-REC-03a・PR-REC-03bもFounder Browser Verification実施済み・GOで
-> クローズ（PR-REC-03cは2026-07-11時点で実装・テストとも完了済み）。
-> PR-REC-02〜03系はこれで全件クローズ。
+> **引継ぎサマリー（2026-07-13更新）**
 >
-> Founder承認によりPR-REC-06（Recordスキーマ一本化、Founder方針保留を解除）に着手。
-> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06aを実装したが、Founder
-> サブPRスコープ承認を経ずにcommit・pushされていたためREAD-ONLY再監査を実施し
-> ADOPT WITH FIXES。指摘10項目をPR-REC-06a-FIXで是正し、Founderが**ADOPT**（下記参照）。
-> ただし現時点のNormalized Writeは**「Shadow Write」**扱い
-> （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
-> 本番Read Sourceに使用しない）。
+> **今回クローズ済み**（すべてFounder Browser Verification実施済み・GO）:
+> PR-OB-01（home-next未経由バグ）・PR-REC-02・PR-REC-03a・PR-REC-03b・PR-REC-03c・
+> PR-REC-06a（06a-FIX含む、Recordスキーマ正規化テーブルへのShadow Write接続）・
+> PR-REC-06a-FIX-2（records/record_symptoms/record_factors書込みのRPC原子化、
+> Migration 20260095適用済み）。Migration 20260093/20260094/20260095はすべて
+> 本番Supabaseへ適用済み・確認済み。
 >
-> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → ~~実機Browser
->    Verification~~ → **PR-REC-06a（06a-FIX含む）クローズ**（2026-07-12、Founder GO）。
->    一時停止していたSupabaseプロジェクトの本番影響も「なし」と確認済み
-> 2. ~~PR-REC-06b（リトライ機構）~~ → **完了**（2026-07-13）。Founder事前確認により
->    バックフィルはPR-REC-06cへ先送りし、リトライ機構のみに縮小してPlan Mode経由で実装。
->    `applyNormalizedSyncResult`/`retryNormalizedSyncPending`を追加し既存
->    `retrySyncPending()`パターンをミラー。テスト28件新規PASS、Build PASS、レグレッションなし
->    （下記PR-REC-06bエントリ参照）。**実機確認要否はFounder判断待ち**
-> 3. ~~PR-REC-06a-FIX-2（RPC原子化）~~ → ~~Migration 20260095適用~~ → ~~実機Browser
->    Verification~~ → **クローズ**（2026-07-13、Founder GO）。実装中に発見した
->    「RPCのauth.uid()チェックがservice_role呼び出しを誤って拒否する」不具合は修正済み
-> 3a. PR-REC-06c（バックフィル）: コード修正完了・**未実行のまま**（Founder任意タイミングで
->    実行。実行手順はHANDOFF該当エントリ参照。実装中に発見した「Windows環境でスクリプトの
->    エントリポイント判定が機能しない」不具合は修正済み）
-> 3b. PR-REC-06b（リトライ機構）: コード修正完了、**実機確認要否はFounder判断待ちのまま**
->    （オフライン→オンライン復帰後の自動再送動作の実機確認が望ましいが必須ではないと
->    HANDOFF記載済み）
-> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+> Normalized Write（正規化`records`/`record_symptoms`/`record_factors`）は
+> **「Shadow Write」**として運用中。`user_records`が引き続き唯一の読取り元・復旧元で、
+> Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
+>
+> **未完了・次にやること**（優先順）:
+> 1. **PR-REC-06c（バックフィルスクリプト）を実行する** — コードは完了済み・未実行。
+>    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
+>    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
+>    `--apply`で本実行。詳細手順・想定出力は本HANDOFFのPR-REC-06cエントリ参照
+> 2. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
+>    （オフライン→オンライン復帰後の自動再送動作、必須ではない）
+> 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
 >    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06a/06a-FIX/06b/06a-FIX-2/06cのmainマージ/cherry-pickにより
+>    PR-OB-01・PR-REC-06a/06a-FIX/06b/06a-FIX-2のmainマージ/cherry-pickにより
 >    前提条件が変化しているため、このまま使わず内容の見直しが必要）
-> 5. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
+> 4. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
 >    Founderへスコープ確認が必要）
 >
-> **その他の未着手項目**:
+> **保留中（優先度低・対応不要のまま据え置き）**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
-> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点）
+>
+> `ops/recovery-program`は`origin/ops/recovery-program`と同期済み
+> （2026-07-13時点、コミット`42c0ba3`まで反映済み）。次回セッションはこのHANDOFFを
+> 読めばそのまま再開できる。
 
 **PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
 - 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
