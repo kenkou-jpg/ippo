@@ -169,6 +169,73 @@ Home専用（そのまま移植候補）:
 
 ---
 
+## 7. 実装着手後に判明した追加事実・スコープ再調整（本文書1回目の更新時に追記）
+
+```
+実装（PR-HOME-01コード変更）に着手し、以下2点が当初想定より深い調査を要すると
+判明したため、この回はコード変更を行わず本文書の更新のみで留めた:
+
+1. confidence値の欠落:
+   home-next-insights.js の findBestInsight() が返す候補オブジェクトには
+   main/sub/priorityのみが存在し、confidence値が一切付与されていない
+   （PHASE6companion-intelligence分岐でも ci.rankInsightPriorities() が返す
+   score/tierを候補へ引き継いでいない）。
+   IMPLEMENTATION_PLAN_V1.1出力16 Phase2完了条件の「4段階confidenceLabelと
+   3段階CONFIDENCE_LEVELSの語彙統一」を満たすには、CONFIDENCE_LEVELS/
+   confidenceLabel関連コードが存在する20ファイル・8ディレクトリ以上
+   （domains/signal-insight, domains/knowledge, disease, analytics, home, ai,
+   services, modules 等）を横断調査する必要があり、AI_EXECUTION.mdの探索上限
+   （3ファイル・3ディレクトリ超で停止）に抵触する。confidence統一は
+   PR-HOME-01から切り出し、専用の調査PRとして別途スコープ確定すること。
+
+2. クラス名置換のリスク（Adaptive Calmness機能との衝突）:
+   home-next.css の .hn-insight-card / .hn-quick-card 等は、
+   #screen-home-next[data-mode="anxious"] / [data-display="gentle"] /
+   [data-display="deep"] というAdaptive Calmness機能のCSS条件分岐
+   （確認できただけで4箇所、home-next.cssは1400行超のため全量監査は未実施）
+   の対象セレクタとして既存クラス名に依存している。
+   本文書1〜4節が想定していた「Prototypeのクラス名にそのまま置換する」方針は、
+   このAdaptive Calmness機能を壊すリスクがあるため採用しない。
+
+改訂した実装方針:
+   クラス名（.hn-insight-card / .hn-quick-card 等）・DOM ID構造は現状維持し、
+   その内部の見た目（配色・spacing・kicker badge・カード角丸等）のみを
+   Prototypeの値に合わせて更新する「置換」ではなく「restyle」方式に変更する。
+   confidence-row相当の表示は、confidence値の統一が別PRで完了するまでは
+   追加しない（現状どおり非表示のまま据え置く）。
+
+次PRの現実的なスコープ（PR-HOME-01を以下に縮小）:
+   □ home-next-quick-record.js の出力（インラインstyle多用）を
+     home-next.css側のクラスベーススタイルへ移し、Prototypeのrecord-strip
+     配色・spacingに合わせてrestyle（confidence非依存、低リスク）
+   □ home-next-insights.js の出力をPrototypeのcard-insight配色・spacingに
+     restyle（confidence-row追加は含めない）
+   □ hero/experiment-sectionは本PRから除外し、PR-HOME-02以降へ先送り
+     （hero-ring（Day数表示）はExperiment Day-tracking dataの所在確認が
+     未実施のため）
+
+別途スコープ確定が必要な項目（PR-HOME-01完了後の候補）:
+   □ PR-HOME-INSIGHT-CONFIDENCE: confidence値統一（20ファイル横断、
+     専用調査PRとして起票）
+   □ PR-HOME-02: hero統合（Day-ring含む。Experiment domain側のDay計算
+     データソース確認が前提、Phase 3と依存関係の整理が必要）
+
+3. トークン値の実差分確認（restyle方針の妥当性を裏付け）:
+   home-next.css の --hn-sage:#B8D8B8 / --hn-ink:#2A2320 /
+   card-insight背景rgba(255,255,255,.82) に対し、Prototypeは
+   --sage:#8abf9a / --ink:#2d1f1a / .card-insight背景var(--warm-light)
+   （白ではなく温かみのあるクリーム系）と、色相・彩度が明確に異なることを確認した。
+   restyle対象は妥当だが、--hn-sage/--hn-ink はhome-next.css全体で共有される
+   グローバルトークンであるため、値を変更するとinsight-card/quick-card以外の
+   全コンポーネント（hero/status/experiment等）にも影響する。
+   個別コンポーネントのローカル上書きにするか、グローバルトークン自体を
+   Prototype値へ更新する（影響範囲：home-next.css全体、要全量監査）かは
+   Design System Freeze文書との整合を含めた判断が必要なため、本PRでは決定せず
+   次回の実装セッションで着手時に確定する。
+```
+
+---
+
 This file follows the same design-only, zero-code-change convention as
 `PR_REC_03_RUNTIME_INTEGRATION_PLAN.md`. Implementation begins in a separate PR
 (PR-HOME-01) once this plan is available for reference.
