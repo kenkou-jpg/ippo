@@ -111,23 +111,40 @@ ippoの設計・実装を進めている。
 > 1. **PR-REC-06c（バックフィルスクリプト）を実行する** — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
->    `--apply`で本実行。詳細手順・想定出力は本HANDOFFのPR-REC-06cエントリ参照
+>    `--apply`で本実行。詳細手順・想定出力は本HANDOFFのPR-REC-06cエントリ参照。
+>    **Founder操作待ち**（AI環境にSupabase接続情報なし）
 > 2. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
->    （オフライン→オンライン復帰後の自動再送動作、必須ではない）
-> 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
->    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06a/06a-FIX/06b/06a-FIX-2のmainマージ/cherry-pickにより
->    前提条件が変化しているため、このまま使わず内容の見直しが必要）
-> 4. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
->    Founderへスコープ確認が必要）
+>    （オフライン→オンライン復帰後の自動再送動作、必須ではない）。**Founder操作待ち**
+> 3. **PR-HOME-01（Phase 2: Prototype Home Runtime Integration）に着手可能** —
+>    設計文書`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md`を本セッションで
+>    新規作成済み（コード変更ゼロ）。上記1・2がFounder操作待ちのため、依存しない
+>    次PRとしてこちらへ進む。スコープ: hero/record-strip/insight-card/experiment-section
+>    の4ブロックを`src/screens/home-next.html`へ統合、既存Insight Engine
+>    （companion-intelligence.js、PR-P2-01/02で接続済み）はロジック無変更のまま
+>    新マークアップへ出力先を差し替える。milestone-banner/card-result/card-nextは
+>    Experiment/Outcomeドメイン依存のためPhase 3送りとしてスコープ外化した
+> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
+>    最終更新。作業ディレクトリに存在するが**未コミット**）は全Phase完了後
+>    （IMPLEMENTATION_PLAN_V1.1 Phase 1〜7完了後）に着手するものであり、
+>    現時点（Phase 1途中）では時期尚早と判断・着手見送り
+> 5. Release Gateへ進む（全Phase完了後、Founder指定の次マイルストーン）
+>
+> **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
+> について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
+> IMPLEMENTATION_PLAN_V1.1採用）により、既存UI（home-next等）を対象とした同文書は
+> 実質的にIMPLEMENTATION_PLAN_V1.1のPhase体系に役割を引き継いだ。同文書のPR-P2-03
+> （保留・再設計待ち）・PR-P2-05（部分完了・tier比較表UI未実装）は、対象UIが
+> Phase 2/5でPrototypeマークアップに置き換わるため、現時点では追加着手しない
+> （置き換え対象に工数を投じるのは非効率と判断）。Stripe価格差別化等の商用判断が
+> 必要になった時点でFounderが優先度を再確認すること
 >
 > **保留中（優先度低・対応不要のまま据え置き）**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
 >
 > `ops/recovery-program`は`origin/ops/recovery-program`と同期済み
-> （2026-07-13時点、コミット`42c0ba3`まで反映済み）。次回セッションはこのHANDOFFを
-> 読めばそのまま再開できる。
+> （2026-07-13時点、コミット`42c0ba3`まで反映済み。本セッションの追加コミットは
+> 未push）。次回セッションはこのHANDOFFを読めばそのまま再開できる。
 
 **PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
 - 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
