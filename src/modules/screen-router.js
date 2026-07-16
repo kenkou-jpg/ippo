@@ -19,6 +19,7 @@ import proHubHtml          from '../screens/pro-hub.html?raw';
 import threeCardHtml       from '../screens/record-three-card.html?raw';
 import todayReflectionHtml from '../screens/today-reflection.html?raw';
 import experimentNextHtml  from '../screens/experiment-next.html?raw';
+import insightsNextHtml    from '../screens/insights-next.html?raw';
 
 // Vite ?raw でバンドルされた画面 HTML マップ。
 // fetch に依存しないため本番環境でも確実に動作する。
@@ -32,6 +33,9 @@ const SCREEN_HTML = {
   // PR-EXP-RUNTIME-02: Feature Flag(ippo_experiment_ui_v2)がOFFのデフォルト状態では
   // window.ippoExperimentNext経由でしか到達しないため、既存Navigation・既存画面遷移には影響しない
   'experiment-next':     experimentNextHtml,
+  // PR-INSIGHTS-RUNTIME-02: Feature Flag(ippo_insights_ui_v2)がOFFのデフォルト状態では
+  // window.ippoInsightsNext経由でしか到達しないため、既存Navigation・既存画面遷移には影響しない
+  'insights-next':       insightsNextHtml,
 };
 
 const _loadedScreens = new Set();

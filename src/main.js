@@ -202,6 +202,11 @@ import './modules/home-next/home-next-shell.js';
 // Navigation統合は未定義のため、到達手段は window.ippoExperimentNext のみ。
 import './modules/experiment-next/experiment-next-shell.js';
 
+// ─── PR-INSIGHTS-RUNTIME-02: Prototype Insights画面 (表示のみ) ───
+// Feature flag: localStorage['ippo_insights_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
+import './modules/insights-next/insights-next-shell.js';
+
 // ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
 // 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。
