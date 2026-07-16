@@ -166,8 +166,31 @@
   flex-direction: column;
   gap: 4px;
   min-height: 44px;
+  /* PR-EXP-RUNTIME-06: <button>化に伴うリセット。見た目はdiv時代と同一に維持 */
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.expn-library-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .expn-lib-icon { font-size: 1.25rem; }
 .expn-lib-name { font-size: 0.8125rem; font-weight: 700; color: var(--ink, #2d1f1a); }
 .expn-lib-desc { font-size: 0.6875rem; color: var(--ink-light, #6e5f56); }
+
+/* ── エラー表示（実験開始CTA失敗時） ────────────────────── */
+
+.expn-error {
+  font-size: 0.75rem;
+  color: var(--plum, #b14e56);
+  background: var(--rose-light, #ecd0d2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}

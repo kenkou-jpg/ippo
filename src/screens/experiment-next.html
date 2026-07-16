@@ -26,22 +26,24 @@
       <p class="expn-reassure">いつでもやめられます</p>
     </section>
 
-    <!-- 実験ライブラリ: Prototype同等の静的表示のみ。書き込み・実験開始は行わない -->
+    <!-- 実験ライブラリ: PR-EXP-RUNTIME-06でカード自体が「試す」CTAになる。
+         data-preset-idはexperiment-next-command-adapter.jsのEXPERIMENT_LIBRARY_PRESETSと対応 -->
     <section class="expn-block">
       <div class="expn-kicker"><span class="expn-badge badge-plum">📚</span><span class="expn-kicker-label">実験ライブラリ</span></div>
-      <div class="expn-library-grid">
-        <div class="expn-library-card">
+      <p class="expn-error" id="expn-library-error" hidden></p>
+      <div class="expn-library-grid" id="expn-library-grid">
+        <button class="expn-library-card" type="button" data-preset-id="fast-16h">
           <span class="expn-lib-icon">🔥</span><span class="expn-lib-name">16時間断食</span><span class="expn-lib-desc">1日8時間だけ食べる</span>
-        </div>
-        <div class="expn-library-card">
+        </button>
+        <button class="expn-library-card" type="button" data-preset-id="fast-14h">
           <span class="expn-lib-icon">⏱️</span><span class="expn-lib-name">14時間断食</span><span class="expn-lib-desc">はじめての断食に</span>
-        </div>
-        <div class="expn-library-card">
+        </button>
+        <button class="expn-library-card" type="button" data-preset-id="no-caffeine">
           <span class="expn-lib-icon">☕</span><span class="expn-lib-name">カフェイン断ち</span><span class="expn-lib-desc">2週間試す</span>
-        </div>
-        <div class="expn-library-card">
+        </button>
+        <button class="expn-library-card" type="button" data-preset-id="no-dairy">
           <span class="expn-lib-icon">🥛</span><span class="expn-lib-name">乳製品断ち</span><span class="expn-lib-desc">2週間試す</span>
-        </div>
+        </button>
       </div>
     </section>
 

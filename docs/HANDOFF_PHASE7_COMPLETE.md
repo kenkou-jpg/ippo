@@ -189,7 +189,20 @@ ippoの設計・実装を進めている。
 >   事前失敗でベースラインと完全一致、無関係と確認済み）。Build PASS。
 >   BV不要（UI変更なし、`window.app`はまだUIから未参照）。詳細は
 >   `docs/rebuild/PR_APP_BOOT_01_APPLICATION_RUNTIME.md`。
->   **次PR**: PR-EXP-RUNTIME-06（Prototype CTA→`window.app.api`接続）
+> - PR-EXP-RUNTIME-06: 実験ライブラリの「試す」CTAを`window.app.api`経由の
+>   実験開始（`createExperiment`→`startExperiment`）へ接続。**対象は実験開始
+>   のみ**（complete/abandon/「今日もOK」/ExperimentNudgeServiceは未接続の
+>   まま）。新規`experiment-next-command-adapter.js`（Experiment Screen
+>   Application Adapter）を追加。原子的な`createAndStartExperiment()`は
+>   存在しないことを確認済みのため、start失敗時はDRAFTを削除せず
+>   `draftId`を明示して失敗を返す設計。進行中実験がある間はライブラリCTAを
+>   無効化（複数実験同時進行防止）。二重タップ防止・エラー種別の区別
+>   （guard/validation/runtime/permission/create/start）を実装。
+>   新規テスト15件（command adapter 9件・shell 6件追加）、
+>   Regression計930件PASS、Build PASS。**BV必要**（手順は
+>   `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`）。
+>   **次PR**: Founder Browser Verification待ち。依存しないInsights Phaseの
+>   現状確認は継続可
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
