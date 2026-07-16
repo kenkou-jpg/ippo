@@ -107,17 +107,21 @@ ippoの設計・実装を進めている。
 > **「Shadow Write」**として運用中。`user_records`が引き続き唯一の読取り元・復旧元で、
 > Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
 >
-> **未完了・次にやること**（優先順）:
-> 1. **Founder Browser Verification待ち（2件、並行して蓄積中・ブロッカーには
->    しない）**:
->    a. PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System視覚統合）
->       — 手順は`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節
->    b. PR-EXP-RUNTIME-02（Prototype Experiment画面・表示専用シェル統合）
->       — 手順は`docs/rebuild/PR_EXP_RUNTIME_01_CURRENT_STATE.md` 5節
->    いずれも320/375/390/430px・Console Error 0件を確認し、結果を本HANDOFFへ
->    反映すること。Home側の結果が届くまでHome Phaseの本番既定化・旧UI削除には
->    進まない。Experiment側の結果が届くまでPR-EXP-RUNTIME-03
->    （ExperimentCommandService接続等の書込み機能）には進まない
+> **未完了・次にやること**（優先順、2026-07-16時点で更新）:
+> 1. **Founder Browser Verification待ち（4件、General Releaseの最終Gateで
+>    まとめて確認可・個別のブロッカーにはしない、Founder了承済み）**:
+>    a. Home: PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System
+>       視覚統合） — 手順は`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節
+>    b. Experiment: PR-EXP-RUNTIME-06（実験開始CTA接続） — 手順は
+>       `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`
+>    c. Insights: PR-INSIGHTS-RUNTIME-02〜04（画面統合+Read接続） — 手順は
+>       `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`
+>    d. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
+>       Calendar/Record/Insight/Patternを横断する情報設計事項のため、
+>       吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。
+>       現行`calendar-next.js`は無変更のまま維持
+>    各画面の結果が届くまで、その画面の本番既定化・旧UI削除には進まない
+>    （他の独立Phaseの作業は継続してよい）
 > 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
@@ -217,6 +221,25 @@ ippoの設計・実装を進めている。
 >   エラー、無関係）。Build PASS。BV不要（現行テンプレートは禁止パターンを
 >   含まないため通常操作で挙動変化なし、違反時のみ防御的にフォールバック）。
 >   詳細は`docs/rebuild/PR_INSIGHTS_RUNTIME_01_CURRENT_STATE.md`
+> - **Founder Decision確定（Pattern Calendar）**: 現時点では吸収しない。
+>   Calendar/Record/Insight/Patternを横断する情報設計事項のため、
+>   吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。現行
+>   `calendar-next.js`は維持
+> - PR-INSIGHTS-RUNTIME-02: Prototype Insights画面を表示専用でRuntime統合
+>   （home-next/experiment-nextと同一パターン）。Feature Flag
+>   `ippo_insights_ui_v2`（デフォルトOFF）。Prototypeの「パターンカレンダー」
+>   セクションは上記Founder Decisionにより意図的に含めない
+> - PR-INSIGHTS-RUNTIME-03: 「今週のハイライト」をRead-only ViewModel
+>   Adapter経由で接続。`insights-dynamic-renderer.js`から選定ロジックを
+>   `resolveMainInsight()`として切り出し（挙動同一）、新規adapterから再利用
+> - PR-INSIGHTS-RUNTIME-04: records取得元を`window.getState()`直接参照から
+>   `window.app.api.getRecords()`（ApiGateway正規経路）へ切り替え。
+>   Read Switch=OFFの間はlegacy `ippo_state.records`と同一データのため
+>   安全と確認済み（正規化Read Source化ではない）
+>   RUNTIME-02〜04まとめて: 新規/更新テスト計21件PASS、Regression
+>   74ファイル中72ファイルPASS（失敗2ファイルは既知の`record.service.js`
+>   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
+>   `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`）
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・

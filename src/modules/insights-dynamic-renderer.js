@@ -324,22 +324,25 @@ function _renderSampleBadge(insight, sc) {
   el.textContent = parts.join('・');
 }
 
-// ─── Main insight card renderer ───────────────────────────
+// ─── Main insight resolution (pure) ───────────────────────
+// PR-INSIGHTS-RUNTIME-03: insights-next-adapter.js（Read-only ViewModel
+// Adapter）から再利用するため、DOM描画から選定ロジックを切り出した純粋関数。
+// 挙動は元の_renderMainInsight()と同一（3段階フォールバック: engine insight
+// → signalベース → 低データ時の定型文）。
 
-function _renderMainInsight(insights, signals, records, sc) {
-  const h2El  = sc.querySelector('#ins-main-insight-text, .ipr-ins-h2');
-  const subEl = sc.querySelector('#ins-main-insight-sub, .ipr-ins-body');
-  if (!h2El || !subEl) return;
-
+function resolveMainInsight(insights, signals, records) {
   // Use top signal from engine
   const top = insights[0];
   if (top) {
     const main = _safeText(top.main);
     if (main) {
-      h2El.textContent = main;
-      subEl.textContent = _safeText(top.sub) || '';
-      _renderSampleBadge(top, sc);
-      return;
+      return {
+        main,
+        sub:             _safeText(top.sub) || '',
+        sampleSize:      top.sampleSize,
+        confidenceLabel: top.confidenceLabel,
+        effectSize:      top.effectSize,
+      };
     }
     // BD-038違反時はこのinsightを飛ばし、下のsignalベースのfallbackへ進む
   }
@@ -349,23 +352,40 @@ function _renderMainInsight(insights, signals, records, sc) {
   if (topSig) {
     const text = _signalText(topSig);
     if (text) {
-      h2El.textContent = text;
-      subEl.textContent = topSig.pct
-        ? `過去30日の記録から、約${topSig.pct}%の確率で見られます。断定はできませんが、気になる動きがあります。`
-        : '記録が続くと、傾向がより明確になります。';
-      return;
+      return {
+        main: text,
+        sub: topSig.pct
+          ? `過去30日の記録から、約${topSig.pct}%の確率で見られます。断定はできませんが、気になる動きがあります。`
+          : '記録が続くと、傾向がより明確になります。',
+      };
     }
   }
 
   // Low data or no signal: calm fallback
   const recCount = records.length;
   if (recCount < 5) {
-    h2El.textContent = '記録が増えると、ここに気づきが届きます';
-    subEl.textContent = '記録を続けることで、少しずつ自分の傾向が見えてきます。';
-  } else {
-    h2El.textContent = '気になる動きはありません';
-    subEl.textContent = '最近の記録からは、特定のパターンはまだ見えていません。これからも、気づいたことを記録してみてください。';
+    return {
+      main: '記録が増えると、ここに気づきが届きます',
+      sub:  '記録を続けることで、少しずつ自分の傾向が見えてきます。',
+    };
   }
+  return {
+    main: '気になる動きはありません',
+    sub:  '最近の記録からは、特定のパターンはまだ見えていません。これからも、気づいたことを記録してみてください。',
+  };
+}
+
+// ─── Main insight card renderer ───────────────────────────
+
+function _renderMainInsight(insights, signals, records, sc) {
+  const h2El  = sc.querySelector('#ins-main-insight-text, .ipr-ins-h2');
+  const subEl = sc.querySelector('#ins-main-insight-sub, .ipr-ins-body');
+  if (!h2El || !subEl) return;
+
+  const resolved = resolveMainInsight(insights, signals, records);
+  h2El.textContent  = resolved.main;
+  subEl.textContent = resolved.sub;
+  if (resolved.sampleSize) _renderSampleBadge(resolved, sc);
 }
 
 // ─── Hints card renderer ─────────────────────────────────
@@ -461,7 +481,7 @@ function _renderAlternativeViews(sc) {
 
 // テスト用export（PR: forbidden-word-validator接続の単体テスト）。
 // 実行時の呼び出し元・挙動は変更しない。
-export { _signalText, _recentChangeText, _safeText };
+export { _signalText, _recentChangeText, _safeText, resolveMainInsight };
 
 /**
  * インサイト画面の動的コンテンツをレンダリングする。

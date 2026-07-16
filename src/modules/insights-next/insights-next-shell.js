@@ -6,11 +6,12 @@
 //  OFF（デフォルト）のとき、このモジュールは何もしない
 //  （home-next-shell.js / experiment-next-shell.jsと同一パターン）。
 //
-//  このPRはスクリーンの追加・登録のみが目的。データソース（legacy
-//  insights-dynamic-renderer.js相当のRead-only Adapter）はPR-INSIGHTS-
-//  RUNTIME-03、ApiGateway経由の読み取り接続はPR-INSIGHTS-RUNTIME-04で
-//  それぞれ別PRとして追加する。書き込みは一切行わない（Insights自体に
-//  書き込み概念はない）。
+//  PR-INSIGHTS-RUNTIME-03で「今週のハイライト」をRead-only ViewModel
+//  Adapter経由で接続し、PR-INSIGHTS-RUNTIME-04でrecords読み取りを
+//  window.app.api.getRecords()（ApiGateway経由の正規経路）へ切り替えた。
+//  「実験結果サマリー」は比較用データソースの設計が別途必要なため、
+//  引き続き空のまま（hidden状態）とする。書き込みは一切行わない
+//  （Insights自体に書き込み概念はない）。
 //
 //  Pattern Calendarは意図的に含まない（Founder Decision:
 //  Calendar/Record/Insight/Patternを横断する情報設計事項のため、
@@ -19,7 +20,8 @@
 
 import './insights-next.css';
 
-import { showScreen } from '../screen-router.js';
+import { showScreen }             from '../screen-router.js';
+import { getHighlightViewModel }  from './insights-next-adapter.js';
 
 const FLAG_KEY = 'ippo_insights_ui_v2';
 
@@ -35,21 +37,52 @@ export function enableInsightsNext()  { try { localStorage.setItem(FLAG_KEY, '1'
 export function disableInsightsNext() { try { localStorage.removeItem(FLAG_KEY); }     catch (_) { /* noop */ } }
 
 /**
- * PR-INSIGHTS-RUNTIME-02時点では、画面の静的セクション（Premium-locked
- * カード等）はマークアップのみで完結しており、動的データ描画は行わない。
- * highlight/compareの各要素はPR-INSIGHTS-RUNTIME-03以降のRead-only Adapter
- * 接続まで空のまま（hidden状態）とする。
+ * 「今週のハイライト」はRead-only ViewModel Adapter（ApiGateway.getRecords()
+ * 経由）で描画する。「実験結果サマリー」は比較用データソース未設計のため
+ * 引き続き空のまま（hidden状態）とする。
  */
-export function renderInsightsNext() {
+export async function renderInsightsNext() {
   const screen = document.getElementById('screen-insights-next');
   if (!screen) return;
-  // 現時点では描画対象データソースがないため no-op。
-  // 将来のAdapter接続はここへ追加する。
+
+  const textEl = document.getElementById('insn-highlight-text');
+  const rowEl  = document.getElementById('insn-highlight-confidence-row');
+  const tagEl  = document.getElementById('insn-highlight-confidence');
+  if (!textEl) return;
+
+  // records以外（myDiseases等）は現時点でApiGateway側にRead経路が無いため
+  // legacy window.getState()から補う。records自体はAdapter内でApiGateway
+  // 経由の値に置き換えられる。
+  const extraState = typeof window !== 'undefined' && typeof window.getState === 'function'
+    ? window.getState()
+    : {};
+
+  let vm;
+  try {
+    vm = await getHighlightViewModel(extraState);
+  } catch (_) {
+    return;
+  }
+
+  textEl.textContent = vm.text;
+
+  if (rowEl && tagEl) {
+    if (vm.confidenceLabel && vm.confidenceDots > 0) {
+      const dots = rowEl.querySelectorAll('.insn-confidence-dot');
+      dots.forEach((dot, i) => dot.classList.toggle('filled', i < vm.confidenceDots));
+      tagEl.textContent = _CONF_TAG_LABEL[vm.confidenceLabel] || '';
+      rowEl.hidden = false;
+    } else {
+      rowEl.hidden = true;
+    }
+  }
 }
+
+const _CONF_TAG_LABEL = { high: '信頼度：高', medium: '信頼度：中', low: '信頼度：低' };
 
 export async function showInsightsNext() {
   await showScreen('insights-next');
-  renderInsightsNext();
+  await renderInsightsNext();
 }
 
 export function initInsightsNext() {

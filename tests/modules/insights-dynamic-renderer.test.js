@@ -4,7 +4,7 @@
 // (BD-038 SSOT)への実行時接続がなかった。_signalText/_recentChangeText/
 // 主insightカードの表示経路へ検証を追加した分の単体テスト。
 import { describe, it, expect } from 'vitest';
-import { _signalText, _recentChangeText, _safeText } from '../../src/modules/insights-dynamic-renderer.js';
+import { _signalText, _recentChangeText, _safeText, resolveMainInsight } from '../../src/modules/insights-dynamic-renderer.js';
 
 describe('_safeText (BD-038 forbidden-word-validator接続)', () => {
   it('禁止パターンを含まないテキストはそのまま返す', () => {
@@ -55,5 +55,32 @@ describe('_recentChangeText', () => {
 
   it('bbtVarianceはsig.avgを埋め込んだ文を返す(禁止語なし)', () => {
     expect(_recentChangeText({ id: 'bbtVariance', avg: 36.5 })).toBe('過去30日の体温に変化が見られます（平均 36.5℃）');
+  });
+});
+
+describe('resolveMainInsight (PR-INSIGHTS-RUNTIME-03のAdapterから再利用する純粋関数)', () => {
+  it('engine insightが有効な場合、それを優先しconfidenceLabel等も引き継ぐ', () => {
+    const insights = [{ main: '最近よく眠れています', sub: '調子が良さそうです', sampleSize: 20, confidenceLabel: 'medium' }];
+    const result = resolveMainInsight(insights, [], []);
+    expect(result.main).toBe('最近よく眠れています');
+    expect(result.confidenceLabel).toBe('medium');
+    expect(result.sampleSize).toBe(20);
+  });
+
+  it('engine insightがBD-038違反の場合、signalベースのfallbackへ進む', () => {
+    const insights = [{ main: '今すぐ病院へ行ってください', sub: 'x' }];
+    const signals = [{ layer: 2, confidence: 0.5, id: 'sleepPainCorrelation', trigger: '睡眠不足', symptom: '痛み', pct: 70 }];
+    const result = resolveMainInsight(insights, signals, [1, 2, 3, 4, 5]);
+    expect(result.main).toBe('最近は、睡眠不足に痛みが増える傾向があります');
+  });
+
+  it('insight/signalどちらも無く記録が5件未満の場合は低データ用の定型文', () => {
+    const result = resolveMainInsight([], [], [1, 2]);
+    expect(result.main).toBe('記録が増えると、ここに気づきが届きます');
+  });
+
+  it('insight/signalどちらも無く記録が5件以上の場合は「動きなし」の定型文', () => {
+    const result = resolveMainInsight([], [], [1, 2, 3, 4, 5, 6]);
+    expect(result.main).toBe('気になる動きはありません');
   });
 });
