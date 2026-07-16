@@ -203,6 +203,20 @@ ippoの設計・実装を進めている。
 >   `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`）。
 >   **次PR**: Founder Browser Verification待ち。依存しないInsights Phaseの
 >   現状確認は継続可
+> - PR-INSIGHTS-RUNTIME-01: Insights Phase現状確認 + forbidden-word-validator
+>   接続。**現状確認の要点**: (a) 現行`insights.html`はPrototype配色未統合
+>   （独自の青紫系「PRO Insight」デザイン、Home/Experimentは統合済み）、
+>   (b) confidence表示は元々4段階語彙（high/medium/low/insufficient）で
+>   統一済みだった、(c) Pattern Calendarは未実装で、`calendar-next.js`の
+>   Insightsへの吸収可否が出力17記載の**未解決Founder Decision**のため
+>   このPRでは着手見送り、(d) forbidden-word-validator（BD-038）が
+>   ファイル冒頭コメントの申し合わせのみで実行時未接続だったため、
+>   PR-HOME-01と同じパターンで接続（`_signalText`/`_recentChangeText`/
+>   engine insightの3経路）。新規テスト10件PASS、Regression 29ファイル中
+>   27ファイルPASS（失敗2ファイルは既知の`record.service.js`import解決
+>   エラー、無関係）。Build PASS。BV不要（現行テンプレートは禁止パターンを
+>   含まないため通常操作で挙動変化なし、違反時のみ防御的にフォールバック）。
+>   詳細は`docs/rebuild/PR_INSIGHTS_RUNTIME_01_CURRENT_STATE.md`
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・

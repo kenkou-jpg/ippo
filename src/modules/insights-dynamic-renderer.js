@@ -10,6 +10,23 @@
 // ============================================================
 
 import { extractSignals, signalFingerprint } from '../services/insight-signals.js';
+import { validateOutput } from '../domains/signal-insight/forbidden-word-validator.js';
+
+// BD-038（IMPLEMENTATION_PLAN_V1.1 Phase4完了条件「forbidden-word-validator.jsが
+// 新しい気づき生成パスに接続されている」）: このファイル冒頭コメントの「禁止語」は
+// 従来コメントのみの申し合わせで、実行時検証には接続されていなかった。
+// signal由来の動的テキスト（_signalText/_recentChangeText/engine insight）を
+// 生成する箇所でこの関数を通し、違反時はnullへフォールバックする
+// （呼び出し元は元々null時の代替表示を持つため、呼び出し側の変更は不要）。
+function _safeText(text) {
+  if (!text) return null;
+  try {
+    validateOutput(text, false);
+    return text;
+  } catch (_) {
+    return null;
+  }
+}
 
 // ─── Comment stabilization ────────────────────────────────
 const _STABLE_KEY    = 'ippo_insight_render_v1';
@@ -148,35 +165,39 @@ const _LAYER1_DEFAULT = {
 
 function _signalText(sig) {
   if (!sig) return null;
+  let text = null;
   switch (sig.id) {
     case 'sleepPainCorrelation':
     case 'sleepFatigueCorrelation':
-      return `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`; break;
     case 'stressFlareRisk':
-      return `最近は、${sig.trigger}に${sig.symptom}が集中しやすい傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が集中しやすい傾向があります`; break;
     case 'cycleMoodLink':
-      return `最近は、${sig.trigger}に${sig.symptom}が出やすい傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が出やすい傾向があります`; break;
     case 'coldSensitivity':
-      return `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`; break;
     case 'improvementSleep':
-      return `最近は、${sig.trigger}は${sig.symptom}`;
+      text = `最近は、${sig.trigger}は${sig.symptom}`; break;
     default:
       return null;
   }
+  return _safeText(text);
 }
 
 function _recentChangeText(sig) {
   if (!sig) return null;
+  let text = null;
   switch (sig.id) {
     case 'recentFlare':
-      return '過去1週間は、気になる動きがあります。もう少し見ることもできます';
+      text = '過去1週間は、気になる動きがあります。もう少し見ることもできます'; break;
     case 'recentImprovement':
-      return '過去1週間は、それ以前と比べて落ち着いている傾向があります';
+      text = '過去1週間は、それ以前と比べて落ち着いている傾向があります'; break;
     case 'bbtVariance':
-      return `過去30日の体温に変化が見られます（平均 ${sig.avg}℃）`;
+      text = `過去30日の体温に変化が見られます（平均 ${sig.avg}℃）`; break;
     default:
       return null;
   }
+  return _safeText(text);
 }
 
 // ─── Build disease card content (3-layer) ─────────────────
@@ -313,10 +334,14 @@ function _renderMainInsight(insights, signals, records, sc) {
   // Use top signal from engine
   const top = insights[0];
   if (top) {
-    h2El.textContent = top.main;
-    subEl.textContent = top.sub;
-    _renderSampleBadge(top, sc);
-    return;
+    const main = _safeText(top.main);
+    if (main) {
+      h2El.textContent = main;
+      subEl.textContent = _safeText(top.sub) || '';
+      _renderSampleBadge(top, sc);
+      return;
+    }
+    // BD-038違反時はこのinsightを飛ばし、下のsignalベースのfallbackへ進む
   }
 
   // Fall back to top high-confidence signal
@@ -433,6 +458,10 @@ function _renderAlternativeViews(sc) {
 }
 
 // ─── Main public function ─────────────────────────────────
+
+// テスト用export（PR: forbidden-word-validator接続の単体テスト）。
+// 実行時の呼び出し元・挙動は変更しない。
+export { _signalText, _recentChangeText, _safeText };
 
 /**
  * インサイト画面の動的コンテンツをレンダリングする。
