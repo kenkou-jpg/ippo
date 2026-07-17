@@ -1,0 +1,39 @@
+<div id="screen-me-next" class="screen">
+  <div class="men-scroll">
+
+    <header class="men-header">
+      <h1>Me</h1>
+    </header>
+
+    <!-- プロフィール: 名前・現在のプランはPR-ME-RUNTIME-03/04のRead-only
+         Adapterで後日接続。現時点では空のまま（データソース未接続） -->
+    <section class="men-profile-block">
+      <div class="men-avatar-circle" id="men-avatar-initial"></div>
+      <div class="men-profile-info">
+        <div class="men-profile-name" id="men-profile-name" hidden></div>
+        <!-- タップでbilling-next（Premium/Pro画面）へ遷移。Plan Card自体の
+             実装はPR-BILLING-RUNTIME-02の billing-next と重複するため
+             ここでは持たず、遷移導線のみとする -->
+        <button class="men-profile-plan" id="men-profile-plan" type="button" hidden></button>
+      </div>
+    </section>
+
+    <!-- プライバシー再保証: Prototype onboarding-cardと同一コピー。
+         Consentの同意取得UIではなく既存の安心材料コピー（変更対象外） -->
+    <section class="men-card men-onboarding-card">
+      <div class="men-kicker"><span class="men-badge badge-rose">🔒</span><span class="men-kicker-label">プライバシーについて</span></div>
+      <p class="men-onboarding-reassure">あなたの記録は、あなただけが見られます。第三者への共有・公開は行いません。</p>
+    </section>
+
+    <!-- 設定リスト: Prototype同様、静的表示のみ（Prototype自体も
+         「気になることを変更する」以外はクリックハンドラを持たない） -->
+    <section class="men-card men-settings-list">
+      <div class="men-settings-row">通知設定</div>
+      <div class="men-settings-row">データのエクスポート</div>
+      <div class="men-settings-row">アカウント</div>
+      <div class="men-settings-row">気になることを変更する</div>
+      <div class="men-settings-row">ヘルプ</div>
+    </section>
+
+  </div>
+</div>

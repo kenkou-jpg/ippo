@@ -118,7 +118,9 @@ ippoの設計・実装を進めている。
 >       `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`
 >    d. Billing: PR-BILLING-RUNTIME-02〜04（Premium/Pro画面統合+Read接続） —
 >       手順は`docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`
->    e. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
+>    e. Me: PR-ME-RUNTIME-02〜04（Me画面統合+現在のプランRead接続） —
+>       手順は`docs/rebuild/PR_ME_RUNTIME_03_04_ADAPTER_AND_READ.md`
+>    f. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
 >       Calendar/Record/Insight/Patternを横断する情報設計事項のため、
 >       吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。
 >       現行`calendar-next.js`は無変更のまま維持
@@ -131,6 +133,13 @@ ippoの設計・実装を進めている。
 >    Trial有無、Checkout CTAの本番接続タイミング。詳細は
 >    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節。
 >    この決定が届くまでCheckout接続・価格変更には進まない
+> 1c. **Founder Decision待ち（Research Consent UI設計）**: PR-ME-
+>    RUNTIME-01調査で判明。PrototypeにConsent UIの設計が一切存在しない
+>    （Home/Experiment/Insights/Billingのような「Prototype画面をそのまま
+>    移植」する手順が適用できない）。新規UI設計は同意文言・レベル変更を
+>    伴うリスクがあるため着手見送り中。現行の1行トグル実装
+>    （`app.html`内・`src/services/consent-service.js`）は機能的に完結して
+>    いる。詳細は`docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md` 3節
 > 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
@@ -282,6 +291,29 @@ ippoの設計・実装を進めている。
 >   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
 >   `docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`）。
 >   Checkout本番接続・価格確定・Premium/Pro商品分割はFounder Decision待ち
+> - PR-ME-RUNTIME-01: Me/Consent/Research現状確認（コード変更なし）。
+>   **主要発見**: Research Contribution Badgeは既に実装・接続済み
+>   （PR-P2-04、対応不要）。Research Consentの正実装は
+>   `src/services/consent-service.js`（localStorage backed、Supabase
+>   同期なし）— `ConsentRepositoryImpl`はDI登録済みだが未接続という
+>   Experiment/Billingと同一パターン。**PrototypeにConsent UI設計が
+>   一切存在しない**ため新規UI作成は見送り。詳細は
+>   `docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md`
+> - PR-ME-RUNTIME-02: Prototype Me画面を表示専用でRuntime統合。Feature
+>   Flag `ippo_me_ui_v2`（デフォルトOFF）。Plan Card 2枚は`billing-next`と
+>   重複するため実装せず、「現在のプラン」+ タップでbilling-next遷移の
+>   導線のみ（Founder確認済み）。プライバシーカード（既存の安心材料コピー、
+>   Consent同意取得UIではない）・設定リスト5行（静的表示のみ）を実装
+> - PR-ME-RUNTIME-03/04: 「現在のプラン」をRead-only Adapter経由で接続。
+>   **`billing-next-adapter.js`の`getSubscriptionViewModel()`をそのまま
+>   再利用**（二重実装防止、resolveMainInsight()と同じ原則）。プロフィール
+>   名は対応するRead facadeが無いため引き続き未接続（架空データを作らない）。
+>   RUNTIME-02〜04まとめて: 新規/更新テスト計14件PASS、Regression
+>   78ファイル中76ファイルPASS（失敗2ファイルは既知の`record.service.js`
+>   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
+>   `docs/rebuild/PR_ME_RUNTIME_03_04_ADAPTER_AND_READ.md`）。
+>   Research Consent UIはFounder DecisionでPrototype設計方針が決まるまで
+>   着手しない
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
