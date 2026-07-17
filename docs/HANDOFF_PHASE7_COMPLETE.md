@@ -94,256 +94,91 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **引継ぎサマリー（2026-07-13更新）**
+> **引継ぎサマリー（2026-07-17更新）**
 >
-> **今回クローズ済み**（すべてFounder Browser Verification実施済み・GO）:
-> PR-OB-01（home-next未経由バグ）・PR-REC-02・PR-REC-03a・PR-REC-03b・PR-REC-03c・
-> PR-REC-06a（06a-FIX含む、Recordスキーマ正規化テーブルへのShadow Write接続）・
-> PR-REC-06a-FIX-2（records/record_symptoms/record_factors書込みのRPC原子化、
-> Migration 20260095適用済み）。Migration 20260093/20260094/20260095はすべて
-> 本番Supabaseへ適用済み・確認済み。
+> **アーキテクチャ達成**: Home・Experiment・Insights・Billing・Meの5画面が
+> `Prototype UI → Runtime → Application Facade → Domain`という統一
+> アーキテクチャで揃った（本セッションの最大の成果）。全画面Feature Flag
+> デフォルトOFF、到達手段は`window.ippoXxxNext.preview()`のみ
+> （Navigation変更なし・既存本番挙動に影響なし）。実装フェーズの重心は
+> 「画面追加」から「リリース準備」へ移った。
 >
-> Normalized Write（正規化`records`/`record_symptoms`/`record_factors`）は
-> **「Shadow Write」**として運用中。`user_records`が引き続き唯一の読取り元・復旧元で、
-> Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
+> **→ 全体棚卸し**: `docs/rebuild/PR_RELEASE_READINESS_01_INVENTORY.md`
+> （Runtime統合済み画面一覧・Feature Flag一覧・Legacy依存一覧・Founder
+> Decision一覧・Release Blocker一覧・RC残PR一覧）
 >
-> **未完了・次にやること**（優先順、2026-07-17時点で更新）:
+> **→ RC準備の実務資料（Founderがそのまま使う）**:
+> `docs/rebuild/PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`
+> （RC対象/対象外の確定一覧・5画面分のBrowser Verificationチェックリスト・
+> Feature Flag一覧・Legacy一覧・Founder Decision一覧・Release Blocker
+> 一覧・PR-REC-06b/06c整理・RCチェックリスト）。**すべてのBrowser
+> VerificationはFounder確認待ちであり、AIは実施・代行しない。**
 >
-> **→ 全体像は`docs/rebuild/PR_RELEASE_READINESS_01_INVENTORY.md`に棚卸し
-> 済み**（Runtime統合済み画面一覧・Feature Flag一覧・Browser
-> Verification一覧・Legacy依存一覧・未解決Founder Decision一覧・Release
-> Blocker一覧・RCに必要な残PR一覧）。以下は同文書の要約。
+> ### 現在地（次回セッションはここから再開）
 >
-> **→ RC Scope Freeze + Founder Browser Verification Pack（実際に記入して
-> 使う資料）は`docs/rebuild/PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`**。
-> RC対象/対象外の確定一覧・5画面分のBVチェックリスト（チェックボックス
-> 形式、Founder記入用）・Feature Flag一覧（ON/OFF条件・本番切替タイミング
-> 付き）・Legacy一覧（削除禁止/削除予定/General Release後）・Founder
-> Decision一覧・Release Blocker一覧（重要度分類）・PR-REC-06b/06cの整理・
-> RCチェックリストを収録。**すべてのBrowser VerificationはFounder確認待ち
-> として記載されており、AIは実施・代行しない。**
+> **Founder確認待ち（Blocker）**:
+> 1. **Browser Verification（5件、まとめて確認可）**: Home / Experiment /
+>    Insights / Billing / Me。チェックリストは上記READINESS-02文書 2節
+> 2. **PR-REC-06c**（バックフィルスクリプト、コード完了・未実行）:
+>    Founder操作待ち（AI環境にSupabase接続情報なし）。手順は同文書 7節・
+>    本HANDOFFのPR-REC-06cエントリ
+> 3. **PR-REC-06b**（リトライ機構）: Browser Verification要否をFounderが判断
 >
-> 1. **Founder Browser Verification待ち（5件、General Releaseの最終Gateで
->    まとめて確認可・個別のブロッカーにはしない、Founder了承済み）**:
->    a. Home: PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System
->       視覚統合） — 手順は`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節
->    b. Experiment: PR-EXP-RUNTIME-06（実験開始CTA接続） — 手順は
->       `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`
->    c. Insights: PR-INSIGHTS-RUNTIME-02〜04（画面統合+Read接続） — 手順は
->       `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`
->    d. Billing: PR-BILLING-RUNTIME-02〜04（Premium/Pro画面統合+Read接続） —
->       手順は`docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`
->    e. Me: PR-ME-RUNTIME-02〜04（Me画面統合+現在のプランRead接続） —
->       手順は`docs/rebuild/PR_ME_RUNTIME_03_04_ADAPTER_AND_READ.md`
->    f. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
->       Calendar/Record/Insight/Patternを横断する情報設計事項のため、
->       吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。
->       現行`calendar-next.js`は無変更のまま維持
->    各画面の結果が届くまで、その画面の本番既定化・旧UI削除には進まない
->    （他の独立Phaseの作業は継続してよい）
-> 1b. **Founder Decision待ち（Billing価格・商品構成）**: PR-BILLING-
->    RUNTIME-01調査で判明した価格不一致（実コード¥580/月・¥4,800/年 vs
->    過去のMonetization Council記録¥980/¥1,980）の解消、Premium/Proを
->    実際に2商品へ分割するか否か、機能境界、既存有料ユーザーの移行方法、
->    Trial有無、Checkout CTAの本番接続タイミング。詳細は
->    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節。
->    この決定が届くまでCheckout接続・価格変更には進まない
-> 1c. **Founder Decision確定（Research Consent UI設計）**: Consent Runtime
->    は新規UIを作らず、現行Consent UI（`app.html`内・
->    `src/services/consent-service.js`）を維持する。再設計はPrototype v2で
->    行う。**ConsentはRelease Blockerにしない**（2026-07-17確定）。
->    詳細は`docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md` 3節
-> 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
->    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
->    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
->    `--apply`で本実行。詳細手順・想定出力は本HANDOFFのPR-REC-06cエントリ参照。
->    **Founder操作待ち**（AI環境にSupabase接続情報なし）
-> 3. PR-REC-06b（リトライ機構）の実機確認要否をFounderが判断
->    （オフライン→オンライン復帰後の自動再送動作、必須ではない）。**Founder操作待ち**
-> 4. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
->    最終更新。作業ディレクトリに存在するが**未コミット**）は全Phase完了後
->    （IMPLEMENTATION_PLAN_V1.1 Phase 1〜7完了後）に着手するものであり、
->    現時点（Phase 1途中）では時期尚早と判断・着手見送り
-> 5. Release Gateへ進む（全Phase完了後、Founder指定の次マイルストーン）
+> **Founder Decision待ち（Blockerではないが未確定）**:
+> 4. Billing価格・商品構成（実コード¥580/月・¥4,800/年 vs 過去記録の
+>    ¥980/¥1,980の不一致、Premium/Pro分割可否等）。詳細は
+>    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節
 >
-> **本セッションでPhase 2（Home統合）関連に実装完了したPR一覧**（`ops/recovery-program`、
-> push済み）:
-> - PR-HOME-01: forbidden-word-validator接続（BD-038、Logic-only、BV不要）
-> - PR-HOME-INSIGHT-CONFIDENCE: confidenceLabel統一（insight-engine.js既存値の
->   引き継ぎ漏れを修正、Logic-only、BV不要）
-> - PR-HOME-02: Hero(hn-hero)再接続（既存renderHero()を再有効化、**BV必要**）
-> - PR-HOME-03/04/05（Status/Experiment/Question Layer）: 旧PR-P2-01/02で
->   接続済みと確認・追加変更なし
-> - PR-HOME-06: Prototype Design System視覚統合（`home-next.css`のみ、
->   scoped tokenで#screen-home-next配下のみ配色更新、**BV必要**）
+> **確定済み（Release Blockerではない）**:
+> - Consent UI: 新規UIは作らず現行維持（`app.html`内・
+>   `consent-service.js`）。再設計はPrototype v2以降
+> - Pattern Calendar: 現状維持（`calendar-next.js`無変更）。統合・廃止は
+>   General Release後の独立PR
+> - Case/Similarity（Phase 7）: 本セッション未着手。今回のRC対象外
 >
-> **本セッションでPhase 3（Experiment統合）着手・実装完了したPR一覧**
-> （`ops/recovery-program`、push済み）:
-> - PR-EXP-RUNTIME-01: 現状確認（コード変更なし）。「正」ドメイン
->   （`src/domains/experiment/*`経由の`ApiGateway.getExperiments()`/
->   `createExperiment()`）は呼び出し元ゼロで完全未使用、legacy
->   `experiments.js`は独立した`state.experiments`を直接操作、という新規発見を
->   記録。詳細は`docs/rebuild/PR_EXP_RUNTIME_01_CURRENT_STATE.md`
-> - PR-EXP-RUNTIME-02: Prototype Experiment画面を表示専用で本番Runtimeへ統合。
->   Feature Flag `ippo_experiment_ui_v2`（デフォルトOFF）。新規画面モジュール
->   一式（screen HTML/shell/adapter/Day X進捗算出の純粋関数/CSS）を追加。
->   ExperimentCommandService等の書込み系には一切未接続（**BV必要**）。
->   到達方法は`window.ippoExperimentNext.preview()`のみ（Navigation変更なし）
-> - **PR-EXP-RUNTIME-03: Founder Decision確定**（State Machine Authority=
->   ExperimentLifecycleService、Status Vocabulary=DRAFT/ACTIVE/COMPLETED/
->   ABANDONEDへ統一、ApiGateway経由の正規経路を承認）
-> - PR-EXP-RUNTIME-04: Experiment Lifecycle Gateway Integration完了。
->   `ExperimentCommandService`を`ExperimentLifecycleService`へ委譲する薄い
->   Application Serviceへ整理し、`ApiGateway`へ`startExperiment`/
->   `completeExperiment`/`abandonExperiment`を追加。**新規発見**:
->   legacy⇔domainのstatus変換は`ExperimentMapper`に既に実装済みで、
->   `ExperimentRepositoryImpl`はlegacy `experiments.js`と同一の
->   `state.experiments`(`ippo_state`キー)を読み書きしていた
->   （RUNTIME-01時点の「完全独立」という認識は不正確、正しくは「同一データを
->   異なる抽象化層から読み書き」）。Prototype UIへの接続はまだ行っていない
->   （書込みCTAはPR-EXP-RUNTIME-05で設計確認のみ、実装は別途停止して
->   Founder確認）。詳細は`docs/rebuild/PR_EXP_RUNTIME_04_LIFECYCLE_GATEWAY.md`。
->   既存テスト`tests/bootstrap/pr015-experiment-layer.test.ts`の3件を
->   旧仕様（statusの直接設定を許容）から新仕様へ更新（Founder Decisionの
->   意図的な反映）。Build PASS・回帰なし（計908件PASS）。BV不要（UI変更なし）
-> - PR-EXP-RUNTIME-05: CTA接続設計確認（コード変更なし）。**最重要発見**:
->   `ApiGateway`はDI登録済みだが`container.resolve(TOKENS.ApiGateway)`が
->   リポジトリ全体で一度も呼ばれていない
->   （Application層全体が到達不可能な状態）。これを受けFounderがa案
->   （ApiGatewayをApplication Facadeとして正式採用、`window.app.api`経由での
->   み公開）を決定
-> - **PR-APP-BOOT-01: Application Runtime Bootstrap完了**（Experimentではなく
->   Application層全体の基盤PR）。`Application.initialize()`が`ApiGateway`を
->   resolveし、新設の`ApplicationRuntime`（`.api`のみ公開、containerは非公開）
->   経由で`window.app`へ設定するよう変更。実boot()経路へ組み込む前に、フル
->   組み立て済みcontainerからのresolveが安全か診断テストで先に確認済み。
->   新規テスト7件・既存2件更新（`TOKENS.ApiGateway`未登録の最小containerが
->   新しいinitialize()で失敗するようになったためfake登録を追加）。
->   フルテストスイート304ファイル中301ファイルPASS（失敗3ファイル・35件は
->   `record.js`の`record.service.js`import解決エラーに起因する既知の
->   事前失敗でベースラインと完全一致、無関係と確認済み）。Build PASS。
->   BV不要（UI変更なし、`window.app`はまだUIから未参照）。詳細は
->   `docs/rebuild/PR_APP_BOOT_01_APPLICATION_RUNTIME.md`。
-> - PR-EXP-RUNTIME-06: 実験ライブラリの「試す」CTAを`window.app.api`経由の
->   実験開始（`createExperiment`→`startExperiment`）へ接続。**対象は実験開始
->   のみ**（complete/abandon/「今日もOK」/ExperimentNudgeServiceは未接続の
->   まま）。新規`experiment-next-command-adapter.js`（Experiment Screen
->   Application Adapter）を追加。原子的な`createAndStartExperiment()`は
->   存在しないことを確認済みのため、start失敗時はDRAFTを削除せず
->   `draftId`を明示して失敗を返す設計。進行中実験がある間はライブラリCTAを
->   無効化（複数実験同時進行防止）。二重タップ防止・エラー種別の区別
->   （guard/validation/runtime/permission/create/start）を実装。
->   新規テスト15件（command adapter 9件・shell 6件追加）、
->   Regression計930件PASS、Build PASS。**BV必要**（手順は
->   `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`）。
->   **次PR**: Founder Browser Verification待ち。依存しないInsights Phaseの
->   現状確認は継続可
-> - PR-INSIGHTS-RUNTIME-01: Insights Phase現状確認 + forbidden-word-validator
->   接続。**現状確認の要点**: (a) 現行`insights.html`はPrototype配色未統合
->   （独自の青紫系「PRO Insight」デザイン、Home/Experimentは統合済み）、
->   (b) confidence表示は元々4段階語彙（high/medium/low/insufficient）で
->   統一済みだった、(c) Pattern Calendarは未実装で、`calendar-next.js`の
->   Insightsへの吸収可否が出力17記載の**未解決Founder Decision**のため
->   このPRでは着手見送り、(d) forbidden-word-validator（BD-038）が
->   ファイル冒頭コメントの申し合わせのみで実行時未接続だったため、
->   PR-HOME-01と同じパターンで接続（`_signalText`/`_recentChangeText`/
->   engine insightの3経路）。新規テスト10件PASS、Regression 29ファイル中
->   27ファイルPASS（失敗2ファイルは既知の`record.service.js`import解決
->   エラー、無関係）。Build PASS。BV不要（現行テンプレートは禁止パターンを
->   含まないため通常操作で挙動変化なし、違反時のみ防御的にフォールバック）。
->   詳細は`docs/rebuild/PR_INSIGHTS_RUNTIME_01_CURRENT_STATE.md`
-> - **Founder Decision確定（Pattern Calendar）**: 現時点では吸収しない。
->   Calendar/Record/Insight/Patternを横断する情報設計事項のため、
->   吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。現行
->   `calendar-next.js`は維持
-> - PR-INSIGHTS-RUNTIME-02: Prototype Insights画面を表示専用でRuntime統合
->   （home-next/experiment-nextと同一パターン）。Feature Flag
->   `ippo_insights_ui_v2`（デフォルトOFF）。Prototypeの「パターンカレンダー」
->   セクションは上記Founder Decisionにより意図的に含めない
-> - PR-INSIGHTS-RUNTIME-03: 「今週のハイライト」をRead-only ViewModel
->   Adapter経由で接続。`insights-dynamic-renderer.js`から選定ロジックを
->   `resolveMainInsight()`として切り出し（挙動同一）、新規adapterから再利用。
->   **`resolveMainInsight()`は現行`insights.html`（legacy）と`insights-next`
->   の共通入口**であり、インサイト選定ロジックの実体はこの1関数のみ。
->   今後インサイト生成ロジックを変更・拡張する場合は必ずこの関数を編集する
->   こと（legacy側にもnext側にも同種のロジックを個別実装しない — 二重実装
->   防止のため`src/modules/insights-dynamic-renderer.js`をSSOTとする）
-> - PR-INSIGHTS-RUNTIME-04: records取得元を`window.getState()`直接参照から
->   `window.app.api.getRecords()`（ApiGateway正規経路）へ切り替え。
->   Read Switch=OFFの間はlegacy `ippo_state.records`と同一データのため
->   安全と確認済み（正規化Read Source化ではない）
->   RUNTIME-02〜04まとめて: 新規/更新テスト計21件PASS、Regression
->   74ファイル中72ファイルPASS（失敗2ファイルは既知の`record.service.js`
->   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
->   `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`）
-> - PR-BILLING-RUNTIME-01: Premium/Pro現状確認（コード変更なし）。
->   **主要発見**: `getTierLevel()`は'free'/'pro'の2値のみ返す
->   （'premium'は実データから到達しない、PR-P2-05/FREEZE-FD-1で既承認の
->   仕様）。Supabase `subscriptions`テーブルにtier種別カラムはなし
->   （`plan`は月額/年額の課金周期であり商品種別ではない）。Stripe価格は
->   月額¥580/年額¥4,800（単一商品）— 過去のMonetization Council記録の
->   ¥980/¥1,980との**不一致は既知・未解決**のまま。Prototype Premium/Pro
->   画面（Me画面plan-card+モーダル）は価格非表示のため、表示専用統合は
->   価格変更なしで実装可能と判断。詳細は
->   `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md`
-> - PR-BILLING-RUNTIME-02: Prototype Premium/Pro画面を表示専用でRuntime統合。
->   Feature Flag `ippo_billing_ui_v2`（デフォルトOFF）。Me画面
->   （`me-next`）がまだ存在しないため、Premium/Pro部分のみを独立画面
->   `billing-next`として切り出した（Me画面実装時に統合予定）。モーダル内
->   CTAはdisabled固定・「（準備中）」表記でCheckout未接続、既存
->   `startStripeCheckout()`は無変更
-> - PR-BILLING-RUNTIME-03/04: 「現在のプラン」表示をRead-only Adapter
->   経由で接続。**ApiGatewayではなく既存Application Facade
->   （`premium-service.js`の`getTierLevel()`/`refreshPremiumStatus()`）へ
->   直接接続**（ApiGatewayにSubscription読み取りメソッドが存在しないため、
->   Founder許可の「window.app.apiまたは既存Application Facade」の後者を
->   採用。新規ApiGateway配線の追加を避けた）。'premium'/'error'状態は
->   実データから到達不能な既知の制約として明記（架空のtierを作らない）。
->   RUNTIME-02〜04まとめて: 新規/更新テスト計26件PASS、Regression
->   76ファイル中74ファイルPASS（失敗2ファイルは既知の`record.service.js`
->   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
->   `docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`）。
->   Checkout本番接続・価格確定・Premium/Pro商品分割はFounder Decision待ち
-> - PR-ME-RUNTIME-01: Me/Consent/Research現状確認（コード変更なし）。
->   **主要発見**: Research Contribution Badgeは既に実装・接続済み
->   （PR-P2-04、対応不要）。Research Consentの正実装は
->   `src/services/consent-service.js`（localStorage backed、Supabase
->   同期なし）— `ConsentRepositoryImpl`はDI登録済みだが未接続という
->   Experiment/Billingと同一パターン。**PrototypeにConsent UI設計が
->   一切存在しない**ため新規UI作成は見送り。詳細は
->   `docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md`
-> - PR-ME-RUNTIME-02: Prototype Me画面を表示専用でRuntime統合。Feature
->   Flag `ippo_me_ui_v2`（デフォルトOFF）。Plan Card 2枚は`billing-next`と
->   重複するため実装せず、「現在のプラン」+ タップでbilling-next遷移の
->   導線のみ（Founder確認済み）。プライバシーカード（既存の安心材料コピー、
->   Consent同意取得UIではない）・設定リスト5行（静的表示のみ）を実装
-> - PR-ME-RUNTIME-03/04: 「現在のプラン」をRead-only Adapter経由で接続。
->   **`billing-next-adapter.js`の`getSubscriptionViewModel()`をそのまま
->   再利用**（二重実装防止、resolveMainInsight()と同じ原則）。プロフィール
->   名は対応するRead facadeが無いため引き続き未接続（架空データを作らない）。
->   RUNTIME-02〜04まとめて: 新規/更新テスト計14件PASS、Regression
->   78ファイル中76ファイルPASS（失敗2ファイルは既知の`record.service.js`
->   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
->   `docs/rebuild/PR_ME_RUNTIME_03_04_ADAPTER_AND_READ.md`）。
->   Research Consent UIはFounder DecisionでPrototype設計方針が決まるまで
->   着手しない
+> **次にAIが着手できる範囲**: 上記すべてがFounder確認・判断待ちのため、
+> 現時点でAI側の自走実装で埋められる範囲はほぼ尽きている
+> （READINESS-01文書 総括参照）。Founderの確認結果が届くまでは、
+> ドキュメント整理・HANDOFF更新以外の新規実装PRは起票しない。
 >
-> **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
-> について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・
-> IMPLEMENTATION_PLAN_V1.1採用）により、既存UI（home-next等）を対象とした同文書は
-> 実質的にIMPLEMENTATION_PLAN_V1.1のPhase体系に役割を引き継いだ。同文書のPR-P2-03
-> （保留・再設計待ち）・PR-P2-05（部分完了・tier比較表UI未実装）は、対象UIが
-> Phase 2/5でPrototypeマークアップに置き換わるため、現時点では追加着手しない
-> （置き換え対象に工数を投じるのは非効率と判断）。Stripe価格差別化等の商用判断が
-> 必要になった時点でFounderが優先度を再確認すること
+> ### 主要な技術的発見（今後の実装で再確認不要）
+>
+> - `resolveMainInsight()`（`src/modules/insights-dynamic-renderer.js`）が
+>   legacy `insights.html`と`insights-next`の**共通SSOT**。インサイト
+>   生成ロジックの変更は必ずこの1関数を編集する（二重実装厳禁）
+> - `billing-next-adapter.js`の`getSubscriptionViewModel()`を
+>   `me-next-adapter.js`が再利用（同じくSSOT原則）
+> - `ExperimentRepositoryImpl`はlegacy `experiments.js`と同一の
+>   `ippo_state.experiments`を読み書きする（別データではなく同一データを
+>   異なる抽象化層から読み書きしている）
+> - `ApiGateway`はPR-APP-BOOT-01で`window.app.api`として正式に公開された
+>   （それ以前は`container.resolve(TOKENS.ApiGateway)`が一度も呼ばれず
+>   到達不能だった）。UIから到達する場合は`window.app.api`のみを使う
+> - ApiGatewayにSubscription/Billing読み取りメソッドは存在しない
+>   （Billing/Meは`premium-service.js`という既存Application Facadeへ
+>   直接接続、ApiGateway配線の新規追加はしていない）
+>
+> ### Phase 2（Home）〜Phase 6（Me）実装済みPR一覧（`ops/recovery-program`、push済み）
+>
+> Home: PR-HOME-01・PR-HOME-INSIGHT-CONFIDENCE・PR-HOME-02・PR-HOME-06
+> Experiment: PR-EXP-RUNTIME-01〜06・PR-APP-BOOT-01
+> Insights: PR-INSIGHTS-RUNTIME-01〜04
+> Billing: PR-BILLING-RUNTIME-01〜04
+> Me: PR-ME-RUNTIME-01〜04
+> Release準備: PR-RELEASE-READINESS-01・PR-RELEASE-READINESS-02
+>
+> 各PRの詳細（変更内容・テスト件数・発見事項）は対応する
+> `docs/rebuild/PR_*_RUNTIME_*.md`を参照（このHANDOFFへの再掲は
+> 冗長になるため省略、上記READINESS-01/02文書に要約済み）。
 >
 > **保留中（優先度低・対応不要のまま据え置き）**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
 >
 > `ops/recovery-program`は`origin/ops/recovery-program`と同期済み
-> （2026-07-13時点、コミット`42c0ba3`まで反映済み。本セッションの追加コミットは
-> 未push）。次回セッションはこのHANDOFFを読めばそのまま再開できる。
+> （2026-07-17時点、コミット`ead61f8`まで反映済み）。次回セッションは
+> このHANDOFFと`PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`を読めば
+> そのまま再開できる。
 
 **PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
 - 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
