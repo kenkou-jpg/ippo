@@ -35,7 +35,22 @@ const archGuardPlugin = {
   },
 };
 
+// src/services/supabase.js は本番ブラウザ向けに CDN ESM import
+// （https://cdn.jsdelivr.net/...）を意図的に使用している（同ファイルの
+// コメント参照）。ブラウザは https import を扱えるが、Vitest（Node の
+// ESM loaderを使用）は https スキームを解決できずエラーになる。
+// この alias は Vitest 実行時（process.env.VITEST）のみ、同じバージョンで
+// 既に package.json に列挙済みの npm パッケージへ差し替える。
+// `vite build` / `vite dev`（本番・開発）には一切影響しない。
+const isVitest = !!process.env.VITEST;
+
 export default defineConfig({
+  resolve: {
+    alias: isVitest ? {
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.105.3/+esm': '@supabase/supabase-js',
+    } : {},
+  },
+
   test: {
     // jsdom: required for DOM-touching modules (calendar, home-renderer, reminders-ui)
     environment: 'jsdom',

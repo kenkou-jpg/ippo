@@ -23,7 +23,7 @@ import {
 } from './record/save.js';
 import { switchTab } from './tab-navigation.js';
 import { upsertRecord } from './record-upsert.js';
-import { applyRecordToStreakState } from '../../domains/record/record.service.js';
+import { applyRecordToStreakState } from '../../domains/record/record.service';
 
 
 let lastRecordSaveContext = null;

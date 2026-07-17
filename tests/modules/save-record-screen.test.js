@@ -77,16 +77,20 @@ beforeEach(async () => {
   window.calcSMIScore = vi.fn(() => null);
   window.gatherDiseaseData = vi.fn(() => ({}));
   window.showAlertModal = vi.fn();
-  window.cloudBackupAll = vi.fn(() => Promise.resolve());
 
   // record.js をインポート（store/state.js も初期化され window.getState / window.saveState が設定される）
   const mod = await import('../../src/modules/record.js');
   saveRecordScreen = mod.saveRecordScreen;
 
   // import 後に上書き: store/state.js が window.getState/saveState を設定するため、
-  // ここで mock に差し替えて _saveRecordScreenImpl が mockState を参照できるようにする
+  // ここで mock に差し替えて _saveRecordScreenImpl が mockState を参照できるようにする。
+  // cloudBackupAllも同様（record.js が tab-navigation.js 経由で services/supabase.js を
+  // 読み込み、そのモジュール初期化が window.cloudBackupAll を実装で上書きするため、
+  // importより後にmockへ差し替える必要がある。PR-RUNTIME-INTEGRATION-01でtab-navigation.js
+  // の依存が拡大したことにより顕在化）。
   window.getState = vi.fn(() => mockState);
   window.saveState = vi.fn(() => {});
+  window.cloudBackupAll = vi.fn(() => Promise.resolve());
 
   // app-legacy.js がない状態: window.saveRecordScreen をモジュール実装に向ける
   window.saveRecordScreen = saveRecordScreen;
@@ -141,10 +145,14 @@ describe('saveRecordScreen — モジュール実装', () => {
   });
 
   it('cloudBackupAll（syncRecordCloud 経由）が呼ばれる', async () => {
+    // saveRecordScreen() 内の installRecordSaveDelegates() が window.cloudBackupAll を
+    // 元の関数(このspy)を包むdelegate関数へ差し替えるため、呼び出し前に参照を捕捉する
+    // （同期テストのcallCountパターンと同じ理由）。
+    const cloudBackupAllSpy = window.cloudBackupAll;
     saveRecordScreen();
     // syncRecordCloud は非同期なので少し待つ
     await new Promise((r) => setTimeout(r, 50));
-    expect(window.cloudBackupAll).toHaveBeenCalled();
+    expect(cloudBackupAllSpy).toHaveBeenCalled();
   });
 
   it('getState が null のとき showAlertModal は呼ばれない（エラーにならない）', () => {
