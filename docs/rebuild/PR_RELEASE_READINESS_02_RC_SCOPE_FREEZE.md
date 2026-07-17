@@ -191,6 +191,13 @@ Build確認: `npm run build` PASS。テスト確認: フルスイート312ファ
 （「Feature Flag既定変更」は自走ルールの停止対象）。既定ON化はBrowser
 Verification Pass後、別途Founder承認を得てから実施する。
 
+**追記（2026-07-17、PR-FEATUREFLAG-01）**: `ippo_home_next`の実装が
+opt-out（既定ON）になっていた不整合を修正し、上表通りのopt-in（既定OFF）へ
+統一済み。「既定値変更なし」の原則自体は維持（今回の修正は「誤って既定ONに
+なっていたものを、本来の既定OFFへ戻した」ものであり、新規に既定ONへ変更した
+ものではない）。詳細: `docs/HANDOFF_PHASE7_COMPLETE.md` PR-FEATUREFLAG-01エントリ、
+`docs/rebuild/PR_RELEASE_READINESS_03_BROWSER_VERIFICATION_GUIDE.md` 0節。
+
 ---
 
 ## 4. Legacy一覧

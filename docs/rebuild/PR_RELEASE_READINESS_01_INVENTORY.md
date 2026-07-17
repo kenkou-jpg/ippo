@@ -44,6 +44,12 @@ Home以外の4画面（Experiment/Insights/Billing/Me）は今セッションで
 RC固定時の「Feature Flag棚卸し」で、本番既定化するものと廃止するものを
 確定する必要がある。
 
+**追記（2026-07-17、PR-FEATUREFLAG-01）**: 上表は本来の意図通り5画面とも
+opt-in（`flag==='1'`の場合のみ有効・既定OFF）である。ただし2026-07-17の
+Runtime Switch監査で、実装上`ippo_home_next`のみopt-out（既定ON）になって
+いたことが判明し、同日中に他4画面と同じopt-inパターンへ修正済み。詳細:
+`docs/HANDOFF_PHASE7_COMPLETE.md` PR-FEATUREFLAG-01エントリ。
+
 ## 3. Browser Verification一覧
 
 **未実施（5件、Founder確認待ち）**。今回の方針により、RC作成前に

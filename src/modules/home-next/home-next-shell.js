@@ -4,6 +4,10 @@
 //
 //  Feature flag: localStorage['ippo_home_next'] === '1'
 //  ON のとき window.showMain を showHomeNext に差し替える。
+//  OFF（デフォルト）のとき、このモジュールは何もしない
+//  （PR-FEATUREFLAG-01: experiment/insights/billing/me-next-shell.jsと
+//  同一のopt-inパターンへ統一。既定ON運用時の設計判断は
+//  docs/PR-092A-1-home-next-reality-audit.md に記録として残す）。
 //  既存の home / calendar / record / persistence は一切変更しない。
 //
 //  Phase B: settings-store 統合
@@ -63,14 +67,12 @@ import { renderRecovery, renderExperiment } from './home-next-recovery.js';
 const FLAG_KEY = 'ippo_home_next';
 
 export function isHomeNextEnabled() {
+  // PR-FEATUREFLAG-01: opt-in（既定OFF）に統一。experiment/insights/
+  // billing/me-next-shell.jsのisXxxNextEnabled()と同一パターン。
   try {
-    const st = getState();
-    // 明示的に false が設定された場合のみ無効（デフォルト有効）
-    if (st && st.homeNextEnabled === false) return false;
-    const flag = localStorage.getItem(FLAG_KEY);
-    return flag !== '0';
-  } catch {
-    return true;
+    return localStorage.getItem(FLAG_KEY) === '1';
+  } catch (_) {
+    return false;
   }
 }
 

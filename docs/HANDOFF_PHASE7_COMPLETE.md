@@ -189,7 +189,7 @@ ippoの設計・実装を進めている。
 > Insights: PR-INSIGHTS-RUNTIME-01〜04
 > Billing: PR-BILLING-RUNTIME-01〜04
 > Me: PR-ME-RUNTIME-01〜04
-> Release準備: PR-RELEASE-READINESS-01・PR-RELEASE-READINESS-02
+> Release準備: PR-RELEASE-READINESS-01〜07・PR-FEATUREFLAG-01
 >
 > 各PRの詳細（変更内容・テスト件数・発見事項）は対応する
 > `docs/rebuild/PR_*_RUNTIME_*.md`を参照（このHANDOFFへの再掲は
@@ -198,6 +198,24 @@ ippoの設計・実装を進めている。
 > **保留中（優先度低・対応不要のまま据え置き）**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
+>
+> **PR-FEATUREFLAG-01: Home Feature Flag Policy Alignment**（2026-07-17）
+> Browser Verification直前のRuntime Switch監査で、Homeのみ`isHomeNextEnabled()`
+> がopt-out（既定ON、`state.homeNextEnabled===false`または`flag==='0'`の
+> 場合のみ無効）という他4画面と逆の既定挙動だったことが判明。他4画面
+> （Experiment/Insights/Billing/Me）と同じopt-in（`flag==='1'`の場合のみ
+> 有効、既定OFF）へ統一した。Runtime構造（Router/Shell/Adapter/Application
+> Facade/Domain）は無変更、`src/modules/home-next/home-next-shell.js`の
+> `isHomeNextEnabled()`本体とコメントのみ変更。新規Unit Test 6件追加
+> （`tests/modules/home-next/home-next-shell.test.js`、Flag未設定/'1'/'0'の
+> 3状態 + window.showMain差し替え確認）。Build PASS、フルスイート313
+> ファイル中310PASS（既知3ファイル35件を除き新規失敗ゼロ、差分ゼロ確認済み）。
+> **本番デプロイ後の影響**: これまでhome-nextを既定表示していたユーザーは、
+> 本PRのデプロイ後は既定でlegacy Homeへ戻る（他4画面と同様、Flag ON化は
+> Browser Verification Pass後にFounder承認を経て行う）。詳細は
+> `docs/rebuild/PR_RELEASE_READINESS_03_BROWSER_VERIFICATION_GUIDE.md`
+> 0節に記録。Founder Browser Verificationはこの状態（5画面とも既定OFF）を
+> 前提に実施する。
 >
 > `ops/recovery-program`は`origin/ops/recovery-program`と同期済み
 > （2026-07-17時点、コミット`ead61f8`まで反映済み）。次回セッションは

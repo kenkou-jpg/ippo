@@ -24,6 +24,10 @@ SSOT: `docs/rebuild/PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md` 3節・
 | リスク | 低。書込みなし、既存`window.showMain()`委譲パターンに統合済み（PR-OB-01でオンボーディング直後の切替バグを修正済み） |
 | 切替順 | **1番目**（最も安全、5画面の先行実施候補） |
 
+> 2026-07-17: `isHomeNextEnabled()`が誤ってopt-out（既定ON）実装になって
+> いた不整合を`PR-FEATUREFLAG-01`で修正し、上表の既定OFFへ統一済み
+> （詳細: HANDOFF PR-FEATUREFLAG-01エントリ）。
+
 ### 1-2. `ippo_insights_ui_v2`（Insights）
 
 | 項目 | 内容 |

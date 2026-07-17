@@ -17,8 +17,10 @@
 3. Consoleタブは確認中ずっと開いたままにする（各画面のConsole Errorチェックのため）
 4. Applicationタブ（Chrome）またはStorageタブ（Firefox）でlocalStorageを開けるようにしておく
    （Feature Flagキーの目視確認に使う。必須ではないが推奨）
-5. 5画面とも初期状態はFeature Flag OFF（未設定 = OFF）。他画面の確認で誤ってONのまま
-   残っていないか、各画面の確認開始前に一度 `localStorage` を目視確認するとよい
+5. 5画面とも初期状態はFeature Flag OFF（未設定 = OFF、PR-FEATUREFLAG-01で
+   Home含む5画面すべてopt-inパターンに統一済み）。他画面の確認で誤ってONの
+   まま残っていないか、各画面の確認開始前に一度 `localStorage` を目視確認
+   するとよい
 ```
 
 **共通の画面遷移パターン**（5画面すべて同じ、Navigation自体は変更されていない）:
@@ -39,24 +41,18 @@ Xxxと対応タブ・Namespaceの対応表:
 | Billing | `ippoBillingNext` | Premium/Proタブ | `ippo_billing_ui_v2` |
 | Me | `ippoMeNext` | 設定タブ | `ippo_me_ui_v2` |
 
-**重要な非対称性（2026-07-17 Runtime Switch監査で確認）**: Homeのみ、Flagの
-デフォルト挙動が他4画面と逆になっている。
+**解消済みの非対称性（記録として保持）**: 2026-07-17のRuntime Switch監査で、
+Homeのみ Flag のデフォルト挙動が他4画面と逆（opt-out・既定ON）になっている
+ことを発見した。`PR-FEATUREFLAG-01`（同日）で`isHomeNextEnabled()`を他4画面
+と同じopt-in（既定OFF）パターンへ統一済み。**この非対称性は解消済みであり、
+現在は5画面とも0節の共通確認方法がそのまま適用できる。**
 
-```
-Experiment/Insights/Billing/Me: isXxxNextEnabled() は
-  localStorage.getItem(FLAG_KEY) === '1' の場合のみ true（opt-in、既定OFF）
-
-Home: isHomeNextEnabled() は
-  state.homeNextEnabled === false、または localStorage.getItem('ippo_home_next') === '0'
-  の場合のみ false（opt-out、既定ON）
-  （src/modules/home-next/home-next-shell.js 65-75行、コメントに「デフォルト有効」と明記）
-```
-
-したがって**Homeの「Feature Flag OFF」ベースラインは、何もしなくても得られる
-状態ではない**。他4画面は何もしなければ自動的にOFF（legacy）だが、Homeは
-明示的に`localStorage.setItem('ippo_home_next','0')`を実行してリロードしない
-限り、常にhome-nextが表示された状態のままになる。0節の共通確認方法
-（「OFF状態の確認」）をHomeで実施する際は、この手順を追加で行うこと。
+以前の`isHomeNextEnabled()`（既定ON・opt-out）は、home-nextが2026-07-17
+以前に段階的に本番既定化されていた経緯（`docs/PR-092A-1-home-next-reality-audit.md`
+参照）によるもので、今回のRC（5画面統一Runtime化）にあたり運用を統一する
+ためのFounder判断により変更された。**本番デプロイ後、これまでhome-nextを
+見ていたユーザーは既定でlegacy Homeへ戻る**（Flag ON化はBrowser Verification
+Pass後、他4画面と同様の手順で行う）。
 
 ---
 
@@ -68,21 +64,13 @@ Home: isHomeNextEnabled() は
 
 ### 1-1. Home（`window.ippoHomeNext`）
 
-**画面遷移**（他4画面と異なり、Homeは既定で有効なため手順が異なる）:
+**画面遷移**（PR-FEATUREFLAG-01以降、他4画面と同じopt-inパターン）:
 ```
-ON状態の確認:
-  1. アプリを開く（何もしなくても、デフォルトでhome-nextが表示される。
-     `window.ippoHomeNext.isEnabled()` を実行して true が返ることを確認）
-  2. 確認のため `window.ippoHomeNext.preview()` を実行しても同じ画面が
-     再描画されるだけで問題ない
-
-OFF状態の確認（重要: 他4画面と異なり、何もしなくてもOFFにはならない）:
-  1. Consoleで `localStorage.setItem('ippo_home_next','0')` を実行
-  2. リロード（F5）
-  3. legacy Home画面（週間カレンダー + 「今日を記録する」ボタン等）が
-     表示されることを確認
-  4. 確認後は `localStorage.removeItem('ippo_home_next')` を実行しリロードして
-     既定状態（home-next表示）へ戻す
+1. アプリを開く（何もしなければlegacy Home画面が表示される。
+   `window.ippoHomeNext.isEnabled()` を実行して false が返ることを確認）
+2. Consoleで `window.ippoHomeNext.preview()` を実行
+3. 同じホームタブ内でHero/Status/Insight/Experiment/Quick Recordの各カードに
+   切り替わることを確認（タブ移動は発生しない）
 ```
 
 **期待結果**: `PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md` 2-1節のチェック項目通り。
