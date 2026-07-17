@@ -12,6 +12,11 @@ import { renderSharedHeader }             from './shared-header.js';
 import { renderInsClinicalSummary }       from './insights-clinical-summary.js';
 import { triggerInsightSurface, showThinkingSheet, navigateInsightDirect, navigateToPro } from './insight-recommendation-sheet.js';
 import { renderInsightsDynamic }          from './insights-dynamic-renderer.js';
+// PR-RUNTIME-INTEGRATION-01: Feature Flag ON時に通常のタブ操作からRuntime
+// Screenへ到達させるための分岐用（既定OFF時は下の既存Legacyロジックのみ実行）。
+import { isInsightsNextEnabled, showInsightsNext } from './insights-next/insights-next-shell.js';
+import { isMeNextEnabled, showMeNext }             from './me-next/me-next-shell.js';
+import { isExperimentNextEnabled, showExperimentNext } from './experiment-next/experiment-next-shell.js';
 
 // Disease tab data for PRO insights screen
 var _IPR_DIS = [
@@ -142,12 +147,18 @@ function _wireInsightsScreen() {
     if (expCardTitle) {
       expCardTitle.style.cursor = 'pointer';
       expCardTitle.addEventListener('click', function() {
+        // PR-RUNTIME-INTEGRATION-01: Feature Flag ON時はRuntime Screenへ分岐
+        if (isExperimentNextEnabled()) { showExperimentNext(); return; }
         if (typeof window.openExperiments === 'function') window.openExperiments();
       });
     }
   }
   var expBtn = sc.querySelector('.ipr-exp-btn');
-  if (expBtn) expBtn.onclick = function() { if (typeof window.openExperiments === 'function') window.openExperiments(); };
+  if (expBtn) expBtn.onclick = function() {
+    // PR-RUNTIME-INTEGRATION-01: Feature Flag ON時はRuntime Screenへ分岐
+    if (isExperimentNextEnabled()) { showExperimentNext(); return; }
+    if (typeof window.openExperiments === 'function') window.openExperiments();
+  };
 
   // ── ヒントカード ──────────────────────────────────────────
   // アイデア③: resolver primary（通常 AIパターン解析）へ直接遷移
@@ -239,6 +250,24 @@ function _wireInsightsScreen() {
 }
 
 export async function switchTab(tab, btn) {
+  // PR-RUNTIME-INTEGRATION-01: Feature Flag ON時は通常のタブ操作を
+  // そのままRuntime Screenへ分岐する。OFF（既定）の場合はこの分岐を
+  // 通らず、下の既存Legacyロジックがそのまま実行される。
+  if (tab === 'insights' && isInsightsNextEnabled()) {
+    await showInsightsNext();
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    window.scrollTo(0, 0);
+    return;
+  }
+  if (tab === 'settings' && isMeNextEnabled()) {
+    await showMeNext();
+    document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+    if (btn) btn.classList.add('active');
+    window.scrollTo(0, 0);
+    return;
+  }
+
   // calendar / insights は静的 DOM に存在しないため fetch して注入
   await ensureScreenLoaded(tab);
 

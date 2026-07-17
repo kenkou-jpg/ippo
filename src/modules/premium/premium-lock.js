@@ -24,7 +24,13 @@
 //    側に本PRで追加した専用ブリッジ、PR-080E __ippoGetBowelCount と同型）
 //    経由でローカル実装を明示的に呼び出す。updateSettingsHero 自体の
 //    重複解消（どちらを正とするか）は製品判断が必要なため本PRのScope外。
+//
+//  PR-RUNTIME-INTEGRATION-01: premiumGate()にFeature Flag分岐を追加。
+//  ippo_billing_ui_v2 ON時はロックオーバーレイの代わりにbilling-next
+//  Runtime Screenへ遷移する（OFF=既定時は既存のオーバーレイ挙動を維持）。
 // ============================================================
+
+import { isBillingNextEnabled, showBillingNext } from '../billing-next/billing-next-shell.js';
 
 // ===== プレミアム先行登録 =====
 export function submitPremiumWaitlist(){
@@ -111,6 +117,8 @@ export function renderProHero() {
 export function premiumGate(callback) {
   if (window.isAdminOrPremium()) {
     callback();
+  } else if (isBillingNextEnabled()) {
+    showBillingNext();
   } else {
     // 動的な価値説明を追加
     var dynamicMsg = document.getElementById('premium-dynamic-msg');

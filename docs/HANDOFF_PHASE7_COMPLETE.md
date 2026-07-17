@@ -113,11 +113,35 @@ ippoの設計・実装を進めている。
 >   本セッションの変更とは無関係。Migration実行は今回のスコープ外のため
 >   未対応のまま）
 >
+> **PR-RUNTIME-INTEGRATION-01: Runtime Navigation Integration**（2026-07-17）
+> Runtime到達性監査（`PR-RUNTIME-INTEGRATION-AUDIT`）で、Home以外の4画面
+> （Experiment/Insights/Billing/Me）が現行UIの通常操作から一切到達できず
+> `window.ippoXxxNext.preview()`のconsole操作のみが到達手段だったことが
+> 判明。Runtime構造（Router/Shell/Adapter/Application Facade/Domain/
+> ApiGateway/Repository）を無変更のまま、既存Legacyのイベントハンドラに
+> Feature Flag分岐を追加し、**Flag ON時は通常のタブ操作・ボタン操作で
+> Runtimeへ到達できる**ようにした（OFF=既定時はLegacy挙動を完全維持）。
+> - Insights: `tab-navigation.js`の`switchTab('insights',...)`
+> - Me: `tab-navigation.js`の`switchTab('settings',...)`
+> - Experiment: Insights画面「実験提案カード」のクリックハンドラ
+>   （ボトムナビに専用タブが無いため、これが唯一の現実的な導線）
+> - Billing: `premium-lock.js`の`premiumGate()` + `app.html`設定画面の
+>   「アップグレード」ボタン
+> - Home: 変更なし（`home-next-shell.js`が既に本物の導線を持っていた）
+> 新規Unit Test 12件追加（`tab-navigation.test.js`9件、
+> `premium-lock.test.js`+3件）。Build PASS、フルスイート314ファイル中
+> 311PASS（既知3ファイル35件を除き新規失敗ゼロ）。詳細:
+> `docs/rebuild/PR_RUNTIME_INTEGRATION_01_NAVIGATION_WIRING.md`。
+> Decision Log: 更新不要（Architecture/Roadmap/Business変更なし、既存
+> Legacy関数へのFlag分岐追加のみ）。
+>
 > **アーキテクチャ達成**: Home・Experiment・Insights・Billing・Meの5画面が
 > `Prototype UI → Runtime → Application Facade → Domain`という統一
-> アーキテクチャで揃った（本セッションの最大の成果）。全画面Feature Flag
-> デフォルトOFF、到達手段は`window.ippoXxxNext.preview()`のみ
-> （Navigation変更なし・既存本番挙動に影響なし）。実装フェーズの重心は
+> アーキテクチャで揃った。全画面Feature Flag既定OFF（opt-in、
+> PR-FEATUREFLAG-01で統一済み）。到達手段は、Flag ON時は通常操作
+> （PR-RUNTIME-INTEGRATION-01）、Flag自体の切替は引き続き
+> `window.ippoXxxNext.enable()`等のconsole操作のみ（UIトグルは未実装、
+> 新規UI追加はスコープ外のため）。実装フェーズの重心は
 > 「画面追加」から「リリース準備」へ移った。
 >
 > **→ 全体棚卸し**: `docs/rebuild/PR_RELEASE_READINESS_01_INVENTORY.md`
