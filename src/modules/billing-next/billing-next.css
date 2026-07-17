@@ -28,6 +28,17 @@
   margin-top: 4px;
 }
 
+.bln-current-plan {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-mid, #4a3830);
+  background: var(--bg-subtle, #f0ebe6);
+  border-radius: var(--radius-pill, 999px);
+  padding: 4px 12px;
+  margin-top: 10px;
+}
+
 .bln-plan-card {
   background: var(--white, #ffffff);
   border-radius: var(--radius-card, 16px);

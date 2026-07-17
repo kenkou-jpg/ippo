@@ -107,8 +107,8 @@ ippoの設計・実装を進めている。
 > **「Shadow Write」**として運用中。`user_records`が引き続き唯一の読取り元・復旧元で、
 > Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
 >
-> **未完了・次にやること**（優先順、2026-07-16時点で更新）:
-> 1. **Founder Browser Verification待ち（4件、General Releaseの最終Gateで
+> **未完了・次にやること**（優先順、2026-07-17時点で更新）:
+> 1. **Founder Browser Verification待ち（5件、General Releaseの最終Gateで
 >    まとめて確認可・個別のブロッカーにはしない、Founder了承済み）**:
 >    a. Home: PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System
 >       視覚統合） — 手順は`docs/rebuild/PR_HOME_01_RUNTIME_INTEGRATION_PLAN.md` 10節
@@ -116,12 +116,21 @@ ippoの設計・実装を進めている。
 >       `docs/rebuild/PR_EXP_RUNTIME_06_START_CTA.md`
 >    c. Insights: PR-INSIGHTS-RUNTIME-02〜04（画面統合+Read接続） — 手順は
 >       `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`
->    d. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
+>    d. Billing: PR-BILLING-RUNTIME-02〜04（Premium/Pro画面統合+Read接続） —
+>       手順は`docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`
+>    e. Pattern Calendar方針: **保留（Founder Decision確定済み）** —
 >       Calendar/Record/Insight/Patternを横断する情報設計事項のため、
 >       吸収・新設・廃止いずれもGeneral Release後の独立PRとして扱う。
 >       現行`calendar-next.js`は無変更のまま維持
 >    各画面の結果が届くまで、その画面の本番既定化・旧UI削除には進まない
 >    （他の独立Phaseの作業は継続してよい）
+> 1b. **Founder Decision待ち（Billing価格・商品構成）**: PR-BILLING-
+>    RUNTIME-01調査で判明した価格不一致（実コード¥580/月・¥4,800/年 vs
+>    過去のMonetization Council記録¥980/¥1,980）の解消、Premium/Proを
+>    実際に2商品へ分割するか否か、機能境界、既存有料ユーザーの移行方法、
+>    Trial有無、Checkout CTAの本番接続タイミング。詳細は
+>    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節。
+>    この決定が届くまでCheckout接続・価格変更には進まない
 > 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
@@ -245,6 +254,34 @@ ippoの設計・実装を進めている。
 >   74ファイル中72ファイルPASS（失敗2ファイルは既知の`record.service.js`
 >   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
 >   `docs/rebuild/PR_INSIGHTS_RUNTIME_03_04_ADAPTER_AND_READ.md`）
+> - PR-BILLING-RUNTIME-01: Premium/Pro現状確認（コード変更なし）。
+>   **主要発見**: `getTierLevel()`は'free'/'pro'の2値のみ返す
+>   （'premium'は実データから到達しない、PR-P2-05/FREEZE-FD-1で既承認の
+>   仕様）。Supabase `subscriptions`テーブルにtier種別カラムはなし
+>   （`plan`は月額/年額の課金周期であり商品種別ではない）。Stripe価格は
+>   月額¥580/年額¥4,800（単一商品）— 過去のMonetization Council記録の
+>   ¥980/¥1,980との**不一致は既知・未解決**のまま。Prototype Premium/Pro
+>   画面（Me画面plan-card+モーダル）は価格非表示のため、表示専用統合は
+>   価格変更なしで実装可能と判断。詳細は
+>   `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md`
+> - PR-BILLING-RUNTIME-02: Prototype Premium/Pro画面を表示専用でRuntime統合。
+>   Feature Flag `ippo_billing_ui_v2`（デフォルトOFF）。Me画面
+>   （`me-next`）がまだ存在しないため、Premium/Pro部分のみを独立画面
+>   `billing-next`として切り出した（Me画面実装時に統合予定）。モーダル内
+>   CTAはdisabled固定・「（準備中）」表記でCheckout未接続、既存
+>   `startStripeCheckout()`は無変更
+> - PR-BILLING-RUNTIME-03/04: 「現在のプラン」表示をRead-only Adapter
+>   経由で接続。**ApiGatewayではなく既存Application Facade
+>   （`premium-service.js`の`getTierLevel()`/`refreshPremiumStatus()`）へ
+>   直接接続**（ApiGatewayにSubscription読み取りメソッドが存在しないため、
+>   Founder許可の「window.app.apiまたは既存Application Facade」の後者を
+>   採用。新規ApiGateway配線の追加を避けた）。'premium'/'error'状態は
+>   実データから到達不能な既知の制約として明記（架空のtierを作らない）。
+>   RUNTIME-02〜04まとめて: 新規/更新テスト計26件PASS、Regression
+>   76ファイル中74ファイルPASS（失敗2ファイルは既知の`record.service.js`
+>   import解決エラー、無関係）、Build PASS。**BV必要**（手順は
+>   `docs/rebuild/PR_BILLING_RUNTIME_03_04_ADAPTER_AND_READ.md`）。
+>   Checkout本番接続・価格確定・Premium/Pro商品分割はFounder Decision待ち
 >
 > **旧`GENERAL_RELEASE_IMPLEMENTATION_MASTER_PLAN.md`（Stage0〜6・PR-EXP/PR-P2系）
 > について**: 2026-07-09の「IPPO RELEASE INTEGRATION MODE」移行（Prototype First採用・

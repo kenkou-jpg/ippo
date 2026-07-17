@@ -7,18 +7,20 @@
 //  （home-next-shell.js / experiment-next-shell.js / insights-next-shell.jsと
 //  同一パターン）。
 //
-//  このPRの時点では:
+//  PR-BILLING-RUNTIME-03/04で「現在のプラン」表示を既存Application Facade
+//  （premium-service.js）経由のRead-only Adapterで接続した。
+//
+//  このPRの時点でも変わらないこと:
 //    - Checkout未接続（startStripeCheckout()等の既存課金フローは無変更）
-//    - Stripe/Supabase書込みなし
-//    - Subscription状態のRead-only Adapter接続はPR-BILLING-RUNTIME-03/04で
-//      別途行う
+//    - Stripe/Supabase書込みなし（Adapterは読み取り専用）
 //    - モーダル内のPremium/Pro CTA（"◯◯にする"相当）は表示のみ・disabled。
 //      「あとで」（閉じる）だけが動作する
 // ============================================================
 
 import './billing-next.css';
 
-import { showScreen } from '../screen-router.js';
+import { showScreen }               from '../screen-router.js';
+import { getSubscriptionViewModel } from './billing-next-adapter.js';
 
 const FLAG_KEY = 'ippo_billing_ui_v2';
 
@@ -101,21 +103,48 @@ function _attachHandlers(screen) {
   });
 }
 
+const _STATE_LABEL_PREFIX = {
+  free:    '現在のプラン: ',
+  premium: '現在のプラン: ',
+  pro:     '現在のプラン: ',
+  unknown: '',
+  error:   '',
+};
+
 /**
- * PR-BILLING-RUNTIME-02時点では、Premium/Proの2枚のplan-cardと詳細モーダルは
- * すべて静的マークアップ（Prototypeコピーそのまま）で完結しており、動的な
- * Subscription状態描画は行わない。現在のプラン表示はPR-BILLING-RUNTIME-03
- * 以降のRead-only Adapter接続まで追加しない。
+ * Premium/Proの2枚のplan-cardと詳細モーダルは静的マークアップ
+ * （Prototypeコピーそのまま）。「現在のプラン」表示のみ、既存Application
+ * Facade（premium-service.js）経由のRead-only Adapterで描画する。
+ * unknown/error時は不確かな情報を出さず非表示のままにする。
  */
-export function renderBillingNext() {
+export async function renderBillingNext() {
   const screen = document.getElementById('screen-billing-next');
   if (!screen) return;
   _attachHandlers(screen);
+
+  const planEl = document.getElementById('bln-current-plan');
+  if (!planEl) return;
+
+  let vm;
+  try {
+    vm = await getSubscriptionViewModel();
+  } catch (_) {
+    planEl.hidden = true;
+    return;
+  }
+
+  const prefix = _STATE_LABEL_PREFIX[vm.state] ?? '';
+  if (!prefix) {
+    planEl.hidden = true;
+    return;
+  }
+  planEl.textContent = prefix + vm.label;
+  planEl.hidden = false;
 }
 
 export async function showBillingNext() {
   await showScreen('billing-next');
-  renderBillingNext();
+  await renderBillingNext();
 }
 
 export function initBillingNext() {

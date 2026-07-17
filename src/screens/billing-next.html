@@ -4,11 +4,13 @@
     <header class="bln-header">
       <h1>Premium / Pro</h1>
       <p class="bln-sub">自分に合ったプランを見つける</p>
+      <!-- PR-BILLING-RUNTIME-03/04: 既存Application Facade
+           （premium-service.js）経由のRead-only。空文字時は非表示 -->
+      <p class="bln-current-plan" id="bln-current-plan" hidden></p>
     </header>
 
-    <!-- Premium: Prototype #screen-me plan-card-premium と同一コピー。
-         現在のプラン状態はPR-BILLING-RUNTIME-03のRead-only Adapterで
-         後日接続（現時点では未接続） -->
+    <!-- Premium: Prototype #screen-me plan-card-premium と同一コピー -->
+    <!-- 現在のプラン表示欄（上記）以外は静的コピーのまま維持 -->
     <section class="bln-plan-card bln-plan-premium">
       <div class="bln-kicker"><span class="bln-badge badge-rose">🔬</span><span class="bln-kicker-label">PLAN</span></div>
       <div class="bln-plan-heading">Premium</div>
