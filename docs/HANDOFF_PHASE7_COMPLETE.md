@@ -231,7 +231,12 @@ ippoの設計・実装を進めている。
 >   セクションは上記Founder Decisionにより意図的に含めない
 > - PR-INSIGHTS-RUNTIME-03: 「今週のハイライト」をRead-only ViewModel
 >   Adapter経由で接続。`insights-dynamic-renderer.js`から選定ロジックを
->   `resolveMainInsight()`として切り出し（挙動同一）、新規adapterから再利用
+>   `resolveMainInsight()`として切り出し（挙動同一）、新規adapterから再利用。
+>   **`resolveMainInsight()`は現行`insights.html`（legacy）と`insights-next`
+>   の共通入口**であり、インサイト選定ロジックの実体はこの1関数のみ。
+>   今後インサイト生成ロジックを変更・拡張する場合は必ずこの関数を編集する
+>   こと（legacy側にもnext側にも同種のロジックを個別実装しない — 二重実装
+>   防止のため`src/modules/insights-dynamic-renderer.js`をSSOTとする）
 > - PR-INSIGHTS-RUNTIME-04: records取得元を`window.getState()`直接参照から
 >   `window.app.api.getRecords()`（ApiGateway正規経路）へ切り替え。
 >   Read Switch=OFFの間はlegacy `ippo_state.records`と同一データのため
