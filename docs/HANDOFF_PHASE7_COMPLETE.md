@@ -108,6 +108,12 @@ ippoの設計・実装を進めている。
 > Normalized側はHome/Insights/Case等の本番Read Sourceにはまだ使用していない。
 >
 > **未完了・次にやること**（優先順、2026-07-17時点で更新）:
+>
+> **→ 全体像は`docs/rebuild/PR_RELEASE_READINESS_01_INVENTORY.md`に棚卸し
+> 済み**（Runtime統合済み画面一覧・Feature Flag一覧・Browser
+> Verification一覧・Legacy依存一覧・未解決Founder Decision一覧・Release
+> Blocker一覧・RCに必要な残PR一覧）。以下は同文書の要約。
+>
 > 1. **Founder Browser Verification待ち（5件、General Releaseの最終Gateで
 >    まとめて確認可・個別のブロッカーにはしない、Founder了承済み）**:
 >    a. Home: PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System
@@ -133,13 +139,11 @@ ippoの設計・実装を進めている。
 >    Trial有無、Checkout CTAの本番接続タイミング。詳細は
 >    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節。
 >    この決定が届くまでCheckout接続・価格変更には進まない
-> 1c. **Founder Decision待ち（Research Consent UI設計）**: PR-ME-
->    RUNTIME-01調査で判明。PrototypeにConsent UIの設計が一切存在しない
->    （Home/Experiment/Insights/Billingのような「Prototype画面をそのまま
->    移植」する手順が適用できない）。新規UI設計は同意文言・レベル変更を
->    伴うリスクがあるため着手見送り中。現行の1行トグル実装
->    （`app.html`内・`src/services/consent-service.js`）は機能的に完結して
->    いる。詳細は`docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md` 3節
+> 1c. **Founder Decision確定（Research Consent UI設計）**: Consent Runtime
+>    は新規UIを作らず、現行Consent UI（`app.html`内・
+>    `src/services/consent-service.js`）を維持する。再設計はPrototype v2で
+>    行う。**ConsentはRelease Blockerにしない**（2026-07-17確定）。
+>    詳細は`docs/rebuild/PR_ME_RUNTIME_01_CURRENT_STATE.md` 3節
 > 2. PR-REC-06c（バックフィルスクリプト）を実行する — コードは完了済み・未実行。
 >    `scripts/backfill-normalized-records.ts`を`SUPABASE_URL`/
 >    `SUPABASE_SERVICE_ROLE_KEY`を設定してdry-run実行 → 出力確認 → 問題なければ
