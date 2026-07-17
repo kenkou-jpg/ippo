@@ -114,14 +114,37 @@ ippoの設計・実装を進めている。
 > 一覧・PR-REC-06b/06c整理・RCチェックリスト）。**すべてのBrowser
 > VerificationはFounder確認待ちであり、AIは実施・代行しない。**
 >
+> **→ RC準備の追加資料（2026-07-17、Release Program Phase1〜5で自走作成）**:
+> - `docs/rebuild/PR_RELEASE_READINESS_03_BROWSER_VERIFICATION_GUIDE.md`
+>   （5画面分の画面遷移・期待結果・失敗時確認項目・Console確認項目・
+>   320/375/390/430px確認手順・実施ログテンプレート。READINESS-02のチェック
+>   リスト本体は変更せず補助資料として追加）
+> - `docs/rebuild/PR_RELEASE_READINESS_04_BACKFILL_EXECUTION_PACK.md`
+>   （PR-REC-06c Dry Run/本実行の実行前チェック・成功/失敗条件・件数/差分/
+>   ログ確認・ロールバック・Founder承認ポイント）
+> - `docs/rebuild/PR_RELEASE_READINESS_05_FEATURE_FLAG_RELEASE_PLAN.md`
+>   （5 Flagそれぞれの対象画面・依存・リスク・推奨切替順序[Home→Insights→
+>   Me→Billing→Experiment]・ロールバック手順。Flag値は未変更）
+> - `docs/rebuild/PR_RELEASE_READINESS_06_LEGACY_REMOVAL_PLAN_RC_SCOPE.md`
+>   （5画面Runtime統合に伴うLegacy資産の分類[削除可能/削除保留/削除予定/GR後]・
+>   削除順・ロールバック方法・削除後確認項目。`docs/LEGACY_REMOVAL_PLAN.md`
+>   [app-legacy.js解体、PR-079〜090]とはスコープが異なる別文書）
+> - `docs/rebuild/PR_RELEASE_READINESS_07_RC_PREPARATION.md`
+>   （RC Checklist・Release Noteドラフト・Known Issues/Limitations・
+>   Blocker一覧・Rollback/Monitoring Plan・**2026-07-17時点のBuild PASS・
+>   Regression結果[309/312ファイルPASS、既知3ファイル35件を除き新規失敗
+>   ゼロ、ベースラインと完全一致]**・BV/Backfill結果Founder記入欄・
+>   Beta Release Checklist・RCタグ作成/Release手順・障害時対応）
+>
 > ### 現在地（次回セッションはここから再開）
 >
 > **Founder確認待ち（Blocker）**:
 > 1. **Browser Verification（5件、まとめて確認可）**: Home / Experiment /
->    Insights / Billing / Me。チェックリストは上記READINESS-02文書 2節
+>    Insights / Billing / Me。チェックリストは上記READINESS-02文書 2節、
+>    実施ガイドはREADINESS-03文書
 > 2. **PR-REC-06c**（バックフィルスクリプト、コード完了・未実行）:
 >    Founder操作待ち（AI環境にSupabase接続情報なし）。手順は同文書 7節・
->    本HANDOFFのPR-REC-06cエントリ
+>    詳細実行手順はREADINESS-04文書・本HANDOFFのPR-REC-06cエントリ
 > 3. **PR-REC-06b**（リトライ機構）: Browser Verification要否をFounderが判断
 >
 > **Founder Decision待ち（Blockerではないが未確定）**:
@@ -136,10 +159,11 @@ ippoの設計・実装を進めている。
 >   General Release後の独立PR
 > - Case/Similarity（Phase 7）: 本セッション未着手。今回のRC対象外
 >
-> **次にAIが着手できる範囲**: 上記すべてがFounder確認・判断待ちのため、
-> 現時点でAI側の自走実装で埋められる範囲はほぼ尽きている
-> （READINESS-01文書 総括参照）。Founderの確認結果が届くまでは、
-> ドキュメント整理・HANDOFF更新以外の新規実装PRは起票しない。
+> **次にAIが着手できる範囲**: Browser Verification・Backfill実行・Feature
+> Flag変更・Legacy削除・RCタグ作成・Release実行はすべてFounder確認・判断・
+> 操作待ちのため着手不可。ドキュメント整理・HANDOFF更新・Build/Regression
+> 確認は2026-07-17時点で実施済み（READINESS-03〜07文書）。次に新規で
+> 自走できる範囲は現時点でほぼ尽きている（READINESS-01文書 総括参照）。
 >
 > ### 主要な技術的発見（今後の実装で再確認不要）
 >
