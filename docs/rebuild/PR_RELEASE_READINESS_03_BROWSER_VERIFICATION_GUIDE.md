@@ -39,6 +39,25 @@ Xxxと対応タブ・Namespaceの対応表:
 | Billing | `ippoBillingNext` | Premium/Proタブ | `ippo_billing_ui_v2` |
 | Me | `ippoMeNext` | 設定タブ | `ippo_me_ui_v2` |
 
+**重要な非対称性（2026-07-17 Runtime Switch監査で確認）**: Homeのみ、Flagの
+デフォルト挙動が他4画面と逆になっている。
+
+```
+Experiment/Insights/Billing/Me: isXxxNextEnabled() は
+  localStorage.getItem(FLAG_KEY) === '1' の場合のみ true（opt-in、既定OFF）
+
+Home: isHomeNextEnabled() は
+  state.homeNextEnabled === false、または localStorage.getItem('ippo_home_next') === '0'
+  の場合のみ false（opt-out、既定ON）
+  （src/modules/home-next/home-next-shell.js 65-75行、コメントに「デフォルト有効」と明記）
+```
+
+したがって**Homeの「Feature Flag OFF」ベースラインは、何もしなくても得られる
+状態ではない**。他4画面は何もしなければ自動的にOFF（legacy）だが、Homeは
+明示的に`localStorage.setItem('ippo_home_next','0')`を実行してリロードしない
+限り、常にhome-nextが表示された状態のままになる。0節の共通確認方法
+（「OFF状態の確認」）をHomeで実施する際は、この手順を追加で行うこと。
+
 ---
 
 ## 1. 画面ごとの詳細手順
@@ -49,12 +68,21 @@ Xxxと対応タブ・Namespaceの対応表:
 
 ### 1-1. Home（`window.ippoHomeNext`）
 
-**画面遷移**:
+**画面遷移**（他4画面と異なり、Homeは既定で有効なため手順が異なる）:
 ```
-1. アプリを開く（デフォルトでホームタブが表示される）
-2. Consoleで `window.ippoHomeNext.preview()` を実行
-3. 同じホームタブ内でHero/Status/Insight/Experiment/Quick Recordの各カードに
-   切り替わることを確認（タブ移動は発生しない）
+ON状態の確認:
+  1. アプリを開く（何もしなくても、デフォルトでhome-nextが表示される。
+     `window.ippoHomeNext.isEnabled()` を実行して true が返ることを確認）
+  2. 確認のため `window.ippoHomeNext.preview()` を実行しても同じ画面が
+     再描画されるだけで問題ない
+
+OFF状態の確認（重要: 他4画面と異なり、何もしなくてもOFFにはならない）:
+  1. Consoleで `localStorage.setItem('ippo_home_next','0')` を実行
+  2. リロード（F5）
+  3. legacy Home画面（週間カレンダー + 「今日を記録する」ボタン等）が
+     表示されることを確認
+  4. 確認後は `localStorage.removeItem('ippo_home_next')` を実行しリロードして
+     既定状態（home-next表示）へ戻す
 ```
 
 **期待結果**: `PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md` 2-1節のチェック項目通り。
@@ -85,7 +113,14 @@ Xxxと対応タブ・Namespaceの対応表:
 1. Consoleで `window.ippoExperimentNext.preview()` を実行
 2. 進行中の実験がなければライブラリ画面のみが表示される（これは正常）
 3. ライブラリから任意の実験の「試す」を押す → 進行中カードに反映されることを確認
-4. リロードしてもACTIVE状態が維持されるか確認（同じアプリを再読み込み）
+4. リロードしてもACTIVE状態（実験データ）が維持されるか確認する。**注意**:
+   Home以外の4画面（Experiment/Insights/Billing/Me）は、リロード後に
+   next画面が自動的に再表示されるわけではない（Navigation統合が範囲外の
+   ため、起動時にnext画面へ自動遷移する仕組みが無い）。リロード後は通常の
+   起動画面（Home等）が表示されるので、再度 `window.ippoExperimentNext.preview()`
+   を実行してExperiment next画面へ戻り、進行中カードのDay数・進捗が
+   維持されていることを確認する。これは想定通りの挙動であり、
+   「リロードで画面が戻った」こと自体は不具合ではない
 5. 「今日もOK」ボタンは押しても反応しない想定（disabled、書込み未接続のため）
 6. Home / Recordタブへ切り替えて戻ってこれることを確認
 ```
