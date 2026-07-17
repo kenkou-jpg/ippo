@@ -92,6 +92,57 @@ Founder最終承認後にFounderまたはFounder指示のもとで実施する�
 
 ---
 
+## 4-A. Production Deployment Record（2026-07-17、Founder承認済み本番反映）
+
+本セクションは通常のRC→Release手順（14〜15節）とは別に、Founderが
+Browser Verification未完了のまま先行して`main`へ反映することを明示承認
+した記録。
+
+```
+Deployment: 完了
+Source Branch: ops/recovery-program（先端コミット f0a596a）
+Main Commit（マージ前の直前main）: b68cf0d
+Merge Commit: c364d6c（PR #371、GitHub上でFounderがマージ）
+Build: PASS（Build and Deploy workflow run 29554613572、3分16秒、成功）
+Regression: 差分ゼロ（マージ前にops/recovery-program上で313ファイル中
+  310PASS・既知3ファイル35件除き新規失敗ゼロを確認済み）
+GitHub Actions:
+  - CI: 成功（run 29554613580）
+  - Build and Deploy: 成功（run 29554613572）
+  - Deploy Supabase: 失敗（run 29554613588、`supabase db push`が対話確認
+    待ちで停止。PR #370マージ時も同様に失敗した既知の事前問題であり、
+    本デプロイのフロントエンド反映とは無関係。Migration実行は本デプロイの
+    スコープ外のため未対応）
+Production URL: https://www.ippo-app.com/（GitHub Pages、cname設定済み、
+  HTTPS証明書approved・有効期限2026-09-18）
+Production Smoke Test（AI実施、非破壊確認のみ）:
+  - トップページ・app.html双方 200応答、静的アセットすべて200
+  - Console致命的エラーなし
+  - blank screenではない（未ログイン状態でwelcome画面が正常表示）
+  - window.ippoHomeNext / ippoExperimentNext / ippoInsightsNext /
+    ippoBillingNext / ippoMeNext がすべて定義済み（コード配信確認）
+  - window.ippoHomeNext.isEnabled() = false（Home含む5画面ともFeature
+    Flag既定OFFであることを本番で確認）
+  - ログイン後のLegacy Home実表示・実データでのRuntime動作は未確認
+    （アカウント作成・ログインはAIが行わない範囲のため、Founder確認が
+    別途必要）
+Feature Flags: 5画面すべて本番で既定OFFを確認（上記smoke test参照）
+Data Changes: なし（Migration・Backfill・Stripe操作・Consent変更いずれも
+  未実施）
+Rollback: 未実施（発生条件に該当する事象なし）。必要な場合は
+  `git revert c364d6c`→`git push origin main`（force push不可）
+Documentation: 本項目・`docs/HANDOFF_PHASE7_COMPLETE.md`引継ぎサマリーに
+  記録済み
+Known Issues: `Deploy Supabase`workflow失敗（上記、既知・スコープ外）
+Remaining Founder Actions:
+  - ログイン後のLegacy Home実機確認（本番で意図通りLegacy表示のままか）
+  - 5画面のBrowser Verification（`PR_RELEASE_READINESS_03`ガイド使用、
+    本番URLまたは`window.ippoXxxNext.preview()`経由で実施可能になった）
+  - PR-REC-06c Backfill・PR-REC-06b BV要否判断は引き続き未着手
+```
+
+---
+
 ## 5. Feature Flag一覧（現在値スナップショット、2026-07-17時点）
 
 | Flag | 対象画面 | 現在値 |

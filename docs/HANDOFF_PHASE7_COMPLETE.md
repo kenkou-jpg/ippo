@@ -96,6 +96,23 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-17更新）**
 >
+> **本番デプロイ完了（2026-07-17 13:20 JST）**: PR #371
+> （`ops/recovery-program` → `main`、マージコミット`c364d6c`、Founder承認
+> 済み）がGitHub上でマージされ、`Build and Deploy`ワークフローが成功
+> （3分16秒、run 29554613572）。本番URL `https://www.ippo-app.com/`
+> （GitHub Pages、`app.html`含む）で以下を確認済み:
+> - 5画面すべての`window.ippoXxxNext`が定義されている（コードは配信済み）
+> - `window.ippoHomeNext.isEnabled()` = false（PR-FEATUREFLAG-01の修正が
+>   反映され、Home含む5画面すべてFeature Flag既定OFFで一致）
+> - Consoleエラーなし、静的アセット・app.htmlともに200応答、welcome画面が
+>   正常表示（blank screenではない）
+> - 未ログイン状態での確認のみ（ログイン後のLegacy Home表示はFounderが
+>   別途確認）
+> - `Deploy Supabase`ワークフローは失敗（`supabase db push`が対話確認待ちで
+>   停止、CI非対話環境特有の既知問題。PR #370マージ時も同様に失敗しており
+>   本セッションの変更とは無関係。Migration実行は今回のスコープ外のため
+>   未対応のまま）
+>
 > **アーキテクチャ達成**: Home・Experiment・Insights・Billing・Meの5画面が
 > `Prototype UI → Runtime → Application Facade → Domain`という統一
 > アーキテクチャで揃った（本セッションの最大の成果）。全画面Feature Flag
