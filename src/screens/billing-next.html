@@ -1,0 +1,49 @@
+<div id="screen-billing-next" class="screen">
+  <div class="bln-scroll">
+
+    <header class="bln-header">
+      <h1>Premium / Pro</h1>
+      <p class="bln-sub">自分に合ったプランを見つける</p>
+      <!-- PR-BILLING-RUNTIME-03/04: 既存Application Facade
+           （premium-service.js）経由のRead-only。空文字時は非表示 -->
+      <p class="bln-current-plan" id="bln-current-plan" hidden></p>
+    </header>
+
+    <!-- Premium: Prototype #screen-me plan-card-premium と同一コピー -->
+    <!-- 現在のプラン表示欄（上記）以外は静的コピーのまま維持 -->
+    <section class="bln-plan-card bln-plan-premium">
+      <div class="bln-kicker"><span class="bln-badge badge-rose">🔬</span><span class="bln-kicker-label">PLAN</span></div>
+      <div class="bln-plan-heading">Premium</div>
+      <p class="bln-plan-tagline">自分の体をもっと深く理解する</p>
+      <ul class="bln-plan-list">
+        <li>Insights全履歴の閲覧</li>
+        <li>周期×体調の長期トレンド</li>
+        <li>パターンカレンダー全期間表示</li>
+      </ul>
+      <button class="bln-btn-primary" type="button" data-bln-open="premium">Premiumを見る</button>
+    </section>
+
+    <!-- Pro: Prototype #screen-me plan-card-pro と同一コピー -->
+    <section class="bln-plan-card bln-plan-pro">
+      <div class="bln-kicker"><span class="bln-badge badge-gold">🔭</span><span class="bln-kicker-label">PLAN</span></div>
+      <div class="bln-plan-heading">Pro</div>
+      <p class="bln-plan-tagline">改善実験をもっと進める</p>
+      <ul class="bln-plan-list">
+        <li>カスタム実験の作成</li>
+        <li>複数実験の同時進行</li>
+        <li>AIによる次の実験提案</li>
+        <li>Research Contribution Badge</li>
+      </ul>
+      <button class="bln-btn-primary bln-btn-gold" type="button" data-bln-open="pro">Proを見る</button>
+    </section>
+
+  </div>
+
+  <!-- Premium/Pro詳細モーダル: Prototype modal-backdrop/modal-sheetと同一構造。
+       PR-EXP-RUNTIME-06の「今日もOK」等と同様、CTAは表示のみでCheckout・
+       書込みへは未接続。「あとで」（閉じる）のみ動作する -->
+  <div class="bln-modal-backdrop" id="bln-modal-backdrop" hidden>
+    <div class="bln-modal-sheet" id="bln-modal-sheet"></div>
+  </div>
+
+</div>

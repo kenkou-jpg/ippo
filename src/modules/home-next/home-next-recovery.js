@@ -8,6 +8,8 @@
 //  - data が少ない場合は何も出さない
 // ============================================================
 
+import { validateOutput } from '../../domains/signal-insight/forbidden-word-validator.js';
+
 function _esc(str) {
   return String(str || '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -104,6 +106,16 @@ export function renderExperiment(container) {
   try { exp = rj.generateGentleExperiment(ctx); } catch (_) {}
 
   if (!exp) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // BD-038 (IMPLEMENTATION_PLAN_V1.1 Phase2完了条件): 実験提案テキストも
+  // forbidden-word-validatorで検証する。非LLM・rule-baseの断定禁止文言のため
+  // isMedicalAdvice=falseで検証。違反時はカードごと非表示にする。
+  try {
+    validateOutput(exp.text, false);
+  } catch (_) {
     container.innerHTML = '';
     return;
   }

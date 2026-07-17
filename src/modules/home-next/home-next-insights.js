@@ -4,6 +4,9 @@
 //  自然な「傾向」を、太字で静かに提示する
 // ============================================================
 
+import { validateOutput } from '../../domains/signal-insight/forbidden-word-validator.js';
+import { confidenceLabel } from '../../analytics/shared/stats-utils.js';
+
 // ── 直近レコード取得 ─────────────────────────────────────
 
 function getWeekRecords(records) {
@@ -24,9 +27,9 @@ function getMonthRecords(records) {
 }
 
 // ── インサイト候補を生成 ─────────────────────────────────
-// 戻り値: { main, sub } | null
+// 戻り値: { main, sub, confidenceLabel } | null
 
-function findBestInsight(records, config) {
+export function findBestInsight(records, config) {
   if (!records || records.length < 4) return null;
 
   const week     = getWeekRecords(records);
@@ -280,6 +283,9 @@ function findBestInsight(records, config) {
             priority: 6,
             main:     gi.main,
             sub:      gi.sub,
+            // insight-engine.js が calcConfidence()（4段階: high/medium/low/insufficient）
+            // で既に付与済みの値をそのまま引き継ぐ（PR-HOME-INSIGHT-CONFIDENCE）
+            confidenceLabel: gi.confidenceLabel,
           });
         }
       } catch (_) {}
@@ -302,6 +308,9 @@ function findBestInsight(records, config) {
               priority: 8,
               main:     top.main,
               sub:      top.sub,
+              // rankInsightPriorities()はinsights配列を並べ替えるのみで各要素は
+              // insight-engine.js由来のconfidenceLabelを保持している（PR-HOME-INSIGHT-CONFIDENCE）
+              confidenceLabel: top.confidenceLabel,
             });
           }
         }
@@ -313,7 +322,18 @@ function findBestInsight(records, config) {
 
   // 優先度順で1件だけ
   candidates.sort((a, b) => b.priority - a.priority);
-  return candidates[0];
+  const winner = candidates[0];
+
+  // PR-HOME-INSIGHT-CONFIDENCE: 4段階confidenceLabel（stats-utils.jsのBlueprint
+  // MIN_SAMPLES準拠、insight-engine.js/companion-intelligence.js経由の候補と同一関数）
+  // へ統一する。engine由来の候補は既に精度の高い値を持つためそれを優先し、
+  // rule-based候補（このファイル内で直接パターン判定するもの）には全体記録数を
+  // サンプルサイズとしたfallback値を付与する。
+  if (!winner.confidenceLabel) {
+    winner.confidenceLabel = confidenceLabel(records.length);
+  }
+
+  return winner;
 }
 
 // ── インサイトカード HTML ─────────────────────────────────
@@ -341,6 +361,18 @@ export function renderInsights(container, state, config) {
   const insight = findBestInsight(records, config || {});
 
   if (!insight) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // BD-038 (IMPLEMENTATION_PLAN_V1.1 Phase2完了条件): 気づき生成パスの最終出力を
+  // forbidden-word-validatorへ通す。すべて非LLM・rule-baseの断定禁止文言のため
+  // isMedicalAdvice=falseで検証。違反時はカード自体を非表示にし、Home描画全体を
+  // 巻き込まない（renderAll()の他セクションに影響させない）。
+  try {
+    validateOutput(insight.main, false);
+    if (insight.sub) validateOutput(insight.sub, false);
+  } catch (_) {
     container.innerHTML = '';
     return;
   }

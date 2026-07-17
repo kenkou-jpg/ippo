@@ -11,9 +11,13 @@
 //  - 既存の user_records 保存経路（syncRecordImmediately）とは完全に独立した
 //    Dual-Write。失敗しても user_records 側には一切影響しない
 //
-//  対象外（06b/06c以降）:
-//  - リトライ / syncPending 管理
-//  - バックフィル
+//  PR-REC-06b: リトライ機構
+//  - syncRecordImmediately/retrySyncPending（src/services/supabase.js）の
+//    record.syncPending パターンをミラーする。record.normalizedSyncPending を
+//    立て、main.js起動シーケンスから retryNormalizedSyncPending() で再送する。
+//
+//  対象外（06cへ先送り）:
+//  - バックフィル（user_recordsの過去データを正規化テーブルへ移行）
 //
 //  PR-REC-06a-FIX (Founder Decision 3/4, 2026-07-12):
 //  - menstrualCycle は draft に含めるが正規化テーブルへは永続化しない
@@ -34,29 +38,13 @@
 import { SupabaseRecordRepository } from '../../infrastructure/record/record.repository';
 import { createRecord } from '../../application/record/createRecord';
 import { getSupabaseClient } from '../services/supabase.js';
+// PR-REC-06a-FIX-2: mapLegacyRecordToDraft() は外部依存のない純粋関数として
+// record-legacy-mapper.js へ切り出した（scripts/backfill-normalized-records.ts
+// がこのファイル経由でservices/supabase.js の CDN import / window.* 副作用を
+// 引き込まずに再利用できるようにするため）。ここでは後方互換のため re-export する。
+import { mapLegacyRecordToDraft } from './record-legacy-mapper.js';
 
-// legacy record shape（record-three-card.js:_mapProtoPayloadToLegacyRecord の
-// 出力）→ Partial<RecordDraft> 相当のプレーンオブジェクトへ変換する。
-// symptoms/factors は日本語表示ラベルのまま渡す
-// （SupabaseRecordRepository側でkeyへ解決する、record-three-card.jsのコメント
-// 「a known, pre-existing divergence from the English canonical keys」参照）。
-export function mapLegacyRecordToDraft(record) {
-  return {
-    recordDate: record.record_date,
-    mood: record.mood != null ? record.mood : undefined,
-    sleepQuality: record.sleepQuality != null ? record.sleepQuality : undefined,
-    symptoms: Array.isArray(record.symptoms) ? record.symptoms : undefined,
-    factors: Array.isArray(record.factors) ? record.factors : undefined,
-    note: record.note != null ? record.note : undefined,
-    painLevel: record.painLevel != null ? record.painLevel : undefined,
-    // menstrualCycle はDraftとしては引き渡すが、DBへ永続化されるとは限らない
-    // （SupabaseRecordRepository.upsert()内のmapMenstrualCycleToPeriodDay参照）。
-    menstrualCycle: record.cycle != null ? record.cycle : undefined,
-    temperature: record.temp != null ? record.temp : undefined,
-    medication: Array.isArray(record.medication) ? record.medication : undefined,
-    experimentId: record.experiment_id != null ? record.experiment_id : undefined,
-  };
-}
+export { mapLegacyRecordToDraft };
 
 let _repository = null;
 function getRepository(client) {
@@ -106,5 +94,48 @@ export function syncRecordToNormalizedSchema(record) {
     var status = (e && e.code === 'vocabulary') ? 'failed:vocabulary' : 'failed:database';
     console.warn('[record-normalized-write] ' + status + ':', (e && e.message) || e);
     return { status: status, message: (e && e.message) || String(e) };
+  });
+}
+
+// 一時的な失敗（ネットワーク・未ログイン・vocabulary取得失敗・DB一時エラー等）は
+// 再送する。データ自体の問題（record_date欠落・validation失敗）は再送しても同じ
+// 結果になるため対象外とする。
+var RETRYABLE_STATUSES = [
+  'skipped:no-client',
+  'skipped:not-logged-in',
+  'failed:vocabulary',
+  'failed:database',
+];
+
+// syncRecordToNormalizedSchema() の結果を record（state.records内のオブジェクト）へ
+// 反映する純粋関数。呼び出し側（_rtcPipelineSave / retryNormalizedSyncPending）は
+// 呼び出し後に window.saveState() で永続化すること。
+export function applyNormalizedSyncResult(record, result) {
+  if (!record || !result) return;
+  if (result.status === 'success') {
+    record.normalizedSyncPending = false;
+    record.normalizedSyncedAt = new Date().toISOString();
+  } else if (RETRYABLE_STATUSES.indexOf(result.status) !== -1) {
+    record.normalizedSyncPending = true;
+    delete record.normalizedSyncedAt;
+  }
+  // 再送対象外のstatus（skipped:no-record-date / failed:validation）は
+  // normalizedSyncPendingを変更しない（そもそも立っていなければ立てない）。
+}
+
+// main.js起動シーケンスから retrySyncPending() と同じタイミングで呼ばれる。
+// state.records のうち normalizedSyncPending な記録のみ再送する。
+export function retryNormalizedSyncPending() {
+  var state = (typeof window.getState === 'function') ? window.getState() : null;
+  var records = state && Array.isArray(state.records) ? state.records : [];
+  var pending = records.filter(function (r) { return r && r.normalizedSyncPending; });
+  if (!pending.length) return Promise.resolve();
+
+  return Promise.all(pending.map(function (r) {
+    return syncRecordToNormalizedSchema(r).then(function (result) {
+      applyNormalizedSyncResult(r, result);
+    });
+  })).then(function () {
+    if (typeof window.saveState === 'function') window.saveState();
   });
 }

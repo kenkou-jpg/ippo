@@ -10,6 +10,23 @@
 // ============================================================
 
 import { extractSignals, signalFingerprint } from '../services/insight-signals.js';
+import { validateOutput } from '../domains/signal-insight/forbidden-word-validator.js';
+
+// BD-038（IMPLEMENTATION_PLAN_V1.1 Phase4完了条件「forbidden-word-validator.jsが
+// 新しい気づき生成パスに接続されている」）: このファイル冒頭コメントの「禁止語」は
+// 従来コメントのみの申し合わせで、実行時検証には接続されていなかった。
+// signal由来の動的テキスト（_signalText/_recentChangeText/engine insight）を
+// 生成する箇所でこの関数を通し、違反時はnullへフォールバックする
+// （呼び出し元は元々null時の代替表示を持つため、呼び出し側の変更は不要）。
+function _safeText(text) {
+  if (!text) return null;
+  try {
+    validateOutput(text, false);
+    return text;
+  } catch (_) {
+    return null;
+  }
+}
 
 // ─── Comment stabilization ────────────────────────────────
 const _STABLE_KEY    = 'ippo_insight_render_v1';
@@ -148,35 +165,39 @@ const _LAYER1_DEFAULT = {
 
 function _signalText(sig) {
   if (!sig) return null;
+  let text = null;
   switch (sig.id) {
     case 'sleepPainCorrelation':
     case 'sleepFatigueCorrelation':
-      return `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`; break;
     case 'stressFlareRisk':
-      return `最近は、${sig.trigger}に${sig.symptom}が集中しやすい傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が集中しやすい傾向があります`; break;
     case 'cycleMoodLink':
-      return `最近は、${sig.trigger}に${sig.symptom}が出やすい傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が出やすい傾向があります`; break;
     case 'coldSensitivity':
-      return `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`;
+      text = `最近は、${sig.trigger}に${sig.symptom}が増える傾向があります`; break;
     case 'improvementSleep':
-      return `最近は、${sig.trigger}は${sig.symptom}`;
+      text = `最近は、${sig.trigger}は${sig.symptom}`; break;
     default:
       return null;
   }
+  return _safeText(text);
 }
 
 function _recentChangeText(sig) {
   if (!sig) return null;
+  let text = null;
   switch (sig.id) {
     case 'recentFlare':
-      return '過去1週間は、気になる動きがあります。もう少し見ることもできます';
+      text = '過去1週間は、気になる動きがあります。もう少し見ることもできます'; break;
     case 'recentImprovement':
-      return '過去1週間は、それ以前と比べて落ち着いている傾向があります';
+      text = '過去1週間は、それ以前と比べて落ち着いている傾向があります'; break;
     case 'bbtVariance':
-      return `過去30日の体温に変化が見られます（平均 ${sig.avg}℃）`;
+      text = `過去30日の体温に変化が見られます（平均 ${sig.avg}℃）`; break;
     default:
       return null;
   }
+  return _safeText(text);
 }
 
 // ─── Build disease card content (3-layer) ─────────────────
@@ -303,20 +324,27 @@ function _renderSampleBadge(insight, sc) {
   el.textContent = parts.join('・');
 }
 
-// ─── Main insight card renderer ───────────────────────────
+// ─── Main insight resolution (pure) ───────────────────────
+// PR-INSIGHTS-RUNTIME-03: insights-next-adapter.js（Read-only ViewModel
+// Adapter）から再利用するため、DOM描画から選定ロジックを切り出した純粋関数。
+// 挙動は元の_renderMainInsight()と同一（3段階フォールバック: engine insight
+// → signalベース → 低データ時の定型文）。
 
-function _renderMainInsight(insights, signals, records, sc) {
-  const h2El  = sc.querySelector('#ins-main-insight-text, .ipr-ins-h2');
-  const subEl = sc.querySelector('#ins-main-insight-sub, .ipr-ins-body');
-  if (!h2El || !subEl) return;
-
+function resolveMainInsight(insights, signals, records) {
   // Use top signal from engine
   const top = insights[0];
   if (top) {
-    h2El.textContent = top.main;
-    subEl.textContent = top.sub;
-    _renderSampleBadge(top, sc);
-    return;
+    const main = _safeText(top.main);
+    if (main) {
+      return {
+        main,
+        sub:             _safeText(top.sub) || '',
+        sampleSize:      top.sampleSize,
+        confidenceLabel: top.confidenceLabel,
+        effectSize:      top.effectSize,
+      };
+    }
+    // BD-038違反時はこのinsightを飛ばし、下のsignalベースのfallbackへ進む
   }
 
   // Fall back to top high-confidence signal
@@ -324,23 +352,40 @@ function _renderMainInsight(insights, signals, records, sc) {
   if (topSig) {
     const text = _signalText(topSig);
     if (text) {
-      h2El.textContent = text;
-      subEl.textContent = topSig.pct
-        ? `過去30日の記録から、約${topSig.pct}%の確率で見られます。断定はできませんが、気になる動きがあります。`
-        : '記録が続くと、傾向がより明確になります。';
-      return;
+      return {
+        main: text,
+        sub: topSig.pct
+          ? `過去30日の記録から、約${topSig.pct}%の確率で見られます。断定はできませんが、気になる動きがあります。`
+          : '記録が続くと、傾向がより明確になります。',
+      };
     }
   }
 
   // Low data or no signal: calm fallback
   const recCount = records.length;
   if (recCount < 5) {
-    h2El.textContent = '記録が増えると、ここに気づきが届きます';
-    subEl.textContent = '記録を続けることで、少しずつ自分の傾向が見えてきます。';
-  } else {
-    h2El.textContent = '気になる動きはありません';
-    subEl.textContent = '最近の記録からは、特定のパターンはまだ見えていません。これからも、気づいたことを記録してみてください。';
+    return {
+      main: '記録が増えると、ここに気づきが届きます',
+      sub:  '記録を続けることで、少しずつ自分の傾向が見えてきます。',
+    };
   }
+  return {
+    main: '気になる動きはありません',
+    sub:  '最近の記録からは、特定のパターンはまだ見えていません。これからも、気づいたことを記録してみてください。',
+  };
+}
+
+// ─── Main insight card renderer ───────────────────────────
+
+function _renderMainInsight(insights, signals, records, sc) {
+  const h2El  = sc.querySelector('#ins-main-insight-text, .ipr-ins-h2');
+  const subEl = sc.querySelector('#ins-main-insight-sub, .ipr-ins-body');
+  if (!h2El || !subEl) return;
+
+  const resolved = resolveMainInsight(insights, signals, records);
+  h2El.textContent  = resolved.main;
+  subEl.textContent = resolved.sub;
+  if (resolved.sampleSize) _renderSampleBadge(resolved, sc);
 }
 
 // ─── Hints card renderer ─────────────────────────────────
@@ -433,6 +478,10 @@ function _renderAlternativeViews(sc) {
 }
 
 // ─── Main public function ─────────────────────────────────
+
+// テスト用export（PR: forbidden-word-validator接続の単体テスト）。
+// 実行時の呼び出し元・挙動は変更しない。
+export { _signalText, _recentChangeText, _safeText, resolveMainInsight };
 
 /**
  * インサイト画面の動的コンテンツをレンダリングする。

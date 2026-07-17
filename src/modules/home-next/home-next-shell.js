@@ -4,6 +4,10 @@
 //
 //  Feature flag: localStorage['ippo_home_next'] === '1'
 //  ON のとき window.showMain を showHomeNext に差し替える。
+//  OFF（デフォルト）のとき、このモジュールは何もしない
+//  （PR-FEATUREFLAG-01: experiment/insights/billing/me-next-shell.jsと
+//  同一のopt-inパターンへ統一。既定ON運用時の設計判断は
+//  docs/PR-092A-1-home-next-reality-audit.md に記録として残す）。
 //  既存の home / calendar / record / persistence は一切変更しない。
 //
 //  Phase B: settings-store 統合
@@ -63,14 +67,12 @@ import { renderRecovery, renderExperiment } from './home-next-recovery.js';
 const FLAG_KEY = 'ippo_home_next';
 
 export function isHomeNextEnabled() {
+  // PR-FEATUREFLAG-01: opt-in（既定OFF）に統一。experiment/insights/
+  // billing/me-next-shell.jsのisXxxNextEnabled()と同一パターン。
   try {
-    const st = getState();
-    // 明示的に false が設定された場合のみ無効（デフォルト有効）
-    if (st && st.homeNextEnabled === false) return false;
-    const flag = localStorage.getItem(FLAG_KEY);
-    return flag !== '0';
-  } catch {
-    return true;
+    return localStorage.getItem(FLAG_KEY) === '1';
+  } catch (_) {
+    return false;
   }
 }
 
@@ -165,6 +167,7 @@ function renderAll() {
 
   const header         = document.getElementById('hn-header');
   const greeting       = document.getElementById('hn-greeting');
+  const hero           = document.getElementById('hn-hero');
   const status         = document.getElementById('hn-status');
   const insights       = document.getElementById('hn-insights');
   const medicalSummary = document.getElementById('hn-medical-summary');
@@ -173,8 +176,10 @@ function renderAll() {
 
   // PHASE 1: 除外セクションのコンテナをクリア（ファイル・ロジックは保持）
   // PR-P2-01 (Phase2 Implementation): hn-experimentはPHASE2_IMPLEMENTATION_COUNCIL.mdの
-  // Value Ladder③改善ギャップを埋めるため再有効化。他6セクションはScope外のため無変更のまま維持
-  ['hn-hero','hn-daily-note','hn-personalize','hn-optional',
+  // Value Ladder③改善ギャップを埋めるため再有効化。
+  // PR-HOME-02 (IMPLEMENTATION_PLAN_V1.1 Phase2): hn-heroも既存renderHero()を
+  // 再接続して有効化。残る4セクションはScope外のため無変更のまま維持
+  ['hn-daily-note','hn-personalize','hn-optional',
    'hn-recovery','hn-reflections'].forEach(function(id) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = '';
@@ -199,6 +204,7 @@ function renderAll() {
 
   if (header)         renderSharedHeader(header);
   if (greeting)       renderGreeting(greeting, state);
+  if (hero)           renderHero(hero, config, state);
   if (medicalSummary) renderMedicalSummary(medicalSummary, config, state);
   if (status)         renderStatusCards(status, config, state);
   if (insights)       renderInsights(insights, state, config);

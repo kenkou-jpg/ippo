@@ -94,37 +94,133 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **次セッション最優先タスク（2026-07-12更新）**: PR-OB-01のクローズに続き、
-> PR-REC-02・PR-REC-03a・PR-REC-03bもFounder Browser Verification実施済み・GOで
-> クローズ（PR-REC-03cは2026-07-11時点で実装・テストとも完了済み）。
-> PR-REC-02〜03系はこれで全件クローズ。
+> **引継ぎサマリー（2026-07-17更新）**
 >
-> Founder承認によりPR-REC-06（Recordスキーマ一本化、Founder方針保留を解除）に着手。
-> 規模が2〜3週間相当のため、最初の安全な一片としてPR-REC-06aを実装したが、Founder
-> サブPRスコープ承認を経ずにcommit・pushされていたためREAD-ONLY再監査を実施し
-> ADOPT WITH FIXES。指摘10項目をPR-REC-06a-FIXで是正し、Founderが**ADOPT**（下記参照）。
-> ただし現時点のNormalized Writeは**「Shadow Write」**扱い
-> （`user_records`が引き続き唯一の読取り元・復旧元、Normalized側はHome/Insights/Case等の
-> 本番Read Sourceに使用しない）。
+> **アーキテクチャ達成**: Home・Experiment・Insights・Billing・Meの5画面が
+> `Prototype UI → Runtime → Application Facade → Domain`という統一
+> アーキテクチャで揃った（本セッションの最大の成果）。全画面Feature Flag
+> デフォルトOFF、到達手段は`window.ippoXxxNext.preview()`のみ
+> （Navigation変更なし・既存本番挙動に影響なし）。実装フェーズの重心は
+> 「画面追加」から「リリース準備」へ移った。
 >
-> 1. ~~重複検査~~ → ~~Migration適用（20260093→20260094）~~ → ~~実機Browser
->    Verification~~ → **PR-REC-06a（06a-FIX含む）クローズ**（2026-07-12、Founder GO）。
->    一時停止していたSupabaseプロジェクトの本番影響も「なし」と確認済み
-> 2. **次: PR-REC-06b（バックフィル+リトライ機構）・PR-REC-06a-FIX-2（子テーブル同期の
->    RPC原子化）の着手**。Founderより「進めてください」と承認済み。規模が大きいため
->    PR-REC-06a着手時の反省（サブPRスコープFounder承認前のcommit・pushによりREAD-ONLY
->    再監査が必要になった）を踏まえ、実装前にPlan Modeでサブスコープを設計する
-> 3. General Release Integration（`docs/rebuild/GENERAL_RELEASE_INTEGRATION_PLAN.md`の
->    最終更新。作業ディレクトリに存在するが**未コミット**。PR-CI-01/02・PR-TDZ-01・
->    PR-OB-01・PR-REC-06a/06a-FIXのmainマージ/cherry-pickにより前提条件が変化しているため、
->    このまま使わず内容の見直しが必要）
-> 4. Release Gateへ進む（Founder指定の次マイルストーン、詳細未定義のため着手前に
->    Founderへスコープ確認が必要）
+> **→ 全体棚卸し**: `docs/rebuild/PR_RELEASE_READINESS_01_INVENTORY.md`
+> （Runtime統合済み画面一覧・Feature Flag一覧・Legacy依存一覧・Founder
+> Decision一覧・Release Blocker一覧・RC残PR一覧）
 >
-> **その他の未着手項目**:
+> **→ RC準備の実務資料（Founderがそのまま使う）**:
+> `docs/rebuild/PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`
+> （RC対象/対象外の確定一覧・5画面分のBrowser Verificationチェックリスト・
+> Feature Flag一覧・Legacy一覧・Founder Decision一覧・Release Blocker
+> 一覧・PR-REC-06b/06c整理・RCチェックリスト）。**すべてのBrowser
+> VerificationはFounder確認待ちであり、AIは実施・代行しない。**
+>
+> **→ RC準備の追加資料（2026-07-17、Release Program Phase1〜5で自走作成）**:
+> - `docs/rebuild/PR_RELEASE_READINESS_03_BROWSER_VERIFICATION_GUIDE.md`
+>   （5画面分の画面遷移・期待結果・失敗時確認項目・Console確認項目・
+>   320/375/390/430px確認手順・実施ログテンプレート。READINESS-02のチェック
+>   リスト本体は変更せず補助資料として追加）
+> - `docs/rebuild/PR_RELEASE_READINESS_04_BACKFILL_EXECUTION_PACK.md`
+>   （PR-REC-06c Dry Run/本実行の実行前チェック・成功/失敗条件・件数/差分/
+>   ログ確認・ロールバック・Founder承認ポイント）
+> - `docs/rebuild/PR_RELEASE_READINESS_05_FEATURE_FLAG_RELEASE_PLAN.md`
+>   （5 Flagそれぞれの対象画面・依存・リスク・推奨切替順序[Home→Insights→
+>   Me→Billing→Experiment]・ロールバック手順。Flag値は未変更）
+> - `docs/rebuild/PR_RELEASE_READINESS_06_LEGACY_REMOVAL_PLAN_RC_SCOPE.md`
+>   （5画面Runtime統合に伴うLegacy資産の分類[削除可能/削除保留/削除予定/GR後]・
+>   削除順・ロールバック方法・削除後確認項目。`docs/LEGACY_REMOVAL_PLAN.md`
+>   [app-legacy.js解体、PR-079〜090]とはスコープが異なる別文書）
+> - `docs/rebuild/PR_RELEASE_READINESS_07_RC_PREPARATION.md`
+>   （RC Checklist・Release Noteドラフト・Known Issues/Limitations・
+>   Blocker一覧・Rollback/Monitoring Plan・**2026-07-17時点のBuild PASS・
+>   Regression結果[309/312ファイルPASS、既知3ファイル35件を除き新規失敗
+>   ゼロ、ベースラインと完全一致]**・BV/Backfill結果Founder記入欄・
+>   Beta Release Checklist・RCタグ作成/Release手順・障害時対応）
+>
+> ### 現在地（次回セッションはここから再開）
+>
+> **Founder確認待ち（Blocker）**:
+> 1. **Browser Verification（5件、まとめて確認可）**: Home / Experiment /
+>    Insights / Billing / Me。チェックリストは上記READINESS-02文書 2節、
+>    実施ガイドはREADINESS-03文書
+> 2. **PR-REC-06c**（バックフィルスクリプト、コード完了・未実行）:
+>    Founder操作待ち（AI環境にSupabase接続情報なし）。手順は同文書 7節・
+>    詳細実行手順はREADINESS-04文書・本HANDOFFのPR-REC-06cエントリ
+> 3. **PR-REC-06b**（リトライ機構）: Browser Verification要否をFounderが判断
+>
+> **Founder Decision待ち（Blockerではないが未確定）**:
+> 4. Billing価格・商品構成（実コード¥580/月・¥4,800/年 vs 過去記録の
+>    ¥980/¥1,980の不一致、Premium/Pro分割可否等）。詳細は
+>    `docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節
+>
+> **確定済み（Release Blockerではない）**:
+> - Consent UI: 新規UIは作らず現行維持（`app.html`内・
+>   `consent-service.js`）。再設計はPrototype v2以降
+> - Pattern Calendar: 現状維持（`calendar-next.js`無変更）。統合・廃止は
+>   General Release後の独立PR
+> - Case/Similarity（Phase 7）: 本セッション未着手。今回のRC対象外
+>
+> **次にAIが着手できる範囲**: Browser Verification・Backfill実行・Feature
+> Flag変更・Legacy削除・RCタグ作成・Release実行はすべてFounder確認・判断・
+> 操作待ちのため着手不可。ドキュメント整理・HANDOFF更新・Build/Regression
+> 確認は2026-07-17時点で実施済み（READINESS-03〜07文書）。次に新規で
+> 自走できる範囲は現時点でほぼ尽きている（READINESS-01文書 総括参照）。
+>
+> ### 主要な技術的発見（今後の実装で再確認不要）
+>
+> - `resolveMainInsight()`（`src/modules/insights-dynamic-renderer.js`）が
+>   legacy `insights.html`と`insights-next`の**共通SSOT**。インサイト
+>   生成ロジックの変更は必ずこの1関数を編集する（二重実装厳禁）
+> - `billing-next-adapter.js`の`getSubscriptionViewModel()`を
+>   `me-next-adapter.js`が再利用（同じくSSOT原則）
+> - `ExperimentRepositoryImpl`はlegacy `experiments.js`と同一の
+>   `ippo_state.experiments`を読み書きする（別データではなく同一データを
+>   異なる抽象化層から読み書きしている）
+> - `ApiGateway`はPR-APP-BOOT-01で`window.app.api`として正式に公開された
+>   （それ以前は`container.resolve(TOKENS.ApiGateway)`が一度も呼ばれず
+>   到達不能だった）。UIから到達する場合は`window.app.api`のみを使う
+> - ApiGatewayにSubscription/Billing読み取りメソッドは存在しない
+>   （Billing/Meは`premium-service.js`という既存Application Facadeへ
+>   直接接続、ApiGateway配線の新規追加はしていない）
+>
+> ### Phase 2（Home）〜Phase 6（Me）実装済みPR一覧（`ops/recovery-program`、push済み）
+>
+> Home: PR-HOME-01・PR-HOME-INSIGHT-CONFIDENCE・PR-HOME-02・PR-HOME-06
+> Experiment: PR-EXP-RUNTIME-01〜06・PR-APP-BOOT-01
+> Insights: PR-INSIGHTS-RUNTIME-01〜04
+> Billing: PR-BILLING-RUNTIME-01〜04
+> Me: PR-ME-RUNTIME-01〜04
+> Release準備: PR-RELEASE-READINESS-01〜07・PR-FEATUREFLAG-01
+>
+> 各PRの詳細（変更内容・テスト件数・発見事項）は対応する
+> `docs/rebuild/PR_*_RUNTIME_*.md`を参照（このHANDOFFへの再掲は
+> 冗長になるため省略、上記READINESS-01/02文書に要約済み）。
+>
+> **保留中（優先度低・対応不要のまま据え置き）**:
 > - PR-REC-07（Consent Context監査ログ）: 優先度低・保留中
 > - PR-REC-08（最終Browser Verification）: 02/03系のBVは完了したため着手可能
-> - `ops/recovery-program`は`origin/ops/recovery-program`と同期済み（2026-07-12時点）
+>
+> **PR-FEATUREFLAG-01: Home Feature Flag Policy Alignment**（2026-07-17）
+> Browser Verification直前のRuntime Switch監査で、Homeのみ`isHomeNextEnabled()`
+> がopt-out（既定ON、`state.homeNextEnabled===false`または`flag==='0'`の
+> 場合のみ無効）という他4画面と逆の既定挙動だったことが判明。他4画面
+> （Experiment/Insights/Billing/Me）と同じopt-in（`flag==='1'`の場合のみ
+> 有効、既定OFF）へ統一した。Runtime構造（Router/Shell/Adapter/Application
+> Facade/Domain）は無変更、`src/modules/home-next/home-next-shell.js`の
+> `isHomeNextEnabled()`本体とコメントのみ変更。新規Unit Test 6件追加
+> （`tests/modules/home-next/home-next-shell.test.js`、Flag未設定/'1'/'0'の
+> 3状態 + window.showMain差し替え確認）。Build PASS、フルスイート313
+> ファイル中310PASS（既知3ファイル35件を除き新規失敗ゼロ、差分ゼロ確認済み）。
+> **本番デプロイ後の影響**: これまでhome-nextを既定表示していたユーザーは、
+> 本PRのデプロイ後は既定でlegacy Homeへ戻る（他4画面と同様、Flag ON化は
+> Browser Verification Pass後にFounder承認を経て行う）。詳細は
+> `docs/rebuild/PR_RELEASE_READINESS_03_BROWSER_VERIFICATION_GUIDE.md`
+> 0節に記録。Founder Browser Verificationはこの状態（5画面とも既定OFF）を
+> 前提に実施する。
+>
+> `ops/recovery-program`は`origin/ops/recovery-program`と同期済み
+> （2026-07-17時点、コミット`ead61f8`まで反映済み）。次回セッションは
+> このHANDOFFと`PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`を読めば
+> そのまま再開できる。
 
 **PR-OB-01: オンボーディング完了直後にhome-nextを経由せず旧screen-homeが表示されるバグを修正**（2026-07-12・FIX CONFIRMED）
 - 現象: PR-TDZ-01のBrowser Verification中に新規発見。オンボーディング「ippoをはじめる」
@@ -288,6 +384,118 @@ ippoの設計・実装を進めている。
   RPC原子化）の着手。規模が大きいためPlan Modeでサブスコープを設計してからの実装とする
   （PR-REC-06a着手時の反省: サブPRスコープFounder承認前のcommit・pushにより
   READ-ONLY再監査が必要になった経緯を踏まえる）
+
+**PR-REC-06b: Normalized Write（Shadow Write）のリトライ機構**（2026-07-13）
+- 背景: PR-REC-06a READ-ONLY監査Q5で指摘済みの通り、`syncRecordToNormalizedSchema()`の
+  失敗（`{status:'skipped:*'|'failed:*'}`）は`console.warn`されるのみで再送手段がなかった。
+  legacy `user_records`側には既に確立済みのパターン（`record.syncPending`フラグ→
+  `retrySyncPending()`が起動3秒後に再送、`src/services/supabase.js`/`main.js`）があり、
+  本PRはこれをNormalized Write側にもミラーする
+- Plan Mode実施前にFounderへスコープ確認: バックフィル（`user_records`過去データの
+  正規化テーブルへの移行）は含めず、リトライ機構のみとしPR-REC-06cへ先送り
+  （`IMPLEMENTATION_PLAN_V1.md`も「ユーザー数0のため本番Backfillは不要」と既記載）
+- `src/modules/record-normalized-write.js`:
+  - `applyNormalizedSyncResult(record, result)`（新規）: `status`に応じて
+    `record.normalizedSyncPending`/`record.normalizedSyncedAt`を設定する純粋関数。
+    再送する（`skipped:no-client`/`skipped:not-logged-in`/`failed:vocabulary`/
+    `failed:database`、一時的失敗の可能性）・再送しない（`skipped:no-record-date`/
+    `failed:validation`、データ自体の問題で再送しても同じ結果になる）を分類
+  - `retryNormalizedSyncPending()`（新規）: `state.records`のうち
+    `normalizedSyncPending===true`のみを`syncRecordToNormalizedSchema()`で再送し、
+    結果を`applyNormalizedSyncResult`で反映して`saveState()`（`retrySyncPending()`と同型）
+- `record-three-card-save.js:_rtcPipelineSave`: Dual-Write結果の`.then()`コールバックへ
+  `applyNormalizedSyncResult()` + `saveState()`を追加（既存の`failed:*`ログ・
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__`保持は維持）
+- `main.js`: 既存の`retrySyncPending()`と同一の3秒後`setTimeout`ブロック内へ
+  `retryNormalizedSyncPending()`を追加（同一tick、独立try/catch）
+- Tests: `record-normalized-write.test.js`に24件追加（既存分と合わせ計48件）、
+  新規`tests/modules/record-three-card-save.test.js`4件（このモジュール初のユニットテスト、
+  Dual-Write失敗時のフラグ設定・legacy独立性を検証）。計28件新規PASS
+- Build PASS。フルスイート実行で新規レグレッションなし（既知3ファイル
+  build-draft-from-ui.test.js/save-record-screen.test.js/disease-analyzer.test.jsのみ、
+  加えて`composition-root-pr030.test.js`/`wave2-integration.test.js`が並列実行時の
+  flaky timeoutで断続的に失敗することを確認したが、いずれも単体実行では問題なくPASS、
+  本PRと無関係と確認済み）
+- 判定: コード修正完了。Supabaseへの新規書込みAPIは追加していない（既存
+  `syncRecordToNormalizedSchema`の呼び出し回数が増えるのみ）ため、実機確認要否は
+  Founder判断とする
+- Next: バックフィル（PR-REC-06c）・RPC原子化（PR-REC-06a-FIX-2）の着手要否をFounderが判断
+
+**PR-REC-06a-FIX-2: records/record_symptoms/record_factors書込みのRPC原子化**（2026-07-13）
+- 背景: `SupabaseRecordRepository.upsert()`はrecords upsert→record_symptoms delete/insert→
+  record_factors delete/insertを3回の独立したSupabase API呼び出しで行っており、途中で
+  失敗すると部分的成功状態（recordsだけ更新され子テーブルが古いまま）が残り得る
+  （PR-REC-06a-FIX D節で明記済みの既知制約、投資規模調査の結果「本PRのスコープ外」と
+  していた項目）。Founder承認によりPR-REC-06cと共に着手
+- `supabase/migrations/20260095_upsert_record_with_children_rpc.sql`（新規、**未適用**）:
+  Postgres関数`public.upsert_record_with_children(...)`を追加。records upsert
+  （ON CONFLICT (user_id, record_date)）→record_symptoms/record_factorsのdelete-then-insertを
+  1関数内（単一トランザクション）で実行し原子性を確保。`SECURITY INVOKER`
+  （既存RLSがそのまま適用）。症状/行動タグのラベル→key解決は引き続きJS側で行い、
+  解決済みkeyのみRPCへ渡す（vocabulary解決ロジックをSQL側へ持ち込まない）
+- **実装中に発見・修正した設計上の問題**: 当初`p_user_id = auth.uid()`を無条件チェックする
+  設計にしていたが、これはPR-REC-06cバックフィルスクリプト（service_roleキー経由、
+  `auth.uid()`はNULLになる）を誤って拒否してしまう欠陥だった。`auth.uid() IS NOT NULL`の
+  場合のみ検証するよう修正し、GRANT EXECUTEも`authenticated`に加え`service_role`へ付与した
+- `infrastructure/record/record.repository.ts`: `upsert()`を`.rpc('upsert_record_with_children', {...})`
+  の単一呼び出しへ置き換え。`syncChildRows()`（3回の独立`.from()`呼び出し）は削除。
+  `IRecordRepository`インターフェース・戻り値の型は無変更
+- **既知の制約（正直に明記）**: このリポジトリに`.rpc()`呼び出しの既存パターンがなく、
+  plpgsql関数のローカル統合テスト環境（pgTAP等）も存在しないため、SQL関数自体の正しさは
+  vitestでは検証できない。JS側のテストは`.rpc()`が正しい引数で呼ばれることのみを検証する
+  モックベースに留まる。SQL関数の実際の正しさは、Migration適用後にFounderが直接SQL Editorで
+  動作確認するか、実機Browser Verification（Prototype Record保存 →
+  records/record_symptoms/record_factorsが正しく揃って更新されることを確認）で
+  担保する必要がある
+- Tests: `tests/infrastructure/record/record.repository.test.ts`を`.rpc()`前提へ書き換え
+  （14件、check-then-act/複数`.from()`呼び出しを前提にした旧テストは削除）
+- Build PASS。フルスイート5,310件中失敗35件（既知3ファイルのみ、無関係と確認済み）
+- **Migration適用結果（2026-07-13、Founder実施・本番Supabase）**: `20260095`適用完了。
+  確認SQL（`SELECT proname, prosecdef FROM pg_proc WHERE proname =
+  'upsert_record_with_children'`）で1行返り、`prosecdef = false`
+  （SECURITY INVOKER、設計通り）を確認済み
+- **Founder Browser Verification実施済み・GO（2026-07-13）**: Prototype Record保存後
+  `window.__IPPO_LAST_NORMALIZED_WRITE_RESULT__.status`が`'success'`、
+  records/record_symptoms/record_factorsが正しく揃って更新、同日再保存でも
+  重複なく更新・最新選択内容に同期、いずれも問題なし
+- 判定: **GO。PR-REC-06a-FIX-2はこれをもってクローズ**
+- コミット: `1187763`（`ops/recovery-program`、push済み）
+
+**PR-REC-06c: user_recordsバックフィルスクリプト**（2026-07-13）
+- 背景: PR-REC-06a（Shadow Write）開始以前に`user_records`のみへ保存された過去のRecordは
+  正規化テーブルには一切反映されていない。`IMPLEMENTATION_PLAN_V1.md`は「ユーザー数0のため
+  本番Backfillは不要」としていたが、Founder承認により今回は着手し、バックフィル
+  スクリプトの作成のみ行った（実行はFounder承認後に別途）
+- Founder事前確認: 「まずはリトライ機構のみ、Backfillは06cへ先送り」の方針に基づき
+  PR-REC-06bではリトライ機構のみ実装済み。本PRでバックフィル部分を実施
+- `scripts/backfill-normalized-records.ts`（新規）: `user_records`全行をページング取得し、
+  `.data`（legacy record shape、`user_records.record_date`列で`record_date`を上書き）を
+  `mapLegacyRecordToDraft()`で変換、`validateDraft()`でプレビュー検証した上で
+  `SupabaseRecordRepository`経由でupsert。dry-runがデフォルト（`--apply`指定時のみ実書込み）。
+  1行ごとにtry/catchし不正データはスキップ、実行後にサマリー（total/succeeded/skipped/failed）
+  を出力。冪等性はupsert_record_with_children RPC（PR-REC-06a-FIX-2、UNIQUE制約前提）により
+  担保される
+- **実装中に発見・修正した2件の問題**:
+  1. `mapLegacyRecordToDraft()`は元々`record-normalized-write.js`にあったが、同ファイルは
+     `src/services/supabase.js`を経由してブラウザ専用コード（CDN import・`window.*`代入）を
+     間接的に読み込むため、Node実行スクリプトからはimportできなかった。外部依存のない
+     `src/modules/record-legacy-mapper.js`へ切り出し、`record-normalized-write.js`は
+     後方互換のためre-exportするよう修正（既存テスト・呼び出し元は無変更で動作継続を確認済み）
+  2. スクリプトのエントリポイント判定に`import.meta.url === \`file://${process.argv[1]}\``という
+     単純比較を使っていたが、これはWindows環境では`import.meta.url`が`file:///C:/...`形式、
+     `process.argv[1]`が`C:\...`形式でスラッシュ・エンコーディングが異なるため常に不一致になり、
+     スクリプトが`npx tsx`で直接実行されても`main()`が一切実行されずexit code 0で
+     終了してしまう不具合があった（実機で`npx tsx scripts/backfill-normalized-records.ts`を
+     実行し発見）。Node標準の`pathToFileURL()`で正規化する実装に修正し、修正後は
+     認証情報未設定時に正しくexit code 1・エラーメッセージが出ることを実機確認済み
+- Tests: `tests/scripts/backfill-normalized-records.test.ts`（新規14件）。
+  `fetchAllUserRecords`のページング・エラー処理、`processRow`のスキップ/成功/失敗分類、
+  `runBackfill`の集計を検証
+- Build PASS（`scripts/`はViteアプリバンドルに含まれないことも確認）。フルスイート
+  5,310件中失敗35件（既知3ファイルのみ、無関係と確認済み）
+- 判定: コード修正完了。**実行はFounderが手動で行う**（AIはSupabase接続情報を持たず
+  技術的にも実行不可）。実行前に20260093/20260094/20260095すべてのMigration適用が必要
+- コミット: `b8225e9`（`ops/recovery-program`、push済み）
 
 **PR-TDZ-01: record-modules起動時TDZ例外の修正（General Release Blocker）**（2026-07-12・FIX CONFIRMED）
 - 現象: 本番ビルドで`record-modules-*.js`から`Cannot access '...' before initialization`が

@@ -196,6 +196,28 @@ import './modules/home-renderer.js';
 // フラグ OFF の場合は既存 home に影響しない。
 import './modules/home-next/home-next-shell.js';
 
+// ─── PR-EXP-RUNTIME-02: Prototype Experiment画面 (Read-only表示のみ) ───
+// Feature flag: localStorage['ippo_experiment_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
+// Navigation統合は未定義のため、到達手段は window.ippoExperimentNext のみ。
+import './modules/experiment-next/experiment-next-shell.js';
+
+// ─── PR-INSIGHTS-RUNTIME-02: Prototype Insights画面 (表示のみ) ───
+// Feature flag: localStorage['ippo_insights_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
+import './modules/insights-next/insights-next-shell.js';
+
+// ─── PR-BILLING-RUNTIME-02: Prototype Premium/Pro画面 (表示のみ) ───
+// Feature flag: localStorage['ippo_billing_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存課金フローに
+// 一切影響しない。Checkout未接続。
+import './modules/billing-next/billing-next-shell.js';
+
+// ─── PR-ME-RUNTIME-02: Prototype Me画面 (表示のみ) ───
+// Feature flag: localStorage['ippo_me_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
+import './modules/me-next/me-next-shell.js';
+
 // ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
 // 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。
@@ -255,6 +277,8 @@ window.loadProfileCache = loadProfileCache;
 import { supabase, cloudBackupAll, cloudRestore, initialCloudSync, syncRecordImmediately, retrySyncPending } from './services/supabase.js';
 // P0-FIX-4: 記録入力中ドラフト保護 / P0-FIX-5: SW更新ガードと連携
 import { checkAndShowDraftRestore } from './modules/record-draft-guard.js';
+// PR-REC-06b: 正規化テーブルへのShadow Write再送（retrySyncPendingと同じパターン）
+import { retryNormalizedSyncPending } from './modules/record-normalized-write.js';
 
 import { migrateToIDB }     from './services/storage-migration.js';
 import { autoRecoveryCheck } from './services/recovery.js';
@@ -391,6 +415,8 @@ setTimeout(function() {
 // bootstrap + cloudRestore が落ち着いた後（3秒後）に実行
 setTimeout(function() {
   try { retrySyncPending(); } catch(e) {}
+  // PR-REC-06b: 正規化テーブルへのShadow Write再送（同タイミング、独立実行）
+  try { retryNormalizedSyncPending(); } catch(e) {}
 }, 3000);
 
 // ─── Phase A: Settings Store 初期化 (bootstrap 直後) ──

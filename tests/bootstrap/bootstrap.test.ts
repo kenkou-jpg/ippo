@@ -1,4 +1,4 @@
-﻿import { describe, it, expect, vi, beforeEach } from 'vitest';
+﻿import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DependencyContainer } from '../../src/bootstrap/dependency-container.js';
 import { RouteRegistry }       from '../../src/bootstrap/route-registry.js';
 import { loadBootstrapConfig } from '../../src/bootstrap/bootstrap-config.js';
@@ -186,10 +186,52 @@ describe('CompositionRoot', () => {
 
     expect(c.resolve(TOKENS.Config)).toBe(cfg);
   });
+
+  // PR-APP-BOOT-01: ApiGateway was DI-registered but never resolved anywhere
+  // in the app (found during PR-EXP-RUNTIME-05 design review). Verify the
+  // full dependency graph actually resolves cleanly before relying on it in
+  // the real boot() path.
+  it('resolves ApiGateway from a fully assembled container without throwing', async () => {
+    const { CompositionRoot } = await import('../../src/application/composition-root.js');
+    const c = new DependencyContainer();
+    const r = new RouteRegistry();
+    const cfg = loadBootstrapConfig();
+    new CompositionRoot(c, r, cfg).assemble();
+
+    const gateway = c.resolve(TOKENS.ApiGateway);
+    expect(gateway).toBeDefined();
+    expect(typeof gateway.getExperiments).toBe('function');
+    expect(typeof gateway.startExperiment).toBe('function');
+  });
+});
+
+// ── End-to-end boot() ──────────────────────────────────────────────────────
+// PR-APP-BOOT-01: boot() → CompositionRoot → Application.initialize() →
+// window.app.api must be a real, working ApiGateway — not just wired in
+// isolation with fakes.
+describe('boot() (end-to-end)', () => {
+  afterEach(() => {
+    delete (globalThis as any).window.app;
+  });
+
+  it('window.app.api is a real ApiGateway after boot()', async () => {
+    const { boot } = await import('../../src/bootstrap/app-bootstrap.js');
+    boot();
+
+    expect((globalThis as any).window.app).toBeDefined();
+    const api = (globalThis as any).window.app.api;
+    expect(typeof api.getExperiments).toBe('function');
+    expect(typeof api.startExperiment).toBe('function');
+    expect(typeof api.createExperiment).toBe('function');
+  });
 });
 
 // ── Application ──────────────────────────────────────────────────────────────
 describe('Application', () => {
+  afterEach(() => {
+    delete (globalThis as any).window.app;
+  });
+
   it('initialize() calls bridge.boot()', async () => {
     const { Application } = await import('../../src/application/app.js');
     const { LegacyBridge } = await import('../../src/legacy/legacy-bridge.js');
@@ -197,6 +239,7 @@ describe('Application', () => {
     const bridge = new LegacyBridge();
     const c = new DependencyContainer();
     c.singleton(TOKENS.LegacyBridge, () => bridge);
+    c.singleton(TOKENS.ApiGateway, () => ({}));
 
     const app = new Application(c);
     app.initialize();
@@ -210,12 +253,59 @@ describe('Application', () => {
 
     const c = new DependencyContainer();
     c.singleton(TOKENS.LegacyBridge, () => new LegacyBridge());
+    c.singleton(TOKENS.ApiGateway, () => ({}));
 
     delete (globalThis as any).window.__ippoArchGuard;
     new Application(c).initialize();
 
     expect((globalThis as any).window.__ippoArchGuard).toBeDefined();
     expect(typeof (globalThis as any).window.__ippoArchGuard.check).toBe('function');
+  });
+
+  // PR-APP-BOOT-01 (Founder Decision, a案): ApiGatewayをApplication Facadeとして
+  // 正式採用。boot()はApiGatewayをresolveしwindow.app.api経由でのみUIへ公開する。
+  it('initialize() resolves ApiGateway and publishes it as window.app.api', async () => {
+    const { Application } = await import('../../src/application/app.js');
+    const { LegacyBridge } = await import('../../src/legacy/legacy-bridge.js');
+
+    const fakeGateway = { getExperiments: () => [] };
+    const c = new DependencyContainer();
+    c.singleton(TOKENS.LegacyBridge, () => new LegacyBridge());
+    c.singleton(TOKENS.ApiGateway, () => fakeGateway);
+
+    const app = new Application(c);
+    app.initialize();
+
+    expect((globalThis as any).window.app).toBeDefined();
+    expect((globalThis as any).window.app.api).toBe(fakeGateway);
+  });
+
+  it('initialize() does not expose the DependencyContainer on window.app', async () => {
+    const { Application } = await import('../../src/application/app.js');
+    const { LegacyBridge } = await import('../../src/legacy/legacy-bridge.js');
+
+    const c = new DependencyContainer();
+    c.singleton(TOKENS.LegacyBridge, () => new LegacyBridge());
+    c.singleton(TOKENS.ApiGateway, () => ({}));
+
+    new Application(c).initialize();
+
+    expect((globalThis as any).window.app.resolve).toBeUndefined();
+    expect((globalThis as any).window.app.container).toBeUndefined();
+  });
+
+  it('runtime getter exposes the same ApplicationRuntime instance set on window.app', async () => {
+    const { Application } = await import('../../src/application/app.js');
+    const { LegacyBridge } = await import('../../src/legacy/legacy-bridge.js');
+
+    const c = new DependencyContainer();
+    c.singleton(TOKENS.LegacyBridge, () => new LegacyBridge());
+    c.singleton(TOKENS.ApiGateway, () => ({}));
+
+    const app = new Application(c);
+    app.initialize();
+
+    expect(app.runtime).toBe((globalThis as any).window.app);
   });
 });
 

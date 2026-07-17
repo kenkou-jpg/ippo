@@ -1,0 +1,61 @@
+<div id="screen-insights-next" class="screen">
+  <div class="insn-scroll">
+
+    <header class="insn-header">
+      <h1>Insights</h1>
+      <p class="insn-sub">自分の体のパターンを発見する</p>
+    </header>
+
+    <!-- 今週のハイライト（PR-INSIGHTS-RUNTIME-03のRead-only Adapterで後日接続。
+         現時点ではデータソース未接続のため空表示） -->
+    <section class="insn-block tint-gold">
+      <div class="insn-kicker"><span class="insn-badge badge-gold">💡</span><span class="insn-kicker-label">今週のハイライト</span></div>
+      <p class="insn-highlight-text" id="insn-highlight-text"></p>
+      <div class="insn-confidence-row" id="insn-highlight-confidence-row" hidden>
+        <div class="insn-confidence-meter" aria-hidden="true">
+          <span class="insn-confidence-dot"></span><span class="insn-confidence-dot"></span><span class="insn-confidence-dot"></span><span class="insn-confidence-dot"></span>
+        </div>
+        <span class="insn-confidence-tag" id="insn-highlight-confidence"></span>
+      </div>
+    </section>
+
+    <!-- Pattern Calendarは意図的に含めない（Founder Decision: Calendar/Record/
+         Insight/Patternを横断する情報設計事項のため、吸収・新設・廃止いずれも
+         General Release後の独立PRとして扱う。現行calendar-next.jsは無変更のまま
+         維持する） -->
+
+    <!-- 実験結果サマリー: PR-EXP-RUNTIME-06で開始したACTIVE実験のOutcomeが
+         揃った場合のみ表示予定（RUNTIME-04でのApiGateway Read接続後）。
+         現時点ではデータソース未接続のため非表示のまま -->
+    <section class="insn-block tint-sage" id="insn-compare-section" hidden>
+      <div class="insn-kicker"><span class="insn-badge badge-sage">📈</span><span class="insn-kicker-label">実験結果サマリー</span></div>
+      <p class="insn-narrative" id="insn-compare-question"></p>
+      <div class="insn-compare-row">
+        <div class="insn-compare-col">
+          <span class="insn-compare-title">前</span>
+          <div class="insn-bar-track"><div class="insn-bar-vertical" id="insn-compare-before-bar"></div></div>
+          <span class="insn-compare-value" id="insn-compare-before-value"></span>
+        </div>
+        <div class="insn-compare-col">
+          <span class="insn-compare-title">後</span>
+          <div class="insn-bar-track"><div class="insn-bar-vertical" id="insn-compare-after-bar"></div></div>
+          <span class="insn-compare-value" id="insn-compare-after-value"></span>
+        </div>
+      </div>
+      <p class="insn-result-caption" id="insn-compare-caption"></p>
+    </section>
+
+    <!-- 周期との重なりグラフ: Prototype同様のPremium-lockedな静的表示のみ。
+         Premium課金制御・実データ接続は行わない -->
+    <section class="insn-block insn-premium-locked">
+      <div class="insn-kicker"><span class="insn-badge badge-gold">🌙</span><span class="insn-kicker-label">周期との重なりグラフ</span></div>
+      <div class="insn-blur-content">
+        <div class="insn-mini-chart"><span style="height:40%"></span><span style="height:70%"></span><span style="height:30%"></span><span style="height:60%"></span></div>
+      </div>
+      <div class="insn-lock-overlay">
+        <p>周期×体調の長期トレンドは Premium で見られます</p>
+      </div>
+    </section>
+
+  </div>
+</div>

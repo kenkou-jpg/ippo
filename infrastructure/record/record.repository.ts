@@ -48,6 +48,7 @@ export class StubRecordRepository implements IRecordRepository {
 // real client (see src/modules/record-normalized-write.js).
 export interface SupabaseLike {
   from(table: string): any;
+  rpc(fn: string, params: Record<string, unknown>): Promise<{ data: any; error: any }>;
 }
 
 interface VocabRow {
@@ -70,22 +71,23 @@ function taggedError(code: RecordRepositoryErrorCode, message: string): RecordRe
   return err;
 }
 
-// records 行として書き込む列のうち、RecordDraft から直接コピーできるもの。
-// PR-REC-06a-FIX (Founder Decision 3/4/5): menstrualCycle/bloodClot/bloodColor/
-// bowel は controlled vocabulary 未確定のため normalized write 対象外
-// （legacy user_records 側のみ保持）。menstrualCycle は既存 period_day/is_period
-// へのマッピングを別途 mapMenstrualCycleToPeriodDay() で試みる（Founder Decision 2）。
-const SCALAR_COLUMN_MAP: Array<[keyof RecordDraft, string]> = [
-  ["mood", "mood"],
-  ["painLevel", "pain_level"],
-  ["temperature", "body_temp"],
-  ["wellnessScore", "wellness_score"],
-  ["sleepQuality", "sleep_quality"],
-  ["note", "note"],
-  ["experimentId", "experiment_id"],
+// RecordDraft のフィールドから upsert_record_with_children RPC の
+// パラメータ名への対応表。PR-REC-06a-FIX (Founder Decision 3/4/5):
+// menstrualCycle/bloodClot/bloodColor/bowel は controlled vocabulary 未確定のため
+// normalized write 対象外（legacy user_records 側のみ保持）。menstrualCycle は
+// 既存 period_day/is_period へのマッピングを別途 mapMenstrualCycleToPeriodDay()
+// で試みる（Founder Decision 2）。
+const RPC_SCALAR_PARAM_MAP: Array<[keyof RecordDraft, string]> = [
+  ["mood", "p_mood"],
+  ["painLevel", "p_pain_level"],
+  ["temperature", "p_body_temp"],
+  ["wellnessScore", "p_wellness_score"],
+  ["sleepQuality", "p_sleep_quality"],
+  ["note", "p_note"],
+  ["experimentId", "p_experiment_id"],
 ];
 
-const ARRAY_COLUMN_MAP: Array<[keyof RecordDraft, string]> = [["medication", "medication"]];
+const RPC_ARRAY_PARAM_MAP: Array<[keyof RecordDraft, string]> = [["medication", "p_medication"]];
 
 // Prototype/legacy が持つのは「周期フェーズ」（生理中/卵胞期/排卵期/黄体期）のみで、
 // 「生理の何日目か」という日数情報を一切収集していない。period_day は日数を表す
@@ -106,6 +108,11 @@ export function mapMenstrualCycleToPeriodDay(_menstrualCycle: string | null | un
 //   （成功時のみキャッシュし、失敗時は次回呼び出しで再fetchする）
 // - check-then-act の手動upsertを廃止し、Supabase upsert(onConflict) に統一
 //   （前提: UNIQUE(user_id, record_date) 制約。20260094で追加予定・未適用）
+//
+// PR-REC-06a-FIX-2 での変更点:
+// - records/record_symptoms/record_factorsへの3回の独立API呼び出しを、
+//   upsert_record_with_children RPC（20260095、未適用）の単一呼び出しに集約し、
+//   単一トランザクションとして原子性を確保
 export class SupabaseRecordRepository implements IRecordRepository {
   private client: SupabaseLike;
   private symptomKeyByLabel: Map<string, string> | null = null;
@@ -181,14 +188,17 @@ export class SupabaseRecordRepository implements IRecordRepository {
     return data ? rowToEntity(data) : null;
   }
 
-  // PR-REC-06a-FIX: check-then-act (select→insert/update) を廃止し、
-  // Supabase upsert(onConflict) による原子的upsertへ統一。
-  // 前提: UNIQUE(user_id, record_date) 制約（20260094、未適用）。
-  // 制約が存在しない環境でこのメソッドを呼ぶと、Supabaseは
-  // "there is no unique or exclusion constraint matching the ON CONFLICT
-  // specification" エラーを返す — これは意図的（code: 'database' として
-  // 呼び出し元に伝播し、observability層で failed:database として報告される。
-  // サイレントに失敗することはない）。
+  // PR-REC-06a-FIX-2: records / record_symptoms / record_factors への書込みを
+  // upsert_record_with_children RPC（20260095、未適用）の単一呼び出しに集約し、
+  // 単一トランザクションとして原子性を持たせる。symptom/factorのラベル→key解決は
+  // 引き続きJS側（上記getSymptomKeyByLabel/getFactorKeyByLabel）で行い、解決済み
+  // keyのみをRPCへ渡す（vocabulary解決ロジックをSQL側へ持ち込まない）。
+  //
+  // 前提: 20260095（RPC関数）・20260094（UNIQUE制約、RPC内のON CONFLICTが要求）が
+  // 適用済みであること。未適用の環境でこのメソッドを呼ぶと、Supabaseは
+  // "function upsert_record_with_children(...) does not exist" 等のエラーを返す
+  // — これは意図的（code: 'database' として呼び出し元に伝播し、observability層で
+  // failed:database として報告される。サイレントに失敗することはない）。
   async upsert(userId: ID, recordDate: RecordDate, fields: Partial<RecordDraft>): Promise<RecordEntity> {
     const [symptomKeyByLabel, factorKeyByLabel] = await Promise.all([
       this.getSymptomKeyByLabel(),
@@ -198,68 +208,24 @@ export class SupabaseRecordRepository implements IRecordRepository {
     const factorKeys = this.resolveKeys(fields.factors, factorKeyByLabel);
     const periodDay = mapMenstrualCycleToPeriodDay(fields.menstrualCycle);
 
-    const row: Record<string, unknown> = {
-      user_id: userId,
-      record_date: recordDate,
-      symptom_keys: symptomKeys,
-      factor_keys: factorKeys,
-      updated_at: new Date().toISOString(),
+    const params: Record<string, unknown> = {
+      p_user_id: userId,
+      p_record_date: recordDate,
+      p_symptom_keys: symptomKeys,
+      p_factor_keys: factorKeys,
     };
-    if (periodDay !== undefined) row.period_day = periodDay;
-    SCALAR_COLUMN_MAP.forEach(([draftKey, column]) => {
-      if (fields[draftKey] !== undefined) row[column] = fields[draftKey];
+    if (periodDay !== undefined) params.p_period_day = periodDay;
+    RPC_SCALAR_PARAM_MAP.forEach(([draftKey, param]) => {
+      if (fields[draftKey] !== undefined) params[param] = fields[draftKey];
     });
-    ARRAY_COLUMN_MAP.forEach(([draftKey, column]) => {
-      if (fields[draftKey] !== undefined) row[column] = fields[draftKey];
+    RPC_ARRAY_PARAM_MAP.forEach(([draftKey, param]) => {
+      if (fields[draftKey] !== undefined) params[param] = fields[draftKey];
     });
 
-    const saved = await this.client
-      .from("records")
-      .upsert(row, { onConflict: "user_id,record_date" })
-      .select()
-      .single();
-    if (saved.error) throw taggedError("database", `SupabaseRecordRepository.upsert: ${saved.error.message}`);
+    const { data, error } = await this.client.rpc("upsert_record_with_children", params);
+    if (error) throw taggedError("database", `SupabaseRecordRepository.upsert (rpc): ${error.message}`);
 
-    await this.syncChildRows(saved.data.id, userId, recordDate, "record_symptoms", "symptom_key", symptomKeys);
-    await this.syncChildRows(saved.data.id, userId, recordDate, "record_factors", "factor_key", factorKeys);
-
-    return rowToEntity(saved.data);
-  }
-
-  // record_symptoms / record_factors を delete-then-insert で同期する。
-  // 選択が外れたキー（例: 肌=荒れ→普通）が古い行として残らないようにするため。
-  //
-  // 非原子性に関する既知の制約（PR-REC-06a-FIX D節）: records の
-  // upsert（上記）とこのメソッドの呼び出しの間、および delete と insert の
-  // 間はDBトランザクションで結ばれていない。records の書込みが成功した後に
-  // record_symptoms/record_factors側でエラーが発生した場合、records だけが
-  // 更新され子テーブルが古い状態のまま残る「部分的成功」状態になり得る。
-  // これを解消するにはPostgres RPC（stored function）経由の単一トランザクション化が
-  // 必要だが、新規SQL関数の追加・テスト方式の変更を伴うため本PRのスコープ外とし、
-  // PR-REC-06a-FIX-2の検討事項として分離する。
-  private async syncChildRows(
-    recordId: ID,
-    userId: ID,
-    recordDate: RecordDate,
-    table: string,
-    keyColumn: string,
-    keys: string[],
-  ): Promise<void> {
-    const del = await this.client.from(table).delete().eq("record_id", recordId);
-    if (del.error) {
-      throw taggedError("database", `SupabaseRecordRepository.syncChildRows (${table} delete): ${del.error.message}`);
-    }
-    if (keys.length === 0) return;
-    const rows = keys.map((key) => ({
-      record_id: recordId,
-      user_id: userId,
-      [keyColumn]: key,
-      recorded_at: recordDate,
-    }));
-    const ins = await this.client.from(table).insert(rows);
-    if (ins.error) {
-      throw taggedError("database", `SupabaseRecordRepository.syncChildRows (${table} insert): ${ins.error.message}`);
-    }
+    return rowToEntity(data);
   }
 
   async softDelete(userId: ID, recordId: ID): Promise<void> {

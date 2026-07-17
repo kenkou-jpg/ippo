@@ -1,0 +1,196 @@
+/* ============================================================
+   ippo – experiment-next.css
+   PR-EXP-RUNTIME-02: Prototype Experiment画面のスタイル。
+   src/styles/app.css の既存トークン（--rose/--plum/--gold/--sage/--ink/
+   --white/--radius-card/--shadow-card 等、app.htmlで既にグローバル読込済み）を
+   直接参照する。home-next.cssのような--hn-*独自トークン層は持たない
+   （新規画面のため、置き換えるべき旧トークン資産が存在しないため）。
+   ============================================================ */
+
+#screen-experiment-next {
+  background: var(--cream, #F8F3EF);
+  min-height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.expn-header {
+  padding: 24px 20px 12px;
+}
+
+.expn-header h1 {
+  font-family: var(--font-serif, serif);
+  font-size: 1.5rem;
+  color: var(--ink, #2d1f1a);
+}
+
+.expn-sub {
+  font-size: 0.8125rem;
+  color: var(--ink-light, #6e5f56);
+  margin-top: 4px;
+}
+
+.expn-block {
+  background: var(--white, #ffffff);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 2px 12px rgba(200,120,140,.10));
+  padding: 18px 18px 20px;
+  margin: 0 16px 14px;
+}
+
+.expn-block.tint-rose {
+  background: var(--rose-pale, #f7f2f2);
+}
+
+.expn-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.expn-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+}
+
+.expn-badge.badge-rose { background: var(--rose-light, #ecd0d2); }
+.expn-badge.badge-plum { background: var(--rose-pale, #f7f2f2); }
+
+.expn-kicker-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--ink-mid, #4a3830);
+}
+
+/* ── 進行中の実験 ─────────────────────────────────────── */
+
+.expn-running-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.expn-progress-ring {
+  --progress: 0;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(var(--rose, #c8747b) calc(var(--progress) * 1%), rgba(200,116,123,0.18) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+}
+
+.expn-progress-ring span {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--white, #ffffff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--plum, #b14e56);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.expn-running-title {
+  font-family: var(--font-serif, serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+}
+
+.expn-running-caption {
+  font-size: 0.75rem;
+  color: var(--ink-light, #6e5f56);
+  margin: 4px 0 8px;
+}
+
+.expn-btn-secondary {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-mid, #4a3830);
+  background: rgba(255,255,255,0.7);
+  border: 1px solid var(--border-muted, #e8ddd8);
+  border-radius: var(--radius-pill, 999px);
+  padding: 6px 14px;
+  cursor: not-allowed;
+}
+
+.expn-hypothesis {
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+.expn-observe {
+  font-size: 0.75rem;
+  color: var(--ink-light, #6e5f56);
+  margin-top: 4px;
+}
+
+.expn-reassure {
+  font-size: 0.75rem;
+  color: var(--sage-dark, #4f8a63);
+  margin-top: 8px;
+}
+
+/* ── 実験ライブラリ（静的表示のみ） ───────────────────── */
+
+.expn-library-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.expn-library-card {
+  background: var(--bg-subtle, #f0ebe6);
+  border-radius: 14px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 44px;
+  /* PR-EXP-RUNTIME-06: <button>化に伴うリセット。見た目はdiv時代と同一に維持 */
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 0.15s ease;
+}
+
+.expn-library-card:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.expn-lib-icon { font-size: 1.25rem; }
+.expn-lib-name { font-size: 0.8125rem; font-weight: 700; color: var(--ink, #2d1f1a); }
+.expn-lib-desc { font-size: 0.6875rem; color: var(--ink-light, #6e5f56); }
+
+/* ── エラー表示（実験開始CTA失敗時） ────────────────────── */
+
+.expn-error {
+  font-size: 0.75rem;
+  color: var(--plum, #b14e56);
+  background: var(--rose-light, #ecd0d2);
+  border-radius: 10px;
+  padding: 8px 12px;
+  margin-bottom: 10px;
+}
