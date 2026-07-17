@@ -114,6 +114,15 @@ ippoの設計・実装を進めている。
 > Verification一覧・Legacy依存一覧・未解決Founder Decision一覧・Release
 > Blocker一覧・RCに必要な残PR一覧）。以下は同文書の要約。
 >
+> **→ RC Scope Freeze + Founder Browser Verification Pack（実際に記入して
+> 使う資料）は`docs/rebuild/PR_RELEASE_READINESS_02_RC_SCOPE_FREEZE.md`**。
+> RC対象/対象外の確定一覧・5画面分のBVチェックリスト（チェックボックス
+> 形式、Founder記入用）・Feature Flag一覧（ON/OFF条件・本番切替タイミング
+> 付き）・Legacy一覧（削除禁止/削除予定/General Release後）・Founder
+> Decision一覧・Release Blocker一覧（重要度分類）・PR-REC-06b/06cの整理・
+> RCチェックリストを収録。**すべてのBrowser VerificationはFounder確認待ち
+> として記載されており、AIは実施・代行しない。**
+>
 > 1. **Founder Browser Verification待ち（5件、General Releaseの最終Gateで
 >    まとめて確認可・個別のブロッカーにはしない、Founder了承済み）**:
 >    a. Home: PR-HOME-02（Hero再接続）+ PR-HOME-06（Prototype Design System
