@@ -207,6 +207,12 @@ import './modules/experiment-next/experiment-next-shell.js';
 // フラグ OFF（デフォルト）の場合は既存Navigation・既存画面に一切影響しない。
 import './modules/insights-next/insights-next-shell.js';
 
+// ─── PR-BILLING-RUNTIME-02: Prototype Premium/Pro画面 (表示のみ) ───
+// Feature flag: localStorage['ippo_billing_ui_v2'] === '1' で有効化。
+// フラグ OFF（デフォルト）の場合は既存Navigation・既存課金フローに
+// 一切影響しない。Checkout未接続。
+import './modules/billing-next/billing-next-shell.js';
+
 // ─── PRO 専用 screens (1 feature = 1 screen owner) ───────────
 // 各モジュールは独立した overlay を持ち、他機能の screen を流用しない。
 // window.openDoctorVisitSummary / window.openConditionSummary を公開。
