@@ -96,6 +96,19 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-17更新）**
 >
+> **PR-FULL-INTEGRATION-01: Insights Premiumボタン追加（2026-07-18）**
+> `IPPO_REBUILD_FULL_INTEGRATION_SPEC.md`⑤で「MVP必須」と分類した、
+> 周期グラフロックオーバーレイの「Premiumを見る」ボタンを追加し、
+> `billing-next`（Billing画面）へ遷移するよう接続した。Pattern Calendar
+> は既存Founder Decision通り対象外（β後）のまま。Runtime構造
+> （Router/Shell/Adapter/Application Facade/Domain）は無変更、
+> `insights-next.html`/`insights-next.css`/`insights-next-shell.js`のみ
+> 変更。Unit Test 2件追加。Build PASS、フルスイート314ファイル中
+> 312PASS（一時的なタイムアウト2件は単体実行で再現せず本変更と無関係と
+> 確認済み）。`IPPO_REBUILD_UI_DIFF_MATRIX.md`のInsights一致率を
+> 50%→75%（目標達成）へ更新。詳細:
+> `docs/rebuild/IPPO_REBUILD_PR_ROADMAP.md` PR-FULL-INTEGRATION-01。
+>
 > **本番デプロイ完了（2026-07-17 13:20 JST）**: PR #371
 > （`ops/recovery-program` → `main`、マージコミット`c364d6c`、Founder承認
 > 済み）がGitHub上でマージされ、`Build and Deploy`ワークフローが成功
