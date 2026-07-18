@@ -11,7 +11,7 @@
 | 画面 | 現在の一致率 | 目標一致率 | 差分の主因 |
 |---|---|---|---|
 | Home | **15%** | **90%** | Ring/Streak/Milestone/Result/Nextカードが未実装。100%にしないのはIPPO独自の疾患パーソナライズ要素を残すため |
-| Experiment | **82%** | **100%**（MVP必須の範囲） | おすすめの実験・完了/中止UIの追加のみ |
+| Experiment | **90%**（PR-FULL-INTEGRATION-02一部完了） | **100%**（MVP必須の範囲） | 完了/中止UIは実装済み。残りはおすすめの実験セクションのみ |
 | Insights | **75%**（PR-FULL-INTEGRATION-01完了） | **75%**（Pattern Calendar除く） | **目標達成**。残りはPattern Calendar（既存Founder Decisionによりβ後） |
 | Billing | **70%** | **③の結論次第（70〜85%）** | Prototypeに独立画面が無いため概念的に100%が定義できない |
 | Me | **40%** | **85%**（③の結論次第で変動） | 設定行クリック機能復活・Planカード扱いの決定で変動 |
@@ -43,8 +43,8 @@
 | 実験ライブラリ（基本4種） | 有（data-preset-id接続済み） | 維持 | 100% |
 | おすすめの実験セクション | 無 | MVP必須 | 0% → 100% |
 | カスタム実験(Pro)カード | 無 | β後 | 0%（据え置き） |
-| 完了UI | 無（disabled固定） | MVP必須 | 0% → 100% |
-| 中止UI | 無 | MVP必須 | 0% → 100% |
+| 完了UI | **有（PR-FULL-INTEGRATION-02完了）** | MVP必須 | **100%達成**（ExperimentCommandService.complete()経由） |
+| 中止UI | **有（PR-FULL-INTEGRATION-02完了）** | MVP必須 | **100%達成**（ExperimentCommandService.abandon()経由、reason入力UIはスコープ外） |
 | 共有機能 | 無（Prototypeにも無い） | β後 | 対象外 |
 
 ---

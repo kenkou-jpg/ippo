@@ -96,6 +96,27 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-17更新）**
 >
+> **PR-FULL-INTEGRATION-02: Experiment完了/中止UI追加（2026-07-18・一部完了）**
+> `IPPO_REBUILD_FULL_INTEGRATION_SPEC.md`⑥で「MVP必須」と分類した完了・
+> 中止UIを追加。`ExperimentCommandService.complete()`/`abandon()`・
+> `ApiGateway.completeExperiment()`/`abandonExperiment()`はいずれも既存
+> 実装（本PRで新設していない）で、Domain/ApiGateway層は無変更。
+> `experiment-next-adapter.js`の`getRunningExperimentViewModel()`が
+> 実験idを公開するようにし（legacy `state.experiments`の`e.id`は
+> `ExperimentRepositoryImpl.findById()`と同一値のため安全に転用可能と
+> 確認済み）、`experiment-next-command-adapter.js`に
+> `completeExperimentAction(id)`/`abandonExperimentAction(id)`を追加、
+> `experiment-next-shell.js`へボタン配線した。中止のreason入力UIは
+> スコープ外（常にnull）。Unit Test 18件追加。Build PASS、フルスイート
+> 314ファイル中313PASS（一時的なタイムアウト1件は単体実行で再現せず
+> 本変更と無関係と確認済み、これで3件連続で同種の負荷起因タイムアウトを
+> 確認）。`IPPO_REBUILD_UI_DIFF_MATRIX.md`のExperiment一致率を82%→90%へ
+> 更新。**残りは「おすすめの実験」セクションのみ**（未接続の
+> `ExperimentNudgeService`（`src/domains/engagement/experiment-nudge-service.js`）
+> が使えそうだが、experimentType→ライブラリpreset/コピーへのマッピング
+> 設計が必要なため次PRへ分離）。詳細:
+> `docs/rebuild/IPPO_REBUILD_PR_ROADMAP.md` PR-FULL-INTEGRATION-02。
+>
 > **PR-FULL-INTEGRATION-01: Insights Premiumボタン追加（2026-07-18）**
 > `IPPO_REBUILD_FULL_INTEGRATION_SPEC.md`⑤で「MVP必須」と分類した、
 > 周期グラフロックオーバーレイの「Premiumを見る」ボタンを追加し、
