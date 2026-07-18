@@ -96,6 +96,23 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-17更新）**
 >
+> **Founder Decision（2026-07-18、`LEGACY_SUNSET_COUNCIL.md`②「重大」項目）**:
+> 1. **Billing価格・商品構成を確定**: ¥580/月・¥4,800/年を正式採用。
+>    過去記録の¥980/¥1,980は不採用として決着（`PR_RELEASE_READINESS_02`
+>    5節・RC対象外4番を更新済み）
+> 2. **Consent UI方針を変更**: 「Prototype v2再設計待ち」から「Runtime
+>    正式版の一部として今すぐ実装」へ変更。既存`consent-service.js`
+>    （同意文言・レベル定義は無変更、DOM非依存の純粋関数）をMe-nextへ
+>    再接続する形で実装完了。`src/screens/me-next.html`の設定リストに
+>    Consent行を追加、`me-next-shell.js`から`grantResearchConsent()`/
+>    `withdrawResearchConsent()`/`isResearchConsentGranted()`を呼び出す。
+>    確認ダイアログは既存`ui-notifications.js`の`showConfirmModal()`を
+>    再利用（screen非依存の共通コンポーネント）。二重実装なし、Domain/
+>    Repository層は無変更。Unit Test 4件追加。Build PASS、フルスイート
+>    314ファイル・5,471件**全PASS**（新規失敗ゼロ、既知flakyタイムアウトも
+>    今回は再現せず完全クリーン）。詳細:
+>    `docs/rebuild/LEGACY_SUNSET_COUNCIL.md`②。
+>
 > **PR-FULL-INTEGRATION-02: Experiment完了/中止UI追加（2026-07-18・一部完了）**
 > `IPPO_REBUILD_FULL_INTEGRATION_SPEC.md`⑥で「MVP必須」と分類した完了・
 > 中止UIを追加。`ExperimentCommandService.complete()`/`abandon()`・

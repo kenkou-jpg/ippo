@@ -54,10 +54,13 @@
 ### 重大（Legacy Sunsetを完全にブロックする）
 
 ```
-□ Billing Checkout未接続 — Legacy削除すると課金導線が消滅し収益に直結する
-□ Billing価格・商品構成未確定 — Checkout接続の前提条件そのものが無い
-□ Consent（研究協力同意）Runtime未実装 — Legacy削除するとユーザーが同意設定を
-  変更する手段を失う。コンプライアンス上のリスク
+☑ Billing価格・商品構成未確定 — 2026-07-18 Founder Decisionにより解消
+  （¥580/月・¥4,800/年を正式確定）
+☑ Consent（研究協力同意）Runtime未実装 — 2026-07-18 Founder Decisionにより
+  着手。Prototype v2再設計を待たずMe-nextへ実装完了
+  （既存consent-service.jsを再利用、同意文言・レベル定義は無変更）
+□ Billing Checkout未接続 — Legacy削除すると課金導線が消滅し収益に直結する。
+  価格確定は完了したため、次はCheckout接続の実装判断
 □ PR-REC-06c Backfill未実行 — Legacy user_recordsを削除するとデータ損失リスク
 □ Pattern Calendar未統合 — Insightsの主要機能欠落のままLegacy Insightsを
   削除すると機能後退になる

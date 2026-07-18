@@ -117,3 +117,26 @@
 }
 
 .men-settings-row:last-child { border-bottom: none; }
+
+/* Founder Decision(2026-07-18): Consent行のみクリック可能なbutton要素。
+   他のmen-settings-row（div）と見た目を揃えるためbuttonのデフォルト
+   スタイルをリセットする */
+button.men-settings-row {
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--divider, rgba(200,180,170,0.20));
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.men-settings-row-consent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.men-settings-row-sub {
+  font-size: 0.75rem;
+  color: var(--ink-light, #6e5f56);
+}

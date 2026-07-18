@@ -17,6 +17,9 @@ function buildScreenFixture() {
       <div id="men-avatar-initial"></div>
       <div id="men-profile-name" hidden></div>
       <button id="men-profile-plan" hidden></button>
+      <button id="men-consent-row" type="button">
+        <span id="men-consent-sub"></span>
+      </button>
     </div>`;
 }
 
@@ -25,13 +28,19 @@ describe('me-next-shell (PR-ME-RUNTIME-02/03/04)', () => {
     vi.resetModules();
     mockGetSubscriptionViewModel.mockReset().mockResolvedValue({ state: 'free', label: 'Free' });
     localStorage.removeItem('ippo_me_ui_v2');
+    localStorage.removeItem('ippo_consent');
+    localStorage.removeItem('ippo_consent_events');
     delete window.ippoMeNext;
+    delete window.showConfirmModal;
     buildScreenFixture();
   });
 
   afterEach(() => {
     localStorage.removeItem('ippo_me_ui_v2');
+    localStorage.removeItem('ippo_consent');
+    localStorage.removeItem('ippo_consent_events');
     delete window.ippoMeNext;
+    delete window.showConfirmModal;
   });
 
   it('Feature Flag OFF（デフォルト）でもモジュール読み込み自体は既存挙動へ影響しない', async () => {
@@ -77,5 +86,54 @@ describe('me-next-shell (PR-ME-RUNTIME-02/03/04)', () => {
     document.getElementById('men-profile-plan').click();
 
     expect(showBillingNext).toHaveBeenCalledOnce();
+  });
+
+  describe('Founder Decision(2026-07-18): Research Consent UI', () => {
+    it('初期状態（未同意）では「同意していません」を表示する', async () => {
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+
+      expect(document.getElementById('men-consent-sub').textContent).toBe('同意していません');
+    });
+
+    it('クリック→確認ダイアログでOKを押すと同意状態になり、表示が更新される', async () => {
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+
+      document.getElementById('men-consent-row').click();
+
+      const okBtn = document.getElementById('_confirm_ok');
+      expect(okBtn).toBeTruthy();
+      okBtn.click();
+
+      expect(document.getElementById('men-consent-sub').textContent).toBe('協力中（いつでも撤回できます）');
+
+      const { isResearchConsentGranted } = await import('../../../src/services/consent-service.js');
+      expect(isResearchConsentGranted()).toBe(true);
+    });
+
+    it('同意済み状態からクリック→OKで撤回でき、表示が「同意していません」に戻る', async () => {
+      const { grantResearchConsent } = await import('../../../src/services/consent-service.js');
+      grantResearchConsent();
+
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+      expect(document.getElementById('men-consent-sub').textContent).toBe('協力中（いつでも撤回できます）');
+
+      document.getElementById('men-consent-row').click();
+      document.getElementById('_confirm_ok').click();
+
+      expect(document.getElementById('men-consent-sub').textContent).toBe('同意していません');
+    });
+
+    it('確認ダイアログでキャンセルすると状態は変わらない', async () => {
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+
+      document.getElementById('men-consent-row').click();
+      document.getElementById('_confirm_cancel').click();
+
+      expect(document.getElementById('men-consent-sub').textContent).toBe('同意していません');
+    });
   });
 });

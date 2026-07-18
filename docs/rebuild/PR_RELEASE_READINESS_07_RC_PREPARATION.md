@@ -80,12 +80,13 @@ Founder最終承認後にFounderまたはFounder指示のもとで実施する�
 ```
 - Pattern Calendarは今回のRCに含まれない（現状維持、General Release後の
   独立PRで検討）
-- Research Consent UIは新規再設計されていない（現行UI維持、Prototype v2
-  以降で再設計）
+- ~~Research Consent UIは新規再設計されていない~~ **2026-07-18更新**:
+  Founder DecisionによりPrototype v2再設計を待たず、既存consent-service.js
+  をMe-nextへ再接続する形でRuntime実装済み（同意文言・レベル定義は無変更）
 - Case/Similarity（Phase 7）は今回のRCに含まれない（未着手）
-- Billing価格・商品構成（¥580/月・¥4,800/年 vs 過去記録の¥980/¥1,980の
-  不一致）は未解消。Checkout自体が未接続のためRC作成自体は妨げないが、
-  Billing機能を最終公開機能として謳う場合は別途確定が必要
+- ~~Billing価格・商品構成（¥580/月・¥4,800/年 vs 過去記録の¥980/¥1,980の
+  不一致）は未解消~~ **2026-07-18 Founder Decisionにより解消**:
+  ¥580/月・¥4,800/年を正式確定。Checkout接続自体は別途実装判断が必要
 - 全5画面ともFeature Flag既定OFFのままRCに含まれる（本番既定化は
   Browser Verification Pass後、別途Founder承認を経て実施）
 ```

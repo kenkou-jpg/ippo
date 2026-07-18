@@ -32,12 +32,12 @@ Build確認: `npm run build` PASS。テスト確認: フルスイート312ファ
 
 | # | 項目 | 対象外の理由 | 扱い |
 |---|---|---|---|
-| 1 | Consent UI新規設計 | Prototypeに設計が存在しない（PR-ME-RUNTIME-01確認済み）。新規UIは同意文言・レベル変更のリスクを伴う | 現行Consent UI（`app.html`内・`consent-service.js`）を維持。Prototype v2以降で再設計 |
+| 1 | ~~Consent UI新規設計~~ | ~~Prototypeに設計が存在しない（PR-ME-RUNTIME-01確認済み）~~ | **2026-07-18 Founder Decisionにより方針変更**: 新規UI再設計ではなく、既存`consent-service.js`（同意文言・レベル定義は無変更）をMe-nextへ再接続する形でRuntime実装済み。詳細: `LEGACY_SUNSET_COUNCIL.md` |
 | 2 | Pattern Calendar統合 | Calendar/Record/Insight/Patternを横断する情報設計事項 | 現行`calendar-next.js`を無変更維持。General Release後の独立PR |
 | 3 | Case/Similarity Runtime新規統合 | Phase 7、本セッション未着手 | General Release後 |
 | 4 | Checkout接続 | Billing価格・商品構成が未確定 | `billing-next`は表示専用のまま。既存`startStripeCheckout()`（Legacy）は無変更で稼働継続 |
 | 5 | Stripe商品変更 | Founder Decision必要 | 現行Stripe設定を無変更維持 |
-| 6 | Premium価格変更 | Founder Decision必要（価格不一致未解消） | 現行¥580/月・¥4,800/年を無変更維持 |
+| 6 | Premium価格変更 | **解消済み（2026-07-18 Founder Decision）**: ¥580/月・¥4,800/年を正式確定。過去記録の¥980/¥1,980は不採用 | 現行¥580/月・¥4,800/年のまま。Checkout接続自体は別途対応が必要（4番参照） |
 | 7 | Subscription Migration | 対象商品構成が未確定なため実施不可 | 該当作業なし |
 
 ### Feature Flag対応状況
@@ -236,7 +236,7 @@ opt-out（既定ON）になっていた不整合を修正し、上表通りのop
 
 | # | 項目 | 内訳 | 詳細 |
 |---|---|---|---|
-| 1 | Premium価格 | 月額/年額の確定額 | 実コード¥580/¥4,800 vs 過去記録¥980/¥1,980の不一致未解消 |
+| 1 | ~~Premium価格~~ | ~~月額/年額の確定額~~ | **解消済み（2026-07-18）**: ¥580/月・¥4,800/年を正式確定 |
 | 2 | Pro価格 | Premium/Proを別価格にするか | 現状単一商品（Stripe Price 1種類のみ） |
 | 3 | Checkout | 本番接続タイミング | `billing-next`のCTAは現状disabled固定 |
 | 4 | Trial | 無料試用の有無 | 現行実装に該当機能なし |
@@ -245,7 +245,10 @@ opt-out（既定ON）になっていた不整合を修正し、上表通りのop
 
 詳細は`docs/rebuild/PR_BILLING_RUNTIME_01_CURRENT_STATE.md` 11節。
 
-**Consent UIは決定済み**（現行維持、Prototype v2以降）のため本一覧から除外。
+**Consent UIは決定済み**（現行維持、Prototype v2以降）のため本一覧から除外
+——**2026-07-18 Founder Decisionにより方針変更**: Prototype v2再設計を
+待たず、Runtime正式版（Me-next）の一部としてResearch Consent UIを実装
+した。詳細: `docs/rebuild/LEGACY_SUNSET_COUNCIL.md`。
 
 ---
 
