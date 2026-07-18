@@ -11,6 +11,9 @@ function buildScreenFixture() {
         <p id="expn-running-hypothesis"></p>
         <p id="expn-running-observe"></p>
         <button id="expn-today-ok-btn" type="button" disabled>今日もOK</button>
+        <p id="expn-running-error" hidden></p>
+        <button id="expn-complete-btn" type="button">実験を完了する</button>
+        <button id="expn-abandon-btn" type="button">中止する</button>
       </section>
       <section>
         <p id="expn-library-error" hidden></p>
@@ -195,5 +198,86 @@ describe('experiment-next-shell (PR-EXP-RUNTIME-02/06)', () => {
 
   it('「今日もOK」ボタンはPR-EXP-RUNTIME-06でも引き続きdisabled固定', () => {
     expect(document.getElementById('expn-today-ok-btn').disabled).toBe(true);
+  });
+
+  describe('PR-FULL-INTEGRATION-02: 完了/中止UI', () => {
+    it('完了ボタンクリックでApiGateway.completeExperiment(id)が呼ばれ、再描画でsectionが隠れる', async () => {
+      const mod = await import('../../../src/modules/experiment-next/experiment-next-shell.js');
+      let stored = {
+        experiments: [
+          { id: 'e1', title: '16時間断食', factor: '', condition: '', hypothesis: '', days: 14, startDate: new Date().toISOString(), status: 'active' },
+        ],
+      };
+      window.getState = () => stored;
+      const completeExperiment = vi.fn(async (id) => {
+        stored = { experiments: [{ ...stored.experiments[0], status: 'completed' }] };
+        return { id, status: 'COMPLETED' };
+      });
+      window.app = { api: { completeExperiment } };
+
+      mod.renderExperimentNext();
+      document.getElementById('expn-complete-btn').click();
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(completeExperiment).toHaveBeenCalledWith('e1');
+      expect(document.getElementById('expn-running-section').hidden).toBe(true);
+    });
+
+    it('中止ボタンクリックでApiGateway.abandonExperiment(id, null)が呼ばれる', async () => {
+      const mod = await import('../../../src/modules/experiment-next/experiment-next-shell.js');
+      let stored = {
+        experiments: [
+          { id: 'e2', title: 'X', factor: '', condition: '', hypothesis: '', days: 14, startDate: new Date().toISOString(), status: 'active' },
+        ],
+      };
+      window.getState = () => stored;
+      const abandonExperiment = vi.fn(async (id) => {
+        stored = { experiments: [{ ...stored.experiments[0], status: 'abandoned' }] };
+        return { id, status: 'ABANDONED' };
+      });
+      window.app = { api: { abandonExperiment } };
+
+      mod.renderExperimentNext();
+      document.getElementById('expn-abandon-btn').click();
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(abandonExperiment).toHaveBeenCalledWith('e2', null);
+      expect(document.getElementById('expn-running-section').hidden).toBe(true);
+    });
+
+    it('完了失敗時はエラーメッセージを表示し、ボタンを再度有効化する', async () => {
+      const mod = await import('../../../src/modules/experiment-next/experiment-next-shell.js');
+      window.getState = () => ({
+        experiments: [
+          { id: 'e3', title: 'X', factor: '', condition: '', hypothesis: '', days: 14, startDate: new Date().toISOString(), status: 'active' },
+        ],
+      });
+      window.app = { api: { completeExperiment: async () => { throw new Error('boom'); } } };
+
+      mod.renderExperimentNext();
+      document.getElementById('expn-complete-btn').click();
+      await new Promise((r) => setTimeout(r, 0));
+      await new Promise((r) => setTimeout(r, 0));
+
+      const err = document.getElementById('expn-running-error');
+      expect(err.hidden).toBe(false);
+      expect(document.getElementById('expn-complete-btn').disabled).toBe(false);
+      expect(document.getElementById('expn-abandon-btn').disabled).toBe(false);
+    });
+
+    it('進行中実験が無い状態では完了/中止ボタンをクリックしてもAPIは呼ばれない', async () => {
+      const mod = await import('../../../src/modules/experiment-next/experiment-next-shell.js');
+      window.getState = () => ({ experiments: [] });
+      const completeExperiment = vi.fn();
+      window.app = { api: { completeExperiment } };
+
+      mod.renderExperimentNext();
+      document.getElementById('expn-complete-btn').click();
+      await new Promise((r) => setTimeout(r, 0));
+
+      expect(completeExperiment).not.toHaveBeenCalled();
+    });
   });
 });

@@ -6,8 +6,11 @@
 //  経由でのみExperiment Domainへ書き込む。UIからContainer/Repository/
 //  Supabase/legacy state.experimentsへ直接アクセスしない。
 //
-//  対象は「実験開始」のみ。complete/abandon/「今日もOK」はこのAdapterの
-//  責務外（PR-EXP-RUNTIME-06のスコープ外、Founder指示）。
+//  対象は「実験開始」に加え、PR-FULL-INTEGRATION-02で「完了」「中止」を追加。
+//  ExperimentCommandService.complete()/abandon()・ApiGateway.completeExperiment()/
+//  abandonExperiment()は既存実装であり、本PRでDomain/ApiGateway層への変更は
+//  一切行っていない（Runtime Adapter層への呼び出し追加のみ）。「今日もOK」は
+//  引き続きこのAdapterの責務外。
 //
 //  createExperiment()とstartExperiment()の間には原子性がない
 //  （ApiGateway/ExperimentCommandServiceに`createAndStartExperiment()`相当の
@@ -44,10 +47,14 @@ export const EXPERIMENT_LIBRARY_PRESETS = Object.freeze([
 ]);
 
 let _inFlight = false;
+let _completeInFlight = false;
+let _abandonInFlight = false;
 
 /** テスト専用: 二重送信ガードをリセットする。 */
 export function _resetInFlightGuardForTests() {
   _inFlight = false;
+  _completeInFlight = false;
+  _abandonInFlight = false;
 }
 
 function _getApi() {
@@ -129,5 +136,69 @@ export async function startExperimentFromPreset(presetId) {
     }
   } finally {
     _inFlight = false;
+  }
+}
+
+/**
+ * 進行中の実験を完了させる。ExperimentCommandService.complete()（既存実装、
+ * 本PRで新設していない）をApiGateway.completeExperiment()経由で呼ぶのみ。
+ *
+ * @param {string} id  完了させる実験のid（experiment-next-adapter.jsの
+ *   getRunningExperimentViewModel()が返すid）
+ * @returns {Promise<
+ *   | { ok: true, experiment: object }
+ *   | { ok: false, stage: 'validation'|'guard'|'runtime'|'permission'|'complete', reason: string, error?: unknown }
+ * >}
+ */
+export async function completeExperimentAction(id) {
+  if (!id) return { ok: false, stage: 'validation', reason: 'missing_id' };
+  if (_completeInFlight) return { ok: false, stage: 'guard', reason: 'duplicate_request' };
+
+  const api = _getApi();
+  if (!api || typeof api.completeExperiment !== 'function') {
+    return { ok: false, stage: 'runtime', reason: 'runtime_not_initialized' };
+  }
+
+  _completeInFlight = true;
+  try {
+    const completed = await api.completeExperiment(id);
+    return { ok: true, experiment: completed };
+  } catch (error) {
+    if (_isAuthError(error)) return { ok: false, stage: 'permission', reason: 'forbidden', error };
+    return { ok: false, stage: 'complete', reason: 'complete_failed', error };
+  } finally {
+    _completeInFlight = false;
+  }
+}
+
+/**
+ * 進行中の実験を中止する。ExperimentCommandService.abandon()（既存実装、
+ * 本PRで新設していない）をApiGateway.abandonExperiment()経由で呼ぶのみ。
+ * reason入力UIは本PRのスコープ外のため常にnullを渡す。
+ *
+ * @param {string} id  中止させる実験のid
+ * @returns {Promise<
+ *   | { ok: true, experiment: object }
+ *   | { ok: false, stage: 'validation'|'guard'|'runtime'|'permission'|'abandon', reason: string, error?: unknown }
+ * >}
+ */
+export async function abandonExperimentAction(id) {
+  if (!id) return { ok: false, stage: 'validation', reason: 'missing_id' };
+  if (_abandonInFlight) return { ok: false, stage: 'guard', reason: 'duplicate_request' };
+
+  const api = _getApi();
+  if (!api || typeof api.abandonExperiment !== 'function') {
+    return { ok: false, stage: 'runtime', reason: 'runtime_not_initialized' };
+  }
+
+  _abandonInFlight = true;
+  try {
+    const abandoned = await api.abandonExperiment(id, null);
+    return { ok: true, experiment: abandoned };
+  } catch (error) {
+    if (_isAuthError(error)) return { ok: false, stage: 'permission', reason: 'forbidden', error };
+    return { ok: false, stage: 'abandon', reason: 'abandon_failed', error };
+  } finally {
+    _abandonInFlight = false;
   }
 }

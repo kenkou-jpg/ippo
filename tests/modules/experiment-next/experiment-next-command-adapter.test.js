@@ -5,6 +5,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
   EXPERIMENT_LIBRARY_PRESETS,
   startExperimentFromPreset,
+  completeExperimentAction,
+  abandonExperimentAction,
   _resetInFlightGuardForTests,
 } from '../../../src/modules/experiment-next/experiment-next-command-adapter.js';
 
@@ -123,5 +125,152 @@ describe('startExperimentFromPreset', () => {
   it('EXPERIMENT_LIBRARY_PRESETSはexperiment-next.htmlの4カードと一致するidを持つ', () => {
     const ids = EXPERIMENT_LIBRARY_PRESETS.map((p) => p.id);
     expect(ids).toEqual(['fast-16h', 'fast-14h', 'no-caffeine', 'no-dairy']);
+  });
+});
+
+describe('completeExperimentAction (PR-FULL-INTEGRATION-02)', () => {
+  beforeEach(() => {
+    _resetInFlightGuardForTests();
+  });
+
+  afterEach(() => {
+    delete window.app;
+    _resetInFlightGuardForTests();
+  });
+
+  it('idが無い場合はAPIを呼ばずvalidation失敗を返す', async () => {
+    setApi({ completeExperiment: vi.fn() });
+    const result = await completeExperimentAction(null);
+    expect(result).toEqual({ ok: false, stage: 'validation', reason: 'missing_id' });
+  });
+
+  it('window.app.apiが無い場合、runtime_not_initializedを返す', async () => {
+    delete window.app;
+    const result = await completeExperimentAction('e1');
+    expect(result).toEqual({ ok: false, stage: 'runtime', reason: 'runtime_not_initialized' });
+  });
+
+  it('ApiGateway.completeExperiment(id)を呼び、成功結果を返す', async () => {
+    const completeExperiment = vi.fn(async (id) => ({ id, status: 'COMPLETED' }));
+    setApi({ completeExperiment });
+
+    const result = await completeExperimentAction('e1');
+
+    expect(completeExperiment).toHaveBeenCalledWith('e1');
+    expect(result.ok).toBe(true);
+    expect(result.experiment.status).toBe('COMPLETED');
+  });
+
+  it('失敗時はcomplete stageとして区別される', async () => {
+    const completeExperiment = vi.fn(async () => { throw new Error('boom'); });
+    setApi({ completeExperiment });
+
+    const result = await completeExperimentAction('e1');
+
+    expect(result.ok).toBe(false);
+    expect(result.stage).toBe('complete');
+  });
+
+  it('AuthErrorはpermission stageとして区別される', async () => {
+    const authError = Object.assign(new Error('Forbidden'), { name: 'AuthError', code: 'FORBIDDEN' });
+    const completeExperiment = vi.fn(async () => { throw authError; });
+    setApi({ completeExperiment });
+
+    const result = await completeExperimentAction('e1');
+
+    expect(result.ok).toBe(false);
+    expect(result.stage).toBe('permission');
+  });
+
+  it('二重送信は後続呼び出しをguard stageで即座に拒否する', async () => {
+    let resolveComplete;
+    const completeExperiment = vi.fn(() => new Promise((resolve) => { resolveComplete = resolve; }));
+    setApi({ completeExperiment });
+
+    const first  = completeExperimentAction('e1');
+    const second = await completeExperimentAction('e1');
+
+    expect(second).toEqual({ ok: false, stage: 'guard', reason: 'duplicate_request' });
+    expect(completeExperiment).toHaveBeenCalledOnce();
+
+    resolveComplete({ id: 'e1', status: 'COMPLETED' });
+    const firstResult = await first;
+    expect(firstResult.ok).toBe(true);
+  });
+});
+
+describe('abandonExperimentAction (PR-FULL-INTEGRATION-02)', () => {
+  beforeEach(() => {
+    _resetInFlightGuardForTests();
+  });
+
+  afterEach(() => {
+    delete window.app;
+    _resetInFlightGuardForTests();
+  });
+
+  it('idが無い場合はAPIを呼ばずvalidation失敗を返す', async () => {
+    setApi({ abandonExperiment: vi.fn() });
+    const result = await abandonExperimentAction(null);
+    expect(result).toEqual({ ok: false, stage: 'validation', reason: 'missing_id' });
+  });
+
+  it('window.app.apiが無い場合、runtime_not_initializedを返す', async () => {
+    delete window.app;
+    const result = await abandonExperimentAction('e1');
+    expect(result).toEqual({ ok: false, stage: 'runtime', reason: 'runtime_not_initialized' });
+  });
+
+  it('ApiGateway.abandonExperiment(id, null)を呼び、成功結果を返す（reason入力UIはスコープ外）', async () => {
+    const abandonExperiment = vi.fn(async (id) => ({ id, status: 'ABANDONED' }));
+    setApi({ abandonExperiment });
+
+    const result = await abandonExperimentAction('e1');
+
+    expect(abandonExperiment).toHaveBeenCalledWith('e1', null);
+    expect(result.ok).toBe(true);
+    expect(result.experiment.status).toBe('ABANDONED');
+  });
+
+  it('失敗時はabandon stageとして区別される', async () => {
+    const abandonExperiment = vi.fn(async () => { throw new Error('boom'); });
+    setApi({ abandonExperiment });
+
+    const result = await abandonExperimentAction('e1');
+
+    expect(result.ok).toBe(false);
+    expect(result.stage).toBe('abandon');
+  });
+
+  it('二重送信は後続呼び出しをguard stageで即座に拒否する', async () => {
+    let resolveAbandon;
+    const abandonExperiment = vi.fn(() => new Promise((resolve) => { resolveAbandon = resolve; }));
+    setApi({ abandonExperiment });
+
+    const first  = abandonExperimentAction('e1');
+    const second = await abandonExperimentAction('e1');
+
+    expect(second).toEqual({ ok: false, stage: 'guard', reason: 'duplicate_request' });
+    expect(abandonExperiment).toHaveBeenCalledOnce();
+
+    resolveAbandon({ id: 'e1', status: 'ABANDONED' });
+    const firstResult = await first;
+    expect(firstResult.ok).toBe(true);
+  });
+
+  it('completeとabandonのin-flightガードは独立している', async () => {
+    let resolveComplete;
+    const completeExperiment = vi.fn(() => new Promise((resolve) => { resolveComplete = resolve; }));
+    const abandonExperiment  = vi.fn(async (id) => ({ id, status: 'ABANDONED' }));
+    setApi({ completeExperiment, abandonExperiment });
+
+    const completePromise = completeExperimentAction('e1');
+    const abandonResult   = await abandonExperimentAction('e1');
+
+    expect(abandonResult.ok).toBe(true);
+    expect(abandonExperiment).toHaveBeenCalledOnce();
+
+    resolveComplete({ id: 'e1', status: 'COMPLETED' });
+    await completePromise;
   });
 });

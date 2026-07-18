@@ -19,8 +19,8 @@ describe('getRunningExperimentViewModel (read-only adapter)', () => {
   it('active状態の実験をview modelへ変換する', () => {
     window.getState = () => ({
       experiments: [
-        { title: '16時間断食', factor: '空腹感', condition: 'fasting', hypothesis: '仮説文', days: 14, startDate: '2020-01-01T00:00:00', status: 'completed' },
-        { title: 'カフェイン断ち', factor: '頭痛', condition: 'custom', hypothesis: '仮説2', days: 14, startDate: new Date().toISOString(), status: 'active' },
+        { id: 'exp-completed', title: '16時間断食', factor: '空腹感', condition: 'fasting', hypothesis: '仮説文', days: 14, startDate: '2020-01-01T00:00:00', status: 'completed' },
+        { id: 'exp-active-1', title: 'カフェイン断ち', factor: '頭痛', condition: 'custom', hypothesis: '仮説2', days: 14, startDate: new Date().toISOString(), status: 'active' },
       ],
     });
 
@@ -31,6 +31,28 @@ describe('getRunningExperimentViewModel (read-only adapter)', () => {
     expect(vm.hypothesis).toBe('仮説2');
     expect(vm.progress.currentDay).toBe(1);
     expect(vm.progress.totalDays).toBe(14);
+  });
+
+  it('PR-FULL-INTEGRATION-02: 完了/中止操作用にidを公開する', () => {
+    window.getState = () => ({
+      experiments: [
+        { id: 'exp-active-2', title: 'X', factor: '', condition: '', hypothesis: '', days: 7, startDate: new Date().toISOString(), status: 'active' },
+      ],
+    });
+
+    const vm = getRunningExperimentViewModel();
+    expect(vm.id).toBe('exp-active-2');
+  });
+
+  it('idが無い場合はnullを返す（例外にしない）', () => {
+    window.getState = () => ({
+      experiments: [
+        { title: 'X', factor: '', condition: '', hypothesis: '', days: 7, startDate: new Date().toISOString(), status: 'active' },
+      ],
+    });
+
+    const vm = getRunningExperimentViewModel();
+    expect(vm.id).toBeNull();
   });
 
   it('legacy stateへ書き込みを一切行わない', () => {

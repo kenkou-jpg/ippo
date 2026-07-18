@@ -14,7 +14,11 @@ import './experiment-next.css';
 
 import { showScreen }                    from '../screen-router.js';
 import { getRunningExperimentViewModel } from './experiment-next-adapter.js';
-import { startExperimentFromPreset }     from './experiment-next-command-adapter.js';
+import {
+  startExperimentFromPreset,
+  completeExperimentAction,
+  abandonExperimentAction,
+}                                         from './experiment-next-command-adapter.js';
 
 const FLAG_KEY = 'ippo_experiment_ui_v2';
 
@@ -45,6 +49,76 @@ function _showLibraryError(message) {
   if (!message) { el.hidden = true; el.textContent = ''; return; }
   el.textContent = message;
   el.hidden = false;
+}
+
+// PR-FULL-INTEGRATION-02: 完了/中止操作のエラー文言（Prototypeのトーンを維持）
+const RUNNING_ACTION_ERROR_MESSAGES = {
+  runtime_not_initialized: 'アプリの準備がまだ整っていません。少し待ってから、もう一度試してください。',
+  forbidden:                'この操作を行う権限がありませんでした。',
+  complete_failed:           '完了の処理でエラーが起きました。もう一度お試しください。',
+  abandon_failed:            '中止の処理でエラーが起きました。もう一度お試しください。',
+  missing_id:                '実験の情報を取得できませんでした。画面を更新してもう一度お試しください。',
+  duplicate_request:        '',   // 二重タップは無音で無視
+};
+
+function _showRunningError(message) {
+  const el = document.getElementById('expn-running-error');
+  if (!el) return;
+  if (!message) { el.hidden = true; el.textContent = ''; return; }
+  el.textContent = message;
+  el.hidden = false;
+}
+
+function _setRunningActionsDisabled(disabled) {
+  const completeBtn = document.getElementById('expn-complete-btn');
+  const abandonBtn   = document.getElementById('expn-abandon-btn');
+  if (completeBtn) completeBtn.disabled = disabled;
+  if (abandonBtn)   abandonBtn.disabled = disabled;
+}
+
+// 直近のrenderExperimentNext()が把握した進行中実験のid。
+// ボタンは静的DOMのため、クリック時にここから参照する。
+let _currentRunningId = null;
+
+async function _handleCompleteClick() {
+  if (!_currentRunningId) return;
+  _showRunningError('');
+  _setRunningActionsDisabled(true);
+
+  const result = await completeExperimentAction(_currentRunningId);
+  if (result.ok) {
+    renderExperimentNext();
+    return;
+  }
+  if (result.stage === 'guard') return; // 二重タップ: 無音で無視
+  _showRunningError(RUNNING_ACTION_ERROR_MESSAGES[result.reason] || '完了できませんでした。');
+  _setRunningActionsDisabled(false);
+}
+
+async function _handleAbandonClick() {
+  if (!_currentRunningId) return;
+  _showRunningError('');
+  _setRunningActionsDisabled(true);
+
+  const result = await abandonExperimentAction(_currentRunningId);
+  if (result.ok) {
+    renderExperimentNext();
+    return;
+  }
+  if (result.stage === 'guard') return; // 二重タップ: 無音で無視
+  _showRunningError(RUNNING_ACTION_ERROR_MESSAGES[result.reason] || '中止できませんでした。');
+  _setRunningActionsDisabled(false);
+}
+
+let _runningHandlersAttached = false;
+
+function _attachRunningHandlersOnce() {
+  if (_runningHandlersAttached) return;
+  const completeBtn = document.getElementById('expn-complete-btn');
+  const abandonBtn   = document.getElementById('expn-abandon-btn');
+  if (completeBtn) completeBtn.addEventListener('click', _handleCompleteClick);
+  if (abandonBtn)   abandonBtn.addEventListener('click', _handleAbandonClick);
+  _runningHandlersAttached = true;
 }
 
 function _setLibraryCardsDisabled(disabled) {
@@ -90,6 +164,7 @@ function _attachLibraryHandlersOnce() {
 
 export function renderExperimentNext() {
   _attachLibraryHandlersOnce();
+  _attachRunningHandlersOnce();
 
   const section = document.getElementById('expn-running-section');
   const vm = section ? getRunningExperimentViewModel() : null;
@@ -102,8 +177,14 @@ export function renderExperimentNext() {
 
   if (!vm) {
     section.hidden = true;
+    _currentRunningId = null;
+    _showRunningError('');
     return;
   }
+
+  _currentRunningId = vm.id;
+  _setRunningActionsDisabled(false);
+  _showRunningError('');
 
   const ring = document.getElementById('expn-progress-ring');
   if (ring) ring.style.setProperty('--progress', String(vm.progress.progressPercent));

@@ -42,6 +42,11 @@ export function getRunningExperimentViewModel() {
   if (!progress) return null;
 
   return {
+    // PR-FULL-INTEGRATION-02: 完了/中止操作はDomain層のidを要求するため公開する。
+    // ExperimentRepositoryImpl.findByIdはe.id===idで照合しており、legacy
+    // state.experiments上の各要素は既にこのidを保持している（別データではなく
+    // 同一storageを異なる抽象化層から読んでいるため）。
+    id:         active.id != null ? String(active.id) : null,
     title:      String(active.title || ''),
     hypothesis: active.hypothesis ? String(active.hypothesis) : '',
     observe:    active.factor ? String(active.factor) : '',

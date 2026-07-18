@@ -24,6 +24,13 @@
       <p class="expn-hypothesis" id="expn-running-hypothesis"></p>
       <p class="expn-observe" id="expn-running-observe"></p>
       <p class="expn-reassure">いつでもやめられます</p>
+      <!-- PR-FULL-INTEGRATION-02: ExperimentCommandService.complete()/abandon()
+           （既存実装）への接続。UI追加のみ、prototypeには対応要素なし -->
+      <p class="expn-running-error" id="expn-running-error" hidden></p>
+      <div class="expn-running-actions">
+        <button class="expn-btn-complete" id="expn-complete-btn" type="button">実験を完了する</button>
+        <button class="expn-btn-abandon" id="expn-abandon-btn" type="button">中止する</button>
+      </div>
     </section>
 
     <!-- 実験ライブラリ: PR-EXP-RUNTIME-06でカード自体が「試す」CTAになる。
