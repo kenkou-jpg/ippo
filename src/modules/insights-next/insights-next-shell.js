@@ -13,15 +13,18 @@
 //  引き続き空のまま（hidden状態）とする。書き込みは一切行わない
 //  （Insights自体に書き込み概念はない）。
 //
-//  Pattern Calendarは意図的に含まない（Founder Decision:
-//  Calendar/Record/Insight/Patternを横断する情報設計事項のため、
-//  General Release後の独立PRとして扱う）。
+//  Pattern Calendar: Founder Decision(2026-07-18, LEGACY_SUNSET_COUNCIL.md②)
+//  により「β後」から「Runtime正式実装」へ格上げ。
+//  insights-pattern-calendar-adapter.js経由でrecords実データから算出する
+//  （現行calendar-next.js＝Calendarタブの月相カレンダーとは別画面・別データ
+//  表現のため流用しない、無変更のまま維持）。
 // ============================================================
 
 import './insights-next.css';
 
 import { showScreen }             from '../screen-router.js';
 import { getHighlightViewModel }  from './insights-next-adapter.js';
+import { getPatternCalendarViewModel } from './insights-pattern-calendar-adapter.js';
 // PR-FULL-INTEGRATION-01: 周期グラフロックオーバーレイの「Premiumを見る」
 // ボタンからbilling-nextへ遷移する（me-next-shell.jsと同一パターン）。
 import { showBillingNext }        from '../billing-next/billing-next-shell.js';
@@ -54,15 +57,33 @@ function _attachHandlers(screen) {
   }
 }
 
+async function _renderPatternCalendar() {
+  const grid = document.getElementById('insn-pattern-calendar');
+  if (!grid) return;
+
+  let vm;
+  try {
+    vm = await getPatternCalendarViewModel();
+  } catch (_) {
+    return;
+  }
+
+  grid.innerHTML = vm.cells
+    .map((c) => `<div class="insn-cell${c ? ' ' + c : ''}"></div>`)
+    .join('');
+}
+
 /**
  * 「今週のハイライト」はRead-only ViewModel Adapter（ApiGateway.getRecords()
- * 経由）で描画する。「実験結果サマリー」は比較用データソース未設計のため
- * 引き続き空のまま（hidden状態）とする。
+ * 経由）で描画する。パターンカレンダーも同様にrecords実データから算出する
+ * （insights-pattern-calendar-adapter.js）。「実験結果サマリー」は比較用
+ * データソース未設計のため引き続き空のまま（hidden状態）とする。
  */
 export async function renderInsightsNext() {
   const screen = document.getElementById('screen-insights-next');
   if (!screen) return;
   _attachHandlers(screen);
+  await _renderPatternCalendar();
 
   const textEl = document.getElementById('insn-highlight-text');
   const rowEl  = document.getElementById('insn-highlight-confidence-row');

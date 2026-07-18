@@ -33,7 +33,7 @@ Build確認: `npm run build` PASS。テスト確認: フルスイート312ファ
 | # | 項目 | 対象外の理由 | 扱い |
 |---|---|---|---|
 | 1 | ~~Consent UI新規設計~~ | ~~Prototypeに設計が存在しない（PR-ME-RUNTIME-01確認済み）~~ | **2026-07-18 Founder Decisionにより方針変更**: 新規UI再設計ではなく、既存`consent-service.js`（同意文言・レベル定義は無変更）をMe-nextへ再接続する形でRuntime実装済み。詳細: `LEGACY_SUNSET_COUNCIL.md` |
-| 2 | Pattern Calendar統合 | Calendar/Record/Insight/Patternを横断する情報設計事項 | 現行`calendar-next.js`を無変更維持。General Release後の独立PR |
+| 2 | Pattern Calendar統合 | Calendar/Record/Insight/Patternを横断する情報設計事項 | 現行`calendar-next.js`を無変更維持。**2026-07-18更新**: Founder Decision（`LEGACY_SUNSET_COUNCIL.md`）により、Insights画面内の「パターンカレンダー」UI（prototype由来の色分けグリッド、records実データから算出）はPR-FULL-INTEGRATION-03で実装済み。ただし`calendar-next.js`（Calendarタブの月相カレンダー）自体は無変更のまま、両者の統合・吸収という当初の横断的設計課題は未着手（スコープを分離して個別解決した） |
 | 3 | Case/Similarity Runtime新規統合 | Phase 7、本セッション未着手 | General Release後 |
 | 4 | Checkout接続 | Billing価格・商品構成が未確定 | `billing-next`は表示専用のまま。既存`startStripeCheckout()`（Legacy）は無変更で稼働継続 |
 | 5 | Stripe商品変更 | Founder Decision必要 | 現行Stripe設定を無変更維持 |

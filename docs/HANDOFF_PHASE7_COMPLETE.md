@@ -96,6 +96,26 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-17更新）**
 >
+> **PR-FULL-INTEGRATION-03: Insights Pattern Calendar実装（2026-07-18）**
+> Founder Decision（`LEGACY_SUNSET_COUNCIL.md`②「重大」項目）により、
+> Pattern Calendarを「β後」から「Runtime正式実装」へ格上げ。新規
+> `insights-pattern-calendar-adapter.js`を追加し、`window.app.api.getRecords()`
+> 経由のrecords実データから直近28日分を`rose`(体調やや不調)/`sage`(体調良好)/
+> `plum`(生理周期)へ分類（painLevel閾値5は`ExperimentNudgeService`と統一）。
+> `src/modules/calendar-next.js`（Calendarタブの月相カレンダー、別画面・
+> 別データ表現）は無変更のまま維持し、流用もしていない。
+> `insights-next.html`/`.css`/`insights-next-shell.js`のみ変更。
+> Unit Test 12件追加。Build PASS、フルスイート315ファイル・5,483件
+> **全PASS**（`save-record-screen.test.js`のfake timer関連で並列実行環境
+> 特有の非同期teardownノイズ21件が出たが、単体実行では exit code 0・
+> エラーなしで再現せず、本変更と無関係と確認済み）。
+> `IPPO_REBUILD_UI_DIFF_MATRIX.md`のInsights一致率を75%→**100%（目標達成）**
+> へ更新。**注意**: 解決したのはInsights内の「パターンカレンダーUI」のみ。
+> `calendar-next.js`との統合・吸収という当初の横断的設計課題（Calendar/
+> Record/Insight/Pattern）自体は引き続き未着手（スコープを分離して
+> 個別解決した）。詳細: `docs/rebuild/IPPO_REBUILD_PR_ROADMAP.md`
+> PR-FULL-INTEGRATION-03。
+>
 > **Founder Decision（2026-07-18、`LEGACY_SUNSET_COUNCIL.md`②「重大」項目）**:
 > 1. **Billing価格・商品構成を確定**: ¥580/月・¥4,800/年を正式採用。
 >    過去記録の¥980/¥1,980は不採用として決着（`PR_RELEASE_READINESS_02`

@@ -12,7 +12,7 @@
 |---|---|---|---|
 | Home | **15%** | **90%** | Ring/Streak/Milestone/Result/Nextカードが未実装。100%にしないのはIPPO独自の疾患パーソナライズ要素を残すため |
 | Experiment | **90%**（PR-FULL-INTEGRATION-02一部完了） | **100%**（MVP必須の範囲） | 完了/中止UIは実装済み。残りはおすすめの実験セクションのみ |
-| Insights | **75%**（PR-FULL-INTEGRATION-01完了） | **75%**（Pattern Calendar除く） | **目標達成**。残りはPattern Calendar（既存Founder Decisionによりβ後） |
+| Insights | **100%**（PR-FULL-INTEGRATION-01/03完了） | **100%** | **目標達成**。Pattern CalendarはFounder Decision（2026-07-18）によりβ後からRuntime正式実装へ格上げ、実装完了 |
 | Billing | **70%** | **③の結論次第（70〜85%）** | Prototypeに独立画面が無いため概念的に100%が定義できない |
 | Me | **40%** | **85%**（③の結論次第で変動） | 設定行クリック機能復活・Planカード扱いの決定で変動 |
 
@@ -54,8 +54,8 @@
 | Prototype要素 | 現状 | 目標分類 | 現状→目標 |
 |---|---|---|---|
 | 今週のハイライト | 有 | 維持 | 100% |
-| Pattern Calendar | 無 | β後（既存Founder Decision） | 0%（据え置き、Founder再確認待ち） |
-| Legend（凡例） | 無 | β後 | 0%（据え置き） |
+| Pattern Calendar | **有（PR-FULL-INTEGRATION-03完了）** | MVP必須（2026-07-18 Founder Decisionにより格上げ） | **100%達成**（insights-pattern-calendar-adapter.js、records実データから直近28日を分類） |
+| Legend（凡例） | **有（PR-FULL-INTEGRATION-03完了）** | MVP必須 | **100%達成** |
 | 実験結果サマリー（compare） | 有（データ未接続のため非表示） | 維持 | 構造100%・データ接続は別スコープ |
 | 周期グラフ Premium Overlay | 有（静的） | MVP必須 | 100%（既に満たす） |
 | Premiumボタン（ロック内） | **有（PR-FULL-INTEGRATION-01完了）** | MVP必須 | **100%達成** |
