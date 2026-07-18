@@ -9,16 +9,19 @@
 //  PR-ME-RUNTIME-01の現状確認結果に基づくスコープ:
 //    - Plan Card（Premium/Pro）はbilling-nextと重複するため実装せず、
 //      「現在のプラン」テキスト + billing-next画面への遷移導線のみとする
-//    - Research Consent UIはPrototypeに設計が存在しないため対象外
-//      （Founder Decision待ち、別途）
 //    - settings-list（5行）はPrototype自身も未接続の静的表示のみ
-//      （「気になることを変更する」等の実装はスコープ外）
+//      （「気になることを変更する」等の実装はスコープ外、Consent以外は継続）
 //    - preview-block（Founderレビュー用）はproduction対象外のため含めない
 //
 //  PR-ME-RUNTIME-03/04で「現在のプラン」をme-next-adapter.js経由
 //  （billing-next-adapter.jsのgetSubscriptionViewModel()を再利用、
 //  二重実装なし）で接続した。プロフィール名は対応するRead facadeが
 //  見当たらなかったため引き続き未接続（空/hidden）。
+//
+//  Founder Decision(2026-07-18, LEGACY_SUNSET_COUNCIL.md): Research
+//  Consent UIはPrototype v2再設計を待たず、Runtime正式版の一部として
+//  実装する。既存src/services/consent-service.js（DOM非依存の純粋関数、
+//  LegacyのSettings画面専用ではない）をそのまま再利用し、二重実装しない。
 // ============================================================
 
 import './me-next.css';
@@ -26,6 +29,12 @@ import './me-next.css';
 import { showScreen }           from '../screen-router.js';
 import { showBillingNext }      from '../billing-next/billing-next-shell.js';
 import { getMeProfileViewModel } from './me-next-adapter.js';
+import {
+  isResearchConsentGranted,
+  grantResearchConsent,
+  withdrawResearchConsent,
+}                                from '../../services/consent-service.js';
+import { showConfirmModal }     from '../ui-notifications.js';
 
 const FLAG_KEY = 'ippo_me_ui_v2';
 
@@ -40,6 +49,25 @@ export function isMeNextEnabled() {
 export function enableMeNext()  { try { localStorage.setItem(FLAG_KEY, '1'); }   catch (_) { /* noop */ } }
 export function disableMeNext() { try { localStorage.removeItem(FLAG_KEY); }     catch (_) { /* noop */ } }
 
+function _renderConsentStatus() {
+  const el = document.getElementById('men-consent-sub');
+  if (!el) return;
+  el.textContent = isResearchConsentGranted()
+    ? '協力中（いつでも撤回できます）'
+    : '同意していません';
+}
+
+function _handleConsentToggle() {
+  const granted = isResearchConsentGranted();
+  const message = granted
+    ? '研究への協力の同意を撤回しますか？'
+    : '匿名化された記録を、疾患研究の役に立てることに同意しますか？いつでも撤回できます。';
+  const action = granted
+    ? () => { withdrawResearchConsent(); _renderConsentStatus(); }
+    : () => { grantResearchConsent(); _renderConsentStatus(); };
+  showConfirmModal(message, action);
+}
+
 function _attachHandlers(screen) {
   if (!screen || screen.dataset.menHandlersAttached === '1') return;
   screen.dataset.menHandlersAttached = '1';
@@ -50,18 +78,25 @@ function _attachHandlers(screen) {
       showBillingNext();
     });
   }
+
+  const consentBtn = document.getElementById('men-consent-row');
+  if (consentBtn) {
+    consentBtn.addEventListener('click', _handleConsentToggle);
+  }
 }
 
 /**
- * プライバシーカード・設定リストはすべて静的マークアップ（Prototypeコピー
- * そのまま）。「現在のプラン」のみRead-only Adapter経由で描画する。
- * プロフィール名は対応するRead facadeが無いため引き続き空のまま
- * （hidden状態、架空のプロフィールデータを作らない）。
+ * プライバシーカード・設定リストは静的マークアップ（Prototypeコピーそのまま）。
+ * Consent行のみFounder Decisionによりconsent-service.js経由で実データを
+ * 描画する。「現在のプラン」はRead-only Adapter経由。プロフィール名は
+ * 対応するRead facadeが無いため引き続き空のまま（hidden状態、架空の
+ * プロフィールデータを作らない）。
  */
 export async function renderMeNext() {
   const screen = document.getElementById('screen-me-next');
   if (!screen) return;
   _attachHandlers(screen);
+  _renderConsentStatus();
 
   const planBtn = document.getElementById('men-profile-plan');
   if (!planBtn) return;

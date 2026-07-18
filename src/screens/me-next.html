@@ -31,6 +31,14 @@
       <div class="men-settings-row">通知設定</div>
       <div class="men-settings-row">データのエクスポート</div>
       <div class="men-settings-row">アカウント</div>
+      <!-- Founder Decision(2026-07-18): Consent UIはPrototype v2再設計を
+           待たず、Runtime正式版の一部として実装する。既存consent-service.js
+           （純粋関数、Legacy screen非依存）をそのまま再利用し、書式のみ
+           men-*に合わせた -->
+      <button class="men-settings-row men-settings-row-consent" type="button" id="men-consent-row">
+        <span class="men-settings-row-text">研究への協力（匿名データ提供）</span>
+        <span class="men-settings-row-sub" id="men-consent-sub"></span>
+      </button>
       <div class="men-settings-row">気になることを変更する</div>
       <div class="men-settings-row">ヘルプ</div>
     </section>
