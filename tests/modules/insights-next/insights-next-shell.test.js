@@ -1,6 +1,13 @@
 // tests/modules/insights-next/insights-next-shell.test.js
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// PR-FULL-INTEGRATION-01: Premiumボタンの遷移先をモックし、billing-next側の
+// 実体（premium-service.js/supabase.js等の重い依存）を引き込まない。
+const mockShowBillingNext = vi.fn(async () => {});
+vi.mock('../../../src/modules/billing-next/billing-next-shell.js', () => ({
+  showBillingNext: (...a) => mockShowBillingNext(...a),
+}));
+
 function buildScreenFixture() {
   document.body.innerHTML = `
     <div id="screen-insights-next" class="screen">
@@ -12,12 +19,16 @@ function buildScreenFixture() {
         <span id="insn-highlight-confidence"></span>
       </div>
       <section id="insn-compare-section" hidden></section>
+      <div class="insn-lock-overlay">
+        <button id="insn-premium-cta" type="button">Premiumを見る</button>
+      </div>
     </div>`;
 }
 
 describe('insights-next-shell (PR-INSIGHTS-RUNTIME-02/03/04)', () => {
   beforeEach(() => {
     vi.resetModules();
+    mockShowBillingNext.mockReset().mockResolvedValue(undefined);
     localStorage.removeItem('ippo_insights_ui_v2');
     delete window.ippoInsightsNext;
     delete window.getState;
@@ -91,5 +102,26 @@ describe('insights-next-shell (PR-INSIGHTS-RUNTIME-02/03/04)', () => {
     expect(row.hidden).toBe(false);
     expect(document.getElementById('insn-highlight-confidence').textContent).toBe('信頼度：高');
     expect(row.querySelectorAll('.insn-confidence-dot.filled').length).toBe(4);
+  });
+
+  describe('PR-FULL-INTEGRATION-01: 周期グラフロックオーバーレイのPremiumボタン', () => {
+    it('「Premiumを見る」クリックでshowBillingNext()が呼ばれる', async () => {
+      const mod = await import('../../../src/modules/insights-next/insights-next-shell.js');
+      await mod.renderInsightsNext();
+
+      document.getElementById('insn-premium-cta').click();
+
+      expect(mockShowBillingNext).toHaveBeenCalledOnce();
+    });
+
+    it('renderInsightsNext()を複数回呼んでもハンドラは二重登録されない', async () => {
+      const mod = await import('../../../src/modules/insights-next/insights-next-shell.js');
+      await mod.renderInsightsNext();
+      await mod.renderInsightsNext();
+
+      document.getElementById('insn-premium-cta').click();
+
+      expect(mockShowBillingNext).toHaveBeenCalledOnce();
+    });
   });
 });

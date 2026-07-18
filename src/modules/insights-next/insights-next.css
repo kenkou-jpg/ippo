@@ -186,3 +186,17 @@
   font-size: 0.8125rem;
   color: var(--ink-mid, #4a3830);
 }
+
+/* PR-FULL-INTEGRATION-01: prototype/styles.css .btn-secondary と同等の
+   トークンで再現（rose-pale背景 + plum文字、pill形状） */
+.insn-lock-btn {
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--plum, #b14e56);
+  background: var(--rose-pale, #f7f2f2);
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  padding: 10px 16px;
+  cursor: pointer;
+}

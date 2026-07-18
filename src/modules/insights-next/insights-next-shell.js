@@ -22,6 +22,9 @@ import './insights-next.css';
 
 import { showScreen }             from '../screen-router.js';
 import { getHighlightViewModel }  from './insights-next-adapter.js';
+// PR-FULL-INTEGRATION-01: 周期グラフロックオーバーレイの「Premiumを見る」
+// ボタンからbilling-nextへ遷移する（me-next-shell.jsと同一パターン）。
+import { showBillingNext }        from '../billing-next/billing-next-shell.js';
 
 const FLAG_KEY = 'ippo_insights_ui_v2';
 
@@ -36,6 +39,21 @@ export function isInsightsNextEnabled() {
 export function enableInsightsNext()  { try { localStorage.setItem(FLAG_KEY, '1'); }   catch (_) { /* noop */ } }
 export function disableInsightsNext() { try { localStorage.removeItem(FLAG_KEY); }     catch (_) { /* noop */ } }
 
+// PR-FULL-INTEGRATION-01: 周期グラフロックオーバーレイの「Premiumを見る」
+// ボタンをbilling-nextへの遷移に接続する。二重バインド防止は
+// billing-next-shell.js/me-next-shell.jsと同一のdatasetガードパターン。
+function _attachHandlers(screen) {
+  if (!screen || screen.dataset.insnHandlersAttached === '1') return;
+  screen.dataset.insnHandlersAttached = '1';
+
+  const premiumBtn = document.getElementById('insn-premium-cta');
+  if (premiumBtn) {
+    premiumBtn.addEventListener('click', () => {
+      showBillingNext();
+    });
+  }
+}
+
 /**
  * 「今週のハイライト」はRead-only ViewModel Adapter（ApiGateway.getRecords()
  * 経由）で描画する。「実験結果サマリー」は比較用データソース未設計のため
@@ -44,6 +62,7 @@ export function disableInsightsNext() { try { localStorage.removeItem(FLAG_KEY);
 export async function renderInsightsNext() {
   const screen = document.getElementById('screen-insights-next');
   if (!screen) return;
+  _attachHandlers(screen);
 
   const textEl = document.getElementById('insn-highlight-text');
   const rowEl  = document.getElementById('insn-highlight-confidence-row');
