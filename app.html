@@ -784,7 +784,7 @@
         <h1 class="set-title">設定</h1>
         <p class="set-subtitle">あなたらしく使えるよう、<br>静かに整えていきましょう。</p>
       </div>
-      <button class="set-profile-pill" onclick="showScreen('premium')" id="settings-upgrade-btn">
+      <button class="set-profile-pill" onclick="(window.ippoBillingNext &amp;&amp; window.ippoBillingNext.isEnabled()) ? window.ippoBillingNext.preview() : showScreen('premium')" id="settings-upgrade-btn">
         <div class="set-profile-pill-icon">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
         </div>

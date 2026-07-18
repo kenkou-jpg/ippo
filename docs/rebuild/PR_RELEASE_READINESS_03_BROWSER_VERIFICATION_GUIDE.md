@@ -23,13 +23,22 @@
    するとよい
 ```
 
-**共通の画面遷移パターン**（5画面すべて同じ、Navigation自体は変更されていない）:
+**共通の画面遷移パターン**（5画面すべて同じ）:
 
 ```
 OFF状態の確認 → Console上で `window.ippoXxxNext.preview()` を実行
   → 画面が該当タブ内でnext版に切り替わる（新しいURLやタブ遷移は発生しない）
   → 確認完了後 `window.ippoXxxNext.disable()` を実行 → リロード → OFF状態へ復帰
 ```
+
+**追記（2026-07-17、`PR-RUNTIME-INTEGRATION-01`）**: 上記`.preview()`に加え、
+`window.ippoXxxNext.enable()`でFlagをONにした後は、**実際のタブ操作・
+ボタン操作でもRuntime Screenへ到達できる**ようになった（Insights/
+Settingsタブのクリック、Insights画面「実験提案カード」のクリック、設定
+画面「アップグレード」ボタンのクリック）。Flag ON化自体は引き続き
+console操作のみ（UIトグルは未実装）。各画面の詳細な操作手順は1節参照。
+Homeは元々`patchTabNavigation()`により通常のタブ操作から到達可能
+だった（変更なし）。
 
 Xxxと対応タブ・Namespaceの対応表:
 

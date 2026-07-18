@@ -6,6 +6,16 @@
 // bare依存をそのまま window.* ブリッジ経由で呼ぶため、本テストでは window.* をモックする。
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// PR-RUNTIME-INTEGRATION-01: premiumGate()のFeature Flag分岐を単体で検証
+// するため、billing-next-shell.js は分離してモックする。
+const mockIsBillingNextEnabled = vi.fn(() => false);
+const mockShowBillingNext = vi.fn(async () => {});
+vi.mock('../../src/modules/billing-next/billing-next-shell.js', () => ({
+  isBillingNextEnabled: (...a) => mockIsBillingNextEnabled(...a),
+  showBillingNext: (...a) => mockShowBillingNext(...a),
+}));
+
 import {
   premiumGate,
   closePremiumLock,
@@ -20,6 +30,8 @@ function setDom(html) {
 
 beforeEach(() => {
   document.body.innerHTML = '';
+  mockIsBillingNextEnabled.mockReset().mockReturnValue(false);
+  mockShowBillingNext.mockReset().mockResolvedValue(undefined);
   window.isAdminOrPremium = vi.fn(() => false);
   window.state = { records: [] };
   window.showAlertModal = vi.fn();
@@ -99,6 +111,35 @@ describe('premiumGate', () => {
     premiumGate(window.openFlareupReport);
     expect(window.detectFlareups).toHaveBeenCalledWith(window.state.records);
     expect(document.getElementById('premium-dynamic-msg').innerHTML).toContain('フレアアップ');
+  });
+
+  describe('PR-RUNTIME-INTEGRATION-01: billing-next Feature Flag分岐', () => {
+    it('Feature Flag OFF（既定）では従来通りロックオーバーレイが開く（showBillingNextは呼ばれない）', () => {
+      setDom('<div id="premiumLockOverlay"></div>');
+      const cb = vi.fn();
+      premiumGate(cb);
+      expect(mockShowBillingNext).not.toHaveBeenCalled();
+      expect(document.getElementById('premiumLockOverlay').classList.contains('active')).toBe(true);
+    });
+
+    it('Feature Flag ON かつ非premiumの場合、ロックオーバーレイの代わりにshowBillingNext()が呼ばれる', () => {
+      setDom('<div id="premiumLockOverlay"></div>');
+      mockIsBillingNextEnabled.mockReturnValue(true);
+      const cb = vi.fn();
+      premiumGate(cb);
+      expect(mockShowBillingNext).toHaveBeenCalledOnce();
+      expect(cb).not.toHaveBeenCalled();
+      expect(document.getElementById('premiumLockOverlay').classList.contains('active')).toBe(false);
+    });
+
+    it('Feature Flag ON でも isAdminOrPremium()がtrueならcallbackが呼ばれ、showBillingNextは呼ばれない', () => {
+      mockIsBillingNextEnabled.mockReturnValue(true);
+      window.isAdminOrPremium = vi.fn(() => true);
+      const cb = vi.fn();
+      premiumGate(cb);
+      expect(cb).toHaveBeenCalledOnce();
+      expect(mockShowBillingNext).not.toHaveBeenCalled();
+    });
   });
 });
 
