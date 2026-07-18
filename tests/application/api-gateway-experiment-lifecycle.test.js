@@ -72,3 +72,48 @@ describe('ApiGateway — Experiment Lifecycle (PR-EXP-RUNTIME-04)', () => {
     expect(cs.abandon).not.toHaveBeenCalled();
   });
 });
+
+describe('ApiGateway — getCompletedExperiments (PR-HOME-REBUILD-01)', () => {
+  it('experiment:read権限を要求し、ExperimentQueryService.findByStatus(userId, "COMPLETED")へ委譲する', async () => {
+    const findByStatus = vi.fn(async () => [{ id: 'e1', status: 'COMPLETED' }]);
+    const gw = new ApiGateway({
+      permissionService: {
+        require: async (perm) => {
+          if (perm !== 'experiment:read') throw new Error(`Forbidden: ${perm}`);
+          return { userId: 'user-1' };
+        },
+      },
+      similarityAccessGuard:     {},
+      consentEnforcementService: {},
+      recordQueryService:        { findByUser: async () => [] },
+      recordCommandService:      { save: async (d) => d },
+      experimentQueryService:    { findActive: async () => [], findByStatus },
+      experimentCommandService:  {},
+      caseGenerationService:     { generate: async () => ({}) },
+      similarityEngine:          {},
+    });
+
+    const result = await gw.getCompletedExperiments();
+
+    expect(findByStatus).toHaveBeenCalledWith('user-1', 'COMPLETED');
+    expect(result).toEqual([{ id: 'e1', status: 'COMPLETED' }]);
+  });
+
+  it('experiment:read権限が無い場合は拒否され、findByStatusは呼ばれない', async () => {
+    const findByStatus = vi.fn();
+    const gw = new ApiGateway({
+      permissionService: { require: async () => { throw new Error('Forbidden: experiment:read'); } },
+      similarityAccessGuard:     {},
+      consentEnforcementService: {},
+      recordQueryService:        { findByUser: async () => [] },
+      recordCommandService:      { save: async (d) => d },
+      experimentQueryService:    { findActive: async () => [], findByStatus },
+      experimentCommandService:  {},
+      caseGenerationService:     { generate: async () => ({}) },
+      similarityEngine:          {},
+    });
+
+    await expect(gw.getCompletedExperiments()).rejects.toThrow('Forbidden');
+    expect(findByStatus).not.toHaveBeenCalled();
+  });
+});

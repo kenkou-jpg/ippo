@@ -61,6 +61,19 @@ import { renderDailyNote }           from './home-next-daily-note.js';
 import { renderMedicalSummary }      from './home-next-medical-summary.js';
 import { renderReflections }         from './home-next-reflections.js';
 import { renderRecovery, renderExperiment } from './home-next-recovery.js';
+// PR-HOME-REBUILD-01: prototype/Homeの信号要素（Ring/Streak/Milestone/
+// Before-After結果カード/次の実験候補）を実データで駆動する。
+import { renderHeroRing }            from './home-next-hero-ring.js';
+import { renderMilestone }           from './home-next-milestone.js';
+import { renderResultCard }          from './home-next-result.js';
+import { renderNextExperimentCard }  from './home-next-next-experiment.js';
+import {
+  getHeroExperimentViewModel,
+  getStreakViewModel,
+  getResultCardViewModel,
+  getMilestoneViewModel,
+  getNextExperimentViewModel,
+} from './home-next-experiment-adapter.js';
 
 // ── Feature flag ─────────────────────────────────────────
 
@@ -148,7 +161,7 @@ function renderGreeting(container, state) {
 
 // ── メインレンダリング ────────────────────────────────────
 
-function renderAll() {
+async function renderAll() {
   const state = getState();
 
   // Phase B: settings-store 経由で設定を取得（state.settingsProfile 直接依存を排除）
@@ -173,6 +186,11 @@ function renderAll() {
   const medicalSummary = document.getElementById('hn-medical-summary');
   const record         = document.getElementById('hn-record');
   const experiment      = document.getElementById('hn-experiment');
+  // PR-HOME-REBUILD-01
+  const heroRing        = document.getElementById('hn-hero-ring');
+  const milestone        = document.getElementById('hn-milestone');
+  const resultCard        = document.getElementById('hn-result');
+  const nextExperiment      = document.getElementById('hn-next-experiment');
 
   // PHASE 1: 除外セクションのコンテナをクリア（ファイル・ロジックは保持）
   // PR-P2-01 (Phase2 Implementation): hn-experimentはPHASE2_IMPLEMENTATION_COUNCIL.mdの
@@ -214,6 +232,21 @@ function renderAll() {
   // の3日クールダウン・データ閾値により、記録不足時・クールダウン中は自動的に非表示になる
   if (experiment)     renderExperiment(experiment);
 
+  // PR-HOME-REBUILD-01: prototype/Homeの信号要素。実データのみ、架空データは使わない。
+  // resultVmはMilestoneの判定にもそのまま再利用する（別ロジックを持たない）。
+  if (heroRing || milestone || resultCard || nextExperiment) {
+    const [heroVm, streakVm, resultVm, nextVm] = await Promise.all([
+      getHeroExperimentViewModel(),
+      getStreakViewModel(),
+      getResultCardViewModel(),
+      getNextExperimentViewModel(),
+    ]);
+    if (heroRing)   renderHeroRing(heroRing, heroVm, streakVm);
+    if (milestone)  renderMilestone(milestone, getMilestoneViewModel(resultVm));
+    if (resultCard) renderResultCard(resultCard, resultVm);
+    if (nextExperiment) renderNextExperimentCard(nextExperiment, nextVm);
+  }
+
   // 既存 window bridge 関数も更新
   if (typeof window.updateSettingsHero === 'function') window.updateSettingsHero();
   if (typeof window.updateUnlock       === 'function') window.updateUnlock();
@@ -234,7 +267,7 @@ window.addEventListener('ippo:settings-profile-changed', function() {
 
 export async function showHomeNext() {
   await showScreen('home-next');
-  renderAll();
+  await renderAll();
 }
 
 // ── tab-navigation との統合 ──────────────────────────────

@@ -10,7 +10,7 @@
 
 | 画面 | 現在の一致率 | 目標一致率 | 差分の主因 |
 |---|---|---|---|
-| Home | **15%** | **90%** | Ring/Streak/Milestone/Result/Nextカードが未実装。100%にしないのはIPPO独自の疾患パーソナライズ要素を残すため |
+| Home | **95%**（PR-HOME-REBUILD-01完了・Founder Browser Verification待ち） | **90%** | **目標達成（未検証）**。Ring/Streak/Milestone/Result/Nextカードを実データで実装。既存セクション（挨拶ヘッダー等）はPrototype順序へ完全移動せず現在位置を維持したため、構造一致率100%ではなく95%評価。100%にしないのはIPPO独自の疾患パーソナライズ要素を残すため |
 | Experiment | **90%**（PR-FULL-INTEGRATION-02一部完了） | **100%**（MVP必須の範囲） | 完了/中止UIは実装済み。残りはおすすめの実験セクションのみ |
 | Insights | **100%**（PR-FULL-INTEGRATION-01/03完了） | **100%** | **目標達成**。Pattern CalendarはFounder Decision（2026-07-18）によりβ後からRuntime正式実装へ格上げ、実装完了 |
 | Billing | **70%** | **③の結論次第（70〜85%）** | Prototypeに独立画面が無いため概念的に100%が定義できない |
@@ -22,13 +22,13 @@
 
 | Prototype要素 | 現状 | 目標分類 | 現状→目標 |
 |---|---|---|---|
-| Hero Ring（実験Day進捗） | 無 | 必須 | 0% → 100% |
-| 7日ストリーク | 無 | 推奨 | 0% → 100% |
-| Milestone banner | 無 | 推奨 | 0% → 100% |
-| Before→After結果カード | 無 | 必須 | 0% → 100% |
-| 次の実験候補カード | 無 | 必須 | 0% → 100% |
-| 「試してみる」導線 | 無 | 必須 | 0% → 100% |
-| 挨拶ヘッダー | 有（別実装） | 維持 | 100%（構造は別だが機能は充足） |
+| Hero Ring（実験Day進捗） | **有（PR-HOME-REBUILD-01完了）** | 必須 | **100%達成**（`getRunningExperimentViewModel()`を再利用、Empty State対応、`hn-hero-ring`直下に`hn-hero`と並置） |
+| 7日ストリーク | **有（PR-HOME-REBUILD-01完了）** | 推奨 | **100%達成**（実データ、ローカル日付境界で判定、今日を強調表示） |
+| Milestone banner | **有（PR-HOME-REBUILD-01完了）** | 推奨 | **100%達成**（結果カードVMを再利用した条件表示、常時表示ではない） |
+| Before→After結果カード | **有（PR-HOME-REBUILD-01完了）** | 必須 | **100%達成**（`getCompletedExperiments()`実データ、診断的表現ゼロ、データ不足時は非表示） |
+| 次の実験候補カード | **有（PR-HOME-REBUILD-01完了）** | 必須 | **100%達成**（`ExperimentNudgeService`再利用、Adapter層でpreset正式マッピング） |
+| 「試してみる」導線 | **有（PR-HOME-REBUILD-01完了）** | 必須 | **100%達成**（Flag ON→Experiment Runtime、Flag OFF→既存Legacy `window.openExperiments()`） |
+| 挨拶ヘッダー | 有（別実装、Prototype順序へ完全移動せず現在位置を維持） | 維持 | 90%（構造は別だが機能は充足。位置のみ差分） |
 | 記録CTA（今日を記録する） | 有 | 維持 | 100% |
 | （IPPO独自）疾患パーソナライズ | 有 | 維持（Prototypeに無いが削除しない） | 対象外 |
 | （IPPO独自）医療サマリー・Recovery Journey・Reflections | 有 | 維持（Prototypeに無いが削除しない） | 対象外 |

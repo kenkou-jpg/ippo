@@ -94,7 +94,60 @@ ippoの設計・実装を進めている。
 - Decision Log: 本PRで更新済み（Founder Strategy変更・Business変更に該当するため）。詳細はdocs/RELEASE_READINESS_COUNCIL.md 21章を正とする
 - 判定: CONDITIONAL GO 継続（Release Readiness Score: 95/100）。Next: NEW-C-1（免責文言・利用規約・プライバシーポリシーの実装）／C-4再定義（データ利用同意の明確化）
 
-> **引継ぎサマリー（2026-07-17更新）**
+> **引継ぎサマリー（2026-07-19更新）**
+>
+> **PR-HOME-REBUILD-01: Prototype Home Full Replacement（2026-07-19）**
+> Founderの「HOME CONTENT AUDIT」（2026-07-19）でHero Ring/7日ストリーク/
+> Milestone banner/Before→After結果カード/次の実験候補カードの5要素が
+> `home-next`に全て欠落していると判明したことを受け、`prototype/Home`を
+> Canonical UI Sourceとして単一PRで作り直した（分割禁止指示に従い1PR）。
+> 思考順序: prototype/Homeの構造 → 実データ接続 → 既存Domain/Application/
+> Adapter再利用 → 不足Adapterのみ最小追加。架空データは一切使用していない。
+> - **新規Adapter**: `ApiGateway.getCompletedExperiments()`（`ExperimentQueryService.
+>   findByStatus()`への読み取りパススルー、Domain/Repository層は無変更）、
+>   `src/modules/home-next/home-next-experiment-adapter.js`（Hero/Streak/
+>   Result/Milestone/Nextの5ビューモデル関数）。
+> - **再利用**: Hero Ringの進捗計算は`experiment-next-adapter.js`の
+>   `getRunningExperimentViewModel()`（→`computeExperimentProgress()`）を
+>   委譲呼び出しのみで複製せず。次の実験候補は既存`ExperimentNudgeService`
+>   （`ApiGateway.getExperimentNudge()`）と既存`EXPERIMENT_LIBRARY_PRESETS`
+>   を使用し、experimentType→presetのマッピングは`NUDGE_TYPE_TO_PRESET_ID`
+>   としてAdapter層に正式に閉じ込め（`PAIN_MANAGEMENT`/`SYMPTOM_TRACKING`は
+>   対応する仮説文言のPresetが無いため意図的に未マッピング、場当たり的な
+>   仮マッピングはしていない）。「試してみる」はFlag ON→
+>   `startExperimentFromPreset()`+`showExperimentNext()`（Experiment
+>   Runtime）、Flag OFF→既存`window.openExperiments()`
+>   （PR-RUNTIME-INTEGRATION-01と同一パターン）。Domain変更は一切なし
+>   （停止・報告が必要な箇所は発見されなかった）。
+> - **新規UIコンポーネント**: `home-next-hero-ring.js`・`home-next-milestone.js`・
+>   `home-next-result.js`・`home-next-next-experiment.js`（4ファイル）。
+>   `home-next.html`に4コンテナを追加（`hn-hero`直後にRing/Milestone、
+>   `hn-experiment`直後にResult/Next-experiment）、`home-next.css`に
+>   カード種別ごとの背景色（Milestone=warm-light、Result=sage-light、
+>   Next=gold-light）を含む新規スタイルを追記。`home-next-shell.js`の
+>   `renderAll()`を非同期化し4ビューモデルを`Promise.all`で並列取得。
+> - **医療的断定表現ゼロ**: 結果カードは「治った」「効果があった」等を
+>   一切使わず「観察された変化」として表現し、「参考情報、医療的な判断
+>   ではありません」の注記を必須表示。Unit Testで禁止語リストを機械的に
+>   検証（`home-next-result.test.js`）。
+> - **既存要素の並び順**: 疾患パーソナライズ・医療サマリー・Recovery
+>   Journey・Reflections等のIPPO独自要素は削除せず維持したが、
+>   Prototypeの並び順への完全な再配置はしていない（既存チューニング済み
+>   コンテンツへの破壊的変更を避けるため）。構造一致率を100%ではなく
+>   95%と評価する根拠。
+> - Unit Test新規49件（ApiGateway 2件、Adapter 24件、Hero Ring 5件、
+>   Milestone 4件、Result 6件、Next-experiment 8件）**全PASS**。Build
+>   PASS。フルスイート320ファイル・5,532件**全PASS**（新規失敗ゼロ）。
+> - `IPPO_REBUILD_UI_DIFF_MATRIX.md`のHome一致率を15%→**95%**へ更新
+>   （Prototype主要要素の存在率100%、構造一致率95%、UX一致率95%）。
+> - **実ブラウザ確認は未実施**（CLAUDE.mdの規定によりAIは自己判断で
+>   Browser Verificationを行わない）。Founder確認手順は
+>   `docs/rebuild/PR_HOME_REBUILD_01.md` §10に記載。「Home統合完了」とは
+>   Founder確認前のため記録しない。詳細: `docs/rebuild/PR_HOME_REBUILD_01.md`。
+> - Decision Log: 更新不要（Architecture/Roadmap/Business変更なし、
+>   既存Domain/Applicationの再利用と最小Adapter追加のみ）。
+> - **次のステップ**: 本PRのFounder確認完了後にBilling Checkoutへ戻る
+>   （Founder承認前にはBilling Checkout実装へは進まない、既存合意通り）。
 >
 > **PR-FULL-INTEGRATION-03: Insights Pattern Calendar実装（2026-07-18）**
 > Founder Decision（`LEGACY_SUNSET_COUNCIL.md`②「重大」項目）により、
