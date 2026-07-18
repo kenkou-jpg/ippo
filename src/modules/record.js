@@ -23,6 +23,10 @@ import {
 } from './record/save.js';
 import { switchTab } from './tab-navigation.js';
 import { upsertRecord } from './record-upsert.js';
+// No explicit extension: the sibling file is record.service.ts, not .js.
+// vite build already resolves this via its default extension probing;
+// an explicit '.js' here breaks vitest's resolver, which treats an
+// explicit extension as literal instead of trying '.ts' as a fallback.
 import { applyRecordToStreakState } from '../../domains/record/record.service';
 
 
