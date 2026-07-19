@@ -19,6 +19,7 @@ function buildScreenFixture() {
         <span id="insn-highlight-confidence"></span>
       </div>
       <section id="insn-compare-section" hidden></section>
+      <div id="insn-pattern-calendar"></div>
       <div class="insn-lock-overlay">
         <button id="insn-premium-cta" type="button">Premiumを見る</button>
       </div>
@@ -86,7 +87,9 @@ describe('insights-next-shell (PR-INSIGHTS-RUNTIME-02/03/04)', () => {
 
     await mod.renderInsightsNext();
 
-    expect(getRecords).toHaveBeenCalledOnce();
+    // PR-FULL-INTEGRATION-03以降、getHighlightViewModel()と
+    // getPatternCalendarViewModel()がそれぞれ独立にgetRecords()を呼ぶため2回
+    expect(getRecords).toHaveBeenCalledTimes(2);
     expect(document.getElementById('insn-highlight-text').textContent).toBe('記録が増えると、ここに気づきが届きます');
   });
 
@@ -122,6 +125,35 @@ describe('insights-next-shell (PR-INSIGHTS-RUNTIME-02/03/04)', () => {
       document.getElementById('insn-premium-cta').click();
 
       expect(mockShowBillingNext).toHaveBeenCalledOnce();
+    });
+  });
+
+  describe('PR-FULL-INTEGRATION-03: パターンカレンダー', () => {
+    it('renderInsightsNext()は28セルを描画する', async () => {
+      const mod = await import('../../../src/modules/insights-next/insights-next-shell.js');
+      await mod.renderInsightsNext();
+
+      const cells = document.querySelectorAll('#insn-pattern-calendar .insn-cell');
+      expect(cells.length).toBe(28);
+    });
+
+    it('直近日のrecordの分類（rose/sage/plum）がセルのclassへ反映される', async () => {
+      const mod = await import('../../../src/modules/insights-next/insights-next-shell.js');
+      const today = new Date().toISOString().slice(0, 10);
+      window.app = { api: { getRecords: vi.fn(async () => [
+        { record_date: today, painLevel: 8 },
+      ]) } };
+
+      await mod.renderInsightsNext();
+
+      const cells = document.querySelectorAll('#insn-pattern-calendar .insn-cell');
+      expect(cells[cells.length - 1].classList.contains('rose')).toBe(true);
+    });
+
+    it('画面未マウント時（#insn-pattern-calendar不在）も例外を投げない', async () => {
+      document.body.innerHTML = '<div id="screen-insights-next" class="screen"><p id="insn-highlight-text"></p></div>';
+      const mod = await import('../../../src/modules/insights-next/insights-next-shell.js');
+      await expect(mod.renderInsightsNext()).resolves.not.toThrow();
     });
   });
 });

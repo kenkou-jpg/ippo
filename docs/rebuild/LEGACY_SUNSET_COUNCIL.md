@@ -59,11 +59,13 @@
 ☑ Consent（研究協力同意）Runtime未実装 — 2026-07-18 Founder Decisionにより
   着手。Prototype v2再設計を待たずMe-nextへ実装完了
   （既存consent-service.jsを再利用、同意文言・レベル定義は無変更）
+☑ Pattern Calendar未統合 — 2026-07-18 Founder Decisionによりβ後から
+  Runtime正式実装へ格上げ、PR-FULL-INTEGRATION-03で実装完了
+  （insights-pattern-calendar-adapter.js、records実データから算出。
+  現行calendar-next.jsは別画面・無変更のまま維持）
 □ Billing Checkout未接続 — Legacy削除すると課金導線が消滅し収益に直結する。
   価格確定は完了したため、次はCheckout接続の実装判断
 □ PR-REC-06c Backfill未実行 — Legacy user_recordsを削除するとデータ損失リスク
-□ Pattern Calendar未統合 — Insightsの主要機能欠落のままLegacy Insightsを
-  削除すると機能後退になる
 ```
 
 ### 中（Legacy Sunset前に解消が望ましいが、致命的ではない）

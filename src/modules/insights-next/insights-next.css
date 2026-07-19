@@ -59,6 +59,7 @@
 
 .insn-badge.badge-gold { background: var(--gold-light, #fdf0d8); }
 .insn-badge.badge-sage { background: var(--sage-light, #d8f0e0); }
+.insn-badge.badge-plum { background: var(--plum-light, #c06870); }
 
 .insn-kicker-label {
   font-size: 0.75rem;
@@ -144,6 +145,49 @@
 .insn-compare-title { font-size: 0.75rem; color: var(--ink-light, #6e5f56); }
 .insn-compare-value { font-size: 0.9375rem; font-weight: 700; color: var(--plum, #b14e56); }
 .insn-result-caption { font-size: 0.8125rem; color: var(--ink-mid, #4a3830); }
+
+/* ── パターンカレンダー ─────────────────────────────────── */
+/* Founder Decision(2026-07-18, LEGACY_SUNSET_COUNCIL.md②)により
+   Runtime正式実装。prototype/styles.css .calendar-grid/.cellと
+   同等のトークンで再現（クラス名はinsn-*接頭辞へ統一） */
+
+.insn-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-top: 6px;
+}
+
+.insn-calendar-grid .insn-cell {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--bg-subtle, #f3ece6);
+}
+
+.insn-calendar-grid .insn-cell.rose { background: var(--rose-light, #ecd0d2); }
+.insn-calendar-grid .insn-cell.sage { background: var(--sage-light, #d8f0e0); }
+.insn-calendar-grid .insn-cell.plum { background: var(--plum-light, #c06870); }
+
+.insn-legend-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.6875rem;
+  color: var(--ink-light, #6e5f56);
+}
+
+.insn-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.insn-dot-rose { background: var(--rose-light, #ecd0d2); }
+.insn-dot-sage { background: var(--sage-light, #d8f0e0); }
+.insn-dot-plum { background: var(--plum-light, #c06870); }
 
 /* ── 周期との重なりグラフ (Premium-locked, 静的表示) ──── */
 

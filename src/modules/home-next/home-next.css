@@ -1426,3 +1426,285 @@
   font-size: 10.5px;
   letter-spacing: 0.12em;
 }
+
+/* ============================================================
+   PR-HOME-REBUILD-01: prototype/Home 信号要素
+   Hero Ring / 7日ストリーク / Milestone / Before→After結果カード /
+   次の実験候補。カード背景色はprototype/styles.css .card-*と同一トークン
+   （--rose-pale / --gold-light / --sage-light / --plum-light等）を直接
+   参照し、視覚的な優先度（情報構造）まで一致させる。
+   ============================================================ */
+
+/* ── Hero Ring / ストリーク（hn-heroの直下、ヒーロー背景の続き） ── */
+
+.hn-hero-signature {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 14px 16px 16px;
+}
+
+.hn-hero-ring {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  padding: 5px;
+  background: conic-gradient(var(--gold, #e8b870) calc(var(--hn-ring-pct, 0) * 1%), rgba(200, 180, 170, 0.20) 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.4s ease;
+}
+
+.hn-hero-ring-inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--white, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.hn-hero-ring-day {
+  font-family: var(--font-serif, serif);
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--plum, #b14e56);
+  line-height: 1;
+}
+
+.hn-hero-ring-unit {
+  font-size: 0.625rem;
+  color: var(--ink-light, #6e5f56);
+  margin-top: 2px;
+}
+
+.hn-hero-signature-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.hn-hero-experiment-name {
+  display: inline-block;
+  align-self: flex-start;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+  background: rgba(200, 180, 170, 0.16);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill, 999px);
+}
+
+.hn-hero-progress-caption {
+  font-size: 0.6875rem;
+  color: var(--ink-light, #6e5f56);
+}
+
+.hn-hero-streak {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 16px 16px;
+}
+
+.hn-hero-streak-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-light, #6e5f56);
+  flex-shrink: 0;
+}
+
+.hn-hero-streak-dots {
+  display: flex;
+  gap: 5px;
+}
+
+.hn-streak-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(200, 180, 170, 0.25);
+}
+
+.hn-streak-dot-recorded { background: var(--gold, #e8b870); }
+.hn-streak-dot-today    { box-shadow: 0 0 0 2px rgba(45, 31, 26, 0.18); }
+
+/* ── Milestone banner（実験完了直後のみ表示） ── */
+
+.hn-milestone-banner {
+  margin: 0 16px 14px;
+  padding: 16px 18px;
+  border-radius: var(--radius-card, 16px);
+  background: linear-gradient(135deg, var(--gold-light, #fdf0d8) 0%, #fff7e8 100%);
+  border: 1px solid rgba(232, 184, 112, 0.35);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hn-milestone-mark {
+  font-size: 1.25rem;
+  color: var(--gold-dark, #a8781f);
+  flex-shrink: 0;
+}
+
+.hn-milestone-title {
+  font-family: var(--font-serif, serif);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+}
+
+.hn-milestone-sub {
+  font-size: 0.75rem;
+  color: var(--ink-mid, #4a3830);
+  margin-top: 3px;
+  line-height: 1.5;
+}
+
+/* ── Before→After結果カード（優先度: sage-light、prototype card-result相当） ── */
+
+.hn-result-card {
+  background: var(--sage-light, #d8f0e0);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card, 0 2px 12px rgba(200,120,140,.10));
+  padding: 18px 18px 20px;
+  margin: 0 16px 14px;
+  position: relative;
+}
+
+.hn-result-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-bottom: 6px;
+}
+
+.hn-result-title  { font-weight: 700; }
+.hn-result-arrow  { color: var(--ink-light, #6e5f56); }
+.hn-result-target { font-weight: 700; }
+
+.hn-result-main-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.hn-result-delta-block { flex: 1; min-width: 0; }
+
+.hn-result-delta {
+  font-family: var(--font-serif, serif);
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--sage-dark, #4f8a63);
+  line-height: 1.1;
+}
+
+.hn-result-delta-unit { font-size: 1.125rem; }
+
+.hn-result-meaning {
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.hn-result-mini-compare {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.hn-result-mini-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.hn-result-mini-track {
+  width: 18px;
+  height: 56px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.hn-result-mini-fill { width: 100%; border-radius: 6px 6px 0 0; }
+.hn-result-mini-fill.before { background: var(--rose-light, #ecd0d2); }
+.hn-result-mini-fill.after  { background: var(--sage-dark, #4f8a63); }
+
+.hn-result-mini-label {
+  font-size: 0.625rem;
+  color: var(--ink-light, #6e5f56);
+}
+
+.hn-result-caption {
+  font-size: 0.75rem;
+  color: var(--ink-mid, #4a3830);
+  margin-top: 10px;
+}
+
+/* ── 次の実験候補（優先度: gold-light、prototype card-next相当） ── */
+
+.hn-next-card {
+  background: var(--gold-light, #fdf0d8);
+  border-radius: var(--radius-card, 16px);
+  box-shadow: var(--shadow-card-sm, 0 1px 6px rgba(200,120,140,.08));
+  padding: 16px 18px 18px;
+  margin: 0 16px 14px;
+}
+
+.hn-next-reason {
+  font-size: 0.75rem;
+  color: var(--ink-mid, #4a3830);
+  margin-bottom: 6px;
+}
+
+.hn-next-title {
+  font-family: var(--font-serif, serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+  margin-bottom: 6px;
+}
+
+.hn-next-expected {
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-bottom: 6px;
+}
+
+.hn-next-reassure {
+  font-size: 0.75rem;
+  color: var(--ink-light, #6e5f56);
+  margin-bottom: 14px;
+}
+
+.hn-next-cta {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  background: linear-gradient(135deg, var(--gold, #e8b870) 0%, #d89b4a 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  padding: 14px;
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(216,155,74,0.35);
+  cursor: pointer;
+}

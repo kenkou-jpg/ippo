@@ -19,10 +19,21 @@
       </div>
     </section>
 
-    <!-- Pattern Calendarは意図的に含めない（Founder Decision: Calendar/Record/
-         Insight/Patternを横断する情報設計事項のため、吸収・新設・廃止いずれも
-         General Release後の独立PRとして扱う。現行calendar-next.jsは無変更のまま
-         維持する） -->
+    <!-- パターンカレンダー: Founder Decision(2026-07-18, LEGACY_SUNSET_COUNCIL.md②)
+         によりβ後からRuntime正式実装へ格上げ。records実データから
+         insights-pattern-calendar-adapter.js経由で算出する。現行
+         calendar-next.js（Calendarタブの月相カレンダー、別画面・別データ表現）
+         は無変更のまま維持し、本セクションとは独立している -->
+    <section class="insn-block">
+      <div class="insn-kicker"><span class="insn-badge badge-plum">🗓️</span><span class="insn-kicker-label">パターンカレンダー</span></div>
+      <p class="insn-narrative">色が濃い日ほど、体調の変化が大きかった日です。</p>
+      <div class="insn-calendar-grid" id="insn-pattern-calendar"></div>
+      <div class="insn-legend-row">
+        <span><i class="insn-dot insn-dot-rose"></i>体調やや不調</span>
+        <span><i class="insn-dot insn-dot-sage"></i>体調良好</span>
+        <span><i class="insn-dot insn-dot-plum"></i>生理周期</span>
+      </div>
+    </section>
 
     <!-- 実験結果サマリー: PR-EXP-RUNTIME-06で開始したACTIVE実験のOutcomeが
          揃った場合のみ表示予定（RUNTIME-04でのApiGateway Read接続後）。

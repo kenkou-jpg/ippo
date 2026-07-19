@@ -508,6 +508,18 @@ export class ApiGateway {
     return this.#experimentQueryService.findActive(ctx.userId ?? userId);
   }
 
+  /**
+   * PR-HOME-REBUILD-01: Home Before→After結果カード用の読み取りパススルー。
+   * ExperimentQueryService.findByStatus()は既存実装（本PRで新設していない）。
+   * Domain/Repository層への変更は一切なし。
+   * @param {string} [userId]
+   * @returns {Promise<object[]>}  status='COMPLETED'の実験一覧
+   */
+  async getCompletedExperiments(userId = null) {
+    const ctx = await this.#permissionService.require('experiment:read');
+    return this.#experimentQueryService.findByStatus(ctx.userId ?? userId, 'COMPLETED');
+  }
+
   async createExperiment(data) {
     await this.#permissionService.require('experiment:write');
     return this.#experimentCommandService.create(data);
