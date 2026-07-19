@@ -33,6 +33,20 @@
       </div>
     </section>
 
+    <!-- PR-EXPERIMENT-REBUILD-01: おすすめの実験。ExperimentNudgeServiceの実データに
+         基づく提案のみ表示（架空データ・固定候補は使わない）。進行中の実験がある間、
+         または提案できるパターンが無い場合は非表示（home-next-next-experiment.jsと
+         同一方針）。getNextExperimentViewModel()はhome-next-experiment-adapter.jsを
+         再利用し、ロジックは複製しない。 -->
+    <section class="expn-block expn-recommended tint-gold" id="expn-recommended-section" hidden>
+      <div class="expn-kicker"><span class="expn-badge badge-gold">💡</span><span class="expn-kicker-label">おすすめの実験</span></div>
+      <p class="expn-recommended-reason" id="expn-recommended-reason"></p>
+      <div class="expn-recommended-title" id="expn-recommended-title"></div>
+      <p class="expn-recommended-hypothesis" id="expn-recommended-hypothesis"></p>
+      <p class="expn-reassure">いつでもやめられます。まずは軽い気持ちで。</p>
+      <button class="expn-recommended-cta" type="button" id="expn-recommended-cta">この実験を試してみる →</button>
+    </section>
+
     <!-- 実験ライブラリ: PR-EXP-RUNTIME-06でカード自体が「試す」CTAになる。
          data-preset-idはexperiment-next-command-adapter.jsのEXPERIMENT_LIBRARY_PRESETSと対応 -->
     <section class="expn-block">

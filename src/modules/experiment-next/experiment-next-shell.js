@@ -19,6 +19,10 @@ import {
   completeExperimentAction,
   abandonExperimentAction,
 }                                         from './experiment-next-command-adapter.js';
+// PR-EXPERIMENT-REBUILD-01: 「おすすめの実験」はhome-next-experiment-adapter.jsの
+// getNextExperimentViewModel()（ExperimentNudgeService＋presetマッピング）を
+// そのまま再利用する。ロジックの複製・Domain変更は行わない。
+import { getNextExperimentViewModel }    from '../home-next/home-next-experiment-adapter.js';
 
 const FLAG_KEY = 'ippo_experiment_ui_v2';
 
@@ -87,7 +91,7 @@ async function _handleCompleteClick() {
 
   const result = await completeExperimentAction(_currentRunningId);
   if (result.ok) {
-    renderExperimentNext();
+    await renderExperimentNext();
     return;
   }
   if (result.stage === 'guard') return; // 二重タップ: 無音で無視
@@ -102,7 +106,7 @@ async function _handleAbandonClick() {
 
   const result = await abandonExperimentAction(_currentRunningId);
   if (result.ok) {
-    renderExperimentNext();
+    await renderExperimentNext();
     return;
   }
   if (result.stage === 'guard') return; // 二重タップ: 無音で無視
@@ -138,7 +142,7 @@ async function _handleLibraryCardClick(event) {
   try {
     const result = await startExperimentFromPreset(presetId);
     if (result.ok) {
-      renderExperimentNext();
+      await renderExperimentNext();
       return;
     }
     if (result.stage === 'guard') return; // 二重タップ: 無音で無視
@@ -162,9 +166,67 @@ function _attachLibraryHandlersOnce() {
   _libraryHandlersAttached = true;
 }
 
-export function renderExperimentNext() {
+// ── PR-EXPERIMENT-REBUILD-01: おすすめの実験 ──────────────
+
+let _currentRecommendedPresetId = null;
+
+function renderRecommendedExperiment(nextVm) {
+  const section = document.getElementById('expn-recommended-section');
+  if (!section) return;
+
+  if (!nextVm) {
+    section.hidden = true;
+    _currentRecommendedPresetId = null;
+    return;
+  }
+
+  _currentRecommendedPresetId = nextVm.presetId;
+
+  const reason = document.getElementById('expn-recommended-reason');
+  if (reason) reason.textContent = nextVm.reasonText || '';
+
+  const title = document.getElementById('expn-recommended-title');
+  if (title) title.textContent = nextVm.title;
+
+  const hypothesis = document.getElementById('expn-recommended-hypothesis');
+  if (hypothesis) hypothesis.textContent = nextVm.hypothesis ? `仮説: ${nextVm.hypothesis}` : '';
+
+  section.hidden = false;
+}
+
+async function _handleRecommendedClick() {
+  if (!_currentRecommendedPresetId) return;
+  const btn = document.getElementById('expn-recommended-cta');
+
+  _showLibraryError('');
+  if (btn) btn.disabled = true;
+
+  try {
+    const result = await startExperimentFromPreset(_currentRecommendedPresetId);
+    if (result.ok) {
+      await renderExperimentNext();
+      return;
+    }
+    if (result.stage === 'guard') return; // 二重タップ: 無音で無視
+    _showLibraryError(START_ERROR_MESSAGES[result.reason] || '実験を開始できませんでした。');
+  } finally {
+    if (!getRunningExperimentViewModel() && btn) btn.disabled = false;
+  }
+}
+
+let _recommendedHandlerAttached = false;
+
+function _attachRecommendedHandlerOnce() {
+  if (_recommendedHandlerAttached) return;
+  const btn = document.getElementById('expn-recommended-cta');
+  if (btn) btn.addEventListener('click', _handleRecommendedClick);
+  _recommendedHandlerAttached = true;
+}
+
+export async function renderExperimentNext() {
   _attachLibraryHandlersOnce();
   _attachRunningHandlersOnce();
+  _attachRecommendedHandlerOnce();
 
   const section = document.getElementById('expn-running-section');
   const vm = section ? getRunningExperimentViewModel() : null;
@@ -173,43 +235,50 @@ export function renderExperimentNext() {
   // 既に進行中の実験がある間は、ライブラリからの新規開始を無効化する。
   _setLibraryCardsDisabled(!!vm);
 
-  if (!section) return;
+  if (section) {
+    if (!vm) {
+      section.hidden = true;
+      _currentRunningId = null;
+      _showRunningError('');
+    } else {
+      _currentRunningId = vm.id;
+      _setRunningActionsDisabled(false);
+      _showRunningError('');
 
-  if (!vm) {
-    section.hidden = true;
-    _currentRunningId = null;
-    _showRunningError('');
-    return;
+      const ring = document.getElementById('expn-progress-ring');
+      if (ring) ring.style.setProperty('--progress', String(vm.progress.progressPercent));
+
+      const label = document.getElementById('expn-progress-label');
+      if (label) label.innerHTML = `Day ${vm.progress.currentDay}<br>/${vm.progress.totalDays}`;
+
+      const title = document.getElementById('expn-running-title');
+      if (title) title.textContent = vm.title;
+
+      const caption = document.getElementById('expn-running-caption');
+      if (caption) caption.textContent = vm.caption;
+
+      const hypothesis = document.getElementById('expn-running-hypothesis');
+      if (hypothesis) hypothesis.textContent = vm.hypothesis ? `仮説: ${vm.hypothesis}` : '';
+
+      const observe = document.getElementById('expn-running-observe');
+      if (observe) observe.textContent = vm.observe ? `観察すること: ${vm.observe}` : '';
+
+      section.hidden = false;
+    }
   }
 
-  _currentRunningId = vm.id;
-  _setRunningActionsDisabled(false);
-  _showRunningError('');
-
-  const ring = document.getElementById('expn-progress-ring');
-  if (ring) ring.style.setProperty('--progress', String(vm.progress.progressPercent));
-
-  const label = document.getElementById('expn-progress-label');
-  if (label) label.innerHTML = `Day ${vm.progress.currentDay}<br>/${vm.progress.totalDays}`;
-
-  const title = document.getElementById('expn-running-title');
-  if (title) title.textContent = vm.title;
-
-  const caption = document.getElementById('expn-running-caption');
-  if (caption) caption.textContent = vm.caption;
-
-  const hypothesis = document.getElementById('expn-running-hypothesis');
-  if (hypothesis) hypothesis.textContent = vm.hypothesis ? `仮説: ${vm.hypothesis}` : '';
-
-  const observe = document.getElementById('expn-running-observe');
-  if (observe) observe.textContent = vm.observe ? `観察すること: ${vm.observe}` : '';
-
-  section.hidden = false;
+  // PR-EXPERIMENT-REBUILD-01: おすすめの実験。進行中の実験がある間は
+  // getNextExperimentViewModel()自体がnullを返す（複数実験同時進行防止と同一方針、
+  // ロジックの重複判定はしていない）。
+  if (document.getElementById('expn-recommended-section')) {
+    const nextVm = await getNextExperimentViewModel();
+    renderRecommendedExperiment(nextVm);
+  }
 }
 
 export async function showExperimentNext() {
   await showScreen('experiment-next');
-  renderExperimentNext();
+  await renderExperimentNext();
 }
 
 export function initExperimentNext() {
