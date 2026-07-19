@@ -96,6 +96,44 @@ ippoの設計・実装を進めている。
 
 > **引継ぎサマリー（2026-07-19更新）**
 >
+> **Founder Decision（2026-07-19）: Me/Billing③ハイブリッド案 + Experimentおすすめ実験承認**
+> 1. **Me/Billing③**: ハイブリッド案を承認。Billing独立画面は維持しつつ、Me画面にも
+>    Prototype準拠のPlanカード2枚をインライン表示する。Me側はプラン概要とBillingへの
+>    導線に限定し、価格・Checkout・購読状態変更・権限反映はBilling側へ一元化（二重実装
+>    禁止）。Consent UIは正式追加要素として維持。新規PR: **PR-ME-REBUILD-01**（未着手）。
+> 2. **Experiment「おすすめの実験」**: MVP必須として実装承認。
+>    `home-next-experiment-adapter.js`の`getNextExperimentViewModel()`を再利用し、
+>    ExperimentNudgeService/presetマッピングは複製しない。新規PR:
+>    **PR-EXPERIMENT-REBUILD-01**（下記の通り実装完了）。
+> 3. **実装順**: `1. PR-EXPERIMENT-REBUILD-01 → 2. Founder Browser Verification →
+>    3. PR-ME-REBUILD-01 → 4. Founder Browser Verification → 5. Billing Checkout設計・接続`。
+>    両PRのFounder Browser Verificationが終わるまでBilling Checkoutには着手しない。
+>
+> **PR-EXPERIMENT-REBUILD-01: Recommended Experiment Section（2026-07-19）**
+> 上記Founder Decision 2に基づき実装。Experiment画面（Prototype）の「おすすめの実験」
+> セクションを、進行中カードと実験ライブラリの間に追加した。`getNextExperimentViewModel()`
+> （PR-HOME-REBUILD-01実装済み、`home-next-experiment-adapter.js`）を
+> `experiment-next-shell.js`からそのままimportして再利用し、ExperimentNudgeService呼び出し・
+> presetマッピングロジックの複製は一切していない。`renderExperimentNext()`を非同期化したが、
+> 既存の同期DOM更新（進行中カード・ライブラリ活性状態）はすべて最初の`await`より前に
+> 実行されるよう構造化したため、`await`せずに呼び出す既存呼び出し元・既存テスト47件は
+> 無改修のまま全PASS。「この実験を試してみる」ボタンは既存`startExperimentFromPreset()`
+> （ライブラリカードと同一関数）へ接続し、失敗時エラー表示も既存のライブラリ用エラー枠を
+> 再利用（新規コンポーネント追加なし）。Prototypeの「観察すること」行は対応するデータ
+> フィールドが存在しないため意図的に省略（架空コピーを作らない方針、Home次の実験候補
+> カードと同一の情報構成で一貫性を保持）。カスタム実験(Pro)カードは既存決定通りβ後の
+> まま対応せず。Domain/Repository/ApiGateway層の変更は一切なし。
+> Unit Test新規7件、既存47件は無改修で全PASS。Build PASS。フルスイート321ファイル・
+> 5,539件**全PASS**（`tab-navigation.js`由来の既知flaky post-teardownタイマー例外2件のみ、
+> 本PR未変更ファイルで発生、過去セッションでも同種ノイズとして確認済み）。
+> `IPPO_REBUILD_UI_DIFF_MATRIX.md`のExperiment一致率を90%→**100%（目標達成）**へ更新。
+> **実ブラウザ確認は未実施**（CLAUDE.mdの規定によりAIは自己判断でBrowser Verificationを
+> 行わない）。Founder確認手順は`docs/rebuild/PR_EXPERIMENT_REBUILD_01.md` §6に記載。
+> 詳細: `docs/rebuild/PR_EXPERIMENT_REBUILD_01.md`。
+> Decision Log: 更新不要（Architecture/Roadmap/Business変更なし、既存Adapterの再利用のみ）。
+> **次のステップ**: 本PRのFounder Browser Verification完了後、PR-ME-REBUILD-01
+> （Me Plan Cards Hybrid Integration）へ着手する。
+>
 > **PR-HOME-REBUILD-01: Prototype Home Full Replacement（2026-07-19）**
 > Founderの「HOME CONTENT AUDIT」（2026-07-19）でHero Ring/7日ストリーク/
 > Milestone banner/Before→After結果カード/次の実験候補カードの5要素が

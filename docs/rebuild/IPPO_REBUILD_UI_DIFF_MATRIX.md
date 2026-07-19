@@ -11,7 +11,7 @@
 | 画面 | 現在の一致率 | 目標一致率 | 差分の主因 |
 |---|---|---|---|
 | Home | **95%**（PR-HOME-REBUILD-01完了・Founder Browser Verification待ち） | **90%** | **目標達成（未検証）**。Ring/Streak/Milestone/Result/Nextカードを実データで実装。既存セクション（挨拶ヘッダー等）はPrototype順序へ完全移動せず現在位置を維持したため、構造一致率100%ではなく95%評価。100%にしないのはIPPO独自の疾患パーソナライズ要素を残すため |
-| Experiment | **90%**（PR-FULL-INTEGRATION-02一部完了） | **100%**（MVP必須の範囲） | 完了/中止UIは実装済み。残りはおすすめの実験セクションのみ |
+| Experiment | **100%**（PR-EXPERIMENT-REBUILD-01完了・Founder Browser Verification待ち） | **100%**（MVP必須の範囲） | **目標達成（未検証）**。「おすすめの実験」セクションを追加し、MVP必須要素が出揃った。カスタム実験(Pro)は既存決定通りβ後 |
 | Insights | **100%**（PR-FULL-INTEGRATION-01/03完了） | **100%** | **目標達成**。Pattern CalendarはFounder Decision（2026-07-18）によりβ後からRuntime正式実装へ格上げ、実装完了 |
 | Billing | **70%** | **③の結論次第（70〜85%）** | Prototypeに独立画面が無いため概念的に100%が定義できない |
 | Me | **40%** | **85%**（③の結論次第で変動） | 設定行クリック機能復活・Planカード扱いの決定で変動 |
@@ -41,7 +41,7 @@
 |---|---|---|---|
 | 進行中の実験カード | 有（構造ほぼ一致） | 維持 | 95% → 100% |
 | 実験ライブラリ（基本4種） | 有（data-preset-id接続済み） | 維持 | 100% |
-| おすすめの実験セクション | 無 | MVP必須 | 0% → 100% |
+| おすすめの実験セクション | **有（PR-EXPERIMENT-REBUILD-01完了）** | MVP必須 | **100%達成**（`home-next-experiment-adapter.js`の`getNextExperimentViewModel()`をそのまま再利用、進行中カードとライブラリの間に配置） |
 | カスタム実験(Pro)カード | 無 | β後 | 0%（据え置き） |
 | 完了UI | **有（PR-FULL-INTEGRATION-02完了）** | MVP必須 | **100%達成**（ExperimentCommandService.complete()経由） |
 | 中止UI | **有（PR-FULL-INTEGRATION-02完了）** | MVP必須 | **100%達成**（ExperimentCommandService.abandon()経由、reason入力UIはスコープ外） |

@@ -192,6 +192,51 @@
 
 .expn-btn-abandon:disabled { opacity: 0.6; cursor: not-allowed; }
 
+/* ── PR-EXPERIMENT-REBUILD-01: おすすめの実験 ────────────── */
+
+.expn-block.tint-gold {
+  background: var(--gold-light, #fdf0d8);
+}
+
+.expn-badge.badge-gold { background: var(--gold, #d9a441); }
+
+.expn-recommended-reason {
+  font-size: 0.75rem;
+  color: var(--ink-mid, #4a3830);
+  margin-bottom: 6px;
+}
+
+.expn-recommended-title {
+  font-family: var(--font-serif, serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+}
+
+.expn-recommended-hypothesis {
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-top: 6px;
+}
+
+.expn-recommended-cta {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--ink, #2d1f1a);
+  background: linear-gradient(135deg, var(--gold, #d9a441), var(--gold-dark, #b8842a));
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  padding: 11px 16px;
+  margin-top: 14px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.expn-recommended-cta:disabled { opacity: 0.6; cursor: not-allowed; }
+
 /* ── 実験ライブラリ（静的表示のみ） ───────────────────── */
 
 .expn-library-grid {
