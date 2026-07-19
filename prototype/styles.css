@@ -102,77 +102,79 @@ input { font-family: inherit; }
 .onboarding-suggestion-label { display: block; font-size: 0.6875rem; font-weight: 700; color: var(--plum); margin-bottom: 4px; }
 .onboarding-suggestion-text { font-size: 0.8125rem; color: var(--ink-mid); line-height: 1.6; }
 
-/* ===== Hero (Home) ===== */
-.hero {
-  background:
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 22px),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.05) 0, rgba(255,255,255,0.05) 1px, transparent 1px, transparent 22px),
-    linear-gradient(135deg, var(--plum) 0%, var(--plum-light) 100%);
-  color: white;
-  padding: 22px 20px 24px;
-  border-radius: 0 0 var(--radius-card-lg) var(--radius-card-lg);
-  margin-bottom: 18px;
-  box-shadow: 0 8px 24px rgba(177,78,86,0.25);
-}
-.hero-top-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-.hero-date { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
-.hero-greeting { display: block; font-size: 0.75rem; font-weight: 400; color: rgba(255,255,255,0.68); margin-bottom: 4px; }
-
-/* ===== Brand lockup (signature mark, reused: onboarding hero / home hero / result watermark) ===== */
+/* ===== Brand lockup (signature mark, reused: onboarding hero / home2 topbar) ===== */
 .brand-lockup { display: flex; align-items: center; gap: 8px; }
 .brand-mark { width: 22px; height: 22px; color: var(--gold); flex-shrink: 0; }
 .brand-lockup-text { display: flex; flex-direction: column; line-height: 1.15; }
 .brand-wordmark { font-family: var(--font-serif); font-size: 1rem; font-weight: 700; color: white; letter-spacing: 0.02em; }
 .brand-tagline { font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.14em; color: rgba(255,255,255,0.55); }
 
-/* ===== Hero signature visual: Day数×進捗の統合リング ===== */
-.hero-signature { display: flex; align-items: center; gap: 16px; margin: 14px 0 16px; }
-.hero-ring {
-  width: 104px; height: 104px; border-radius: 50%; flex-shrink: 0; padding: 5px;
-  background: conic-gradient(var(--gold) calc(var(--pct,0)*1%), rgba(255,255,255,0.22) 0);
-  display: flex; align-items: center; justify-content: center;
-  transition: background 0.4s ease;
-}
-.hero-ring-inner {
-  width: 100%; height: 100%; border-radius: 50%; background: rgba(255,255,255,0.98);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.hero-ring-day { font-family: var(--font-serif); font-size: 2rem; font-weight: 700; color: var(--plum); line-height: 1; }
-.hero-ring-unit { font-size: 0.6875rem; color: var(--ink-light); margin-top: 2px; }
-.hero-signature-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
-.hero-experiment-name {
-  display: inline-block; align-self: flex-start; font-size: 0.75rem; font-weight: 700; background: rgba(255,255,255,0.18);
-  padding: 6px 12px; border-radius: var(--radius-pill);
-}
-.hero-progress-caption { font-size: 0.6875rem; color: rgba(255,255,255,0.75); }
+/* ============================================================
+   ===== Home v3（ゼロベース再設計・4ブロックのみ） =====
+   docs/rebuild/IPPO_PRODUCT_RESET_COUNCIL_V3.md準拠。
+   将来のシリーズ展開（断食/睡眠/腸活等）を見据え、疾患非依存の汎用命名にする。
+   ============================================================ */
 
-/* ===== Hero: 直近7日継続ストリップ（軽量統合・新規ブロックではない） ===== */
-.hero-streak { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.hero-streak-label { font-size: 0.625rem; font-weight: 700; letter-spacing: 0.04em; color: rgba(255,255,255,0.6); flex-shrink: 0; }
-.hero-streak-dots { display: flex; gap: 5px; }
-.streak-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.22); }
-.streak-dot.dot-recorded { background: var(--gold); }
-.streak-dot.dot-today { box-shadow: 0 0 0 2px rgba(255,255,255,0.55); }
+.screen-home2 { padding-top: 6px; }
 
-.hero-focus-row {
-  display: flex; flex-direction: column; gap: 3px;
-  background: rgba(255,255,255,0.14); border-radius: 12px; padding: 10px 14px;
+.home2-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px 18px;
 }
-.hero-focus-label { font-size: 0.6875rem; font-weight: 700; color: rgba(255,255,255,0.7); }
-.hero-focus-text { font-size: 0.8125rem; font-weight: 600; }
+.home2-topbar .brand-mark { color: var(--rose); }
+.home2-wordmark { font-family: var(--font-serif); font-size: 1.0625rem; font-weight: 700; color: var(--ink); letter-spacing: 0.02em; }
+.home2-date { font-size: 0.75rem; color: var(--ink-light); }
 
-/* ===== Milestone banner（実験完了時の静かなお祝い） ===== */
-.milestone-banner {
-  margin: 0 16px 14px; padding: 16px 18px; border-radius: var(--radius-card);
-  background: linear-gradient(135deg, var(--gold-light) 0%, #fff7e8 100%);
-  border: 1px solid rgba(232,184,112,0.35);
-  display: flex; align-items: center; gap: 12px;
-  animation: milestone-in 0.5s ease;
+.home2-block {
+  background: var(--white);
+  border-radius: var(--radius-card-lg);
+  box-shadow: var(--shadow-card);
+  padding: 20px 20px 22px;
+  margin: 0 16px 16px;
 }
-.milestone-mark { font-size: 1.25rem; color: var(--gold-dark); flex-shrink: 0; }
-.milestone-title { font-family: var(--font-serif); font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
-.milestone-sub { font-size: 0.75rem; color: var(--ink-mid); margin-top: 3px; line-height: 1.5; }
-@keyframes milestone-in { from { opacity: 0; transform: translateY(4px) scale(0.98); } to { opacity: 1; transform: none; } }
+.home2-block-label {
+  display: block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em;
+  color: var(--ink-light); margin-bottom: 10px;
+}
+
+/* ① 今日の目標 */
+.home2-goal { background: linear-gradient(135deg, var(--rose-pale) 0%, var(--warm-light) 100%); }
+.home2-goal-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; color: var(--plum); }
+.home2-goal-text {
+  font-family: var(--font-serif); font-size: 1.25rem; font-weight: 700; color: var(--ink);
+  margin: 8px 0 14px; line-height: 1.5;
+}
+.home2-goal-progress { display: flex; flex-direction: column; gap: 6px; }
+.home2-goal-progress-track { width: 100%; height: 6px; border-radius: var(--radius-pill); background: rgba(177,78,86,0.14); overflow: hidden; }
+.home2-goal-progress-fill { height: 100%; border-radius: var(--radius-pill); background: var(--plum); width: calc(var(--pct, 0) * 1%); transition: width 0.4s ease; }
+.home2-goal-progress-caption { font-size: 0.75rem; color: var(--ink-mid); }
+
+/* ② 今日の記録 */
+.home2-record-fields { display: flex; flex-direction: column; gap: 4px; margin-bottom: 14px; }
+.home2-record-field { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--divider); gap: 12px; }
+.home2-record-field:last-child { border-bottom: none; }
+.home2-record-field-label { font-size: 0.875rem; color: var(--ink-mid); flex-shrink: 0; width: 40px; }
+.home2-record-save {
+  display: block; width: 100%;
+  background: var(--rose); color: white; font-weight: 700; font-size: 0.9375rem;
+  padding: 14px; border-radius: var(--radius-pill); text-align: center;
+  box-shadow: 0 4px 14px rgba(200,116,123,0.35);
+}
+.home2-record-save.saved { background: var(--sage-dark); box-shadow: 0 4px 14px rgba(79,138,99,0.35); }
+
+/* ③ 今日の変化 */
+.home2-change-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; }
+.home2-change-item { display: flex; flex-direction: column; gap: 4px; }
+.home2-change-value { font-family: var(--font-serif); font-size: 1.375rem; font-weight: 700; }
+.home2-change-value.down { color: var(--sage-dark); }
+.home2-change-value.up { color: var(--gold-dark); }
+.home2-change-name { font-size: 0.75rem; color: var(--ink-light); }
+.home2-change-caption { font-size: 0.75rem; color: var(--ink-light); margin-top: 14px; line-height: 1.6; }
+
+/* ④ 今日の提案 */
+.home2-suggestion { background: var(--warm-light); }
+.home2-suggestion-text { font-family: var(--font-serif); font-size: 1.0625rem; color: var(--ink); line-height: 1.6; }
+.home2-suggestion-reason { font-size: 0.75rem; color: var(--ink-light); margin-top: 8px; line-height: 1.6; }
 
 .screen-header { padding: 24px 20px 12px; }
 .screen-header h1 { font-family: var(--font-serif); font-size: 1.5rem; color: var(--ink); }
@@ -187,12 +189,6 @@ input { font-family: inherit; }
   margin: 0 16px 14px;
 }
 .card { position: relative; }
-
-/* Priority weight: insight > experiment > result > next (font/padding scale + tint saturation) */
-.card-insight { background: var(--warm-light); padding: 22px 20px 24px; }
-.card-experiment { background: var(--rose-pale); }
-.card-result { background: var(--sage-light); }
-.card-next { background: var(--gold-light); box-shadow: var(--shadow-card-sm); padding: 16px 18px 18px; }
 
 .tint-gold { background: var(--warm-light); }
 .tint-rose { background: var(--rose-pale); }
@@ -210,25 +206,6 @@ input { font-family: inherit; }
 .badge-plum { background: var(--rose-pale); }
 .card-kicker-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; color: var(--ink-mid); }
 
-/* ===== Empty-state guidance text (Day0) ===== */
-.empty-guide-text { font-size: 0.875rem; line-height: 1.7; color: var(--ink-mid); }
-
-/* ===== Record strip (deliberately low-weight) ===== */
-.record-strip {
-  margin: 0 16px 14px; padding: 12px 16px;
-  background: rgba(255,255,255,0.7); border: 1px solid var(--border-muted);
-  border-radius: 14px; display: flex; flex-direction: column; gap: 8px;
-}
-.record-strip-left { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--ink-mid); flex-wrap: wrap; }
-.record-strip-icon { font-size: 0.9375rem; flex-shrink: 0; }
-.record-strip-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; width: 100%; }
-.record-strip-chips span { font-size: 0.6875rem; background: var(--bg-subtle); padding: 3px 8px; border-radius: var(--radius-pill); color: var(--ink-mid); }
-.record-strip-cta {
-  font-size: 0.75rem; font-weight: 700; color: white; background: var(--rose);
-  padding: 8px 14px; border-radius: var(--radius-pill); align-self: flex-end;
-}
-.record-strip-done { font-size: 0.75rem; font-weight: 700; color: var(--sage-dark); align-self: flex-end; }
-
 /* ===== Quote / CTA ===== */
 .card-quote { font-family: var(--font-serif); font-size: 1.0625rem; line-height: 1.7; color: var(--ink); }
 .card-quote.large { font-size: 1.125rem; }
@@ -241,46 +218,8 @@ input { font-family: inherit; }
 .confidence-dot.filled { background: var(--gold-dark); }
 .confidence-tag { display: inline-block; font-size: 0.6875rem; color: var(--ink-light); background: rgba(255,255,255,0.6); padding: 4px 10px; border-radius: var(--radius-pill); }
 
-/* ===== Home: 進行中の実験 card body ===== */
-.home-experiment-body { display: flex; align-items: center; gap: 16px; }
-.mini-progress-ring {
-  width: 60px; height: 60px; border-radius: 50%;
-  background: conic-gradient(var(--rose) calc(var(--pct,36)*1%), rgba(200,116,123,0.18) 0);
-  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-}
-.mini-progress-ring span { width: 48px; height: 48px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: var(--plum); }
-.experiment-card-title { font-family: var(--font-serif); font-size: 1rem; font-weight: 700; }
-.experiment-card-sub { font-size: 0.75rem; color: var(--ink-mid); margin-top: 3px; }
-
-/* ===== Home: 結果 (Before → After・共有前提ビジュアル) ===== */
-.card-shareable { position: relative; overflow: hidden; padding-top: 22px; }
-.share-watermark { position: absolute; top: 14px; right: 16px; display: flex; align-items: center; gap: 5px; opacity: 0.55; }
-.share-watermark .brand-mark { width: 14px; height: 14px; color: var(--sage-dark); }
-.share-watermark span { font-family: var(--font-serif); font-size: 0.6875rem; font-weight: 700; color: var(--sage-dark); letter-spacing: 0.02em; }
-
-.result-flow { display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; color: var(--ink-mid); margin-bottom: 6px; }
-.result-before { font-weight: 700; }
-.result-arrow { color: var(--ink-light); }
-.result-target { font-weight: 700; }
-.result-main-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 6px; }
-.result-delta-block { flex: 1; min-width: 0; }
-.result-delta { font-family: var(--font-serif); font-size: 2.625rem; font-weight: 700; color: var(--sage-dark); line-height: 1.1; }
-.result-delta-unit { font-size: 1.375rem; }
-.result-meaning { font-size: 0.8125rem; color: var(--ink-mid); margin-top: 6px; line-height: 1.5; }
-.result-mini-compare { display: flex; gap: 10px; flex-shrink: 0; }
-.result-mini-col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.result-mini-track { width: 18px; height: 56px; border-radius: 6px; background: rgba(255,255,255,0.55); display: flex; align-items: flex-end; overflow: hidden; }
-.result-mini-fill { width: 100%; border-radius: 6px 6px 0 0; }
-.result-mini-fill.before { background: var(--rose-light); }
-.result-mini-fill.after { background: var(--sage-dark); }
-.result-mini-label { font-size: 0.625rem; color: var(--ink-light); }
+/* .result-caption は Insights「実験結果サマリー」でも使用するため維持する */
 .result-caption { font-size: 0.75rem; color: var(--ink-mid); margin-top: 10px; }
-
-/* ===== Home: 次の実験候補 ===== */
-.next-title { font-family: var(--font-serif); font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
-.next-expected { font-size: 0.8125rem; color: var(--ink-mid); margin-bottom: 6px; }
-.next-expected strong { color: var(--gold-dark); font-size: 0.9375rem; }
-.next-reassure { font-size: 0.75rem; color: var(--ink-light); margin-bottom: 14px; }
 
 .mini-chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; margin: 6px 0 10px; }
 .mini-chart span { flex: 1; background: var(--rose-light); border-radius: 4px 4px 0 0; }
