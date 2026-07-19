@@ -140,3 +140,42 @@ button.men-settings-row {
   font-size: 0.75rem;
   color: var(--ink-light, #6e5f56);
 }
+
+/* ── PR-ME-REBUILD-01: Planカード要約（Founder Decision③ハイブリッド案）──
+   詳細・機能一覧・CheckoutはBillingへ集約するため、ここではタグライン+CTAのみ。
+   色トークンはbilling-next.cssと同一のものを参照し、見た目の一貫性を保つ。 */
+
+.men-badge.badge-gold { background: var(--gold-light, #fdf0d8); }
+
+.men-plan-heading {
+  font-family: var(--font-serif, serif);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.men-plan-premium .men-plan-heading { color: var(--plum, #b14e56); }
+.men-plan-pro .men-plan-heading     { color: var(--gold-dark, #a8781f); }
+
+.men-plan-tagline {
+  font-size: 0.8125rem;
+  color: var(--ink-mid, #4a3830);
+  margin-bottom: 14px;
+}
+
+.men-plan-cta {
+  display: block;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  background: var(--rose, #c8747b);
+  border: none;
+  border-radius: var(--radius-pill, 999px);
+  padding: 11px 16px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.men-plan-cta.men-plan-cta-gold { background: var(--gold-dark, #a8781f); }

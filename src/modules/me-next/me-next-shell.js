@@ -7,11 +7,16 @@
 //  （home-next-shell.js等と同一パターン）。
 //
 //  PR-ME-RUNTIME-01の現状確認結果に基づくスコープ:
-//    - Plan Card（Premium/Pro）はbilling-nextと重複するため実装せず、
-//      「現在のプラン」テキスト + billing-next画面への遷移導線のみとする
 //    - settings-list（5行）はPrototype自身も未接続の静的表示のみ
 //      （「気になることを変更する」等の実装はスコープ外、Consent以外は継続）
 //    - preview-block（Founderレビュー用）はproduction対象外のため含めない
+//
+//  PR-ME-REBUILD-01（2026-07-19、Founder Decision③ハイブリッド案）:
+//  Billing独立画面は維持しつつ、Me画面にもPrototype準拠のPlanカード2枚を
+//  インライン表示する。Me側は要約（タグライン+CTA）に限定し、機能一覧・
+//  価格・Checkout・購読状態変更・詳細比較はBillingへ一元化する（二重実装
+//  しない）。CTAはPremium/Proどちらも showBillingNext() でbilling-next
+//  画面へ遷移するのみで、モーダルやCheckoutロジックは持たない。
 //
 //  PR-ME-RUNTIME-03/04で「現在のプラン」をme-next-adapter.js経由
 //  （billing-next-adapter.jsのgetSubscriptionViewModel()を再利用、
@@ -75,6 +80,23 @@ function _attachHandlers(screen) {
   const planBtn = document.getElementById('men-profile-plan');
   if (planBtn) {
     planBtn.addEventListener('click', () => {
+      showBillingNext();
+    });
+  }
+
+  // PR-ME-REBUILD-01: Planカード要約のCTA。詳細・比較・CheckoutはBillingへ
+  // 集約する（Founder Decision③ハイブリッド案）ため、ここではbilling-next
+  // 画面への遷移のみ行い、モーダルやCheckoutロジックは持たない（二重実装しない）。
+  const planPremiumCta = document.getElementById('men-plan-premium-cta');
+  if (planPremiumCta) {
+    planPremiumCta.addEventListener('click', () => {
+      showBillingNext();
+    });
+  }
+
+  const planProCta = document.getElementById('men-plan-pro-cta');
+  if (planProCta) {
+    planProCta.addEventListener('click', () => {
       showBillingNext();
     });
   }

@@ -25,6 +25,24 @@
       <p class="men-onboarding-reassure">あなたの記録は、あなただけが見られます。第三者への共有・公開は行いません。</p>
     </section>
 
+    <!-- PR-ME-REBUILD-01: Founder Decision(2026-07-19、③ハイブリッド案)による
+         Planカード2枚のインライン要約表示。価格・機能一覧・Checkout・詳細比較は
+         billing-nextへ集約するため、ここではタグラインとBillingへの導線のみ持つ
+         （二重実装しない）。CTAはshowBillingNext()で billing-next 画面へ遷移する。 -->
+    <section class="men-card men-plan-card men-plan-premium">
+      <div class="men-kicker"><span class="men-badge badge-rose">🔬</span><span class="men-kicker-label">PLAN</span></div>
+      <div class="men-plan-heading">Premium</div>
+      <p class="men-plan-tagline">自分の体をもっと深く理解する</p>
+      <button class="men-plan-cta" type="button" id="men-plan-premium-cta">Premiumを見る</button>
+    </section>
+
+    <section class="men-card men-plan-card men-plan-pro">
+      <div class="men-kicker"><span class="men-badge badge-gold">🔭</span><span class="men-kicker-label">PLAN</span></div>
+      <div class="men-plan-heading">Pro</div>
+      <p class="men-plan-tagline">改善実験をもっと進める</p>
+      <button class="men-plan-cta men-plan-cta-gold" type="button" id="men-plan-pro-cta">Proを見る</button>
+    </section>
+
     <!-- 設定リスト: Prototype同様、静的表示のみ（Prototype自体も
          「気になることを変更する」以外はクリックハンドラを持たない） -->
     <section class="men-card men-settings-list">

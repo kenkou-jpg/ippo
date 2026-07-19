@@ -1,8 +1,10 @@
 // tests/modules/me-next/me-next-shell.test.js
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+const mockShowBillingNext = vi.fn();
+
 vi.mock('../../../src/modules/billing-next/billing-next-shell.js', () => ({
-  showBillingNext: vi.fn(),
+  showBillingNext: (...args) => mockShowBillingNext(...args),
 }));
 
 const mockGetSubscriptionViewModel = vi.fn(async () => ({ state: 'free', label: 'Free' }));
@@ -17,6 +19,8 @@ function buildScreenFixture() {
       <div id="men-avatar-initial"></div>
       <div id="men-profile-name" hidden></div>
       <button id="men-profile-plan" hidden></button>
+      <button id="men-plan-premium-cta" type="button">Premiumを見る</button>
+      <button id="men-plan-pro-cta" type="button">Proを見る</button>
       <button id="men-consent-row" type="button">
         <span id="men-consent-sub"></span>
       </button>
@@ -27,6 +31,7 @@ describe('me-next-shell (PR-ME-RUNTIME-02/03/04)', () => {
   beforeEach(() => {
     vi.resetModules();
     mockGetSubscriptionViewModel.mockReset().mockResolvedValue({ state: 'free', label: 'Free' });
+    mockShowBillingNext.mockReset();
     localStorage.removeItem('ippo_me_ui_v2');
     localStorage.removeItem('ippo_consent');
     localStorage.removeItem('ippo_consent_events');
@@ -79,13 +84,39 @@ describe('me-next-shell (PR-ME-RUNTIME-02/03/04)', () => {
   });
 
   it('「現在のプラン」ボタンを押すとbilling-next画面へ遷移する', async () => {
-    const { showBillingNext } = await import('../../../src/modules/billing-next/billing-next-shell.js');
     const mod = await import('../../../src/modules/me-next/me-next-shell.js');
     await mod.renderMeNext();
 
     document.getElementById('men-profile-plan').click();
 
-    expect(showBillingNext).toHaveBeenCalledOnce();
+    expect(mockShowBillingNext).toHaveBeenCalledOnce();
+  });
+
+  describe('PR-ME-REBUILD-01: Planカード要約CTA（Founder Decision③ハイブリッド案）', () => {
+    it('Premiumカードの「Premiumを見る」を押すとbilling-next画面へ遷移する（モーダルは開かない）', async () => {
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+
+      document.getElementById('men-plan-premium-cta').click();
+
+      expect(mockShowBillingNext).toHaveBeenCalledOnce();
+    });
+
+    it('Proカードの「Proを見る」を押すとbilling-next画面へ遷移する（モーダルは開かない）', async () => {
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await mod.renderMeNext();
+
+      document.getElementById('men-plan-pro-cta').click();
+
+      expect(mockShowBillingNext).toHaveBeenCalledOnce();
+    });
+
+    it('Planカードのボタンがフィクスチャに無い（未マウント）場合も例外を投げない', async () => {
+      document.getElementById('men-plan-premium-cta').remove();
+      document.getElementById('men-plan-pro-cta').remove();
+      const mod = await import('../../../src/modules/me-next/me-next-shell.js');
+      await expect(mod.renderMeNext()).resolves.not.toThrow();
+    });
   });
 
   describe('Founder Decision(2026-07-18): Research Consent UI', () => {
