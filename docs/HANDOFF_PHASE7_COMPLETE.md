@@ -100,7 +100,7 @@ ippoの設計・実装を進めている。
 > 1. **Me/Billing③**: ハイブリッド案を承認。Billing独立画面は維持しつつ、Me画面にも
 >    Prototype準拠のPlanカード2枚をインライン表示する。Me側はプラン概要とBillingへの
 >    導線に限定し、価格・Checkout・購読状態変更・権限反映はBilling側へ一元化（二重実装
->    禁止）。Consent UIは正式追加要素として維持。新規PR: **PR-ME-REBUILD-01**（未着手）。
+>    禁止）。Consent UIは正式追加要素として維持。新規PR: **PR-ME-REBUILD-01**（下記の通り実装完了）。
 > 2. **Experiment「おすすめの実験」**: MVP必須として実装承認。
 >    `home-next-experiment-adapter.js`の`getNextExperimentViewModel()`を再利用し、
 >    ExperimentNudgeService/presetマッピングは複製しない。新規PR:
@@ -108,6 +108,37 @@ ippoの設計・実装を進めている。
 > 3. **実装順**: `1. PR-EXPERIMENT-REBUILD-01 → 2. Founder Browser Verification →
 >    3. PR-ME-REBUILD-01 → 4. Founder Browser Verification → 5. Billing Checkout設計・接続`。
 >    両PRのFounder Browser Verificationが終わるまでBilling Checkoutには着手しない。
+>
+> **PR-ME-REBUILD-01: Me Plan Cards Hybrid Integration（2026-07-19）**
+> Founder Browser VerificationでPR-EXPERIMENT-REBUILD-01の完了が確認されたことを受け、
+> 合意した実装順の通りMe画面の作業へ着手。上記Founder Decision 1（③ハイブリッド案）に
+> 基づき、Me画面のプライバシーカードと設定リストの間に、Prototype準拠のPlanカード2枚
+> （Premium/Pro）をインライン表示として追加した。Billing独立画面（`billing-next`）は
+> 完全に無変更。Me側は「PLAN」kicker＋見出し＋タグライン＋CTAのみの**要約表示**に限定し
+> （Founder指示通り、Prototypeが持つ機能一覧リストは意図的に省略）、機能一覧・価格・
+> Checkout・購読状態変更・詳細比較はBilling側へ一元化した。CTA（「Premiumを見る」
+> 「Proを見る」）はいずれも既存`showBillingNext()`を呼び出すのみで、billing-next-shell.js
+> のモーダル表示・Checkoutロジックは一切複製していない（画面遷移のみ、対応する詳細
+> モーダルへの自動オープンは実装せず、新しいグローバル状態も作らなかった。この簡略化は
+> 透明性のため`PR_ME_REBUILD_01.md`に明記済み）。「現在のプラン」表示（`getMeProfileViewModel()`
+> → `getSubscriptionViewModel()`のSSOTチェーン）は無変更のまま継続利用。Domain/Application
+> Facade/ApiGateway層の変更はゼロ。
+> テスト実装中、既存`me-next-shell.test.js`の`showBillingNext`モックが`beforeEach`で
+> リセットされておらず、テスト間で呼び出し回数が累積するバグ（既存テスト1件は実行順の
+> 偶然で見えていなかった）を発見し、`getSubscriptionViewModel`モックと同じリセットパターンに
+> 修正した。Unit Test新規3件、既存14件は無改修で全PASS。Build PASS。フルスイート
+> 321ファイル・5,542件**全PASS**（新規失敗ゼロ）。
+> `IPPO_REBUILD_UI_DIFF_MATRIX.md`のMe一致率を40%→**65%**へ更新（Planカード2枚は
+> 100%達成、残りは設定リストのクリック機能復活・「気になることを変更する」導線という
+> 本PRスコープ外の既知の別ギャップ）。Billing一致率は③確定に伴い70%で維持（Billing側の
+> 構造自体は無変更のため）。
+> **実ブラウザ確認は未実施**（CLAUDE.mdの規定によりAIは自己判断でBrowser Verificationを
+> 行わない）。Founder確認手順は`docs/rebuild/PR_ME_REBUILD_01.md` §6に記載。
+> 詳細: `docs/rebuild/PR_ME_REBUILD_01.md`。
+> Decision Log: 更新不要（Architecture/Roadmap変更なし、Founder Decision自体は上記の
+> Founder Decisionエントリに記録済み、既存Adapter/Facadeの再利用のみ）。
+> **次のステップ**: 本PRのFounder Browser Verification完了後、合意した実装順の通り
+> **Billing Checkout設計・接続**へ着手する。
 >
 > **PR-EXPERIMENT-REBUILD-01: Recommended Experiment Section（2026-07-19）**
 > 上記Founder Decision 2に基づき実装。Experiment画面（Prototype）の「おすすめの実験」
@@ -127,12 +158,11 @@ ippoの設計・実装を進めている。
 > 5,539件**全PASS**（`tab-navigation.js`由来の既知flaky post-teardownタイマー例外2件のみ、
 > 本PR未変更ファイルで発生、過去セッションでも同種ノイズとして確認済み）。
 > `IPPO_REBUILD_UI_DIFF_MATRIX.md`のExperiment一致率を90%→**100%（目標達成）**へ更新。
-> **実ブラウザ確認は未実施**（CLAUDE.mdの規定によりAIは自己判断でBrowser Verificationを
-> 行わない）。Founder確認手順は`docs/rebuild/PR_EXPERIMENT_REBUILD_01.md` §6に記載。
+> **実ブラウザ確認**: Founder Browser Verification完了（2026-07-19確認）。
 > 詳細: `docs/rebuild/PR_EXPERIMENT_REBUILD_01.md`。
 > Decision Log: 更新不要（Architecture/Roadmap/Business変更なし、既存Adapterの再利用のみ）。
-> **次のステップ**: 本PRのFounder Browser Verification完了後、PR-ME-REBUILD-01
-> （Me Plan Cards Hybrid Integration）へ着手する。
+> **次のステップ**: 確認完了を受けPR-ME-REBUILD-01（Me Plan Cards Hybrid Integration）へ
+> 着手した（上記参照）。
 >
 > **PR-HOME-REBUILD-01: Prototype Home Full Replacement（2026-07-19）**
 > Founderの「HOME CONTENT AUDIT」（2026-07-19）でHero Ring/7日ストリーク/
