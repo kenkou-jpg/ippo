@@ -52,141 +52,99 @@
     <button class="btn-primary onboarding-start" id="btn-onboarding-start">はじめる →</button>
   </main>
 
-  <!-- ============ HOME ============ -->
-  <main class="screen" id="screen-home" data-screen="home" hidden>
+  <!-- ============ HOME (v3: ゼロベース再設計) ============
+       docs/rebuild/IPPO_PRODUCT_RESET_COUNCIL_V3.md の結論に基づく全面刷新。
+       Home単体で「今日の目標／今日の記録／今日の変化／今日の提案」の4ブロックのみが完結する。
+       旧HomeにあったHero Ring・7日ストリーク・Milestone・進行中の実験カード・Before→After結果
+       カード（共有ビジュアル）・次の実験候補カードはここでは使わない（Experiment/Insights/Me画面
+       には引き続き存在する。削除したのはHome表示のみ）。「実験」という語もHomeからは排除した。
+       将来のシリーズ展開（断食/睡眠/腸活等）を見据え、クラス名は疾患非依存の汎用命名(home2-*)。 -->
+  <main class="screen screen-home2" id="screen-home" data-screen="home" hidden>
 
-    <!-- Hero: 挨拶 / 実験Day / 進捗 / 今日の目的 -->
-    <header class="hero">
-      <div class="hero-top-row">
-        <div class="brand-lockup">
-          <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
-            <circle cx="13" cy="13" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="42 17" transform="rotate(-45 13 13)"/>
-            <circle cx="22.5" cy="22.5" r="2.1" fill="currentColor"/>
-          </svg>
-          <div class="brand-lockup-text">
-            <span class="brand-wordmark">ippo</span>
-            <span class="brand-tagline">EXPERIMENT LOG</span>
-          </div>
-        </div>
-        <span class="hero-date" id="hero-date">7月8日（水）</span>
-      </div>
-      <p class="hero-greeting" id="hero-greeting">おはようございます、あかりさん</p>
-
-      <div class="hero-signature">
-        <div class="hero-ring" id="hero-ring" style="--pct:0">
-          <div class="hero-ring-inner">
-            <span class="hero-ring-day" id="hero-day-number">0</span>
-            <span class="hero-ring-unit">日目</span>
-          </div>
-        </div>
-        <div class="hero-signature-info">
-          <span class="hero-experiment-name" id="hero-experiment-name">🌱 まだ実験はありません</span>
-          <span class="hero-progress-caption" id="hero-progress-caption">記録を続けると実験を始められます</span>
-        </div>
-      </div>
-
-      <div class="hero-streak" aria-hidden="true">
-        <span class="hero-streak-label">直近7日</span>
-        <div class="hero-streak-dots" id="hero-streak-dots">
-          <span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span><span class="streak-dot"></span>
-        </div>
-      </div>
-
-      <div class="hero-focus-row">
-        <span class="hero-focus-label">今日の目的</span>
-        <span class="hero-focus-text" id="hero-focus-text">気になることを3日間、記録してみましょう</span>
-      </div>
-    </header>
-
-    <!-- 実験完了時の静かなお祝い -->
-    <section class="milestone-banner" id="home-milestone-banner" hidden>
-      <span class="milestone-mark" aria-hidden="true">✦</span>
-      <div class="milestone-copy">
-        <div class="milestone-title" id="milestone-title"></div>
-        <p class="milestone-sub" id="milestone-sub"></p>
-      </div>
-    </section>
-
-    <!-- 今日の記録：あえて控えめな帯 -->
-    <div class="record-strip" id="home-record-strip">
-      <!-- filled by app.js -->
-    </div>
-
-    <!-- 気づき / 空状態ガイド（Day0のみ） -->
-    <section class="card card-insight" id="home-insight-card">
-      <div class="card-kicker">
-        <span class="card-icon-badge badge-gold">💡</span>
-        <span class="card-kicker-label" id="home-insight-label">今日の気づき</span>
-      </div>
-      <p class="card-quote" id="home-insight-text"></p>
-      <div class="confidence-row" id="home-insight-confidence-row" hidden>
-        <div class="confidence-meter" aria-hidden="true">
-          <span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span><span class="confidence-dot"></span>
-        </div>
-        <span class="confidence-tag" id="home-insight-confidence"></span>
-      </div>
-      <button class="card-cta" data-nav="insights" id="home-insight-cta">くわしく見る →</button>
-    </section>
-
-    <!-- 進行中の実験 -->
-    <section class="card card-experiment" id="home-experiment-section">
-      <div class="card-kicker">
-        <span class="card-icon-badge badge-rose">🧪</span>
-        <span class="card-kicker-label">進行中の実験</span>
-      </div>
-      <div class="home-experiment-body" id="home-experiment-card">
-        <!-- filled by app.js -->
-      </div>
-    </section>
-
-    <!-- 結果：Before → After（共有前提ビジュアル） -->
-    <section class="card card-result card-shareable" id="home-result-section" hidden>
-      <div class="share-watermark" aria-hidden="true">
-        <svg class="brand-mark" viewBox="0 0 28 28" focusable="false">
+    <header class="home2-topbar">
+      <div class="brand-lockup">
+        <svg class="brand-mark" viewBox="0 0 28 28" aria-hidden="true" focusable="false">
           <circle cx="13" cy="13" r="9.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="42 17" transform="rotate(-45 13 13)"/>
           <circle cx="22.5" cy="22.5" r="2.1" fill="currentColor"/>
         </svg>
-        <span>ippo</span>
+        <span class="home2-wordmark">ippo</span>
       </div>
-      <div class="card-kicker">
-        <span class="card-icon-badge badge-sage">📈</span>
-        <span class="card-kicker-label">実験の結果</span>
+      <span class="home2-date">7月8日（水）</span>
+    </header>
+
+    <!-- ① 今日の目標 -->
+    <section class="home2-block home2-goal">
+      <span class="home2-goal-label">今月の目標</span>
+      <p class="home2-goal-text">生理痛を少し軽くしたい</p>
+      <div class="home2-goal-progress" aria-hidden="true">
+        <div class="home2-goal-progress-track"><div class="home2-goal-progress-fill" style="--pct:38"></div></div>
+        <span class="home2-goal-progress-caption">記録12日目・少しずつ変化が見えてきています</span>
       </div>
-      <div class="result-flow">
-        <span class="result-before" id="home-result-before">乳製品断ち</span>
-        <span class="result-arrow">→</span>
-        <span class="result-target" id="home-result-target">肌荒れ</span>
-      </div>
-      <div class="result-main-row">
-        <div class="result-delta-block">
-          <div class="result-delta" id="home-result-delta">-38<span class="result-delta-unit">%</span></div>
-          <p class="result-meaning" id="home-result-meaning">肌荒れが落ち着いてきた実感があります</p>
-        </div>
-        <div class="result-mini-compare">
-          <div class="result-mini-col">
-            <div class="result-mini-track"><div class="result-mini-fill before" id="home-result-mini-before" style="height:54%"></div></div>
-            <span class="result-mini-label">前</span>
-          </div>
-          <div class="result-mini-col">
-            <div class="result-mini-track"><div class="result-mini-fill after" id="home-result-mini-after" style="height:82%"></div></div>
-            <span class="result-mini-label">後</span>
-          </div>
-        </div>
-      </div>
-      <p class="result-caption" id="home-result-caption">実験開始から2週間の変化・7件の記録から算出</p>
     </section>
 
-    <!-- 次の実験候補 -->
-    <section class="card card-next" id="home-next-section" hidden>
-      <div class="card-kicker">
-        <span class="card-icon-badge badge-gold">🌱</span>
-        <span class="card-kicker-label">次の実験候補</span>
+    <!-- ② 今日の記録（Home最大のコンテンツ、10秒以内で終わる想定） -->
+    <section class="home2-block home2-record">
+      <span class="home2-block-label">今日の記録</span>
+      <div class="home2-record-fields">
+        <div class="home2-record-field">
+          <span class="home2-record-field-label">痛み</span>
+          <div class="emoji-picker" data-field="pain">
+            <button data-value="1">😊</button>
+            <button data-value="2">🙂</button>
+            <button data-value="3" class="selected">😐</button>
+            <button data-value="4">😣</button>
+            <button data-value="5">😖</button>
+          </div>
+        </div>
+        <div class="home2-record-field">
+          <span class="home2-record-field-label">気分</span>
+          <div class="emoji-picker" data-field="mood">
+            <button data-value="1">😞</button>
+            <button data-value="2">😐</button>
+            <button data-value="3" class="selected">🙂</button>
+            <button data-value="4">😊</button>
+            <button data-value="5">😄</button>
+          </div>
+        </div>
+        <div class="home2-record-field">
+          <span class="home2-record-field-label">睡眠</span>
+          <div class="chip-group" data-field="sleep">
+            <button data-value="short">短い</button>
+            <button data-value="normal" class="selected">普通</button>
+            <button data-value="long">よく寝た</button>
+          </div>
+        </div>
       </div>
-      <div class="next-title" id="home-next-title">☕ カフェイン断ち・2週間</div>
-      <p class="next-expected" id="home-next-expected">同じ悩みの人の <strong>62%</strong> が「寝つきの改善」を実感</p>
-      <p class="next-reassure">いつでもやめられます。まずは軽い気持ちで。</p>
-      <button class="btn-gold" data-nav="experiment">試してみる →</button>
+      <button class="home2-record-save" id="btn-home2-record-save">記録する</button>
     </section>
+
+    <!-- ③ 今日の変化（AIが自動生成。難しいグラフは使わない） -->
+    <section class="home2-block home2-change">
+      <span class="home2-block-label">今日の変化</span>
+      <div class="home2-change-grid">
+        <div class="home2-change-item">
+          <span class="home2-change-value down">-15%</span>
+          <span class="home2-change-name">痛み</span>
+        </div>
+        <div class="home2-change-item">
+          <span class="home2-change-value up">+40分</span>
+          <span class="home2-change-name">睡眠</span>
+        </div>
+        <div class="home2-change-item">
+          <span class="home2-change-value down">-8%</span>
+          <span class="home2-change-name">ストレス</span>
+        </div>
+      </div>
+      <p class="home2-change-caption">昨日と比べた変化です。参考情報であり、医療的な判断ではありません。</p>
+    </section>
+
+    <!-- ④ 今日の提案（診断ではなく生活提案のみ） -->
+    <section class="home2-block home2-suggestion">
+      <span class="home2-block-label">今日の提案</span>
+      <p class="home2-suggestion-text">今日はカフェインを控えてみませんか？</p>
+      <p class="home2-suggestion-reason">記録から、カフェインを摂った日に痛みが強くなる傾向が見られました</p>
+    </section>
+
   </main>
 
   <!-- ============ RECORD ============ -->

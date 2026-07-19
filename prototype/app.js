@@ -381,41 +381,6 @@ function renderRecordDiseaseDisclosure() {
 
 /* ===== Rendering ===== */
 
-function renderHero(day) {
-  document.getElementById("hero-day-number").textContent = day.heroDayNumber;
-  document.getElementById("hero-ring").style.setProperty("--pct", day.heroProgressPct);
-  document.getElementById("hero-experiment-name").textContent = day.heroExperimentName;
-  document.getElementById("hero-progress-caption").textContent = day.heroProgressCaption;
-
-  // Day0のみ「気になること」に合わせた軽量シグナルに差し替える（Home自体への女性向けシグナル）
-  let focusText = day.heroFocusText;
-  if (day.currentDay === 0) {
-    const primary = STATE.concerns.find((c) => c !== "none");
-    if (primary && CONCERN_CONTENT[primary]) focusText = CONCERN_CONTENT[primary].homeFocus;
-  }
-  document.getElementById("hero-focus-text").textContent = focusText;
-
-  renderHeroStreak(day);
-}
-
-/* 直近7日継続ストリップ: Hero内への軽量統合。missed/futureは同じ見た目にし、未達成を責めない */
-function renderHeroStreak(day) {
-  const dots = document.querySelectorAll("#hero-streak-dots .streak-dot");
-  const streak = day.streak || [];
-  dots.forEach((dot, i) => {
-    dot.classList.toggle("dot-recorded", streak[i] === "recorded");
-    dot.classList.toggle("dot-today", i === dots.length - 1);
-  });
-}
-
-function renderHomeMilestone(day) {
-  const banner = document.getElementById("home-milestone-banner");
-  if (!day.milestone) { banner.hidden = true; return; }
-  banner.hidden = false;
-  document.getElementById("milestone-title").textContent = day.milestone.title;
-  document.getElementById("milestone-sub").textContent = day.milestone.sub;
-}
-
 /* 確信度メーター: 3〜5段階のドット表示。断定はせず「参考程度」の度合いを示すのみ */
 function renderConfidenceMeter(rowId, tagId, confidence) {
   const row = document.getElementById(rowId);
@@ -426,56 +391,6 @@ function renderConfidenceMeter(rowId, tagId, confidence) {
   row.querySelectorAll(".confidence-dot").forEach((dot, i) => {
     dot.classList.toggle("filled", i < confidence.level);
   });
-}
-
-function renderHomeInsight(day) {
-  const label = document.getElementById("home-insight-label");
-  const text = document.getElementById("home-insight-text");
-  const cta = document.getElementById("home-insight-cta");
-
-  label.textContent = day.insight.label;
-  text.innerHTML = day.insight.text;
-  renderConfidenceMeter("home-insight-confidence-row", "home-insight-confidence", day.insight.confidence);
-  cta.hidden = !day.insight.ctaVisible;
-}
-
-function renderHomeExperiment(day) {
-  const el = document.getElementById("home-experiment-card");
-  if (!day.experiment) {
-    el.innerHTML = `<p class="empty-guide-text">${day.experimentEmptyText}</p>`;
-    return;
-  }
-  const ex = day.experiment;
-  el.innerHTML = `
-    <div class="mini-progress-ring" style="--pct:${ex.pct}"><span>Day ${ex.day}</span></div>
-    <div>
-      <div class="experiment-card-title">${ex.icon} ${ex.name}</div>
-      <div class="experiment-card-sub">${ex.day >= ex.total ? "今日で完了・お疲れさまでした" : `残り ${ex.total - ex.day} 日・${ex.day}日連続で継続中`}</div>
-    </div>
-  `;
-}
-
-function renderHomeResult(day) {
-  const section = document.getElementById("home-result-section");
-  if (!day.result) { section.hidden = true; return; }
-  section.hidden = false;
-  document.getElementById("home-result-before").textContent = day.result.before;
-  document.getElementById("home-result-target").textContent = day.result.target;
-  document.getElementById("home-result-delta").innerHTML = `${day.result.delta}<span class="result-delta-unit">${day.result.unit}</span>`;
-  document.getElementById("home-result-meaning").textContent = day.result.meaning;
-  document.getElementById("home-result-caption").textContent = day.result.caption;
-  if (day.compare) {
-    document.getElementById("home-result-mini-before").style.height = day.compare.beforeHeight + "%";
-    document.getElementById("home-result-mini-after").style.height = day.compare.afterHeight + "%";
-  }
-}
-
-function renderHomeNext(day) {
-  const section = document.getElementById("home-next-section");
-  if (!day.next) { section.hidden = true; return; }
-  section.hidden = false;
-  document.getElementById("home-next-title").textContent = `${day.next.icon} ${day.next.title}`;
-  document.getElementById("home-next-expected").innerHTML = day.next.expected;
 }
 
 function renderRecordFocusBanner(day) {
@@ -568,42 +483,8 @@ function renderProfileConcern() {
   el.textContent = "気になること: " + real.map((c) => CONCERN_CONTENT[c].label).join("、");
 }
 
-function renderHomeRecordStrip() {
-  const el = document.getElementById("home-record-strip");
-  if (STATE.todayRecorded) {
-    el.innerHTML = `
-      <div class="record-strip-left">
-        <span class="record-strip-icon">📝</span>
-        <span>今日の記録</span>
-        <span class="record-strip-chips">
-          <span>気分 🙂</span><span>睡眠 普通</span><span>肌 普通</span>
-        </span>
-      </div>
-      <span class="record-strip-done">完了 ✓</span>
-    `;
-  } else {
-    el.innerHTML = `
-      <div class="record-strip-left">
-        <span class="record-strip-icon">📝</span>
-        <span>今日はまだ記録していません</span>
-      </div>
-      <button class="record-strip-cta" data-nav="record">10秒で記録</button>
-    `;
-  }
-  document.querySelectorAll("#home-record-strip [data-nav]").forEach((btn) => {
-    btn.addEventListener("click", () => navigateTo(btn.dataset.nav));
-  });
-}
-
 function renderAll() {
   const day = { ...DAY_STATES[STATE.currentDay], currentDay: STATE.currentDay };
-  renderHero(day);
-  renderHomeMilestone(day);
-  renderHomeRecordStrip();
-  renderHomeInsight(day);
-  renderHomeExperiment(day);
-  renderHomeResult(day);
-  renderHomeNext(day);
   renderRecordFocusBanner(day);
   renderRecordTagHighlight(day);
   renderRecordDiseaseDisclosure();
@@ -804,12 +685,27 @@ function initRecordForm() {
     btn.classList.add("submit-success");
     btn.textContent = "記録しました ✓";
     setTimeout(() => {
-      renderHomeRecordStrip();
       showToast("今日の記録を保存しました");
       navigateTo("home");
       btn.classList.remove("submit-success");
       btn.textContent = "記録する";
     }, 550);
+  });
+}
+
+/* ===== Home v3: 今日の記録ブロック（画面遷移なしでその場完結） ===== */
+function initHomeRecordSave() {
+  const btn = document.getElementById("btn-home2-record-save");
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    STATE.todayRecorded = true;
+    btn.classList.add("saved");
+    btn.textContent = "記録しました ✓";
+    showToast("今日の記録を保存しました");
+    setTimeout(() => {
+      btn.classList.remove("saved");
+      btn.textContent = "記録する";
+    }, 1800);
   });
 }
 
@@ -819,6 +715,7 @@ function init() {
   initNav();
   initModal();
   initRecordForm();
+  initHomeRecordSave();
   renderAll();
 }
 
